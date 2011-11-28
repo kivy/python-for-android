@@ -1,0 +1,83 @@
+1.2.7:
+Joakim L. Gilje - Sat Jul 14 22:54:37 PDT 2007
+ * Set server TCP sockets to blocking mode on Mac OS X, Solaris, etc.
+
+1.2.6:
+Sam Lantinga - Sun Apr 30 01:48:40 PDT 2006
+ * Added gcc-fat.sh for generating Universal binaries on Mac OS X
+ * Updated libtool support to version 1.5.22
+Sam Lantinga - Wed Nov 19 00:23:44 PST 2003
+ * Updated libtool support for new mingw32 DLL build process
+Shard - Thu, 05 Jun 2003 09:30:20 -0500
+ * Fixed compiling on BeOS, which may not have SO_BROADCAST
+Kyle Davenport - Sat, 19 Apr 2003 17:13:31 -0500
+ * Added .la files to the development RPM, fixing RPM build on RedHat 8
+
+1.2.5:
+Luc-Olivier de Charrière - Sun, 05 Jan 2003 22:04:29 +0100
+ * Added support for sending UDP broadcast packets
+Sam Lantinga - Sun Oct 20 20:54:41 PDT 2002
+ * Added shared library support for MacOS X
+Sam Lantinga - Sat Aug 24 18:16:08 PDT 2002
+ * It is now safe to nest calls to SDLNet_Init() / SDLNet_Quit()
+Gaëtan de Menten - Sat Aug 24 18:08:39 PDT 2002
+ * Fixed UDP virtual address bind bug
+
+1.2.4:
+Sam Lantinga - Sat Apr 13 07:49:47 PDT 2002
+ * Updated autogen.sh for new versions of automake
+ * Specify the SDL API calling convention (C by default)
+Stephane Magnenat - Wed Feb 13 15:28:04 PST 2002
+ * Sockets are created with the SO_REUSEADDR flag by default
+Juergen Wind - Wed Feb 13 09:21:55 PST 2002
+ * Fixed data alignment problems on IRIX
+
+1.2.3:
+Sam Lantinga - Fri Oct 26 07:15:28 PDT 2001
+ * Fixed byte order read/write macros on sparc
+Jonathan Atkins - Sun Sep 23 10:44:27 PDT 2001
+ * Fixed non-blocking socket flags on Windows
+
+1.2.2:
+Sam Lantinga - Sun Jul 22 16:41:44 PDT 2001
+ * Added Project Builder projects for building MacOS X framework
+Masahiro Minami - Sun, 27 May 2001 02:10:35 +0900
+ * Added working MacOS Open Transport support
+
+1.2.1:
+Sam Lantinga - Tue Apr 17 11:42:13 PDT 2001
+ * Cleaned up swap function definitions in SDL_net.h
+ * Added the swap functions back in for binary compatibility
+Paul Jenner - Sat, 14 Apr 2001 09:20:38 -0700 (PDT)
+ * Added support for building RPM directly from tar archive
+
+1.2.0:
+Sam Lantinga - Wed Apr  4 12:42:20 PDT 2001
+ * Synchronized release version with SDL 1.2.0
+
+1.1.2:
+Sam Lantinga - Sat Feb 10 16:33:59 PST 2001
+ * SDL_net works with the sockets API out of the box on MacOS X.
+Paul S Jenner - Sun, 4 Feb 2001 03:58:44 -0800 (PST)
+ * Added an RPM spec file
+Patrick Levin - Mon, 8 Jan 2001 23:20:11 +0100
+ * Fixed non-blocking socket modes on Win32
+John Lawrence - Mon, 13 Nov 2000 10:39:48 -0800
+ * Fixed compile problem with MSVC++ (type casting)
+
+1.1.1:
+Sam Lantinga - Sat Jul  1 15:20:51 PDT 2000
+ * Modified chat example to work with GUIlib 1.1.0
+Roy Wood - Fri Jun 30 10:41:05 PDT 2000
+ * A few MacOS fixes (not yet complete)
+
+1.1.0:
+Andreas Umbach - Sat May 27 14:44:06 PDT 2000
+ * Suggested non-blocking server sockets
+ * Suggested setting TCP_NODELAY by default
+Roy Wood - Sat May 27 14:41:42 PDT 2000
+ * Ported to MacOS (not yet complete)
+
+1.0.2:
+Miguel Angel Blanch - Sat, 22 Apr 2000 23:06:05
+ * Implemented SDLNet_ResolveIP()
