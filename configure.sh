@@ -14,6 +14,7 @@ ROOT_PATH="$(dirname $(readlink -f $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 PACKAGES_PATH="$BUILD_PATH/packages"
+SRC_PATH="$ROOT_PATH/src"
 
 # Internals
 CRED="\x1b[31;01m"
@@ -172,7 +173,7 @@ function run_order_modules() {
 
 	# update modules by priority
 	MODULES=$(sort -n $filename|cut -d\  -f2)
-	info "Module order is $MODULES"
+	info "Module order is '$MODULES'"
 
 	# remove temporary filename
 	rm $filename
@@ -189,15 +190,21 @@ function run_get_deps() {
 		url=${!url}
 		md5="MD5_$module"
 		md5=${!md5}
-		filename=$(basename $url)
-		do_download=1
 
 		if [ ! -d "$BUILD_PATH/$module" ]; then
 			try mkdir -p $BUILD_PATH/$module
 		fi
-		cd $PACKAGES_PATH
+
+		if [ "X$url" == "X" ]; then
+			debug "No dependencies for $module"
+			continue
+		fi
+
+		filename=$(basename $url)
+		do_download=1
 
 		# check if the file is already present
+		cd $PACKAGES_PATH
 		if [ -f $filename ]; then
 
 			# check if the md5 is correct
@@ -236,10 +243,30 @@ function run_get_deps() {
 		fi
 
 		# decompress
-		case $filename in
-			*.tar.gz|*.tgz ) try tar xzf $PACKAGES_PATH/$filename ;;
-			*.tar.bz2|*.tbz2 ) try tar xjf $PACKAGES_PATH/$filename ;;
-			*.zip ) try unzip x $PACKAGES_PATH/$filename ;;
+		pfilename=$PACKAGES_PATH/$filename
+		info "Extract $pfilename"
+		case $pfilename in
+			*.tar.gz|*.tgz )
+				try tar xzf $pfilename
+				root_directory=$(basename $(try tar tzf $pfilename|head -n1))
+				if [ "X$root_directory" != "X$directory" ]; then
+					mv $root_directory $directory
+				fi
+				;;
+			*.tar.bz2|*.tbz2 )
+				try tar xjf $pfilename
+				root_directory=$(basename $(try tar tjf $pfilename|head -n1))
+				if [ "X$root_directory" != "X$directory" ]; then
+					mv $root_directory $directory
+				fi
+				;;
+			*.zip )
+				try unzip x $pfilename
+				root_directory=$(basename $(try unzip -l $pfilename|sed -n 4p|awk '{print $4}'))
+				if [ "X$root_directory" != "X$directory" ]; then
+					mv $root_directory $directory
+				fi
+				;;
 		esac
 	done
 }
