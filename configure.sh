@@ -15,12 +15,18 @@ RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 PACKAGES_PATH="$BUILD_PATH/packages"
 SRC_PATH="$ROOT_PATH/src"
+JNI_PATH="$SRC_PATH/jni"
 
 # Internals
 CRED="\x1b[31;01m"
 CBLUE="\x1b[34;01m"
 CGRAY="\x1b[30;01m"
 CRESET="\x1b[39;49;00m"
+
+# Initial enviromnent
+export NDKPLATFORM="$ANDROIDNDK/platforms/android-5/arch-arm"
+export ARCH="armeabi"
+#export ARCH="armeabi-v7a" # not tested yet.
 
 #set -x
 
@@ -57,14 +63,9 @@ function get_directory() {
 
 function push_arm() {
 	info "Entering in ARM enviromnent"
-	# ANDROIDSDK / ANDROIDNDK
-	#export NDK="$PGS4A_ROOT/android-ndk-r5b"
-	#export SDK="$PGS4A_ROOT/android-sdk-linux_86/"
-	export NDKPLATFORM="$ANDROIDNDK/platforms/android-5/arch-arm"
 
 	# save for pop
 	export OLD_PATH=$PATH
-	export OLD_ARCH=$ARCH
 	export OLD_CFLAGS=$CFLAGS
 	export OLD_CXXFLAGS=$CXXFLAGS
 	export OLD_CC=$CC
@@ -74,9 +75,7 @@ function push_arm() {
 	export OLD_STRIP=$STRIP
 	export OLD_MAKE=$MAKE
 
-	export PATH="$NDK/toolchains/arm-eabi-4.4.0/prebuilt/linux-x86/bin/:$NDK:$SDK/tools:$PATH"
-	export ARCH="armeabi"
-	#export ARCH="armeabi-v7a"
+	export PATH="$ANDROIDNDK/toolchains/arm-eabi-4.4.0/prebuilt/linux-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
 	# to override the default optimization, set OFLAG
 	#export OFLAG="-Os"
 	#export OFLAG="-O2"
@@ -105,7 +104,6 @@ function push_arm() {
 function pop_arm() {
 	info "Leaving ARM enviromnent"
 	export PATH=$OLD_PATH
-	export ARCH=$OLD_ARCH
 	export CFLAGS=$OLD_CFLAGS
 	export CXXFLAGS=$OLD_CXXFLAGS
 	export CC=$OLD_CC
@@ -145,13 +143,41 @@ function run_prepare() {
 }
 	
 function run_source_modules() {
-	for module in hostpython python $MODULES; do
+	needed=(hostpython python $MODULES)
+	declare -A processed
+
+	while [ ${#needed[*]} -ne 0 ]; do
+
+		# pop module from the needed list
+		module=${needed[0]}
+		unset needed[0]
+		needed=( ${needed[@]} )
+
+		# check if the module have already been declared
+		if [[ ${processed[$module]} ]]; then
+			debug "Ignored $module, already processed"
+			continue;
+		fi
+
+		# add this module as done
+		processed[$module]=1
+
+		# read recipe
+		debug "Read $module recipe"
 		recipe=$RECIPES_PATH/$module/recipe.sh
 		if [ ! -f $recipe ]; then
 			error "Recipe $module does not exit"
 			exit -1
 		fi
 		source $RECIPES_PATH/$module/recipe.sh
+
+		# append current module deps to the needed
+		deps=$(echo \$"{DEPS_$module[@]}")
+		eval deps=($deps)
+		if [ ${#deps[*]} -gt 0 ]; then
+			debug "Module $module depend on" ${deps[@]}
+			needed=( ${needed[@]} ${deps[@]} )
+		fi
 	done
 }
 
