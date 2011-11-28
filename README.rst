@@ -1,6 +1,9 @@
 Python for Android
 ==================
 
+===== THE PROJECT IS NOT USABLE YET =====
+
+
 Python for android is a project to create your own Python distribution
 including the modules you want, and create an apk including python, libs, and
 your application.
