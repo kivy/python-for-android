@@ -60,8 +60,8 @@ After installing them, export both installation path::
     export ANDROIDNDK=/path/to/android-ndk
 
     # examples
-	export ANDROIDSDK="/home/tito/code/android/android-sdk-linux_86"
-	export ANDROIDNDK="/home/tito/code/android/android-ndk-r5b"
+    export ANDROIDSDK="/home/tito/code/android/android-sdk-linux_86"
+    export ANDROIDNDK="/home/tito/code/android/android-ndk-r5b"
 
 
 Usage
