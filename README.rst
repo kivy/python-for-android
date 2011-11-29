@@ -107,7 +107,7 @@ For example, if you want to create a recipe for sdl, do::
     cd python-for-android/recipes
     mkdir sdl
     cp recipe.sh.tmpl sdl/recipe.sh
-    sed -i 's#XXX#sdl' sdl/recipe.sh
+    sed -i 's#XXX#sdl#' sdl/recipe.sh
 
 Then, edit the sdl/recipe.sh to adjust other information (version, url) and
 complete build function.
