@@ -47,6 +47,7 @@ function build_python() {
 	pop_arm
 
 	try cp $BUILD_hostpython/hostpython $BUILD_PATH/python-install/bin/python.host
+	try cp libpython2.7.so $LIBS_PATH/
 }
 
 

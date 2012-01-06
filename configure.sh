@@ -13,6 +13,7 @@ MODULES=$MODULES
 ROOT_PATH="$(dirname $(readlink -f $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
+LIBS_PATH="$ROOT_PATH/build/libs"
 PACKAGES_PATH="$BUILD_PATH/packages"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
@@ -173,6 +174,7 @@ function run_prepare() {
 	# create build directory if not found
 	if [ ! -d $BUILD_PATH ]; then
 		mkdir -p $BUILD_PATH
+		mkdir -p $LIBS_PATH
 		mkdir -p $PACKAGES_PATH
 	fi
 

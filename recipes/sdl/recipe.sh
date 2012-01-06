@@ -2,17 +2,23 @@
 
 PRIORITY_sdl=15
 VERSION_sdl=1.3
-URL_sdl=http://www.libsdl.org/tmp/SDL-$VERSION_sdl.tar.gz
-MD5_sdl=7176d5f1a0f2683bf1394e0de18c74bb
-BUILD_sdl=$BUILD_PATH/sdl/$(get_directory $URL_sdl)
+URL_sdl=
+MD5_sdl=
+BUILD_sdl=$BUILD_PATH/sdl/SDL
 RECIPE_sdl=$RECIPES_PATH/sdl
 
 function prebuild_sdl() {
+	set -x
+	# clone sdl repo
+	if [ ! -f $BUILD_sdl ]; then
+		cd $BUILD_PATH/sdl
+		hg clone http://hg.libsdl.org/SDL
+	fi
+
 	# make the symlink to sdl in src directory
 	cd $SRC_PATH/jni
-	if [ ! -f sdl ]; then
-		ln -s $BUILD_sdl sdl
-	fi
+	rm sdl
+	ln -s $BUILD_sdl sdl
 }
 
 function build_sdl() {
@@ -20,6 +26,17 @@ function build_sdl() {
 	push_arm
 	ndk-build V=1
 	pop_arm
+
+	# rename libs
+	cp -a $SRC_PATH/libs/$ARCH/*.so $LIBS_PATH
+
+	# FIXME: patch jni compilation to make it work.
+	cd $LIBS_PATH
+	mv libsdl_image.so libSDL_image.so
+	mv libsdl_image.so libSDL_image.so
+	mv libsdl_main.so libSDL_main.so
+	mv libsdl_mixer.so libSDL_mixer.so
+	mv libsdl_ttf.so libSDL_ttf.so
 }
 
 function postbuild_sdl() {
