@@ -13,7 +13,7 @@ LOCAL_SRC_FILES := $(notdir $(wildcard $(LOCAL_PATH)/*.c))
 
 LOCAL_STATIC_LIBRARIES := png jpeg
 
-LOCAL_SHARED_LIBRARIES := SDL
+LOCAL_SHARED_LIBRARIES := sdl
 
 LOCAL_LDLIBS := -lz
 

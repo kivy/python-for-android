@@ -9,7 +9,20 @@ BUILD_pygame=$BUILD_PATH/pygame/$(get_directory $URL_pygame)
 RECIPE_pygame=$RECIPES_PATH/pygame
 
 function prebuild_pygame() {
-true
+	cd $BUILD_pygame
+
+	# check marker in our source build
+	if [ -f .patched ]; then
+		# no patch needed
+		return
+	fi
+
+	try cp $RECIPE_pygame/Setup .
+	try patch -p1 < $RECIPE_pygame/patches/fix-surface-access.patch
+	try patch -p1 < $RECIPE_pygame/patches/fix-array-surface.patch
+
+	# everything done, touch the marker !
+	touch .patched
 }
 
 function build_pygame() {

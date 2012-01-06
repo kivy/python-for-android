@@ -34,4 +34,4 @@ LOCAL_CFLAGS += -O3 -fstrict-aliasing -fprefetch-loop-arrays
 
 LOCAL_MODULE:= jpeg
 
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
