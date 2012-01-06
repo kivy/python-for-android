@@ -5,3 +5,4 @@ build
 src/obj
 src/local.properties
 src/default.properties
+dist

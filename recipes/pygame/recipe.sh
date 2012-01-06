@@ -38,6 +38,11 @@ function build_pygame() {
 	try $BUILD_PATH/python-install/bin/python.host setup.py install
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
+	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/docs
+	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/examples
+	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/tests
+	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/gp2x
+
 	pop_arm
 }
 

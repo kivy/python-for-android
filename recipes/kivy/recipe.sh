@@ -22,6 +22,11 @@ function prebuild_kivy() {
 function build_kivy() {
 	cd $BUILD_kivy
 
+	# if the last step have been done, avoid all
+	if [ -f .done ]; then
+		return
+	fi
+	
 	push_arm
 
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH"
@@ -33,6 +38,9 @@ function build_kivy() {
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 
+	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/kivy/tools
+
+	touch .done
 	pop_arm
 }
 

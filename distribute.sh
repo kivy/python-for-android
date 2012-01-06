@@ -17,6 +17,7 @@ LIBS_PATH="$ROOT_PATH/build/libs"
 PACKAGES_PATH="$BUILD_PATH/packages"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
+DIST_PATH="$ROOT_PATH/dist"
 
 # Internals
 CRED="\x1b[31;01m"
@@ -368,6 +369,62 @@ function run_postbuild() {
 	done
 }
 
+function run_distribute() {
+	info "Run distribute"
+
+	if [ -e $DIST_PATH ]; then
+		debug "Remove old distribution"
+		try rm -rf $DIST_PATH
+	fi
+
+	debug "Create new distribution at $DIST_PATH"
+	try mkdir -p $DIST_PATH
+	cd $DIST_PATH
+
+	debug "Create initial layout"
+	try mkdir assets bin gen obj private res templates
+
+	debug "Copy default files"
+	try cp -a $SRC_PATH/default.properties .
+	try cp -a $SRC_PATH/local.properties .
+	try cp -a $SRC_PATH/build.py .
+	try cp -a $SRC_PATH/buildlib .
+	try cp -a $SRC_PATH/src .
+	try cp -a $SRC_PATH/templates .
+	try cp -a $SRC_PATH/res .
+
+	debug "Copy python distribution"
+	try cp -a $BUILD_PATH/python-install .
+
+	debug "Copy libs"
+	try mkdir -p libs/$ARCH
+	try cp -a $BUILD_PATH/libs/* libs/$ARCH/
+
+	debug "Fill private directory"
+	try cp -a python-install/lib/python* private/lib
+	try mv private/lib/lib-dynload/*.so private/
+
+	debug "Reduce private directory from unwanted files"
+	cd $DIST_PATH/private/lib
+	try find . | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$' | xargs rm
+	try rm -rf test
+	try rm -rf ctypes
+	try rm -rf lib2to3
+	try rm -rf lib-tk
+	try rm -rf idlelib
+	try rm -rf unittest/test
+	try rm -rf lib-dynload
+	try rm -rf json/tests
+	try rm -rf distutils/tests
+	try rm -rf email/test
+	try rm -rf bsddb/test
+	try rm -rf distutils
+	try rm -rf config/libpython*.a
+	try rm -rf config/python.o
+	try rm -rf curses
+
+}
+
 function run() {
 	run_prepare
 	run_source_modules
@@ -376,6 +433,7 @@ function run() {
 	run_prebuild
 	run_build
 	run_postbuild
+	run_distribute
 	info "All done !"
 }
 
