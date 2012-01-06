@@ -119,3 +119,11 @@ Related project
 - PGS4A: http://pygame.renpy.org/
 - Android scripting: http://code.google.com/p/android-scripting/
 - Python on a chip: http://code.google.com/p/python-on-a-chip/
+
+
+TODO
+----
+
+- Make Android API configurable (defined in src/default.properties => shoudl be generated)
+- jni/Android.mk must not include ttf/image/mixer if not asked by the user
+- application should be automatically generated (Android.mk etc...)

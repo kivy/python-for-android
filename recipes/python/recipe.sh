@@ -21,6 +21,7 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-xcompile.patch
 	try patch -p1 < $RECIPE_python/patches/disable-modules.patch
 	try patch -p1 < $RECIPE_python/patches/fix-locale.patch
+	try patch -p1 < $RECIPE_python/patches/fix-gethostbyaddr.patch
 	try patch -p1 < $RECIPE_python/patches/custom-loader.patch
 
 	# everything done, touch the marker !
@@ -41,7 +42,7 @@ function build_python() {
 
 	push_arm
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared
-	try $MAKE HOSTPYTHON=$BUILD_hostpython/hostpython HOSTPGEN=$BUILD_hostpython/hostpgen CROSS_COMPILE=arm-eabi- CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so 
+	try $MAKE HOSTPYTHON=$BUILD_hostpython/hostpython HOSTPGEN=$BUILD_hostpython/hostpgen CROSS_COMPILE=arm-eabi- CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	try $MAKE install HOSTPYTHON=$BUILD_hostpython/hostpython HOSTPGEN=$BUILD_hostpython/hostpgen CROSS_COMPILE=arm-eabi- CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	pop_arm
 

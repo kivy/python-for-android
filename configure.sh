@@ -23,10 +23,12 @@ CBLUE="\x1b[34;01m"
 CGRAY="\x1b[30;01m"
 CRESET="\x1b[39;49;00m"
 
-# Initial enviromnent
-export NDKPLATFORM="$ANDROIDNDK/platforms/android-5/arch-arm"
-export ARCH="armeabi"
-#export ARCH="armeabi-v7a" # not tested yet.
+# Use ccache ?
+which ccache &>/dev/null
+if [ $? -eq 0 ]; then
+	export CC="ccache gcc"
+	export CXX="ccache g++"
+fi
 
 #set -x
 
@@ -75,7 +77,6 @@ function push_arm() {
 	export OLD_STRIP=$STRIP
 	export OLD_MAKE=$MAKE
 
-	export PATH="$ANDROIDNDK/toolchains/arm-eabi-4.4.0/prebuilt/linux-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
 	# to override the default optimization, set OFLAG
 	#export OFLAG="-Os"
 	#export OFLAG="-O2"
@@ -86,11 +87,25 @@ function push_arm() {
 	fi
 	export CXXFLAGS="$CFLAGS"
 
-	export CC="arm-eabi-gcc $CFLAGS"
-	export CXX="arm-eabi-g++ $CXXFLAGS"
-	export AR="arm-eabi-ar" 
-	export RANLIB="arm-eabi-ranlib"
-	export STRIP="arm-eabi-strip --strip-unneeded"
+	# this must be something depending of the API level of Android
+	export PATH="$ANDROIDNDK/toolchains/arm-eabi-4.4.0/prebuilt/linux-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
+	if [ "X$ANDROIDNDKVER" == "Xr7"  ]; then
+		export TOOLCHAIN_PREFIX=arm-linux-androideabi
+		export TOOLCHAIN_VERSION=4.4.3
+	elif [ "X$ANDROIDNDKVER" == "Xr5b" ]; then
+		export TOOLCHAIN_PREFIX=arm-eabi
+		export TOOLCHAIN_VERSION=4.4.0
+	else
+		error "Unable to configure NDK toolchain for NDK $ANDROIDNDKVER"
+		exit -1
+	fi
+
+	export PATH="$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/linux-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
+	export CC="$TOOLCHAIN_PREFIX-gcc $CFLAGS"
+	export CXX="$TOOLCHAIN_PREFIX-g++ $CXXFLAGS"
+	export AR="$TOOLCHAIN_PREFIX-ar" 
+	export RANLIB="$TOOLCHAIN_PREFIX-ranlib"
+	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
 	export MAKE="make -j5"
 
 	# Use ccache ?
@@ -120,10 +135,30 @@ function run_prepare() {
 		error "No ANDROIDSDK environment set, abort"
 		exit -1
 	fi
+
 	if [ "X$ANDROIDNDK" == "X" ]; then
 		error "No ANDROIDNDK environment set, abort"
 		exit -1
 	fi
+
+	if [ "X$ANDROIDAPI" == "X" ]; then
+		export ANDROIDAPI=14
+	fi
+
+	if [ "X$ANDROIDNDKVER" == "X" ]; then
+		error "No ANDROIDNDKVER enviroment set, abort"
+		error "(Must be something like 'r5b', 'r7'...)"
+		exit -1
+	fi
+
+	debug "SDK located at $ANDROIDSDK"
+	debug "NDK located at $ANDROIDNDK"
+	debug "NDK version is $ANDROIDNDKVER"
+	debug "API level set to $ANDROIDAPI"
+
+	export NDKPLATFORM="$ANDROIDNDK/platforms/android-$ANDROIDAPI/arch-arm"
+	export ARCH="armeabi"
+	#export ARCH="armeabi-v7a" # not tested yet.
 
 	info "Check mandatory tools"
 	# ensure that some tools are existing
@@ -140,8 +175,12 @@ function run_prepare() {
 		mkdir -p $BUILD_PATH
 		mkdir -p $PACKAGES_PATH
 	fi
+
+	# create initial files
+	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
+	echo "sdk.dir=$ANDROIDSDK" > $SRC_PATH/local.properties
 }
-	
+
 function run_source_modules() {
 	needed=(hostpython python $MODULES)
 	declare -A processed

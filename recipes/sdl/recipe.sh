@@ -17,7 +17,9 @@ function prebuild_sdl() {
 
 function build_sdl() {
 	cd $SRC_PATH/jni
+	push_arm
 	ndk-build V=1
+	pop_arm
 }
 
 function postbuild_sdl() {
