@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="{{args.package}}"
+          android:versionCode="{{args.numeric_version}}"
+          android:versionName="{{args.version}}"
+          android:installLocation="{{ args.install_location }}"
+          >
+
+  <application android:label="@string/appName" 
+               android:icon="@drawable/icon"
+               >
+
+    <activity android:name="org.renpy.android.PythonActivity"
+              android:label="@string/iconName"
+              android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode"
+              android:launchMode="singleTask"
+              android:process=":python"
+              android:screenOrientation="{{ args.orientation }}"
+              android:windowSoftInputMode="stateAlwaysHidden"
+            >
+
+      {% if args.launcher %}
+      <intent-filter>
+        <action android:name="org.renpy.LAUNCH" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:scheme="{{ url_scheme }}" />
+      </intent-filter>
+      {% else  %}
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      {% endif %}    
+
+    </activity>
+
+    {% if args.launcher %}
+    <activity android:name="org.renpy.android.ProjectChooser"
+              android:label="@string/iconName"
+              >
+
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+
+    </activity>
+    {% endif %}
+      
+  </application>
+
+  <uses-sdk android:minSdkVersion="5" android:targetSdkVersion="5"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK" /> 
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+  {% for perm in args.permissions %}
+  <uses-permission android:name="android.permission.{{ perm }}" />
+  {% endfor %}
+    
+{{ manifest_extra }}
+</manifest> 
