@@ -433,6 +433,11 @@ function run() {
 	run_source_modules
 	run_order_modules
 	run_get_deps
+
+	push_arm
+	debug $PATH
+	pop_arm
+
 	run_prebuild
 	run_build
 	run_postbuild

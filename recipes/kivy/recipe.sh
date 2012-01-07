@@ -34,7 +34,7 @@ function build_kivy() {
 	# fake try to be able to cythonize generated files
 	$BUILD_PATH/python-install/bin/python.host setup.py build_ext
 	try find . -iname '*.pyx' -exec cython {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext
+	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 

@@ -210,9 +210,6 @@ public class PythonActivity extends Activity implements Runnable {
         unpackData("private", getFilesDir());
         unpackData("public", externalStorage);
 
-        System.loadLibrary("z");
-        System.loadLibrary("jpeg");
-        System.loadLibrary("png");
         System.loadLibrary("sdl");
         System.loadLibrary("sdl_image");
         System.loadLibrary("sdl_ttf");
@@ -221,20 +218,19 @@ public class PythonActivity extends Activity implements Runnable {
         System.loadLibrary("application");
         System.loadLibrary("sdl_main");
 
-		//System.load(getFilesDir() + "/_io.so");
 		System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
-        //System.load(getFilesDir() + "/unicodedata.so");
+        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
 
         try {
             System.loadLibrary("sqlite3");
-            System.load(getFilesDir() + "/_sqlite3.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_sqlite3.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
         try {
-            System.load(getFilesDir() + "/_imaging.so");
-            System.load(getFilesDir() + "/_imagingft.so");
-            System.load(getFilesDir() + "/_imagingmath.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imaging.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingft.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingmath.so");
         } catch(UnsatisfiedLinkError e) {
         }
 

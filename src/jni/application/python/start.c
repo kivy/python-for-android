@@ -62,8 +62,11 @@ int main(int argc, char **argv) {
         "import sys, posix\n" \
         "private = posix.environ['ANDROID_PRIVATE']\n" \
         "argument = posix.environ['ANDROID_ARGUMENT']\n" \
-        "sys.path += [ argument, private ]\n" \
-        "if '/' in sys.path: sys.path.remove('/')\n" \
+        "sys.path[:] = [ \n" \
+		"    private + '/lib/python2.7/', \n" \
+		"    private + '/lib/python2.7/lib-dynload/', \n" \
+		"    private + '/lib/python2.7/site-packages/', \n" \
+		"    argument ]\n" \
         "import androidembed\n" \
         "class LogFile(object):\n" \
         "    def __init__(self):\n" \
