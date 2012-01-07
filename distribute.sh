@@ -14,7 +14,7 @@ ROOT_PATH="$(dirname $(readlink -f $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
-PACKAGES_PATH="$BUILD_PATH/packages"
+PACKAGES_PATH="$ROOT_PATH/.packages"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist"
@@ -173,10 +173,10 @@ function run_prepare() {
 	done
 
 	# create build directory if not found
+	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
 	if [ ! -d $BUILD_PATH ]; then
 		mkdir -p $BUILD_PATH
 		mkdir -p $LIBS_PATH
-		mkdir -p $PACKAGES_PATH
 	fi
 
 	# create initial files
@@ -185,7 +185,7 @@ function run_prepare() {
 }
 
 function run_source_modules() {
-	needed=(hostpython python $MODULES)
+	needed=(hostpython python android $MODULES)
 	declare -A processed
 
 	while [ ${#needed[*]} -ne 0 ]; do
@@ -231,7 +231,7 @@ function run_order_modules() {
 		rm $filename
 	fi
 
-	for module in hostpython python $MODULES; do
+	for module in hostpython python android $MODULES; do
 		# get priority
 		priority="PRIORITY_$module"
 		priority=${!priority}
@@ -401,11 +401,14 @@ function run_distribute() {
 	try cp -a $BUILD_PATH/libs/* libs/$ARCH/
 
 	debug "Fill private directory"
-	try cp -a python-install/lib/python* private/lib
-	try mv private/lib/lib-dynload/*.so private/
+	try cp -a python-install/lib private/
+	try mkdir -p private/include/python2.7
+	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
 
 	debug "Reduce private directory from unwanted files"
-	cd $DIST_PATH/private/lib
+	try rm -f $DIST_PATH/private/lib/libpython2.7.so
+	try rm -rf $DIST_PATH/private/lib/pkgconfig
+	try cd $DIST_PATH/private/lib/python2.7
 	try find . | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$' | xargs rm
 	try rm -rf test
 	try rm -rf ctypes
@@ -413,7 +416,7 @@ function run_distribute() {
 	try rm -rf lib-tk
 	try rm -rf idlelib
 	try rm -rf unittest/test
-	try rm -rf lib-dynload
+	#try rm -rf lib-dynload
 	try rm -rf json/tests
 	try rm -rf distutils/tests
 	try rm -rf email/test

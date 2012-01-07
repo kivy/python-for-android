@@ -127,3 +127,5 @@ TODO
 - Make Android API configurable (defined in src/default.properties => shoudl be generated)
 - jni/Android.mk must not include ttf/image/mixer if not asked by the user
 - application should be automatically generated (Android.mk etc...)
+- Python try always to import name.so, namemodule.so, name.py, name.pyo ?
+- restore libpymodules.so loading to reduce the number of dlopen.

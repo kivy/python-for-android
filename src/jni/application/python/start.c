@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
     LOG("Initialize Python for Kivy");
     env_argument = getenv("ANDROID_ARGUMENT");
     setenv("ANDROID_APP_PATH", env_argument, 1);
+	//setenv("PYTHONVERBOSE", "2", 1);
     Py_SetProgramName(argv[0]);
     Py_Initialize();
     PySys_SetArgv(argc, argv);
@@ -61,7 +62,8 @@ int main(int argc, char **argv) {
         "import sys, posix\n" \
         "private = posix.environ['ANDROID_PRIVATE']\n" \
         "argument = posix.environ['ANDROID_ARGUMENT']\n" \
-        "sys.path[:] = [ argument, private, private + '/lib' ]\n" \
+        "sys.path += [ argument, private ]\n" \
+        "if '/' in sys.path: sys.path.remove('/')\n" \
         "import androidembed\n" \
         "class LogFile(object):\n" \
         "    def __init__(self):\n" \
@@ -73,6 +75,8 @@ int main(int argc, char **argv) {
         "            androidembed.log(l)\n" \
         "        self.buffer = lines[-1]\n" \
         "sys.stdout = sys.stderr = LogFile()\n" \
+		"import site; print site.getsitepackages()\n"\
+		"print 'Android path', sys.path\n" \
         "print 'Android kivy bootstrap done. __name__ is', __name__");
 
     /* run it !

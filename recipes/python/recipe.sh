@@ -34,7 +34,8 @@ function build_python() {
 
 	# if the last step have been done, avoid all
 	if [ -f $BUILD_PATH/python-install/bin/python.host ]; then
-		return
+		#return
+		true
 	fi
 	
 	# copy same module from host python
