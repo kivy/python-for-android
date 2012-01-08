@@ -139,6 +139,7 @@ The basic layout of a distribution is::
         private.mp3         - (*) fake package that will contain all the python installation
         public.mp3          - (*) fake package that will contain your application
     bin/                    - contain all the apk generated from build.py
+    blacklist.txt           - list of file patterns to not include in the APK
     buildlib/               - internals libraries for build.py
     build.py                - build script to use for packaging your application
     build.xml               - (*) build settings (generated from templates)

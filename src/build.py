@@ -5,15 +5,12 @@ import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
 
-# import zlib
-# zlib.Z_DEFAULT_COMPRESSION = 9
-
+from fnmatch import fnmatch
 import tarfile
 import os
 import shutil
 import subprocess
 import time
-
 import jinja2
 
 # The extension of the android and ant commands.
@@ -29,27 +26,18 @@ curdir = dirname(__file__)
 # Try to find a host version of Python that matches our ARM version.
 PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
 
-# Files and extensions we should not package.
-BLACKLIST_FILES = [
-    'icon.ico',
-    'icon.icns',
-    'launcherinfo.py',
-    '.nomedia',
-    ]
-
-BLACKLIST_EXTENSIONS = [
-    '~',
-    '.bak',
-    '.rpy',
-    '.swp',
-    ]
-
-BLACKLIST_DIRS = [
+BLACKLIST_PATTERNS = [
+    # code versionning
     '.hg',
     '.git',
     '.bzr',
     '.svn',
-    ]
+
+    # temp files
+    '~',
+    '.bak',
+    '.swp',
+]
 
 # Used by render.
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
@@ -76,25 +64,25 @@ def compile_dir(dfn):
     # -OO = strip docstrings
     subprocess.call([PYTHON,'-OO','-m','compileall','-f',dfn])
 
+def is_blacklist(name):
+    for pattern in BLACKLIST_PATTERNS:
+        if fnmatch(name, '*/' + pattern):
+            return True
+
 def make_tar(fn, source_dirs, ignore_path=[]):
     '''
     Make a zip file `fn` from the contents of source_dis.
     '''
 
-    # zf = zipfile.ZipFile(fn, 'w')
     tf = tarfile.open(fn, 'w:gz')
 
-
     for sd in source_dirs:
-        if '.py' in BLACKLIST_EXTENSIONS:
-            compile_dir(sd)
+        compile_dir(sd)
 
         sd = os.path.abspath(sd)
 
         for dir, dirs, files in os.walk(sd):
-            for bd in BLACKLIST_DIRS:
-                if bd in dirs:
-                    dirs.remove(bd)
+            dirs = [d for d in dirs if not is_blacklist(d)]
 
             ignore = False
             for ip in ignore_path:
@@ -112,18 +100,8 @@ def make_tar(fn, source_dirs, ignore_path=[]):
             for fn in files:
                 fn = os.path.join(dir, fn)
                 relfn = os.path.relpath(fn, sd)
-
-                bl = False
-                for e in BLACKLIST_EXTENSIONS:
-                    if relfn.endswith(e):
-                        bl = True
-
-                if bl:
+                if is_blacklist(relfn):
                     continue
-
-                if relfn in BLACKLIST_FILES:
-                    continue
-
                 tf.add(fn, relfn)
                 print 'add', fn
 
@@ -216,6 +194,7 @@ def make_package(args):
     # Build.
     map(lambda arg: subprocess.call([ANT, arg]), args.command)
 
+'''
 def shelve_lib(lfn):
     for root,dirs,files in os.walk('libs'):
         for fn in files:
@@ -232,7 +211,7 @@ def unshelve_libs():
                 lib_dir = root[len('.shelf/'):]
                 shutil.move(os.path.join(root,fn), lib_dir)
         shutil.rmtree('.shelf')
-
+'''
 
 if __name__ == '__main__':
     import argparse
@@ -259,9 +238,9 @@ tools directory of the Android SDK.
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
     ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
-    ap.add_argument('--with-sqlite3', dest='with_sqlite3', action='store_true', help='Include sqlite3 module.')
-    ap.add_argument('--with-PIL', dest='with_PIL', action='store_true', help='Include the Python Imaging Library (PIL).')
-    ap.add_argument('--with-ffmpeg', dest='with_ffmpeg', action='store_true', help='Include the FFMPEG android libraries (PIL).')
+    #ap.add_argument('--with-sqlite3', dest='with_sqlite3', action='store_true', help='Include sqlite3 module.')
+    #ap.add_argument('--with-PIL', dest='with_PIL', action='store_true', help='Include the Python Imaging Library (PIL).')
+    #ap.add_argument('--with-ffmpeg', dest='with_ffmpeg', action='store_true', help='Include the FFMPEG android libraries (PIL).')
 
     ap.add_argument('command', nargs='*', help='The command to pass to ant.')
 
@@ -279,21 +258,26 @@ tools directory of the Android SDK.
     if args.compile_pyo:
         if PYTHON is None:
             ap.error('To use --compile-pyo, you need Python 2.7.1 installed and in your PATH.')
-        BLACKLIST_EXTENSIONS += ['.py', '.pyc']
+        BLACKLIST_PATTERNS += ['*.py', '*.pyc']
 
+    '''
     if not args.with_sqlite3:
-        BLACKLIST_DIRS += ['sqlite3']
-        BLACKLIST_FILES += ['_sqlite3.so']
+        BLACKLIST_PATTERNS += ['sqlite3', '_sqlite3.so']
         shelve_lib('libsqlite3.so')
 
     if not args.with_PIL:
-        BLACKLIST_DIRS += ['PIL']
-        BLACKLIST_FILES += ['_imaging.so','_imagingft.so','_imagingmath.so']
+        BLACKLIST_PATTERNS += ['PIL', '_imaging.so', '_imagingft.so', '_imagingmath.so']
 
     if not args.with_ffmpeg:
-        BLACKLIST_DIRS += ['ffmpeg']
+        BLACKLIST_PATTERNS += ['ffmpeg']
+    '''
+
+    with open(join(curdir, 'blacklist.txt')) as fd:
+        patterns = [x.strip() for x in fd.read().splitlines() if x.strip() or
+                x.startswith('#')]
+        BLACKLIST_PATTERNS += patterns
 
     make_package(args)
-    unshelve_libs()
+    #unshelve_libs()
 
 

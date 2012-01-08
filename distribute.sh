@@ -434,6 +434,7 @@ function run_distribute() {
 	try cp -a $SRC_PATH/src .
 	try cp -a $SRC_PATH/templates .
 	try cp -a $SRC_PATH/res .
+	try cp -a $SRC_PATH/blacklist.txt .
 
 	debug "Copy python distribution"
 	try cp -a $BUILD_PATH/python-install .
@@ -468,6 +469,8 @@ function run_distribute() {
 	try rm -rf config/libpython*.a
 	try rm -rf config/python.o
 	try rm -rf curses
+	try rm -rf lib-dynload/_ctypes_test.so
+	try rm -rf lib-dynload/_testcapi.so
 
 	debug "Strip libraries"
 	push_arm
