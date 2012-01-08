@@ -41,7 +41,7 @@ bug report.
 You need the minimal environment for building python. Note that other libraries
 might need other tools::
 
-    sudo apt-get install build-essential patch git-core
+    sudo apt-get install build-essential patch git-core ccache
 
 You must have android SDK and NDK. You can download them at::
 
