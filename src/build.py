@@ -28,10 +28,10 @@ PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
 
 BLACKLIST_PATTERNS = [
     # code versionning
-    '.hg',
-    '.git',
-    '.bzr',
-    '.svn',
+    '^*.hg/*',
+    '^*.git/*',
+    '^*.bzr/*',
+    '^*.svn/*',
 
     # temp files
     '~',
@@ -66,7 +66,11 @@ def compile_dir(dfn):
 
 def is_blacklist(name):
     for pattern in BLACKLIST_PATTERNS:
-        if fnmatch(name, '*/' + pattern):
+        if pattern.startswith('^'):
+            pattern = pattern[1:]
+        else:
+            pattern = '*/' + pattern
+        if fnmatch(name, pattern):
             return True
 
 def make_tar(fn, source_dirs, ignore_path=[]):
