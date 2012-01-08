@@ -51,7 +51,8 @@ encodings/unicode_internal*
 encodings/quo*
 encodings/gb*
 encodings/big5*
-encodings/h*
+encodings/hp*
+encodings/hz*
 
 # unused python modules
 bsddb/*
