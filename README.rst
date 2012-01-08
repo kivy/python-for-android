@@ -1,9 +1,6 @@
 Python for Android
 ==================
 
-===== THE PROJECT IS NOT USABLE YET =====
-
-
 Python for android is a project to create your own Python distribution
 including the modules you want, and create an apk including python, libs, and
 your application.
@@ -22,6 +19,16 @@ compared to other projects.
 +--------------------+---------------+---------------+----------------+--------------+
 | Python on a chip   | No            | No            | No             | No           |
 +--------------------+---------------+---------------+----------------+--------------+
+
+.. note::
+
+    For the moment, we are shipping only one "java bootstrap" needed for
+    decompressing all the files of your project, create an OpenGL ES 2.0
+    surface, handle touch input and manage an audio thread.
+
+    If you want to use it without kivy module (an opengl es 2.0 ui toolkit),
+    then you might want a lighter java bootstrap, that we don't have right now.
+    Help is welcome :)
 
 
 Prerequisites
@@ -102,6 +109,55 @@ Available options::
     -l                     Show a list of available modules
     -m 'mod1 mod2'         Modules to include
 
+How does it work ?
+------------------
+
+To be able to run Python on android, you need to compile it for android. And
+you need to compile all the libraries you want for android too.
+Since Python is a language, not a toolkit, you cannot draw any user interface
+with it: you need to use a toolkit for it. Kivy can be one of them.
+
+So for a simple ui project, the first step is to compile Python + Kivy + all
+others libraries. Then you'll have what we call a "distribution".
+A distribution is composed of:
+
+- Python libraries
+- All selected libraries (kivy, pygame, pil...)
+- A java bootstrap
+- A build script
+
+You'll use the build script for create an "apk": an android package.
+
+
+Customize your distribution
+---------------------------
+
+The basic layout of a distribution is::
+
+    AndroidManifest.xml     - (*) android manifest (generated from templates)
+    assets/
+        private.mp3         - (*) fake package that will contain all the python installation
+        public.mp3          - (*) fake package that will contain your application
+    bin/                    - contain all the apk generated from build.py
+    buildlib/               - internals libraries for build.py
+    build.py                - build script to use for packaging your application
+    build.xml               - (*) build settings (generated from templates)
+    default.properties      - settings generated from your distribute.sh
+    libs/                   - contain all the compiled libraries
+    local.properties        - settings generated from your distribute.sh
+    private/                - private directory containing all the python files
+        lib/                  this is where you can remove or add python libs.
+            python2.7/        by default, some modules are already removed (tests, idlelib, ...)
+    project.properties      - settings generated from your distribute.sh
+    python-install/         - the whole python installation, generated from distribute.sh
+                              not included in the final package.
+    res/                    - (*) android resource (generated from build.py)
+    src/                    - Java bootstrap
+    templates/              - Templates used by build.py
+
+    (*): Theses files are automatically generated from build.py, don't change them directly !
+
+
 Available modules
 -----------------
 
@@ -151,7 +207,6 @@ TODO
 ----
 
 - jni/Android.mk must not include ttf/image/mixer if not asked by the user
-- application should be automatically generated (Android.mk etc...)
 - Python try always to import name.so, namemodule.so, name.py, name.pyo ?
 - restore libpymodules.so loading to reduce the number of dlopen.
 - if MODULES= change, the old build need to be cleaned

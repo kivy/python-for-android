@@ -424,7 +424,7 @@ function run_distribute() {
 	cd "$DIST_PATH"
 
 	debug "Create initial layout"
-	try mkdir assets bin gen obj private res templates
+	try mkdir assets bin private res templates
 
 	debug "Copy default files"
 	try cp -a $SRC_PATH/default.properties .
@@ -522,10 +522,5 @@ while getopts ":hvlm:d:" opt; do
 			;;
 	esac
 done
-
-package=${*:$OPTIND:1}
-if [ "X$package" == "X" ]; then
-	usage
-fi
 
 run
