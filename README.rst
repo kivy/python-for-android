@@ -215,7 +215,7 @@ Available modules
 List of available modules: jpeg pil png sdl sqlite3 pygame kivy android
 
 The up-to-date list is available at:
-https://github.com/tito/python-for-android/tree/master/recipes
+https://github.com/kivy/python-for-android/tree/master/recipes
 
 Only hostpython and python are 2 mandatory recipes, used for building
 hostpython / target python libraries.
