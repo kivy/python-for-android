@@ -469,6 +469,11 @@ function run_distribute() {
 	try rm -rf config/python.o
 	try rm -rf curses
 
+	debug "Strip libraries"
+	push_arm
+	try find "$DIST_PATH"/private "$DIST_PATH"/libs | grep -E "*\.so$" | xargs $STRIP
+	pop_arm
+
 }
 
 function run() {
