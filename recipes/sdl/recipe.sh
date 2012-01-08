@@ -3,6 +3,7 @@
 VERSION_sdl=1.2.14
 URL_sdl=
 MD5_sdl=
+DEPS_sdl=(python)
 BUILD_sdl=$BUILD_PATH/sdl/SDL-$VERSION_sdl
 RECIPE_sdl=$RECIPES_PATH/sdl
 
@@ -12,6 +13,7 @@ function prebuild_sdl() {
 
 function build_sdl() {
 	cd $SRC_PATH/jni
+
 	push_arm
 	try ndk-build V=1
 	pop_arm
