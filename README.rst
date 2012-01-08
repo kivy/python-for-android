@@ -100,6 +100,7 @@ Available options to `distribute.sh`::
     -h                     Show this help
     -l                     Show a list of available modules
     -m 'mod1 mod2'         Modules to include
+    -f                     Restart from scratch (remove the current build)
 
 Step 2: package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

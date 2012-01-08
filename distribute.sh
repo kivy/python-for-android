@@ -24,6 +24,7 @@ CRED="\x1b[31;01m"
 CBLUE="\x1b[34;01m"
 CGRAY="\x1b[30;01m"
 CRESET="\x1b[39;49;00m"
+DO_CLEAN_BUILD=0
 
 # Use ccache ?
 which ccache &>/dev/null
@@ -144,6 +145,7 @@ function usage() {
 	echo "  -h                     Show this help"
 	echo "  -l                     Show a list of available modules"
 	echo "  -m 'mod1 mod2'         Modules to include"
+	echo "  -f                     Restart from scratch (remove the current build)"
 	echo
 	exit 0
 }
@@ -209,6 +211,13 @@ function run_prepare() {
 		try rm -rf "$DIST_PATH"
 	fi
 	try mkdir -p "$DIST_PATH"
+
+	if [ $DO_CLEAN_BUILD -eq 1 ]; then
+		info "Cleaning build"
+		try rm -rf $BUILD_PATH
+		try rm -rf $SRC_PATH/obj
+		try rm -rf $SRC_PATH/libs
+	fi
 
 	# create initial files
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
@@ -502,7 +511,7 @@ function list_modules() {
 }
 
 # Do the build
-while getopts ":hvlm:d:" opt; do
+while getopts ":hvlfm:d:" opt; do
 	case $opt in
 		h)
 			usage
@@ -515,6 +524,9 @@ while getopts ":hvlm:d:" opt; do
 			;;
 		d)
 			DIST_PATH="$ROOT_PATH/dist/$OPTARG"
+			;;
+		f)
+			DO_CLEAN_BUILD=1
 			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
