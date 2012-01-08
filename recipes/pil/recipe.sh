@@ -30,6 +30,10 @@ function prebuild_pil() {
 }
 
 function build_pil() {
+	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/PIL" ]; then
+		return
+	fi
+
 	cd $BUILD_pil
 
 	push_arm
@@ -37,8 +41,7 @@ function build_pil() {
 	LIBS="$SRC_PATH/obj/local/$ARCH"
 	export CFLAGS="$CFLAGS -I$JNI_PATH/png -I$JNI_PATH/jpeg"
 	export LDFLAGS="$LDFLAGS -L$LIBS -lm -lz"
-	try $BUILD_PATH/python-install/bin/python.host setup.py install
-	try find build/lib.* -name "*.o" -exec $STRIP {} \;
+	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 
 	pop_arm
 }
