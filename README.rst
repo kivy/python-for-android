@@ -54,14 +54,18 @@ documentation for recommended components at::
         well, so that you can test your application on the full range of
         Android platform versions that your application supports.
 
-After installing them, export both installation path::
+After installing them, export both installation path, ndk version and api to use::
 
     export ANDROIDSDK=/path/to/android-sdk
     export ANDROIDNDK=/path/to/android-ndk
+    export ANDROIDNDKVER=rX
+    export ANDROIDAPI=X
 
-    # examples
+    # example
     export ANDROIDSDK="/home/tito/code/android/android-sdk-linux_86"
-    export ANDROIDNDK="/home/tito/code/android/android-ndk-r5b"
+    export ANDROIDNDK="/home/tito/code/android/android-ndk-r7"
+    export ANDROIDNDKVER=r7
+    export ANDROIDAPI=14
 
 
 Usage
@@ -69,17 +73,39 @@ Usage
 
 Step 1, compile the toolchain::
 
-    MODULES="openssl pygame" ./configure.sh
+    ./distribute.sh -m "kivy"
+
+After a long time, you'll get a "dist/default" directory containing all the compiled
+libraries and build.py script to package your application using thoses
+libraries.
 
 Step 2, package your application::
 
-    ...
+    cd dist/default
+    ./build.py --package org.test.touchtracer --name touchtracer \
+    --version 1.0 --dir ~/code/kivy/examples/demo/touchtracer installd
 
+Example of other toolchain::
+
+    ./distribute.sh -m "pil kivy"
+    ./distribute.sh -m "openssl python"
+
+    # create another distribution in a directory bleh
+    ./distribute.sh -m "openssl kivy" -d bleh
+    cd dist/bleh
+    ./build.py ...
+
+Available options::
+
+    -d directory           Name of the distribution directory
+    -h                     Show this help
+    -l                     Show a list of available modules
+    -m 'mod1 mod2'         Modules to include
 
 Available modules
 -----------------
 
-List of available modules: jpeg pil png sdl sqlite3
+List of available modules: jpeg pil png sdl sqlite3 pygame kivy android
 
 The up-to-date list is available at:
 https://github.com/tito/python-for-android/tree/master/recipes
@@ -124,8 +150,8 @@ Related project
 TODO
 ----
 
-- Make Android API configurable (defined in src/default.properties => shoudl be generated)
 - jni/Android.mk must not include ttf/image/mixer if not asked by the user
 - application should be automatically generated (Android.mk etc...)
 - Python try always to import name.so, namemodule.so, name.py, name.pyo ?
 - restore libpymodules.so loading to reduce the number of dlopen.
+- if MODULES= change, the old build need to be cleaned

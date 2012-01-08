@@ -17,7 +17,7 @@ LIBS_PATH="$ROOT_PATH/build/libs"
 PACKAGES_PATH="$ROOT_PATH/.packages"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
-DIST_PATH="$ROOT_PATH/dist"
+DIST_PATH="$ROOT_PATH/dist/default"
 
 # Internals
 CRED="\x1b[31;01m"
@@ -131,6 +131,23 @@ function pop_arm() {
 	export MAKE=$OLD_MAKE
 }
 
+function usage() {
+	echo "Python for android - distribute.sh"
+	echo "This script create a directory will all the libraries wanted"
+	echo 
+	echo "Usage:   ./distribute.sh [options] directory"
+	echo "Example: ./distribute.sh -m 'pil kivy' dist"
+	echo
+	echo "Options:"
+	echo
+	echo "  -d directory           Name of the distribution directory"
+	echo "  -h                     Show this help"
+	echo "  -l                     Show a list of available modules"
+	echo "  -m 'mod1 mod2'         Modules to include"
+	echo
+	exit 0
+}
+
 function run_prepare() {
 	info "Check enviromnent"
 	if [ "X$ANDROIDSDK" == "X" ]; then
@@ -151,6 +168,11 @@ function run_prepare() {
 		error "No ANDROIDNDKVER enviroment set, abort"
 		error "(Must be something like 'r5b', 'r7'...)"
 		exit -1
+	fi
+
+	if [ "X$MODULES" == "X" ]; then
+		usage
+		exit 0
 	fi
 
 	debug "SDK located at $ANDROIDSDK"
@@ -179,14 +201,37 @@ function run_prepare() {
 		mkdir -p $LIBS_PATH
 	fi
 
+	info "Distribution will be located at $DIST_PATH"
+	if [ -e "$DIST_PATH" ]; then
+		error "The distribution $DIST_PATH already exist"
+		error "Press a key to remove it, or Control + C to abort."
+		read
+		try rm -rf "$DIST_PATH"
+	fi
+	try mkdir -p "$DIST_PATH"
+
 	# create initial files
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
 	echo "sdk.dir=$ANDROIDSDK" > $SRC_PATH/local.properties
 }
 
+function in_array() {
+	term="$1"
+	shift
+	i=0
+	for key in $@; do
+		if [ $term == $key ]; then
+			return $i
+		fi
+		i=$(($i + 1))
+	done
+	return 255
+}
+
 function run_source_modules() {
-	needed=(hostpython python android $MODULES)
+	needed=($MODULES)
 	declare -A processed
+	order=()
 
 	while [ ${#needed[*]} -ne 0 ]; do
 
@@ -204,6 +249,12 @@ function run_source_modules() {
 		# add this module as done
 		processed[$module]=1
 
+		# append our module at the end only if we are not exist yet
+		in_array $module "${order[@]}"
+		if [ $? -eq 255 ]; then
+			order=( ${order[@]} $module )
+		fi
+
 		# read recipe
 		debug "Read $module recipe"
 		recipe=$RECIPES_PATH/$module/recipe.sh
@@ -219,40 +270,38 @@ function run_source_modules() {
 		if [ ${#deps[*]} -gt 0 ]; then
 			debug "Module $module depend on" ${deps[@]}
 			needed=( ${needed[@]} ${deps[@]} )
+
+			# for every deps, check if it's already added to order
+			# if not, add the deps before ourself
+			debug "Dependency order is ${order[@]} (current)"
+			for dep in "${deps[@]}"; do
+				#debug "Check if $dep is in order"
+				in_array $dep "${order[@]}"
+				if [ $? -eq 255 ]; then
+					#debug "missing $dep in order"
+					# deps not found in order
+					# add it before ourself
+					in_array $module "${order[@]}"
+					index=$?
+					#debug "our $module index is $index"
+					order=(${order[@]:0:$index} $dep ${order[@]:$index})
+					#debug "new order is ${order[@]}"
+				fi
+			done
+			debug "Dependency order is ${order[@]} (computed)"
 		fi
 	done
+
+	MODULES="${order[@]}"
+	info="Modules changed to $MODULES"
 }
 
-# order modules by their priority
-function run_order_modules() {
-	cd $BUILD_PATH
-	filename=$RANDOM.order
-	if [ -f $filename ]; then
-		rm $filename
-	fi
-
-	for module in hostpython python android $MODULES; do
-		# get priority
-		priority="PRIORITY_$module"
-		priority=${!priority}
-		# write on the file
-		echo "$priority $module" >> $filename
-	done
-
-	# update modules by priority
-	MODULES=$(sort -n $filename|cut -d\  -f2)
-	info "Module order is '$MODULES'"
-
-	# remove temporary filename
-	rm $filename
-}
-
-function run_get_deps() {
-	info "Run get dependencies"
+function run_get_packages() {
+	info "Run get packages"
 
 	for module in $MODULES; do
 		# download dependencies for this module
-		debug "Download dependencies for $module"
+		debug "Download package for $module"
 
 		url="URL_$module"
 		url=${!url}
@@ -264,7 +313,7 @@ function run_get_deps() {
 		fi
 
 		if [ "X$url" == "X" ]; then
-			debug "No dependencies for $module"
+			debug "No package for $module"
 			continue
 		fi
 
@@ -372,14 +421,7 @@ function run_postbuild() {
 function run_distribute() {
 	info "Run distribute"
 
-	if [ -e $DIST_PATH ]; then
-		debug "Remove old distribution"
-		try rm -rf $DIST_PATH
-	fi
-
-	debug "Create new distribution at $DIST_PATH"
-	try mkdir -p $DIST_PATH
-	cd $DIST_PATH
+	cd "$DIST_PATH"
 
 	debug "Create initial layout"
 	try mkdir assets bin gen obj private res templates
@@ -406,17 +448,18 @@ function run_distribute() {
 	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
 
 	debug "Reduce private directory from unwanted files"
-	try rm -f $DIST_PATH/private/lib/libpython2.7.so
-	try rm -rf $DIST_PATH/private/lib/pkgconfig
-	try cd $DIST_PATH/private/lib/python2.7
+	try rm -f "$DIST_PATH"/private/lib/libpython2.7.so
+	try rm -rf "$DIST_PATH"/private/lib/pkgconfig
+	try cd "$DIST_PATH"/private/lib/python2.7
 	try find . | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$' | xargs rm
+
+	# we are sure that all of theses will be never used on android (well...)
 	try rm -rf test
 	try rm -rf ctypes
 	try rm -rf lib2to3
 	try rm -rf lib-tk
 	try rm -rf idlelib
 	try rm -rf unittest/test
-	#try rm -rf lib-dynload
 	try rm -rf json/tests
 	try rm -rf distutils/tests
 	try rm -rf email/test
@@ -431,11 +474,10 @@ function run_distribute() {
 function run() {
 	run_prepare
 	run_source_modules
-	run_order_modules
-	run_get_deps
+	run_get_packages
 
 	push_arm
-	debug $PATH
+	debug "PATH is $PATH"
 	pop_arm
 
 	run_prebuild
@@ -445,6 +487,45 @@ function run() {
 	info "All done !"
 }
 
-# Do the build
-run
+function list_modules() {
+	modules=$(find recipes -iname 'recipe.sh' | cut -d/ -f2 | sort -u | xargs echo)
+	echo "Available modules: $modules"
+	exit 0
+}
 
+# Do the build
+while getopts ":hvlm:d:" opt; do
+	case $opt in
+		h)
+			usage
+			;;
+		l)
+			list_modules
+			;;
+		m)
+			MODULES="$OPTARG"
+			;;
+		d)
+			DIST_PATH="$ROOT_PATH/dist/$OPTARG"
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
+
+		*)
+			echo "=> $OPTARG"
+			;;
+	esac
+done
+
+package=${*:$OPTIND:1}
+if [ "X$package" == "X" ]; then
+	usage
+fi
+
+run

@@ -3,7 +3,7 @@
 PRIORITY_kivy=30
 VERSION_kivy=
 URL_kivy=
-DEPS_kivy=(pygame)
+DEPS_kivy=(pygame android)
 MD5_kivy=
 BUILD_kivy=$BUILD_PATH/kivy/kivy
 RECIPE_kivy=$RECIPES_PATH/kivy
