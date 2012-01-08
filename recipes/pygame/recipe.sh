@@ -2,7 +2,7 @@
 
 VERSION_pygame=1.9.1
 URL_pygame=http://pygame.org/ftp/pygame-$(echo $VERSION_pygame)release.tar.gz
-DEPS_pygame=(sdl)
+DEPS_pygame=(sdl python)
 MD5_pygame=1c4cdc708d17c8250a2d78ef997222fc
 BUILD_pygame=$BUILD_PATH/pygame/$(get_directory $URL_pygame)
 RECIPE_pygame=$RECIPES_PATH/pygame
