@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_png=1
 VERSION_png=
 URL_png=
 MD5_png=

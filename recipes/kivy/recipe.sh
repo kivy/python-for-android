@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_kivy=30
 VERSION_kivy=
 URL_kivy=
 DEPS_kivy=(pygame android)

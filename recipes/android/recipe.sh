@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_android=30
 VERSION_android=
 URL_android=
 DEPS_android=(pygame)

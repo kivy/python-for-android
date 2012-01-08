@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_hostpython=1
 VERSION_hostpython=2.7.2
 URL_hostpython=http://python.org/ftp/python/$VERSION_hostpython/Python-$VERSION_hostpython.tar.bz2
 MD5_hostpython=ba7b2f11ffdbf195ee0d111b9455a5bd

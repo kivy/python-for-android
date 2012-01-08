@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PRIORITY_python=10
 VERSION_python=2.7.2
+DEPS_python=(hostpython)
 URL_python=http://python.org/ftp/python/$VERSION_python/Python-$VERSION_python.tar.bz2
 MD5_python=ba7b2f11ffdbf195ee0d111b9455a5bd
 

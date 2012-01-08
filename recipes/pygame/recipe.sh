@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_pygame=21
 VERSION_pygame=1.9.1
 URL_pygame=http://pygame.org/ftp/pygame-$(echo $VERSION_pygame)release.tar.gz
 DEPS_pygame=(sdl)

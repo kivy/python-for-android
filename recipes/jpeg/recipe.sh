@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_jpeg=1
 VERSION_jpeg=
 URL_jpeg=
 MD5_jpeg=

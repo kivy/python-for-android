@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_sdl=15
 VERSION_sdl=1.2.14
 URL_sdl=
 MD5_sdl=

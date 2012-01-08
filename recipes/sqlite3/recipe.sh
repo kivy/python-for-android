@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_sqlite3=1
 VERSION_sqlite3=3
 URL_sqlite3=
 MD5_sqlite3=

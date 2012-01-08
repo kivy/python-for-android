@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PRIORITY_pil=20
 VERSION_pil=1.1.7
 URL_pil=http://effbot.org/downloads/Imaging-$VERSION_pil.tar.gz
 DEPS_pil=(png jpeg)
