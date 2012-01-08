@@ -196,13 +196,6 @@ function run_prepare() {
 		fi
 	done
 
-	# create build directory if not found
-	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
-	if [ ! -d $BUILD_PATH ]; then
-		mkdir -p $BUILD_PATH
-		mkdir -p $LIBS_PATH
-	fi
-
 	info "Distribution will be located at $DIST_PATH"
 	if [ -e "$DIST_PATH" ]; then
 		error "The distribution $DIST_PATH already exist"
@@ -218,6 +211,11 @@ function run_prepare() {
 		try rm -rf $SRC_PATH/obj
 		try rm -rf $SRC_PATH/libs
 	fi
+
+	# create build directory if not found
+	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
+	test -d $BUILD_PATH || mkdir -p $BUILD_PATH
+	test -d $LIBS_PATH || mkdir -p $LIBS_PATH
 
 	# create initial files
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
