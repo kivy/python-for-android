@@ -12,7 +12,9 @@ function prebuild_png() {
 
 function build_png() {
 	cd $SRC_PATH/jni
+	push_arm
 	try ndk-build V=1 png
+	pop_arm
 }
 
 function postbuild_png() {
