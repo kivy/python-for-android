@@ -261,4 +261,3 @@ TODO
 - jni/Android.mk must not include ttf/image/mixer if not asked by the user
 - Python try always to import name.so, namemodule.so, name.py, name.pyo ?
 - restore libpymodules.so loading to reduce the number of dlopen.
-- if MODULES= change, the old build need to be cleaned
