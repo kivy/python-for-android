@@ -213,6 +213,7 @@ Available modules
 -----------------
 
 List of available modules: jpeg pil png sdl sqlite3 pygame kivy android
+    libxml2 libxslt lxml
 
 The up-to-date list is available at:
 https://github.com/kivy/python-for-android/tree/master/recipes
