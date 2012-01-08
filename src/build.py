@@ -194,30 +194,11 @@ def make_package(args):
     # Build.
     map(lambda arg: subprocess.call([ANT, arg]), args.command)
 
-'''
-def shelve_lib(lfn):
-    for root,dirs,files in os.walk('libs'):
-        for fn in files:
-            if fn == lfn:
-                shelf_dir = os.path.join('.shelf', root)
-                if not os.path.exists(shelf_dir):
-                    os.makedirs(shelf_dir)
-                shutil.move(os.path.join(root,fn), shelf_dir)
-
-def unshelve_libs():
-    if os.path.exists('.shelf'):
-        for root,dirs,files in os.walk('.shelf'):
-            for fn in files:
-                lib_dir = root[len('.shelf/'):]
-                shutil.move(os.path.join(root,fn), lib_dir)
-        shutil.rmtree('.shelf')
-'''
-
 if __name__ == '__main__':
     import argparse
 
     ap = argparse.ArgumentParser(description='''\
-Package a Pygame for Android or Ren'Py for Android project.
+Package a Python application for Android.
 
 For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
@@ -229,7 +210,8 @@ tools directory of the Android SDK.
     ap.add_argument('--numeric-version', dest='numeric_version', help='The numeric version number of the project. If not given, this is automatically computed from the version.')
     ap.add_argument('--dir', dest='dir', help='The directory containing public files for the project.')
     ap.add_argument('--private', dest='private', help='The directory containing additional private files for the project.')
-    ap.add_argument('--launcher', dest='launcher', action='store_true', help='Provide this argument to build a multi-game lanucher, rather than a single game.')
+    ap.add_argument('--launcher', dest='launcher', action='store_true',
+            help='Provide this argument to build a multi-app launcher, rather than a single app.')
     ap.add_argument('--icon-name', dest='icon_name', help='The name of the project\'s launcher icon.')
     ap.add_argument('--orientation', dest='orientation', default='landscape', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
     ap.add_argument('--permission', dest='permissions', action='append', help='The permissions to give this app.')
@@ -238,11 +220,10 @@ tools directory of the Android SDK.
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
     ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
-    #ap.add_argument('--with-sqlite3', dest='with_sqlite3', action='store_true', help='Include sqlite3 module.')
-    #ap.add_argument('--with-PIL', dest='with_PIL', action='store_true', help='Include the Python Imaging Library (PIL).')
-    #ap.add_argument('--with-ffmpeg', dest='with_ffmpeg', action='store_true', help='Include the FFMPEG android libraries (PIL).')
-
-    ap.add_argument('command', nargs='*', help='The command to pass to ant.')
+    ap.add_argument('--blacklist', dest='blacklist',
+        default=join(curdir, 'blacklist.txt'),
+        help='Use a blacklist file to match unwanted file in the final APK')
+    ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
     args = ap.parse_args()
 
@@ -260,24 +241,11 @@ tools directory of the Android SDK.
             ap.error('To use --compile-pyo, you need Python 2.7.1 installed and in your PATH.')
         BLACKLIST_PATTERNS += ['*.py', '*.pyc']
 
-    '''
-    if not args.with_sqlite3:
-        BLACKLIST_PATTERNS += ['sqlite3', '_sqlite3.so']
-        shelve_lib('libsqlite3.so')
-
-    if not args.with_PIL:
-        BLACKLIST_PATTERNS += ['PIL', '_imaging.so', '_imagingft.so', '_imagingmath.so']
-
-    if not args.with_ffmpeg:
-        BLACKLIST_PATTERNS += ['ffmpeg']
-    '''
-
-    with open(join(curdir, 'blacklist.txt')) as fd:
-        patterns = [x.strip() for x in fd.read().splitlines() if x.strip() or
-                x.startswith('#')]
+    if args.blacklist:
+        with open(args.blacklist) as fd:
+            patterns = [x.strip() for x in fd.read().splitlines() if x.strip() or
+                    x.startswith('#')]
         BLACKLIST_PATTERNS += patterns
 
     make_package(args)
-    #unshelve_libs()
-
 

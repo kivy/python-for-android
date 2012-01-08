@@ -9,6 +9,7 @@ config/makesetup
 
 # unused pygame files
 pygame/_camera_*
+pygame/camera.pyo
 pygame/*.html
 pygame/*.bmp
 pygame/*.svg
@@ -17,6 +18,11 @@ pygame/pygame_icon.icns
 pygame/LGPL
 pygame/threads/Py25Queue.pyo
 pygame/*.ttf
+pygame/mac*
+pygame/_numpy*
+pygame/sndarray.pyo
+pygame/surfarray.pyo
+pygame/_arraysurfarray.pyo
 
 # unused kivy files (platform specific)
 kivy/input/providers/wm_*
@@ -34,7 +40,6 @@ encodings/cp*.pyo
 encodings/tis*
 encodings/shift*
 encodings/bz2*
-encodings/zlib*
 encodings/iso*
 encodings/undefined*
 encodings/johab*
