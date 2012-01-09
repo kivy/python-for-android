@@ -34,9 +34,7 @@ compared to other projects.
 Prerequisites
 -------------
 
-WARNING: the current version is working only on Ubuntu oneiric (11.10). We
-don't provide support on other platform. If it doesn't work, send us patch, not
-bug report.
+WARNING: the current version is tested only on Ubuntu oneiric (11.10). If it doesn't work on another platform, send us patch, not bug report.
 
 You need the minimal environment for building python. Note that other libraries
 might need other tools::
