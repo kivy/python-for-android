@@ -34,12 +34,10 @@ PyMODINIT_FUNC initandroidembed(void) {
 int main(int argc, char **argv) {
 
     char *env_argument = NULL;
-    PyObject *main_module = NULL;
     int ret = 0;
     FILE *fd;
-    int file_input = 1;
 
-    LOG("Initialize Python for Kivy");
+    LOG("Initialize Python for Android");
     env_argument = getenv("ANDROID_ARGUMENT");
     setenv("ANDROID_APP_PATH", env_argument, 1);
 	//setenv("PYTHONVERBOSE", "2", 1);
@@ -108,7 +106,7 @@ int main(int argc, char **argv) {
 	Py_Finalize();
     fclose(fd);
 
-    LOG("Kivy for android ended.");
+    LOG("Python for android ended.");
     return ret;
 }
 
