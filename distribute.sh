@@ -509,7 +509,7 @@ function run_distribute() {
 
 	debug "Strip libraries"
 	push_arm
-	try find "$DIST_PATH"/private "$DIST_PATH"/libs | grep -E "*\.so$" | xargs $STRIP
+	try find "$DIST_PATH"/private "$DIST_PATH"/libs -iname '*.so' -exec $STRIP {} \;
 	pop_arm
 
 }
