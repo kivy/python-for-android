@@ -33,7 +33,9 @@ function build_android() {
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -i
 
 	# copy files
-	try cp android.so android_sound.so android_mixer.py \
+	try cp android.so android_sound.so \
+		$BUILD_PATH/python-install/lib/python2.7/lib-dynload/
+	try cp android_mixer.py \
 		$BUILD_PATH/python-install/lib/python2.7/
 
 	touch .done
