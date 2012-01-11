@@ -31,6 +31,7 @@ which ccache &>/dev/null
 if [ $? -eq 0 ]; then
 	export CC="ccache gcc"
 	export CXX="ccache g++"
+	export NDK_CCACHE="ccache"
 fi
 
 #set -x
@@ -389,7 +390,7 @@ function run_get_packages() {
 		# if already decompress, forget it
 		cd $BUILD_PATH/$module
 		directory=$(get_directory $filename)
-		if [ -d $directory ]; then
+		if [ -d "$directory" ]; then
 			continue
 		fi
 
@@ -412,8 +413,8 @@ function run_get_packages() {
 				fi
 				;;
 			*.zip )
-				try unzip x $pfilename
-				root_directory=$(basename $(try unzip -l $pfilename|sed -n 4p|awk '{print $4}'))
+				try unzip $pfilename
+				root_directory=$(basename $(try unzip -l $pfilename|sed -n 5p|awk '{print $4}'))
 				if [ "X$root_directory" != "X$directory" ]; then
 					mv $root_directory $directory
 				fi
