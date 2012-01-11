@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from os.path import dirname, join
+from os.path import dirname, join, isfile, realpath, relpath, split
+from zipfile import ZipFile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
@@ -39,6 +40,9 @@ BLACKLIST_PATTERNS = [
     '.swp',
 ]
 
+python_files = []
+
+
 # Used by render.
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
@@ -73,46 +77,96 @@ def is_blacklist(name):
         if fnmatch(name, pattern):
             return True
 
+def listfiles(d):
+    basedir = d
+    subdirlist = []
+    for item in os.listdir(d):
+        fn = join(d, item)
+        if isfile(fn):
+            yield fn
+        else:
+            subdirlist.append(os.path.join(basedir, item))
+    for subdir in subdirlist:
+        for fn in listfiles(subdir):
+            yield fn
+
+def make_pythonzip():
+    '''
+    Search for all the python related files, and construct the pythonXX.zip
+    According to
+    # http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
+    site-packages, config and lib-dynload will be not included.
+    '''
+    global python_files
+    d = realpath(join('private', 'lib', 'python2.7'))
+
+    # selector function
+    def select(fn):
+        if is_blacklist(fn):
+            return False
+        fn = realpath(fn)
+        assert(fn.startswith(d))
+        fn = fn[len(d):]
+        if fn.startswith('/site-packages/') or \
+            fn.startswith('/config/') or \
+            fn.startswith('/lib-dynload/'):
+                return False
+        return fn
+
+    # get a list of all python file
+    python_files = [x for x in listfiles(d) if select(x)]
+
+    # create the final zipfile
+    zfn = join('private', 'lib', 'python27.zip')
+    zf = ZipFile(zfn, 'w')
+
+    # put all the python files in it
+    for fn in python_files:
+        afn = fn[len(d):]
+        zf.write(fn, afn)
+    zf.close()
+
+
 def make_tar(fn, source_dirs, ignore_path=[]):
     '''
     Make a zip file `fn` from the contents of source_dis.
     '''
 
-    tf = tarfile.open(fn, 'w:gz')
+    # selector function
+    def select(fn):
+        rfn = realpath(fn)
+        if rfn in python_files:
+            return False
+        return not is_blacklist(fn)
 
+    # get the files and relpath file of all the directory we asked for
+    files = []
     for sd in source_dirs:
         compile_dir(sd)
+        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
 
-        sd = os.path.abspath(sd)
-
-        for dir, dirs, files in os.walk(sd):
-            dirs = [d for d in dirs if not is_blacklist(d)]
-
-            ignore = False
-            for ip in ignore_path:
-                if dir.startswith(ip):
-                    ignore = True
-            if ignore:
-                print 'ignored', fn
-                continue
-
-            for fn in dirs:
-                fn = os.path.join(dir, fn)
-                relfn = os.path.relpath(fn, sd)
-                tf.add(fn, relfn, recursive=False)
-
-            for fn in files:
-                fn = os.path.join(dir, fn)
-                relfn = os.path.relpath(fn, sd)
-                if is_blacklist(relfn):
+    # create tar.gz of thoses files
+    tf = tarfile.open(fn, 'w:gz')
+    dirs = []
+    for fn, afn in files:
+        dn = dirname(afn)
+        if dn not in dirs:
+            # create every dirs first if not exist yet
+            d = ''
+            for component in split(dn):
+                d = join(d, component)
+                if d.startswith('/'):
+                    d = d[1:]
+                if d == '' or d in dirs:
                     continue
-                tf.add(fn, relfn)
-                print 'add', fn
+                dirs.append(d)
+                tinfo = tarfile.TarInfo(d)
+                tinfo.type = tarfile.DIRTYPE
+                tf.addfile(tinfo)
 
-    # TODO: Fix me.
-    # tf.writestr('.nomedia', '')
+        # put the file
+        tf.add(fn, afn)
     tf.close()
-
 
 def make_package(args):
     version_code = 0
@@ -181,6 +235,9 @@ def make_package(args):
     if os.path.exists('assets/private.mp3'):
         os.unlink('assets/private.mp3')
 
+    # In order to speedup import and initial depack,
+    # construct a python27.zip
+    make_pythonzip()
 
     # Package up the private and public data.
     if args.private:
