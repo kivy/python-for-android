@@ -1,21 +1,14 @@
 #!/bin/bash
 
 VERSION_kivy=
-URL_kivy=
+URL_kivy=https://github.com/kivy/kivy/zipball/android-support/kivy-android-support.zip
 DEPS_kivy=(pygame android)
-MD5_kivy=
-BUILD_kivy=$BUILD_PATH/kivy/kivy
+MD5_kivy=b9aa6d0067b88f505d1426cb4f6ab5fb
+BUILD_kivy=$BUILD_PATH/kivy/$(get_directory $URL_kivy)
 RECIPE_kivy=$RECIPES_PATH/kivy
 
 function prebuild_kivy() {
-	cd $BUILD_PATH/kivy
-
-	if [ ! -d kivy ]; then
-		# initial clone
-		try git clone https://github.com/kivy/kivy
-		cd kivy
-		try git checkout android-support
-	fi
+	true
 }
 
 function build_kivy() {
