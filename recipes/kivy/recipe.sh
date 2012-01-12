@@ -3,7 +3,7 @@
 VERSION_kivy=
 URL_kivy=https://github.com/kivy/kivy/zipball/android-support/kivy-android-support.zip
 DEPS_kivy=(pygame android)
-MD5_kivy=b9aa6d0067b88f505d1426cb4f6ab5fb
+MD5_kivy=
 BUILD_kivy=$BUILD_PATH/kivy/$(get_directory $URL_kivy)
 RECIPE_kivy=$RECIPES_PATH/kivy
 

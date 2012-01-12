@@ -358,16 +358,19 @@ function run_get_packages() {
 		# check if the file is already present
 		cd $PACKAGES_PATH
 		if [ -f $filename ]; then
-
-			# check if the md5 is correct
-			current_md5=$(md5sum $filename | cut -d\  -f1)
-			if [ "X$current_md5" == "X$md5" ]; then
-				# correct, no need to download
-				do_download=0
+			if [ -n "$md5" ]; then
+				# check if the md5 is correct
+				current_md5=$(md5sum $filename | cut -d\  -f1)
+				if [ "X$current_md5" == "X$md5" ]; then
+					# correct, no need to download
+					do_download=0
+				else
+					# invalid download, remove the file
+					error "Module $module have invalid md5, redownload."
+					rm $filename
+				fi
 			else
-				# invalid download, remove the file
-				error "Module $module have invalid md5, redownload."
-				rm $filename
+				do_download=0
 			fi
 		fi
 
@@ -380,11 +383,13 @@ function run_get_packages() {
 		fi
 
 		# check md5
-		current_md5=$(md5sum $filename | cut -d\  -f1)
-		if [ "X$current_md5" != "X$md5" ]; then
-			error "File $filename md5 check failed (got $current_md5 instead of $md5)."
-			error "Ensure the file is correctly downloaded, and update MD5S_$module"
-			exit -1
+		if [ -n "$md5" ]; then
+			current_md5=$(md5sum $filename | cut -d\  -f1)
+			if [ "X$current_md5" != "X$md5" ]; then
+				error "File $filename md5 check failed (got $current_md5 instead of $md5)."
+				error "Ensure the file is correctly downloaded, and update MD5S_$module"
+				exit -1
+			fi
 		fi
 
 		# if already decompress, forget it
