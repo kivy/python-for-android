@@ -34,10 +34,14 @@ BLACKLIST_PATTERNS = [
     '^*.bzr/*',
     '^*.svn/*',
 
+    # pyc/py
+    '*.pyc',
+    '*.py',
+
     # temp files
     '~',
-    '.bak',
-    '.swp',
+    '*.bak',
+    '*.swp',
 ]
 
 python_files = []
@@ -66,7 +70,8 @@ def compile_dir(dfn):
     '''
 
     # -OO = strip docstrings
-    subprocess.call([PYTHON,'-OO','-m','compileall','-f',dfn])
+    subprocess.call([PYTHON,'-OO','-m','compileall','-f', dfn],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 def is_blacklist(name):
     for pattern in BLACKLIST_PATTERNS:
@@ -127,7 +132,7 @@ def make_pythonzip():
     zf.close()
 
 
-def make_tar(fn, source_dirs, ignore_path=[]):
+def make_tar(tfn, source_dirs, ignore_path=[]):
     '''
     Make a zip file `fn` from the contents of source_dis.
     '''
@@ -135,6 +140,11 @@ def make_tar(fn, source_dirs, ignore_path=[]):
     # selector function
     def select(fn):
         rfn = realpath(fn)
+        for p in ignore_path:
+            if p.endswith('/'):
+                p = p[:-1]
+            if rfn.startswith(p):
+                return False
         if rfn in python_files:
             return False
         return not is_blacklist(fn)
@@ -146,9 +156,10 @@ def make_tar(fn, source_dirs, ignore_path=[]):
         files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
 
     # create tar.gz of thoses files
-    tf = tarfile.open(fn, 'w:gz')
+    tf = tarfile.open(tfn, 'w:gz')
     dirs = []
     for fn, afn in files:
+        print '%s: %s' % (tfn, fn)
         dn = dirname(afn)
         if dn not in dirs:
             # create every dirs first if not exist yet
