@@ -31,6 +31,7 @@ which ccache &>/dev/null
 if [ $? -eq 0 ]; then
 	export CC="ccache gcc"
 	export CXX="ccache g++"
+	export NDK_CCACHE="ccache"
 fi
 
 #set -x
@@ -104,6 +105,18 @@ function push_arm() {
 	fi
 
 	export PATH="$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/linux-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
+
+	# search compiler in the path, to fail now instead of later.
+	CC=$(which $TOOLCHAIN_PREFIX-gcc)
+	if [ "X$CC" == "X" ]; then
+		error "Unable to found compiler ($TOOLCHAIN_PREFIX-gcc) !!"
+		error "1. Ensure that SDK/NDK paths are correct"
+		error "2. Ensure that you've the Android API $ANDROIDAPI SDK Platform (via android tool)"
+		exit 1
+	else
+		debug "Compiler found at $CC"
+	fi
+
 	export CC="$TOOLCHAIN_PREFIX-gcc $CFLAGS"
 	export CXX="$TOOLCHAIN_PREFIX-g++ $CXXFLAGS"
 	export AR="$TOOLCHAIN_PREFIX-ar" 
@@ -156,10 +169,20 @@ function run_prepare() {
 		error "No ANDROIDSDK environment set, abort"
 		exit -1
 	fi
+	if [ ! -d "$ANDROIDSDK" ]; then
+		echo "ANDROIDSDK=$ANDROIDSDK"
+		error "ANDROIDSDK path is invalid, it must be a directory. abort."
+		exit 1
+	fi
 
 	if [ "X$ANDROIDNDK" == "X" ]; then
 		error "No ANDROIDNDK environment set, abort"
 		exit -1
+	fi
+	if [ ! -d "$ANDROIDNDK" ]; then
+		echo "ANDROIDNDK=$ANDROIDSDK"
+		error "ANDROIDNDK path is invalid, it must be a directory. abort."
+		exit 1
 	fi
 
 	if [ "X$ANDROIDAPI" == "X" ]; then
@@ -220,6 +243,11 @@ function run_prepare() {
 	# create initial files
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
 	echo "sdk.dir=$ANDROIDSDK" > $SRC_PATH/local.properties
+
+	# check arm env
+	push_arm
+	debug "PATH is $PATH"
+	pop_arm
 }
 
 function in_array() {
@@ -330,16 +358,19 @@ function run_get_packages() {
 		# check if the file is already present
 		cd $PACKAGES_PATH
 		if [ -f $filename ]; then
-
-			# check if the md5 is correct
-			current_md5=$(md5sum $filename | cut -d\  -f1)
-			if [ "X$current_md5" == "X$md5" ]; then
-				# correct, no need to download
-				do_download=0
+			if [ -n "$md5" ]; then
+				# check if the md5 is correct
+				current_md5=$(md5sum $filename | cut -d\  -f1)
+				if [ "X$current_md5" == "X$md5" ]; then
+					# correct, no need to download
+					do_download=0
+				else
+					# invalid download, remove the file
+					error "Module $module have invalid md5, redownload."
+					rm $filename
+				fi
 			else
-				# invalid download, remove the file
-				error "Module $module have invalid md5, redownload."
-				rm $filename
+				do_download=0
 			fi
 		fi
 
@@ -352,17 +383,19 @@ function run_get_packages() {
 		fi
 
 		# check md5
-		current_md5=$(md5sum $filename | cut -d\  -f1)
-		if [ "X$current_md5" != "X$md5" ]; then
-			error "File $filename md5 check failed (got $current_md5 instead of $md5)."
-			error "Ensure the file is correctly downloaded, and update MD5S_$module"
-			exit -1
+		if [ -n "$md5" ]; then
+			current_md5=$(md5sum $filename | cut -d\  -f1)
+			if [ "X$current_md5" != "X$md5" ]; then
+				error "File $filename md5 check failed (got $current_md5 instead of $md5)."
+				error "Ensure the file is correctly downloaded, and update MD5S_$module"
+				exit -1
+			fi
 		fi
 
 		# if already decompress, forget it
 		cd $BUILD_PATH/$module
 		directory=$(get_directory $filename)
-		if [ -d $directory ]; then
+		if [ -d "$directory" ]; then
 			continue
 		fi
 
@@ -385,8 +418,8 @@ function run_get_packages() {
 				fi
 				;;
 			*.zip )
-				try unzip x $pfilename
-				root_directory=$(basename $(try unzip -l $pfilename|sed -n 4p|awk '{print $4}'))
+				try unzip $pfilename
+				root_directory=$(basename $(try unzip -l $pfilename|sed -n 5p|awk '{print $4}'))
 				if [ "X$root_directory" != "X$directory" ]; then
 					mv $root_directory $directory
 				fi
@@ -481,7 +514,7 @@ function run_distribute() {
 
 	debug "Strip libraries"
 	push_arm
-	try find "$DIST_PATH"/private "$DIST_PATH"/libs | grep -E "*\.so$" | xargs $STRIP
+	try find "$DIST_PATH"/private "$DIST_PATH"/libs -iname '*.so' -exec $STRIP {} \;
 	pop_arm
 
 }
@@ -490,11 +523,6 @@ function run() {
 	run_prepare
 	run_source_modules
 	run_get_packages
-
-	push_arm
-	debug "PATH is $PATH"
-	pop_arm
-
 	run_prebuild
 	run_build
 	run_postbuild
