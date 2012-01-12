@@ -31,6 +31,16 @@ PyMODINIT_FUNC initandroidembed(void) {
     (void) Py_InitModule("androidembed", AndroidEmbedMethods);
 }
 
+int file_exists(const char * filename)
+{
+	FILE *file;
+    if (file = fopen(filename, "r")) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
 int main(int argc, char **argv) {
 
     char *env_argument = NULL;
@@ -85,15 +95,31 @@ int main(int argc, char **argv) {
      */
     LOG("Run user program, change dir and execute main.py");
     chdir(env_argument);
-    fd = fopen("main.py", "r");
+
+	/* search the initial main.py
+	 */
+	char *main_py = "main.pyo";
+	if ( file_exists(main_py) == 0 ) {
+		if ( file_exists("main.py") )
+			main_py = "main.py";
+		else
+			main_py = NULL;
+	}
+
+	if ( main_py == NULL ) {
+		LOG("No main.pyo / main.py found.");
+		return -1;
+	}
+
+    fd = fopen(main_py, "r");
     if ( fd == NULL ) {
-        LOG("Open the main.py failed");
+        LOG("Open the main.py(o) failed");
         return -1;
     }
 
     /* run python !
      */
-    ret = PyRun_SimpleFile(fd, "main.py");
+    ret = PyRun_SimpleFile(fd, main_py);
 
     if (PyErr_Occurred() != NULL) {
         ret = 1;
