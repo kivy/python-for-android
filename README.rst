@@ -49,6 +49,6 @@ Troubleshooting
 
     Android NDK: Host 'awk' tool is outdated. Please define HOST_AWK to point to Gawk or Nawk !
 
-a solution is to remove the "awk" binary in the android ndk distribution
+  a solution is to remove the "awk" binary in the android ndk distribution
 
     rm $ANDROIDNDK/prebuilt/linux-x86/bin/awk
