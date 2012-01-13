@@ -26,6 +26,7 @@ function build_android() {
 	push_arm
 
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH"
+	export LDSHARED="$LIBLINK"
 
 	# cythonize
 	try cython android.pyx
@@ -37,6 +38,8 @@ function build_android() {
 		$BUILD_PATH/python-install/lib/python2.7/lib-dynload/
 	try cp android_mixer.py \
 		$BUILD_PATH/python-install/lib/python2.7/
+
+	unset LDSHARED
 
 	touch .done
 	pop_arm

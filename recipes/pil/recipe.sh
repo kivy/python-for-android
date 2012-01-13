@@ -41,8 +41,10 @@ function build_pil() {
 	LIBS="$SRC_PATH/obj/local/$ARCH"
 	export CFLAGS="$CFLAGS -I$JNI_PATH/png -I$JNI_PATH/jpeg"
 	export LDFLAGS="$LDFLAGS -L$LIBS -lm -lz"
+	export LDSHARED="$LIBLINK"
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 
+	unset LDSHARED
 	pop_arm
 }
 
