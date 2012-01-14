@@ -20,6 +20,7 @@ your application.
     introduction.rst
     prerequisites.rst
     usage.rst
+    helloworld.rst
     howitworks.rst
     customize.rst
     recipes.rst
