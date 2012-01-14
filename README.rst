@@ -5,7 +5,9 @@ Python for android is a project to create your own Python distribution
 including the modules you want, and create an apk including python, libs, and
 your application.
 
-Website: http://python-for-android.rtfd.org/
+- Website: http://python-for-android.rtfd.org/
+- Forum: https://groups.google.com/forum/?hl=fr#!forum/python-android
+- Mailing list: python-android@googlegroups.com
 
 
 Global overview
