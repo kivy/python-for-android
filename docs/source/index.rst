@@ -23,6 +23,7 @@ your application.
     howitworks.rst
     customize.rst
     recipes.rst
+    android.rst
     related.rst
 
 Indices and tables
