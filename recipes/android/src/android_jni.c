@@ -48,6 +48,47 @@ void android_accelerometer_enable(int enable) {
         (jboolean) enable);    
 }
 
+void android_wifi_scanner_enable(void){
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/Hardware");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "enableWifiScanner", "()V");
+        aassert(mid);
+    }
+
+    (*env)->CallStaticVoidMethod(env, cls, mid);
+}
+
+
+char * android_wifi_scan() {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+    jobject jreading;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/Hardware");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "scanWifi", "()Ljava/lang/String;");
+        aassert(mid);
+    }
+
+    PUSH_FRAME;
+    jreading = (*env)->CallStaticObjectMethod(env, cls, mid);
+    const char * reading = (*env)->GetStringUTFChars(env, jreading, 0);
+    POP_FRAME;
+
+    return reading;
+}
+
 void android_accelerometer_reading(float *values) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
