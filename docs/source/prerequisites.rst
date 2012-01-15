@@ -42,4 +42,7 @@ After installing them, export both installation path, NDK version and API to use
     export ANDROIDNDKVER=r7
     export ANDROIDAPI=14
 
+Also, you must configure you're PATH to add the ``android`` binary::
+
+    export PATH=/path/to/android-sdk-linux/tools:$PATH
 
