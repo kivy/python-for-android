@@ -19,6 +19,11 @@ SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
 
+# Tools
+export LIBLINK_PATH="$BUILD_PATH/objects"
+export LIBLINK="$ROOT_PATH/src/tools/liblink"
+export BIGLINK="$ROOT_PATH/src/tools/biglink"
+
 # Internals
 CRED="\x1b[31;01m"
 CBLUE="\x1b[34;01m"
@@ -80,6 +85,7 @@ function push_arm() {
 	export OLD_RANLIB=$RANLIB
 	export OLD_STRIP=$STRIP
 	export OLD_MAKE=$MAKE
+	export OLD_LD=$LD
 
 	# to override the default optimization, set OFLAG
 	#export OFLAG="-Os"
@@ -121,6 +127,7 @@ function push_arm() {
 	export CXX="$TOOLCHAIN_PREFIX-g++ $CXXFLAGS"
 	export AR="$TOOLCHAIN_PREFIX-ar" 
 	export RANLIB="$TOOLCHAIN_PREFIX-ranlib"
+	export LD="$TOOLCHAIN_PREFIX-ld"
 	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
 	export MAKE="make -j5"
 
@@ -140,6 +147,7 @@ function pop_arm() {
 	export CC=$OLD_CC
 	export CXX=$OLD_CXX
 	export AR=$OLD_AR
+	export LD=$OLD_LD
 	export RANLIB=$OLD_RANLIB
 	export STRIP=$OLD_STRIP
 	export MAKE=$OLD_MAKE
@@ -239,6 +247,7 @@ function run_prepare() {
 	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
 	test -d $BUILD_PATH || mkdir -p $BUILD_PATH
 	test -d $LIBS_PATH || mkdir -p $LIBS_PATH
+	test -d $LIBLINK_PATH || mkdir -p $LIBLINK_PATH
 
 	# create initial files
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
@@ -486,6 +495,7 @@ function run_distribute() {
 	debug "Fill private directory"
 	try cp -a python-install/lib private/
 	try mkdir -p private/include/python2.7
+	try mv libs/$ARCH/libpymodules.so private/
 	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
 
 	debug "Reduce private directory from unwanted files"
@@ -519,12 +529,19 @@ function run_distribute() {
 
 }
 
+function run_biglink() {
+	push_arm
+	try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
+	pop_arm
+}
+
 function run() {
 	run_prepare
 	run_source_modules
 	run_get_packages
 	run_prebuild
 	run_build
+	run_biglink
 	run_postbuild
 	run_distribute
 	info "All done !"
@@ -535,6 +552,23 @@ function list_modules() {
 	echo "Available modules: $modules"
 	exit 0
 }
+
+# one method to deduplicate some symbol in libraries
+function arm_deduplicate() {
+	fn=$(basename $1)
+	echo "== Trying to remove duplicate symbol in $1"
+	push_arm
+	try mkdir ddp
+	try cd ddp
+	try $AR x $1
+	try $AR rc $fn *.o
+	try $RANLIB $fn
+	try mv -f $fn $1
+	try cd ..
+	try rm -rf ddp
+	pop_arm
+}
+
 
 # Do the build
 while getopts ":hvlfm:d:" opt; do
