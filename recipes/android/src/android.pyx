@@ -140,6 +140,25 @@ def accelerometer_reading():
 
     return (rv[0], rv[1], rv[2])
 
+# Wifi reading support
+cdef extern void android_wifi_scanner_enable()
+cdef extern char * android_wifi_scan()
+
+def wifi_scanner_enable():
+    android_wifi_scanner_enable()
+
+def wifi_scan():
+    cdef char * reading
+    reading = android_wifi_scan()
+
+    reading_list = []
+
+    for line in filter(lambda l: l, reading.split('\n')):
+        [ssid, mac, level] = line.split('\t')
+        reading_list.append((ssid.strip(), mac.upper().strip(), int(level)))
+
+    return reading_list
+
 # DisplayMetrics information.
 cdef extern int android_get_dpi()
 
