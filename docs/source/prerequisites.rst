@@ -11,7 +11,12 @@ might need other tools (cython is used by some recipes, and ccache to speedup th
 
     sudo apt-get install build-essential patch git-core ccache cython ant
 
-You must have android SDK and NDK. You can download them at::
+You must have android SDK and NDK. Right now, it's prefered to use:
+
+- SDK API 8 or 14 (15 will not work until a new NDK will be released)
+- NDK r5b or r7
+
+You can download them at::
 
     http://developer.android.com/sdk/index.html
     http://developer.android.com/sdk/ndk/index.html
