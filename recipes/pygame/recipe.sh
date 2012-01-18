@@ -34,6 +34,7 @@ function build_pygame() {
 	CFLAGS="$CFLAGS -I$JNI_PATH/sdl_ttf -I$JNI_PATH/sdl_image"
 	export CFLAGS="$CFLAGS"
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$SRC_PATH/obj/local/$ARCH/ -lm -lz"
+	export LDSHARED="$LIBLINK"
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
@@ -42,6 +43,7 @@ function build_pygame() {
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/tests
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/gp2x
 
+	unset LDSHARED
 	pop_arm
 }
 

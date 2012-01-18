@@ -22,10 +22,12 @@ function build_lxml() {
 
 	export CC="$CC -I$BUILD_libxml2/include -I$BUILD_libxslt"
 	export LDFLAGS="$LDFLAGS -L$BUILD_libxslt/libxslt/.libs -L$BUILD_libxslt/libexslt/.libs -L$BUILD_libxml2/.libs"
+	export LDSHARED="$LIBLINK"
 
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 
+	unset LDSHARED
 	pop_arm
 }
 
