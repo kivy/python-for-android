@@ -39,7 +39,7 @@ import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
 import android.os.Build;
-import android.os.PowerManager;  
+import android.os.PowerManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -263,7 +263,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 		protected int mStencilSize;
 		private int[] mValue = new int[1];
 	}
- 
+
     // The activity we're a part of.
     private Activity mActivity;
 
@@ -272,28 +272,22 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // Is Python ready to receive input events?
     static boolean mInputActivated = false;
-    
-    // The number of swaps we should skip. Experimentally derived from
-    // watching SDL initialize.
-	// XXX Kivy no swap skips, because kivy draw when needed.
-	// XXX If we lost our first frame, we have a black screen.
-    private int mSwapSkips = 0;
 
     // The number of times we should clear the screen after swap.
     private int mClears = 2;
-    
+
     // Has the display been changed?
     private boolean mChanged = false;
 
     // Are we running yet?
     private boolean mRunning = false;
-        
+
     // The EGL used by our thread.
     private EGL10 mEgl = null;
 
     // The EGL Display used.
     private EGLDisplay mEglDisplay = null;
-    
+
     // The EGL Context used.
     private EGLContext mEglContext = null;
 
@@ -305,7 +299,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // The user program is not participating in the pause protocol.
     public final int PAUSE_NOT_PARTICIPATING = 0;
-    
+
     // A pause has not been requested by the OS.
     public final int PAUSE_NONE = 1;
 
@@ -320,12 +314,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private int mPause = PAUSE_NOT_PARTICIPATING;
 
 
-    private PowerManager.WakeLock wakeLock;  
-    
+    private PowerManager.WakeLock wakeLock;
+
     // The width and height. (This should be set at startup time -
     // these values just prevent segfaults and divide by zero, etc.)
     int mWidth = 100;
-    int mHeight = 100;        
+    int mHeight = 100;
 
     // The name of the directory where the context stores its files.
     String mFilesDirectory = null;
@@ -335,13 +329,13 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // The resource manager we use.
     ResourceManager mResourceManager;
-    
+
     public SDLSurfaceView(Activity act, String argument) {
         super(act);
 
         mActivity = act;
         mResourceManager = new ResourceManager(act);
-        
+
         SurfaceHolder holder = getHolder();
         holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_GPU);
@@ -349,8 +343,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         mArgument = argument;
 
-        PowerManager pm = (PowerManager) act.getSystemService(Context.POWER_SERVICE);  
-        wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");          
+        PowerManager pm = (PowerManager) act.getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
     }
 
 
@@ -370,7 +364,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             return 0;
         }
     }
-    
+
 
     /**
      * The user program should call this quickly after checkPause
@@ -380,7 +374,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      *
      * While we're waiting in this method, android is allowed to
      * kill us to reclaim memory, without any further warning.
-     */     
+     */
     public void waitForResume() {
         synchronized (this) {
             mPause = PAUSE_WAIT_FOR_RESUME;
@@ -396,7 +390,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
     }
-    
+
     /**
      * Inform the view that the activity is paused. The owner of this view must
      * call this method when the activity is paused. Calling this method will
@@ -405,7 +399,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void onPause() {
 
-        synchronized (this) {        
+        synchronized (this) {
             if (mPause == PAUSE_NONE) {
                 mPause = PAUSE_REQUEST;
 
@@ -420,9 +414,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         wakeLock.release();
-        
+
     }
-    
+
     /**
      * Inform the view that the activity is resumed. The owner of this view must
      * call this method when the activity is resumed. Calling this method will
@@ -431,10 +425,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * Must not be called before a renderer has been set.
      */
     public void onResume() {
-        synchronized (this) {        
+        synchronized (this) {
             if (mPause == PAUSE_WAIT_FOR_RESUME) {
                 mPause = PAUSE_NONE;
-                this.notifyAll(); 
+                this.notifyAll();
             }
         }
 
@@ -474,7 +468,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
 
         if (!mRunning) {
-            mRunning = true;       
+            mRunning = true;
             new Thread(this).start();
         } else {
             mChanged = true;
@@ -573,9 +567,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         int gle = gl.glGetError();
         if (gle != gl.GL_NO_ERROR) {
             throw new RuntimeException("GL Error: " + gle);
-        }        
+        }
     }
-    
+
     private void waitForStart() {
 
         int presplashId = mResourceManager.getIdentifier("presplash", "drawable");
@@ -708,7 +702,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                     this.wait(250);
                 } catch (InterruptedException e) {
                     continue;
-                }           
+                }
             }
         }
 
@@ -724,22 +718,22 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 		GLES20.glDeleteProgram(mProgram);
     }
 
-    
+
     public void start() {
         this.setFocusableInTouchMode(true);
         this.setFocusable(true);
-        this.requestFocus();       
-        
-        synchronized (this) {            
+        this.requestFocus();
+
+        synchronized (this) {
             mStarted = true;
             this.notify();
         }
 
     }
-    
-    public boolean createSurface() {        
+
+    public boolean createSurface() {
         mChanged = false;
-        
+
         // Destroy the old surface.
         if (mEglSurface != null) {
 
@@ -773,12 +767,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     public int swapBuffers() {
-
-        // Prevent us from drawing too early, at startup.
-        if (mSwapSkips-- > 0) {
-            return 1;
-        }
-        
         // If the display has been changed, then disregard all the
         // rendering we've done to it, and make a new surface.
         //
@@ -787,19 +775,15 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             createSurface();
             mClears = 2;
             return 0;
-            
+
         } else {
-
             mEgl.eglSwapBuffers(mEglDisplay, mEglSurface);
-
-            if (mClears-- != 0) {
+            if (mClears-- > 0)
                 GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-            }
-            
             return 1;
         }
 
-    }    
+    }
 
 	private static final int INVALID_POINTER_ID = -1;
 	private int mActivePointerId = INVALID_POINTER_ID;
@@ -855,7 +839,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 				if ( pointerIndex == -1 || pointerIndex == i ) {
 
 					/**
-        			Log.i("python", String.format("mouse id=%d action=%d x=%f y=%f", 
+        			Log.i("python", String.format("mouse id=%d action=%d x=%f y=%f",
 							event.getPointerId(i),
 							sdlAction,
 							event.getX(i),
@@ -874,18 +858,13 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 			}
 
 		}
-		synchronized (this) {
-            try {
-                this.wait(1000 / 60);
-            } catch (InterruptedException e) { }
-        }
-        
+
         return true;
     };
-    
+
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        Log.i("python", String.format("key down %d", keyCode));
+        //Log.i("python", String.format("key down %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
             return true;
         } else {
@@ -895,7 +874,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
-        Log.i("python", String.format("key up %d", keyCode));
+        //Log.i("python", String.format("key up %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
         } else {
@@ -967,13 +946,13 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
     private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
     private final float[] mTriangleVerticesData = {
-            // X, Y, Z, U, V
-            -0.5f, -0.5f, 0, 1.0f, 0.0f,
-            0.5f, -0.5f, 0, 0.0f, 0.0f,
-            0.5f, 0.5f, 0, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0, 1.0f, 0.0f,
-            0.5f, 0.5f, 0, 0.0f, 1.0f,
-            -0.5f, 0.5f, 0, 1.0f, 1.0f,
+		// X, Y, Z, U, V
+		-0.5f, -0.5f, 0, 1.0f, 0.0f,
+		0.5f, -0.5f, 0, 0.0f, 0.0f,
+		0.5f, 0.5f, 0, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0, 1.0f, 0.0f,
+		0.5f, 0.5f, 0, 0.0f, 1.0f,
+		-0.5f, 0.5f, 0, 1.0f, 1.0f,
 	};
 
     private FloatBuffer mTriangleVertices;
@@ -997,8 +976,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     public static native boolean nativeKey(int keyCode, int down, int unicode);
     public static native void nativeSetMouseUsed();
     public static native void nativeSetMultitouchUsed();
-    
+
     public native void nativeResize(int width, int height);
     public native void nativeInitJavaCallbacks();
-    
+
 }
