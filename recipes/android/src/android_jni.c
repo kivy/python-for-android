@@ -218,7 +218,7 @@ void android_activate_input(void) {
     (*env)->CallStaticVoidMethod(env, cls, mid);
 }
 
-void android_action_send(char *mimeType, char *filename, char *subject, char *text) {
+void android_action_send(char *mimeType, char *filename, char *subject, char *text, char *chooser_title) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
@@ -229,7 +229,7 @@ void android_action_send(char *mimeType, char *filename, char *subject, char *te
         cls = (*env)->FindClass(env, "org/renpy/android/Action");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "send",
-			"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+			"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
         aassert(mid);
     }
 
@@ -237,14 +237,18 @@ void android_action_send(char *mimeType, char *filename, char *subject, char *te
 	jstring j_filename = NULL;
 	jstring j_subject = NULL;
 	jstring j_text = NULL;
+	jstring j_chooser_title = NULL;
 	if ( filename != NULL )
 		j_filename = (*env)->NewStringUTF(env, filename);
 	if ( subject != NULL )
 		j_subject = (*env)->NewStringUTF(env, subject);
 	if ( text != NULL )
 		j_text = (*env)->NewStringUTF(env, text);
+	if ( chooser_title != NULL )
+		j_chooser_title = (*env)->NewStringUTF(env, text);
 
     (*env)->CallStaticVoidMethod(
         env, cls, mid,
-		j_mimeType, j_filename, j_subject, j_text);
+		j_mimeType, j_filename, j_subject, j_text,
+		j_chooser_title);
 }

@@ -200,16 +200,21 @@ def get_buildinfo():
     return binfo
 
 # Action send
-cdef extern void android_action_send(char*, char*, char*, char*)
-def action_send(mimetype, filename=None, subject=None, text=None):
+cdef extern void android_action_send(char*, char*, char*, char*, char*)
+def action_send(mimetype, filename=None, subject=None, text=None,
+        chooser_title=None):
     cdef char *j_mimetype = <bytes>mimetype
     cdef char *j_filename = NULL
     cdef char *j_subject = NULL
     cdef char *j_text = NULL
+    cdef char *j_chooser_title = NULL
     if filename is not None:
         j_filename = <bytes>filename
     if subject is not None:
         j_subject = <bytes>subject
     if text is not None:
         j_text = <bytes>text
-    android_action_send(j_mimetype, j_filename, j_subject, j_text)
+    if chooser_title is not None:
+        j_chooser_title = <bytes>chooser_title
+    android_action_send(j_mimetype, j_filename, j_subject, j_text,
+            j_chooser_title)
