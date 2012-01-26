@@ -58,6 +58,7 @@ public class PythonActivity extends Activity implements Runnable {
         super.onCreate(savedInstanceState);
 
         Hardware.context = this;
+        Action.context = this;
 
         getWindowManager().getDefaultDisplay().getMetrics(Hardware.metrics);
 

@@ -120,7 +120,7 @@ cdef extern void android_vibrate(double)
 
 def vibrate(s):
     android_vibrate(s)
-    
+
 # Accelerometer support.
 cdef extern void android_accelerometer_enable(int)
 cdef extern void android_accelerometer_reading(float *)
@@ -133,7 +133,7 @@ def accelerometer_enable(p):
     android_accelerometer_enable(p)
 
     accelerometer_enabled = p
-    
+
 def accelerometer_reading():
     cdef float rv[3]
     android_accelerometer_reading(rv)
@@ -199,3 +199,17 @@ def get_buildinfo():
     binfo.VERSION_RELEASE = BUILD_VERSION_RELEASE
     return binfo
 
+# Action send
+cdef extern void android_action_send(char*, char*, char*, char*)
+def action_send(mimetype, filename=None, subject=None, text=None):
+    cdef char *j_mimetype = <bytes>mimetype
+    cdef char *j_filename = NULL
+    cdef char *j_subject = NULL
+    cdef char *j_text = NULL
+    if filename is not None:
+        j_filename = <bytes>filename
+    if subject is not None:
+        j_subject = <bytes>subject
+    if text is not None:
+        j_text = <bytes>text
+    android_action_send(j_mimetype, j_filename, j_subject, j_text)

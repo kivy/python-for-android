@@ -22,12 +22,12 @@ import android.content.IntentFilter;
  * device's non-screen hardware. (For example, the vibration and
  * accelerometer.)
  */
- public class Hardware {
-     
+public class Hardware {
+
      // The context.
      static Context context;
      static View view;
-     
+
      /**
       * Vibrate for s seconds.
       */
@@ -39,7 +39,7 @@ import android.content.IntentFilter;
      }
 
      static SensorEvent lastEvent = null;
-     
+
      static class AccelListener implements SensorEventListener {
          public void onSensorChanged(SensorEvent ev) {
              lastEvent = ev;
@@ -51,7 +51,7 @@ import android.content.IntentFilter;
      }
 
      static AccelListener accelListener = new AccelListener();
-     
+
      /**
       * Enable or Disable the accelerometer.
       */
@@ -62,16 +62,16 @@ import android.content.IntentFilter;
          if (accel == null) {
              return;
          }
-         
+
          if (enable) {
-             sm.registerListener(accelListener, accel, SensorManager.SENSOR_DELAY_GAME);             
+             sm.registerListener(accelListener, accel, SensorManager.SENSOR_DELAY_GAME);
          } else {
              sm.unregisterListener(accelListener, accel);
-         
+
          }
      }
-     
- 
+
+
      static float[] accelerometerReading() {
          if (lastEvent != null) {
              return lastEvent.values;

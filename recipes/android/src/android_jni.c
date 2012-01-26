@@ -10,7 +10,7 @@ JNIEnv *SDL_ANDROID_GetJNIEnv(void);
 #define PUSH_FRAME { (*env)->PushLocalFrame(env, 16); }
 #define POP_FRAME  { (*env)->PopLocalFrame(env, NULL); }
 
-void android_vibrate(double seconds) {   
+void android_vibrate(double seconds) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
@@ -26,10 +26,10 @@ void android_vibrate(double seconds) {
 
     (*env)->CallStaticVoidMethod(
         env, cls, mid,
-        (jdouble) seconds);    
+        (jdouble) seconds);
 }
 
-void android_accelerometer_enable(int enable) {   
+void android_accelerometer_enable(int enable) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
@@ -45,7 +45,7 @@ void android_accelerometer_enable(int enable) {
 
     (*env)->CallStaticVoidMethod(
         env, cls, mid,
-        (jboolean) enable);    
+        (jboolean) enable);
 }
 
 void android_wifi_scanner_enable(void){
@@ -94,7 +94,7 @@ void android_accelerometer_reading(float *values) {
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
     jobject jvalues;
-    
+
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
@@ -105,18 +105,18 @@ void android_accelerometer_reading(float *values) {
     }
 
     PUSH_FRAME;
-    
+
     jvalues = (*env)->CallStaticObjectMethod(env, cls, mid);
     (*env)->GetFloatArrayRegion(env, jvalues, 0, 3, values);
-        
-    POP_FRAME;    
+
+    POP_FRAME;
 }
 
 int android_get_dpi(void) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
-    
+
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
@@ -216,4 +216,35 @@ void android_activate_input(void) {
     }
 
     (*env)->CallStaticVoidMethod(env, cls, mid);
+}
+
+void android_action_send(char *mimeType, char *filename, char *subject, char *text) {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/Action");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "send",
+			"(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+        aassert(mid);
+    }
+
+	jstring j_mimeType = (*env)->NewStringUTF(env, mimeType);
+	jstring j_filename = NULL;
+	jstring j_subject = NULL;
+	jstring j_text = NULL;
+	if ( filename != NULL )
+		j_filename = (*env)->NewStringUTF(env, filename);
+	if ( subject != NULL )
+		j_subject = (*env)->NewStringUTF(env, subject);
+	if ( text != NULL )
+		j_text = (*env)->NewStringUTF(env, text);
+
+    (*env)->CallStaticVoidMethod(
+        env, cls, mid,
+		j_mimeType, j_filename, j_subject, j_text);
 }
