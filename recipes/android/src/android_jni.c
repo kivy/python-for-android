@@ -218,6 +218,40 @@ void android_activate_input(void) {
     (*env)->CallStaticVoidMethod(env, cls, mid);
 }
 
+int android_checkstop(void) {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/SDLSurfaceView");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "checkStop", "()I");
+        aassert(mid);
+    }
+
+    return (*env)->CallStaticIntMethod(env, cls, mid);
+}
+
+void android_ackstop(void) {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/SDLSurfaceView");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "ackStop", "()I");
+        aassert(mid);
+    }
+
+    (*env)->CallStaticIntMethod(env, cls, mid);
+}
+
 void android_action_send(char *mimeType, char *filename, char *subject, char *text, char *chooser_title) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;

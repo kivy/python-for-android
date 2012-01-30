@@ -298,21 +298,23 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private EGLConfig mEglConfig = null;
 
     // The user program is not participating in the pause protocol.
-    public final int PAUSE_NOT_PARTICIPATING = 0;
+    static int PAUSE_NOT_PARTICIPATING = 0;
 
     // A pause has not been requested by the OS.
-    public final int PAUSE_NONE = 1;
+    static int PAUSE_NONE = 1;
 
     // A pause has been requested by Android, but the user program has
     // not bothered responding yet.
-    public final int PAUSE_REQUEST = 2;
+    static int PAUSE_REQUEST = 2;
 
     // The user program is waiting in waitForResume.
-    public final int PAUSE_WAIT_FOR_RESUME = 3;
+    static int PAUSE_WAIT_FOR_RESUME = 3;
+
+	static int PAUSE_STOP_REQUEST = 4;
+	static int PAUSE_STOP_ACK = 5;
 
     // This stores the state of the pause system.
-    private int mPause = PAUSE_NOT_PARTICIPATING;
-
+    static int mPause = PAUSE_NOT_PARTICIPATING;
 
     private PowerManager.WakeLock wakeLock;
 
@@ -330,8 +332,13 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // The resource manager we use.
     ResourceManager mResourceManager;
 
+	// Our own view
+	static SDLSurfaceView instance = null;
+
     public SDLSurfaceView(Activity act, String argument) {
         super(act);
+
+		SDLSurfaceView.instance = this;
 
         mActivity = act;
         mResourceManager = new ResourceManager(act);
@@ -435,11 +442,54 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         wakeLock.acquire();
     }
 
+	public void onDestroy() {
+		Log.w(TAG, "onDestroy() called");
+		synchronized (this) {
+			this.notifyAll();
+
+			if ( mPause == PAUSE_STOP_ACK ) {
+				Log.d(TAG, "onDestroy() app already leaved.");
+				return;
+			}
+
+			// application didn't leave, give 10s before closing.
+			// hopefully, this could be enough for launching the on_stop() trigger within the app.
+			mPause = PAUSE_STOP_REQUEST;
+			int i = 50;
+
+			Log.d(TAG, "onDestroy() stop requested, wait for an event from the app");
+			for (; i >= 0 && mPause == PAUSE_STOP_REQUEST; i--) {
+				try {
+					this.wait(200);
+				} catch (InterruptedException e) {
+					break;
+				}
+			}
+			Log.d(TAG, "onDestroy() stop finished waiting.");
+		}
+	}
+
+	static int checkStop() {
+        if (mPause == PAUSE_STOP_REQUEST)
+			return 1;
+		return 0;
+	}
+
+	static void ackStop() {
+		Log.d(TAG, "ackStop() notify");
+		synchronized (instance) {
+			mPause = PAUSE_STOP_ACK;
+			instance.notifyAll();
+		}
+	}
+
+
     /**
      * This method is part of the SurfaceHolder.Callback interface, and is
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceCreated(SurfaceHolder holder) {
+		Log.i(TAG, "surfaceCreated() is not handled :|");
     }
 
     /**
@@ -447,6 +497,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
+		Log.i(TAG, "surfaceDestroyed() is not handled :|");
     }
 
     /**
@@ -556,10 +607,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         nativeSetEnv("PYTHONOPTIMIZE", "2");
         nativeSetEnv("PYTHONHOME", mFilesDirectory);
         nativeSetEnv("PYTHONPATH", mArgument + ":" + mFilesDirectory + "/lib");
-        //nativeSetMouseUsed();
 		nativeSetMultitouchUsed();
         nativeInit();
 
+		mPause = PAUSE_STOP_ACK;
+
+		//Log.i(TAG, "End of native init, stop everything (exit0)");
         System.exit(0);
     }
 

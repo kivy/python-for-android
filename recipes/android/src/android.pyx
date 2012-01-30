@@ -218,3 +218,12 @@ def action_send(mimetype, filename=None, subject=None, text=None,
         j_chooser_title = <bytes>chooser_title
     android_action_send(j_mimetype, j_filename, j_subject, j_text,
             j_chooser_title)
+
+cdef extern int android_checkstop()
+cdef extern void android_ackstop()
+
+def check_stop():
+    return android_checkstop()
+
+def ack_stop():
+    android_ackstop()
