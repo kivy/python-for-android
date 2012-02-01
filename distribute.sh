@@ -486,6 +486,7 @@ function run_distribute() {
 	try cp -a $SRC_PATH/blacklist.txt .
 
 	debug "Copy python distribution"
+	$BUILD_PATH/python-install/bin/python.host -OO -m compileall $BUILD_PATH/python-install
 	try cp -a $BUILD_PATH/python-install .
 
 	debug "Copy libs"
