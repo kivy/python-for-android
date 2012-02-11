@@ -22,6 +22,11 @@ else:
     ANDROID = 'android'
     ANT = 'ant'
 
+#if ANDROIDSDK is on path, use android from this path
+ANDROIDSDK = os.environ.get('ANDROIDSDK')
+if ANDROIDSDK:
+    ANDROID = os.path.join(ANDROIDSDK, 'tools', ANDROID)
+
 curdir = dirname(__file__)
 
 # Try to find a host version of Python that matches our ARM version.
@@ -240,7 +245,7 @@ def make_package(args):
     # Update the project to a recent version.
     try:
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t', 'android-8'])
-    except IOError:
+    except (OSError, IOError):
         print 'An error occured while calling', ANDROID, 'update'
         print 'Your PATH must include android tools.'
         sys.exit(-1)
@@ -272,7 +277,7 @@ def make_package(args):
     # Build.
     try:
         map(lambda arg: subprocess.call([ANT, arg]), args.command)
-    except IOError:
+    except (OSError, IOError):
         print 'An error occured while calling', ANT
         print 'Did you install ant on your system ?'
         sys.exit(-1)
