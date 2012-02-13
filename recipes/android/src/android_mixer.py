@@ -11,7 +11,7 @@ condition = threading.Condition()
 def periodic():
     for i in range(0, num_channels):
         if i in channels:
-            channels[i].periodic()        
+            channels[i].periodic()
 
 num_channels = 8
 reserved_channels = 0
@@ -78,11 +78,11 @@ def find_channel(force=False):
 
     if not force:
         return None
-        
+
     busy.sort(key=lambda x : x.play_time)
 
     return busy[0]
-    
+
 class ChannelImpl(object):
 
     def __init__(self, id):
@@ -91,17 +91,17 @@ class ChannelImpl(object):
         self.queued = None
 
         self.play_time = time.time()
-        
+
     def periodic(self):
         qd = sound.queue_depth(self.id)
 
         if qd < 2:
             self.queued = None
-        
+
         if self.loop is not None and sound.queue_depth(self.id) < 2:
             self.queue(self.loop, loops=1)
 
-            
+
     def play(self, s, loops=0, maxtime=0, fade_ms=0):
         if loops:
             self.loop = s
@@ -109,10 +109,10 @@ class ChannelImpl(object):
         sound.play(self.id, s.file, s.serial)
 
         self.play_time = time.time()
-        
+
         with condition:
             condition.notify()
-        
+
 
     def stop(self):
         self.loop = None
@@ -158,7 +158,7 @@ class ChannelImpl(object):
     def get_queue(self):
         return self.queued
 
-            
+
 def Channel(n):
     """
     Gets the channel with the given number.
@@ -174,18 +174,18 @@ def Channel(n):
 
 sound_serial = 0
 sounds = { }
-                           
+
 class Sound(object):
-    
+
     def __init__(self, what):
 
         # Doesn't support buffers.
-        
+
         global sound_serial
 
         self.serial = str(sound_serial)
         sound_serial += 1
-        
+
         if isinstance(what, file):
             self.file = what
         else:
@@ -231,7 +231,7 @@ class music(object):
     def load(filename):
 
         music_channel.stop()
-        
+
         global music_sound
         music_sound = Sound(filename)
 
@@ -271,7 +271,7 @@ class music(object):
 
     @staticmethod
     def get_busy():
-        return music_channel.get_volume()
+        return music_channel.get_busy()
 
     @staticmethod
     def get_pos():
@@ -281,5 +281,5 @@ class music(object):
     def queue(filename):
         return music_channel.queue(Sound(filename))
 
-    
-    
+
+
