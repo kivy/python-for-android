@@ -194,7 +194,9 @@ class Sound(object):
         sounds[self.serial] = self
 
     def play(self, loops=0, maxtime=0, fade_ms=0):
-        find_channel(True).play(self, loops=loops)
+        channel = find_channel(True)
+        channel.play(self, loops=loops)
+        return channel
 
     def stop(self):
         for i in range(0, num_channels):
