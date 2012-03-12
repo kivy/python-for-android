@@ -188,7 +188,7 @@ function run_prepare() {
 		exit -1
 	fi
 	if [ ! -d "$ANDROIDNDK" ]; then
-		echo "ANDROIDNDK=$ANDROIDSDK"
+		echo "ANDROIDNDK=$ANDROIDNDK"
 		error "ANDROIDNDK path is invalid, it must be a directory. abort."
 		exit 1
 	fi
