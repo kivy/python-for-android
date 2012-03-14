@@ -23,9 +23,9 @@ function build_zope() {
 
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH"
 	export LDSHARED="$LIBLINK"
-	export PYTHONPATH=$BUILD_PATH/hostpython/Python-2.7.2/Lib/site-packages
+	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages
 
-        try $BUILD_PATH/hostpython/Python-2.7.2/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
+        try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
 
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/zope/interface/tests
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/zope/interface/*.txt

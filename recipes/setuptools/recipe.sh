@@ -21,10 +21,10 @@ function build_setuptools() {
 
 	push_arm
 	# build setuptools for android
-        try $BUILD_PATH/hostpython/Python-2.7.2/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
+        try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
 
 	# build setuptools for python-for-android
-        try $BUILD_PATH/hostpython/Python-2.7.2/hostpython setup.py install -O2 --root=$BUILD_PATH/hostpython/Python-2.7.2 --install-lib=Lib/site-packages
+        try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_hostpython --install-lib=Lib/site-packages
 	pop_arm
 }
 
