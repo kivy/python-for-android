@@ -516,7 +516,6 @@ function run_distribute() {
 	try rm -rf distutils/tests
 	try rm -rf email/test
 	try rm -rf bsddb/test
-	try rm -rf distutils
 	try rm -rf config/libpython*.a
 	try rm -rf config/python.o
 	try rm -rf curses

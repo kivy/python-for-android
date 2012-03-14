@@ -13,7 +13,7 @@ function prebuild_zope() {
 
 function build_zope() {
 
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/zope" ]; then
+	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/zope/interface" ]; then
 		return
 	fi
 
@@ -23,8 +23,10 @@ function build_zope() {
 
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH"
 	export LDSHARED="$LIBLINK"
+	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+        try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
+
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/zope/interface/tests
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/zope/interface/*.txt
 
