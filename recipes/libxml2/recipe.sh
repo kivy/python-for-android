@@ -1,34 +1,44 @@
 #!/bin/bash
 
-VERSION_libxml2=2.7.8
-URL_libxml2=ftp://xmlsoft.org/libxml2/libxml2-$VERSION_libxml2.tar.gz
-DEPS_libxml2=()
-MD5_libxml2=8127a65e8c3b08856093099b52599c86
-BUILD_libxml2=$BUILD_PATH/libxml2/$(get_directory $URL_libxml2)
-RECIPE_libxml2=$RECIPES_PATH/libxml2
+VERSION_lxml=2.3.1
+URL_lxml=http://pypi.python.org/packages/source/l/lxml/lxml-$VERSION_lxml.tar.gz
+DEPS_lxml=(libxml2 libxslt python)
+MD5_lxml=87931fbf35df60cd71cfe7484b4b36ed
+BUILD_lxml=$BUILD_PATH/lxml/$(get_directory $URL_lxml)
+RECIPE_lxml=$RECIPES_PATH/lxml
 
-function prebuild_libxml2() {
+function prebuild_lxml() {
 	true
 }
 
-function build_libxml2() {
-	cd $BUILD_libxml2
+function build_lxml() {
+	cd $BUILD_lxml
 
-	if [ -f .libs/libxml2.a ]; then
+	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/lxml" ]; then
 		return
 	fi
 
 	push_arm
 
-	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi \
-		--without-modules --without-legacy --without-history --without-debug --without-docbook --without-python
-	try sed -i 's/ runtest\$(EXEEXT) \\/ \\/' Makefile
-	try sed -i 's/ testrecurse\$(EXEEXT)$//' Makefile
-	try make
+	export CC="$CC -I$BUILD_libxml2/include -I$BUILD_libxslt"
+	export LDFLAGS="-L$BUILD_libxslt/libxslt/.libs -L$BUILD_libxslt/libexslt/.libs -L$BUILD_libxml2/.libs -L$BUILD_libxslt/libxslt -L$BUILD_libxslt/libexslt -L$BUILD_libxml2/  $LDFLAGS"
+	export LDSHARED="$LIBLINK"
 
+	chmod +x $BUILD_libxslt/xslt-config
+	export PATH=$PATH:$BUILD_libxslt
+
+	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -I$BUILD_libxml2/include -I$BUILD_libxslt
+	try find . -iname '*.pyx' -exec cython {} \;
+	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try find build/lib.* -name "*.o" -exec $STRIP {} \;
+
+	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages
+	try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
+
+	unset LDSHARED
 	pop_arm
 }
 
-function postbuild_libxml2() {
+function postbuild_lxml() {
 	true
 }
