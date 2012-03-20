@@ -24,7 +24,6 @@ function build_pycrypto() {
 	export CC="$CC -I$BUILD_openssl/include"
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$BUILD_openssl"
 	export EXTRA_CFLAGS="--host linux-armv"
-	export LDSHARED="$LIBLINK"
 
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared
 
@@ -32,8 +31,6 @@ function build_pycrypto() {
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
-
-	unset LDSHARED
 
 	pop_arm
 }
