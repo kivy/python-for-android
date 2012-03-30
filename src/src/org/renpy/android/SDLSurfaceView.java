@@ -23,7 +23,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
-import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
@@ -31,14 +30,12 @@ import android.opengl.Matrix;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
-import android.os.Build;
 import android.os.PowerManager;
 
 import java.io.IOException;
@@ -631,6 +628,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         Bitmap bitmap = null;
         try {
             bitmap = BitmapFactory.decodeStream(is);
+			bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, false);
         } finally {
             try {
                 is.close();
