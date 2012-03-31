@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION_kivy=
-URL_kivy=https://github.com/kivy/kivy/zipball/android-support/kivy-android-support.zip
+URL_kivy=https://github.com/kivy/kivy/zipball/master/kivy-master.zip
 DEPS_kivy=(pygame android)
 MD5_kivy=
 BUILD_kivy=$BUILD_PATH/kivy/$(get_directory $URL_kivy)

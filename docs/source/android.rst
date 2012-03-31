@@ -19,7 +19,8 @@ Example
 How it's working
 ----------------
 
-The whole Android API is accessible in Java. Their is no native or extensible way to access it from Python. The schema for accessing to their API is::
+The whole Android API is accessible in Java. Their is no native or extensible
+way to access it from Python. The schema for accessing to their API is::
 
     [1] Cython -> [2] C JNI -> [3] Java
 
@@ -46,63 +47,93 @@ android
 
 .. function:: check_pause()
 
-   This should be called on a regular basis to check to see if Android
-   expects the game to pause. If it return true, the game should
-   call :func:`android.wait_for_resume()`, after persisting its state
-   as necessary.
+    This should be called on a regular basis to check to see if Android
+    expects the game to pause. If it return true, the game should call
+    :func:`android.wait_for_resume()`, after persisting its state as necessary.
 
 .. function:: wait_for_resume()
 
-   This function should be called after :func:`android.check_pause()`
-   returns true. It does not return until Android has resumed from
-   the pause. While in this function, Android may kill a game
-   without further notice.
+    This function should be called after :func:`android.check_pause()` returns
+    true. It does not return until Android has resumed from the pause. While in
+    this function, Android may kill a game without further notice.
 
 .. function:: map_key(keycode, keysym)
 
-   This maps between an android keycode and a python keysym. The android
-   keycodes are available as constants in the android module.
+    This maps between an android keycode and a python keysym. The android
+    keycodes are available as constants in the android module.
 
 .. function:: vibrate(s)
 
-   Causes the phone to vibrate for `s` seconds. This requires that your
-   application have the VIBRATE permission.
+    Causes the phone to vibrate for `s` seconds. This requires that your
+    application have the VIBRATE permission.
 
 .. function:: accelerometer_enable(enable)
 
-   Enables (if `enable` is true) or disables the device's accelerometer.
+    Enables (if `enable` is true) or disables the device's accelerometer.
 
 .. function:: accelerometer_reading()
 
-   Returns an (x, y, z) tuple of floats that gives the accelerometer
-   reading, in meters per second squared. See `this page
-   <http://developer.android.com/reference/android/hardware/SensorEvent.html>`_
-   for a description of the coordinate system. The accelerometer must
-   be enabled before this function is called. If the tuple contains
-   three zero values, the accelerometer is not enabled, not available,
-   defective, has not returned a reading, or the device is in
-   free-fall.
+    Returns an (x, y, z) tuple of floats that gives the accelerometer reading,
+    in meters per second squared. See `this page
+    <http://developer.android.com/reference/android/hardware/SensorEvent.html>`_
+    for a description of the coordinate system. The accelerometer must be
+    enabled before this function is called. If the tuple contains three zero
+    values, the accelerometer is not enabled, not available, defective, has not
+    returned a reading, or the device is in free-fall.
 
 .. function:: get_dpi()
 
-   Returns the screen density in dots per inch.
+    Returns the screen density in dots per inch.
 
 .. function:: show_keyboard()
 
-   Shows the soft keyboard.
+    Shows the soft keyboard.
 
 .. function:: hide_keyboard()
 
-   Hides the soft keyboard.
+    Hides the soft keyboard.
 
 .. function:: wifi_scanner_enable()
 
-   Enables wifi scanning. ACCESS_WIFI_STATE and CHANGE_WIFI_STATE permissions required.
+    Enables wifi scanning. ACCESS_WIFI_STATE and CHANGE_WIFI_STATE permissions
+    required.
 
 .. function:: wifi_scan()
 
-   Returns tuple of (SSID, BSSID, SignalLevel) for each visible WiFi access point.
+    Returns tuple of (SSID, BSSID, SignalLevel) for each visible WiFi access
+    point.
 
+.. function:: action_send(mimetype, filename, subject, text, chooser_title)
+
+    Deliver data to someone else. This method is a wrapper around `ACTION_SEND
+    <http://developer.android.com/reference/android/content/Intent.html#ACTION_SEND>`_
+
+    :Parameters:
+        `mimetype`: str
+            Must be a valid mimetype, that represent the content to sent.
+        `filename`: str, default to None
+            (optional) Name of the file to attach. Must be a absolute path.
+        `subject`: str, default to None
+            (optional) Default subject
+        `text`: str, default to None
+            (optional) Content to send.
+        `chooser_title`: str, default to None
+            (optional) Title of the android chooser window, default to 'Send email...'
+
+    Sending a simple hello world text::
+
+        android.action_send('text/plain', text='Hello world',
+            subject='Test from python')
+
+    Sharing an image file::
+
+        # let's say you've make an image in /sdcard/image.png
+        android.action_send('image/png', filename='/sdcard/image.png')
+
+    Sharing an image with a default text too::
+
+        android.action_send('image/png', filename='/sdcard/image.png',
+            text='Hi,\n\tThis is my awesome image, what do you think about it ?')
 
 android_mixer
 ~~~~~~~~~~~~~

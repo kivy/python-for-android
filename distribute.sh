@@ -188,7 +188,7 @@ function run_prepare() {
 		exit -1
 	fi
 	if [ ! -d "$ANDROIDNDK" ]; then
-		echo "ANDROIDNDK=$ANDROIDSDK"
+		echo "ANDROIDNDK=$ANDROIDNDK"
 		error "ANDROIDNDK path is invalid, it must be a directory. abort."
 		exit 1
 	fi
@@ -486,6 +486,7 @@ function run_distribute() {
 	try cp -a $SRC_PATH/blacklist.txt .
 
 	debug "Copy python distribution"
+	$BUILD_PATH/python-install/bin/python.host -OO -m compileall $BUILD_PATH/python-install
 	try cp -a $BUILD_PATH/python-install .
 
 	debug "Copy libs"
@@ -515,7 +516,6 @@ function run_distribute() {
 	try rm -rf distutils/tests
 	try rm -rf email/test
 	try rm -rf bsddb/test
-	try rm -rf distutils
 	try rm -rf config/libpython*.a
 	try rm -rf config/python.o
 	try rm -rf curses

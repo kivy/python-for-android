@@ -58,6 +58,7 @@ public class PythonActivity extends Activity implements Runnable {
         super.onCreate(savedInstanceState);
 
         Hardware.context = this;
+        Action.context = this;
 
         getWindowManager().getDefaultDisplay().getMetrics(Hardware.metrics);
 
@@ -277,8 +278,7 @@ public class PythonActivity extends Activity implements Runnable {
 
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        Log.i("python", "key2 " + mView + " " + mView.mStarted);
-
+        //Log.i("python", "key2 " + mView + " " + mView.mStarted);
         if (mView != null && mView.mStarted && SDLSurfaceView.nativeKey(keyCode, 1, event.getUnicodeChar())) {
             return true;
         } else {
@@ -288,7 +288,7 @@ public class PythonActivity extends Activity implements Runnable {
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
-        Log.i("python", "key up " + mView + " " + mView.mStarted);
+        //Log.i("python", "key up " + mView + " " + mView.mStarted);
         if (mView != null && mView.mStarted && SDLSurfaceView.nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
         } else {
@@ -307,9 +307,12 @@ public class PythonActivity extends Activity implements Runnable {
         }
     }
 
-    // Ensure we only have one task.
-    public void onDestroy() {
+	protected void onDestroy() {
+		if (mView != null) {
+			mView.onDestroy();
+		}
+		//Log.i(TAG, "on destroy (exit1)");
         System.exit(0);
-    }
-
+	}
 }
+
