@@ -13,7 +13,7 @@ function prebuild_kivy() {
 
 function build_kivy() {
 	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/kivy" ]; then
-		return
+		#return
 		true
 	fi
 

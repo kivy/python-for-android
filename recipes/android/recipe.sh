@@ -10,6 +10,7 @@ RECIPE_android=$RECIPES_PATH/android
 function prebuild_android() {
 	cd $BUILD_PATH/android
 
+	rm -rf android
 	if [ ! -d android ]; then
 		try cp -a $RECIPE_android/src $BUILD_android
 	fi
