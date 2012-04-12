@@ -3,10 +3,10 @@
 # Only h264+aac build are working.
 
 VERSION_audiostream=
-URL_audiostream=https://github.com/kivy/audiostream/zipball/master/audiostream.zip
+URL_audiostream=https://github.com/kivy/audiostream/zipball/master/kivy-audiostream-b5bc9d5.zip
 DEPS_audiostream=(python sdl)
 MD5_audiostream=
-BUILD_audiostream=$BUILD_PATH/audiostream/audiostream
+BUILD_audiostream=$BUILD_PATH/audiostream/kivy-audiostream-b5bc9d5
 RECIPE_audiostream=$RECIPES_PATH/audiostream
 
 function prebuild_audiostream() {
