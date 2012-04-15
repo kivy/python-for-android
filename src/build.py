@@ -75,8 +75,7 @@ def compile_dir(dfn):
     '''
 
     # -OO = strip docstrings
-    subprocess.call([PYTHON,'-OO','-m','compileall','-f', dfn],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.call([PYTHON,'-OO','-m','compileall','-f', dfn])
 
 def is_blacklist(name):
     for pattern in BLACKLIST_PATTERNS:
