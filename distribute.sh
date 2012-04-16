@@ -99,7 +99,7 @@ function push_arm() {
 
 	# this must be something depending of the API level of Android
 	export PATH="$ANDROIDNDK/toolchains/arm-eabi-4.4.0/prebuilt/linux-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
-	if [ "X$ANDROIDNDKVER" == "Xr7"  ]; then
+	if [ "X${ANDROIDNDKVER:0:2}" == "Xr7"  ]; then
 		export TOOLCHAIN_PREFIX=arm-linux-androideabi
 		export TOOLCHAIN_VERSION=4.4.3
 	elif [ "X$ANDROIDNDKVER" == "Xr5b" ]; then
