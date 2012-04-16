@@ -29,6 +29,7 @@ import android.opengl.Matrix;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -36,6 +37,7 @@ import android.view.SurfaceView;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
+import android.net.Uri;
 import android.os.PowerManager;
 
 import java.io.IOException;
@@ -262,7 +264,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 	}
 
     // The activity we're a part of.
-    private Activity mActivity;
+    private static Activity mActivity;
 
     // Have we started yet?
     public boolean mStarted = false;
@@ -936,6 +938,14 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     static void activateInput() {
         mInputActivated = true;
     }
+
+	static void openUrl(String url) {
+		Log.i("python", "Opening URL: " + url);
+
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse(url));
+		mActivity.startActivity(i);
+	}
 
 	// Taken from the "GLES20TriangleRenderer" in Android SDK
 	private int loadShader(int shaderType, String source) {

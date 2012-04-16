@@ -286,3 +286,28 @@ void android_action_send(char *mimeType, char *filename, char *subject, char *te
 		j_mimeType, j_filename, j_subject, j_text,
 		j_chooser_title);
 }
+
+void android_open_url(char *url) {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/SDLSurfaceView");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "openUrl", "(Ljava/lang/String;)V");
+        aassert(mid);
+    }
+
+    PUSH_FRAME;
+
+    (*env)->CallStaticVoidMethod(
+        env, cls, mid,
+        (*env)->NewStringUTF(env, url)
+        );
+
+    POP_FRAME;
+}
+
