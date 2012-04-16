@@ -242,8 +242,9 @@ def make_package(args):
         args=args)
 
     # Update the project to a recent version.
+    android_api = 'android-%s' % os.environ.get('ANDROIDAPI', '8')
     try:
-        subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t', 'android-8'])
+        subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t', android_api])
     except (OSError, IOError):
         print 'An error occured while calling', ANDROID, 'update'
         print 'Your PATH must include android tools.'
