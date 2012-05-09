@@ -1,5 +1,5 @@
---- Python-2.7.2.orig/Python/bltinmodule.c	2012-03-30 01:44:57.018079845 +0200
-+++ Python-2.7.2/Python/bltinmodule.c	2012-03-30 01:45:02.650079649 +0200
+--- Python-2.7.3.orig/Python/bltinmodule.c	2012-03-30 01:44:57.018079845 +0200
++++ Python-2.7.3/Python/bltinmodule.c	2012-03-30 01:45:02.650079649 +0200
 @@ -22,7 +22,7 @@
  #elif defined(__APPLE__)
  const char *Py_FileSystemDefaultEncoding = "utf-8";

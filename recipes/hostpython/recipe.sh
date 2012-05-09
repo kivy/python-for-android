@@ -1,8 +1,8 @@
 #!/bin/bash
 
-VERSION_hostpython=2.7.2
+VERSION_hostpython=2.7.3
 URL_hostpython=http://python.org/ftp/python/$VERSION_hostpython/Python-$VERSION_hostpython.tar.bz2
-MD5_hostpython=ba7b2f11ffdbf195ee0d111b9455a5bd
+MD5_hostpython=c57477edd6d18bd9eeca2f21add73919
 
 # must be generated ?
 BUILD_hostpython=$BUILD_PATH/hostpython/$(get_directory $URL_hostpython)

@@ -1,20 +1,7 @@
---- Python-2.7.2.orig/Modules/pwdmodule.c	2010-08-16 22:30:26.000000000 +0200
-+++ Python-2.7.2/Modules/pwdmodule.c	2011-04-20 17:52:12.000000000 +0200
-@@ -75,11 +75,7 @@
- #endif
-     SETI(setIndex++, p->pw_uid);
-     SETI(setIndex++, p->pw_gid);
--#ifdef __VMS
-     SETS(setIndex++, "");
--#else
--    SETS(setIndex++, p->pw_gecos);
--#endif
-     SETS(setIndex++, p->pw_dir);
-     SETS(setIndex++, p->pw_shell);
- 
---- Python-2.7.2.orig/Modules/posixmodule.c	2010-11-26 18:35:50.000000000 +0100
-+++ Python-2.7.2/Modules/posixmodule.c	2011-04-20 17:52:12.000000000 +0200
-@@ -3775,13 +3775,6 @@
+diff -r f81b1d60ea1f -r b387d0622578 Modules/posixmodule.c
+--- a/Modules/posixmodule.c	Sun May 06 23:51:54 2012 -0300
++++ b/Modules/posixmodule.c	Sun May 06 23:52:11 2012 -0300
+@@ -3785,13 +3785,6 @@
      slave_fd = open(slave_name, O_RDWR | O_NOCTTY); /* open slave */
      if (slave_fd < 0)
          return posix_error();
@@ -28,8 +15,24 @@
  #endif /* HAVE_OPENPTY */
  
      return Py_BuildValue("(ii)", master_fd, slave_fd);
---- Python-2.7.2.orig/Objects/stringlib/formatter.h	2010-08-01 12:45:15.000000000 +0200
-+++ Python-2.7.2/Objects/stringlib/formatter.h	2011-04-20 17:52:12.000000000 +0200
+diff -r f81b1d60ea1f -r b387d0622578 Modules/pwdmodule.c
+--- a/Modules/pwdmodule.c	Sun May 06 23:51:54 2012 -0300
++++ b/Modules/pwdmodule.c	Sun May 06 23:52:11 2012 -0300
+@@ -75,11 +75,7 @@
+ #endif
+     SETI(setIndex++, p->pw_uid);
+     SETI(setIndex++, p->pw_gid);
+-#ifdef __VMS
+     SETS(setIndex++, "");
+-#else
+-    SETS(setIndex++, p->pw_gecos);
+-#endif
+     SETS(setIndex++, p->pw_dir);
+     SETS(setIndex++, p->pw_shell);
+ 
+diff -r f81b1d60ea1f -r b387d0622578 Objects/stringlib/formatter.h
+--- a/Objects/stringlib/formatter.h	Sun May 06 23:51:54 2012 -0300
++++ b/Objects/stringlib/formatter.h	Sun May 06 23:52:11 2012 -0300
 @@ -639,13 +639,7 @@
  get_locale_info(int type, LocaleInfo *locale_info)
  {
@@ -45,8 +48,9 @@
      case LT_DEFAULT_LOCALE:
          locale_info->decimal_point = ".";
          locale_info->thousands_sep = ",";
---- Python-2.7.2.orig/Objects/stringlib/localeutil.h	2009-04-22 15:29:05.000000000 +0200
-+++ Python-2.7.2/Objects/stringlib/localeutil.h	2011-04-20 17:52:12.000000000 +0200
+diff -r f81b1d60ea1f -r b387d0622578 Objects/stringlib/localeutil.h
+--- a/Objects/stringlib/localeutil.h	Sun May 06 23:51:54 2012 -0300
++++ b/Objects/stringlib/localeutil.h	Sun May 06 23:52:11 2012 -0300
 @@ -202,9 +202,8 @@
                                    Py_ssize_t n_digits,
                                    Py_ssize_t min_width)
@@ -59,8 +63,9 @@
  
          return _Py_InsertThousandsGrouping(buffer, n_buffer, digits, n_digits,
                                             min_width, grouping, thousands_sep);
---- Python-2.7.2.orig/Python/pystrtod.c	2010-05-09 16:46:46.000000000 +0200
-+++ Python-2.7.2/Python/pystrtod.c	2011-04-20 17:52:12.000000000 +0200
+diff -r f81b1d60ea1f -r b387d0622578 Python/pystrtod.c
+--- a/Python/pystrtod.c	Sun May 06 23:51:54 2012 -0300
++++ b/Python/pystrtod.c	Sun May 06 23:52:11 2012 -0300
 @@ -126,7 +126,6 @@
  {
      char *fail_pos;

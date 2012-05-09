@@ -1,6 +1,7 @@
---- Python-2.7.2/Makefile.pre.in.orig	2012-01-07 18:25:42.097075564 +0100
-+++ Python-2.7.2/Makefile.pre.in	2012-01-07 18:26:03.289074810 +0100
-@@ -410,8 +410,8 @@
+diff -r 3ff3e1e49525 -r 88bcecdeac6f Makefile.pre.in
+--- a/Makefile.pre.in	Mon May 07 00:04:47 2012 -0300
++++ b/Makefile.pre.in	Mon May 07 00:07:41 2012 -0300
+@@ -411,8 +411,8 @@
  # Build the shared modules
  sharedmods: $(BUILDPYTHON)
  	@case $$MAKEFLAGS in \
