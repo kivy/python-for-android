@@ -56,6 +56,7 @@ python_files = []
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
 
+
 def render(template, dest, **kwargs):
     '''
     Using jinja2, render `template` to the filename `dest`, supplying the keyword
@@ -69,13 +70,15 @@ def render(template, dest, **kwargs):
     f.write(text.encode('utf-8'))
     f.close()
 
+
 def compile_dir(dfn):
     '''
     Compile *.py in directory `dfn` to *.pyo
     '''
 
     # -OO = strip docstrings
-    subprocess.call([PYTHON,'-OO','-m','compileall','-f', dfn])
+    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
+
 
 def is_blacklist(name):
     for pattern in BLACKLIST_PATTERNS:
@@ -85,6 +88,7 @@ def is_blacklist(name):
             pattern = '*/' + pattern
         if fnmatch(name, pattern):
             return True
+
 
 def listfiles(d):
     basedir = d
@@ -98,6 +102,7 @@ def listfiles(d):
     for subdir in subdirlist:
         for fn in listfiles(subdir):
             yield fn
+
 
 def make_pythonzip():
     '''
@@ -184,6 +189,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
         tf.add(fn, afn)
     tf.close()
 
+
 def make_package(args):
     version_code = 0
     manifest_extra = '<uses-feature android:glEsVersion="0x00020000" />'
@@ -218,27 +224,33 @@ def make_package(args):
     else:
         public_version = None
 
+    if args.intent_filters:
+        intent_filters = open(args.intent_filters).read()
+    else:
+        intent_filters = ''
+
     # Render the various templates into control files.
     render(
         'AndroidManifest.tmpl.xml',
         'AndroidManifest.xml',
-        args = args,
-        url_scheme = url_scheme,
-        manifest_extra = manifest_extra,
+        args=args,
+        url_scheme=url_scheme,
+        intent_filters=intent_filters,
+        manifest_extra=manifest_extra,
         )
 
     render(
         build_tpl,
         'build.xml',
-        args = args,
-        versioned_name = versioned_name)
+        args=args,
+        versioned_name=versioned_name)
 
     render(
         'strings.xml',
         'res/values/strings.xml',
-        public_version = public_version,
-        private_version = private_version,
-        url_scheme = url_scheme,
+        public_version=public_version,
+        private_version=private_version,
+        url_scheme=url_scheme,
         args=args)
 
     # Update the project to a recent version.
@@ -263,12 +275,12 @@ def make_package(args):
 
     # Package up the private and public data.
     if args.private:
-        make_tar('assets/private.mp3', [ 'private', args.private ])
+        make_tar('assets/private.mp3', ['private', args.private])
     else:
-        make_tar('assets/private.mp3', [ 'private' ])
+        make_tar('assets/private.mp3', ['private'])
 
     if args.dir:
-        make_tar('assets/public.mp3', [ args.dir ], args.ignore_path)
+        make_tar('assets/public.mp3', [args.dir], args.ignore_path)
 
     # Copy over the icon and presplash files.
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
@@ -308,6 +320,7 @@ tools directory of the Android SDK.
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
     ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
+    ap.add_argument('--intent_filters', dest='intent_filters', help='Add intent-filters xml rules to AndroidManifest.xml')
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
@@ -319,10 +332,10 @@ tools directory of the Android SDK.
         ap.error('One of --dir, --private, or --launcher must be supplied.')
 
     if args.permissions is None:
-        args.permissions = [ ]
+        args.permissions = []
 
     if args.ignore_path is None:
-        args.ignore_path = [ ]
+        args.ignore_path = []
 
     if args.compile_pyo:
         if PYTHON is None:
@@ -336,4 +349,3 @@ tools directory of the Android SDK.
         BLACKLIST_PATTERNS += patterns
 
     make_package(args)
-
