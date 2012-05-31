@@ -4,7 +4,7 @@ Prerequisites
 .. warning::
 
     The current version is tested only on Ubuntu oneiric (11.10) and precise
-    (12.04). If it doesn't work on another platform, send us patch, not bug
+    (12.04). If it doesn't work on other platforms, send us patch, not bug
     report.
 
 You need the minimal environment for building python. Note that other libraries
@@ -14,7 +14,7 @@ might need other tools (cython is used by some recipes, and ccache to speedup th
  
 If you are on a 64 bit distro, you should install these packages too ::
 
-    sudo apt-get insall ia32-libs and lib6dev-i386
+    sudo apt-get install ia32-libs and lib6-dev-i386
 
 You must have android SDK and NDK. Right now, it's prefered to use:
 
