@@ -12,7 +12,9 @@ function prebuild_sqlite3() {
 
 function build_sqlite3() {
 	cd $SRC_PATH/jni
+	push_arm
 	try ndk-build V=1 sqlite3
+	pop_arm
 }
 
 function postbuild_sqlite3() {
