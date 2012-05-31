@@ -81,4 +81,7 @@ Available options to `build.py`::
                           Use a blacklist file to match unwanted file in the
                           final APK
 
+    --intent-filters FILE
+                          Inject the content of FILE into the activity
+                          definition in the AndroidManifest.xml
 
