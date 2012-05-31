@@ -14,7 +14,7 @@ might need other tools (cython is used by some recipes, and ccache to speedup th
  
 If you are on a 64 bit distro, you should install these packages too ::
 
-    sudo apt-get insall ia64-libs and lib6dev-i386
+    sudo apt-get insall ia32-libs and lib6dev-i386
 
 You must have android SDK and NDK. Right now, it's prefered to use:
 
