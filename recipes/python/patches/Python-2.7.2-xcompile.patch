@@ -1,6 +1,27 @@
-diff -r bd97c8a031bc -r 4c98a5e6adb2 Makefile.pre.in
---- a/Makefile.pre.in	Sun May 06 23:48:58 2012 -0300
-+++ b/Makefile.pre.in	Sun May 06 23:49:19 2012 -0300
+diff -urN Python-2.7.2/configure ltib/rpm/BUILD/Python-2.7.2/configure
+--- Python-2.7.2/configure	2011-06-11 11:46:28.000000000 -0400
++++ ltib/rpm/BUILD/Python-2.7.2/configure	2011-11-14 12:10:41.011373524 -0500
+@@ -13673,7 +13673,7 @@
+   $as_echo_n "(cached) " >&6
+ else
+   if test "$cross_compiling" = yes; then :
+-  ac_cv_have_long_long_format=no
++  ac_cv_have_long_long_format="cross -- assuming yes"
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+@@ -13725,7 +13725,7 @@
+ $as_echo "$ac_cv_have_long_long_format" >&6; }
+ fi
+ 
+-if test "$ac_cv_have_long_long_format" = yes
++if test "$ac_cv_have_long_long_format" != no
+ then
+ 
+ $as_echo "#define PY_FORMAT_LONG_LONG \"ll\"" >>confdefs.h
+diff -urN Python-2.7.2/Makefile.pre.in ltib/rpm/BUILD/Python-2.7.2/Makefile.pre.in
+--- Python-2.7.2/Makefile.pre.in	2011-06-11 11:46:26.000000000 -0400
++++ ltib/rpm/BUILD/Python-2.7.2/Makefile.pre.in	2011-11-14 12:10:41.013373444 -0500
 @@ -182,6 +182,7 @@
  
  PYTHON=		python$(EXE)
@@ -18,7 +39,7 @@ diff -r bd97c8a031bc -r 4c98a5e6adb2 Makefile.pre.in
  POBJS=		\
  		Parser/acceler.o \
  		Parser/grammar1.o \
-@@ -408,8 +411,8 @@
+@@ -407,8 +410,8 @@
  # Build the shared modules
  sharedmods: $(BUILDPYTHON)
  	@case $$MAKEFLAGS in \
@@ -29,7 +50,7 @@ diff -r bd97c8a031bc -r 4c98a5e6adb2 Makefile.pre.in
  	esac
  
  # Build static library
-@@ -543,7 +546,7 @@
+@@ -542,7 +545,7 @@
  $(GRAMMAR_H) $(GRAMMAR_C): Parser/pgen.stamp
  Parser/pgen.stamp: $(PGEN) $(GRAMMAR_INPUT)
  		-@$(INSTALL) -d Include
@@ -38,10 +59,10 @@ diff -r bd97c8a031bc -r 4c98a5e6adb2 Makefile.pre.in
  		-touch Parser/pgen.stamp
  
  $(PGEN):	$(PGENOBJS)
-@@ -938,25 +941,25 @@
- 		$(INSTALL_DATA) $(srcdir)/Modules/xxmodule.c \
- 			$(DESTDIR)$(LIBDEST)/distutils/tests ; \
- 	fi
+@@ -925,26 +928,26 @@
+ 		done; \
+ 	done
+ 	$(INSTALL_DATA) $(srcdir)/LICENSE $(DESTDIR)$(LIBDEST)/LICENSE.txt
 -	PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
 -		./$(BUILDPYTHON) -Wi -tt $(DESTDIR)$(LIBDEST)/compileall.py \
 +	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
@@ -72,7 +93,7 @@ diff -r bd97c8a031bc -r 4c98a5e6adb2 Makefile.pre.in
  
  # Create the PLATDIR source directory, if one wasn't distributed..
  $(srcdir)/Lib/$(PLATDIR):
-@@ -1062,7 +1065,9 @@
+@@ -1049,7 +1052,9 @@
  # Install the dynamically loadable modules
  # This goes into $(exec_prefix)
  sharedinstall: sharedmods
@@ -83,30 +104,9 @@ diff -r bd97c8a031bc -r 4c98a5e6adb2 Makefile.pre.in
  	   	--prefix=$(prefix) \
  		--install-scripts=$(BINDIR) \
  		--install-platlib=$(DESTSHARED) \
-diff -r bd97c8a031bc -r 4c98a5e6adb2 configure
---- a/configure	Sun May 06 23:48:58 2012 -0300
-+++ b/configure	Sun May 06 23:49:19 2012 -0300
-@@ -13697,7 +13697,7 @@
-   $as_echo_n "(cached) " >&6
- else
-   if test "$cross_compiling" = yes; then :
--  ac_cv_have_long_long_format=no
-+  ac_cv_have_long_long_format="cross -- assuming yes"
- else
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
- /* end confdefs.h.  */
-@@ -13749,7 +13749,7 @@
- $as_echo "$ac_cv_have_long_long_format" >&6; }
- fi
- 
--if test "$ac_cv_have_long_long_format" = yes
-+if test "$ac_cv_have_long_long_format" != no
- then
- 
- $as_echo "#define PY_FORMAT_LONG_LONG \"ll\"" >>confdefs.h
-diff -r bd97c8a031bc -r 4c98a5e6adb2 setup.py
---- a/setup.py	Sun May 06 23:48:58 2012 -0300
-+++ b/setup.py	Sun May 06 23:49:19 2012 -0300
+diff -urN Python-2.7.2/setup.py ltib/rpm/BUILD/Python-2.7.2/setup.py
+--- Python-2.7.2/setup.py	2011-06-11 11:46:28.000000000 -0400
++++ ltib/rpm/BUILD/Python-2.7.2/setup.py	2011-11-14 12:13:02.175758583 -0500
 @@ -145,6 +145,7 @@
      def __init__(self, dist):
          build_ext.__init__(self, dist)

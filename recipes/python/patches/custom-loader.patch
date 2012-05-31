@@ -1,6 +1,5 @@
-diff -r 9d2a211310b3 -r 3ff3e1e49525 Python/dynload_shlib.c
---- a/Python/dynload_shlib.c	Mon May 07 00:04:24 2012 -0300
-+++ b/Python/dynload_shlib.c	Mon May 07 00:04:47 2012 -0300
+--- Python-2.7.2.orig/Python/dynload_shlib.c	2010-05-09 16:46:46.000000000 +0200
++++ Python-2.7.2/Python/dynload_shlib.c	2011-04-20 17:52:12.000000000 +0200
 @@ -6,6 +6,7 @@
  
  #include <sys/types.h>
@@ -49,10 +48,9 @@ diff -r 9d2a211310b3 -r 3ff3e1e49525 Python/dynload_shlib.c
      if (fp != NULL) {
          int i;
          struct stat statb;
-diff -r 9d2a211310b3 -r 3ff3e1e49525 Python/pythonrun.c
---- a/Python/pythonrun.c	Mon May 07 00:04:24 2012 -0300
-+++ b/Python/pythonrun.c	Mon May 07 00:04:47 2012 -0300
-@@ -261,9 +261,13 @@
+--- Python-2.7.2.orig/Python/pythonrun.c	2010-10-29 05:45:34.000000000 +0200
++++ Python-2.7.2/Python/pythonrun.c	2011-04-20 17:52:12.000000000 +0200
+@@ -254,9 +254,13 @@
      _PyGILState_Init(interp, tstate);
  #endif /* WITH_THREAD */
  

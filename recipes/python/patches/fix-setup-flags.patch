@@ -1,6 +1,5 @@
-diff -r 2e01483f343a -r 0b997d01cabc setup.py
---- a/setup.py	Sun May 06 23:52:25 2012 -0300
-+++ b/setup.py	Mon May 07 00:03:53 2012 -0300
+--- Python-2.7.2/setup.py.orig	2012-01-08 15:10:39.867332119 +0100
++++ Python-2.7.2/setup.py	2012-01-08 15:10:45.723331911 +0100
 @@ -445,6 +445,13 @@
                  '/lib', '/usr/lib',
                  ]
