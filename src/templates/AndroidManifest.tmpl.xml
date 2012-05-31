@@ -32,6 +32,9 @@
       </intent-filter>
       {% endif %}
 
+      {%if args.intent_filters %}
+        {{ intent_filters }}
+      {% endif %}
     </activity>
 
     {% if args.launcher %}
