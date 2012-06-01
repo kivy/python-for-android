@@ -395,6 +395,21 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
         }
+        setOpenFile();
+    }
+
+    /**
+     * if the activity was called with a file parameter, put it in the
+     * 'PYTHON_OPENFILE' env var
+     */
+    public static void setOpenFile(){
+        final android.content.Intent intent = mActivity.getIntent();
+        if (intent != null) {
+            final android.net.Uri data = intent.getData ();
+            if (data != null){
+                nativeSetEnv("PYTHON_OPENFILE", data.getEncodedPath());
+            }
+        }
     }
 
     /**
@@ -437,7 +452,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 this.notifyAll();
             }
         }
-
         wakeLock.acquire();
     }
 
@@ -596,8 +610,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 			return;
 		}
 
-		Log.w(TAG, "Done");
-        waitForStart();
+                Log.w(TAG, "Done");
+                waitForStart();
+                setOpenFile();
 
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();
