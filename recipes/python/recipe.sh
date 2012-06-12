@@ -24,6 +24,7 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-gethostbyaddr.patch
 	try patch -p1 < $RECIPE_python/patches/fix-setup-flags.patch
 	try patch -p1 < $RECIPE_python/patches/fix-filesystemdefaultencoding.patch
+	try patch -p1 < $RECIPE_python/patches/fix-termios.patch
 	try patch -p1 < $RECIPE_python/patches/custom-loader.patch
 	try patch -p1 < $RECIPE_python/patches/verbose-compilation.patch
 
