@@ -405,8 +405,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     public static void setOpenFile(){
         final android.content.Intent intent = mActivity.getIntent();
         if (intent != null) {
-            final android.net.Uri data = intent.getData ();
-            if (data != null){
+            final android.net.Uri data = intent.getData();
+            if (data != null && data.getEncodedPath() != null){
                 nativeSetEnv("PYTHON_OPENFILE", data.getEncodedPath());
             }
         }
@@ -610,9 +610,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 			return;
 		}
 
-                Log.w(TAG, "Done");
-                waitForStart();
-                setOpenFile();
+		Log.w(TAG, "Done");
+		waitForStart();
 
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();
@@ -621,6 +620,18 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         nativeSetEnv("PYTHONOPTIMIZE", "2");
         nativeSetEnv("PYTHONHOME", mFilesDirectory);
         nativeSetEnv("PYTHONPATH", mArgument + ":" + mFilesDirectory + "/lib");
+
+		// XXX Using SetOpenFile make a crash in nativeSetEnv. I don't
+		// understand why, maybe because the method is static or something.
+		// Anyway, if you remove that part of the code, ensure the Laucher
+		// (ProjectChooser) is still working.
+		final android.content.Intent intent = mActivity.getIntent();
+		if (intent != null) {
+			final android.net.Uri data = intent.getData();
+			if (data != null && data.getEncodedPath() != null)
+				nativeSetEnv("PYTHON_OPENFILE", data.getEncodedPath());
+		}
+
 		nativeSetMultitouchUsed();
         nativeInit();
 
