@@ -50,6 +50,20 @@
     </activity>
     {% endif %}
 
+	{% if args.billing_pubkey %}
+	<service android:name="org.renpy.android.billing.BillingService"
+		android:process=":python" />
+	<receiver
+		android:name="org.renpy.android.billing.BillingReceiver"
+		android:process=":python">
+		<intent-filter>
+			<action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
+			<action android:name="com.android.vending.billing.RESPONSE_CODE" />
+			<action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+		</intent-filter>
+	</receiver>
+	{% endif %}
+
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
@@ -59,6 +73,11 @@
   {% for perm in args.permissions %}
   <uses-permission android:name="android.permission.{{ perm }}" />
   {% endfor %}
+
+  {% if args.billing_pubkey %}
+  <uses-permission android:name="com.android.vending.BILLING" />
+  {% endif %}
+
 
 {{ manifest_extra }}
 </manifest>

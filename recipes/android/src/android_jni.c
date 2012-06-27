@@ -310,4 +310,3 @@ void android_open_url(char *url) {
 
     POP_FRAME;
 }
-

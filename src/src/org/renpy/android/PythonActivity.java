@@ -32,7 +32,28 @@ import java.io.IOException;
 
 import java.util.zip.GZIPInputStream;
 
+// Billing
+import org.renpy.android.Configuration;
+import org.renpy.android.billing.BillingService.RequestPurchase;
+import org.renpy.android.billing.BillingService.RestoreTransactions;
+import org.renpy.android.billing.Consts.PurchaseState;
+import org.renpy.android.billing.Consts.ResponseCode;
+import org.renpy.android.billing.PurchaseObserver;
+import org.renpy.android.billing.BillingService;
+import org.renpy.android.billing.PurchaseDatabase;
+import org.renpy.android.billing.Consts;
+import org.renpy.android.billing.ResponseHandler;
+import org.renpy.android.billing.Security;
+import android.os.Handler;
+import android.database.Cursor;
+import java.util.List;
+import java.util.ArrayList;
+import android.content.SharedPreferences;
+import android.content.Context;
+
+
 public class PythonActivity extends Activity implements Runnable {
+	private static String TAG = "Python";
 
     // The audio thread for streaming audio...
     private static AudioThread mAudioThread = null;
@@ -54,13 +75,16 @@ public class PythonActivity extends Activity implements Runnable {
 
     boolean _isPaused = false;
 
+	static PythonActivity mActivity = null;
+	private static final String DB_INITIALIZED = "db_initialized";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Hardware.context = this;
         Action.context = this;
-		this.mActivity = this;
+		PythonActivity.mActivity = this;
 
         getWindowManager().getDefaultDisplay().getMetrics(Hardware.metrics);
 
@@ -109,6 +133,10 @@ public class PythonActivity extends Activity implements Runnable {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                              WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+		if ( Configuration.use_billing ) {
+			mBillingHandler = new Handler();
+		}
+
         // Start showing an SDLSurfaceView.
         mView = new SDLSurfaceView(
             this,
@@ -116,7 +144,7 @@ public class PythonActivity extends Activity implements Runnable {
 
         Hardware.view = mView;
         setContentView(mView);
-    }
+	}
 
     /**
      * Show an error using a toast. (Only makes sense from non-UI
@@ -183,7 +211,7 @@ public class PythonActivity extends Activity implements Runnable {
         // If the disk data is out of date, extract it and write the
         // version file.
         if (! data_version.equals(disk_version)) {
-            Log.v("python", "Extracting " + resource + " assets.");
+            Log.v(TAG, "Extracting " + resource + " assets.");
 
             recursiveDelete(target);
             target.mkdirs();
@@ -238,7 +266,7 @@ public class PythonActivity extends Activity implements Runnable {
         }
 
         if ( mAudioThread == null ) {
-            Log.i("python", "starting audio thread");
+            Log.i("python", "Starting audio thread");
             mAudioThread = new AudioThread(this);
         }
 
@@ -310,11 +338,205 @@ public class PythonActivity extends Activity implements Runnable {
     }
 
 	protected void onDestroy() {
+        mPurchaseDatabase.close();
+        mBillingService.unbind();
+
 		if (mView != null) {
 			mView.onDestroy();
 		}
+
 		//Log.i(TAG, "on destroy (exit1)");
         System.exit(0);
 	}
+
+
+	//----------------------------------------------------------------------------
+	// Billing
+	//
+    class PythonPurchaseObserver extends PurchaseObserver {
+        public PythonPurchaseObserver(Handler handler) {
+            super(PythonActivity.this, handler);
+        }
+
+        @Override
+        public void onBillingSupported(boolean supported, String type) {
+            if (Consts.DEBUG) {
+                Log.i(TAG, "supported: " + supported);
+            }
+
+			String sup = "1";
+			if ( !supported )
+				sup = "0";
+			if (type == null)
+				type = Consts.ITEM_TYPE_INAPP;
+
+			// add notification for python message queue
+			mActivity.mBillingQueue.add("billingSupported|" + type + "|" + sup);
+
+			// for managed items, restore the database
+			if ( type == Consts.ITEM_TYPE_INAPP && supported ) {
+				restoreDatabase();
+			}
+        }
+
+        @Override
+        public void onPurchaseStateChange(PurchaseState purchaseState, String itemId,
+                int quantity, long purchaseTime, String developerPayload) {
+			mActivity.mBillingQueue.add(
+				"purchaseStateChange|" + itemId + "|" + purchaseState.toString());
+        }
+
+        @Override
+        public void onRequestPurchaseResponse(RequestPurchase request,
+                ResponseCode responseCode) {
+			mActivity.mBillingQueue.add(
+				"requestPurchaseResponse|" + request.mProductId + "|" + responseCode.toString());
+        }
+
+        @Override
+        public void onRestoreTransactionsResponse(RestoreTransactions request,
+                ResponseCode responseCode) {
+            if (responseCode == ResponseCode.RESULT_OK) {
+				mActivity.mBillingQueue.add("restoreTransaction|ok");
+                if (Consts.DEBUG) {
+                    Log.d(TAG, "completed RestoreTransactions request");
+                }
+                // Update the shared preferences so that we don't perform
+                // a RestoreTransactions again.
+                SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor edit = prefs.edit();
+                edit.putBoolean(DB_INITIALIZED, true);
+                edit.commit();
+            } else {
+                if (Consts.DEBUG) {
+                    Log.d(TAG, "RestoreTransactions error: " + responseCode);
+                }
+
+				mActivity.mBillingQueue.add(
+					"restoreTransaction|error|" + responseCode.toString());
+            }
+        }
+    }
+
+    /**
+     * If the database has not been initialized, we send a
+     * RESTORE_TRANSACTIONS request to Android Market to get the list of purchased items
+     * for this user. This happens if the application has just been installed
+     * or the user wiped data. We do not want to do this on every startup, rather, we want to do
+     * only when the database needs to be initialized.
+     */
+    private void restoreDatabase() {
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        boolean initialized = prefs.getBoolean(DB_INITIALIZED, false);
+        if (!initialized) {
+            mBillingService.restoreTransactions();
+        }
+    }
+
+	/** An array of product list entries for the products that can be purchased. */
+
+    private enum Managed { MANAGED, UNMANAGED, SUBSCRIPTION }
+
+
+    private PythonPurchaseObserver mPythonPurchaseObserver;
+    private Handler mBillingHandler;
+    private BillingService mBillingService;
+	private PurchaseDatabase mPurchaseDatabase;
+	private String mPayloadContents;
+	public List<String> mBillingQueue;
+
+	public void billingServiceStart_() {
+		mBillingQueue = new ArrayList<String>();
+
+		// Start the billing part
+		mPythonPurchaseObserver = new PythonPurchaseObserver(mBillingHandler);
+		mBillingService = new BillingService();
+		mBillingService.setContext(this);
+		mPurchaseDatabase = new PurchaseDatabase(this);
+
+		ResponseHandler.register(mPythonPurchaseObserver);
+		if (!mBillingService.checkBillingSupported()) {
+			//showDialog(DIALOG_CANNOT_CONNECT_ID);
+			Log.w(TAG, "NO BILLING SUPPORTED");
+		}
+		if (!mBillingService.checkBillingSupported(Consts.ITEM_TYPE_SUBSCRIPTION)) {
+			//showDialog(DIALOG_SUBSCRIPTIONS_NOT_SUPPORTED_ID);
+			Log.w(TAG, "NO SUBSCRIPTION SUPPORTED");
+		}
+    }
+
+	public void billingServiceStop_() {
+	}
+
+    public void billingBuy_(String mSku) {
+		Managed mManagedType = Managed.MANAGED;
+		if (Consts.DEBUG) {
+			Log.d(TAG, "buying sku: " + mSku);
+		}
+
+		if (mManagedType == Managed.MANAGED) {
+			if (!mBillingService.requestPurchase(mSku, Consts.ITEM_TYPE_INAPP, mPayloadContents)) {
+				Log.w(TAG, "ERROR IN BILLING REQUEST PURCHASE");
+			}
+		} else if (mManagedType == Managed.SUBSCRIPTION) {
+			if (!mBillingService.requestPurchase(mSku, Consts.ITEM_TYPE_INAPP, mPayloadContents)) {
+				Log.w(TAG, "ERROR IN BILLING REQUEST PURCHASE");
+			}
+		}
+	}
+
+	public String billingGetPurchasedItems_() {
+		String ownedItems = "";
+        Cursor cursor = mPurchaseDatabase.queryAllPurchasedItems();
+        if (cursor == null)
+			return "";
+
+        try {
+            int productIdCol = cursor.getColumnIndexOrThrow(
+                    PurchaseDatabase.PURCHASED_PRODUCT_ID_COL);
+            int qtCol = cursor.getColumnIndexOrThrow(
+                    PurchaseDatabase.PURCHASED_QUANTITY_COL);
+            while (cursor.moveToNext()) {
+                String productId = cursor.getString(productIdCol);
+                String qt = cursor.getString(qtCol);
+
+				productId = Security.unobfuscate(this, Configuration.billing_salt, productId);
+				if ( productId == null )
+					continue;
+
+				if ( ownedItems != "" )
+					ownedItems += "\n";
+				ownedItems += productId + "," + qt;
+            }
+        } finally {
+            cursor.close();
+        }
+
+		return ownedItems;
+	}
+
+
+	static void billingServiceStart() {
+		mActivity.billingServiceStart_();
+	}
+
+	static void billingServiceStop() {
+		mActivity.billingServiceStop_();
+	}
+
+	static void billingBuy(String sku) {
+		mActivity.billingBuy_(sku);
+	}
+
+	static String billingGetPurchasedItems() {
+		return mActivity.billingGetPurchasedItems_();
+	}
+
+	static String billingGetPendingMessage() {
+		if (mActivity.mBillingQueue.isEmpty())
+			return null;
+		return mActivity.mBillingQueue.remove(0);
+	}
+
 }
 
