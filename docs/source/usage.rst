@@ -41,6 +41,14 @@ Then, the android package (APK) will be generated at:
 
     bin/touchtracer-1.0-debug.apk
 
+.. warning::
+
+    Some files and modules for python are blacklisted by default to
+    save a few megabytes on the final apk file, in case your
+    applications doesn't find a standard python module, check the
+    src/blacklist.txt file remove the module you need from the list,
+    and try again.
+
 Available options to `build.py`::
 
     -h, --help            show this help message and exit
