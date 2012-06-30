@@ -25,6 +25,7 @@ your application.
     recipes.rst
     android.rst
     related.rst
+    extend.rst
     faq.rst
 
 Indices and tables
