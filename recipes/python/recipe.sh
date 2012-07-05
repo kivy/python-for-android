@@ -27,6 +27,8 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-termios.patch
 	try patch -p1 < $RECIPE_python/patches/custom-loader.patch
 	try patch -p1 < $RECIPE_python/patches/verbose-compilation.patch
+	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
+	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
 
 	# everything done, touch the marker !
 	touch .patched
@@ -55,8 +57,9 @@ function build_python() {
 		export LDFLAGS="$LDFLAGS -L$BUILD_openssl/"
 	fi
 
-	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared
-	try $MAKE HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
+	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
+	echo $MAKE HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
+	bash
 	cp HOSTPYTHON=$BUILD_python/hostpython python
 
 	# FIXME, the first time, we got a error at:

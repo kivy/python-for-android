@@ -24,7 +24,8 @@ function build_hostpython() {
 
     try ./configure
     try make -j5
-    try mv python hostpython
+	bash
+    try mv python.exe hostpython
     try mv Parser/pgen hostpgen
     #try mkdir -p ../prebuilt/Python-$PYVERSION/lib
     #try cp hostpython ../prebuilt/Python-$PYVERSION/
