@@ -27,6 +27,10 @@ MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
 	MD5SUM="md5 -r"
 fi
+WGET=$(which wget)
+if [ "X$WGET" == "X" ]; then
+	WGET="curl -L -O"
+fi
 
 # Internals
 CRED="\x1b[31;01m"
@@ -397,7 +401,7 @@ function run_get_packages() {
 		# download if needed
 		if [ $do_download -eq 1 ]; then
 			info "Downloading $url"
-			try wget $url
+			try $WGET $url
 		else
 			debug "Module $module already downloaded"
 		fi
