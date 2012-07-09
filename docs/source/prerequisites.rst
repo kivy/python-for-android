@@ -1,6 +1,10 @@
 Prerequisites
 =============
 
+.. note::
+    There is a VirtualBox Image we provide with the prerequisites along with
+    Android SDK and NDK preinstalled to ease your installation woes. You can download it from `here <http://www.google.com/url?sa=D&q=https://docs.google.com/file/d/0B1WO07-OL50_VDNESDRUaDhXSmM/edit&usg=AFQjCNGrsg0SU8EMgAcLHWxbjSe8KM2kyA>`__.
+
 .. warning::
 
     The current version is tested only on Ubuntu oneiric (11.10) and precise
