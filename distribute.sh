@@ -23,10 +23,38 @@ DIST_PATH="$ROOT_PATH/dist/default"
 export LIBLINK_PATH="$BUILD_PATH/objects"
 export LIBLINK="$ROOT_PATH/src/tools/liblink"
 export BIGLINK="$ROOT_PATH/src/tools/biglink"
+
 MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
-	MD5SUM="md5 -r"
+	MD5SUM=$(which md5)
+	if [ "X$MD5SUM" == "X" ]; then
+		echo "Error: you need at least md5sum or md5 installed."
+		exit 1
+	else
+		MD5SUM="$MD5SUM -r"
+	fi
 fi
+
+WGET=$(which wget)
+if [ "X$WGET" == "X" ]; then
+	WGET=$(which curl)
+	if [ "X$WGET" == "X" ]; then
+		echo "Error: you need at least wget or curl installed."
+		exit 1
+	else
+		WGET="$WGET -L -O"
+	fi
+fi
+
+case $OSTYPE in
+	darwin*)
+		SED="sed -i ''"
+		;;
+	*)
+		SED="sed -i"
+		;;
+esac
+
 
 # Internals
 CRED="\x1b[31;01m"
@@ -397,7 +425,7 @@ function run_get_packages() {
 		# download if needed
 		if [ $do_download -eq 1 ]; then
 			info "Downloading $url"
-			try wget $url
+			try $WGET $url
 		else
 			debug "Module $module already downloaded"
 		fi
