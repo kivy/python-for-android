@@ -324,6 +324,8 @@ tools directory of the Android SDK.
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
+    ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
+    ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
     args = ap.parse_args()
