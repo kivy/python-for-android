@@ -63,9 +63,6 @@ function build_python() {
 		export LDFLAGS="$LDFLAGS -L$BUILD_openssl/"
 	fi
 
-	# dunno why on darwin this is not working...
-	export LDFLAGS="$LDFLAGS -L$BUILD_python -lpython2.7"
-
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo $MAKE HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
