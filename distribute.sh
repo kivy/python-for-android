@@ -111,6 +111,7 @@ function push_arm() {
 	export OLD_PATH=$PATH
 	export OLD_CFLAGS=$CFLAGS
 	export OLD_CXXFLAGS=$CXXFLAGS
+	export OLD_LDFLAGS=$LDFLAGS
 	export OLD_CC=$CC
 	export OLD_CXX=$CXX
 	export OLD_AR=$AR
@@ -123,11 +124,14 @@ function push_arm() {
 	#export OFLAG="-Os"
 	#export OFLAG="-O2"
 
-	export CFLAGS="-mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM"
+	export CFLAGS="-mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM -fPIC"
 	if [ $ARCH == "armeabi-v7a" ]; then
 		CFLAGS+=" -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb"
 	fi
 	export CXXFLAGS="$CFLAGS"
+
+	# that could be done only for darwin platform, but it doesn't hurt.
+	export LDFLAGS="-lm"
 
 	# this must be something depending of the API level of Android
 	PYPLATFORM=$(python -c 'import sys; print sys.platform')
@@ -182,6 +186,7 @@ function pop_arm() {
 	export PATH=$OLD_PATH
 	export CFLAGS=$OLD_CFLAGS
 	export CXXFLAGS=$OLD_CXXFLAGS
+	export LDFLAGS=$OLD_LDFLAGS
 	export CC=$OLD_CC
 	export CXX=$OLD_CXX
 	export AR=$OLD_AR
