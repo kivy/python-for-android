@@ -615,13 +615,19 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfm:d:" opt; do
+while getopts ":hvlfm:d:s" opt; do
 	case $opt in
 		h)
 			usage
 			;;
 		l)
 			list_modules
+			;;
+		s)
+			push_arm
+			bash
+			pop_arm
+			exit 0
 			;;
 		m)
 			MODULES="$OPTARG"
