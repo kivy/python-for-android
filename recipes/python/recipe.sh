@@ -33,6 +33,7 @@ function prebuild_python() {
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
 		try patch -p1 < $RECIPE_python/patches/fix-configure-darwin.patch
+		try patch -p1 < $RECIPE_python/patches/fix-distutils-darwin.patch
 	fi
 
 	# everything done, touch the marker !
@@ -61,6 +62,9 @@ function build_python() {
 		export CFLAGS="$CFLAGS -I$BUILD_openssl/include/"
 		export LDFLAGS="$LDFLAGS -L$BUILD_openssl/"
 	fi
+
+	# dunno why on darwin this is not working...
+	export LDFLAGS="$LDFLAGS -L$BUILD_python -lpython2.7"
 
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
