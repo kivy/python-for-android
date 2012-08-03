@@ -162,6 +162,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     # get the files and relpath file of all the directory we asked for
     files = []
     for sd in source_dirs:
+        sd = realpath(sd)
         compile_dir(sd)
         files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
 
