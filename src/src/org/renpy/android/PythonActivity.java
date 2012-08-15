@@ -38,7 +38,8 @@ public class PythonActivity extends Activity implements Runnable {
     private static AudioThread mAudioThread = null;
 
     // The SDLSurfaceView we contain.
-    private SDLSurfaceView mView = null;
+    public SDLSurfaceView mView = null;
+	public PythonActivity mActivity = null;
 
     // Did we launch our thread?
     private boolean mLaunchedThread = false;
@@ -59,6 +60,7 @@ public class PythonActivity extends Activity implements Runnable {
 
         Hardware.context = this;
         Action.context = this;
+		this.mActivity = this;
 
         getWindowManager().getDefaultDisplay().getMetrics(Hardware.metrics);
 
