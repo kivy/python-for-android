@@ -25,6 +25,7 @@ function build_pycrypto() {
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$BUILD_openssl"
 	export EXTRA_CFLAGS="--host linux-armv"
 
+	export ac_cv_func_malloc_0_nonnull=yes
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared
 
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
