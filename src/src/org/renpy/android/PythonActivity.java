@@ -38,8 +38,8 @@ public class PythonActivity extends Activity implements Runnable {
     private static AudioThread mAudioThread = null;
 
     // The SDLSurfaceView we contain.
-    public SDLSurfaceView mView = null;
-	public PythonActivity mActivity = null;
+    public static SDLSurfaceView mView = null;
+	public static PythonActivity mActivity = null;
 
     // Did we launch our thread?
     private boolean mLaunchedThread = false;
