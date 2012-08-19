@@ -21,9 +21,9 @@ function prebuild_pil() {
 
 	LIBS="$SRC_PATH/obj/local/$ARCH"
 	try cp setup.py.tmpl setup.py
-	try sed -i s:_LIBS_:$LIBS: setup.py
-	try sed -i s:_JNI_:$JNI_PATH: setup.py
-	try sed -i s:_NDKPLATFORM_:$NDKPLATFORM: setup.py
+	try sed -i '' s:_LIBS_:$LIBS: setup.py
+	try sed -i '' s:_JNI_:$JNI_PATH: setup.py
+	try sed -i '' s:_NDKPLATFORM_:$NDKPLATFORM: setup.py
 
 	# everything done, touch the marker !
 	touch .patched

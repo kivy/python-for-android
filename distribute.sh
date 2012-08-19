@@ -34,6 +34,10 @@ if [ "X$MD5SUM" == "X" ]; then
 		MD5SUM="$MD5SUM -r"
 	fi
 fi
+WGET=$(which wget)
+if [ "X$WGET" == "X" ]; then
+	WGET="curl -L -O"
+fi
 
 WGET=$(which wget)
 if [ "X$WGET" == "X" ]; then
