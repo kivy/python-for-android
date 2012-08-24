@@ -140,7 +140,7 @@ function push_arm() {
 	elif [ "$PYPLATFORM" == "linux3" ]; then
 		PYPLATFORM="linux"
 	fi
-	export PATH="$ANDROIDNDK/toolchains/arm-eabi-4.4.0/prebuilt/$PYPLATFORM-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
+
 	if [ "X${ANDROIDNDKVER:0:2}" == "Xr7" ] || [ "X$ANDROIDNDKVER" == "Xr8" ]; then
 		export TOOLCHAIN_PREFIX=arm-linux-androideabi
 		export TOOLCHAIN_VERSION=4.4.3
