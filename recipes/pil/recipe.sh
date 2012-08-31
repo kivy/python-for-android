@@ -21,9 +21,11 @@ function prebuild_pil() {
 
 	LIBS="$SRC_PATH/obj/local/$ARCH"
 	try cp setup.py.tmpl setup.py
-	try sed -i s:_LIBS_:$LIBS: setup.py
-	try sed -i s:_JNI_:$JNI_PATH: setup.py
-	try sed -i s:_NDKPLATFORM_:$NDKPLATFORM: setup.py
+	try $SED s:_LIBS_:$LIBS: setup.py
+	try $SED s:_JNI_:$JNI_PATH: setup.py
+	try $SED s:_NDKPLATFORM_:$NDKPLATFORM: setup.py
+
+	try patch -p1 < $RECIPE_pil/patches/disable-tk.patch
 
 	# everything done, touch the marker !
 	touch .patched

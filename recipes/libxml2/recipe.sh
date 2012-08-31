@@ -22,8 +22,8 @@ function build_libxml2() {
 
 	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi \
 		--without-modules --without-legacy --without-history --without-debug --without-docbook --without-python
-	try sed -i 's/ runtest\$(EXEEXT) \\/ \\/' Makefile
-	try sed -i 's/ testrecurse\$(EXEEXT)$//' Makefile
+	try $SED 's/ runtest\$(EXEEXT) \\/ \\/' Makefile
+	try $SED 's/ testrecurse\$(EXEEXT)$//' Makefile
 	try make
 
 	pop_arm
