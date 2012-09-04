@@ -62,6 +62,7 @@ CBLUE="\x1b[34;01m"
 CGRAY="\x1b[30;01m"
 CRESET="\x1b[39;49;00m"
 DO_CLEAN_BUILD=0
+DO_SET_X=0
 
 # Use ccache ?
 which ccache &>/dev/null
@@ -70,8 +71,6 @@ if [ $? -eq 0 ]; then
 	export CXX="ccache g++"
 	export NDK_CCACHE="ccache"
 fi
-
-set -x
 
 function try () {
     "$@" || exit -1
@@ -210,6 +209,7 @@ function usage() {
 	echo "  -l                     Show a list of available modules"
 	echo "  -m 'mod1 mod2'         Modules to include"
 	echo "  -f                     Restart from scratch (remove the current build)"
+        echo "  -x                     display expanded values (execute 'set -x')"
 	echo
 	exit 0
 }
@@ -615,7 +615,7 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfm:d:s" opt; do
+while getopts ":hvlfxm:d:s" opt; do
 	case $opt in
 		h)
 			usage
@@ -638,6 +638,9 @@ while getopts ":hvlfm:d:s" opt; do
 		f)
 			DO_CLEAN_BUILD=1
 			;;
+                x)
+                        DO_SET_X=1
+                        ;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
 			exit 1
@@ -652,5 +655,10 @@ while getopts ":hvlfm:d:s" opt; do
 			;;
 	esac
 done
+
+if [ $DO_SET_X -eq 1 ]; then
+	info "Set -x for displaying expanded values"
+	set -x
+fi
 
 run
