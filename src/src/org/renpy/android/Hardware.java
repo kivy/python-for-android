@@ -81,6 +81,88 @@ public class Hardware {
          }
      }
 
+     static SensorEvent lastOrientationEvent = null;
+
+     static class OrientationListener implements SensorEventListener {
+         public void onSensorChanged(SensorEvent ev) {
+             lastOrientationEvent = ev;
+         }
+
+         public void onAccuracyChanged(Sensor sensor , int accuracy) {
+         }
+     }
+
+     static OrientationListener orientationListener = new OrientationListener();
+
+     /**
+      * Enable or Disable the OrientationSensor.
+      */
+     public static void orientationSensorEnable(boolean enable) {
+         SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+         Sensor orientationSensor = sm.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
+         if (orientationSensor == null) {
+             return;
+         }
+
+         if (enable) {
+             sm.registerListener(orientationListener, orientationSensor, SensorManager.SENSOR_DELAY_NORMAL);
+         } else {
+             sm.unregisterListener(orientationListener, orientationSensor);
+         }
+     }
+
+     public static float[] orientationSensorReading() {
+         if (lastOrientationEvent != null) {
+             return lastOrientationEvent.values;
+         } else {
+             float rv[] = { 0f, 0f, 0f };
+             return rv;
+         }
+     }
+
+     static SensorEvent lastMagneticFieldEvent = null;
+
+     static class MagneticFieldListener implements SensorEventListener {
+         public void onSensorChanged(SensorEvent ev) {
+             lastMagneticFieldEvent = ev;
+         }
+
+         public void onAccuracyChanged(Sensor sensor , int accuracy) {
+         }
+     }
+
+     static MagneticFieldListener magneticFieldListener = new MagneticFieldListener();
+
+     /**
+      * Enable or Disable the MagneticFieldSensor.
+      */
+     public static void magneticFieldSensorEnable(boolean enable) {
+         SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+         Sensor magneticFieldSensor = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+         if (magneticFieldSensor == null) {
+             return;
+         }
+
+         if (enable) {
+             sm.registerListener(magneticFieldListener, magneticFieldSensor, SensorManager.SENSOR_DELAY_NORMAL);
+         } else {
+             sm.unregisterListener(magneticFieldListener, magneticFieldSensor);
+         }
+     }
+
+
+     public static float[] magneticFieldSensorReading() {
+         if (lastMagneticFieldEvent != null) {
+             return lastMagneticFieldEvent.values;
+         } else {
+             float rv[] = { 0f, 0f, 0f };
+             return rv;
+         }
+     }
+
+
      static DisplayMetrics metrics = new DisplayMetrics();
 
      /**
