@@ -184,13 +184,15 @@ screen:
    (Source of the Compass Windrose: `Wikipedia <http://en.wikipedia.org/wiki/Compass_rose>`__)
 
 
-API
----
+Android API
+-----------
 
-android
-~~~~~~~
+Hardware
+~~~~~~~~
 
-.. module:: android
+This module is built for accessing hardware devices of an Android device
+
+.. module:: Hardware
 
 
 .. function:: vibrate(s)
@@ -264,6 +266,122 @@ used to enable/disable the sensor and to read the sensor
 
     (SSID, BSSID, SignalLevel) 
 
+Action
+~~~~~~
+
+This module is built to deliver data to someone else.
+
+.. module:: Action
+
+.. function:: send(mimetype, filename, subject, text, chooser_title)
+
+    Deliver data to someone else. This method is a wrapper around `ACTION_SEND
+    <http://developer.android.com/reference/android/content/Intent.html#ACTION_SEND>`_
+
+    :Parameters:
+        `mimetype`: str
+            Must be a valid mimetype, that represent the content to sent.
+        `filename`: str, default to None
+            (optional) Name of the file to attach. Must be a absolute path.
+        `subject`: str, default to None
+            (optional) Default subject
+        `text`: str, default to None
+            (optional) Content to send.
+        `chooser_title`: str, default to None
+            (optional) Title of the android chooser window, default to 'Send email...'
+
+    Sending a simple hello world text::
+
+        android.action_send('text/plain', text='Hello world',
+            subject='Test from python')
+
+    Sharing an image file::
+
+        # let's say you've make an image in /sdcard/image.png
+        android.action_send('image/png', filename='/sdcard/image.png')
+
+    Sharing an image with a default text too::
+
+        android.action_send('image/png', filename='/sdcard/image.png',
+            text='Hi,\n\tThis is my awesome image, what do you think about it ?')
+
+Further Modules
+~~~~~~~~~~~~~~~
+
+Some further modules are currently available but not yet documented. 
+Please have a look into the code and you are very welcome to contribute to 
+this documentation.
+
+
+How it's working without PyJNIus
+--------------------------------
+
+The whole Android API is accessible in Java. Their is no native or extensible
+way to access it from Python. The schema for accessing to their API is::
+
+    [1] Cython -> [2] C JNI -> [3] Java
+
+#. ``android.pyx`` is written in `Cython <http://cython.org/>`_: a language
+   with typed informations, very close to Python, that generate Python
+   extension. It's easier to write in Cython than CPython, and it's linked
+   directly to the part 2.
+#. ``android_jni.c`` is defining simple c methods that access to Java
+   interfaces using JNI layer.
+#. The last part contain the Java code that will be called from the JNI stuff.
+
+All the source code is available at:
+
+    https://github.com/kivy/python-for-android/tree/master/recipes/android/src
+
+
+Example without PyJNIus
+-----------------------
+
+::
+
+    import android
+
+    # activate the vibrator
+    android.vibrate(1)
+
+    # read screen dpi
+    print android.get_dpi()
+
+
+
+Old Version
+-----------
+
+.. note::
+
+   The following is from an older version and the documentation for this
+   part is currently not updated. Nevertheless it is included here for history
+   and further development aspects.
+
+
+android
+~~~~~~~
+
+.. module:: android
+
+.. function:: check_pause()
+
+    This should be called on a regular basis to check to see if Android
+    expects the game to pause. If it return true, the game should call
+    :func:`android.wait_for_resume()`, after persisting its state as necessary.
+
+.. function:: wait_for_resume()
+
+    This function should be called after :func:`android.check_pause()` returns
+    true. It does not return until Android has resumed from the pause. While in
+    this function, Android may kill a game without further notice.
+
+.. function:: map_key(keycode, keysym)
+
+    This maps between an android keycode and a python keysym. The android
+    keycodes are available as constants in the android module.
+
+
 
 android_mixer
 ~~~~~~~~~~~~~
@@ -315,40 +433,4 @@ It has several differences from the pygame mixer:
 
     The android_mixer module hasn't been tested much, and so bugs may be
     present.
-
-
-How it's working without PyJNIus
---------------------------------
-
-The whole Android API is accessible in Java. Their is no native or extensible
-way to access it from Python. The schema for accessing to their API is::
-
-    [1] Cython -> [2] C JNI -> [3] Java
-
-#. ``android.pyx`` is written in `Cython <http://cython.org/>`_: a language
-   with typed informations, very close to Python, that generate Python
-   extension. It's easier to write in Cython than CPython, and it's linked
-   directly to the part 2.
-#. ``android_jni.c`` is defining simple c methods that access to Java
-   interfaces using JNI layer.
-#. The last part contain the Java code that will be called from the JNI stuff.
-
-All the source code is available at:
-
-    https://github.com/kivy/python-for-android/tree/master/recipes/android/src
-
-
-Example without PyJNIus
------------------------
-
-::
-
-    import android
-
-    # activate the vibrator
-    android.vibrate(1)
-
-    # read screen dpi
-    print android.get_dpi()
-
 
