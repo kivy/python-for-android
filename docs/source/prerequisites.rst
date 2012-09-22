@@ -20,6 +20,10 @@ If you are on a 64 bit distro, you should install these packages too ::
 
     sudo apt-get install ia32-libs and libc6-dev-i386
 
+On debian Squeeze amd64, those packages were found to be necessary ::
+
+    sudo apt-get install lib32stdc++6 lib32z1
+
 Ensure you have the latest cython version::
 
     pip install --upgrade cython
