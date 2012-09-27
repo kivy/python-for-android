@@ -141,15 +141,14 @@ function push_arm() {
 		PYPLATFORM="linux"
 	fi
 
-	if [ "X${ANDROIDNDKVER:0:2}" == "Xr7" ] || [ "X$ANDROIDNDKVER" == "Xr8" ]; then
-		export TOOLCHAIN_PREFIX=arm-linux-androideabi
-		export TOOLCHAIN_VERSION=4.4.3
-	elif [ "X$ANDROIDNDKVER" == "Xr5b" ]; then
+	if [ "X$ANDROIDNDKVER" == "Xr5b" ]; then
 		export TOOLCHAIN_PREFIX=arm-eabi
 		export TOOLCHAIN_VERSION=4.4.0
 	else
-		error "Unable to configure NDK toolchain for NDK $ANDROIDNDKVER"
-		exit -1
+		#if [ "X${ANDROIDNDKVER:0:2}" == "Xr7" ] || [ "X$ANDROIDNDKVER" == "Xr8" ]; then
+		# assume this toolchain is the same for all the next ndk... until a new one is out.
+		export TOOLCHAIN_PREFIX=arm-linux-androideabi
+		export TOOLCHAIN_VERSION=4.4.3
 	fi
 
 	export PATH="$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/$PYPLATFORM-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
