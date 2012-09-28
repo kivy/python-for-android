@@ -623,6 +623,8 @@ while getopts ":hvlfxm:d:s" opt; do
 			list_modules
 			;;
 		s)
+			run_prepare
+			run_source_modules
 			push_arm
 			bash
 			pop_arm

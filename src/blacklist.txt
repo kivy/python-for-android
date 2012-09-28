@@ -76,6 +76,7 @@ os2emxpath.pyo
 multiprocessing/dummy*
 
 # unused binaries python modules
+lib-dynload/_sqlite3.so
 lib-dynload/termios.so
 lib-dynload/_lsprof.so
 lib-dynload/*audioop.so
