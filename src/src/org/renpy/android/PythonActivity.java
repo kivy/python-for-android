@@ -75,7 +75,6 @@ public class PythonActivity extends Activity implements Runnable {
 
     boolean _isPaused = false;
 
-	static PythonActivity mActivity = null;
 	private static final String DB_INITIALIZED = "db_initialized";
 
     @Override
