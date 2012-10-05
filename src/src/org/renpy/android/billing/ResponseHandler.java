@@ -107,7 +107,8 @@ public class ResponseHandler {
      */
     public static void purchaseResponse(
             final Context context, final PurchaseState purchaseState, final String productId,
-            final String orderId, final long purchaseTime, final String developerPayload) {
+            final String orderId, final long purchaseTime, final String developerPayload,
+			final String purchaseToken, final String packageName) {
 
         // Update the database with the purchase state. We shouldn't do that
         // from the main thread so we do the work in a background thread.

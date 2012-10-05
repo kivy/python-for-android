@@ -68,15 +68,20 @@ public class Security {
         public String orderId;
         public long purchaseTime;
         public String developerPayload;
+		public String purchaseToken;
+		public String packageName;
 
         public VerifiedPurchase(PurchaseState purchaseState, String notificationId,
-                String productId, String orderId, long purchaseTime, String developerPayload) {
+                String productId, String orderId, long purchaseTime, String developerPayload,
+				String purchaseToken, String packageName) {
             this.purchaseState = purchaseState;
             this.notificationId = notificationId;
             this.productId = productId;
             this.orderId = orderId;
             this.purchaseTime = purchaseTime;
             this.developerPayload = developerPayload;
+			this.purchaseToken = purchaseToken;
+			this.packageName = packageName;
         }
     }
 
@@ -176,6 +181,7 @@ public class Security {
                     notifyId = jElement.getString("notificationId");
                 }
                 String developerPayload = jElement.optString("developerPayload", null);
+				String purchaseToken = jElement.optString("purchaseToken", null);
 
                 // If the purchase state is PURCHASED, then we require a
                 // verified nonce.
@@ -183,7 +189,7 @@ public class Security {
                     continue;
                 }
                 purchases.add(new VerifiedPurchase(purchaseState, notifyId, productId,
-                        orderId, purchaseTime, developerPayload));
+                        orderId, purchaseTime, developerPayload, purchaseToken, packageName));
             }
         } catch (JSONException e) {
             Log.e(TAG, "JSON exception: ", e);

@@ -214,7 +214,7 @@ public class BillingService extends Service implements ServiceConnection {
             super(-1);
             mProductType = itemType;
         }
-        
+
         @Override
         protected long run() throws RemoteException {
             Bundle request = makeRequestBundle("CHECK_BILLING_SUPPORTED");
@@ -570,13 +570,18 @@ public class BillingService extends Service implements ServiceConnection {
             return;
         }
 
+		if (Consts.DEBUG) {
+			Log.d(TAG, "purchaseStateChanged: " + signedData);
+		}
+
         ArrayList<String> notifyList = new ArrayList<String>();
         for (VerifiedPurchase vp : purchases) {
             if (vp.notificationId != null) {
                 notifyList.add(vp.notificationId);
             }
             ResponseHandler.purchaseResponse(this, vp.purchaseState, vp.productId,
-                    vp.orderId, vp.purchaseTime, vp.developerPayload);
+                    vp.orderId, vp.purchaseTime, vp.developerPayload,
+					vp.purchaseToken, vp.packageName);
         }
         if (!notifyList.isEmpty()) {
             String[] notifyIds = notifyList.toArray(new String[notifyList.size()]);
