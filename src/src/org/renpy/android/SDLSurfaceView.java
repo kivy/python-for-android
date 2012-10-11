@@ -577,7 +577,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 					ConfigChooser chooser = new ConfigChooser(5, 6, 5, 0, 0, 8);
 					mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
 				} else {
-					Log.e(TAG, "Unable to found a correct surface for this device !");
+					Log.e(TAG, "Unable to find a correct surface for this device !");
 					break;
 				}
 
