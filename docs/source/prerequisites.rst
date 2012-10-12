@@ -30,7 +30,7 @@ Ensure you have the latest cython version::
 
 You must have android SDK and NDK. Right now, it's prefered to use:
 
-- SDK API 8 or 14 (15 will not work until a new NDK will be released)
+- SDK API 8 or 14 (15 will not work until a new NDK is released)
 - NDK r5b or r7
 
 You can download them at::
