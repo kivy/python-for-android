@@ -34,6 +34,6 @@ function build_docutils() {
     pop_arm
 }
 
-function postbuild_pyjnius() {
+function postbuild_docutils() {
     true
 }
