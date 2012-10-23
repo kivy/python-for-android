@@ -41,7 +41,7 @@ function build_pil() {
 	push_arm
 
 	LIBS="$SRC_PATH/obj/local/$ARCH"
-	export CFLAGS="$CFLAGS -I$JNI_PATH/png -I$JNI_PATH/jpeg -I$JNI_PATH/freetype"
+	export CFLAGS="$CFLAGS -I$JNI_PATH/png -I$JNI_PATH/jpeg -I$JNI_PATH/freetype/include/freetype"
 	export LDFLAGS="$LDFLAGS -L$LIBS -lm -lz"
 	export LDSHARED="$LIBLINK"
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
