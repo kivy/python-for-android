@@ -9,8 +9,17 @@
 # Modules
 MODULES=$MODULES
 
+# Resolve Python path
+PYTHON="$(which python2.7)"
+if [ "X$PYTHON" == "X" ]; then
+	PYTHON="$(which python2)"
+fi
+if [ "X$PYTHON" == "X" ]; then
+	PYTHON="$(which python)"
+fi
+
 # Paths
-ROOT_PATH="$(dirname $(python -c 'import os,sys;print os.path.realpath(sys.argv[1])' $0))"
+ROOT_PATH="$(dirname $($PYTHON -c 'import os,sys;print os.path.realpath(sys.argv[1])' $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
@@ -133,7 +142,7 @@ function push_arm() {
 	export LDFLAGS="-lm"
 
 	# this must be something depending of the API level of Android
-	PYPLATFORM=$(python -c 'import sys; print sys.platform')
+	PYPLATFORM=$($PYTHON -c 'import sys; print sys.platform')
 	if [ "$PYPLATFORM" == "linux2" ]; then
 		PYPLATFORM="linux"
 	elif [ "$PYPLATFORM" == "linux3" ]; then
