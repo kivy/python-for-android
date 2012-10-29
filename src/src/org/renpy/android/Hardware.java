@@ -117,6 +117,18 @@ public class Hardware {
      public generic3AxisSensor orientationSensor = new generic3AxisSensor(Sensor.TYPE_ORIENTATION);
      public generic3AxisSensor magneticFieldSensor = new generic3AxisSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
+     /**
+      * functions for backward compatibility reasons
+      */
+
+     public void accelerometerEnable(boolean enable) { accelerometerSensor.changeStatus(enable); }
+     public float[] accelerometerReading() { return (float[]) accelerometerSensor.readSensor(); }
+     public void orientationSensorEnable(boolean enable) { orientationSensor.changeStatus(enable); }
+     public float[] orientationSensorReading() { return (float[]) orientationSensor.readSensor(); }
+     public void magneticFieldSensorEnable(boolean enable) { magneticFieldSensor.changeStatus(enable); }
+     public float[] magneticFieldSensorReading() { return (float[]) magneticFieldSensor.readSensor(); }
+
+     
 
      static DisplayMetrics metrics = new DisplayMetrics();
 
