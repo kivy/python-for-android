@@ -163,7 +163,7 @@ public class Hardware {
      }
 
 
-     static DisplayMetrics metrics = new DisplayMetrics();
+     static public DisplayMetrics metrics = new DisplayMetrics();
 
      /**
       * Get display DPI.

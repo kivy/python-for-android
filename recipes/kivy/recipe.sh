@@ -2,7 +2,7 @@
 
 VERSION_kivy=
 URL_kivy=https://github.com/kivy/kivy/zipball/master/kivy-master.zip
-DEPS_kivy=(pygame android)
+DEPS_kivy=(pygame pyjnius android)
 MD5_kivy=
 BUILD_kivy=$BUILD_PATH/kivy/$(get_directory $URL_kivy)
 RECIPE_kivy=$RECIPES_PATH/kivy
