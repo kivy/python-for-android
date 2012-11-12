@@ -135,9 +135,9 @@ function push_arm() {
 	#export OFLAG="-Os"
 	#export OFLAG="-O2"
 
-	export CFLAGS="-DANDROID -mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM"
+	export CFLAGS="-DANDROID -mandroid $OFLAG -g -fomit-frame-pointer --sysroot $NDKPLATFORM"
 	if [ "X$ARCH" == "Xarmeabi-v7a" ]; then
-		CFLAGS+=" -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb"
+		CFLAGS+=" -march=armv7-a -g -mfloat-abi=softfp -mfpu=vfp -mthumb"
 	fi
 	export CXXFLAGS="$CFLAGS"
 
@@ -614,10 +614,10 @@ function run_distribute() {
 	try rm -rf lib-dynload/_ctypes_test.so
 	try rm -rf lib-dynload/_testcapi.so
 
-	debug "Strip libraries"
-	push_arm
-	try find "$DIST_PATH"/private "$DIST_PATH"/libs -iname '*.so' -exec $STRIP {} \;
-	pop_arm
+	#debug "Strip libraries"
+	#push_arm
+	#try find "$DIST_PATH"/private "$DIST_PATH"/libs -iname '*.so' -exec $STRIP {} \;
+	#pop_arm
 
 }
 

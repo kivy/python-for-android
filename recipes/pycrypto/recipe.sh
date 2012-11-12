@@ -29,7 +29,7 @@ function build_pycrypto() {
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared
 
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
-	try find build/lib.* -name "*.o" -exec $STRIP {} \;
+	#try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 
