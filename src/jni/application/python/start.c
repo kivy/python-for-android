@@ -86,6 +86,8 @@ int main(int argc, char **argv) {
         "        for l in lines[:-1]:\n" \
         "            androidembed.log(l)\n" \
         "        self.buffer = lines[-1]\n" \
+        "    def flush(self):\n" \
+        "        return\n" \
         "sys.stdout = sys.stderr = LogFile()\n" \
 		"import site; print site.getsitepackages()\n"\
 		"print 'Android path', sys.path\n" \
