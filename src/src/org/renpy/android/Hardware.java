@@ -253,9 +253,9 @@ public class Hardware {
 
 		final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
 		if (activeNetwork != null && activeNetwork.isConnected()) {
-			network_state = true;
+			state = true;
 		} else {
-			network_state = false;
+			state = false;
 		}
 
         return state;
@@ -272,7 +272,7 @@ public class Hardware {
 
             @Override
             public void onReceive(Context c, Intent i) {
-				checkNetwork();
+				network_state = checkNetwork();
             }
 
         }, i);
