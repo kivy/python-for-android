@@ -16,6 +16,8 @@ import android.net.wifi.WifiManager;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 
 /**
  * Methods that are expected to be called via JNI, to access the
@@ -231,5 +233,53 @@ public class Hardware {
 
         return "";
     }
+
+    /**
+     * network state, coarse
+     */
+
+    public static boolean network_state = false;
+
+    /**
+    * To recieve network state changes
+    */
+    public static void registerNetworkCheck()
+    {
+        IntentFilter i = new IntentFilter();
+        i.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        context.registerReceiver(new BroadcastReceiver() {
+
+            @Override
+            public void onReceive(Context c, Intent i) {
+				checkNetwork();
+            }
+
+        }, i);
+    }
+
+
+    /**
+    * Check network state directly
+    *
+	* (only one connection can be active at a given moment, detects al type of networks)
+    *
+    */
+    public static boolean checkNetwork()
+    {
+        boolean state = false;
+        final ConnectivityManager conMgr =  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+		final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+		if (activeNetwork != null && activeNetwork.isConnected()) {
+			network_state = true;
+		} else {
+			network_state = false;
+		}
+
+        return state;
+    }
+
+
+
 
 }
