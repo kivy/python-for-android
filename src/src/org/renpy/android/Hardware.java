@@ -235,33 +235,15 @@ public class Hardware {
     }
 
     /**
-     * network state, coarse
+     * network state
      */
 
     public static boolean network_state = false;
 
     /**
-    * To recieve network state changes
-    */
-    public static void registerNetworkCheck()
-    {
-        IntentFilter i = new IntentFilter();
-        i.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        context.registerReceiver(new BroadcastReceiver() {
-
-            @Override
-            public void onReceive(Context c, Intent i) {
-				checkNetwork();
-            }
-
-        }, i);
-    }
-
-
-    /**
     * Check network state directly
     *
-	* (only one connection can be active at a given moment, detects al type of networks)
+	* (only one connection can be active at a given moment, detects all network type)
     *
     */
     public static boolean checkNetwork()
@@ -279,7 +261,21 @@ public class Hardware {
         return state;
     }
 
+    /**
+    * To recieve network state changes
+    */
+    public static void registerNetworkCheck()
+    {
+        IntentFilter i = new IntentFilter();
+        i.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        context.registerReceiver(new BroadcastReceiver() {
 
+            @Override
+            public void onReceive(Context c, Intent i) {
+				checkNetwork();
+            }
 
+        }, i);
+    }
 
 }
