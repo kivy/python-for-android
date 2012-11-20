@@ -268,7 +268,7 @@ HLoopTail:
     str      r0, local_OUTPUT_BUF
     add      fp, r2, r1
 
-    PLD      []ip, #32]
+    PLD      [ip, #32]
     ldmia    ip!, {r0-r7}
 
     cmp      r1, #0
