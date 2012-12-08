@@ -19,7 +19,7 @@ if [ "X$PYTHON" == "X" ]; then
 fi
 
 # Paths
-ROOT_PATH="$(dirname $($PYTHON -c 'import os,sys;print os.path.realpath(sys.argv[1])' $0))"
+ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
@@ -142,7 +142,7 @@ function push_arm() {
 	export LDFLAGS="-lm"
 
 	# this must be something depending of the API level of Android
-	PYPLATFORM=$($PYTHON -c 'import sys; print sys.platform')
+	PYPLATFORM=$($PYTHON -c 'from __future__ import print_function; import sys; print(sys.platform)')
 	if [ "$PYPLATFORM" == "linux2" ]; then
 		PYPLATFORM="linux"
 	elif [ "$PYPLATFORM" == "linux3" ]; then

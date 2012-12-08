@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 import sys
 import subprocess
@@ -39,10 +40,10 @@ while args:
         unique_args.insert(0, a)
 
 
-print 'Biglink create %s library' % sys.argv[1]
-print 'Biglink arguments:'
+print('Biglink create %s library' % sys.argv[1])
+print('Biglink arguments:')
 for arg in unique_args:
-    print '', arg
+    print(' %s' % arg)
 
 args = os.environ['CC'].split() + \
     ['-shared', '-O3', '-o', sys.argv[1]] + \
