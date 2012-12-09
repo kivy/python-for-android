@@ -50,16 +50,15 @@ public class Hardware {
         SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> allSensors = sm.getSensorList(Sensor.TYPE_ALL);
 
-        if (allSensors != null){
-            
+        if (allSensors != null) {
             String resultString = "";
-            for (Sensor s : allSensors)
-            {
+            for (Sensor s : allSensors) {
                 resultString += String.format("Name=" + s.getName());
                 resultString += String.format(",Vendor=" + s.getVendor());
                 resultString += String.format(",Version=" + s.getVersion());
                 resultString += String.format(",MaximumRange=" + s.getMaximumRange());
-                resultString += String.format(",MinDelay=" + s.getMinDelay());
+				// XXX MinDelay is not in the 2.2
+                //resultString += String.format(",MinDelay=" + s.getMinDelay());
                 resultString += String.format(",Power=" + s.getPower());
                 resultString += String.format(",Type=" + s.getType() + "\n");
             }
