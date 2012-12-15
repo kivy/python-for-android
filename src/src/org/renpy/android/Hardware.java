@@ -71,7 +71,7 @@ public class Hardware {
      /**
       * Get Access to 3 Axis Hardware Sensors Accelerometer, Orientation and Magnetic Field Sensors
       */
-     public class generic3AxisSensor implements SensorEventListener {
+     public static class generic3AxisSensor implements SensorEventListener {
          private final SensorManager sSensorManager;
          private final Sensor sSensor;
          private final int sSensorType;
@@ -114,22 +114,47 @@ public class Hardware {
          }
      }
 
-     public generic3AxisSensor accelerometerSensor = new generic3AxisSensor(Sensor.TYPE_ACCELEROMETER);
-     public generic3AxisSensor orientationSensor = new generic3AxisSensor(Sensor.TYPE_ORIENTATION);
-     public generic3AxisSensor magneticFieldSensor = new generic3AxisSensor(Sensor.TYPE_MAGNETIC_FIELD);
+     public static generic3AxisSensor accelerometerSensor = null;
+     public static generic3AxisSensor orientationSensor = null;
+     public static generic3AxisSensor magneticFieldSensor = null;
 
      /**
       * functions for backward compatibility reasons
       */
 
-     public void accelerometerEnable(boolean enable) { accelerometerSensor.changeStatus(enable); }
-     public float[] accelerometerReading() { return (float[]) accelerometerSensor.readSensor(); }
-     public void orientationSensorEnable(boolean enable) { orientationSensor.changeStatus(enable); }
-     public float[] orientationSensorReading() { return (float[]) orientationSensor.readSensor(); }
-     public void magneticFieldSensorEnable(boolean enable) { magneticFieldSensor.changeStatus(enable); }
-     public float[] magneticFieldSensorReading() { return (float[]) magneticFieldSensor.readSensor(); }
-
-     
+     public static void accelerometerEnable(boolean enable) {
+		 if ( accelerometerSensor == null )
+			 accelerometerSensor = new generic3AxisSensor(Sensor.TYPE_ACCELEROMETER);
+		 accelerometerSensor.changeStatus(enable);
+	 }
+     public static float[] accelerometerReading() {
+		 float rv[] = { 0f, 0f, 0f };
+		 if ( accelerometerSensor == null )
+			 return rv;
+		 return (float[]) accelerometerSensor.readSensor();
+	 }
+     public static void orientationSensorEnable(boolean enable) {
+		 if ( orientationSensor == null )
+			 orientationSensor = new generic3AxisSensor(Sensor.TYPE_ORIENTATION);
+		 orientationSensor.changeStatus(enable);
+	 }
+     public static float[] orientationSensorReading() {
+		 float rv[] = { 0f, 0f, 0f };
+		 if ( orientationSensor == null )
+			 return rv;
+		 return (float[]) orientationSensor.readSensor();
+	 }
+     public static void magneticFieldSensorEnable(boolean enable) {
+		 if ( magneticFieldSensor == null )
+			 magneticFieldSensor = new generic3AxisSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		 magneticFieldSensor.changeStatus(enable);
+	 }
+     public static float[] magneticFieldSensorReading() {
+		 float rv[] = { 0f, 0f, 0f };
+		 if ( magneticFieldSensor == null )
+			 return rv;
+		 return (float[]) magneticFieldSensor.readSensor();
+	 }
 
      static public DisplayMetrics metrics = new DisplayMetrics();
 
