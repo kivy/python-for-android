@@ -43,8 +43,8 @@ Prebuilt VirtualBox
 
 A good starting point to build an APK are prebuilt VirtualBox images, where
 the Android NDK, the Android SDK and the Kivy Python-For-Android sources 
-are prebuilt in an VirtualBox image. Please search the `Google Python-For-Android forum 
-<https://groups.google.com/forum/?fromgroups=&pli=1#!forum/python-android>`__ for
+are prebuilt in an VirtualBox image. Please search the `Download Section 
+<http://kivy.org/#download>`__ for
 such an image.
 
 Example
