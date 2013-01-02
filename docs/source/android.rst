@@ -56,7 +56,7 @@ folder:
 
 .. code-block:: python
 
-   from pyjnius import autoclass
+   from jnius import autoclass
 
    ... 
 
