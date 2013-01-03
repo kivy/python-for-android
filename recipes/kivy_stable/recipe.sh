@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_kivy_stable=1.5.0
+VERSION_kivy_stable=1.5.1
 URL_kivy_stable=https://github.com/kivy/kivy/archive/$VERSION_kivy_stable.zip
 DEPS_kivy_stable=(pygame pyjnius android)
 MD5_kivy_stable=
