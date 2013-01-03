@@ -14,13 +14,25 @@ Global overview
 ---------------
 
 #. Download Android NDK, SDK
-#. Launch "android", and download latest Android platform
+ 
+ * NDK: http://dl.google.com/android/ndk/android-ndk-r8c-linux-x86.tar.bz2
+ 
+ * More details at: http://developer.android.com/tools/sdk/ndk/index.html
+ 
+ * SDK: http://dl.google.com/android/android-sdk_r21.0.1-linux.tgz
+ 
+ * More details at:http://developer.android.com/sdk/index.html
+
+#. Launch "android", and download latest Android platform, here API 14, which would be Android 4.0
+
 #. Export some environment variables::
 
     export ANDROIDSDK="/path/to/android/android-sdk-linux_86"
-    export ANDROIDNDK="/path/to/android/android-ndk-r7"
-    export ANDROIDNDKVER=r7
+    export ANDROIDNDK="/path/to/android/android-ndk-r8c"
+    export ANDROIDNDKVER=r8c
     export ANDROIDAPI=14
+
+ (Of course correct the paths mentioned in ANDROIDSDK and ANDROIDNDK)
 
 #. Clone python-for-android::
 
