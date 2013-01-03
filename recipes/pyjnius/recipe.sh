@@ -2,7 +2,7 @@
 
 VERSION_pyjnius=
 URL_pyjnius=https://github.com/kivy/pyjnius/zipball/master/pyjnius-master.zip
-DEPS_pyjnius=(pygame)
+DEPS_pyjnius=(python)
 MD5_pyjnius=
 BUILD_pyjnius=$BUILD_PATH/pyjnius/$(get_directory $URL_pyjnius)
 RECIPE_pyjnius=$RECIPES_PATH/pyjnius
