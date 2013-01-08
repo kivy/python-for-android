@@ -23,6 +23,7 @@ ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
+JAVACLASS_PATH="$ROOT_PATH/build/java"
 PACKAGES_PATH="$ROOT_PATH/.packages"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
@@ -298,6 +299,7 @@ function run_prepare() {
 	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
 	test -d $BUILD_PATH || mkdir -p $BUILD_PATH
 	test -d $LIBS_PATH || mkdir -p $LIBS_PATH
+	test -d $JAVACLASS_PATH || mkdir -p $JAVACLASS_PATH
 	test -d $LIBLINK_PATH || mkdir -p $LIBLINK_PATH
 
 	# create initial files
@@ -544,6 +546,9 @@ function run_distribute() {
 	debug "Copy libs"
 	try mkdir -p libs/$ARCH
 	try cp -a $BUILD_PATH/libs/* libs/$ARCH/
+
+	debug "Copy java files from various libs"
+	try cp -a $BUILD_PATH/java/* src
 
 	debug "Fill private directory"
 	try cp -a python-install/lib private/

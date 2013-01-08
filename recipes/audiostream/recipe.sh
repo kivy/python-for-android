@@ -1,6 +1,4 @@
 #!/bin/bash
-# Recent change made audiostream not compatible with python-for-android yet.
-# Only h264+aac build are working.
 
 VERSION_audiostream=
 URL_audiostream=https://github.com/kivy/audiostream/zipball/master/audiostream.zip
@@ -17,7 +15,8 @@ function build_audiostream() {
 	cd $BUILD_audiostream
 
 	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/audiostream" ]; then
-		return
+		#return
+		true
 	fi
 
 	push_arm
@@ -28,9 +27,11 @@ function build_audiostream() {
 	export LDFLAGS="$LDFLAGS -lm -L$LIBS_PATH"
 	export AUDIOSTREAM_ROOT="$BUILD_audiostream/build/audiostream/armeabi-v7a"
 	try cd $BUILD_audiostream
+	$BUILD_PATH/python-install/bin/python.host setup.py build_ext &>/dev/null
 	try find . -iname '*.pyx' -exec cython {} \;
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try cp -a audiostream/platform/android/org $JAVACLASS_PATH
 
 	pop_arm
 }
