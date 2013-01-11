@@ -548,7 +548,7 @@ function run_distribute() {
 	try cp -a $BUILD_PATH/libs/* libs/$ARCH/
 
 	debug "Copy java files from various libs"
-	try cp -a $BUILD_PATH/java/* src
+	cp -a $BUILD_PATH/java/* src
 
 	debug "Fill private directory"
 	try cp -a python-install/lib private/
