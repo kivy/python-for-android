@@ -223,6 +223,36 @@ function usage() {
 	exit 0
 }
 
+# Check installation state of a debian package list.
+# Return all missing packages.
+function check_pkg_deb_installed() {
+    PKGS=$1
+    MISSING_PKGS=""
+    for PKG in $PKGS; do
+        CHECK=$(dpkg -s $PKG 2>&1)
+        if [ $? -eq 1 ]; then
+           MISSING_PKGS="$PKG $MISSING_PKGS"
+        fi
+    done
+	if [ "X$MISSING_PKGS" != "X" ]; then
+		error "Packages missing: $MISSING_PKGS"
+		error "It might break the compilation, except if you installed thoses packages manually."
+	fi
+}
+
+function check_build_deps() {
+    DIST=$(lsb_release -is)
+	info "Check build dependencies for $DIST"
+    case $DIST in
+		Debian|Ubuntu)
+			check_pkg_deb_installed "build-essential zlib1g-dev cython"
+			;;
+		*)
+			debug "Avoid check build dependencies, unknow platform $DIST"
+			;;
+	esac
+}
+
 function run_prepare() {
 	info "Check enviromnent"
 	if [ "X$ANDROIDSDK" == "X" ]; then
@@ -593,6 +623,7 @@ function run_biglink() {
 }
 
 function run() {
+	check_build_deps
 	run_prepare
 	run_source_modules
 	run_get_packages
@@ -653,9 +684,9 @@ while getopts ":hvlfxm:d:s" opt; do
 		f)
 			DO_CLEAN_BUILD=1
 			;;
-                x)
-                        DO_SET_X=1
-                        ;;
+		x)
+			DO_SET_X=1
+			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
 			exit 1
