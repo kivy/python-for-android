@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2.7
 
 from os.path import dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
