@@ -1,8 +1,10 @@
 Available modules
 =================
 
-List of available modules: jpeg pil png sdl sqlite3 pygame kivy android
-libxml2 libxslt lxml ffmpeg openssl chipmunk zope twisted
+List of available recipes: android audiostream cymunk docutils ffmpeg
+hostpython jpeg kivy kivy_stable libxml2 libxslt lxml mysql_connector
+openssl pil png pyasn1 pycrypto pygame pyjnius pylibpd pyopenssl
+pyqrcode python sdl setuptools sqlite3 twisted txws wokkel zope
 
 The up-to-date list is available at:
 https://github.com/kivy/python-for-android/tree/master/recipes
