@@ -12,10 +12,12 @@ After a long time, you'll get a "dist/default" directory containing all the comp
 libraries and build.py script to package your application using thoses
 libraries.
 
-You can include other libraries to compile using `-m`::
+You can include other modules (or "recipes") to compile using `-m`::
 
     ./distribute.sh -m "openssl pyjnius kivy"
     ./distribute.sh -m "pil ffmpeg pyjnius kivy"
+
+For a full list, refer to :ref:`recipes`
 
 Available options to `distribute.sh`::
 
