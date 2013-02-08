@@ -77,7 +77,7 @@ def compile_dir(dfn):
     '''
 
     # -OO = strip docstrings
-    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
+    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn, '-q'])
 
 
 def is_blacklist(name):
@@ -123,6 +123,9 @@ def make_pythonzip():
         fn = fn[len(d):]
         if fn.startswith('/site-packages/') or \
             fn.startswith('/config/') or \
+            fn.startswith('/distutils/') or \
+            fn.startswith('/plat-mac/') or \
+            fn.startswith('/plat-darwin/') or \
             fn.startswith('/lib-dynload/') or \
             fn.startswith('/libpymodules.so'):
                 return False
