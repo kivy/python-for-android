@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 
+import re
 from os.path import dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
 import sys
@@ -77,7 +78,7 @@ def compile_dir(dfn):
     '''
 
     # -OO = strip docstrings
-    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn, '-q'])
+    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-q', '-f', dfn])
 
 
 def is_blacklist(name):
@@ -104,6 +105,21 @@ def listfiles(d):
             yield fn
 
 
+# things in python lib to never bundle
+PYTHON_LIB_IGNORE = re.compile(r'''(
+    /distutils/ |                # building and distribution utilities
+    /plat-mac/ | /plat-darwin/ | # non-Android platform-specific directories
+    pydoc.pyo | pdb.* |          # interactive tools
+    /compiler/ |                 # compilation of Python code
+    libpython.*\.a               # static C library
+    )''', re.VERBOSE)
+
+# this to leave out of the lib zip only (they're in the filesystem as-is)
+PYTHON_LIB_ZIPIGNORE = re.compile(r'''(
+    /site-packages/ | /lib-dynload/ | libpymodules\.so
+    )''', re.VERBOSE)
+
+
 def make_pythonzip():
     '''
     Search for all the python related files, and construct the pythonXX.zip
@@ -120,15 +136,12 @@ def make_pythonzip():
             return False
         fn = realpath(fn)
         assert(fn.startswith(d))
-        fn = fn[len(d):]
-        if fn.startswith('/site-packages/') or \
-            fn.startswith('/config/') or \
-            fn.startswith('/distutils/') or \
-            fn.startswith('/plat-mac/') or \
-            fn.startswith('/plat-darwin/') or \
-            fn.startswith('/lib-dynload/') or \
-            fn.startswith('/libpymodules.so'):
-                return False
+        afn = fn[len(d):]
+        if PYTHON_LIB_IGNORE.search(afn) or PYTHON_LIB_ZIPIGNORE.search(afn):
+            return False
+
+        if afn.endswith('pydoc.pyo'):
+            return False
         return fn
 
     # get a list of all python file
@@ -158,7 +171,12 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
                 p = p[:-1]
             if rfn.startswith(p):
                 return False
+        # already in the ZIP file?
         if rfn in python_files:
+            return False
+
+        # or perhaps we really don't want this file?
+        if PYTHON_LIB_IGNORE.search(fn):
             return False
         return not is_blacklist(fn)
 
