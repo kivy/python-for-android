@@ -14,13 +14,13 @@ Global overview
 ---------------
 
 #. Download Android NDK, SDK
- 
+
  * NDK: http://dl.google.com/android/ndk/android-ndk-r8c-linux-x86.tar.bz2
- 
+
  * More details at: http://developer.android.com/tools/sdk/ndk/index.html
- 
+
  * SDK: http://dl.google.com/android/android-sdk_r21.0.1-linux.tgz
- 
+
  * More details at:http://developer.android.com/sdk/index.html
 
 #. Launch "android", and download latest Android platform, here API 14, which would be Android 4.0
@@ -54,6 +54,35 @@ Global overview
     adb install bin/touchtracer-1.0-debug.apk
 
 #. Enjoy.
+
+
+Build Configuration File
+------------------------
+
+You may end up with a very long build.py command-line invocation so to make
+things easier you can store the arguments in a configuration file like so::
+
+    package=net.mechanicalcat.match3
+    name=Match 3
+    version=1.3.3
+    numeric-version=133
+    dir=~/src/projects/games/match3
+    orientation=portrait
+    icon=~/src/projects/games/match3/art/android-icon.png
+    presplash=~/src/projects/games/match3/art/android-presplash.jpg
+    blacklist=blacklist.txt
+    sdk=14
+
+and then use the configuration file as your only build argument:
+
+    python build.py -c match3_build.ini release
+
+The parameters in the configuration file match the names in the command-line
+arguments. List parameters (permission, ignore_path) may have multiple items
+on new lines:
+
+    permission=VIBRATE
+        INTERNET
 
 
 Troubleshooting

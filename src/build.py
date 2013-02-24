@@ -3,6 +3,7 @@
 import re
 from os.path import dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
+import ConfigParser
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
@@ -326,6 +327,38 @@ For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
 ''')
 
+    ap.add_argument("-c", "--conf_file",
+        help="Specify config file (filename[:section])", metavar="FILE")
+    args, remaining_argv = ap.parse_known_args()
+
+    defaults = dict(
+        orientation='landscape',
+        install_location='auto',
+        blacklist=join(curdir, 'blacklist.txt'),
+        sdk_version='8',
+        min_sdk_version='8',
+    )
+    if args.conf_file:
+        if ':' in args.conf_file:
+            args.conf_file, section = args.conf_file.split(':')
+        else:
+            section = 'defaults'
+        config = ConfigParser.SafeConfigParser()
+        config.read([args.conf_file])
+        defaults = dict(config.items(section))
+
+        # handle defaults specified with dashes
+        for k in list(defaults):
+            if '-' in k:
+                defaults[k.replace('-', '_')] = defaults[k]
+
+        # handle defaults which are lists
+        for k in 'permissions ignore_path'.split():
+            if defaults.get(k):
+                defaults[k] = [x.strip() for x in defaults[k].split(':')]
+
+    ap.set_defaults(**defaults)
+
     ap.add_argument('--package', dest='package', help='The name of the java package the project will be packaged under.', required=True)
     ap.add_argument('--name', dest='name', help='The human-readable name of the project.', required=True)
     ap.add_argument('--version', dest='version', help='The version number of the project. This should consist of numbers and dots, and should have the same number of groups of numbers as previous versions.', required=True)
@@ -350,7 +383,7 @@ tools directory of the Android SDK.
     ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
-    args = ap.parse_args()
+    args = ap.parse_args(remaining_argv)
 
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
