@@ -317,6 +317,17 @@ def make_package(args):
         print 'Did you install ant on your system ?'
         sys.exit(-1)
 
+
+class FakeSecHead(object):
+  def __init__(self, fp):
+    self.fp = fp
+  sechead = '[config]\n'
+  def readline(self):
+    if self.sechead:
+        try: return self.sechead
+        finally: self.sechead = None
+    return self.fp.readline()
+
 if __name__ == '__main__':
     import argparse
 
@@ -328,34 +339,50 @@ tools directory of the Android SDK.
 ''')
 
     ap.add_argument("-c", "--conf_file",
-        help="Specify config file (filename[:section])", metavar="FILE")
+        help="Specify config file (filename)", metavar="FILE")
     args, remaining_argv = ap.parse_known_args()
 
     defaults = dict(
         orientation='landscape',
         install_location='auto',
         blacklist=join(curdir, 'blacklist.txt'),
-        sdk_version='8',
-        min_sdk_version='8',
+        sdk_version=8,
+        min_sdk_version=8,
     )
+
     if args.conf_file:
-        if ':' in args.conf_file:
-            args.conf_file, section = args.conf_file.split(':')
-        else:
-            section = 'defaults'
         config = ConfigParser.SafeConfigParser()
-        config.read([args.conf_file])
-        defaults = dict(config.items(section))
+        config.readfp(FakeSecHead(open(args.conf_file)))
 
         # handle defaults specified with dashes
-        for k in list(defaults):
+        mappings = dict(permission='permissions', sdk='sdk_version',
+            min_sdk='min_sdk_version')
+        for k, v in config.items('config'):
+            # normalise to underscore
             if '-' in k:
-                defaults[k.replace('-', '_')] = defaults[k]
+                k = k.replace('-', '_')
 
-        # handle defaults which are lists
-        for k in 'permissions ignore_path'.split():
-            if defaults.get(k):
-                defaults[k] = [x.strip() for x in defaults[k].split(':')]
+            # handle multiple namings
+            k = mappings.get(k, k)
+
+            # handle defaults which are lists
+            if k in 'permissions ignore_path'.split():
+                v = [x.strip() for x in v.splitlines()]
+            elif k in 'launcher compile_pyo'.split():
+                # boolean
+                v = {'yes': True, 'true': True, '1': True}.get(v.lower(), False)
+            elif k in 'sdk_version min_sdk_version'.split():
+                # numbers
+                v = int(v)
+            else:
+                if v.startswith('~'):
+                    v = os.path.expanduser(v)
+
+            # required args can't go in defaults
+            if k in 'package name version'.split():
+                remaining_argv.extend(['--%s' % k, v])
+            else:
+                defaults[k] = v
 
     ap.set_defaults(**defaults)
 
@@ -368,19 +395,19 @@ tools directory of the Android SDK.
     ap.add_argument('--launcher', dest='launcher', action='store_true',
             help='Provide this argument to build a multi-app launcher, rather than a single app.')
     ap.add_argument('--icon-name', dest='icon_name', help='The name of the project\'s launcher icon.')
-    ap.add_argument('--orientation', dest='orientation', default='landscape', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
+    ap.add_argument('--orientation', dest='orientation', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
     ap.add_argument('--permission', dest='permissions', action='append', help='The permissions to give this app.')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append', help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon', help='A png file to use as the icon for the application.')
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
-    ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
+    ap.add_argument('--install-location', dest='install_location', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
     ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to AndroidManifest.xml')
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
-    ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
-    ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
+    ap.add_argument('--sdk', dest='sdk_version', help='Android SDK version to use. Default to 8')
+    ap.add_argument('--minsdk', dest='min_sdk_version', help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
     args = ap.parse_args(remaining_argv)
