@@ -26,6 +26,8 @@ import android.os.Debug;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
@@ -150,6 +152,22 @@ public class PythonActivity extends Activity implements Runnable {
         f.delete();
     }
 
+    public void manifestDelete(File target, File manifest) {
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(manifest));
+            while (in.ready()) {
+                File f = new File(target, in.readLine().trim());
+                if (f.exists()) {
+                    f.delete();
+                    Log.i("python", "Deleted " + f.getAbsolutePath());
+                }
+            }
+            in.close();
+        } catch (Exception e) {
+            Log.w("python", "Failed to delete contents of " + manifest);
+            return;
+        }
+    }
 
     /**
      * This determines if unpacking one the zip files included in
@@ -183,9 +201,18 @@ public class PythonActivity extends Activity implements Runnable {
         // If the disk data is out of date, extract it and write the
         // version file.
         if (! data_version.equals(disk_version)) {
-            Log.v("python", "Extracting " + resource + " assets.");
+            Log.i("python", "Extracting " + resource + " assets to" + target.getAbsolutePath());
 
-            recursiveDelete(target);
+            // If we're installing where there's
+            File manifest = new File(target, resource + ".mp3.MANIFEST");
+            Log.i("python", "Checking for " + manifest.getAbsolutePath());
+            if (manifest.exists()) {
+                Log.i("python", "Deleting old install based on " + manifest);
+                manifestDelete(target, manifest);
+            } else {
+                Log.i("python", "Recursive deleting old install");
+                recursiveDelete(target);
+            }
             target.mkdirs();
 
             AssetExtract ae = new AssetExtract(this);

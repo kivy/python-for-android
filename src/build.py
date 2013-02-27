@@ -4,6 +4,7 @@ import re
 from os.path import dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
 import ConfigParser
+import tempfile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
@@ -210,6 +211,12 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
 
         # put the file
         tf.add(fn, afn)
+
+    fn = os.path.basename(tfn)
+    with tempfile.NamedTemporaryFile() as t:
+        t.write('\n'.join(afn for x, afn in files))
+        t.flush()
+        tf.add(t.name, fn + '.MANIFEST')
     tf.close()
 
 
