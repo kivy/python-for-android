@@ -336,7 +336,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public SDLSurfaceView(Activity act, String argument) {
         super(act);
-        Log.i("python", String.format("I'm alive!!"));
 		SDLSurfaceView.instance = this;
 
         mActivity = act;
@@ -351,10 +350,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         PowerManager pm = (PowerManager) act.getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
-        requestFocus();
-        Log.i("python", String.format("Focus is requested!!"));
-        setFocusable(true);
-        setFocusableInTouchMode(true);
     }
 
 
@@ -947,7 +942,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        Log.i("python", String.format("key down %d", keyCode));
+        //Log.i("python", String.format("key down %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
             return true;
         } else {
@@ -957,7 +952,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
-        Log.i("python", String.format("key up %d", keyCode));
+        //Log.i("python", String.format("key up %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
         } else {
