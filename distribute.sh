@@ -559,7 +559,7 @@ function run_distribute() {
 	cd "$DIST_PATH"
 
 	debug "Create initial layout"
-	try mkdir assets bin private res templates
+	try mkdir assets bin private res res/raw templates
 
 	debug "Copy default files"
 	try cp -a $SRC_PATH/default.properties .

@@ -17,18 +17,17 @@ import java.io.File;
 
 import java.util.zip.GZIPInputStream;
 
-import android.content.res.AssetManager;
+import android.content.Context;
+import android.content.res.Resources;
 
 import org.xeustechnologies.jtar.*;
 
 class AssetExtract {
 
-    private AssetManager mAssetManager = null;
     private Activity mActivity = null;
     
     AssetExtract(Activity act) {
         mActivity = act;
-        mAssetManager = act.getAssets();
     }
     
     public boolean extractTar(String asset, String target) {
@@ -38,8 +37,12 @@ class AssetExtract {
         InputStream assetStream = null;
         TarInputStream tis = null;
         
+        Context appContext = mActivity.getApplicationContext();
+        Resources res = appContext.getResources();  
+        int resId = res.getIdentifier(asset, "raw", appContext.getPackageName());	 
+        
         try {
-            assetStream = mAssetManager.open(asset, AssetManager.ACCESS_STREAMING);
+            assetStream = res.openRawResource(resId);
             tis = new TarInputStream(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(assetStream, 8192)), 8192));
         } catch (IOException e) {
             Log.e("python", "opening up extract tar", e);
