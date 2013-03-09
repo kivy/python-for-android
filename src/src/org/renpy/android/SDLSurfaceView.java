@@ -336,7 +336,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public SDLSurfaceView(Activity act, String argument) {
         super(act);
-
+        Log.i("python", String.format("I'm alive!!"));
 		SDLSurfaceView.instance = this;
 
         mActivity = act;
@@ -351,6 +351,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         PowerManager pm = (PowerManager) act.getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+        requestFocus();
+        Log.i("python", String.format("Focus is requested!!"));
+        setFocusable(true);
+        setFocusableInTouchMode(true);
     }
 
 
@@ -943,7 +947,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        //Log.i("python", String.format("key down %d", keyCode));
+        Log.i("python", String.format("key down %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
             return true;
         } else {
@@ -953,12 +957,38 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
-        //Log.i("python", String.format("key up %d", keyCode));
+        Log.i("python", String.format("key up %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
         } else {
             return super.onKeyUp(keyCode, event);
         }
+    }
+    
+    @Override
+    public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
+        String keys = event.getCharacters();
+        char[] keysBuffer = new char[keys.length()];
+        if (keyCode == 0){
+        	// FIXME: here is hardcoed value of "q" key
+        	// on hacker's keyboard. It is passed to
+        	// nativeKey function to get it worked if
+        	// we get 9 and some non-ascii characters
+        	// but it my cause some odd behaviour
+        	keyCode = 45;
+        }
+       
+        if (mInputActivated){
+                keys.getChars(0, keys.length(), keysBuffer, 0);
+                for(char c: keysBuffer){
+                        //Log.i("python", "Char from multiply " + (int) c);
+                        // Calls both up/down events to emulate key pressing
+                        nativeKey(keyCode, 1, (int) c);
+                        nativeKey(keyCode, 0, (int) c);
+                }
+        }
+       
+        return true;
     }
 
     static void activateInput() {
