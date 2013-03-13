@@ -189,7 +189,7 @@ public class PythonActivity extends Activity implements Runnable {
             target.mkdirs();
 
             AssetExtract ae = new AssetExtract(this);
-            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
+            if (!ae.extractTar(resource + "_pack", target.getAbsolutePath())) {
                 toastError("Could not extract " + resource + " data.");
             }
 

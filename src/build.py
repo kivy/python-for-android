@@ -264,11 +264,11 @@ def make_package(args):
         sys.exit(-1)
 
     # Delete the old assets.
-    if os.path.exists('assets/public.mp3'):
-        os.unlink('assets/public.mp3')
+    if os.path.exists('res/raw/public_pack.tar'):
+        os.unlink('res/raw/public_pack.tar')
 
-    if os.path.exists('assets/private.mp3'):
-        os.unlink('assets/private.mp3')
+    if os.path.exists('res/raw/private_pack.tar'):
+        os.unlink('res/raw/private_pack.tar')
 
     # In order to speedup import and initial depack,
     # construct a python27.zip
@@ -276,12 +276,12 @@ def make_package(args):
 
     # Package up the private and public data.
     if args.private:
-        make_tar('assets/private.mp3', ['private', args.private])
+        make_tar('res/raw/private_pack.tar', ['private', args.private])
     else:
-        make_tar('assets/private.mp3', ['private'])
+        make_tar('res/raw/private_pack.tar', ['private'])
 
     if args.dir:
-        make_tar('assets/public.mp3', [args.dir], args.ignore_path)
+        make_tar('res/raw/public_pack.tar', [args.dir], args.ignore_path)
 
     # Copy over the icon and presplash files.
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
