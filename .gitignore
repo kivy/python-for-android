@@ -8,6 +8,8 @@ src/default.properties
 dist
 *.pyc
 testsuite
+.packages
+src/libs/armeabi
 
 #ECLIPSE + PYDEV
 .project
