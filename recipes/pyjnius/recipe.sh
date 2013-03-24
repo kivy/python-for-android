@@ -30,6 +30,7 @@ function build_pyjnius() {
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try cp -a jnius/src/org $JAVACLASS_PATH
 
 	unset LDSHARED
 	pop_arm
