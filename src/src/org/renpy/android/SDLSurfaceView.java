@@ -986,6 +986,16 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         return true;
     }
 
+    @Override
+    public boolean onKeyPreIme(int keyCode, final KeyEvent event){
+        Log.i("python", String.format("key up %d", keyCode));
+        if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
+            return false;
+        } else {
+            return super.onKeyDown(keyCode, event);
+        }
+    }
+    
     static void activateInput() {
         mInputActivated = true;
     }
