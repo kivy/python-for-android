@@ -17,7 +17,12 @@ function build_kivy() {
 		true
 	fi
 
-	cd $BUILD_kivy
+	if [ -n $KIVY_DIR ]
+		rm -rf $BUILD_kivy
+		cp -rf $KIVY_DIR $BUILD_kivy
+		rm -rf $BUILD_kivy/build/cython/tests/
+		cd $BUILD_kivy
+	fi
 
 	push_arm
 
