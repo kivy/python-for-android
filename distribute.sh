@@ -389,7 +389,7 @@ function run_source_modules() {
 		debug "Read $module recipe"
 		recipe=$RECIPES_PATH/$module/recipe.sh
 		if [ ! -f $recipe ]; then
-			error "Recipe $module does not exit"
+			error "Recipe $module does not exist"
 			exit -1
 		fi
 		source $RECIPES_PATH/$module/recipe.sh
