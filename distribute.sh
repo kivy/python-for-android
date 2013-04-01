@@ -437,6 +437,7 @@ function run_get_packages() {
 		then
 			debug "\$P4A_${module}_DIR is not empty, using $module_dir dir instead of downloading"
 			cp -rf $module_dir $directory
+			directory=$(get_directory $filename)
 			continue
 		fi
 		debug "Download package for $module"
