@@ -34,9 +34,13 @@ import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.BaseInputConnection;
+import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
 
@@ -53,7 +57,7 @@ import android.content.res.Resources;
 
 
 public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
-	private static String TAG = "SDLSurface";
+    private static String TAG = "SDLSurface";
     private final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
@@ -272,6 +276,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // Is Python ready to receive input events?
     static boolean mInputActivated = false;
 
+    // Is Composing text being repeated?
+    static boolean mComposingText = false;
+
     // The number of times we should clear the screen after swap.
     private int mClears = 2;
 
@@ -463,6 +470,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 				Log.d(TAG, "onDestroy() app already leaved.");
 				return;
 			}
+			
+			// close the IME overlay(keyboard)
+			InputMethodManager inputMethodManager = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromInputMethod(this.getWindowToken(), 0);
+
 
 			// application didn't leave, give 10s before closing.
 			// hopefully, this could be enough for launching the on_stop() trigger within the app.
@@ -865,6 +877,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
 	private static final int INVALID_POINTER_ID = -1;
 	private int mActivePointerId = INVALID_POINTER_ID;
+	private static String mCompText = "";
 
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
@@ -959,7 +972,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             return super.onKeyUp(keyCode, event);
         }
     }
-    
+
     @Override
     public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
         String keys = event.getCharacters();
@@ -972,32 +985,76 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         	// but it my cause some odd behaviour
         	keyCode = 45;
         }
-       
-        if (mInputActivated){
+        if (mInputActivated && event.getAction() == KeyEvent.ACTION_MULTIPLE){
                 keys.getChars(0, keys.length(), keysBuffer, 0);
+                if (mComposingText == true){
+                    mComposingText = false;
+                    this.mCompText = keys;
+                }else if (this.mCompText.equals(keys)){
+                    // skip on composing text
+                    this.mCompText = "";
+                    return true;
+                }
+
                 for(char c: keysBuffer){
                         //Log.i("python", "Char from multiply " + (int) c);
                         // Calls both up/down events to emulate key pressing
                         nativeKey(keyCode, 1, (int) c);
                         nativeKey(keyCode, 0, (int) c);
                 }
+                return true;
+        }else {
+            return super.onKeyMultiple(keyCode, count, event);
         }
-       
-        return true;
     }
 
     @Override
     public boolean onKeyPreIme(int keyCode, final KeyEvent event){
-        Log.i("python", String.format("key up %d", keyCode));
-        if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
-            return false;
-        } else {
-            return super.onKeyDown(keyCode, event);
-        }
+        //Log.i("python", String.format("key pre ime %d", keyCode));
+        if (mInputActivated){
+            switch (event.getAction()) {
+                case KeyEvent.ACTION_DOWN:
+                    return onKeyDown(keyCode, event);
+                case KeyEvent.ACTION_UP:
+                    return onKeyUp(keyCode, event);
+                case KeyEvent.ACTION_MULTIPLE:
+                    return onKeyMultiple(
+                                        keyCode,
+                                        event.getRepeatCount(),
+                                        event);
+                }
+                return false;
+            }
+         return super.onKeyPreIme(keyCode, event);
     }
-    
+
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        outAttrs.inputType = EditorInfo.TYPE_NULL;
+        return new BaseInputConnection(this, false) {
+
+            @Override
+            public boolean setComposingText(CharSequence text,
+                                            int newCursorPosition) {
+                commitText(text, 0);
+                mComposingText = true;
+                sendKeyEvent(
+                            new KeyEvent(
+                                        KeyEvent.ACTION_DOWN,
+                                        KeyEvent.KEYCODE_SPACE));
+                sendKeyEvent(
+                            new KeyEvent(
+                                        KeyEvent.ACTION_UP,
+                                        KeyEvent.KEYCODE_SPACE));
+                //Log.i("Python:", String.format("set Composing Text %s", mComposingText));
+                return true;
+            }
+        };
+    }
+
     static void activateInput() {
         mInputActivated = true;
+        mComposingText = false;
     }
 
 	static void openUrl(String url) {
