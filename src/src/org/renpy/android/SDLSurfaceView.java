@@ -1021,7 +1021,44 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT;
         // ask IME to avoid taking full screen on landscape mode
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
-        return new BaseInputConnection(this, false);
+        return new BaseInputConnection(this, false){
+
+            private int mDelLen = 0;
+
+            private void deleteLastText(){
+                // send back space keys
+                for (int i = 0; i < this.mDelLen; i++){
+                    nativeKey(KeyEvent.KEYCODE_DEL, 1, 23);
+                    nativeKey(KeyEvent.KEYCODE_DEL, 0, 23);
+                }
+            }
+
+            @Override
+            public boolean setComposingText(CharSequence text,
+                                            int newCursorPosition){
+                //Log.i("Python:", String.format("set Composing Text %s", text));
+                this.deleteLastText();
+                // send text
+                for(int i = 0; i < text.length(); i++){
+                        // Calls both up/down events to emulate key pressing
+                        char c = text.charAt(i);
+                        nativeKey(45, 1, (int) c);
+                        nativeKey(45, 0, (int) c);
+                }
+                // store len to be deleted for next time
+                this.mDelLen = text.length();
+                return super.setComposingText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean commitText(CharSequence text, int newCursorPosition) {
+                // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
+                //Log.i("Python:", String.format("Commit Text %s", text));
+                this.deleteLastText();
+                this.mDelLen = 0;
+                return super.commitText(text, newCursorPosition);
+            }
+        };
     }
 
     static void activateInput() {
