@@ -25,14 +25,14 @@ void android_sound_queue(int channel, char *filename, char *real_fn, long long b
     }
 
     PUSH_FRAME;
-    
+
     (*env)->CallStaticVoidMethod(
         env, cls, mid,
         channel,
         (*env)->NewStringUTF(env, filename),
         (*env)->NewStringUTF(env, real_fn),
         (jlong) base,
-        (jlong) length);        
+        (jlong) length);
 
     POP_FRAME;
 }
@@ -41,7 +41,7 @@ void android_sound_play(int channel, char *filename, char *real_fn, long long ba
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
-    
+
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
@@ -52,7 +52,7 @@ void android_sound_play(int channel, char *filename, char *real_fn, long long ba
     }
 
     PUSH_FRAME;
-    
+
     (*env)->CallStaticVoidMethod(
         env, cls, mid,
         channel,
@@ -62,6 +62,26 @@ void android_sound_play(int channel, char *filename, char *real_fn, long long ba
         (jlong) length);
 
     POP_FRAME;
+}
+
+void android_sound_seek(int channel, float position){
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/RenPySound");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "seek", "(IF)V");
+        aassert(mid);
+    }
+
+    (*env)->CallStaticVoidMethod(
+        env, cls, mid,
+        channel,
+        (jfloat) position);
 }
 
 void android_sound_stop(int channel) {
@@ -128,7 +148,7 @@ void android_sound_playing_name(int channel, char *buf, int buflen) {
 
     jobject s = NULL;
     char *jbuf;
-    
+
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
@@ -139,7 +159,7 @@ void android_sound_playing_name(int channel, char *buf, int buflen) {
     }
 
     PUSH_FRAME;
-    
+
     s = (*env)->CallStaticObjectMethod(
         env, cls, mid,
         channel);
@@ -245,6 +265,44 @@ void android_sound_unpause(int channel) {
     }
 
     (*env)->CallStaticVoidMethod(
+        env, cls, mid,
+        channel);
+}
+
+int android_sound_get_pos(int channel) {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/RenPySound");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "get_pos", "(I)I");
+        aassert(mid);
+    }
+
+    (*env)->CallStaticIntMethod(
+        env, cls, mid,
+        channel);
+}
+
+int android_sound_get_length(int channel) {
+    static JNIEnv *env = NULL;
+    static jclass *cls = NULL;
+    static jmethodID mid = NULL;
+
+    if (env == NULL) {
+        env = SDL_ANDROID_GetJNIEnv();
+        aassert(env);
+        cls = (*env)->FindClass(env, "org/renpy/android/RenPySound");
+        aassert(cls);
+        mid = (*env)->GetStaticMethodID(env, cls, "get_length", "(I)I");
+        aassert(mid);
+    }
+
+    (*env)->CallStaticIntMethod(
         env, cls, mid,
         channel);
 }
