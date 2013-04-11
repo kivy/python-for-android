@@ -113,6 +113,8 @@ class ChannelImpl(object):
         with condition:
             condition.notify()
 
+    def seek(self, position):
+        sound.seek(self.id, position)
 
     def stop(self):
         self.loop = None
@@ -159,6 +161,12 @@ class ChannelImpl(object):
     def get_queue(self):
         return self.queued
 
+    def get_pos(self):
+        return sound.get_pos(self.id)/1000.
+
+    def get_length(self):
+        return sound.get_length(self.id)/1000.
+
 
 def Channel(n):
     """
@@ -204,6 +212,7 @@ class Sound(object):
         self._channel = channel = find_channel(True)
         channel.play(self, loops=loops)
         return channel
+
 
     def stop(self):
         for i in range(0, num_channels):
@@ -255,6 +264,10 @@ class music(object):
         music_channel.play(music_sound)
 
     @staticmethod
+    def seek(position):
+        music_channel.seek(position)
+
+    @staticmethod
     def stop():
         music_channel.stop()
 
@@ -284,7 +297,7 @@ class music(object):
 
     @staticmethod
     def get_pos():
-        return 0
+        return music_channel.get_pos()
 
     @staticmethod
     def queue(filename):
