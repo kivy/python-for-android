@@ -230,11 +230,19 @@ def make_package(args):
     else:
         intent_filters = ''
 
+    # Figure out if application has service part
+    service = False
+    if args.dir:
+        service_main = join(realpath(args.dir), 'service', 'main.py')
+        if os.path.exists(service_main):
+            service = True
+
     # Render the various templates into control files.
     render(
         'AndroidManifest.tmpl.xml',
         'AndroidManifest.xml',
         args=args,
+        service=service,
         url_scheme=url_scheme,
         intent_filters=intent_filters,
         manifest_extra=manifest_extra,
