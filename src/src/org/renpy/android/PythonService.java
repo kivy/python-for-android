@@ -9,7 +9,6 @@ import android.util.Log;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.os.Process; 
-import android.R;
 
 public class PythonService extends Service  implements Runnable {
 
@@ -52,10 +51,10 @@ public class PythonService extends Service  implements Runnable {
         pythonThread = new Thread(this);
         pythonThread.start();
 
-        Notification notification = new Notification(R.drawable.sym_def_app_icon,
+        Context context = getApplicationContext();
+        Notification notification = new Notification(context.getApplicationInfo().icon,
                                                      serviceTitle,
                                                      System.currentTimeMillis());
-        Context context = getApplicationContext();
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
         PendingIntent.FLAG_UPDATE_CURRENT);
