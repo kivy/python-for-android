@@ -19,6 +19,13 @@ You can include other modules (or "recipes") to compile using `-m`::
 
 For a full list, refer to :ref:`recipes`
 
+.. note::
+
+   Recipes download a defined version of their needed package from the
+   internet, and build from it, if you know what you are doing, and want to
+   override that, you can export the env variable `P4A_recipe_name_DIR` and
+   this directory will be copied and used instead.
+
 Available options to `distribute.sh`::
 
     -d directory           Name of the distribution directory
