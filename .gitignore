@@ -5,9 +5,11 @@ build
 src/obj
 src/local.properties
 src/default.properties
+src/libs/armeabi
 dist
 *.pyc
 testsuite
+.packages
 
 #ECLIPSE + PYDEV
 .project
