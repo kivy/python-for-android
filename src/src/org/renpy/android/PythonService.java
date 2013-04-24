@@ -39,8 +39,10 @@ public class PythonService extends Service  implements Runnable {
             Log.v("python service", "service exists, do not start again");
             return START_NOT_STICKY;
         }
+
         Bundle extras = intent.getExtras();
         androidPrivate = extras.getString("androidPrivate");
+        // service code is located in service subdir
         androidArgument = extras.getString("androidArgument") + "/service";
         pythonHome = extras.getString("pythonHome");
         pythonPath = extras.getString("pythonPath");
@@ -73,6 +75,8 @@ public class PythonService extends Service  implements Runnable {
 
     @Override
     public void run(){
+
+        // libraries loading, the same way PythonActivity.run() do
         System.loadLibrary("sdl");
         System.loadLibrary("sdl_image");
         System.loadLibrary("sdl_ttf");
@@ -85,15 +89,15 @@ public class PythonService extends Service  implements Runnable {
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
 
         try {
-        System.loadLibrary("sqlite3");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_sqlite3.so");
+            System.loadLibrary("sqlite3");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_sqlite3.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
         try {
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imaging.so");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingft.so");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingmath.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imaging.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingft.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingmath.so");
         } catch(UnsatisfiedLinkError e) {
         }
 

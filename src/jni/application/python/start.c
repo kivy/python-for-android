@@ -163,6 +163,9 @@ JNIEXPORT void JNICALL JAVA_EXPORT_NAME(PythonService_nativeStart) ( JNIEnv*  en
     setenv("PYTHON_SERVICE_ARGUMENT", arg, 1);
 
     char *argv[] = { "service" };
+    /* ANDROID_ARGUMENT points to service subdir,
+     * so main() will run main.py from this dir
+     */
     main(1, argv);
 }
 
