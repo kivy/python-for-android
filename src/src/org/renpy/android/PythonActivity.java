@@ -74,7 +74,8 @@ public class PythonActivity extends Activity implements Runnable {
         //
         // Otherwise, we use the public data, if we have it, or the
         // private data if we do not.
-        if (getIntent().getAction().equals("org.renpy.LAUNCH")) {
+        if (getIntent() != null && getIntent().getAction() != null &&
+            getIntent().getAction().equals("org.renpy.LAUNCH")) {
             mPath = new File(getIntent().getData().getSchemeSpecificPart());
 
             Project p = Project.scanDirectory(mPath);
@@ -316,5 +317,26 @@ public class PythonActivity extends Activity implements Runnable {
 		//Log.i(TAG, "on destroy (exit1)");
         System.exit(0);
 	}
+
+     public static void start_service(String serviceTitle, String serviceDescription,
+                                      String pythonServiceArgument) {
+        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
+        String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
+        String filesDirectory = PythonActivity.mActivity.mPath.getAbsolutePath();
+        serviceIntent.putExtra("androidPrivate", argument);
+        serviceIntent.putExtra("androidArgument", filesDirectory);
+        serviceIntent.putExtra("pythonHome", argument);
+        serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
+        serviceIntent.putExtra("serviceTitle", serviceTitle);
+        serviceIntent.putExtra("serviceDescription", serviceDescription);
+        serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
+        PythonActivity.mActivity.startService(serviceIntent);
+    }
+
+    public static void stop_service() {
+        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
+        PythonActivity.mActivity.stopService(serviceIntent);
+    }
+
 }
 
