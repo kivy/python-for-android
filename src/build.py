@@ -1,7 +1,10 @@
 #!/usr/bin/env python2.7
 
+import re
 from os.path import dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
+import ConfigParser
+import tempfile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
 sys.path.insert(0, 'buildlib')
@@ -77,7 +80,7 @@ def compile_dir(dfn):
     '''
 
     # -OO = strip docstrings
-    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
+    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-q', '-f', dfn])
 
 
 def is_blacklist(name):
@@ -104,6 +107,21 @@ def listfiles(d):
             yield fn
 
 
+# things in python lib to never bundle
+PYTHON_LIB_IGNORE = re.compile(r'''(
+    /distutils/ |                # building and distribution utilities
+    /plat-mac/ | /plat-darwin/ | # non-Android platform-specific directories
+    pydoc.pyo | pdb.* |          # interactive tools
+    /compiler/ |                 # compilation of Python code
+    libpython.*\.a               # static C library
+    )''', re.VERBOSE)
+
+# this to leave out of the lib zip only (they're in the filesystem as-is)
+PYTHON_LIB_ZIPIGNORE = re.compile(r'''(
+    /site-packages/ | /lib-dynload/ | libpymodules\.so
+    )''', re.VERBOSE)
+
+
 def make_pythonzip():
     '''
     Search for all the python related files, and construct the pythonXX.zip
@@ -120,12 +138,12 @@ def make_pythonzip():
             return False
         fn = realpath(fn)
         assert(fn.startswith(d))
-        fn = fn[len(d):]
-        if fn.startswith('/site-packages/') or \
-            fn.startswith('/config/') or \
-            fn.startswith('/lib-dynload/') or \
-            fn.startswith('/libpymodules.so'):
-                return False
+        afn = fn[len(d):]
+        if PYTHON_LIB_IGNORE.search(afn) or PYTHON_LIB_ZIPIGNORE.search(afn):
+            return False
+
+        if afn.endswith('pydoc.pyo'):
+            return False
         return fn
 
     # get a list of all python file
@@ -155,7 +173,12 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
                 p = p[:-1]
             if rfn.startswith(p):
                 return False
+        # already in the ZIP file?
         if rfn in python_files:
+            return False
+
+        # or perhaps we really don't want this file?
+        if PYTHON_LIB_IGNORE.search(fn):
             return False
         return not is_blacklist(fn)
 
@@ -188,6 +211,12 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
 
         # put the file
         tf.add(fn, afn)
+
+    fn = os.path.basename(tfn)
+    with tempfile.NamedTemporaryFile() as t:
+        t.write('\n'.join(afn for x, afn in files))
+        t.flush()
+        tf.add(t.name, fn + '.MANIFEST')
     tf.close()
 
 
@@ -303,6 +332,17 @@ def make_package(args):
         print 'Did you install ant on your system ?'
         sys.exit(-1)
 
+
+class FakeSecHead(object):
+  def __init__(self, fp):
+    self.fp = fp
+  sechead = '[config]\n'
+  def readline(self):
+    if self.sechead:
+        try: return self.sechead
+        finally: self.sechead = None
+    return self.fp.readline()
+
 if __name__ == '__main__':
     import argparse
 
@@ -313,6 +353,54 @@ For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
 ''')
 
+    ap.add_argument("-c", "--conf_file",
+        help="Specify config file (filename)", metavar="FILE")
+    args, remaining_argv = ap.parse_known_args()
+
+    defaults = dict(
+        orientation='landscape',
+        install_location='auto',
+        blacklist=join(curdir, 'blacklist.txt'),
+        sdk_version=8,
+        min_sdk_version=8,
+    )
+
+    if args.conf_file:
+        config = ConfigParser.SafeConfigParser()
+        config.readfp(FakeSecHead(open(args.conf_file)))
+
+        # handle defaults specified with dashes
+        mappings = dict(permission='permissions', sdk='sdk_version',
+            min_sdk='min_sdk_version')
+        for k, v in config.items('config'):
+            # normalise to underscore
+            if '-' in k:
+                k = k.replace('-', '_')
+
+            # handle multiple namings
+            k = mappings.get(k, k)
+
+            # handle defaults which are lists
+            if k in 'permissions ignore_path'.split():
+                v = [x.strip() for x in v.splitlines()]
+            elif k in 'launcher compile_pyo'.split():
+                # boolean
+                v = {'yes': True, 'true': True, '1': True}.get(v.lower(), False)
+            elif k in 'sdk_version min_sdk_version'.split():
+                # numbers
+                v = int(v)
+            else:
+                if v.startswith('~'):
+                    v = os.path.expanduser(v)
+
+            # required args can't go in defaults
+            if k in 'package name version'.split():
+                remaining_argv.extend(['--%s' % k, v])
+            else:
+                defaults[k] = v
+
+    ap.set_defaults(**defaults)
+
     ap.add_argument('--package', dest='package', help='The name of the java package the project will be packaged under.', required=True)
     ap.add_argument('--name', dest='name', help='The human-readable name of the project.', required=True)
     ap.add_argument('--version', dest='version', help='The version number of the project. This should consist of numbers and dots, and should have the same number of groups of numbers as previous versions.', required=True)
@@ -322,22 +410,22 @@ tools directory of the Android SDK.
     ap.add_argument('--launcher', dest='launcher', action='store_true',
             help='Provide this argument to build a multi-app launcher, rather than a single app.')
     ap.add_argument('--icon-name', dest='icon_name', help='The name of the project\'s launcher icon.')
-    ap.add_argument('--orientation', dest='orientation', default='landscape', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
+    ap.add_argument('--orientation', dest='orientation', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
     ap.add_argument('--permission', dest='permissions', action='append', help='The permissions to give this app.')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append', help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon', help='A png file to use as the icon for the application.')
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
-    ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
+    ap.add_argument('--install-location', dest='install_location', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
     ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to AndroidManifest.xml')
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
-    ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
-    ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
+    ap.add_argument('--sdk', dest='sdk_version', help='Android SDK version to use. Default to 8')
+    ap.add_argument('--minsdk', dest='min_sdk_version', help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
-    args = ap.parse_args()
+    args = ap.parse_args(remaining_argv)
 
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
