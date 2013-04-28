@@ -313,6 +313,72 @@ Please have a look into the code and you are very welcome to contribute to
 this documentation.
 
 
+Android Service
+---------------
+
+Service part of the application is controlled through the class :class:`AndroidService`.
+
+.. module:: android
+
+.. class:: AndroidService(title, description)
+
+    Run ``service/main.py`` from application directory as a service.
+
+    :Parameters:
+        `title`: str, default to 'Python service'
+            Notification title.
+
+        `description`: str, default to 'Kivy Python service started'
+            Notification text.
+
+    .. method:: start(arg)
+
+        Start the service.
+
+            :Parameters:
+                `arg`: str, default to ''
+                    Argument to pass to a service,
+                    through environment variable ``PYTHON_SERVICE_ARGUMENT``.
+
+    .. method:: stop()
+
+        Stop the service.
+
+Application activity part example, ``main.py``:
+
+.. code-block:: python
+
+  from android import AndroidService
+
+  ...
+
+   class ServiceExample(App):
+
+    ...
+
+       def start_service(self):
+           self.service = AndroidService('Sevice example', 'service is running')
+           self.service.start('Hello From Service')
+
+       def stop_service(self):
+           self.service.stop()
+
+Application service part example, ``service/main.py``:
+
+.. code-block:: python
+
+   import os
+   import time
+
+   # get the argument passed
+   arg = os.getenv('PYTHON_SERVICE_ARGUMENT')
+
+   while True:
+       # this will print 'Hello From Service' continually, even when application is switched
+       print arg
+       time.sleep(1)
+
+
 How it's working without PyJNIus
 --------------------------------
 

@@ -34,9 +34,13 @@ import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.BaseInputConnection;
+import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
 
@@ -53,7 +57,7 @@ import android.content.res.Resources;
 
 
 public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
-	private static String TAG = "SDLSurface";
+    private static String TAG = "SDLSurface";
     private final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
@@ -336,7 +340,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public SDLSurfaceView(Activity act, String argument) {
         super(act);
-
 		SDLSurfaceView.instance = this;
 
         mActivity = act;
@@ -464,6 +467,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 				Log.d(TAG, "onDestroy() app already leaved.");
 				return;
 			}
+			
+			// close the IME overlay(keyboard)
+			InputMethodManager inputMethodManager = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromInputMethod(this.getWindowToken(), 0);
 
 			// application didn't leave, give 10s before closing.
 			// hopefully, this could be enough for launching the on_stop() trigger within the app.
@@ -959,6 +966,99 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         } else {
             return super.onKeyUp(keyCode, event);
         }
+    }
+
+    @Override
+    public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
+        String keys = event.getCharacters();
+        char[] keysBuffer = new char[keys.length()];
+        if (keyCode == 0){
+        	// FIXME: here is hardcoed value of "q" key
+        	// on hacker's keyboard. It is passed to
+        	// nativeKey function to get it worked if
+        	// we get 9 and some non-ascii characters
+        	// but it my cause some odd behaviour
+        	keyCode = 45;
+        }
+        if (mInputActivated && event.getAction() == KeyEvent.ACTION_MULTIPLE){
+                keys.getChars(0, keys.length(), keysBuffer, 0);
+
+                for(char c: keysBuffer){
+                        //Log.i("python", "Char from multiply " + (int) c);
+                        // Calls both up/down events to emulate key pressing
+                        nativeKey(keyCode, 1, (int) c);
+                        nativeKey(keyCode, 0, (int) c);
+                }
+                return true;
+        }else {
+            return super.onKeyMultiple(keyCode, count, event);
+        }
+    }
+
+    @Override
+    public boolean onKeyPreIme(int keyCode, final KeyEvent event){
+        //Log.i("python", String.format("key pre ime %d", keyCode));
+        if (mInputActivated){
+            switch (event.getAction()) {
+                case KeyEvent.ACTION_DOWN:
+                    return onKeyDown(keyCode, event);
+                case KeyEvent.ACTION_UP:
+                    return onKeyUp(keyCode, event);
+                case KeyEvent.ACTION_MULTIPLE:
+                    return onKeyMultiple(
+                                        keyCode,
+                                        event.getRepeatCount(),
+                                        event);
+                }
+                return false;
+            }
+         return super.onKeyPreIme(keyCode, event);
+    }
+
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        // setting inputtype to TYPE_CLASS_TEXT is necessary for swiftkey to enable
+        outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT;
+        // ask IME to avoid taking full screen on landscape mode
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+        return new BaseInputConnection(this, false){
+
+            private int mDelLen = 0;
+
+            private void deleteLastText(){
+                // send back space keys
+                for (int i = 0; i < this.mDelLen; i++){
+                    nativeKey(KeyEvent.KEYCODE_DEL, 1, 23);
+                    nativeKey(KeyEvent.KEYCODE_DEL, 0, 23);
+                }
+            }
+
+            @Override
+            public boolean setComposingText(CharSequence text,
+                                            int newCursorPosition){
+                //Log.i("Python:", String.format("set Composing Text %s", text));
+                this.deleteLastText();
+                // send text
+                for(int i = 0; i < text.length(); i++){
+                        // Calls both up/down events to emulate key pressing
+                        char c = text.charAt(i);
+                        nativeKey(45, 1, (int) c);
+                        nativeKey(45, 0, (int) c);
+                }
+                // store len to be deleted for next time
+                this.mDelLen = text.length();
+                return super.setComposingText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean commitText(CharSequence text, int newCursorPosition) {
+                // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
+                //Log.i("Python:", String.format("Commit Text %s", text));
+                this.deleteLastText();
+                this.mDelLen = 0;
+                return super.commitText(text, newCursorPosition);
+            }
+        };
     }
 
     static void activateInput() {

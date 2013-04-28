@@ -246,3 +246,50 @@ class AndroidBrowser(object):
 import webbrowser
 webbrowser.register('android', AndroidBrowser, None, -1)
 
+cdef extern void android_start_service(char *, char *, char *)
+def start_service(title=None, description=None, arg=None):
+    cdef char *j_title = NULL
+    cdef char *j_description = NULL
+    if title is not None:
+        j_title = <bytes>title
+    if description is not None:
+        j_description = <bytes>description
+    if arg is not None:
+        j_arg = <bytes>arg
+    android_start_service(j_title, j_description, j_arg)
+
+cdef extern void android_stop_service()
+def stop_service():
+    android_stop_service()
+
+class AndroidService(object):
+    '''Android service class.
+    Run ``service/main.py`` from application directory as a service.
+
+    :Parameters:
+        `title`: str, default to 'Python service'
+            Notification title.
+
+        `description`: str, default to 'Kivy Python service started'
+            Notification text.
+    '''
+
+    def __init__(self, title='Python service',
+                 description='Kivy Python service started'):
+        self.title = title
+        self.description = description
+
+    def start(self, arg=''):
+        '''Start the service.
+
+        :Parameters:
+            `arg`: str, default to ''
+                Argument to pass to a service,
+                through environment variable ``PYTHON_SERVICE_ARGUMENT``.
+        '''
+        start_service(self.title, self.description, arg)
+
+    def stop(self):
+        '''Stop the service.
+        '''
+        stop_service()

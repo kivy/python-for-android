@@ -14,7 +14,7 @@ Prerequisites
 You need the minimal environment for building python. Note that other libraries
 might need other tools (cython is used by some recipes, and ccache to speedup the build)::
 
-    sudo apt-get install build-essential patch git-core ccache ant pip python-dev
+    sudo apt-get install build-essential patch git-core ccache ant python-pip python-dev
  
 If you are on a 64 bit distro, you should install these packages too ::
 

@@ -7,8 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <jni.h>
 #include "SDL.h"
 #include "android/log.h"
+#include "jniwrapperstuff.h"
 
 #define LOG(x) __android_log_write(ANDROID_LOG_INFO, "python", (x))
 
@@ -137,6 +139,34 @@ int main(int argc, char **argv) {
 
     LOG("Python for android ended.");
     return ret;
+}
+
+JNIEXPORT void JNICALL JAVA_EXPORT_NAME(PythonService_nativeStart) ( JNIEnv*  env, jobject thiz,
+                                                                     jstring j_android_private,
+                                                                     jstring j_android_argument,
+                                                                     jstring j_python_home,
+                                                                     jstring j_python_path,
+                                                                     jstring j_arg )
+{
+    jboolean iscopy;
+    const char *android_private = (*env)->GetStringUTFChars(env, j_android_private, &iscopy);
+    const char *android_argument = (*env)->GetStringUTFChars(env, j_android_argument, &iscopy);
+    const char *python_home = (*env)->GetStringUTFChars(env, j_python_home, &iscopy);
+    const char *python_path = (*env)->GetStringUTFChars(env, j_python_path, &iscopy);
+    const char *arg = (*env)->GetStringUTFChars(env, j_arg, &iscopy);
+
+    setenv("ANDROID_PRIVATE", android_private, 1);
+    setenv("ANDROID_ARGUMENT", android_argument, 1);
+    setenv("PYTHONOPTIMIZE", "2", 1);
+    setenv("PYTHONHOME", python_home, 1);
+    setenv("PYTHONPATH", python_path, 1);
+    setenv("PYTHON_SERVICE_ARGUMENT", arg, 1);
+
+    char *argv[] = { "service" };
+    /* ANDROID_ARGUMENT points to service subdir,
+     * so main() will run main.py from this dir
+     */
+    main(1, argv);
 }
 
 #endif

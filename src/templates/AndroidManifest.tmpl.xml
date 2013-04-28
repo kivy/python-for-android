@@ -50,6 +50,13 @@
     </activity>
     {% endif %}
 
+    {% if service %}
+    <service android:name="org.renpy.android.PythonService"
+             android:process=":PythonService"
+              >
+    </service>
+    {% endif %}
+
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>

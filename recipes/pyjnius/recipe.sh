@@ -2,7 +2,7 @@
 
 VERSION_pyjnius=
 URL_pyjnius=https://github.com/kivy/pyjnius/zipball/master/pyjnius-master.zip
-DEPS_pyjnius=(python)
+DEPS_pyjnius=(python sdl)
 MD5_pyjnius=
 BUILD_pyjnius=$BUILD_PATH/pyjnius/$(get_directory $URL_pyjnius)
 RECIPE_pyjnius=$RECIPES_PATH/pyjnius
@@ -30,6 +30,7 @@ function build_pyjnius() {
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try cp -a jnius/src/org $JAVACLASS_PATH
 
 	unset LDSHARED
 	pop_arm
