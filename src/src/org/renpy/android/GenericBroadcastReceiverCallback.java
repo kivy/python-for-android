@@ -4,5 +4,5 @@ import android.content.Intent;
 import android.content.Context;
 
 public interface GenericBroadcastReceiverCallback {
-	void onReceive(Context context, Intent intent);
+    void onReceive(Context context, Intent intent);
 };

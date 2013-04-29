@@ -1,27 +1,17 @@
 package org.renpy.android;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
 import android.content.pm.ActivityInfo;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.PowerManager;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 import android.util.Log;
-import android.util.DisplayMetrics;
-import android.os.Debug;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 
@@ -41,7 +31,7 @@ public class PythonActivity extends Activity implements Runnable {
 
     // The SDLSurfaceView we contain.
     public static SDLSurfaceView mView = null;
-	public static PythonActivity mActivity = null;
+    public static PythonActivity mActivity = null;
 
     // Did we launch our thread?
     private boolean mLaunchedThread = false;
@@ -62,7 +52,7 @@ public class PythonActivity extends Activity implements Runnable {
 
         Hardware.context = this;
         Action.context = this;
-		this.mActivity = this;
+        this.mActivity = this;
 
         getWindowManager().getDefaultDisplay().getMetrics(Hardware.metrics);
 
@@ -77,7 +67,7 @@ public class PythonActivity extends Activity implements Runnable {
         // Otherwise, we use the public data, if we have it, or the
         // private data if we do not.
         if (getIntent() != null && getIntent().getAction() != null &&
-            getIntent().getAction().equals("org.renpy.LAUNCH")) {
+                getIntent().getAction().equals("org.renpy.LAUNCH")) {
             mPath = new File(getIntent().getData().getSchemeSpecificPart());
 
             Project p = Project.scanDirectory(mPath);
@@ -123,8 +113,8 @@ public class PythonActivity extends Activity implements Runnable {
 
         // Start showing an SDLSurfaceView.
         mView = new SDLSurfaceView(
-            this,
-            mPath.getAbsolutePath());
+                this,
+                mPath.getAbsolutePath());
 
         Hardware.view = mView;
         setContentView(mView);
@@ -139,10 +129,10 @@ public class PythonActivity extends Activity implements Runnable {
         final Activity thisActivity = this;
 
         runOnUiThread(new Runnable () {
-                public void run() {
-                    Toast.makeText(thisActivity, msg, Toast.LENGTH_LONG).show();
-                }
-            });
+            public void run() {
+                Toast.makeText(thisActivity, msg, Toast.LENGTH_LONG).show();
+            }
+        });
 
         // Wait to show the error.
         synchronized (this) {
@@ -229,11 +219,11 @@ public class PythonActivity extends Activity implements Runnable {
         System.loadLibrary("sdl_image");
         System.loadLibrary("sdl_ttf");
         System.loadLibrary("sdl_mixer");
-		System.loadLibrary("python2.7");
+        System.loadLibrary("python2.7");
         System.loadLibrary("application");
         System.loadLibrary("sdl_main");
 
-		System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
+        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
 
         try {
@@ -255,10 +245,10 @@ public class PythonActivity extends Activity implements Runnable {
         }
 
         runOnUiThread(new Runnable () {
-                public void run() {
-                    mView.start();
-                }
-            });
+            public void run() {
+                mView.start();
+            }
+        });
     }
 
     @Override
@@ -321,16 +311,15 @@ public class PythonActivity extends Activity implements Runnable {
         }
     }
 
-	protected void onDestroy() {
-		if (mView != null) {
-			mView.onDestroy();
-		}
-		//Log.i(TAG, "on destroy (exit1)");
+    protected void onDestroy() {
+        if (mView != null) {
+            mView.onDestroy();
+        }
         System.exit(0);
-	}
+    }
 
-     public static void start_service(String serviceTitle, String serviceDescription,
-                                      String pythonServiceArgument) {
+    public static void start_service(String serviceTitle, String serviceDescription,
+            String pythonServiceArgument) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = PythonActivity.mActivity.mPath.getAbsolutePath();

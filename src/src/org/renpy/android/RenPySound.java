@@ -101,13 +101,13 @@ public class RenPySound {
         }
 
         /**
-        * Seek to the position specified on this channel
-        */
+         * Seek to the position specified on this channel
+         */
 
         synchronized void seek(float position) {
             if (prepared[0]){
                 player[0].seekTo((int)position*1000);
-                }
+            }
         }
 
         /**
@@ -139,7 +139,7 @@ public class RenPySound {
          */
         synchronized void updateVolume() {
             player[0].setVolume((float) (volume * secondary_volume * left_volume),
-                                (float) (volume * secondary_volume * right_volume));
+                    (float) (volume * secondary_volume * right_volume));
         }
 
 
@@ -173,7 +173,7 @@ public class RenPySound {
             }
 
             updateVolume();
-         }
+        }
 
         synchronized void pause() {
             if (filename[0] != null) {
@@ -194,7 +194,7 @@ public class RenPySound {
         synchronized int get_length(){
             if (prepared[0]) {
                 return player[0].getDuration();
-                }
+            }
             return 1;
         }
 
@@ -243,16 +243,16 @@ public class RenPySound {
         Channel c = getChannel(channel);
         c.queue(filename, real_fn, base, length);
         if (c.filename[0] == null) {
-          c.play();
+            c.play();
         }
 
     }
 
     static void play(int channel,
-                     String filename,
-                     String real_fn,
-                     long base,
-                     long length) {
+            String filename,
+            String real_fn,
+            long base,
+            long length) {
 
         Channel c = getChannel(channel);
         c.queue(filename, real_fn, base, length);

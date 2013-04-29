@@ -6,14 +6,14 @@ import android.content.Context;
 
 public class GenericBroadcastReceiver extends BroadcastReceiver {
 
-	GenericBroadcastReceiverCallback listener;
+    GenericBroadcastReceiverCallback listener;
 
-	public GenericBroadcastReceiver(GenericBroadcastReceiverCallback listener) {
-		super();
-		this.listener = listener;
-	}
+    public GenericBroadcastReceiver(GenericBroadcastReceiverCallback listener) {
+        super();
+        this.listener = listener;
+    }
 
-	public void onReceive(Context context, Intent intent) {
-		this.listener.onReceive(context, intent);
-	}
+    public void onReceive(Context context, Intent intent) {
+        this.listener.onReceive(context, intent);
+    }
 }

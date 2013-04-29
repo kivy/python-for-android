@@ -28,7 +28,7 @@ public class Project {
             return s;
         }
     }
-    
+
     /**
      * Scans directory for a project.txt file. If it finds one,
      * and it looks valid enough, then it creates a new Project,
@@ -39,7 +39,7 @@ public class Project {
         // We might have a link file.
         if (dir.getAbsolutePath().endsWith(".link")) {
             try {
-            
+
                 // Scan the android.txt file.
                 File propfile = new File(dir, "android.txt");
                 FileInputStream in = new FileInputStream(propfile);
@@ -50,11 +50,11 @@ public class Project {
                 String directory = p.getProperty("directory", null);
 
                 if (directory == null) {
-                    return null;                    
+                    return null;
                 }
 
                 dir = new File(directory);
-                
+
             } catch (Exception e) {
                 Log.i("Project", "Couldn't open link file " + dir, e);
             }
@@ -64,16 +64,16 @@ public class Project {
         if (! dir.isDirectory()) {
             return null;
         }
-        
+
         try {
-            
+
             // Scan the android.txt file.
             File propfile = new File(dir, "android.txt");
             FileInputStream in = new FileInputStream(propfile);
             Properties p = new Properties();
             p.load(in);
             in.close();
-            
+
             // Get the various properties.
             String title = decode(p.getProperty("title", "Untitled"));
             String author = decode(p.getProperty("author", ""));
@@ -90,13 +90,13 @@ public class Project {
             return rv;
 
         } catch (Exception e) {
-            Log.i("Project", "Couldn't open android.txt", e);            
+            Log.i("Project", "Couldn't open android.txt", e);
         }
 
         return null;
-        
+
     }
 
-    
+
 
 }

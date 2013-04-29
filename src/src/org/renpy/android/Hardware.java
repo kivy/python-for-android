@@ -29,24 +29,24 @@ import android.net.NetworkInfo;
  */
 public class Hardware {
 
-     // The context.
-     static Context context;
-     static View view;
+    // The context.
+    static Context context;
+    static View view;
 
-     /**
-      * Vibrate for s seconds.
-      */
-     public static void vibrate(double s) {
-         Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-         if (v != null) {
-             v.vibrate((int) (1000 * s));
-         }
-     }
+    /**
+     * Vibrate for s seconds.
+     */
+    public static void vibrate(double s) {
+        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (v != null) {
+            v.vibrate((int) (1000 * s));
+        }
+    }
 
-     /**
-      * Get an Overview of all Hardware Sensors of an Android Device
-      */
-     public static String getHardwareSensors() {
+    /**
+     * Get an Overview of all Hardware Sensors of an Android Device
+     */
+    public static String getHardwareSensors() {
         SensorManager sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> allSensors = sm.getSensorList(Sensor.TYPE_ALL);
 
@@ -57,7 +57,7 @@ public class Hardware {
                 resultString += String.format(",Vendor=" + s.getVendor());
                 resultString += String.format(",Version=" + s.getVersion());
                 resultString += String.format(",MaximumRange=" + s.getMaximumRange());
-				// XXX MinDelay is not in the 2.2
+                // XXX MinDelay is not in the 2.2
                 //resultString += String.format(",MinDelay=" + s.getMinDelay());
                 resultString += String.format(",Power=" + s.getPower());
                 resultString += String.format(",Type=" + s.getType() + "\n");
@@ -65,121 +65,121 @@ public class Hardware {
             return resultString;
         }
         return "";
-     }
+    }
 
 
-     /**
-      * Get Access to 3 Axis Hardware Sensors Accelerometer, Orientation and Magnetic Field Sensors
-      */
-     public static class generic3AxisSensor implements SensorEventListener {
-         private final SensorManager sSensorManager;
-         private final Sensor sSensor;
-         private final int sSensorType;
-         SensorEvent sSensorEvent;
+    /**
+     * Get Access to 3 Axis Hardware Sensors Accelerometer, Orientation and Magnetic Field Sensors
+     */
+    public static class generic3AxisSensor implements SensorEventListener {
+        private final SensorManager sSensorManager;
+        private final Sensor sSensor;
+        private final int sSensorType;
+        SensorEvent sSensorEvent;
 
-         public generic3AxisSensor(int sensorType) {
-             sSensorType = sensorType;
-             sSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
-             sSensor = sSensorManager.getDefaultSensor(sSensorType);
-         }
+        public generic3AxisSensor(int sensorType) {
+            sSensorType = sensorType;
+            sSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+            sSensor = sSensorManager.getDefaultSensor(sSensorType);
+        }
 
-         public void onAccuracyChanged(Sensor sensor, int accuracy) {
-         }
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
 
-         public void onSensorChanged(SensorEvent event) {
-             sSensorEvent = event;
-         }
+        public void onSensorChanged(SensorEvent event) {
+            sSensorEvent = event;
+        }
 
-         /**
-          * Enable or disable the Sensor by registering/unregistering
-          */
-         public void changeStatus(boolean enable) {
-             if (enable) {
-                 sSensorManager.registerListener(this, sSensor, SensorManager.SENSOR_DELAY_NORMAL);
-             } else {
-                 sSensorManager.unregisterListener(this, sSensor);
-             }
-         }
+        /**
+         * Enable or disable the Sensor by registering/unregistering
+         */
+        public void changeStatus(boolean enable) {
+            if (enable) {
+                sSensorManager.registerListener(this, sSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
+                sSensorManager.unregisterListener(this, sSensor);
+            }
+        }
 
-         /**
-          * Read the Sensor
-          */ 
-         public float[] readSensor() {
-             if (sSensorEvent != null) {
-                 return sSensorEvent.values;
-             } else {
-                 float rv[] = { 0f, 0f, 0f };
-                 return rv;
-             }
-         }
-     }
+        /**
+         * Read the Sensor
+         */ 
+        public float[] readSensor() {
+            if (sSensorEvent != null) {
+                return sSensorEvent.values;
+            } else {
+                float rv[] = { 0f, 0f, 0f };
+                return rv;
+            }
+        }
+    }
 
-     public static generic3AxisSensor accelerometerSensor = null;
-     public static generic3AxisSensor orientationSensor = null;
-     public static generic3AxisSensor magneticFieldSensor = null;
+    public static generic3AxisSensor accelerometerSensor = null;
+    public static generic3AxisSensor orientationSensor = null;
+    public static generic3AxisSensor magneticFieldSensor = null;
 
-     /**
-      * functions for backward compatibility reasons
-      */
+    /**
+     * functions for backward compatibility reasons
+     */
 
-     public static void accelerometerEnable(boolean enable) {
-		 if ( accelerometerSensor == null )
-			 accelerometerSensor = new generic3AxisSensor(Sensor.TYPE_ACCELEROMETER);
-		 accelerometerSensor.changeStatus(enable);
-	 }
-     public static float[] accelerometerReading() {
-		 float rv[] = { 0f, 0f, 0f };
-		 if ( accelerometerSensor == null )
-			 return rv;
-		 return (float[]) accelerometerSensor.readSensor();
-	 }
-     public static void orientationSensorEnable(boolean enable) {
-		 if ( orientationSensor == null )
-			 orientationSensor = new generic3AxisSensor(Sensor.TYPE_ORIENTATION);
-		 orientationSensor.changeStatus(enable);
-	 }
-     public static float[] orientationSensorReading() {
-		 float rv[] = { 0f, 0f, 0f };
-		 if ( orientationSensor == null )
-			 return rv;
-		 return (float[]) orientationSensor.readSensor();
-	 }
-     public static void magneticFieldSensorEnable(boolean enable) {
-		 if ( magneticFieldSensor == null )
-			 magneticFieldSensor = new generic3AxisSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		 magneticFieldSensor.changeStatus(enable);
-	 }
-     public static float[] magneticFieldSensorReading() {
-		 float rv[] = { 0f, 0f, 0f };
-		 if ( magneticFieldSensor == null )
-			 return rv;
-		 return (float[]) magneticFieldSensor.readSensor();
-	 }
+    public static void accelerometerEnable(boolean enable) {
+        if ( accelerometerSensor == null )
+            accelerometerSensor = new generic3AxisSensor(Sensor.TYPE_ACCELEROMETER);
+        accelerometerSensor.changeStatus(enable);
+    }
+    public static float[] accelerometerReading() {
+        float rv[] = { 0f, 0f, 0f };
+        if ( accelerometerSensor == null )
+            return rv;
+        return (float[]) accelerometerSensor.readSensor();
+    }
+    public static void orientationSensorEnable(boolean enable) {
+        if ( orientationSensor == null )
+            orientationSensor = new generic3AxisSensor(Sensor.TYPE_ORIENTATION);
+        orientationSensor.changeStatus(enable);
+    }
+    public static float[] orientationSensorReading() {
+        float rv[] = { 0f, 0f, 0f };
+        if ( orientationSensor == null )
+            return rv;
+        return (float[]) orientationSensor.readSensor();
+    }
+    public static void magneticFieldSensorEnable(boolean enable) {
+        if ( magneticFieldSensor == null )
+            magneticFieldSensor = new generic3AxisSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        magneticFieldSensor.changeStatus(enable);
+    }
+    public static float[] magneticFieldSensorReading() {
+        float rv[] = { 0f, 0f, 0f };
+        if ( magneticFieldSensor == null )
+            return rv;
+        return (float[]) magneticFieldSensor.readSensor();
+    }
 
-     static public DisplayMetrics metrics = new DisplayMetrics();
+    static public DisplayMetrics metrics = new DisplayMetrics();
 
-     /**
-      * Get display DPI.
-      */
-     public static int getDPI() {
-         return metrics.densityDpi;
-     }
+    /**
+     * Get display DPI.
+     */
+    public static int getDPI() {
+        return metrics.densityDpi;
+    }
 
-     /**
-      * Show the soft keyboard.
-      */
-     public static void showKeyboard() {
-         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-         imm.showSoftInput(view, InputMethodManager.SHOW_FORCED);
-     }
+    /**
+     * Show the soft keyboard.
+     */
+    public static void showKeyboard() {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(view, InputMethodManager.SHOW_FORCED);
+    }
 
-     /**
-      * Hide the soft keyboard.
-      */
-     public static void hideKeyboard() {
-         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-     }
+    /**
+     * Hide the soft keyboard.
+     */
+    public static void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
 
     /**
      * Scan WiFi networks
@@ -232,29 +232,29 @@ public class Hardware {
     public static boolean network_state = false;
 
     /**
-    * Check network state directly
-    *
-	* (only one connection can be active at a given moment, detects all network type)
-    *
-    */
+     * Check network state directly
+     *
+     * (only one connection can be active at a given moment, detects all network type)
+     *
+     */
     public static boolean checkNetwork()
     {
         boolean state = false;
         final ConnectivityManager conMgr =  (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-		final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
-		if (activeNetwork != null && activeNetwork.isConnected()) {
-			state = true;
-		} else {
-			state = false;
-		}
+        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.isConnected()) {
+            state = true;
+        } else {
+            state = false;
+        }
 
         return state;
     }
 
     /**
-    * To recieve network state changes
-    */
+     * To recieve network state changes
+     */
     public static void registerNetworkCheck()
     {
         IntentFilter i = new IntentFilter();
@@ -263,7 +263,7 @@ public class Hardware {
 
             @Override
             public void onReceive(Context c, Intent i) {
-				network_state = checkNetwork();
+                network_state = checkNetwork();
             }
 
         }, i);

@@ -55,11 +55,11 @@ public class PythonService extends Service  implements Runnable {
 
         Context context = getApplicationContext();
         Notification notification = new Notification(context.getApplicationInfo().icon,
-                                                     serviceTitle,
-                                                     System.currentTimeMillis());
+                serviceTitle,
+                System.currentTimeMillis());
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT);
         notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
         startForeground(1, notification);
 
@@ -102,12 +102,12 @@ public class PythonService extends Service  implements Runnable {
         }
 
         nativeStart(androidPrivate, androidArgument, pythonHome, pythonPath,
-                    pythonServiceArgument);
+                pythonServiceArgument);
     }
 
     // Native part
     public static native void nativeStart(String androidPrivate, String androidArgument,
-                                          String pythonHome, String pythonPath,
-                                          String pythonServiceArgument);
+            String pythonHome, String pythonPath,
+            String pythonServiceArgument);
 
 }
