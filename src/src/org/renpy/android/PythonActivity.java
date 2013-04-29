@@ -22,6 +22,8 @@ import android.widget.Toast;
 import android.util.Log;
 import android.util.DisplayMetrics;
 import android.os.Debug;
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -105,10 +107,19 @@ public class PythonActivity extends Activity implements Runnable {
             mPath = getFilesDir();
         }
 
-        // go to fullscreen mode
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        // go to fullscreen mode if requested
+        try {
+            ApplicationInfo ai = this.getPackageManager().getApplicationInfo(
+                    this.getPackageName(), PackageManager.GET_META_DATA);
+            Log.v("python", "metadata fullscreen is" + ai.metaData.get("fullscreen"));
+            if ( (Integer)ai.metaData.get("fullscreen") == 1 ) {
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+        }
 
         // Start showing an SDLSurfaceView.
         mView = new SDLSurfaceView(

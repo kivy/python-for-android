@@ -335,6 +335,8 @@ tools directory of the Android SDK.
         help='Use a blacklist file to match unwanted file in the final APK')
     ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
     ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
+    ap.add_argument('--window', dest='window', action='store_true',
+            help='Indicate if the application will be windowed')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
     args = ap.parse_args()

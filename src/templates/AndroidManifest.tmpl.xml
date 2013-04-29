@@ -10,6 +10,12 @@
                android:icon="@drawable/icon"
                >
 
+    {% if args.window %}
+    <meta-data android:name="fullscreen" android:value="0"/>
+    {% else %}
+    <meta-data android:name="fullscreen" android:value="1"/>
+    {% endif %}
+
     <activity android:name="org.renpy.android.PythonActivity"
               android:label="@string/iconName"
               android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode"
