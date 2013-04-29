@@ -543,6 +543,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             new Thread(this).start();
         } else {
             mChanged = true;
+            nativeExpose();
         }
     }
 
@@ -845,7 +846,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 		}
 
         if (mStarted) {
-            nativeResize(mWidth, mHeight);
+            if (mInputActivated)
+                nativeResizeEvent(mWidth, mHeight);
+            else
+                nativeResize(mWidth, mHeight);
         }
 
 		return true;
@@ -1165,6 +1169,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     public static native void nativeSetMultitouchUsed();
 
     public native void nativeResize(int width, int height);
+    public native void nativeResizeEvent(int width, int height);
+    public native void nativeExpose();
     public native void nativeInitJavaCallbacks();
 
 }
