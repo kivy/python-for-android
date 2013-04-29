@@ -82,7 +82,7 @@ Available options to `build.py`::
                           The name of the project's launcher icon.
     --orientation ORIENTATION
                           The orientation that the game will display in. Usually
-                          one of "landscape" or "portrait".
+                          one of "landscape", "portrait" or "sensor".
     --permission PERMISSIONS
                           The permissions to give this app.
     --ignore-path IGNORE_PATH

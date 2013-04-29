@@ -322,7 +322,8 @@ tools directory of the Android SDK.
     ap.add_argument('--launcher', dest='launcher', action='store_true',
             help='Provide this argument to build a multi-app launcher, rather than a single app.')
     ap.add_argument('--icon-name', dest='icon_name', help='The name of the project\'s launcher icon.')
-    ap.add_argument('--orientation', dest='orientation', default='landscape', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
+    ap.add_argument('--orientation', dest='orientation', default='landscape',
+            help='The orientation that the game will display in. Usually one of "landscape", "portrait" or "sensor"')
     ap.add_argument('--permission', dest='permissions', action='append', help='The permissions to give this app.')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append', help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon', help='A png file to use as the icon for the application.')
