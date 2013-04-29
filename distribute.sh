@@ -435,9 +435,14 @@ function run_get_packages() {
 		module_dir=$(eval "echo \$P4A_${module}_DIR")
 		if [ "$module_dir" ]
 		then
-			debug "\$P4A_${module}_DIR is not empty, using $module_dir dir instead of downloading"
-			cp -rf $module_dir $directory
-			directory=$(get_directory $filename)
+			debug "\$P4A_${module}_DIR is not empty, linking $module_dir dir instead of downloading"
+			directory=$(eval "echo \$BUILD_${module}")
+			if [ -e $directory ]; then
+				try rm -rf "$directory"
+			fi
+			try mkdir -p "$directory"
+			try rmdir "$directory"
+			try ln -s "$module_dir" "$directory"
 			continue
 		fi
 		debug "Download package for $module"
