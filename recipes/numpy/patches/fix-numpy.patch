@@ -39,8 +39,8 @@ diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/core/src/privat
  #endif
 diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/testing/__init__.py numpy-1.7.1/numpy/testing/__init__.py
 --- numpy-1.7.1.orig/numpy/testing/__init__.py	2013-04-07 07:04:05.000000000 +0200
-+++ numpy-1.7.1/numpy/testing/__init__.py	2013-05-03 11:05:57.620492127 +0200
-@@ -1,15 +1,5 @@
++++ numpy-1.7.1/numpy/testing/__init__.py	2013-05-03 11:09:29.316488099 +0200
+@@ -1,15 +1,7 @@
 -"""Common test support for all numpy test scripts.
 -
 -This single module should provide all the common functionality for numpy tests
@@ -57,6 +57,8 @@ diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/testing/__init_
 -from nosetester import run_module_suite
 +# fake tester, android don't have unittest
 +class Tester(object):
-+    def test(self):
++    def test(self, *args, **kwargs):
++        pass
++    def bench(self, *args, **kwargs):
 +        pass
  test = Tester().test
