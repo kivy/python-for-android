@@ -1,0 +1,21 @@
+diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/core/src/multiarray/numpyos.c numpy-1.7.1/numpy/core/src/multiarray/numpyos.c
+--- numpy-1.7.1.orig/numpy/core/src/multiarray/numpyos.c	2013-04-07 07:04:05.000000000 +0200
++++ numpy-1.7.1/numpy/core/src/multiarray/numpyos.c	2013-05-03 09:08:37.400626077 +0200
+@@ -171,7 +171,7 @@
+ _change_decimal_from_locale_to_dot(char* buffer)
+ {
+     struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+ 
+     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+         size_t decimal_point_len = strlen(decimal_point);
+@@ -456,7 +456,7 @@
+ NumPyOS_ascii_strtod(const char *s, char** endptr)
+ {
+     struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+     size_t decimal_point_len = strlen(decimal_point);
+ 
+     char buffer[FLOAT_FORMATBUFLEN+1];
