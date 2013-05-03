@@ -39,6 +39,8 @@ function build_android() {
 		$BUILD_PATH/python-install/lib/python2.7/lib-dynload/
 	try cp android_mixer.py \
 		$BUILD_PATH/python-install/lib/python2.7/
+	try cp android_broadcast.py \
+		$BUILD_PATH/python-install/lib/python2.7/
 
 	unset LDSHARED
 
