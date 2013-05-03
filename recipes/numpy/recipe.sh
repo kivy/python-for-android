@@ -14,7 +14,7 @@ function prebuild_numpy() {
 		return
 	fi
 
-	try patch -p1 < $RECIPE_numpy/patches/fix-locale.patch
+	try patch -p1 < $RECIPE_numpy/patches/fix-numpy.patch
 	touch .patched
 }
 
