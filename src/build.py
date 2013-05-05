@@ -338,6 +338,8 @@ tools directory of the Android SDK.
     ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
             help='Indicate if the application will be windowed')
+    ap.add_argument('--wakelock', dest='wakelock', action='store_true',
+            help='Indicate if the application needs the device to stay on')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
 
     args = ap.parse_args()

@@ -43,6 +43,8 @@ import android.view.inputmethod.BaseInputConnection;
 import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -353,7 +355,16 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         mArgument = argument;
 
         PowerManager pm = (PowerManager) act.getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+
+        wakeLock = null;
+        try {
+            ApplicationInfo ai = act.getPackageManager().getApplicationInfo(
+                    act.getPackageName(), PackageManager.GET_META_DATA);
+            if ( (Integer)ai.metaData.get("wavelock") == 1 ) {
+                wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+        }
     }
 
 
@@ -437,7 +448,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
 
-        wakeLock.release();
+        if ( wakeLock != null )
+            wakeLock.release();
 
     }
 
@@ -455,7 +467,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 this.notifyAll();
             }
         }
-        wakeLock.acquire();
+        if ( wakeLock != null )
+            wakeLock.acquire();
     }
 
     public void onDestroy() {

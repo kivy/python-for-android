@@ -32,6 +32,7 @@ public class PythonActivity extends Activity implements Runnable {
     // The SDLSurfaceView we contain.
     public static SDLSurfaceView mView = null;
     public static PythonActivity mActivity = null;
+    public static ApplicationInfo mInfo = null;
 
     // Did we launch our thread?
     private boolean mLaunchedThread = false;
@@ -101,10 +102,10 @@ public class PythonActivity extends Activity implements Runnable {
 
         // go to fullscreen mode if requested
         try {
-            ApplicationInfo ai = this.getPackageManager().getApplicationInfo(
+            this.mInfo = this.getPackageManager().getApplicationInfo(
                     this.getPackageName(), PackageManager.GET_META_DATA);
-            Log.v("python", "metadata fullscreen is" + ai.metaData.get("fullscreen"));
-            if ( (Integer)ai.metaData.get("fullscreen") == 1 ) {
+            Log.v("python", "metadata fullscreen is" + this.mInfo.metaData.get("fullscreen"));
+            if ( (Integer)this.mInfo.metaData.get("fullscreen") == 1 ) {
                 getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                         WindowManager.LayoutParams.FLAG_FULLSCREEN);
             }

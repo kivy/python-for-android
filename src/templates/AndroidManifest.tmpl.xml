@@ -10,11 +10,8 @@
                android:icon="@drawable/icon"
                >
 
-    {% if args.window %}
-    <meta-data android:name="fullscreen" android:value="0"/>
-    {% else %}
-    <meta-data android:name="fullscreen" android:value="1"/>
-    {% endif %}
+    <meta-data android:name="fullscreen" android:value="{% if args.window %}0{% else %}1{% endif %}"/>
+    <meta-data android:name="wavelock" android:value="{% if args.wavelock %}1{% else %}0{% endif %}"/>
 
     <activity android:name="org.renpy.android.PythonActivity"
               android:label="@string/iconName"
@@ -66,7 +63,9 @@
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
+  {% if args.wavelock %}
   <uses-permission android:name="android.permission.WAKE_LOCK" />
+  {% endif %}
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
   {% for perm in args.permissions %}
