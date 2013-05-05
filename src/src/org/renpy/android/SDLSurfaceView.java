@@ -360,7 +360,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         try {
             ApplicationInfo ai = act.getPackageManager().getApplicationInfo(
                     act.getPackageName(), PackageManager.GET_META_DATA);
-            if ( (Integer)ai.metaData.get("wavelock") == 1 ) {
+            if ( (Integer)ai.metaData.get("wakelock") == 1 ) {
                 wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
             }
         } catch (PackageManager.NameNotFoundException e) {

@@ -11,7 +11,7 @@
                >
 
     <meta-data android:name="fullscreen" android:value="{% if args.window %}0{% else %}1{% endif %}"/>
-    <meta-data android:name="wavelock" android:value="{% if args.wavelock %}1{% else %}0{% endif %}"/>
+    <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
 
     <activity android:name="org.renpy.android.PythonActivity"
               android:label="@string/iconName"
@@ -63,7 +63,7 @@
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
-  {% if args.wavelock %}
+  {% if args.wakelock %}
   <uses-permission android:name="android.permission.WAKE_LOCK" />
   {% endif %}
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
