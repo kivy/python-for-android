@@ -323,6 +323,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     private PowerManager.WakeLock wakeLock;
 
+    // This stores the length of the text in pridiction/swype buffer
+    private int mDelLen = 0;
+
     // The width and height. (This should be set at startup time -
     // these values just prevent segfaults and divide by zero, etc.)
     int mWidth = 100;
@@ -970,6 +973,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
         //Log.i("python", String.format("key down %d", keyCode));
+        if (mDelLen > 0){
+            mDelLen = 0;
+            return true;
+        }
         if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
             return true;
         } else {
@@ -979,6 +986,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
+        if (mDelLen > 0){
+            mDelLen = 0;
+            return true;
+        }
         //Log.i("python", String.format("key up %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
@@ -991,6 +1002,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
         String keys = event.getCharacters();
         char[] keysBuffer = new char[keys.length()];
+        if (mDelLen > 0){
+            mDelLen = 0;
+            return true;
+        }
         if (keyCode == 0){
             // FIXME: here is hardcoed value of "q" key
             // on hacker's keyboard. It is passed to
@@ -1042,11 +1057,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         return new BaseInputConnection(this, false){
 
-            private int mDelLen = 0;
 
             private void deleteLastText(){
                 // send back space keys
-                for (int i = 0; i < this.mDelLen; i++){
+                for (int i = 0; i < mDelLen; i++){
                     nativeKey(KeyEvent.KEYCODE_DEL, 1, 23);
                     nativeKey(KeyEvent.KEYCODE_DEL, 0, 23);
                 }
@@ -1065,7 +1079,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                     nativeKey(45, 0, (int) c);
                 }
                 // store len to be deleted for next time
-                this.mDelLen = text.length();
+                mDelLen = text.length();
                 return super.setComposingText(text, newCursorPosition);
             }
 
@@ -1074,7 +1088,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
                 //Log.i("Python:", String.format("Commit Text %s", text));
                 this.deleteLastText();
-                this.mDelLen = 0;
+                mDelLen = 0;
                 return super.commitText(text, newCursorPosition);
             }
         };
