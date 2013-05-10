@@ -232,8 +232,9 @@ def make_package(args):
 
     # Figure out if application has service part
     service = False
-    if args.dir:
-        service_main = join(realpath(args.dir), 'service', 'main.py')
+    directory = args.private or args.dir
+    if directory:
+        service_main = join(realpath(directory), 'service', 'main.py')
         if os.path.exists(service_main):
             service = True
 

@@ -42,8 +42,7 @@
 
     {% if args.launcher %}
     <activity android:name="org.renpy.android.ProjectChooser"
-              android:label="@string/iconName"
-              >
+              android:label="@string/iconName">
 
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -55,9 +54,7 @@
 
     {% if service %}
     <service android:name="org.renpy.android.PythonService"
-             android:process=":PythonService"
-              >
-    </service>
+             android:process=":PythonService"/>
     {% endif %}
 
   </application>
