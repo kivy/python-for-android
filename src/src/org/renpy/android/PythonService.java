@@ -8,7 +8,7 @@ import android.content.Context;
 import android.util.Log;
 import android.app.Notification;
 import android.app.PendingIntent;
-import android.os.Process; 
+import android.os.Process;
 
 public class PythonService extends Service  implements Runnable {
 
@@ -22,6 +22,7 @@ public class PythonService extends Service  implements Runnable {
     private String pythonPath;
     // Argument to pass to Python code,
     private String pythonServiceArgument;
+    public Service mService = null;
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -101,6 +102,8 @@ public class PythonService extends Service  implements Runnable {
         } catch(UnsatisfiedLinkError e) {
         }
 
+        this.mService = this;
+        nativeInitJavaEnv();
         nativeStart(androidPrivate, androidArgument, pythonHome, pythonPath,
                 pythonServiceArgument);
     }
@@ -109,5 +112,7 @@ public class PythonService extends Service  implements Runnable {
     public static native void nativeStart(String androidPrivate, String androidArgument,
             String pythonHome, String pythonPath,
             String pythonServiceArgument);
+
+    public static native void nativeInitJavaEnv();
 
 }

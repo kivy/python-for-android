@@ -151,3 +151,9 @@ JAVA_EXPORT_NAME(SDLSurfaceView_nativeInitJavaCallbacks) ( JNIEnv*  env, jobject
 	
 	ANDROID_InitOSKeymap();	
 }
+
+JNIEXPORT void JNICALL
+JAVA_EXPORT_NAME(PythonService_nativeInitJavaEnv) ( JNIEnv*  env, jobject thiz )
+{
+	JavaEnv = env;
+}
