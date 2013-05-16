@@ -35,6 +35,15 @@
       </intent-filter>
       {% endif %}
 
+      {%if args.ouya_category %}
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+        <category android:name="tv.ouya.intent.category.{{ args.ouya_category }}"/>
+      </intent-filter>
+
+      {% endif %}
+
       {%if args.intent_filters %}
         {{ intent_filters }}
       {% endif %}
