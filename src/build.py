@@ -347,7 +347,7 @@ tools directory of the Android SDK.
     ap.add_argument('--ouya-icon', dest='ouya_icon', help='A png file to use as the icon for the application if it is installed on an OUYA console.')
     ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
-    ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to AndroidManifest.xml')
+    ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to the AndroidManifest.xml file. The argument is a filename containing xml. The filename should be located relative to the python-for-android directory')
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
