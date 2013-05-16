@@ -239,6 +239,13 @@ def make_package(args):
         if os.path.exists(service_main):
             service = True
 
+    # Check if OUYA support is enabled
+    if args.ouya_category:
+        args.ouya_category = args.ouya_category.upper()
+        if args.ouya_category not in ('GAME', 'APP'):
+            print 'Invalid --ouya-category argument. should be one of GAME or APP'
+            sys.exit(-1)
+
     # Render the various templates into control files.
     render(
         'AndroidManifest.tmpl.xml',
@@ -296,9 +303,12 @@ def make_package(args):
     # Copy over the icon and presplash files.
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash, 'res/drawable/presplash.jpg')
-    if not os.path.isdir('res/drawable-xhdpi'):
-        os.mkdir('res/drawable-xhdpi')
-    shutil.copy(args.ouya_icon or default_ouya_icon, 'res/drawable-xhdpi/ouya_icon.png')
+
+    # If OUYA support was requested, copy over the OUYA icon
+    if args.ouya_category:
+        if not os.path.isdir('res/drawable-xhdpi'):
+            os.mkdir('res/drawable-xhdpi')
+        shutil.copy(args.ouya_icon or default_ouya_icon, 'res/drawable-xhdpi/ouya_icon.png')
 
     # Build.
     try:
@@ -333,6 +343,7 @@ tools directory of the Android SDK.
     ap.add_argument('--ignore-path', dest='ignore_path', action='append', help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon', help='A png file to use as the icon for the application.')
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
+    ap.add_argument('--ouya-category', dest='ouya_category', help='Valid values are GAME and APP. This must be specified to enable OUYA console support.')
     ap.add_argument('--ouya-icon', dest='ouya_icon', help='A png file to use as the icon for the application if it is installed on an OUYA console.')
     ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
