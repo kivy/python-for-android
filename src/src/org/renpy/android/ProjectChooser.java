@@ -22,16 +22,16 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
     ResourceManager resourceManager;
 
     String urlScheme;
-    
+
     @Override
     public void onStart()
     {
         super.onStart();
 
         resourceManager = new ResourceManager(this);
-        
+
         urlScheme = resourceManager.getString("urlScheme");
-                
+
         // Set the window title.
         setTitle(resourceManager.getString("appName"));
 
@@ -48,7 +48,7 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
 
         // Create a ProjectAdapter and fill it with projects.
         ProjectAdapter projectAdapter = new ProjectAdapter(this);
-        
+
         // Populate it with the properties files.
         for (File d : entries) {
             Project p = Project.scanDirectory(d);
@@ -61,17 +61,17 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
 
             View v = resourceManager.inflateView("project_chooser");
             ListView l = (ListView) resourceManager.getViewById(v, "projectList");
-            
+
             l.setAdapter(projectAdapter);                
             l.setOnItemClickListener(this);
-            
+
             setContentView(v);
 
         } else {
 
             View v = resourceManager.inflateView("project_empty");
             TextView emptyText = (TextView) resourceManager.getViewById(v, "emptyText");
-            
+
             emptyText.setText("No projects are available to launch. Please place a project into " + dir + " and restart this application. Press the back button to exit.");
 
             setContentView(v);
@@ -82,13 +82,13 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
         Project p = (Project) parent.getItemAtPosition(position);
 
         Intent intent = new Intent(
-            "org.renpy.LAUNCH",
-            Uri.fromParts(urlScheme, p.dir, ""));
+                "org.renpy.LAUNCH",
+                Uri.fromParts(urlScheme, p.dir, ""));
 
         intent.setClassName(getPackageName(), "org.renpy.android.PythonActivity");
         this.startActivity(intent);
         this.finish();
     }
 
-    
+
 }

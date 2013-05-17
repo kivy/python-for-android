@@ -10,6 +10,9 @@
                android:icon="@drawable/icon"
                >
 
+    <meta-data android:name="fullscreen" android:value="{% if args.window %}0{% else %}1{% endif %}"/>
+    <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
+
     <activity android:name="org.renpy.android.PythonActivity"
               android:label="@string/iconName"
               android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode"
@@ -32,6 +35,15 @@
       </intent-filter>
       {% endif %}
 
+      {%if args.ouya_category %}
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+        <category android:name="tv.ouya.intent.category.{{ args.ouya_category }}"/>
+      </intent-filter>
+
+      {% endif %}
+
       {%if args.intent_filters %}
         {{ intent_filters }}
       {% endif %}
@@ -39,8 +51,7 @@
 
     {% if args.launcher %}
     <activity android:name="org.renpy.android.ProjectChooser"
-              android:label="@string/iconName"
-              >
+              android:label="@string/iconName">
 
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -48,6 +59,11 @@
       </intent-filter>
 
     </activity>
+    {% endif %}
+
+    {% if service %}
+    <service android:name="org.renpy.android.PythonService"
+             android:process=":PythonService"/>
     {% endif %}
 
 	{% if args.billing_pubkey %}
@@ -67,7 +83,9 @@
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
+  {% if args.wakelock %}
   <uses-permission android:name="android.permission.WAKE_LOCK" />
+  {% endif %}
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
   {% for perm in args.permissions %}

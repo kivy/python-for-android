@@ -1,23 +1,23 @@
 #!/bin/bash
 
-VERSION_kivy=
-URL_kivy=https://github.com/kivy/kivy/zipball/stable/kivy-stable.zip
-DEPS_kivy=(pygame pyjnius android)
-MD5_kivy=
-BUILD_kivy=$BUILD_PATH/kivy/$(get_directory $URL_kivy)
-RECIPE_kivy=$RECIPES_PATH/kivy
+VERSION_kivy_stable=1.5.1
+URL_kivy_stable=https://github.com/kivy/kivy/archive/$VERSION_kivy_stable.zip
+DEPS_kivy_stable=(pygame pyjnius android)
+MD5_kivy_stable=
+BUILD_kivy_stable=$BUILD_PATH/kivy_stable/$VERSION_kivy_stable
+RECIPE_kivy_stable=$RECIPES_PATH/kivy_stable
 
-function prebuild_kivy() {
+function prebuild_kivy_stable() {
 	true
 }
 
-function build_kivy() {
+function build_kivy_stable() {
 	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/kivy" ]; then
 		#return
 		true
 	fi
 
-	cd $BUILD_kivy
+	cd $BUILD_kivy_stable
 
 	push_arm
 
@@ -37,6 +37,7 @@ function build_kivy() {
 	pop_arm
 }
 
-function postbuild_kivy() {
+function postbuild_kivy_stable() {
 	true
 }
+ 

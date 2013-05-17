@@ -3,7 +3,7 @@ Prerequisites
 
 .. note::
     There is a VirtualBox Image we provide with the prerequisites along with
-    Android SDK and NDK preinstalled to ease your installation woes. You can download it from `here <http://www.google.com/url?sa=D&q=https://docs.google.com/file/d/0B1WO07-OL50_VDNESDRUaDhXSmM/edit&usg=AFQjCNGrsg0SU8EMgAcLHWxbjSe8KM2kyA>`__.
+    Android SDK and NDK preinstalled to ease your installation woes. You can download it from `here <http://kivy.org/#download>`__.
 
 .. warning::
 
@@ -14,7 +14,7 @@ Prerequisites
 You need the minimal environment for building python. Note that other libraries
 might need other tools (cython is used by some recipes, and ccache to speedup the build)::
 
-    sudo apt-get install build-essential patch git-core ccache ant pip
+    sudo apt-get install build-essential patch git-core ccache ant python-pip python-dev
  
 If you are on a 64 bit distro, you should install these packages too ::
 
@@ -30,7 +30,7 @@ Ensure you have the latest cython version::
 
 You must have android SDK and NDK. Right now, it's prefered to use:
 
-- SDK API 8 or 14 (15 will not work until a new NDK will be released)
+- SDK API 8 or 14 (15 will not work until a new NDK is released)
 - NDK r5b or r7
 
 You can download them at::

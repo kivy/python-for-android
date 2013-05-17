@@ -1,6 +1,7 @@
 cdef extern void android_sound_queue(int, char *, char *, long long, long long)
 cdef extern void android_sound_play(int, char *, char *, long long, long long)
 cdef extern void android_sound_stop(int)
+cdef extern void android_sound_seek(int, float)
 cdef extern void android_sound_dequeue(int)
 cdef extern void android_sound_playing_name(int, char *, int)
 cdef extern void android_sound_pause(int)
@@ -11,6 +12,8 @@ cdef extern void android_sound_set_secondary_volume(int, float)
 cdef extern void android_sound_set_pan(int, float)
 
 cdef extern int android_sound_queue_depth(int)
+cdef extern int android_sound_get_pos(int)
+cdef extern int android_sound_get_length(int)
 
 channels = set()
 volumes = { }
@@ -18,8 +21,8 @@ volumes = { }
 def queue(channel, file, name, fadein=0, tight=False):
 
     channels.add(channel)
-    
-    real_fn = file.name    
+
+    real_fn = file.name
     base = getattr(file, "base", -1)
     length = getattr(file, "length", -1)
 
@@ -28,12 +31,15 @@ def queue(channel, file, name, fadein=0, tight=False):
 def play(channel, file, name, paused=False, fadein=0, tight=False):
 
     channels.add(channel)
-    
+
     real_fn = file.name    
     base = getattr(file, "base", -1)
     length = getattr(file, "length", -1)
 
     android_sound_play(channel, name, real_fn, base, length)
+
+def seek(channel, position):
+   android_sound_seek(channel, position)
 
 def stop(channel):
     android_sound_stop(channel)
@@ -70,7 +76,7 @@ def unpause_all():
 def pause_all():
     for i in channels:
         pause(i)
-        
+
 def fadeout(channel, ms):
     stop(channel)
 
@@ -78,12 +84,15 @@ def busy(channel):
     return playing_name(channel) != None
 
 def get_pos(channel):
-    return 0
+    return android_sound_get_pos(channel)
+
+def get_length(channel):
+    return android_sound_get_length(channel)
 
 def set_volume(channel, volume):
     android_sound_set_volume(channel, volume)
     volumes[channel] = volume
-    
+
 def set_secondary_volume(channel, volume):
     android_sound_set_secondary_volume(channel, volume)
 

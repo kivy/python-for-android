@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_lxml=2.3.1
+VERSION_lxml=2.3.6
 URL_lxml=http://pypi.python.org/packages/source/l/lxml/lxml-$VERSION_lxml.tar.gz
 DEPS_lxml=(libxml2 libxslt python)
-MD5_lxml=87931fbf35df60cd71cfe7484b4b36ed
+MD5_lxml=d5d886088e78b1bdbfd66d328fc2d0bc
 BUILD_lxml=$BUILD_PATH/lxml/$(get_directory $URL_lxml)
 RECIPE_lxml=$RECIPES_PATH/lxml
 
