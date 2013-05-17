@@ -55,4 +55,7 @@ LOCAL_SRC_FILES := $(foreach F, $(SDL_SRCS), $(addprefix $(dir $(F)),$(notdir $(
 
 LOCAL_LDLIBS := -lGLESv1_CM -ldl -llog
 
+LOCAL_CFLAGS += $(REDIRECT_CFLAGS)
+LOCAL_LDFLAGS += $(REDIRECT_LDFLAGS)
+
 include $(BUILD_SHARED_LIBRARY)

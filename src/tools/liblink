@@ -51,6 +51,9 @@ while i < len(sys.argv):
     if opt.startswith("-D"):
         continue
 
+    if opt.startswith("-include"):
+        continue
+
     if opt.startswith("-"):
         print(sys.argv)
         print("Unknown option: %s" % opt)

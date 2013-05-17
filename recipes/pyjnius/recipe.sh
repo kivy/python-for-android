@@ -13,8 +13,7 @@ function prebuild_pyjnius() {
 
 function build_pyjnius() {
 	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/jnius" ]; then
-		#return
-		true
+		return
 	fi
 
 	cd $BUILD_pyjnius

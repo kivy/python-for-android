@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
     LOG("Initialize Python for Android");
     env_argument = getenv("ANDROID_ARGUMENT");
     setenv("ANDROID_APP_PATH", env_argument, 1);
+	setenv("PYTHONCASEOK", "1", 1);
 	//setenv("PYTHONVERBOSE", "2", 1);
     Py_SetProgramName(argv[0]);
     Py_Initialize();
@@ -93,6 +94,11 @@ int main(int argc, char **argv) {
         "sys.stdout = sys.stderr = LogFile()\n" \
 		"import site; print site.getsitepackages()\n"\
 		"print 'Android path', sys.path\n" \
+		"print sys.meta_path\n" \
+		"print sys.path_hooks\n" \
+		"print 'TRY TO FOUND KIVY >>>'\n" \
+		"import imp; print imp.find_module('kivy')\n"\
+		"print 'TRY TO FOUND KIVY <<<'\n" \
         "print 'Android kivy bootstrap done. __name__ is', __name__");
 
     /* run it !
