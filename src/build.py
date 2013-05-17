@@ -310,6 +310,14 @@ def make_package(args):
             os.mkdir('res/drawable-xhdpi')
         shutil.copy(args.ouya_icon or default_ouya_icon, 'res/drawable-xhdpi/ouya_icon.png')
 
+    # If extra Java jars were requested, copy them into the libs directory
+    if args.add_jar:
+        for jarname in args.add_jar:
+            if not os.path.exists(jarname):
+                print 'Requested jar does not exist: {}'.format(jarname)
+                sys.exit(-1)
+            shutil.copy(jarname, 'libs')
+
     # Build.
     try:
         map(lambda arg: subprocess.call([ANT, arg]), args.command)
@@ -358,6 +366,7 @@ tools directory of the Android SDK.
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
             help='Indicate if the application needs the device to stay on')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
+    ap.add_argument('--add-jar', dest='add_jar', action='append', help='Add a Java .jar to the libs, so you can access its classes with pyjnius. You can specify this argument more than once to include multiple jars')
 
     args = ap.parse_args()
 
