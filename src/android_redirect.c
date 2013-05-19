@@ -1,3 +1,4 @@
+#define HASH_FUNCTION HASH_FNV
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -5,16 +6,17 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <dirent.h>
+#include "uthash.h"
 #include "android/log.h"
 
 //#define LOG(...) __android_log_print(ANDROID_LOG_INFO, "redirect", __VA_ARGS__)
-#define LOG(...) 
+#define LOG(...)
 
 typedef struct filemap_entry_s {
 	const char *source;
 	const char dest[PATH_MAX];
 	int is_dir;
-	struct filemap_entry_s *next;
+	UT_hash_handle hh;
 } filemap_entry_t;
 
 static filemap_entry_t *entries = NULL;
@@ -24,47 +26,42 @@ static char libdir[PATH_MAX];
 
 static void filemap_entry_add(char *source, char *dest) {
 	filemap_entry_t *entry = (filemap_entry_t *)malloc(sizeof(filemap_entry_t));
-	entry->source = source;
 	snprintf((char *)entry->dest, PATH_MAX, "%s/%s", libdir, dest);
-	entry->next = entries;
+	entry->source = source;
 	entry->is_dir = 0;
-	entries = entry;
+	HASH_ADD_KEYPTR(hh, entries, entry->source, strlen(entry->source), entry);
 }
 
 static void filemap_entry_add_dir(char *source) {
 	filemap_entry_t *entry = (filemap_entry_t *)malloc(sizeof(filemap_entry_t));
-	entry->source = source;
 	snprintf((char *)entry->dest, PATH_MAX, "%s", libdir);
-	entry->next = entries;
+	entry->source = source;
 	entry->is_dir = 1;
-	entries = entry;
+	HASH_ADD_KEYPTR(hh, entries, entry->source, strlen(entry->source), entry);
 }
 
-static const char *filemap_entry_find(const char *source) {
-	filemap_entry_t *entry = entries;
-	while ( entry != NULL ) {
-		if ( strcmp(entry->source, source) == 0 )
-			return entry->dest;
-		entry = entry->next;
-	}
-	return NULL;
-}
-
-static filemap_entry_t *filemap_entry_find_dir(const char *source) {
-	filemap_entry_t *entry = entries;
-	while ( entry != NULL ) {
-		if ( strcmp(entry->source, source) == 0 && entry->is_dir )
-			return entry;
-		entry = entry->next;
-	}
-	return NULL;
+static filemap_entry_t *filemap_entry_find(const char *source) {
+	filemap_entry_t *entry = NULL;
+	HASH_FIND_STR(entries, source, entry);
+	return entry;
 }
 
 static filemap_entry_t *find_dir(const char *source) {
+	filemap_entry_t *entry = NULL;
 	if (strncmp(source, basedir, basedirlen) == 0) {
-		return filemap_entry_find_dir(source + basedirlen + 1);
+		entry = filemap_entry_find(source + basedirlen + 1);
+		if (entry && entry->is_dir)
+			return entry;
 	}
-	return filemap_entry_find_dir(source);
+	entry = filemap_entry_find(source);
+	if (entry && entry->is_dir)
+		return entry;
+	return NULL;
+}
+
+static const char *filemap_entry_find_str(const char *source) {
+	filemap_entry_t *entry = filemap_entry_find(source);
+	return entry ? entry->dest : NULL;
 }
 
 static int file_exists(const char* fn) {
@@ -79,20 +76,20 @@ static const char *mangle(const char *fn) {
 
 	if (strncmp(fn, basedir, basedirlen) == 0) {
 		LOG("  --> search in the filemap(basedir): %s", fn + basedirlen + 1);
-		const char *fm = filemap_entry_find(fn + basedirlen + 1);
+		const char *fm = filemap_entry_find_str(fn + basedirlen + 1);
 		LOG("  --> filemap returned %s", fm);
 		return fm != NULL ? fm : fn;
 	}
 
 	if ( fn[0] == '.' && fn[1] == '/' ) {
 		LOG("  --> search in the filemap(.): %s", fn + 2);
-		const char *fm3 = filemap_entry_find(fn + 2);
+		const char *fm3 = filemap_entry_find_str(fn + 2);
 		LOG("  --> filemap returned %s", fm3);
 		return fm3 != NULL ? fm3 : fn;
 	}
 
 	LOG("  --> search in the filemap(no basedir): %s", fn);
-	const char *fm2 = filemap_entry_find(fn);
+	const char *fm2 = filemap_entry_find_str(fn);
 	LOG("  --> filemap returned %s", fm2);
 	return fm2 != NULL ? fm2 : fn;
 }
@@ -228,7 +225,7 @@ struct dirent *__android_readdir(DIR *dirp) {
 	void **mem = (void **)dirp;
 	char *source;
 	static struct dirent d;
-	filemap_entry_t *entry;
+	filemap_entry_t *entry, *tmp;
 	filemap_entry_t *basedir;
 
 	// native access
@@ -260,11 +257,11 @@ struct dirent *__android_readdir(DIR *dirp) {
 		d.d_type = entry->is_dir ? DT_DIR : DT_REG;
 		strncpy(d.d_name, entry->source, 256);
 
-		mem[2] = entry->next;
+		mem[2] = entry->hh.next;
 		return &d;
 
 nextentry:;
-		entry = entry->next;
+		entry = entry->hh.next;
 	}
 
 	LOG("  --> wrapped access ( end )");

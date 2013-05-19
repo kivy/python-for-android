@@ -56,10 +56,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.graphics.Color;
 import android.content.res.Resources;
+import java.lang.System;
 
 
 public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     private static String TAG = "SDLSurface";
+	public static long timeStart = 0;
     private final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
@@ -1096,6 +1098,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     static void activateInput() {
         mInputActivated = true;
+		Log.i("timestart", String.format("START DURATION: %d", System.currentTimeMillis() - timeStart));
     }
 
     static void openUrl(String url) {

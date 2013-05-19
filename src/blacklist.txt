@@ -73,7 +73,32 @@ sndhdr.pyo
 __phello__.foo.pyo
 sunaudio.pyo
 os2emxpath.pyo
-multiprocessing/dummy*
+multiprocessing*
+distutils*
+json/tool.pyo
+pydoc.pyo
+doctest.pyo
+tarfile.pyo
+pdb.doc
+difflib.pyo
+aifc.pyo
+rexec.pyo
+nntplib.pyo
+plistlib.pyo
+sunau.pyo
+macpath.pyo
+whichdb.pyo
+Bastion.pyo
+
+# mail related modules
+email/*
+imaplib.pyo
+mailbox.pyo
+mailcap.pyo
+mailcap.pyo
+mhlib.pyo
+MimeWriter.pyo
+smtpd.pyo
 
 # unused binaries python modules
 lib-dynload/_sqlite3.so

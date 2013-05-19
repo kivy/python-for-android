@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System;
 
 import java.util.zip.GZIPInputStream;
 
@@ -51,6 +52,7 @@ public class PythonActivity extends Activity implements Runnable {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+		SDLSurfaceView.timeStart = System.currentTimeMillis();
         Hardware.context = this;
         Action.context = this;
         this.mActivity = this;

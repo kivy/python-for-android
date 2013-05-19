@@ -132,7 +132,7 @@ function push_arm() {
 	export OLD_LD=$LD
 
 	# to override the default optimization, set OFLAG
-	#export OFLAG="-Os"
+	export OFLAG="-Os"
 	#export OFLAG="-O2"
 
 	if [ "X$NOANDROIDREDIRECT" == "X" ]; then
