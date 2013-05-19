@@ -22,7 +22,7 @@ public class PythonService extends Service  implements Runnable {
     private String pythonPath;
     // Argument to pass to Python code,
     private String pythonServiceArgument;
-    public Service mService = null;
+    public static Service mService = null;
 
     @Override
     public IBinder onBind(Intent arg0) {
