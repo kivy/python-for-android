@@ -12,6 +12,10 @@ _sqlite3.so not found
 
 We recently fixed sqlite3 compilation. In case of, you must:
 
+* Install development headers for sqlite3 if it's not already installed. On Ubuntu:
+
+    apt-get install libsqlite3-dev
+
 * Compile the distribution with (sqlite3 must be the first argument)::
 
     ./distribute.sh -m 'sqlite3 kivy'
