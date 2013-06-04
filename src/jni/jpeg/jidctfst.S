@@ -63,7 +63,7 @@
 
 
 jpeg_idct_ifast:
-    PLD     (r2, #0)
+    PLD     [r2, #0]
     stmdb   sp!, {r4,r5, r6,r7, r8,r9, r10,r11, r12,lr}
     ldr     r4, [sp, #4*10]
     sub     sp, #local_SIZE
@@ -256,7 +256,7 @@ VLoopHead:
 
 HLoopStart:
     // reset pointers
-    PLD     (sp, #off_WORKSPACE)
+    PLD     [sp, #off_WORKSPACE]
     add     ip, sp, #off_WORKSPACE
     ldr     r10, local_RANGE_TABLE
 
@@ -268,7 +268,7 @@ HLoopTail:
     str      r0, local_OUTPUT_BUF
     add      fp, r2, r1
 
-    PLD      (ip, #32)
+    PLD      [ip, #32]
     ldmia    ip!, {r0-r7}
 
     cmp      r1, #0

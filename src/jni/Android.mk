@@ -25,7 +25,7 @@ SDL_VIDEO_RENDER_RESIZE := 0
 
 COMPILED_LIBRARIES := sdl_ttf sdl_image sdl_mixer
 
-APPLICATION_ADDITIONAL_CFLAGS := -finline-functions -O2
+APPLICATION_ADDITIONAL_CFLAGS := -finline-functions -O2 -DSDL_JAVA_PACKAGE_PATH=$(SDL_JAVA_PACKAGE_PATH)
 
 APPLICATION_ADDITIONAL_LDFLAGS := -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 

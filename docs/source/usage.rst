@@ -12,10 +12,21 @@ After a long time, you'll get a "dist/default" directory containing all the comp
 libraries and build.py script to package your application using thoses
 libraries.
 
-You can include other libraries to compile using `-m`::
+You can include other modules (or "recipes") to compile using `-m`. Put the C
+libraries to compile before any Python module, order is important.
 
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
+
+
+For a full list, refer to :ref:`recipes`
+
+.. note::
+
+   Recipes download a defined version of their needed package from the
+   internet, and build from it, if you know what you are doing, and want to
+   override that, you can export the env variable `P4A_recipe_name_DIR` and
+   this directory will be copied and used instead.
 
 Available options to `distribute.sh`::
 
@@ -71,7 +82,7 @@ Available options to `build.py`::
                           The name of the project's launcher icon.
     --orientation ORIENTATION
                           The orientation that the game will display in. Usually
-                          one of "landscape" or "portrait".
+                          one of "landscape", "portrait" or "sensor".
     --permission PERMISSIONS
                           The permissions to give this app.
     --ignore-path IGNORE_PATH
@@ -85,11 +96,13 @@ Available options to `build.py`::
                           "preferExternal" or "internalOnly".
     --compile-pyo         Compile all .py files to .pyo, and only distribute the
                           compiled bytecode.
+    --intent-filters INTENT_FILTERS
+                          Add intent-filters xml rules to AndroidManifest.xml
     --blacklist BLACKLIST
                           Use a blacklist file to match unwanted file in the
                           final APK
-
-    --intent-filters FILE
-                          Inject the content of FILE into the activity
-                          definition in the AndroidManifest.xml
+    --sdk SDK_VERSION     Android SDK version to use. Default to 8
+    --minsdk MIN_SDK_VERSION
+                          Minimum Android SDK version to use. Default to 8
+    --window              Indicate if the application will be windowed
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2.7
 
 from os.path import dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
@@ -197,6 +197,7 @@ def make_package(args):
     url_scheme = 'kivy'
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
+    default_ouya_icon = 'templates/kivy-ouya-icon.png'
     # Figure out the version code, if necessary.
     if not args.numeric_version:
         for i in args.version.split('.'):
@@ -230,11 +231,27 @@ def make_package(args):
     else:
         intent_filters = ''
 
+    # Figure out if application has service part
+    service = False
+    directory = args.private or args.dir
+    if directory:
+        service_main = join(realpath(directory), 'service', 'main.py')
+        if os.path.exists(service_main):
+            service = True
+
+    # Check if OUYA support is enabled
+    if args.ouya_category:
+        args.ouya_category = args.ouya_category.upper()
+        if args.ouya_category not in ('GAME', 'APP'):
+            print 'Invalid --ouya-category argument. should be one of GAME or APP'
+            sys.exit(-1)
+
     # Render the various templates into control files.
     render(
         'AndroidManifest.tmpl.xml',
         'AndroidManifest.xml',
         args=args,
+        service=service,
         url_scheme=url_scheme,
         intent_filters=intent_filters,
         manifest_extra=manifest_extra,
@@ -292,6 +309,20 @@ def make_package(args):
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash, 'res/drawable/presplash.jpg')
 
+    # If OUYA support was requested, copy over the OUYA icon
+    if args.ouya_category:
+        if not os.path.isdir('res/drawable-xhdpi'):
+            os.mkdir('res/drawable-xhdpi')
+        shutil.copy(args.ouya_icon or default_ouya_icon, 'res/drawable-xhdpi/ouya_icon.png')
+
+    # If extra Java jars were requested, copy them into the libs directory
+    if args.add_jar:
+        for jarname in args.add_jar:
+            if not os.path.exists(jarname):
+                print 'Requested jar does not exist: {}'.format(jarname)
+                sys.exit(-1)
+            shutil.copy(jarname, 'libs')
+
     # Build.
     try:
         map(lambda arg: subprocess.call([ANT, arg]), args.command)
@@ -319,21 +350,29 @@ tools directory of the Android SDK.
     ap.add_argument('--launcher', dest='launcher', action='store_true',
             help='Provide this argument to build a multi-app launcher, rather than a single app.')
     ap.add_argument('--icon-name', dest='icon_name', help='The name of the project\'s launcher icon.')
-    ap.add_argument('--orientation', dest='orientation', default='landscape', help='The orientation that the game will display in. Usually one of "landscape" or "portrait".')
+    ap.add_argument('--orientation', dest='orientation', default='landscape',
+            help='The orientation that the game will display in. Usually one of "landscape", "portrait" or "sensor"')
     ap.add_argument('--permission', dest='permissions', action='append', help='The permissions to give this app.')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append', help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon', help='A png file to use as the icon for the application.')
     ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
+    ap.add_argument('--ouya-category', dest='ouya_category', help='Valid values are GAME and APP. This must be specified to enable OUYA console support.')
+    ap.add_argument('--ouya-icon', dest='ouya_icon', help='A png file to use as the icon for the application if it is installed on an OUYA console.')
     ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
     ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
-    ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to AndroidManifest.xml')
+    ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to the AndroidManifest.xml file. The argument is a filename containing xml. The filename should be located relative to the python-for-android directory')
     ap.add_argument('--with-billing', dest='billing_pubkey', help='If set, the billing service will be added')
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
     ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
     ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
+    ap.add_argument('--window', dest='window', action='store_true',
+            help='Indicate if the application will be windowed')
+    ap.add_argument('--wakelock', dest='wakelock', action='store_true',
+            help='Indicate if the application needs the device to stay on')
     ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
+    ap.add_argument('--add-jar', dest='add_jar', action='append', help='Add a Java .jar to the libs, so you can access its classes with pyjnius. You can specify this argument more than once to include multiple jars')
 
     args = ap.parse_args()
 
