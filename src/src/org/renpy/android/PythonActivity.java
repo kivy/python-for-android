@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.lang.System;
 
 import java.util.zip.GZIPInputStream;
 
@@ -51,6 +52,7 @@ public class PythonActivity extends Activity implements Runnable {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+		SDLSurfaceView.timeStart = System.currentTimeMillis();
         Hardware.context = this;
         Action.context = this;
         this.mActivity = this;
@@ -213,9 +215,11 @@ public class PythonActivity extends Activity implements Runnable {
 
     public void run() {
 
-        unpackData("private", getFilesDir());
-        unpackData("public", externalStorage);
+		//unpackData("private", getFilesDir());
+        //unpackData("public", externalStorage);
 
+		System.loadLibrary("android_redirect");
+		nativeRedirect(getFilesDir().getAbsolutePath(), getApplicationInfo().dataDir + "/lib");
         System.loadLibrary("sdl");
         System.loadLibrary("sdl_image");
         System.loadLibrary("sdl_ttf");
@@ -224,8 +228,11 @@ public class PythonActivity extends Activity implements Runnable {
         System.loadLibrary("application");
         System.loadLibrary("sdl_main");
 
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+        try {
+			System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
+			System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+		} catch(UnsatisfiedLinkError e) {
+		}
 
         try {
             System.loadLibrary("sqlite3");
@@ -339,5 +346,6 @@ public class PythonActivity extends Activity implements Runnable {
         PythonActivity.mActivity.stopService(serviceIntent);
     }
 
+	public static native void nativeRedirect(String files_directory, String libs_directory);
 }
 

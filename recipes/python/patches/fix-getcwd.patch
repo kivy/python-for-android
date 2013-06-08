@@ -1,0 +1,11 @@
+--- Python-2.7.2/Python/getcwd.c.orig	2013-05-16 16:05:54.886425361 +0200
++++ Python-2.7.2/Python/getcwd.c	2013-05-16 16:05:57.166425318 +0200
+@@ -5,6 +5,8 @@
+ #include <stdio.h>
+ #include <errno.h>
+ 
++#undef getcwd
++
+ #ifdef HAVE_GETWD
+ 
+ /* Version for BSD systems -- use getwd() */

@@ -132,17 +132,25 @@ function push_arm() {
 	export OLD_LD=$LD
 
 	# to override the default optimization, set OFLAG
-	#export OFLAG="-Os"
+	export OFLAG="-Os"
 	#export OFLAG="-O2"
 
-	export CFLAGS="-DANDROID -mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM"
+	if [ "X$NOANDROIDREDIRECT" == "X" ]; then
+		export CFLAGS="-include $SRC_PATH/android_redirect.h"
+		export LDFLAGS="-landroid_redirect -llog"
+	else
+		export CFLAGS=""
+		export LDFLAGS=""
+	fi
+
+	export CFLAGS+=" -DANDROID -mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM"
 	if [ "X$ARCH" == "Xarmeabi-v7a" ]; then
 		CFLAGS+=" -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb"
 	fi
 	export CXXFLAGS="$CFLAGS"
 
 	# that could be done only for darwin platform, but it doesn't hurt.
-	export LDFLAGS="-lm"
+	export LDFLAGS+=" -L$LIBS_PATH -lm"
 
 	# this must be something depending of the API level of Android
 	PYPLATFORM=$($PYTHON -c 'from __future__ import print_function; import sys; print(sys.platform)')
@@ -567,13 +575,22 @@ function run_postbuild() {
 	done
 }
 
+function run_androidredirect() {
+	info "Compile android redirect"
+	export NOANDROIDREDIRECT=1
+	push_arm
+	try $CC $CGLAFS $LDFLAGS -shared -llog -o $LIBS_PATH/libandroid_redirect.so $SRC_PATH/android_redirect.c
+	pop_arm
+	unset NOANDROIDREDIRECT
+}
+
 function run_distribute() {
 	info "Run distribute"
 
 	cd "$DIST_PATH"
 
 	debug "Create initial layout"
-	try mkdir assets bin private res templates
+	try mkdir assets bin private res res/raw templates
 
 	debug "Copy default files"
 	try cp -a $SRC_PATH/default.properties .
@@ -643,6 +660,7 @@ function run() {
 	run_prepare
 	run_source_modules
 	run_get_packages
+	run_androidredirect
 	run_prebuild
 	run_build
 	run_biglink

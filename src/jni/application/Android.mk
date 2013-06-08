@@ -6,7 +6,7 @@ LOCAL_MODULE := application
 
 APP_SUBDIRS := $(patsubst $(LOCAL_PATH)/%, %, $(shell find $(LOCAL_PATH)/src/ -type d))
 
-LOCAL_CFLAGS := $(foreach D, $(APP_SUBDIRS), -I$(LOCAL_PATH)/$(D)) \
+LOCAL_CFLAGS += $(foreach D, $(APP_SUBDIRS), -I$(LOCAL_PATH)/$(D)) \
 				-I$(LOCAL_PATH)/../sdl/include \
 				-I$(LOCAL_PATH)/../sdl_mixer \
 				-I$(LOCAL_PATH)/../sdl_image \
@@ -50,6 +50,9 @@ LIBS_WITH_LONG_SYMBOLS := $(strip $(shell \
 		fi ; \
 	done \
 ) )
+
+LOCAL_CFLAGS += $(REDIRECT_CFLAGS)
+LOCAL_LDFLAGS += $(REDIRECT_LDFLAGS)
 
 ifneq "$(LIBS_WITH_LONG_SYMBOLS)" ""
 $(foreach F, $(LIBS_WITH_LONG_SYMBOLS), \

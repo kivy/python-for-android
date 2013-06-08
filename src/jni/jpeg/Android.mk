@@ -34,4 +34,7 @@ LOCAL_CFLAGS += -O3 -fstrict-aliasing -fprefetch-loop-arrays
 
 LOCAL_MODULE:= jpeg
 
+LOCAL_CFLAGS += $(REDIRECT_CFLAGS)
+LOCAL_LDFLAGS += $(REDIRECT_LDFLAGS)
+
 include $(BUILD_STATIC_LIBRARY)

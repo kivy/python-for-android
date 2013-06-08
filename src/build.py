@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 
-from os.path import dirname, join, isfile, realpath, relpath, split
+from os.path import dirname, join, isfile, realpath, relpath, split, exists
+from os import makedirs
 from zipfile import ZipFile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
@@ -190,6 +191,65 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
         tf.add(fn, afn)
     tf.close()
 
+def mangle(fn):
+    for x in ' /.':
+        fn = fn.replace(x, '_')
+    return 'lib{}.so'.format(fn)
+
+def dirsplit(d):
+    sd = ''
+    for item in d.split('/'):
+        sd = join(sd, item)
+        yield sd
+
+def make_raw(dest, source_dirs, ignore_path=[]):
+    '''
+    Make a zip file `fn` from the contents of source_dis.
+    '''
+
+    # selector function
+    def select(fn):
+        rfn = realpath(fn)
+        for p in ignore_path:
+            if p.endswith('/'):
+                p = p[:-1]
+            if rfn.startswith(p):
+                return False
+        if rfn in python_files:
+            return False
+        return not is_blacklist(fn)
+
+    # get the files and relpath file of all the directory we asked for
+    files = []
+    for sd in source_dirs:
+        sd = realpath(sd)
+        compile_dir(sd)
+        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
+
+
+    mfiles = {}
+    mdirs = list()
+
+    for fn, afn in files:
+        #print '%s: %s' % (dest, fn)
+        mdirs.extend(list(dirsplit(dirname(afn))))
+        #adir = join(dest, dirname(afn))
+        #if not exists(adir):
+        #    print 'create directory', adir
+        #    makedirs(adir)
+        #print 'copy', fn, join(dest, afn)
+        destfn = mangle(afn)
+        mfiles[afn] = destfn
+        shutil.copy(fn, join(dest, destfn))
+
+    mdirs = list(set(mdirs))
+
+    with open(join(dest, 'libfilemap.so'), 'w') as fd:
+        for k, v in mfiles.items():
+            fd.write('f{};{}\n'.format(k, v))
+        for f in mdirs:
+            fd.write('d{}\n'.format(f))
+
 
 def make_package(args):
     version_code = 0
@@ -293,12 +353,12 @@ def make_package(args):
 
     # Package up the private and public data.
     if args.private:
-        make_tar('assets/private.mp3', ['private', args.private])
+        make_raw('libs/armeabi/', ['private', args.private])
     else:
-        make_tar('assets/private.mp3', ['private'])
+        make_raw('libs/armeabi/', ['private'])
 
     if args.dir:
-        make_tar('assets/public.mp3', [args.dir], args.ignore_path)
+        make_raw('libs/armeabi/', [args.dir], args.ignore_path)
 
     # Copy over the icon and presplash files.
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
