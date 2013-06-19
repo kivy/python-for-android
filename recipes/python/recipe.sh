@@ -88,6 +88,10 @@ function build_python() {
 	$MAKE install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	pop_arm
 
+	system=$(uname -s)
+	if [ "X$system" == "XDarwin" ]; then
+		try cp $RECIPE_python/patches/_scproxy.py $BUILD_python/Lib/
+	fi
 	try cp $BUILD_hostpython/hostpython $BUILD_PATH/python-install/bin/python.host
 	try cp libpython2.7.so $LIBS_PATH/
 }
