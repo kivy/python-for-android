@@ -32,6 +32,50 @@ Android (``android``)
     keycodes are available as constants in the android module.
 
 
+Activity (``android.activity``)
+-------------------------------
+
+.. module:: android.activity
+
+The default PythonActivity have a observer pattern for `onActivityResult <http://developer.android.com/reference/android/app/Activity.html#onActivityResult(int, int, android.content.Intent)>`_ and `onNewIntent <http://developer.android.com/reference/android/app/Activity.html#onNewIntent(android.content.Intent)>`_.
+
+.. function:: bind(eventname=callback, ...)
+
+    This allows you to bind a callback to an Android event:
+    - ``on_new_intent`` is the event associated to the onNewIntent java call
+    - ``on_activity_result`` is the event associated to the onActivityResult java call
+
+.. function:: unbind(eventname=callback, ...)
+
+    Unregister a previously registered callback with :func:`bind`.
+
+Example::
+
+    # this example is a snippet from an NFC p2p app, and are located into a
+    # kivy App class implementation
+
+    from android import activity
+
+    def on_new_intent(self, intent):
+        if intent.getAction() != NfcAdapter.ACTION_NDEF_DISCOVERED:
+            return
+        rawmsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+        if not rawmsgs:
+            return
+        for message in rawmsgs:
+            message = cast(NdefMessage, message)
+            payload = message.getRecords()[0].getPayload()
+            print 'payload: {}'.format(''.join(map(chr, payload)))
+
+    def nfc_enable(self):
+        activity.bind(on_new_intent=self.on_new_intent)
+        # ...
+
+    def nfc_disable(self):
+        activity.unbind(on_new_intent=self.on_new_intent)
+        # ...
+
+
 Billing (``android.billing``)
 -----------------------------
 
