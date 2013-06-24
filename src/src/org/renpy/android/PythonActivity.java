@@ -430,6 +430,8 @@ public class PythonActivity extends Activity implements Runnable {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if ( this.activityResultListeners == null )
 			return;
+		if ( this.mView != null )
+			this.mView.onResume();
 		for ( ActivityResultListener listener : this.activityResultListeners )
 			listener.onActivityResult(requestCode, resultCode, intent);
 	}

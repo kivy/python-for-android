@@ -1,4 +1,6 @@
-from jnius import PythonJavaClass, java_method
+from jnius import PythonJavaClass, java_method, autoclass
+
+_activity = autoclass('org.renpy.android.PythonActivity').mActivity
 
 _callbacks = {
     'on_new_intent': [],
@@ -36,10 +38,12 @@ def bind(**kwargs):
             raise Exception('Unknown {!r} event'.format(event))
         elif event == 'on_new_intent':
             listener = NewIntentListener(callback)
+            _activity.registerNewIntentListener(listener)
             _callbacks[event].append(listener)
         elif event == 'on_activity_result':
             listener = ActivityResultListener(callback)
-            _callbacks[event].append(callback)
+            _activity.registerActivityResultListener(listener)
+            _callbacks[event].append(listener)
 
 def unbind(**kwargs):
     for event, callback in kwargs.items():
@@ -49,4 +53,8 @@ def unbind(**kwargs):
             for listener in _callbacks[event][:]:
                 if listener.callback is callback:
                     _callbacks[event].remove(listener)
+                    if event == 'on_new_intent':
+                        _activity.unregisterNewIntentListener(listener)
+                    elif event == 'on_activity_result':
+                        _activity.unregisterActivityResultListener(listener)
 
