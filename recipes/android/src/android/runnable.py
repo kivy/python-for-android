@@ -7,7 +7,7 @@ Runnable
 from jnius import PythonJavaClass, java_method, autoclass
 
 # reference to the activity
-_PythonActivity = None
+_PythonActivity = autoclass('org.renpy.android.PythonActivity')
 
 
 class Runnable(PythonJavaClass):
@@ -23,9 +23,6 @@ class Runnable(PythonJavaClass):
         self.func = func
 
     def __call__(self, args, kwargs):
-        global _PythonActivity
-        if _PythonActivity is None:
-            _PythonActivity = autoclass('org.renpy.android.PythonActivity')
         self.args = args
         self.kwargs = kwargs
         _PythonActivity.mActivity.runOnUiThread(self)

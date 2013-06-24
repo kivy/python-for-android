@@ -1,7 +1,7 @@
 # Android-specific python services.
 
 cdef extern int SDL_ANDROID_CheckPause()
-cdef extern void SDL_ANDROID_WaitForResume()
+cdef extern void SDL_ANDROID_WaitForResume() nogil
 cdef extern void SDL_ANDROID_MapKey(int scancode, int keysym)
 
 def check_pause():
