@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import java.util.zip.GZIPInputStream;
 
@@ -371,7 +372,67 @@ public class PythonActivity extends Activity implements Runnable {
         PythonActivity.mActivity.stopService(serviceIntent);
     }
 
+	//----------------------------------------------------------------------------
+	// Listener interface for onNewIntent
+	//
 
+	public interface NewIntentListener {
+		void onNewIntent(Intent intent);
+	}
+
+	private ArrayList<NewIntentListener> newIntentListeners = null;
+
+	public void registerNewIntentListener(NewIntentListener listener) {
+		if ( this.newIntentListeners == null )
+			this.newIntentListeners = new ArrayList<NewIntentListener>();
+		this.newIntentListeners.add(listener);
+	}
+
+	public void unregisterNewIntentListener(NewIntentListener listener) {
+		if ( this.newIntentListeners == null )
+			return;
+		this.newIntentListeners.remove(listener);
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		if ( this.newIntentListeners == null )
+			return;
+		if ( this.mView != null )
+			this.mView.onResume();
+		for ( NewIntentListener listener : this.newIntentListeners )
+			listener.onNewIntent(intent);
+	}
+
+	//----------------------------------------------------------------------------
+	// Listener interface for onActivityResult
+	//
+
+	public interface ActivityResultListener {
+		void onActivityResult(int requestCode, int resultCode, Intent data);
+	}
+
+	private ArrayList<ActivityResultListener> activityResultListeners = null;
+
+	public void registerActivityResultListener(ActivityResultListener listener) {
+		if ( this.activityResultListeners == null )
+			this.activityResultListeners = new ArrayList<ActivityResultListener>();
+		this.activityResultListeners.add(listener);
+	}
+
+	public void unregisterActivityResultListener(ActivityResultListener listener) {
+		if ( this.activityResultListeners == null )
+			return;
+		this.activityResultListeners.remove(listener);
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		if ( this.activityResultListeners == null )
+			return;
+		for ( ActivityResultListener listener : this.activityResultListeners )
+			listener.onActivityResult(requestCode, resultCode, intent);
+	}
 
 	//----------------------------------------------------------------------------
 	// Billing

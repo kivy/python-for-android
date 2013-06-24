@@ -1,7 +1,7 @@
 # This module is, as much a possible, a clone of the pygame
 # mixer api.
 
-import android_sound as sound
+import android._android_sound as sound
 import time
 import threading
 import os

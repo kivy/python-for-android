@@ -30,18 +30,9 @@ function build_android() {
 	export LDSHARED="$LIBLINK"
 
 	# cythonize
-	try cython android.pyx
-	try cython android_sound.pyx
-	try cython android_billing.pyx
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -i
-
-	# copy files
-	try cp android.so android_sound.so android_billing.so \
-		$BUILD_PATH/python-install/lib/python2.7/lib-dynload/
-	try cp android_mixer.py \
-		$BUILD_PATH/python-install/lib/python2.7/
-	try cp android_broadcast.py \
-		$BUILD_PATH/python-install/lib/python2.7/
+	try find . -iname '*.pyx' -exec cython {} \;
+	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
 
 	unset LDSHARED
 

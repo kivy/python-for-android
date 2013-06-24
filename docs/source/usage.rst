@@ -1,8 +1,8 @@
 Usage
-=====
+-----
 
 Step 1: compile the toolchain
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to compile the toolchain with only kivy module::
 
@@ -19,7 +19,8 @@ libraries to compile before any Python module, order is important.
     ./distribute.sh -m "pil ffmpeg kivy"
 
 
-For a full list, refer to :ref:`recipes`
+The list of available recipes is available at:
+https://github.com/kivy/python-for-android/tree/master/recipes
 
 .. note::
 
@@ -37,7 +38,7 @@ Available options to `distribute.sh`::
     -f                     Restart from scratch (remove the current build)
 
 Step 2: package your application
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Go fo your custom python distribution::
 

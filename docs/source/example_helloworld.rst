@@ -1,5 +1,5 @@
-Hello world example
-===================
+Hello world
+-----------
 
 If you don't know how to start with Python for Android, here is a simple
 tutorial for creating an UI using `Kivy <http://kivy.org/>`_, and make an APK
@@ -57,11 +57,11 @@ Let's create a simple Hello world application, with one Label and one Button.
 
 #. Create a distribute with kivy::
 
-    ./distribute.sh -m kivy -d 'dist-kivy'
+    ./distribute.sh -m kivy
 
-#. Go to the newly created ``dist-kivy`` distribution::
+#. Go to the newly created ``default`` distribution::
 
-    cd dist/dist-kivy
+    cd dist/default
 
 #. Plug your android device, and ensure you can install development application
 

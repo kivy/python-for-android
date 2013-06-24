@@ -1,5 +1,5 @@
-Related project
-===============
+Related projects
+================
 
 - PGS4A: http://pygame.renpy.org/ (thanks to Renpy to make it possible)
 - Android scripting: http://code.google.com/p/android-scripting/
