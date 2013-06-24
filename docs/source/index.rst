@@ -24,6 +24,7 @@ your application.
     customize.rst
     recipes.rst
     android.rst
+    activity.rst
     related.rst
     extend.rst
     faq.rst
