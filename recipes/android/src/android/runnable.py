@@ -25,8 +25,8 @@ class Runnable(PythonJavaClass):
     def __call__(self, args, kwargs):
         self.args = args
         self.kwargs = kwargs
-        _PythonActivity.mActivity.runOnUiThread(self)
         Runnable.__runnables__.append(self)
+        _PythonActivity.mActivity.runOnUiThread(self)
 
     @java_method('()V')
     def run(self):

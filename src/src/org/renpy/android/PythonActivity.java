@@ -21,7 +21,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 
 import java.util.zip.GZIPInputStream;
 
@@ -380,11 +381,11 @@ public class PythonActivity extends Activity implements Runnable {
 		void onNewIntent(Intent intent);
 	}
 
-	private ArrayList<NewIntentListener> newIntentListeners = null;
+	private List<NewIntentListener> newIntentListeners = null;
 
 	public void registerNewIntentListener(NewIntentListener listener) {
 		if ( this.newIntentListeners == null )
-			this.newIntentListeners = new ArrayList<NewIntentListener>();
+			this.newIntentListeners = Collections.synchronizedList(new ArrayList<NewIntentListener>());
 		this.newIntentListeners.add(listener);
 	}
 
@@ -400,8 +401,12 @@ public class PythonActivity extends Activity implements Runnable {
 			return;
 		if ( this.mView != null )
 			this.mView.onResume();
-		for ( NewIntentListener listener : this.newIntentListeners )
-			listener.onNewIntent(intent);
+		synchronized ( this.newIntentListeners ) {
+			Iterator<NewIntentListener> iterator = this.newIntentListeners.iterator();
+			while ( iterator.hasNext() ) {
+				(iterator.next()).onNewIntent(intent);
+			}
+		}
 	}
 
 	//----------------------------------------------------------------------------
@@ -412,11 +417,11 @@ public class PythonActivity extends Activity implements Runnable {
 		void onActivityResult(int requestCode, int resultCode, Intent data);
 	}
 
-	private ArrayList<ActivityResultListener> activityResultListeners = null;
+	private List<ActivityResultListener> activityResultListeners = null;
 
 	public void registerActivityResultListener(ActivityResultListener listener) {
 		if ( this.activityResultListeners == null )
-			this.activityResultListeners = new ArrayList<ActivityResultListener>();
+			this.activityResultListeners = Collections.synchronizedList(new ArrayList<ActivityResultListener>());
 		this.activityResultListeners.add(listener);
 	}
 
@@ -432,8 +437,11 @@ public class PythonActivity extends Activity implements Runnable {
 			return;
 		if ( this.mView != null )
 			this.mView.onResume();
-		for ( ActivityResultListener listener : this.activityResultListeners )
-			listener.onActivityResult(requestCode, resultCode, intent);
+		synchronized ( this.activityResultListeners ) {
+			Iterator<ActivityResultListener> iterator = this.activityResultListeners.iterator();
+			while ( iterator.hasNext() )
+				(iterator.next()).onActivityResult(requestCode, resultCode, intent);
+		}
 	}
 
 	//----------------------------------------------------------------------------

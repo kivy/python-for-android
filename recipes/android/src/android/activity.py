@@ -1,4 +1,4 @@
-from jnius import PythonJavaClass, java_method, autoclass
+from jnius import PythonJavaClass, java_method, autoclass, cast
 
 _activity = autoclass('org.renpy.android.PythonActivity').mActivity
 
@@ -10,13 +10,21 @@ class NewIntentListener(PythonJavaClass):
     __javainterfaces__ = ['org/renpy/android/PythonActivity$NewIntentListener']
     __javacontext__ = 'app'
 
-    def __init__(self, callback):
-        super(NewIntentListener, self).__init__()
+    def __init__(self, callback, **kwargs):
+        super(NewIntentListener, self).__init__(**kwargs)
         self.callback = callback
 
     @java_method('(Landroid/content/Intent;)V')
     def onNewIntent(self, intent):
         self.callback(intent)
+
+    @java_method('(Ljava/lang/Object;)Z')
+    def equals(self, obj):
+        return obj.hashCode() == self.hashCode()
+
+    @java_method('()I')
+    def hashCode(self):
+        return id(self)
 
 
 class ActivityResultListener(PythonJavaClass):
@@ -30,6 +38,14 @@ class ActivityResultListener(PythonJavaClass):
     @java_method('(IILandroid/content/Intent;)V')
     def onActivityResult(self, requestCode, resultCode, intent):
         self.callback(requestCode, resultCode, intent)
+
+    @java_method('(Ljava/lang/Object;)Z')
+    def equals(self, obj):
+        return obj.hashCode() == self.hashCode()
+
+    @java_method('()I')
+    def hashCode(self):
+        return id(self)
 
 
 def bind(**kwargs):
@@ -51,7 +67,7 @@ def unbind(**kwargs):
             raise Exception('Unknown {!r} event'.format(event))
         else:
             for listener in _callbacks[event][:]:
-                if listener.callback is callback:
+                if listener.callback == callback:
                     _callbacks[event].remove(listener)
                     if event == 'on_new_intent':
                         _activity.unregisterNewIntentListener(listener)
