@@ -413,8 +413,6 @@ function run_source_modules() {
 	MODULES="$(python tools/depsort.py --optional $fn_optional_deps < $fn_deps)"
 
 	info "Modules changed to $MODULES"
-
-	exit 1
 }
 
 function run_get_packages() {
