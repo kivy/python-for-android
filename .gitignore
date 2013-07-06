@@ -14,3 +14,7 @@ testsuite
 #ECLIPSE + PYDEV
 .project
 .pydevproject
+
+.deps
+
+.optional-deps

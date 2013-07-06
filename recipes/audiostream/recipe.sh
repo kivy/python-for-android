@@ -2,7 +2,7 @@
 
 VERSION_audiostream=
 URL_audiostream=https://github.com/kivy/audiostream/zipball/master/audiostream.zip
-DEPS_audiostream=(python sdl)
+DEPS_audiostream=(python sdl pyjnius)
 MD5_audiostream=
 BUILD_audiostream=$BUILD_PATH/audiostream/audiostream
 RECIPE_audiostream=$RECIPES_PATH/audiostream

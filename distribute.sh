@@ -360,7 +360,12 @@ function in_array() {
 function run_source_modules() {
 	needed=($MODULES)
 	declare -a processed
-	order=()
+
+	fn_deps='.deps'
+	fn_optional_deps='.optional-deps'
+
+	> $fn_deps
+	> $fn_optional_deps
 
 	while [ ${#needed[*]} -ne 0 ]; do
 
@@ -379,12 +384,6 @@ function run_source_modules() {
 		# add this module as done
 		processed=( ${processed[@]} $module )
 
-		# append our module at the end only if we are not exist yet
-		in_array $module "${order[@]}"
-		if [ $? -eq 255 ]; then
-			order=( ${order[@]} $module )
-		fi
-
 		# read recipe
 		debug "Read $module recipe"
 		recipe=$RECIPES_PATH/$module/recipe.sh
@@ -397,33 +396,25 @@ function run_source_modules() {
 		# append current module deps to the needed
 		deps=$(echo \$"{DEPS_$module[@]}")
 		eval deps=($deps)
+		optional_deps=$(echo \$"{DEPS_OPTIONAL_$module[@]}")
+		eval optional_deps=($optional_deps)
 		if [ ${#deps[*]} -gt 0 ]; then
 			debug "Module $module depend on" ${deps[@]}
 			needed=( ${needed[@]} ${deps[@]} )
-
-			# for every deps, check if it's already added to order
-			# if not, add the deps before ourself
-			debug "Dependency order is ${order[@]} (current)"
-			for dep in "${deps[@]}"; do
-				#debug "Check if $dep is in order"
-				in_array $dep "${order[@]}"
-				if [ $? -eq 255 ]; then
-					#debug "missing $dep in order"
-					# deps not found in order
-					# add it before ourself
-					in_array $module "${order[@]}"
-					index=$?
-					#debug "our $module index is $index"
-					order=(${order[@]:0:$index} $dep ${order[@]:$index})
-					#debug "new order is ${order[@]}"
-				fi
-			done
-			debug "Dependency order is ${order[@]} (computed)"
+			echo $module ${deps[@]} >> $fn_deps
+		else
+			echo $module >> $fn_deps
+		fi
+		if [ ${#optional_deps[*]} -gt 0 ]; then
+			echo $module ${optional_deps[@]} >> $fn_optional_deps
 		fi
 	done
 
-	MODULES="${order[@]}"
-	info="Modules changed to $MODULES"
+	MODULES="$(python tools/depsort.py --optional $fn_optional_deps < $fn_deps)"
+
+	info "Modules changed to $MODULES"
+
+	exit 1
 }
 
 function run_get_packages() {
