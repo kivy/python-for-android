@@ -2,7 +2,7 @@
 
 VERSION_pycrypto=2.5
 URL_pycrypto=http://pypi.python.org/packages/source/p/pycrypto/pycrypto-$VERSION_pycrypto.tar.gz
-DEPS_pycrypto=(openssl hostpython python)
+DEPS_pycrypto=(openssl python)
 MD5_pycrypto=783e45d4a1a309e03ab378b00f97b291
 BUILD_pycrypto=$BUILD_PATH/pycrypto/$(get_directory $URL_pycrypto)
 RECIPE_pycrypto=$RECIPES_PATH/pycrypto
