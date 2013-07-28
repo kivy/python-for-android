@@ -2,7 +2,7 @@
 
 VERSION_pyasn1=2.5
 URL_pyasn1=http://downloads.sourceforge.net/project/pyasn1/pyasn1/0.1.4/pyasn1-0.1.4.tar.gz
-DEPS_pyasn1=()
+DEPS_pyasn1=(python)
 MD5_pyasn1=
 BUILD_pyasn1=$BUILD_PATH/pyasn1/$(get_directory $URL_pyasn1)
 RECIPE_pyasn1=$RECIPES_PATH/pyasn1
