@@ -8,11 +8,10 @@ BUILD_libxslt=$BUILD_PATH/libxslt/$(get_directory $URL_libxslt)
 RECIPE_libxslt=$RECIPES_PATH/libxslt
 
 function prebuild_libxslt() {
+	cd $BUILD_libxslt
 	if [ -f .patched ]; then
 		return
 	fi
-
-	cd $BUILD_libxslt
 	try patch -p1 < $RECIPE_libxslt/fix-dlopen.patch
 	touch .patched
 }

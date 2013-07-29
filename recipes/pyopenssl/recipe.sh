@@ -3,12 +3,18 @@
 VERSION_pyopenssl=0.13
 URL_pyopenssl=http://pypi.python.org/packages/source/p/pyOpenSSL/pyOpenSSL-$VERSION_pyopenssl.tar.gz
 DEPS_pyopenssl=(openssl python)
-MD5_pyopenssl= 767bca18a71178ca353dff9e10941929
+MD5_pyopenssl=767bca18a71178ca353dff9e10941929
 BUILD_pyopenssl=$BUILD_PATH/pyopenssl/$(get_directory $URL_pyopenssl)
 RECIPE_pyopenssl=$RECIPES_PATH/pyopenssl
 
 function prebuild_pyopenssl() {
-	true
+	cd $BUILD_pyopenssl
+	if [ -f .patched ]; then
+		return
+	fi
+
+	try patch -p1 < $RECIPE_pyopenssl/fix-dlfcn.patch
+	touch .patched
 }
 
 function build_pyopenssl() {
