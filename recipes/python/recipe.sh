@@ -30,6 +30,7 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/verbose-compilation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
+	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
