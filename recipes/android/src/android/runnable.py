@@ -22,7 +22,7 @@ class Runnable(PythonJavaClass):
         super(Runnable, self).__init__()
         self.func = func
 
-    def __call__(self, args, kwargs):
+    def __call__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         Runnable.__runnables__.append(self)
