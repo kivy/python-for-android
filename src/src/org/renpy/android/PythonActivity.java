@@ -330,17 +330,6 @@ public class PythonActivity extends Activity implements Runnable {
         }
     }
 
-    @Override
-    public boolean dispatchTouchEvent(final MotionEvent ev) {
-
-        if (mView != null){
-            mView.onTouchEvent(ev);
-            return true;
-        } else {
-            return super.dispatchTouchEvent(ev);
-        }
-    }
-
     protected void onDestroy() {
         mPurchaseDatabase.close();
         mBillingService.unbind();
