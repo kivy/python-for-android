@@ -167,7 +167,7 @@ function push_arm() {
 	# search compiler in the path, to fail now instead of later.
 	CC=$(which $TOOLCHAIN_PREFIX-gcc)
 	if [ "X$CC" == "X" ]; then
-		error "Unable to found compiler ($TOOLCHAIN_PREFIX-gcc) !!"
+		error "Unable to find compiler ($TOOLCHAIN_PREFIX-gcc) !!"
 		error "1. Ensure that SDK/NDK paths are correct"
 		error "2. Ensure that you've the Android API $ANDROIDAPI SDK Platform (via android tool)"
 		exit 1
