@@ -43,5 +43,5 @@ def run_on_ui_thread(f):
     function. The function will be delayed and call into the Activity thread.
     '''
     def f2(*args, **kwargs):
-        Runnable(f)(args, kwargs)
+        Runnable(f)(*args, **kwargs)
     return f2
