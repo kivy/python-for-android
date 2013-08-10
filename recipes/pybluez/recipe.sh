@@ -4,13 +4,13 @@ VERSION_pyblues=
 URL_pybluez=https://dl.dropboxusercontent.com/u/26205750/pybluez.tar.gz
 DEPS_pybluez=(python setuptools)
 BUILD_pybluez=$BUILD_PATH/pybluez/$(get_directory $URL_pybluez)
-RECIPE_pybluez=$RECIPE_PATH/pybluez
+RECIPE_pybluez=$RECIPES_PATH/pybluez
 
 
 function prebuild_pybluez() {
 
     cd $BUILD_pybluez
-
+    
     if [ -f .patched ]; then
         return
     fi
