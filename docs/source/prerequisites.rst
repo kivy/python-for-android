@@ -66,5 +66,5 @@ After installing them, export both installation path, NDK version and API to use
 
 Also, you must configure you're PATH to add the ``android`` binary::
 
-    export PATH=$ANDROIDNDK:$ANDROIDSDK/tools:$PATH
+    export PATH=$ANDROIDNDK:$ANDROIDSDK/platform-tools:$ANDROIDSDK/tools:$PATH
 
