@@ -12,8 +12,7 @@ After a long time, you'll get a "dist/default" directory containing all the comp
 libraries and build.py script to package your application using thoses
 libraries.
 
-You can include other modules (or "recipes") to compile using `-m`. Put the C
-libraries to compile before any Python module, order is important.
+You can include other modules (or "recipes") to compile using `-m`::
 
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
