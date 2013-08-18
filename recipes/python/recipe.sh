@@ -33,7 +33,9 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
 
 	# for debug
-	try patch -p1 < $RECIPE_python/patches/no-optim.patch
+	if [ "X$DO_DEBUG_BUILD" != "X" ]; then
+		try patch -p1 < $RECIPE_python/patches/no-optim.patch
+	fi
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
@@ -76,7 +78,9 @@ function build_python() {
 	fi
 
 	# ok, it's a bit ugly
-	sed 's/-O3/-O0/' -i configure
+	if [ "X$DO_DEBUG_BUILD" != "X" ]; then
+		sed 's/-O3/-O0/' -i configure
+	fi
 
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework

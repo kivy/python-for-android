@@ -135,9 +135,13 @@ function push_arm() {
 	#export OFLAG="-Os"
 	#export OFLAG="-O2"
 
-	export CFLAGS="-DANDROID -mandroid $OFLAG -g -fomit-frame-pointer --sysroot $NDKPLATFORM"
+	if [ "X$DO_DEBUG_BUILD" == "X1" ]; then
+		CFLAGS_G="-g"
+	fi
+
+	export CFLAGS="-DANDROID -mandroid $OFLAG $CFLAGS_G -fomit-frame-pointer --sysroot $NDKPLATFORM"
 	if [ "X$ARCH" == "Xarmeabi-v7a" ]; then
-		CFLAGS+=" -march=armv7-a -g -mfloat-abi=softfp -mfpu=vfp -mthumb"
+		CFLAGS+=" -march=armv7-a $CFLAGS_G -mfloat-abi=softfp -mfpu=vfp -mthumb"
 	fi
 	export CXXFLAGS="$CFLAGS"
 
@@ -221,6 +225,7 @@ function usage() {
 	echo "  -m 'mod1 mod2'         Modules to include"
 	echo "  -f                     Restart from scratch (remove the current build)"
         echo "  -x                     display expanded values (execute 'set -x')"
+	echo "  -g                     create a distribution with debug symbols activated, to use with gdb-remote"
 	echo
 	exit 0
 }
@@ -614,10 +619,13 @@ function run_distribute() {
 	try rm -rf lib-dynload/_ctypes_test.so
 	try rm -rf lib-dynload/_testcapi.so
 
-	#debug "Strip libraries"
-	#push_arm
-	#try find "$DIST_PATH"/private "$DIST_PATH"/libs -iname '*.so' -exec $STRIP {} \;
-	#pop_arm
+	if [ "X$DO_DEBUG_BUILD" == "X" ]
+	then
+		debug "Strip libraries"
+		push_arm
+		try find "$DIST_PATH"/private "$DIST_PATH"/libs -iname '*.so' -exec $STRIP {} \;
+		pop_arm
+	fi
 
 }
 
@@ -664,7 +672,7 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfxm:d:s" opt; do
+while getopts ":hvlfxm:d:s:g" opt; do
 	case $opt in
 		h)
 			usage
@@ -691,6 +699,10 @@ while getopts ":hvlfxm:d:s" opt; do
 			;;
 		x)
 			DO_SET_X=1
+			;;
+		g)
+			# need to export so recipes can test on it
+			export DO_DEBUG_BUILD=1
 			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
