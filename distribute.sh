@@ -410,7 +410,7 @@ function run_source_modules() {
 		fi
 	done
 
-	MODULES="$(python tools/depsort.py --optional $fn_optional_deps < $fn_deps)"
+	MODULES="$($PYTHON tools/depsort.py --optional $fn_optional_deps < $fn_deps)"
 
 	info "Modules changed to $MODULES"
 }
