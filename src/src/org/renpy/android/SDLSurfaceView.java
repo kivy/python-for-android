@@ -904,8 +904,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         int sdlAction = -1;
         int pointerId = -1;
         int pointerIndex = -1;
-        int[] coords = new int[2];
-        this.getLocationInWindow(coords);
 
         switch ( action ) {
             case MotionEvent.ACTION_DOWN:
@@ -955,8 +953,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                       ));
                      **/
                     SDLSurfaceView.nativeMouse(
-                            (int)event.getX(i) - coords[0],
-                            (int)event.getY(i) - coords[1],
+                            (int)event.getX(i),
+                            (int)event.getY(i),
                             sdlAction,
                             event.getPointerId(i),
                             (int)(event.getPressure(i) * 1000.0),
