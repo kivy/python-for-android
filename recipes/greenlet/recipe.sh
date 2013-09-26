@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_greenlet=0.4.1
+VERSION_greenlet=${VERSION_greenlet:-0.4.1}
 URL_greenlet=https://pypi.python.org/packages/source/g/greenlet/greenlet-$VERSION_greenlet.zip
 https://github.com/downloads/greenlet/greenlet/greenlet-$VERSION_greenlet.tar.gz
 DEPS_greenlet=(python)

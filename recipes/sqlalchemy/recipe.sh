@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_sqlalchemy=0.8.2
+VERSION_sqlalchemy=${VERSION_sqlalchemy:-0.8.2}
 DEPS_sqlalchemy=(python)
 URL_sqlalchemy=https://pypi.python.org/packages/source/S/SQLAlchemy/SQLAlchemy-${VERSION_sqlalchemy}.tar.gz
 MD5_sqlalchemy=5a33fb43dea93468dbb2a6562ee80b54

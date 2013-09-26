@@ -2,8 +2,8 @@
 # Recent change made ffmpeg not compatible with python-for-android yet.
 # Only h264+aac build are working.
 
-VERSION_ffmpeg=
-URL_ffmpeg=https://github.com/tito/ffmpeg-android/zipball/master/ffmpeg-android.zip
+VERSION_ffmpeg=${VERSION_ffmpeg:-master}
+URL_ffmpeg=https://github.com/tito/ffmpeg-android/zipball/$VERSION_ffmpeg/ffmpeg-android.zip
 DEPS_ffmpeg=(python sdl)
 MD5_ffmpeg=
 BUILD_ffmpeg=$BUILD_PATH/ffmpeg/ffmpeg-android

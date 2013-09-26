@@ -1,8 +1,8 @@
 #!/bin/bash
 
-VERSION_pylibpd=
+VERSION_pylibpd=${VERSION_pylibpd:-master}
 DEPS_pylibpd=(python)
-URL_pylibpd=https://github.com/libpd/libpd/archive/master.zip
+URL_pylibpd=https://github.com/libpd/libpd/archive/$VERSION_pylibpd.zip
 MD5_pylibpd=
 BUILD_pylibpd=$BUILD_PATH/pylibpd/$(get_directory $URL_pylibpd)
 RECIPE_pylibpd=$RECIPES_PATH/pylibpd

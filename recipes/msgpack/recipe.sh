@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_msgpack=0.3.0
+VERSION_msgpack=${VERSION_msgpack:-0.3.0}
 URL_msgpack=https://pypi.python.org/packages/source/m/msgpack-python/msgpack-python-$VERSION_msgpack.tar.gz
 DEPS_msgpack=(python setuptools)
 MD5_msgpack=10dec96c90992b0f6e38bdf0cc5a8e79

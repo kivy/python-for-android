@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 
 # Modules
-MODULES=$MODULES
+MODULES=
 
 # Resolve Python path
 PYTHON="$(which python2.7)"
@@ -358,6 +358,26 @@ function in_array() {
 }
 
 function run_source_modules() {
+	# preprocess version modules
+	needed=($MODULES)
+	while [ ${#needed[*]} -ne 0 ]; do
+
+		# pop module from the needed list
+		module=${needed[0]}
+		unset needed[0]
+		needed=( ${needed[@]} )
+
+		# is a version is specified ?
+		items=( ${module//==/ } )
+		module=${items[0]}
+		version=${items[1]}
+		if [ ! -z "$version" ]; then
+			info "Specific version detected for $module: $version"
+			eval "VERSION_$module=$version"
+		fi
+	done
+
+
 	needed=($MODULES)
 	declare -a processed
 
@@ -373,6 +393,11 @@ function run_source_modules() {
 		module=${needed[0]}
 		unset needed[0]
 		needed=( ${needed[@]} )
+
+		# split the version if exist
+		items=( ${module//==/ } )
+		module=${items[0]}
+		version=${items[1]}
 
 		# check if the module have already been declared
 		in_array $module "${processed[@]}"
@@ -392,6 +417,13 @@ function run_source_modules() {
 			exit -1
 		fi
 		source $RECIPES_PATH/$module/recipe.sh
+
+		# if a version has been specified by the user, the md5 will not
+		# correspond at all. so deactivate it.
+		if [ ! -z "$version" ]; then
+			debug "Deactivate MD5 test for $module, due to specific version"
+			eval "MD5_$module="
+		fi
 
 		# append current module deps to the needed
 		deps=$(echo \$"{DEPS_$module[@]}")

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_lxml=2.3.6
+VERSION_lxml=${VERSION_lxml:-2.3.6}
 URL_lxml=http://pypi.python.org/packages/source/l/lxml/lxml-$VERSION_lxml.tar.gz
 DEPS_lxml=(libxml2 libxslt python)
 MD5_lxml=d5d886088e78b1bdbfd66d328fc2d0bc

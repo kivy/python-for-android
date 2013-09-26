@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_txws=0.7
+VERSION_txws=${VERSION_txws:-0.7}
 URL_txws=http://pypi.python.org/packages/source/t/txWS/txWS-$VERSION_txws.tar.gz
 DEPS_txws=(twisted)
 MD5_txws=e8f5fb03c189d83b47b21176c7574126
