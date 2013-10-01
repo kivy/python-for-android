@@ -167,11 +167,11 @@ def get_dpi():
 
 
 # Soft keyboard.
-cdef extern void android_show_keyboard()
+cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
-def show_keyboard():
-    android_show_keyboard()
+def show_keyboard(input_type):
+    android_show_keyboard(input_type)
 
 def hide_keyboard():
     android_hide_keyboard()

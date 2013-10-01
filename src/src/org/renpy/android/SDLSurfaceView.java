@@ -275,6 +275,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // Have we started yet?
     public boolean mStarted = false;
 
+    // what is the textinput type while calling the keyboard
+    public int inputType = EditorInfo.TYPE_CLASS_TEXT;
+
     // Is Python ready to receive input events?
     static boolean mInputActivated = false;
 
@@ -429,6 +432,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+
+    public void closeSoftKeyboard(){
+        // close the IME overlay(keyboard)
+        Hardware.hideKeyboard();
+    }
+
     /**
      * Inform the view that the activity is paused. The owner of this view must
      * call this method when the activity is paused. Calling this method will
@@ -437,6 +446,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void onPause() {
 
+        this.closeSoftKeyboard();
         synchronized (this) {
             if (mPause == PAUSE_NONE) {
                 mPause = PAUSE_REQUEST;
@@ -476,6 +486,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public void onDestroy() {
         Log.w(TAG, "onDestroy() called");
+        this.closeSoftKeyboard();
         synchronized (this) {
             this.notifyAll();
 
@@ -484,9 +495,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 return;
             }
 
-            // close the IME overlay(keyboard)
-            InputMethodManager inputMethodManager = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromInputMethod(this.getWindowToken(), 0);
 
             // application didn't leave, give 10s before closing.
             // hopefully, this could be enough for launching the on_stop() trigger within the app.
@@ -1050,7 +1058,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         // setting inputtype to TYPE_CLASS_TEXT is necessary for swiftkey to enable
-        outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT;
+        outAttrs.inputType = inputType;
         // ask IME to avoid taking full screen on landscape mode
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         return new BaseInputConnection(this, false){
