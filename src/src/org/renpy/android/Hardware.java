@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.DisplayMetrics;
 import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.View;
 
 import java.util.List;
@@ -19,7 +20,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-
 
 
 /**
@@ -168,8 +168,20 @@ public class Hardware {
     /**
      * Show the soft keyboard.
      */
-    public static void showKeyboard() {
+    public static void showKeyboard(int input_type) {
+        //Log.i("python", "hardware.Java show_keyword  " input_type);
+
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        SDLSurfaceView vw = (SDLSurfaceView) view;
+
+        int inputType = input_type;
+
+        if (vw.inputType != inputType){
+            vw.inputType = inputType;
+            imm.restartInput(view);
+            }
+
         imm.showSoftInput(view, InputMethodManager.SHOW_FORCED);
     }
 
