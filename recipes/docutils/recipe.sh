@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION_docutils=
-URL_docutils=http://prdownloads.sourceforge.net/docutils/docutils-0.9.1.tar.gz
+VERSION_docutils=${VERSION_docutils:-0.9.1}
+URL_docutils=http://prdownloads.sourceforge.net/docutils/docutils-$VERSION_docutils.tar.gz
 DEPS_docutils=(pil)
 MD5_docutils=
 BUILD_docutils=$BUILD_PATH/docutils/$(get_directory $URL_docutils)

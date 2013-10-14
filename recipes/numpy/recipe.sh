@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_numpy=1.7.1
+VERSION_numpy=${VERSION_numpy:-1.7.1}
 URL_numpy=http://pypi.python.org/packages/source/n/numpy/numpy-$VERSION_numpy.tar.gz
 DEPS_numpy=(python)
 MD5_numpy=0ab72b3b83528a7ae79c6df9042d61c6

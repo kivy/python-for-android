@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_libxml2=2.7.8
+VERSION_libxml2=${VERSION_libxml2:-2.7.8}
 URL_libxml2=ftp://xmlsoft.org/libxml2/libxml2-$VERSION_libxml2.tar.gz
 DEPS_libxml2=()
 MD5_libxml2=8127a65e8c3b08856093099b52599c86

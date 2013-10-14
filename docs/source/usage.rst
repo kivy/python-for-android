@@ -17,6 +17,12 @@ You can include other modules (or "recipes") to compile using `-m`::
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
 
+You can also specify a specific version for each package. Please note that the
+compilation might **break** if you don't use the default version. Most recipes
+have patch to fixes android issues, and might not apply if you specify a
+version. We also recommand to clean build/ before changing version.::
+
+    ./distribute.sh -m "openssl kivy==master"
 
 The list of available recipes is available at:
 https://github.com/kivy/python-for-android/tree/master/recipes

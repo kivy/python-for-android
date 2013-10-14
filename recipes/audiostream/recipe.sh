@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION_audiostream=
-URL_audiostream=https://github.com/kivy/audiostream/zipball/master/audiostream.zip
+VERSION_audiostream=${VERSION_audiostream:-master}
+URL_audiostream=https://github.com/kivy/audiostream/zipball/$VERSION_audiostream/audiostream.zip
 DEPS_audiostream=(python sdl pyjnius)
 MD5_audiostream=
 BUILD_audiostream=$BUILD_PATH/audiostream/audiostream

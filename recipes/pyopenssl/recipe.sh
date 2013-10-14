@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_pyopenssl=0.13
+VERSION_pyopenssl=${VERSION_pyopenssl:-0.13}
 URL_pyopenssl=http://pypi.python.org/packages/source/p/pyOpenSSL/pyOpenSSL-$VERSION_pyopenssl.tar.gz
 DEPS_pyopenssl=(openssl python)
 MD5_pyopenssl=767bca18a71178ca353dff9e10941929

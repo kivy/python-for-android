@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_pil=1.1.7
+VERSION_pil=${VERSION_pil:-1.1.7}
 URL_pil=http://effbot.org/downloads/Imaging-$VERSION_pil.tar.gz
 DEPS_pil=(png jpeg python)
 MD5_pil=fc14a54e1ce02a0225be8854bfba478e

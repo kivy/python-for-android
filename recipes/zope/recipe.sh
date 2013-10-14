@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_zope=3.8.0
+VERSION_zope=${VERSION_zope:-3.8.0}
 URL_zope=http://pypi.python.org/packages/source/z/zope.interface/zope.interface-$VERSION_zope.tar.gz
 DEPS_zope=(python)
 MD5_zope=8ab837320b4532774c9c89f030d2a389

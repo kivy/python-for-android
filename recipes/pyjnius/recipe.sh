@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION_pyjnius=
-URL_pyjnius=https://github.com/kivy/pyjnius/zipball/master/pyjnius-master.zip
+VERSION_pyjnius=${VERSION_pyjnius:-master}
+URL_pyjnius=https://github.com/kivy/pyjnius/zipball/$VERSION_pyjnius/pyjnius-$VERSION_pyjnius.zip
 DEPS_pyjnius=(python sdl)
 MD5_pyjnius=
 BUILD_pyjnius=$BUILD_PATH/pyjnius/$(get_directory $URL_pyjnius)

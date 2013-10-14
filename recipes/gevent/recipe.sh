@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_gevent=0.13.8
+VERSION_gevent=${VERSION_gevent:-0.13.8}
 URL_gevent=https://pypi.python.org/packages/source/g/gevent/gevent-$VERSION_gevent.tar.gz
 DEPS_gevent=(libevent greenlet)
 MD5_gevent=ca9dcaa7880762d8ebbc266b11252960

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_libevent=2.0.21-stable
+VERSION_libevent=${VERSION_libevent:-2.0.21-stable}
 URL_libevent=https://github.com/downloads/libevent/libevent/libevent-$VERSION_libevent.tar.gz
 DEPS_libevent=(python)
 MD5_libevent=b2405cc9ebf264aa47ff615d9de527a2

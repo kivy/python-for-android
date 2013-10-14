@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_setuptools=0.6c11
+VERSION_setuptools=${VERSION_setuptools:-0.6c11}
 URL_setuptools=http://pypi.python.org/packages/source/s/setuptools/setuptools-$VERSION_setuptools.tar.gz
 DEPS_setuptools=(python)
 MD5_setuptools=7df2a529a074f613b509fb44feefe74e

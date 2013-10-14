@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_pycrypto=2.5
+VERSION_pycrypto=${VERSION_pycrypto:-2.5}
 URL_pycrypto=http://pypi.python.org/packages/source/p/pycrypto/pycrypto-$VERSION_pycrypto.tar.gz
 DEPS_pycrypto=(openssl python)
 MD5_pycrypto=783e45d4a1a309e03ab378b00f97b291
