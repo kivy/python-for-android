@@ -15,7 +15,7 @@
 
     <activity android:name="org.renpy.android.PythonActivity"
               android:label="@string/iconName"
-              android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode|screenSize"
+			  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if android_api >= 13 %}|screenSize{% endif %}"
               android:launchMode="singleTask"
               android:process=":python"
               android:screenOrientation="{{ args.orientation }}"

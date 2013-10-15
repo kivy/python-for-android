@@ -246,6 +246,9 @@ def make_package(args):
             print 'Invalid --ouya-category argument. should be one of GAME or APP'
             sys.exit(-1)
 
+    # Get target android API
+    android_api = int(os.environ.get('ANDROIDAPI', '8'))
+
     # Render the various templates into control files.
     render(
         'AndroidManifest.tmpl.xml',
@@ -255,7 +258,7 @@ def make_package(args):
         url_scheme=url_scheme,
         intent_filters=intent_filters,
         manifest_extra=manifest_extra,
-        )
+        android_api=android_api)
 
     render(
         'Configuration.tmpl.java',
@@ -277,9 +280,9 @@ def make_package(args):
         args=args)
 
     # Update the project to a recent version.
-    android_api = 'android-%s' % os.environ.get('ANDROIDAPI', '8')
     try:
-        subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t', android_api])
+        subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
+            'android-{}'.format(android_api)])
     except (OSError, IOError):
         print 'An error occured while calling', ANDROID, 'update'
         print 'Your PATH must include android tools.'
