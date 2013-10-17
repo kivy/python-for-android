@@ -27,6 +27,13 @@ version. We also recommand to clean build/ before changing version.::
 The list of available recipes is available at:
 https://github.com/kivy/python-for-android/tree/master/recipes
 
+From python-for-android 1.1, you can now specify pure-python package into the
+-m. It will use virtualenv and pip to install pure-python modules into the
+distribution. Please note that compiler are deactivated, and will break any
+module who try to compile something. If compilation is needed, write a recipe::
+
+    ./distribute.sh -m "requests pygments kivy"
+
 .. note::
 
    Recipes download a defined version of their needed package from the
