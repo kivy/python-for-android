@@ -159,9 +159,12 @@ function push_arm() {
     elif [ "X${ANDROIDNDKVER:0:2}" == "Xr7" ] || [ "X${ANDROIDNDKVER:0:2}" == "Xr8" ]; then
         export TOOLCHAIN_PREFIX=arm-linux-androideabi
         export TOOLCHAIN_VERSION=4.4.3
-    elif  [ "X${ANDROIDNDKVER}" == "Xr9" ]; then
+    elif  [ "X${ANDROIDNDKVER:0:2}" == "Xr9" ]; then
             export TOOLCHAIN_PREFIX=arm-linux-androideabi
             export TOOLCHAIN_VERSION=4.8
+    else
+        echo "Error: Please report issue to enable support for newer ndk."
+        exit 1
     fi
 
 	export PATH="$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/$PYPLATFORM-x86/bin/:$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/$PYPLATFORM-x86_64/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
