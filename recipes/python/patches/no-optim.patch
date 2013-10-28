@@ -1,0 +1,25 @@
+--- Python-2.7.2/configure.in.orig	2012-11-08 01:03:36.098872991 +0100
++++ Python-2.7.2/configure.in	2012-11-08 01:04:46.783218535 +0100
+@@ -938,11 +938,11 @@
+ 		# debug builds.
+ 		OPT="-g -O0 -Wall $STRICT_PROTO"
+ 	    else
+-		OPT="-g $WRAP -O3 -Wall $STRICT_PROTO"
++		OPT="-g $WRAP -O0 -Wall $STRICT_PROTO"
+ 	    fi
+ 	    ;;
+ 	*)
+-	    OPT="-O3 -Wall $STRICT_PROTO"
++	    OPT="-O0 -Wall $STRICT_PROTO"
+ 	    ;;
+ 	esac
+ 	case $ac_sys_system in
+@@ -1126,7 +1126,7 @@
+ if test "$Py_DEBUG" = 'true'; then
+   :
+ else
+-  OPT="-DNDEBUG $OPT"
++  OPT="-DNDEBUG $OPT -O0"
+ fi
+ 
+ if test "$ac_arch_flags"

@@ -36,7 +36,9 @@ function build_pygame() {
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$SRC_PATH/obj/local/$ARCH/ -lm -lz"
 	export LDSHARED="$LIBLINK"
 	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
-	try find build/lib.* -name "*.o" -exec $STRIP {} \;
+	if [ "X$DO_DEBUG_BUILD" == "X" ]; then
+		try find build/lib.* -name "*.o" -exec $STRIP {} \;
+	fi
 
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/docs
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/examples
