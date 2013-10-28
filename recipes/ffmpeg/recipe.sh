@@ -26,11 +26,11 @@ function build_ffmpeg() {
 
 	# build ffmpeg
 	export NDK=$ANDROIDNDK
+	push_arm
+
 	if [ ! -f $BUILD_ffmpeg/build/ffmpeg/armeabi-v7a/lib/libavcodec.a ]; then
 		try env FFMPEG_ARCHS='armv7a' ./build-h264-aac.sh
 	fi
-
-	push_arm
 
 	# build python extension
 	export JNI_PATH=$JNI_PATH
