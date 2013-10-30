@@ -28,6 +28,8 @@ PACKAGES_PATH="$ROOT_PATH/.packages"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
+SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
+HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"
@@ -213,19 +215,18 @@ function pop_arm() {
 
 function usage() {
 	echo "Python for android - distribute.sh"
-	echo "This script create a directory will all the libraries wanted"
 	echo 
-	echo "Usage:   ./distribute.sh [options] directory"
-	echo "Example: ./distribute.sh -m 'pil kivy' dist"
-	echo
-	echo "Options:"
+	echo "Usage:   ./distribute.sh [options]"
 	echo
 	echo "  -d directory           Name of the distribution directory"
 	echo "  -h                     Show this help"
 	echo "  -l                     Show a list of available modules"
 	echo "  -m 'mod1 mod2'         Modules to include"
 	echo "  -f                     Restart from scratch (remove the current build)"
-        echo "  -x                     display expanded values (execute 'set -x')"
+	echo "  -x                     display expanded values (execute 'set -x')"
+	echo
+	echo "For developers:"
+	echo "  -u 'mod1 mod2'         Modules to update (if already compiled)"
 	echo
 	exit 0
 }
@@ -330,6 +331,11 @@ function run_prepare() {
 		try rm -rf $BUILD_PATH
 		try rm -rf $SRC_PATH/obj
 		try rm -rf $SRC_PATH/libs
+		pushd $JNI_PATH
+		push_arm
+		try ndk-build clean
+		pop_arm
+		popd
 	fi
 
 	# create build directory if not found
@@ -585,11 +591,40 @@ function run_prebuild() {
 
 function run_build() {
 	info "Run build"
+
+	modules_update=($MODULES_UPDATE)
+
 	cd $BUILD_PATH
+
 	for module in $MODULES; do
-		fn=$(echo build_$module)
-		debug "Call $fn"
-		$fn
+		fn="build_$module"
+		shouldbuildfn="shouldbuild_$module"
+		MARKER_FN="$BUILD_PATH/.mark-$module"
+
+		# if the module should be updated, then remove the marker.
+		in_array $module "${modules_update[@]}"
+		if [ $? -ne 255 ]; then
+			debug "$module detected to be updated"
+			rm -f "$MARKER_FN"
+		fi
+
+		# if shouldbuild_$module exist, call it to see if the module want to be
+		# built again
+		DO_BUILD=1
+		if [ "$(type -t $shouldbuildfn)" == "function" ]; then
+			$shouldbuildfn
+		fi
+
+		# if the module should be build, or if the marker is not present,
+		# do the build
+		if [ "X$DO_BUILD" == "X1" ] || [ ! -f "$MARKER_FN" ]; then
+			debug "Call $fn"
+			rm -f "$MARKER_FN"
+			$fn
+			touch "$MARKER_FN"
+		else
+			debug "Skipped $fn"
+		fi
 	done
 }
 
@@ -633,7 +668,7 @@ function run_pymodules_install() {
 	try echo "$PYMODULES" | try sed 's/\ /\n/g' > requirements.txt
 
 	debug "Install pure-python modules via pip in venv"
-	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false $PIP install --target '$BUILD_PATH/python-install/lib/python2.7/site-packages' --download-cache '$PACKAGES_PATH' -r requirements.txt"
+	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false $PIP install --target '$SITEPACKAGES_PATH' --download-cache '$PACKAGES_PATH' -r requirements.txt"
 
 }
 
@@ -656,7 +691,7 @@ function run_distribute() {
 	try cp -a $BUILD_PATH/blacklist.txt .
 
 	debug "Copy python distribution"
-	$BUILD_PATH/python-install/bin/python.host -OO -m compileall $BUILD_PATH/python-install
+	$HOSTPYTHON -OO -m compileall $BUILD_PATH/python-install
 	try cp -a $BUILD_PATH/python-install .
 
 	debug "Copy libs"
@@ -679,19 +714,11 @@ function run_distribute() {
 	try find . | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$' | xargs rm
 
 	# we are sure that all of theses will be never used on android (well...)
-	try rm -rf test
 	try rm -rf ctypes
 	try rm -rf lib2to3
-	try rm -rf lib-tk
 	try rm -rf idlelib
-	try rm -rf unittest/test
-	try rm -rf json/tests
-	try rm -rf distutils/tests
-	try rm -rf email/test
-	try rm -rf bsddb/test
 	try rm -rf config/libpython*.a
 	try rm -rf config/python.o
-	try rm -rf curses
 	try rm -rf lib-dynload/_ctypes_test.so
 	try rm -rf lib-dynload/_testcapi.so
 
@@ -746,7 +773,7 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfxm:d:s" opt; do
+while getopts ":hvlfxm:u:d:s" opt; do
 	case $opt in
 		h)
 			usage
@@ -764,6 +791,9 @@ while getopts ":hvlfxm:d:s" opt; do
 			;;
 		m)
 			MODULES="$OPTARG"
+			;;
+		u)
+			MODULES_UPDATE="$OPTARG"
 			;;
 		d)
 			DIST_PATH="$ROOT_PATH/dist/$OPTARG"

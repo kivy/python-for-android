@@ -11,13 +11,16 @@ function prebuild_mysql_connector() {
 	true
 }
 
+function shouldbuild_mysql_connector() {
+	if [ -d "$SITEPACKAGES_PATH/mysql_connector" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_mysql_connector() {
 	cd $BUILD_mysql_connector
-	ls
 	push_arm
-
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
-
+	try $HOSTPYTHON setup.py install -O2
 	pop_arm
 }
 

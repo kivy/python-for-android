@@ -11,11 +11,13 @@ function prebuild_wokkel() {
 	true
 }
 
-function build_wokkel() {
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/wokkel" ]; then
-		return
+function shouldbuild_wokkel() {
+	if [ -d "$SITEPACKAGES_PATH/wokkel" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_wokkel() {
 	cd $BUILD_wokkel
 
 	push_arm

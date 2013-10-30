@@ -16,12 +16,14 @@ function prebuild_libxslt() {
 	touch .patched
 }
 
+function shouldbuild_libxslt() {
+	if [ -f "$BUILD_libxslt/libxslt/.libs/libxslt.a" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_libxslt() {
 	cd $BUILD_libxslt
-
-	if [ -f libxslt/.libs/libxslt.a ]; then
-		return
-	fi
 
 	push_arm
 

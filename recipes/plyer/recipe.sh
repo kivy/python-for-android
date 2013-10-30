@@ -11,15 +11,17 @@ function prebuild_plyer() {
 	true
 }
 
-function build_plyer() {
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/plyer" ]; then
-		return
+function shouldbuild_plyer() {
+	if [ -d "$SITEPACKAGES_PATH/plyer" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_plyer() {
 	cd $BUILD_plyer
 
 	push_arm
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 	pop_arm
 }
 

@@ -16,6 +16,12 @@ function prebuild_android() {
 	fi
 }
 
+function shouldbuild_android() {
+	if [ -d "$SITEPACKAGES_PATH/android" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_android() {
 	cd $BUILD_android
 
@@ -31,8 +37,8 @@ function build_android() {
 
 	# cythonize
 	try find . -iname '*.pyx' -exec cython {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py build_ext -v
+	try $HOSTPYTHON setup.py install -O2
 
 	unset LDSHARED
 

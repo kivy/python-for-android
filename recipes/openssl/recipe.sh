@@ -11,12 +11,14 @@ function prebuild_openssl() {
 	true
 }
 
+function shouldbuild_openssl() {
+	if [ -f "$BUILD_openssl/libssl.a" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_openssl() {
 	cd $BUILD_openssl
-
-	if [ -f libssl.a ]; then
-		return
-	fi
 
 	push_arm
 

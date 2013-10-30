@@ -11,6 +11,12 @@ function prebuild_sdl() {
 	true
 }
 
+function shouldbuild_sdl() {
+	if [ -f "$LIBS_PATH/libsdl.so" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_sdl() {
 	cd $SRC_PATH/jni
 

@@ -11,12 +11,13 @@ function prebuild_setuptools() {
 	true
 }
 
-function build_setuptools() {
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/setuptools" ]; then
-		return
+function shouldbuild_setuptools() {
+	if [ -d "$SITEPACKAGES_PATH/setuptools" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_setuptools() {
 	cd $BUILD_setuptools
 
 	push_arm

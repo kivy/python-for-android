@@ -16,13 +16,14 @@ function prebuild_ffmpeg() {
 	fi
 }
 
+function shouldbuild_ffmpeg() {
+	if [ -d "$SITEPACKAGES_PATH/ffmpeg" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_ffmpeg() {
 	cd $BUILD_ffmpeg
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/ffmpeg" ]; then
-		return
-	fi
-
 
 	# build ffmpeg
 	export NDK=$ANDROIDNDK
@@ -39,8 +40,8 @@ function build_ffmpeg() {
 	export FFMPEG_ROOT="$BUILD_ffmpeg/build/ffmpeg/armeabi-v7a"
 	try cd $BUILD_ffmpeg/python
 	try find . -iname '*.pyx' -exec cython {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py build_ext -v
+	try $HOSTPYTHON setup.py install -O2
 
 	pop_arm
 }

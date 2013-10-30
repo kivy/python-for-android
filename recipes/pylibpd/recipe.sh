@@ -17,12 +17,18 @@ function prebuild_pylibpd() {
     touch .patched
 }
 
+function shouldbuild_pylibpd() {
+	if [ -d "$SITEPACKAGES_PATH/pylibpd" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_pylibpd() {
     cd $BUILD_pylibpd/python
     push_arm
-    try $BUILD_PATH/python-install/bin/python.host setup.py build
-    try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
-    try $BUILD_PATH/python-install/bin/python.host setup.py clean
+    try $HOSTPYTHON setup.py build
+    try $HOSTPYTHON setup.py install -O2
+    try $HOSTPYTHON setup.py clean
     pop_arm
 }
 

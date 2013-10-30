@@ -31,11 +31,13 @@ function prebuild_pil() {
 	touch .patched
 }
 
-function build_pil() {
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/PIL" ]; then
-		return
+function shouldbuild_pil() {
+	if [ -d "$SITEPACKAGES_PATH/PIL" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_pil() {
 	cd $BUILD_pil
 
 	push_arm
@@ -44,7 +46,7 @@ function build_pil() {
 	export CFLAGS="$CFLAGS -I$JNI_PATH/png -I$JNI_PATH/jpeg -I$JNI_PATH/freetype/include/freetype"
 	export LDFLAGS="$LDFLAGS -L$LIBS -lm -lz"
 	export LDSHARED="$LIBLINK"
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 
 	unset LDSHARED
 	pop_arm

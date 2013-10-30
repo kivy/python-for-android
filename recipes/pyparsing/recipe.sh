@@ -13,17 +13,17 @@ function prebuild_pyparsing() {
 	true
 }
 
-# function called to build the source code
-function build_pyparsing() {
-
-    if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/pyparsing" ]; then
-		return
+function shouldbuild_pyparsing() {
+    if [ -d "$SITEPACKAGES_PATH/pyparsing" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_pyparsing() {
 	cd $BUILD_pyparsing
 	push_arm
 	export EXTRA_CFLAGS="--host linux-armv"
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 	pop_arm
 }
 

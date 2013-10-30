@@ -11,12 +11,14 @@ function prebuild_libevent() {
     true
 }
 
+function shouldbuild_libevent() {
+    if [ -f $BUILD_libevent/build/lib/libevent.la ]; then
+		DO_BUILD=0
+    fi
+}
+
 function build_libevent() {
     cd $BUILD_libevent
-
-    if [ -f $BUILD_libevent/build/lib/libevent.la ]; then
-        return
-    fi
 
     push_arm
     try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi --prefix=$BUILD_libevent/build/

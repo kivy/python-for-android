@@ -11,18 +11,20 @@ function prebuild_gevent() {
     true
 }
 
+function shouldbuild_gevent() {
+	if [ -d "$SITEPACKAGES_PATH/gevent" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_gevent() {
     cd $BUILD_gevent
-
-    if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/gevent" ]; then
-        return
-    fi
 
     push_arm
     export CFLAGS="$CFLAGS -I$BUILD_libevent/build/include"
     export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$BUILD_libevent/build/lib/"
 
-    try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+    try $HOSTPYTHON setup.py install -O2
     pop_arm
 }
 

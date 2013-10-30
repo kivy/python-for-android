@@ -11,12 +11,14 @@ function prebuild_libxml2() {
 	true
 }
 
+function shouldbuild_libxml2() {
+	if [ -f "$BUILD_libxml2/.libs/libxml2.a" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_libxml2() {
 	cd $BUILD_libxml2
-
-	if [ -f .libs/libxml2.a ]; then
-		return
-	fi
 
 	push_arm
 

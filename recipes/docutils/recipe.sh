@@ -11,12 +11,13 @@ function prebuild_docutils() {
     true
 }
 
-function build_docutils() {
-    if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/docutils" ]; then
-        #return
-        true
-    fi
+function shouldbuild_docutils() {
+	if [ -d "$SITEPACKAGES_PATH/docutils" ]; then
+		DO_BUILD=0
+	fi
+}
 
+function build_docutils() {
     cd $BUILD_docutils
 
     push_arm
@@ -25,10 +26,10 @@ function build_docutils() {
     export LDSHARED="$LIBLINK"
 
     # fake try to be able to cythonize generated files
-    $BUILD_PATH/python-install/bin/python.host setup.py build_ext
+    $HOSTPYTHON setup.py build_ext
     try find . -iname '*.pyx' -exec cython {} \;
-    try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
-    try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+    try $HOSTPYTHON setup.py build_ext -v
+    try $HOSTPYTHON setup.py install -O2
 
     unset LDSHARED
     pop_arm

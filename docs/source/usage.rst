@@ -48,6 +48,7 @@ Available options to `distribute.sh`::
     -l                     Show a list of available modules
     -m 'mod1 mod2'         Modules to include
     -f                     Restart from scratch (remove the current build)
+    -u 'mod1 mod2'         Modules to update (if already compiled)
 
 Step 2: package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

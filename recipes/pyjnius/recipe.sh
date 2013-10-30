@@ -11,12 +11,13 @@ function prebuild_pyjnius() {
 	true
 }
 
-function build_pyjnius() {
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/jnius" ]; then
-		#return
-		true
+function shouldbuild_pyjnius() {
+	if [ -d "$SITEPACKAGES_PATH/jnius" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_pyjnius() {
 	cd $BUILD_pyjnius
 
 	push_arm
@@ -25,11 +26,11 @@ function build_pyjnius() {
 	export LDSHARED="$LIBLINK"
 
 	# fake try to be able to cythonize generated files
-	$BUILD_PATH/python-install/bin/python.host setup.py build_ext
+	$HOSTPYTHON setup.py build_ext
 	try find . -iname '*.pyx' -exec cython {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 	try cp -a jnius/src/org $JAVACLASS_PATH
 
 	unset LDSHARED

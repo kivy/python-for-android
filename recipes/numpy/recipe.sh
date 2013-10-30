@@ -18,19 +18,21 @@ function prebuild_numpy() {
 	touch .patched
 }
 
-function build_numpy() {
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/numpy" ]; then
-		return
+function shouldbuild_numpy() {
+	if [ -d "$SITEPACKAGES_PATH/numpy" ]; then
+		DO_BUILD=0
 	fi
+}
+
+function build_numpy() {
 
 	cd $BUILD_numpy
 
 	push_arm
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 
 	pop_arm
 }

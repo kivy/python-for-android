@@ -11,17 +11,18 @@ function prebuild_sqlalchemy() {
 	true
 }
 
+function shouldbuild_sqlalchemy() {
+	if [ -d "$SITEPACKAGES_PATH/sqlalchemy" ]; then
+		DO_BUILD=0
+	fi
+}
 
 function build_sqlalchemy() {
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/sqlalchemy" ]; then
-		return
-	fi
-
 	cd $BUILD_sqlalchemy
 	
 	push_arm
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 
 	pop_arm
 }

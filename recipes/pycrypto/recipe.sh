@@ -11,12 +11,13 @@ function prebuild_pycrypto() {
 	true
 }
 
-function build_pycrypto() {
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/pycrypto" ]; then
-		return
+function shouldbuild_pycrypto() {
+	if [ -d "$SITEPACKAGES_PATH/pycrypto" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_pycrypto() {
 	cd $BUILD_pycrypto
 
 	push_arm
@@ -28,10 +29,10 @@ function build_pycrypto() {
 	export ac_cv_func_malloc_0_nonnull=yes
 	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 
 	pop_arm
 }

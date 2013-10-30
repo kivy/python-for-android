@@ -12,16 +12,17 @@ function prebuild_greenlet() {
     true
 }
 
+function shouldbuild_greenlet() {
+	if [ -d "$SITEPACKAGES_PATH/greenlet" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_greenlet() {
     cd $BUILD_greenlet
 
-    if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/greenlet.so" ]; then
-        return
-    fi
-
     push_arm
-
-    try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+    try $HOSTPYTHON setup.py install -O2
     pop_arm
 }
 

@@ -11,18 +11,16 @@ function prebuild_pyasn1() {
 	true
 }
 
-function build_pyasn1() {
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/pyasn1" ]; then
-		return
+function shouldbuild_pyasn1() {
+	if [ -d "$SITEPACKAGES_PATH/pyasn1" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_pyasn1() {
 	cd $BUILD_pyasn1
-
 	push_arm
-
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
-
+	try $HOSTPYTHON setup.py install -O2
 	pop_arm
 }
 

@@ -11,10 +11,13 @@ function prebuild_txws() {
 	true
 }
 
-function build_txws() {
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/txws" ]; then
-		return
+function shouldbuild_txws() {
+	if [ -d "$SITEPACKAGES_PATH/txws" ]; then
+		DO_BUILD=0
 	fi
+}
+
+function build_txws() {
 	cd $BUILD_txws
 	push_arm
 	export PYTHONPATH=$BUILD_PATH/hostpython/Python-2.7.2/Lib/site-packages

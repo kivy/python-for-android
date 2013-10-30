@@ -11,19 +11,21 @@ function prebuild_msgpack() {
     true
 }
 
+function shouldbuild_msgpack() {
+    if [ -d "$SITEPACKAGES_PATH/msgpack" ]; then
+		DO_BUILD=0
+    fi
+}
+
 function build_msgpack() {
     cd $BUILD_msgpack
-
-    if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/msgpack" ]; then
-        return
-    fi
 
     push_arm
 
     # fake try to be able to cythonize generated files
-    $BUILD_PATH/python-install/bin/python.host setup.py build_ext
+    $HOSTPYTHON setup.py build_ext
     try find . -iname '*.pyx' -exec cython {} \;
-    try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+    try $HOSTPYTHON setup.py build_ext -v
 
     try find build/lib.* -name "*.o" -exec $STRIP {} \;
 

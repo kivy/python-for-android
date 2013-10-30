@@ -42,15 +42,35 @@ function prebuild_python() {
 	touch .patched
 }
 
+function shouldbuild_python() {
+	cd $BUILD_python
+
+	# check if the requirements for python changed (with/without openssl or sqlite3)
+	reqfn=".req"
+	req=""
+	if [ "X$BUILD_openssl" != "X" ]; then
+		req="openssl;$req"
+	fi
+	if [ "X$BUILD_sqlite3" != "X" ]; then
+		req="sqlite3;$req"
+	fi
+
+	if [ -f libpython2.7.so ]; then
+		if [ -f "$reqfn" ]; then
+			reqc=$(cat $reqfn)
+			if [ "X$reqc" == "X$req" ]; then
+				DO_BUILD=0
+			fi
+		fi
+	fi
+
+	echo "$req" > "$reqfn"
+}
+
 function build_python() {
 	# placeholder for building
 	cd $BUILD_python
 
-	# if the last step have been done, avoid all
-	if [ -f libpython2.7.so ]; then
-		return
-	fi
-	
 	# copy same module from host python
 	try cp $RECIPE_hostpython/Setup Modules
 	try cp $BUILD_hostpython/hostpython .
@@ -94,8 +114,20 @@ function build_python() {
 	if [ "X$system" == "XDarwin" ]; then
 		try cp $RECIPE_python/patches/_scproxy.py $BUILD_python/Lib/
 	fi
-	try cp $BUILD_hostpython/hostpython $BUILD_PATH/python-install/bin/python.host
+	try cp $BUILD_hostpython/hostpython $HOSTPYTHON
 	try cp libpython2.7.so $LIBS_PATH/
+
+	# reduce python
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/json/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/lib-tk"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/sqlite3/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/unittest/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/lib2to3/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/bsddb/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/distutils/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/email/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/curses"
 }
 
 

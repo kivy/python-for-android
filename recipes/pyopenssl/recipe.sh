@@ -17,12 +17,13 @@ function prebuild_pyopenssl() {
 	touch .patched
 }
 
-function build_pyopenssl() {
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/pyOpenSSL" ]; then
-		return
+function shouldbuild_pyopenssl() {
+	if [ -d "$SITEPACKAGES_PATH/OpenSSL" ]; then
+		DO_BUILD=0
 	fi
+}
 
+function build_pyopenssl() {
 	cd $BUILD_pyopenssl
 
 	push_arm
@@ -30,12 +31,12 @@ function build_pyopenssl() {
 	export CC="$CC -I$BUILD_openssl/include"
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$BUILD_openssl"
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 
-	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/OpenSSL/test
+	try rm -rf $SITEPACKAGES/OpenSSL/test
 
 	pop_arm
 }

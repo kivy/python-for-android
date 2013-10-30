@@ -11,6 +11,12 @@ function prebuild_cymunk() {
 	true
 }
 
+function shouldbuild_cymunk() {
+	if [ -d "$SITEPACKAGES_PATH/cymunk" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_cymunk() {
 	cd $BUILD_cymunk
 
@@ -19,7 +25,7 @@ function build_cymunk() {
 	export LDSHARED="$LIBLINK"
 
 	try find . -iname '*.pyx' -exec cython {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
 	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages
