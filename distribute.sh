@@ -343,6 +343,9 @@ function run_prepare() {
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
 	echo "sdk.dir=$ANDROIDSDK" > $SRC_PATH/local.properties
 
+	# copy the initial blacklist in build
+	try cp -a $SRC_PATH/blacklist.txt $BUILD_PATH
+
 	# check arm env
 	push_arm
 	debug "PATH is $PATH"
@@ -650,7 +653,7 @@ function run_distribute() {
 	try cp -a $SRC_PATH/src .
 	try cp -a $SRC_PATH/templates .
 	try cp -a $SRC_PATH/res .
-	try cp -a $SRC_PATH/blacklist.txt .
+	try cp -a $BUILD_PATH/blacklist.txt .
 
 	debug "Copy python distribution"
 	$BUILD_PATH/python-install/bin/python.host -OO -m compileall $BUILD_PATH/python-install

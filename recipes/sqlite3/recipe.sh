@@ -18,5 +18,6 @@ function build_sqlite3() {
 }
 
 function postbuild_sqlite3() {
-	true
+	# ensure the blacklist doesn't contain sqlite3
+	$SED '/#>sqlite3/,/#<sqlite3/d' $BUILD_PATH/blacklist.txt
 }
