@@ -344,7 +344,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // Our own view
     static SDLSurfaceView instance = null;
 
-    public SDLSurfaceView(Activity act, String argument) {
+    public SDLSurfaceView(PythonActivity act, String argument) {
         super(act);
         SDLSurfaceView.instance = this;
 
