@@ -120,3 +120,33 @@ Available options to `build.py`::
                           Minimum Android SDK version to use. Default to 8
     --window              Indicate if the application will be windowed
 
+Meta-data
+---------
+
+.. versionadded:: 1.3
+
+You can extend the `AndroidManifest.xml` with application meta-data. If you are
+using external toolkits like Google Maps, you might want to set your API key in
+the meta-data. You could do it like this::
+
+    ./build.py ... --meta-data com.google.android.maps.v2.API_KEY=YOURAPIKEY
+
+Some meta-data can be used to interact with the behavior of our internal
+component.
+
+.. list-table::
+    :widths: 100 500
+    :header-rows: 1
+
+    * - Token
+      - Description
+    * - `surface.transluent`
+      - If set to 1, the created surface will be transluent (can be used
+        to add background Android widget in the background, or use accelerated
+        widgets)
+    * - `surface.depth`
+      - Size of the depth component, default to 0. 0 means automatic, but you
+        can force it to a specific value. Be warned, some old phone might not
+        support the depth you want.
+    * - `surface.stencil`
+      - Size of the stencil component, default to 8.

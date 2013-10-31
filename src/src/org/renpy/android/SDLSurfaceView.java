@@ -45,6 +45,7 @@ import android.net.Uri;
 import android.os.PowerManager;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
+import android.graphics.PixelFormat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -594,11 +595,23 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             try {
                 if (configToTest == 0) {
                     Log.i(TAG, "Try to use graphics config R8G8B8A8S8");
-                    ConfigChooser chooser = new ConfigChooser(8, 8, 8, 8, 0, 8);
+                    ConfigChooser chooser = new ConfigChooser(
+							// rgba
+							8, 8, 8, 8,
+							// depth
+							mActivity.mInfo.metaData.getInt("surface:depth", 0),
+							// stencil
+							mActivity.mInfo.metaData.getInt("surface:stencil", 8));
                     mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
                 } else if (configToTest == 1) {
                     Log.i(TAG, "Try to use graphics config R5G6B5S8");
-                    ConfigChooser chooser = new ConfigChooser(5, 6, 5, 0, 0, 8);
+                    ConfigChooser chooser = new ConfigChooser(
+							// rgba
+							5, 6, 5, 0,
+							// depth
+							mActivity.mInfo.metaData.getInt("surface:depth", 0),
+							// stencil
+							mActivity.mInfo.metaData.getInt("surface:stencil", 8));
                     mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
                 } else {
                     Log.e(TAG, "Unable to find a correct surface for this device !");
@@ -636,6 +649,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         Log.w(TAG, "Done");
         waitForStart();
+
+		if ( mActivity.mInfo.metaData.getBoolean("surface:transluent") )
+			getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();
