@@ -24,7 +24,7 @@ RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
 JAVACLASS_PATH="$ROOT_PATH/build/java"
-PACKAGES_PATH="$ROOT_PATH/.packages"
+PACKAGES_PATH="${PACKAGES_PATH:-$ROOT_PATH/.packages}"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
@@ -57,8 +57,10 @@ if [ "X$WGET" == "X" ]; then
 	else
 		WGET="$WGET -L -O -o"
 	fi
+	WHEAD="curl -L -I"
 else
 	WGET="$WGET -O"
+	WHEAD="wget --spider -q -S"
 fi
 
 case $OSTYPE in
@@ -504,12 +506,17 @@ function run_get_packages() {
 		fi
 
 		filename=$(basename $url)
+		marker_filename=".mark-$filename"
 		do_download=1
 
-		# check if the file is already present
 		cd $PACKAGES_PATH
+
+		# check if the file is already present
 		if [ -f $filename ]; then
-			if [ -n "$md5" ]; then
+			# if the marker has not been set, it might be cause of a invalid download.
+			if [ ! -f $marker_filename ]; then
+				rm $filename
+			elif [ -n "$md5" ]; then
 				# check if the md5 is correct
 				current_md5=$($MD5SUM $filename | cut -d\  -f1)
 				if [ "X$current_md5" == "X$md5" ]; then
@@ -525,10 +532,31 @@ function run_get_packages() {
 			fi
 		fi
 
+		# check if the file HEAD in case of, only if there is no MD5 to check.
+		check_headers=0
+		if [ -z "$md5" ]; then
+			if [ "X$DO_CLEAN_BUILD" == "X1" ]; then
+				check_headers=1
+			elif [ ! -f $filename ]; then
+				check_headers=1
+			fi
+		fi
+
+		if [ "X$check_headers" == "X1" ]; then
+			debug "Checking if $url changed"
+			$WHEAD $url &> .headers-$filename
+			$PYTHON "$ROOT_PATH/tools/check_headers.py" .headers-$filename .sig-$filename
+			if [ $? -ne 0 ]; then
+				do_download=1
+			fi
+		fi
+
 		# download if needed
 		if [ $do_download -eq 1 ]; then
 			info "Downloading $url"
+			try rm -f $marker_filename
 			try $WGET $filename $url
+			touch $marker_filename
 		else
 			debug "Module $module already downloaded"
 		fi
