@@ -271,7 +271,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     // The activity we're a part of.
-    private static Activity mActivity;
+    private static PythonActivity mActivity;
 
     // Have we started yet?
     public boolean mStarted = false;
