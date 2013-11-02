@@ -341,6 +341,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // The resource manager we use.
     ResourceManager mResourceManager;
 
+    // Access to our meta-data
+    private ApplicationInfo ai;
+
     // Our own view
     static SDLSurfaceView instance = null;
 
@@ -362,7 +365,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         wakeLock = null;
         try {
-            ApplicationInfo ai = act.getPackageManager().getApplicationInfo(
+            ai = act.getPackageManager().getApplicationInfo(
                     act.getPackageName(), PackageManager.GET_META_DATA);
             if ( (Integer)ai.metaData.get("wakelock") == 1 ) {
                 wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
@@ -596,22 +599,22 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 if (configToTest == 0) {
                     Log.i(TAG, "Try to use graphics config R8G8B8A8S8");
                     ConfigChooser chooser = new ConfigChooser(
-							// rgba
-							8, 8, 8, 8,
-							// depth
-							mActivity.mInfo.metaData.getInt("surface:depth", 0),
-							// stencil
-							mActivity.mInfo.metaData.getInt("surface:stencil", 8));
+                            // rgba
+                            8, 8, 8, 8,
+                            // depth
+                            ai.metaData.getInt("surface.depth", 0),
+                            // stencil
+                            ai.metaData.getInt("surface.stencil", 8));
                     mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
                 } else if (configToTest == 1) {
                     Log.i(TAG, "Try to use graphics config R5G6B5S8");
                     ConfigChooser chooser = new ConfigChooser(
-							// rgba
-							5, 6, 5, 0,
-							// depth
-							mActivity.mInfo.metaData.getInt("surface:depth", 0),
-							// stencil
-							mActivity.mInfo.metaData.getInt("surface:stencil", 8));
+                            // rgba
+                            5, 6, 5, 0,
+                            // depth
+                            ai.metaData.getInt("surface.depth", 0),
+                            // stencil
+                            ai.metaData.getInt("surface.stencil", 8));
                     mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
                 } else {
                     Log.e(TAG, "Unable to find a correct surface for this device !");
@@ -650,8 +653,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         Log.w(TAG, "Done");
         waitForStart();
 
-		if ( mActivity.mInfo.metaData.getBoolean("surface:transluent") )
-			getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        if ( ai.metaData.getInt("surface.transluent") != 0 ) {
+            Log.i(TAG, "Surface will be transluent");
+            getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        } else {
+            Log.i(TAG, "Surface will NOT be transluent");
+        }
 
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();

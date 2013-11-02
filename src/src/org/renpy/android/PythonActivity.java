@@ -2,11 +2,9 @@ package org.renpy.android;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.ActivityNotFoundException;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.MotionEvent;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
@@ -23,8 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
-
-import java.util.zip.GZIPInputStream;
 
 // Billing
 import org.renpy.android.Configuration;
