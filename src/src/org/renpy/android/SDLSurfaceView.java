@@ -529,7 +529,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.i(TAG, "surfaceCreated() is not handled :|");
+        //Log.i(TAG, "surfaceCreated() is not handled :|");
     }
 
     /**
@@ -537,7 +537,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.i(TAG, "surfaceDestroyed() is not handled :|");
+        //Log.i(TAG, "surfaceDestroyed() is not handled :|");
     }
 
     /**
@@ -545,6 +545,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+        //Log.i(TAG, "surfaceChanged() :|");
         mWidth = w;
         mHeight = h;
 
@@ -563,7 +564,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             new Thread(this).start();
         } else {
             mChanged = true;
-            nativeExpose();
+            if (mStarted) {
+                nativeExpose();
+            }
         }
     }
 
@@ -650,15 +653,15 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             return;
         }
 
-        Log.w(TAG, "Done");
-        waitForStart();
-
         if ( ai.metaData.getInt("surface.transluent") != 0 ) {
             Log.i(TAG, "Surface will be transluent");
             getHolder().setFormat(PixelFormat.TRANSLUCENT);
         } else {
             Log.i(TAG, "Surface will NOT be transluent");
         }
+
+        Log.w(TAG, "Done");
+        waitForStart();
 
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();
@@ -814,7 +817,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mMVPMatrix, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
         checkGlError("glDrawArrays");
-        mEgl.eglSwapBuffers(mEglDisplay, mEglSurface);
+        swapBuffers();
 
         // Wait to be notified it's okay to start Python.
         synchronized (this) {
@@ -822,7 +825,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 // Draw & Flip.
                 GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
                 GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-                mEgl.eglSwapBuffers(mEglDisplay, mEglSurface);
+                swapBuffers();
 
                 try {
                     this.wait(250);
