@@ -270,6 +270,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         private int[] mValue = new int[1];
     }
 
+    public interface OnInterceptTouchListener {
+        boolean onTouch(MotionEvent ev);
+    }
+
+    private OnInterceptTouchListener mOnInterceptTouchListener = null;
+
     // The activity we're a part of.
     private static PythonActivity mActivity;
 
@@ -938,11 +944,19 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private static final int INVALID_POINTER_ID = -1;
     private int mActivePointerId = INVALID_POINTER_ID;
 
+    public void setInterceptTouchListener(OnInterceptTouchListener listener) {
+        this.mOnInterceptTouchListener = listener;
+    }
+
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
 
         if (mInputActivated == false)
             return true;
+
+        if (mOnInterceptTouchListener != null)
+            if (mOnInterceptTouchListener.onTouch(event))
+                return false;
 
         int action = event.getAction() & MotionEvent.ACTION_MASK;
         int sdlAction = -1;
