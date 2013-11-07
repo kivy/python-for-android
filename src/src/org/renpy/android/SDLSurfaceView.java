@@ -892,6 +892,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 nativeResizeEvent(mWidth, mHeight);
             else
                 nativeResize(mWidth, mHeight);
+
+            // If the size didn't change, kivy might no rerender the scene. Force it.
+            nativeExpose();
         }
 
         return true;
