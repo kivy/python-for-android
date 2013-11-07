@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-from os.path import dirname, join, isfile, realpath, relpath, split
+from os.path import basename, dirname, join, isfile, realpath, relpath, split
 from zipfile import ZipFile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
@@ -164,7 +164,17 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     for sd in source_dirs:
         sd = realpath(sd)
         compile_dir(sd)
-        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
+        # Make sure to include symbolic links by the name of the link
+        # and not the file pointed-to.
+        for x in listfiles(sd):
+            try:
+                realbase = os.readlink(x)
+                linkbase = basename(x)
+                realp = realpath(x).replace(realbase, linkbase)
+                nufile = (x, relpath(realp, sd))
+            except OSError:
+                nufile = (x, relpath(realpath(x), sd))
+            files.append(nufile)
 
     # create tar.gz of thoses files
     tf = tarfile.open(tfn, 'w:gz')
