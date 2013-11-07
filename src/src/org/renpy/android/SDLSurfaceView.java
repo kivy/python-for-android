@@ -372,6 +372,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
         } catch (PackageManager.NameNotFoundException e) {
         }
+
+        if ( ai.metaData.getInt("surface.transparent") != 0 ) {
+            Log.d(TAG, "Surface will be transparent, so put on the top.");
+            setZOrderOnTop(true);
+        }
     }
 
 
@@ -530,6 +535,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void surfaceCreated(SurfaceHolder holder) {
         //Log.i(TAG, "surfaceCreated() is not handled :|");
+        synchronized (this) {
+            if (!mStarted) {
+                this.notifyAll();
+            }
+        }
     }
 
     /**
@@ -545,7 +555,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        //Log.i(TAG, "surfaceChanged() :|");
+        //Log.i(TAG, String.format("surfaceChanged() fmt=%d size=%dx%d", format, w, h));
         mWidth = w;
         mHeight = h;
 
@@ -653,14 +663,14 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             return;
         }
 
-        if ( ai.metaData.getInt("surface.transluent") != 0 ) {
-            Log.i(TAG, "Surface will be transluent");
-            getHolder().setFormat(PixelFormat.TRANSLUCENT);
+        if ( ai.metaData.getInt("surface.transparent") != 0 ) {
+            Log.i(TAG, "Surface will be transparent");
+            getHolder().setFormat(PixelFormat.TRANSPARENT);
         } else {
-            Log.i(TAG, "Surface will NOT be transluent");
+            Log.i(TAG, "Surface will NOT be transparent");
         }
 
-        Log.w(TAG, "Done");
+        //Log.d(TAG, "Done");
         waitForStart();
 
         nativeResize(mWidth, mHeight);
@@ -815,9 +825,15 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mMVPMatrix, 0);
 
         GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-        checkGlError("glDrawArrays");
-        swapBuffers();
+
+        // Ensure that, even with double buffer, or if we lost one buffer (like
+        // BufferQueue has been abandoned!), it will work.
+        for ( int i = 0; i < 2; i++ ) {
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+            checkGlError("glDrawArrays");
+            swapBuffers();
+        }
 
         // Wait to be notified it's okay to start Python.
         synchronized (this) {
@@ -830,7 +846,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 try {
                     this.wait(250);
                 } catch (InterruptedException e) {
-                    continue;
                 }
             }
         }
