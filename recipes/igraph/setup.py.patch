@@ -1,0 +1,50 @@
+--- /home/sanotehu/Downloads/python-igraph-0.6.5/setup.py	2013-02-27 06:04:09.000000000 -0500
++++ build/igraph/python-igraph-0.6.5/setup.py	2013-11-06 08:54:17.944200143 -0500
+@@ -19,7 +19,7 @@
+ from shutil import copy2
+ from subprocess import Popen, PIPE
+ 
+-LIBIGRAPH_FALLBACK_INCLUDE_DIRS = ['/usr/include/igraph', '/usr/local/include/igraph']
++LIBIGRAPH_FALLBACK_INCLUDE_DIRS = ['../../python-install/include/igraph', '../../python-install/include/python2.7']
+ LIBIGRAPH_FALLBACK_LIBRARIES = ['igraph']
+ LIBIGRAPH_FALLBACK_LIBRARY_DIRS = []
+ 
+@@ -40,26 +40,15 @@
+     
+ def detect_igraph_include_dirs(default = LIBIGRAPH_FALLBACK_INCLUDE_DIRS):
+     """Tries to detect the igraph include directory"""
+-    line, exit_code = get_output("pkg-config igraph --cflags")
+-    if exit_code > 0 or len(line) == 0:
+-        return default
+-    opts=line.split()
+-    return [opt[2:] for opt in opts if opt.startswith("-I")]
++    return default
+ 
+ def detect_igraph_libraries(default = LIBIGRAPH_FALLBACK_LIBRARIES):
+     """Tries to detect the libraries that igraph uses"""
+-    line, exit_code = get_output("pkg-config igraph --libs")
+-    if exit_code>0 or len(line) == 0:
+-        return default
+-    opts=line.split()
+-    return [opt[2:] for opt in opts if opt.startswith("-l")]
++    return default
+     
+ def detect_igraph_library_dirs(default = LIBIGRAPH_FALLBACK_LIBRARY_DIRS):
+     """Tries to detect the igraph library directory"""
+-    line, exit_code = get_output("pkg-config igraph --libs")
+-    if exit_code>0 or len(line) == 0: return default
+-    opts=line.split()
+-    return [opt[2:] for opt in opts if opt[0:2]=="-L"]
++    return default
+ 
+ sources=glob.glob(os.path.join('src', '*.c'))
+ include_dirs=[]
+@@ -113,7 +102,7 @@
+ Many thanks to the maintainers of this page!
+ """
+ 
+-plat = get_platform()
++plat = 'arm-gnueabi'
+ options = dict(
+     name = 'python-igraph',
+     version = '0.6.5',

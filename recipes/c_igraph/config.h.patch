@@ -1,0 +1,11 @@
+--- build/c_igraph/igraph-0.6.5/config.h	2013-11-05 14:10:26.285433616 -0500
++++ config.h	2013-11-05 14:12:36.431283045 -0500
+@@ -53,7 +53,7 @@
+ /* #undef HAVE_LOG2 */
+ 
+ /* Define to 1 if you have the `logbl' function. */
+-/* #undef HAVE_LOGBL */
++#define HAVE_LOGBL 1
+ 
+ /* Define to 1 if you have the <memory.h> header file. */
+ #define HAVE_MEMORY_H 1
