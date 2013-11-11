@@ -22,19 +22,14 @@ function prebuild_c_igraph() {
     true
 }
 
+function shouldbuild_c_igraph() {
+    false
+}
+
 function build_c_igraph() {
-    cd $BUILD_c_igraph
-
-    push_arm
-
-    export CPPFLAGS="-I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/include -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include"
-    try ./configure --prefix="$BUILD_PATH/python-install" --libdir="$BUILD_PATH/libs" --host=arm-gnueabi --with-sysroot="$ANDROIDNDK/sources/cxx-stl/stlport/" --with-external-f2c
-    try patch $BUILD_c_igraph/config.h $RECIPE_c_igraph/config.h.patch
-    try $MAKE
-    try $MAKE install
-
-
-    pop_arm
+    # I'm not even going to make anything here!
+    # I'll let the main igraph recipe do that.
+    true
 }
 
 function postbuild_c_igraph() {
