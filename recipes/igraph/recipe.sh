@@ -30,7 +30,7 @@ function build_igraph() {
     push_arm
 
     patch setup.py $RECIPE_igraph/setup.py.patch
-    try $HOSTPYTHON setup.py build_ext -p arm-gnueabi -L "$BUILD_PATH/libs" -I "$BUILD_PATH/python-install/include/igraph/" install --no-pkg-config --root $BUILD_PATH/python-install
+    try $HOSTPYTHON setup.py build_ext -p arm-gnueabi -L "$BUILD_PATH/libs" -I "$BUILD_PATH/python-install/include/igraph/" install --root $BUILD_PATH/python-install --install-platlib $BUILD_PATH/python-install/lib/python2.7/lib-dynload
 
     pop_arm
 }
