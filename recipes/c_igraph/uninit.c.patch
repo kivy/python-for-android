@@ -1,0 +1,23 @@
+276c276,277
+< #include <fpu_control.h>
+---
+> //doesn't exist on Android
+> //#include <fpu_control.h>
+334a336
+> /*
+336c338
+< #define RQD_FPU_MASK (_FPU_MASK_OM+_FPU_MASK_IM+_FPU_MASK_ZM)
+---
+> #define RQD_FPU_MASK (_FPU_MASK_OM+_FPU_MASK_IM+_FPU_MASK_ZM)*/
+343a346
+> /*
+345c348
+< #define RQD_FPU_MASK (_FPU_MASK_OM+_FPU_MASK_IM+_FPU_MASK_ZM)
+---
+> #define RQD_FPU_MASK (_FPU_MASK_OM+_FPU_MASK_IM+_FPU_MASK_ZM)*/
+350a354
+> /*
+352c356
+< #define RQD_FPU_MASK (_FPU_MASK_O+_FPU_MASK_V+_FPU_MASK_Z)
+---
+> #define RQD_FPU_MASK (_FPU_MASK_O+_FPU_MASK_V+_FPU_MASK_Z)*/

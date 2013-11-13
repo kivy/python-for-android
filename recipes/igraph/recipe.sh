@@ -18,21 +18,23 @@ RECIPE_igraph=$RECIPES_PATH/igraph
 
 
 function prebuild_igraph() {
-    true
+    patch setup.py $RECIPE_igraph/setup.py.patch
 }
 
 function shouldbuild_igraph() {
-    true
+    if [ -e $BUILD_igraph/.built ]; then
+        export DO_BUILD=0;
+    fi
 }
 
 function build_igraph() {
     cd $BUILD_igraph
     push_arm
 
-    patch setup.py $RECIPE_igraph/setup.py.patch
-    try $HOSTPYTHON setup.py build_ext -p arm-gnueabi -L "$BUILD_PATH/libs" -I "$BUILD_PATH/python-install/include/igraph/" install --root $BUILD_PATH/python-install --install-platlib $BUILD_PATH/python-install/lib/python2.7/lib-dynload
+    try $HOSTPYTHON setup.py build_ext -I"$BUILD_PATH/python-install/include/igraph:$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include" -L"$BUILD_PATH/python-install/lib:$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi" -l gnustl_static -p arm-gnueabi install
 
     pop_arm
+    touch .built
 }
 
 function postbuild_igraph() {
