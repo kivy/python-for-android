@@ -1,0 +1,6 @@
+68,72d67
+<   f2c/arith.h: f2c/arithchk.c
+< 	$(CC) $(CFLAGS) -DNO_FPINIT f2c/arithchk.c -lm -o f2c/arith || \
+< 	$(CC) -DNO_LONG_LONG $(CFLAGS) -DNO_FPINIT f2c/arithchk.c \
+< 		$(WARNING_CFLAGS) -lm -o f2c/arith
+< 	f2c/arith > f2c/arith.h
