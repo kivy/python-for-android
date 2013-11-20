@@ -140,8 +140,8 @@ component.
 
     * - Token
       - Description
-    * - `surface.transluent`
-      - If set to 1, the created surface will be transluent (can be used
+    * - `surface.transparent`
+      - If set to 1, the created surface will be transparent (can be used
         to add background Android widget in the background, or use accelerated
         widgets)
     * - `surface.depth`
@@ -150,3 +150,7 @@ component.
         support the depth you want.
     * - `surface.stencil`
       - Size of the stencil component, default to 8.
+    * - `android.background_color`
+      - Color (32bits RGBA color), used for the background window. Usually, the
+        background is covered by the OpenGL Background, unless
+        `surface.transparent` is set.

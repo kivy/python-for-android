@@ -60,8 +60,9 @@ import android.content.res.Resources;
 
 
 public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
-    private static String TAG = "SDLSurface";
-    private final String mVertexShader =
+    static private final String TAG = "SDLSurface";
+    static private final boolean DEBUG = false;
+    static private final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
         "attribute vec2 aTextureCoord;\n" +
@@ -71,7 +72,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         "  vTextureCoord = aTextureCoord;\n" +
         "}\n";
 
-    private final String mFragmentShader =
+    static private final String mFragmentShader =
         "precision mediump float;\n" +
         "varying vec2 vTextureCoord;\n" +
         "uniform sampler2D sTexture;\n" +
@@ -270,11 +271,20 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         private int[] mValue = new int[1];
     }
 
+    public interface OnInterceptTouchListener {
+        boolean onTouch(MotionEvent ev);
+    }
+
+    private OnInterceptTouchListener mOnInterceptTouchListener = null;
+
     // The activity we're a part of.
     private static PythonActivity mActivity;
 
     // Have we started yet?
     public boolean mStarted = false;
+
+    // what is the textinput type while calling the keyboard
+    public int inputType = EditorInfo.TYPE_CLASS_TEXT;
 
     // Is Python ready to receive input events?
     static boolean mInputActivated = false;
@@ -372,6 +382,15 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
         } catch (PackageManager.NameNotFoundException e) {
         }
+
+        if ( ai.metaData.getInt("surface.transparent") != 0 ) {
+            Log.d(TAG, "Surface will be transparent.");
+            setZOrderOnTop(true);
+            getHolder().setFormat(PixelFormat.TRANSPARENT);
+        } else {
+            Log.i(TAG, "Surface will NOT be transparent");
+        }
+
     }
 
 
@@ -433,6 +452,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+
+    public void closeSoftKeyboard(){
+        // close the IME overlay(keyboard)
+        Hardware.hideKeyboard();
+    }
+
     /**
      * Inform the view that the activity is paused. The owner of this view must
      * call this method when the activity is paused. Calling this method will
@@ -441,6 +466,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void onPause() {
 
+        this.closeSoftKeyboard();
         synchronized (this) {
             if (mPause == PAUSE_NONE) {
                 mPause = PAUSE_REQUEST;
@@ -480,6 +506,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public void onDestroy() {
         Log.w(TAG, "onDestroy() called");
+        this.closeSoftKeyboard();
         synchronized (this) {
             this.notifyAll();
 
@@ -488,9 +515,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 return;
             }
 
-            // close the IME overlay(keyboard)
-            InputMethodManager inputMethodManager = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromInputMethod(this.getWindowToken(), 0);
 
             // application didn't leave, give 10s before closing.
             // hopefully, this could be enough for launching the on_stop() trigger within the app.
@@ -529,7 +553,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceCreated(SurfaceHolder holder) {
-        //Log.i(TAG, "surfaceCreated() is not handled :|");
+        if (DEBUG) Log.d(TAG, "surfaceCreated()");
+        synchronized (this) {
+            if (!mStarted) {
+                this.notifyAll();
+            }
+        }
     }
 
     /**
@@ -537,7 +566,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        //Log.i(TAG, "surfaceDestroyed() is not handled :|");
+        if (DEBUG) Log.d(TAG, "surfaceDestroyed()");
     }
 
     /**
@@ -545,7 +574,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        //Log.i(TAG, "surfaceChanged() :|");
+        if (DEBUG) Log.i(TAG, String.format("surfaceChanged() fmt=%d size=%dx%d", format, w, h));
+
         mWidth = w;
         mHeight = h;
 
@@ -593,7 +623,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         int[] attrib_list = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
 
         // Create an opengl es 2.0 surface
-        Log.w(TAG, "Choose egl configuration");
+        Log.i(TAG, "Choose egl configuration");
         int configToTest = 0;
         boolean configFound = false;
 
@@ -629,7 +659,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 continue;
             }
 
-            Log.w(TAG, "Create egl context");
+            if (DEBUG) Log.d(TAG, "Create egl context");
             mEglContext = mEgl.eglCreateContext(mEglDisplay, mEglConfig, EGL10.EGL_NO_CONTEXT, attrib_list);
             if (mEglContext == null) {
                 Log.w(TAG, "Unable to create egl context with this configuration, try the next one.");
@@ -653,14 +683,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             return;
         }
 
-        if ( ai.metaData.getInt("surface.transluent") != 0 ) {
-            Log.i(TAG, "Surface will be transluent");
-            getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        } else {
-            Log.i(TAG, "Surface will NOT be transluent");
-        }
-
-        Log.w(TAG, "Done");
+        if (DEBUG) Log.d(TAG, "Done egl");
         waitForStart();
 
         nativeResize(mWidth, mHeight);
@@ -689,13 +712,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         //Log.i(TAG, "End of native init, stop everything (exit0)");
         System.exit(0);
-    }
-
-    private void glCheck(GL10 gl) {
-        int gle = gl.glGetError();
-        if (gle != gl.GL_NO_ERROR) {
-            throw new RuntimeException("GL Error: " + gle);
-        }
     }
 
     private void waitForStart() {
@@ -815,9 +831,15 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mMVPMatrix, 0);
 
         GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-        checkGlError("glDrawArrays");
-        swapBuffers();
+
+        // Ensure that, even with double buffer, or if we lost one buffer (like
+        // BufferQueue has been abandoned!), it will work.
+        for ( int i = 0; i < 2; i++ ) {
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+            checkGlError("glDrawArrays");
+            swapBuffers();
+        }
 
         // Wait to be notified it's okay to start Python.
         synchronized (this) {
@@ -830,7 +852,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 try {
                     this.wait(250);
                 } catch (InterruptedException e) {
-                    continue;
                 }
             }
         }
@@ -892,6 +913,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 nativeResizeEvent(mWidth, mHeight);
             else
                 nativeResize(mWidth, mHeight);
+
+            // If the size didn't change, kivy might no rerender the scene. Force it.
+            nativeExpose();
         }
 
         return true;
@@ -920,11 +944,19 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private static final int INVALID_POINTER_ID = -1;
     private int mActivePointerId = INVALID_POINTER_ID;
 
+    public void setInterceptTouchListener(OnInterceptTouchListener listener) {
+        this.mOnInterceptTouchListener = listener;
+    }
+
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
 
         if (mInputActivated == false)
             return true;
+
+        if (mOnInterceptTouchListener != null)
+            if (mOnInterceptTouchListener.onTouch(event))
+                return false;
 
         int action = event.getAction() & MotionEvent.ACTION_MASK;
         int sdlAction = -1;
@@ -996,7 +1028,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        //Log.i("python", String.format("key down %d", keyCode));
+        if (DEBUG) Log.d(TAG, String.format("onKeyDown() keyCode=%d", keyCode));
         if (mDelLen > 0){
             mDelLen = 0;
             return true;
@@ -1010,11 +1042,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
+        if (DEBUG) Log.d(TAG, String.format("onKeyUp() keyCode=%d", keyCode));
         if (mDelLen > 0){
             mDelLen = 0;
             return true;
         }
-        //Log.i("python", String.format("key up %d", keyCode));
         if (mInputActivated && nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
         } else {
@@ -1024,6 +1056,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
+        if (DEBUG)
+            Log.d(TAG, String.format(
+                "onKeyMultiple() keyCode=%d count=%d", keyCode, count));
         String keys = event.getCharacters();
         char[] keysBuffer = new char[keys.length()];
         if (mDelLen > 0){
@@ -1055,7 +1090,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyPreIme(int keyCode, final KeyEvent event){
-        //Log.i("python", String.format("key pre ime %d", keyCode));
+        if (DEBUG) Log.d(TAG, String.format("onKeyPreIme() keyCode=%d", keyCode));
         if (mInputActivated){
             switch (event.getAction()) {
                 case KeyEvent.ACTION_DOWN:
@@ -1076,7 +1111,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         // setting inputtype to TYPE_CLASS_TEXT is necessary for swiftkey to enable
-        outAttrs.inputType = EditorInfo.TYPE_CLASS_TEXT;
+        outAttrs.inputType = inputType;
         // ask IME to avoid taking full screen on landscape mode
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         return new BaseInputConnection(this, false){
@@ -1182,7 +1217,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e(TAG, op + ": glError " + error);
-            throw new RuntimeException(op + ": glError " + error);
+            //throw new RuntimeException(op + ": glError " + error);
         }
     }
     private static final int FLOAT_SIZE_BYTES = 4;

@@ -129,7 +129,7 @@ int android_get_dpi(void) {
     return (*env)->CallStaticIntMethod(env, cls, mid);
 }
 
-void android_show_keyboard(void) {
+void android_show_keyboard(int input_type) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
     static jmethodID mid = NULL;
@@ -139,11 +139,11 @@ void android_show_keyboard(void) {
         aassert(env);
         cls = (*env)->FindClass(env, "org/renpy/android/Hardware");
         aassert(cls);
-        mid = (*env)->GetStaticMethodID(env, cls, "showKeyboard", "()V");
+        mid = (*env)->GetStaticMethodID(env, cls, "showKeyboard", "(I)V");
         aassert(mid);
     }
 
-    (*env)->CallStaticVoidMethod(env, cls, mid);
+    (*env)->CallStaticVoidMethod(env, cls, mid, (jint) input_type);
 }
 
 void android_hide_keyboard(void) {

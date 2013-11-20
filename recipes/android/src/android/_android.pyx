@@ -167,11 +167,56 @@ def get_dpi():
 
 
 # Soft keyboard.
-cdef extern void android_show_keyboard()
+cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
-def show_keyboard():
-    android_show_keyboard()
+# Flags for input_type, for requesting a particular type of keyboard
+#android FLAGS
+TYPE_CLASS_DATETIME = 4
+TYPE_CLASS_NUMBER = 2
+TYPE_NUMBER_VARIATION_NORMAL = 0
+TYPE_NUMBER_VARIATION_PASSWORD = 16
+TYPE_CLASS_TEXT = 1
+TYPE_TEXT_FLAG_AUTO_COMPLETE = 65536
+TYPE_TEXT_FLAG_AUTO_CORRECT = 32768
+TYPE_TEXT_FLAG_NO_SUGGESTIONS = 524288
+TYPE_TEXT_VARIATION_EMAIL_ADDRESS = 32
+TYPE_TEXT_VARIATION_NORMAL = 0
+TYPE_TEXT_VARIATION_PASSWORD = 128
+TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
+TYPE_TEXT_VARIATION_URI = 16
+TYPE_CLASS_PHONE = 3
+
+def show_keyboard(target, input_type):
+    if input_type == 'text':
+        _input_type = TYPE_CLASS_TEXT
+    elif input_type == 'number':
+        _input_type = TYPE_CLASS_NUMBER
+    elif input_type == 'url':
+        _input_type = \
+            TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_URI
+    elif input_type == 'mail':
+        _input_type = \
+            TYPE_CLASS_TEXT | TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+    elif input_type == 'datetime':
+        _input_type = TYPE_CLASS_DATETIME
+    elif input_type == 'tel':
+        _input_type = TYPE_CLASS_PHONE
+    elif input_type == 'address':
+        _input_type = TYPE_TEXT_VARIATION_POSTAL_ADDRESS
+
+    if target.password:
+        if _input_type == TYPE_CLASS_TEXT:
+            _input_type |= TYPE_TEXT_VARIATION_PASSWORD
+        elif _input_type == TYPE_CLASS_NUMBER:
+            _input_type |= TYPE_NUMBER_VARIATION_PASSWORD
+
+    if not target.keyboard_suggestions:
+        if _input_type == TYPE_CLASS_TEXT:
+            _input_type = TYPE_CLASS_TEXT | \
+                TYPE_TEXT_FLAG_NO_SUGGESTIONS
+
+    android_show_keyboard(_input_type)
 
 def hide_keyboard():
     android_hide_keyboard()

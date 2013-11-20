@@ -144,6 +144,12 @@ public class PythonActivity extends Activity implements Runnable {
 
         Hardware.view = mView;
         setContentView(mView);
+
+        // Force the background window color if asked
+        if ( this.mInfo.metaData.containsKey("android.background_color") ) {
+            getWindow().getDecorView().setBackgroundColor(
+                this.mInfo.metaData.getInt("android.background_color"));
+        }
     }
 
     /**
