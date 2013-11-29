@@ -1,4 +1,4 @@
-#!/bin/bash
+b#!/bin/bash
 
 # Recipe for the Python interface to igraph, a high-performance graph library in C: http://igraph.org/
 #
@@ -18,7 +18,7 @@ RECIPE_igraph=$RECIPES_PATH/igraph
 
 
 function prebuild_igraph() {
-    patch setup.py $RECIPE_igraph/setup.py.patch
+    true
 }
 
 function shouldbuild_igraph() {
@@ -29,6 +29,8 @@ function shouldbuild_igraph() {
 
 function build_igraph() {
     cd $BUILD_igraph
+    patch setup.py $RECIPE_igraph/setup.py.patch
+    patch setup.cfg $RECIPE_igraph/setup.cfg.patch
     push_arm
 
     try $HOSTPYTHON setup.py build_ext -I"$BUILD_PATH/python-install/include/igraph:$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include" -L"$BUILD_PATH/python-install/lib:$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi" -l gnustl_static -p arm-gnueabi install
