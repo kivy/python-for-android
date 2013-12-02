@@ -40,6 +40,8 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
 import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
@@ -1128,7 +1130,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean setComposingText(CharSequence text,
                     int newCursorPosition){
-                //Log.i("Python:", String.format("set Composing Text %s", text));
+                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
                 this.deleteLastText();
                 // send text
                 for(int i = 0; i < text.length(); i++){
@@ -1145,10 +1147,58 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean commitText(CharSequence text, int newCursorPosition) {
                 // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
-                //Log.i("Python:", String.format("Commit Text %s", text));
+                if (DEBUG) Log.i("Python:", String.format("Commit Text %s", text));
                 this.deleteLastText();
                 mDelLen = 0;
                 return super.commitText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean sendKeyEvent(KeyEvent event){
+                if (DEBUG) Log.d("Python:", String.format("sendKeyEvent %s", event.getKeyCode()));
+                return super.sendKeyEvent(event);
+            }
+
+            @Override
+            public boolean setComposingRegion(int start, int end){
+                if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
+                return super.setComposingRegion(start, end);
+            }
+
+            @Override
+            public boolean deleteSurroundingText (int beforeLength, int afterLength){
+                if (DEBUG) Log.d("Python:", String.format("deleteLastText %s %s", beforeLength, afterLength));
+                return super.deleteSurroundingText(beforeLength, afterLength);
+            }
+
+            @Override
+            public ExtractedText getExtractedText (ExtractedTextRequest request, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getExtractedText %s %s", request.describeContents(), flags));
+                    return super.getExtractedText(request, flags);
+            }
+
+            @Override
+            public CharSequence getSelectedText(int flags){
+                if (DEBUG) Log.d("Python:", String.format("getSelectedText %s", flags));
+                    return super.getSelectedText(flags);
+            }
+
+            @Override
+            public CharSequence getTextBeforeCursor(int n, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getTextBeforeCursor %s %s", n, flags));
+                    return new String(new char[1024]).replace("\0", " ");//#super.getTextBeforeCursor(n, flags);
+            }
+
+            @Override
+            public CharSequence getTextAfterCursor(int n, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getTextAfterCursor %s %s", n, flags));
+                    return " ";//super.getTextAfterCursor(n, flags);
+            }
+
+            @Override
+            public boolean setSelection(int start, int end){
+                if (DEBUG) Log.d("Python:", String.format("Set Selection %s %s", start, end));
+                return super.setSelection(start, end);
             }
         };
     }
