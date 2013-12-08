@@ -206,6 +206,10 @@ def make_package(args):
 
         args.numeric_version = str(version_code)
 
+    args.name = args.name.decode('utf-8')
+    if args.icon_name:
+        args.icon_name = args.icon_name.decode('utf-8')
+
     versioned_name = args.name.replace(' ', '').replace('\'', '') + '-' + args.version
 
     # Android SDK rev14 needs two ant execs (ex: debug installd) and new build.xml
