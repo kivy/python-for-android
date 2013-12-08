@@ -1,0 +1,6 @@
+2,3c2,3
+< include_dirs = ../../build/include:../../include:/usr/local/include:/usr/include
+< library_dirs = ../../build/src/.libs:../../src/.libs:/usr/local/lib:/usr/lib
+---
+> include_dirs = ../../build/include:../../include
+> library_dirs = ../../build/src/.libs:../../src/.libs
