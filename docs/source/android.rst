@@ -1,12 +1,11 @@
 Python API
 ==========
 
-Python for android project include a "android" python module. The module is
-composed of multiple part, mostly done for a easier usage of Java API.  The
-module is not designed to wrap anything you want.
+The Python for android project includes a Python module called "android". It
+consists of multiple parts which are mostly there to facilitate the use of the Java API.
 
-Most of the Java API is accessible with PyJNIus, and then. prefer to see if you
-can use Java API directly first.
+This module is not designed to be comprehensive. Most of the Java API is also accessible with PyJNIus,
+so if you can't find what you need here you can try using the Java API directly instead.
 
 
 Android (``android``)
@@ -17,18 +16,18 @@ Android (``android``)
 .. function:: check_pause()
 
     This should be called on a regular basis to check to see if Android
-    expects the game to pause. If it return true, the game should call
-    :func:`android.wait_for_resume()`, after persisting its state as necessary.
+    expects the application to pause. If it returns true, the app should call
+    :func:`android.wait_for_resume()`, after storing its state as necessary.
 
 .. function:: wait_for_resume()
 
-    This function should be called after :func:`android.check_pause()` returns
+    This function should be called after :func:`android.check_pause()` and returns
     true. It does not return until Android has resumed from the pause. While in
-    this function, Android may kill a game without further notice.
+    this function, Android may kill the app without further notice.
 
 .. function:: map_key(keycode, keysym)
 
-    This maps between an android keycode and a python keysym. The android
+    This maps an android keycode to a python keysym. The android
     keycodes are available as constants in the android module.
 
 
@@ -37,7 +36,7 @@ Activity (``android.activity``)
 
 .. module:: android.activity
 
-The default PythonActivity have a observer pattern for `onActivityResult <http://developer.android.com/reference/android/app/Activity.html#onActivityResult(int, int, android.content.Intent)>`_ and `onNewIntent <http://developer.android.com/reference/android/app/Activity.html#onNewIntent(android.content.Intent)>`_.
+The default PythonActivity has a observer pattern for `onActivityResult <http://developer.android.com/reference/android/app/Activity.html#onActivityResult(int, int, android.content.Intent)>`_ and `onNewIntent <http://developer.android.com/reference/android/app/Activity.html#onNewIntent(android.content.Intent)>`_.
 
 .. function:: bind(eventname=callback, ...)
 
@@ -51,8 +50,7 @@ The default PythonActivity have a observer pattern for `onActivityResult <http:/
 
 Example::
 
-    # this example is a snippet from an NFC p2p app, and are located into a
-    # kivy App class implementation
+    # This example is a snippet from an NFC p2p app implemented with Kivy.
 
     from android import activity
 
@@ -81,9 +79,9 @@ Billing (``android.billing``)
 
 .. module:: android.billing
 
-This billing module give an access to the `In-App Billing <http://developer.android.com/guide/google/play/billing/billing_overview.html>`_:
+This billing module gives an access to the `In-App Billing <http://developer.android.com/guide/google/play/billing/billing_overview.html>`_:
 
-#. `Setup a test accounts <http://developer.android.com/guide/google/play/billing/billing_admin.html#billing-testing-setup>`_, and get your Public Key
+#. `Setup a test account <http://developer.android.com/guide/google/play/billing/billing_admin.html#billing-testing-setup>`_, and get your Public Key
 #. Export your public key::
 
     export BILLING_PUBKEY="Your public key here"
@@ -104,18 +102,18 @@ This billing module give an access to the `In-App Billing <http://developer.andr
             # Start the billing service, and attach our callback
             self.service = BillingService(billing_callback)
 
-            # Start a clock to check billing service message every seconds
+            # Start a clock to check billing service message every second
             Clock.schedule_interval(self.service.check, 1)
 
         def billing_callback(self, action, *largs):
-            '''Callback that will receive all the event from the Billing service
+            '''Callback that will receive all the events from the Billing service
             '''
             if action == BillingService.BILLING_ACTION_ITEMSCHANGED:
                 items = largs[0]
                 if 'org.kivy.gopremium' in items:
-                    print 'Congratulation, you have a premium acess'
+                    print "Congratulations, you have a premium acess"
                 else:
-                    print 'Unfortunately, you dont have premium access'
+                    print "Unfortunately, you don't have premium access"
 
         def buy(self, sku):
             # Method to buy something.
@@ -125,7 +123,7 @@ This billing module give an access to the `In-App Billing <http://developer.andr
             # Return all the items purchased
             return self.service.get_purchased_items()
 
-#. To initiate a in-app purchase, just call the buy method::
+#. To initiate an in-app purchase, just call the buy() method::
 
     # Note: start the service at the start, and never twice!
     bs = MyBillingService()
@@ -136,7 +134,7 @@ This billing module give an access to the `In-App Billing <http://developer.andr
     print bs.get_purchased_items()
     {'org.kivy.gopremium': {'qt: 1}}
 
-#. You'll receive all the notification about the billing process in the callback.
+#. You'll receive all the notifications about the billing process in the callback.
 
 #. Last step, create your application with `--with-billing $BILLING_PUBKEY`::
 
@@ -157,8 +155,8 @@ or categories filters.
 
     .. warning::
 
-        The callback will be called in another thread than the main thread. Be
-        careful to not access to OpenGL or something like that.
+        The callback will be called in another thread than the main thread. In
+        that thread, be careful not to access OpenGL or something like that.
 
     .. method:: __init__(callback, actions=None, categories=None)
 
@@ -200,7 +198,7 @@ Example::
             else:
                 print 'The headset is unplugged'
 
-        # don't forget to stop and restart the receiver when the app is going
+        # Don't forget to stop and restart the receiver when the app is going
         # to pause / resume mode
 
         def on_pause(self):
@@ -225,26 +223,26 @@ intended to be imported as an alternative to pygame.mixer, using code like: ::
    except ImportError:
        import android.mixer as mixer
 
-Note that if you're using `kivy.core.audio
+Note that if you're using the `kivy.core.audio
 <http://kivy.org/docs/api-kivy.core.audio.html>`_ module, you don't have to do
-anything, all is automatic.
+anything, it is all automatic.
 
 The `android.mixer` module is a wrapper around the Android MediaPlayer
 class. This allows it to take advantage of any hardware acceleration
 present, and also eliminates the need to ship codecs as part of an
 application.
 
-It has several differences from the pygame mixer:
+It has several differences with the pygame mixer:
 
-* The init and pre_init methods work, but are ignored - Android chooses
-  appropriate setting automatically.
+* The init() and pre_init() methods work, but are ignored - Android chooses
+  appropriate settings automatically.
 
 * Only filenames and true file objects can be used - file-like objects
   will probably not work.
 
 * Fadeout does not work - it causes a stop to occur.
 
-* Looping is all or nothing, there's no way to choose the number of
+* Looping is all or nothing, there is no way to choose the number of
   loops that occur. For looping to work, the
   :func:`android.mixer.periodic` function should be called on a
   regular basis.
@@ -304,13 +302,13 @@ This can be used to prevent errors like:
 Service (``android.service``)
 -----------------------------
 
-Service part of the application is controlled through the class :class:`AndroidService`.
+Services of an application are controlled through the class :class:`AndroidService`.
 
 .. module:: android.service
 
 .. class:: AndroidService(title, description)
 
-    Run ``service/main.py`` from application directory as a service.
+    Run ``service/main.py`` from the application directory as a service.
 
     :param title: Notification title, default to 'Python service'
     :param description: Notification text, default to 'Kivy Python service started'
@@ -321,8 +319,8 @@ Service part of the application is controlled through the class :class:`AndroidS
 
         Start the service.
 
-        :param arg: Argument to pass to a service, through environment variable
-                    ``PYTHON_SERVICE_ARGUMENT``, default to ''
+        :param arg: Argument to pass to a service, through the environment variable
+                    ``PYTHON_SERVICE_ARGUMENT``. Defaults to ''
         :type arg: str
 
     .. method:: stop()
@@ -359,7 +357,7 @@ Application service part example, ``service/main.py``:
    arg = os.getenv('PYTHON_SERVICE_ARGUMENT')
 
    while True:
-       # this will print 'Hello From Service' continually, even when application is switched
+       # this will print 'Hello From Service' continually, even when the application is switched
        print arg
        time.sleep(1)
 
