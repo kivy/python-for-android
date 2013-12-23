@@ -65,7 +65,7 @@
     </activity>
     {% endif %}
 
-    {% if service or args.launche %}
+    {% if service or args.launcher %}
     <service android:name="org.renpy.android.PythonService"
              android:process=":PythonService"/>
     {% endif %}
