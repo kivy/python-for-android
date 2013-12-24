@@ -20,24 +20,13 @@ package org.alanjds.sl4acompat;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
-//import android.content.res.Resources;
 import android.os.Binder;
 import android.os.IBinder;
 
 import com.googlecode.android_scripting.AndroidProxy;
-//import com.googlecode.android_scripting.BaseApplication;
-//import com.googlecode.android_scripting.Constants;
-//import com.googlecode.android_scripting.FeaturedInterpreters;
-//import com.googlecode.android_scripting.FileUtils;
 import com.googlecode.android_scripting.ForegroundService;
 import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.NotificationIdFactory;
-//import com.googlecode.android_scripting.ScriptLauncher;
-//import com.googlecode.android_scripting.interpreter.Interpreter;
-//import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
-//import com.googlecode.android_scripting.interpreter.InterpreterUtils;
-//import com.googlecode.android_scripting.interpreter.html.HtmlActivityTask;
-//import com.googlecode.android_scripting.interpreter.html.HtmlInterpreter;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiverManager;
 
 import java.util.concurrent.CountDownLatch;
@@ -77,8 +66,6 @@ public class MinimalService extends ForegroundService {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		//mInterpreterConfiguration = ((BaseApplication) getApplication())
-		//		.getInterpreterConfiguration();
 	}
 
 	@Override
@@ -87,56 +74,6 @@ public class MinimalService extends ForegroundService {
 		mProxy = new AndroidProxy(this, null, true);
 		mProxy.startLocal();
 		mLatch.countDown();
-		//String fileName = Script.getFileName(this);
-		//Interpreter interpreter = mInterpreterConfiguration
-		//		.getInterpreterForScript(fileName);
-		//if (interpreter == null || !interpreter.isInstalled()) {
-		//	mLatch.countDown();
-		//	if (FeaturedInterpreters.isSupported(fileName)) {
-		//		Intent i = new Intent(this, DialogActivity.class);
-		//		i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		//		i.putExtra(Constants.EXTRA_SCRIPT_PATH, fileName);
-		//		startActivity(i);
-		//	} else {
-		//		Log
-		//				.e(this, "Cannot find an interpreter for script "
-		//						+ fileName);
-		//	}
-		//	stopSelf(startId);
-		//	return;
-		//}
-
-		//// Copies script to internal memory.
-		//fileName = InterpreterUtils.getInterpreterRoot(this).getAbsolutePath()
-		//		+ "/" + fileName;
-		//File script = new File(fileName);
-		//// TODO(raaar): Check size here!
-		//if (!script.exists()) {
-		//	script = FileUtils.copyFromStream(fileName, getResources()
-		//			.openRawResource(Script.ID));
-		//}
-		//copyResourcesToLocal(); // Copy all resources
-
-		//if (Script.getFileExtension(this)
-		//		.equals(HtmlInterpreter.HTML_EXTENSION)) {
-		//	HtmlActivityTask htmlTask = ScriptLauncher.launchHtmlScript(script,
-		//			this, intent, mInterpreterConfiguration);
-		//	mFacadeManager = htmlTask.getRpcReceiverManager();
-		//	mLatch.countDown();
-		//	stopSelf(startId);
-		//} else {
-			//mProxy = new AndroidProxy(this, null, true);
-			//mProxy.startLocal();
-			//mLatch.countDown();
-			//ScriptLauncher.launchScript(script, mInterpreterConfiguration,
-			//		mProxy, new Runnable() {
-			//			@Override
-			//			public void run() {
-			//				mProxy.shutdown();
-			//				stopSelf(startId);
-			//			}
-			//		});
-		//}
 	}
 
 	RpcReceiverManager getRpcReceiverManager() throws InterruptedException {
@@ -157,64 +94,5 @@ public class MinimalService extends ForegroundService {
 	//    notification.setLatestEventInfo(this, this.getString(R.string.app_name), this.getString(R.string.loading), contentIntent);
 	//    notification.flags = Notification.FLAG_AUTO_CANCEL;
 	//	return notification;
-	//}
-
-	//private boolean needsToBeUpdated(String filename, InputStream content) {
-	//	File script = new File(filename);
-	//	FileInputStream fin;
-	//	Log.d("Checking if " + filename + " exists");
-	//
-	//	if (!script.exists()) {
-	//		Log.d("not found");
-	//		return true;
-	//	}
-	//
-	//	Log.d("Comparing file with content");
-	//	try {
-	//		fin = new FileInputStream(filename);
-	//		int c;
-	//		while ((c = fin.read()) != -1) {
-	//			if (c != content.read()) {
-	//				Log.d("Something changed replacing");
-	//				return true;
-	//			}
-	//		}
-	//	} catch (Exception e) {
-	//		Log.d("Something failed during comparing");
-	//		Log.e(e);
-	//		return true;
-	//	}
-	//	Log.d("No need to update " + filename);
-	//	return false;
-	//}
-
-	//private void copyResourcesToLocal() {
-	//	String name, sFileName;
-	//	InputStream content;
-	//	R.raw a = new R.raw();
-	//	java.lang.reflect.Field[] t = R.raw.class.getFields();
-	//	Resources resources = getResources();
-	//	for (int i = 0; i < t.length; i++) {
-	//		try {
-	//			name = resources.getText(t[i].getInt(a)).toString();
-	//			sFileName = name.substring(name.lastIndexOf('/') + 1, name
-	//					.length());
-	//			content = getResources().openRawResource(t[i].getInt(a));
-	//
-	//			// Copies script to internal memory only if changes were made
-	//			sFileName = InterpreterUtils.getInterpreterRoot(this)
-	//					.getAbsolutePath()
-	//					+ "/" + sFileName;
-	//			if (needsToBeUpdated(sFileName, content)) {
-	//				Log.d("Copying from stream " + sFileName);
-	//				content.reset();
-	//				FileUtils.copyFromStream(sFileName, content);
-	//			}
-	//			FileUtils.chmod(new File(sFileName), 0755);
-	//		} catch (Exception e) {
-	//			// TODO Auto-generated catch block
-	//			e.printStackTrace();
-	//		}
-	//	}
 	//}
 }
