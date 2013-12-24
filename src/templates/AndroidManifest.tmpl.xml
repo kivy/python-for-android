@@ -83,7 +83,12 @@
 
       <activity android:name="org.alanjds.sl4acompat.ScriptActivity"
 		android:configChanges="keyboardHidden|orientation"
-		android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+		android:theme="@android:style/Theme.Translucent.NoTitleBar">
+	<intent-filter>
+	  <action android:name="com.googlecode.android_scripting.action.ACTION_LAUNCH_FOR_RESULT" />
+	  <category android:name="android.intent.category.DEFAULT" />
+	</intent-filter>
+      </activity>
     {% endif %}
 
 	{% if args.billing_pubkey %}
