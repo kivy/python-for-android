@@ -70,6 +70,21 @@
              android:process=":PythonService"/>
     {% endif %}
 
+    {% if sl4a %}
+      <service android:name="org.alanjds.sl4acompat.ScriptService" />
+
+      <activity android:name="com.googlecode.android_scripting.activity.FutureActivity"
+		android:configChanges="keyboardHidden|orientation" />
+
+      <activity android:name="org.alanjds.sl4acompat.DialogActivity"
+		android:configChanges="keyboardHidden|orientation"
+		android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+      <activity android:name="org.alanjds.sl4acompat.ScriptActivity"
+		android:configChanges="keyboardHidden|orientation"
+		android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    {% endif %}
+
 	{% if args.billing_pubkey %}
 	<service android:name="org.renpy.android.billing.BillingService"
 		android:process=":python" />
