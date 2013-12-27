@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.dummy.fooforandroid;
+package org.alanjds.sl4acompat;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -42,7 +42,7 @@ public class ScriptActivity extends Activity {
       ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-          ScriptService scriptService = ((ScriptService.LocalBinder) service).getService();
+          MinimalService scriptService = ((MinimalService.LocalBinder) service).getService();
           try {
             RpcReceiverManager manager = scriptService.getRpcReceiverManager();
             ActivityResultFacade resultFacade = manager.getReceiver(ActivityResultFacade.class);
@@ -57,12 +57,12 @@ public class ScriptActivity extends Activity {
           // Ignore.
         }
       };
-      bindService(new Intent(this, ScriptService.class), connection, Context.BIND_AUTO_CREATE);
-      startService(new Intent(this, ScriptService.class));
+      bindService(new Intent(this, MinimalService.class), connection, Context.BIND_AUTO_CREATE);
+      startService(new Intent(this, MinimalService.class));
     } else {
       ScriptApplication application = (ScriptApplication) getApplication();
       if (application.readyToStart()) {
-        startService(new Intent(this, ScriptService.class));
+        startService(new Intent(this, MinimalService.class));
       }
       finish();
     }
