@@ -11,9 +11,9 @@ public class MinimalServiceStarter extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.v('Received intent!')
+        Log.v("Received intent!");
         Intent serviceIntent = new Intent(context, MinimalService.class);
         context.startService(serviceIntent);
-        Log.v('Service started?')
+        Log.v("Service started?");
     }
 } 
