@@ -76,6 +76,7 @@
       <receiver android:name="org.alanjds.sl4acompat.MinimalServiceStarter" android:enabled="true" >
 	<intent-filter>
 	  <action android:name ="org.alanjds.sl4acompat.START_MINIMAL_SERVICE"/>
+	  <category android:name="android.intent.category.DEFAULT" />
 	</intent-filter>
       </receiver>
 
