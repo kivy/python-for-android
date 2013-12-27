@@ -21,7 +21,7 @@ function build_sl4acompat() {
 function postbuild_sl4acompat() {
         cd $BUILD_sl4acompat
         mkdir "$DIST_PATH"/libs
-        cp -av libs/* "$DIST_PATH"/libs/
+        cp -a libs/* "$DIST_PATH"/libs/
         cd -
 	true
 }
