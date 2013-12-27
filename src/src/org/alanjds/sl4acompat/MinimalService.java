@@ -43,7 +43,7 @@ public class MinimalService extends ForegroundService {
 	private final CountDownLatch mLatch = new CountDownLatch(1);
 	private final IBinder mBinder;
 
-	private InterpreterConfiguration mInterpreterConfiguration;
+	//private InterpreterConfiguration mInterpreterConfiguration;
 	private RpcReceiverManager mFacadeManager;
 	private AndroidProxy mProxy;
 
@@ -85,14 +85,14 @@ public class MinimalService extends ForegroundService {
 		return mFacadeManager;
 	}
 
-	//@Override
-	//protected Notification createNotification() {
-	//    Notification notification =
-	//        new Notification(R.drawable.script_logo_48, this.getString(R.string.loading), System.currentTimeMillis());
-	//    // This contentIntent is a noop.
-	//    PendingIntent contentIntent = PendingIntent.getService(this, 0, new Intent(), 0);
-	//    notification.setLatestEventInfo(this, this.getString(R.string.app_name), this.getString(R.string.loading), contentIntent);
-	//    notification.flags = Notification.FLAG_AUTO_CANCEL;
-	//	return notification;
-	//}
+	@Override
+	protected Notification createNotification() {
+	    Notification notification =
+	        new Notification(R.drawable.script_logo_48, this.getString(R.string.loading), System.currentTimeMillis());
+	    // This contentIntent is a noop.
+	    PendingIntent contentIntent = PendingIntent.getService(this, 0, new Intent(), 0);
+	    notification.setLatestEventInfo(this, this.getString(R.string.app_name), this.getString(R.string.loading), contentIntent);
+	    notification.flags = Notification.FLAG_AUTO_CANCEL;
+		return notification;
+	}
 }
