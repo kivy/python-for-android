@@ -383,7 +383,7 @@ tools directory of the Android SDK.
     ap.add_argument('--add-jar', dest='add_jar', action='append', help='Add a Java .jar to the libs, so you can access its classes with pyjnius. You can specify this argument more than once to include multiple jars')
     ap.add_argument('--meta-data', dest='meta_data', action='append',
             help='Custom key=value to add in application metadata')
-    ap.add_argument('--sl4acompat', dest='sl4a', action='store_true',
+    ap.add_argument('--sl4acompat', dest='sl4acompat', action='store_true',
         help='Provide this argument to include SL4A jars and RPC service into the app.')
 
     args = ap.parse_args()
