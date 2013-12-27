@@ -77,9 +77,9 @@
       <activity android:name="com.googlecode.android_scripting.activity.FutureActivity"
 		android:configChanges="keyboardHidden|orientation" />
 
-      <activity android:name="org.alanjds.sl4acompat.DialogActivity"
+      <!--<activity android:name="org.alanjds.sl4acompat.DialogActivity"
 		android:configChanges="keyboardHidden|orientation"
-		android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+		android:theme="@android:style/Theme.Translucent.NoTitleBar" />-->
 
       <activity android:name="org.alanjds.sl4acompat.ScriptActivity"
 		android:configChanges="keyboardHidden|orientation"
