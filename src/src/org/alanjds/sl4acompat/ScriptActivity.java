@@ -60,10 +60,10 @@ public class ScriptActivity extends Activity {
       bindService(new Intent(this, MinimalService.class), connection, Context.BIND_AUTO_CREATE);
       startService(new Intent(this, MinimalService.class));
     } else {
-      ScriptApplication application = (ScriptApplication) getApplication();
-      if (application.readyToStart()) {
+      //ScriptApplication application = (ScriptApplication) getApplication();
+      //if (application.readyToStart()) {
         startService(new Intent(this, MinimalService.class));
-      }
+      //}
       finish();
     }
   }
