@@ -72,12 +72,12 @@
 
     {% if sl4acompat %}
       <!--<service android:name="org.alanjds.sl4acompat.ScriptService" />-->
-      <service android:name="org.alanjds.sl4acompat.MinimalService"
-	       android:enabled="true" >
+      <service android:name="org.alanjds.sl4acompat.MinimalService" />
+      <receiver android:name="org.alanjds.sl4acompat.MinimalServiceStarter" >
 	<intent-filter>
 	  <action android:name ="org.alanjds.sl4acompat.START_MINIMAL_SERVICE"/>
 	</intent-filter>
-      </service>
+      </receiver>
 
       <activity android:name="com.googlecode.android_scripting.activity.FutureActivity"
 		android:configChanges="keyboardHidden|orientation" />
