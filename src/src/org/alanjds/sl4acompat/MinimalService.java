@@ -18,6 +18,7 @@
 package org.alanjds.sl4acompat;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Binder;
@@ -87,12 +88,19 @@ public class MinimalService extends ForegroundService {
 
 	@Override
 	protected Notification createNotification() {
-	    Notification notification =
-	        new Notification(R.drawable.script_logo_48, this.getString(R.string.loading), System.currentTimeMillis());
-	    // This contentIntent is a noop.
-	    PendingIntent contentIntent = PendingIntent.getService(this, 0, new Intent(), 0);
-	    notification.setLatestEventInfo(this, this.getString(R.string.app_name), this.getString(R.string.loading), contentIntent);
-	    notification.flags = Notification.FLAG_AUTO_CANCEL;
+		PendingIntent contentIntent = PendingIntent.getService(this, 0, new Intent(), 0);
+		// This contentIntent is a noop.
+
+		Notification notification = new Notification.Builder(this)
+			.setContentTitle("SL4A Facade")
+			.setContentText("minimal SL4A facade running")
+			.setContentIntent(pIntent)
+			.build();
+
+		//NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;	// hide the notification after its selected
+
+		//notificationManager.notify(0, notification);
 		return notification;
 	}
 }
