@@ -70,7 +70,7 @@
              android:process=":PythonService"/>
     {% endif %}
 
-    {% if sl4a %}
+    {% if sl4acompat %}
       <!--<service android:name="org.alanjds.sl4acompat.ScriptService" />-->
       <service android:name="org.alanjds.sl4acompat.MinimalService" />
 
