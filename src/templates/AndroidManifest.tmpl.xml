@@ -72,8 +72,8 @@
 
     {% if sl4acompat %}
       <!--<service android:name="org.alanjds.sl4acompat.ScriptService" />-->
-      <service android:name="org.alanjds.sl4acompat.MinimalService" />
-      <receiver android:name="org.alanjds.sl4acompat.MinimalServiceStarter" >
+      <service android:name="org.alanjds.sl4acompat.MinimalService" android:enabled="true" />
+      <receiver android:name="org.alanjds.sl4acompat.MinimalServiceStarter" android:enabled="true" >
 	<intent-filter>
 	  <action android:name ="org.alanjds.sl4acompat.START_MINIMAL_SERVICE"/>
 	</intent-filter>
