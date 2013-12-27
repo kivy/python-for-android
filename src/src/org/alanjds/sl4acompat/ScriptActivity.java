@@ -38,7 +38,7 @@ public class ScriptActivity extends Activity {
     super.onCreate(savedInstanceState);
     if (Constants.ACTION_LAUNCH_SCRIPT_FOR_RESULT.equals(getIntent().getAction())) {
       setTheme(android.R.style.Theme_Dialog);
-      setContentView(R.layout.dialog);
+      //setContentView(R.layout.dialog);
       ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
