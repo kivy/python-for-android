@@ -70,10 +70,10 @@ public class MinimalService extends ForegroundService {
 
 	@Override
 	public void onStart(Intent intent, final int startId) {
-		Log.v('Starting MinimalService');
+		Log.v("Starting MinimalService");
 		super.onStart(intent, startId);
 
-		Log.v('Starting AndroidProxy');
+		Log.v("Starting AndroidProxy");
 		mProxy = new AndroidProxy(this, intent, true);
 		mProxy.startLocal();
 
