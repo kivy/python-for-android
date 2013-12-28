@@ -24,31 +24,26 @@ class BroadcastReceiver(object):
         if not actions and not categories:
             raise Exception('You need to define at least actions or categories')
 
+        def _expand_partial_name(partial_name):
+            if '.' in partial_name:
+                return partial_name # Its actually a full dotted name
+            else:
+                name = 'ACTION_{}'.format(partial_name.upper())
+                if not hasattr(Intent, name):
+                    raise Exception('The intent {} doesnt exist'.format(name))
+                return getattr(Intent, name)
+
         # resolve actions/categories first
         Intent = autoclass('android.content.Intent')
         resolved_actions = []
         if actions:
             for x in actions:
-                if '.' in x:
-                    full_name = x
-                else:
-                    name = 'ACTION_{}'.format(x.upper())
-                    if not hasattr(Intent, name):
-                        raise Exception('The intent {} doesnt exist'.format(name))
-                    full_name = getattr(Intent, name)
-                resolved_actions += [full_name]
+                resolved_actions += [_expand_partial_name(x)]
 
         resolved_categories = []
         if categories:
             for x in categories:
-                if '.' in x:
-                    full_name = x
-                else:
-                    name = 'CATEGORY_{}'.format(x.upper())
-                    if not hasattr(Intent, name):
-                        raise Exception('The intent {} doesnt exist'.format(name))
-                    full_name = getattr(Intent, name)
-                resolved_categories += [full_name]
+                resolved_categories += [_expand_partial_name(x)]
 
         # resolve android API
         PythonActivity = autoclass('org.renpy.android.PythonActivity')
