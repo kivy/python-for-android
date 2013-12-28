@@ -70,11 +70,24 @@ public class MinimalService extends ForegroundService {
 
 	@Override
 	public void onStart(Intent intent, final int startId) {
+		Log.v('Starting MinimalService');
 		super.onStart(intent, startId);
-		mProxy = new AndroidProxy(this, null, true);
+
 		Log.v('Starting AndroidProxy');
+		mProxy = new AndroidProxy(this, intent, true);
 		mProxy.startLocal();
-		Log.v(String.format("AndroidProxy at: %s @ %s[%s]", mProxy.getSecret(), mProxy.getAddress(), mProxy.getAddress.getPort()))
+
+		String host = mProxy.getAddress().getAddress();
+		String port = mProxy.getAddress().getPort().toString();
+		String handshake = mProxy.getSecret();
+		Log.v(String.format("AndroidProxy at: %s @ %s:%s", handshake, host, port));
+
+		Intent netaddress = new Intent(this, "org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
+		netaddress.putExtra("host", host);
+		netaddress.putExtra("port", port);
+		netaddress.putExtra("handshake", handshake);
+		sendBroadcast(netaddress);
+
 		mLatch.countDown();
 	}
 
