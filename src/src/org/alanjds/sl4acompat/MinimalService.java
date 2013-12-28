@@ -78,8 +78,9 @@ public class MinimalService extends ForegroundService {
 		mProxy = new AndroidProxy(this, intent, true);
 		InetSocketAddress addressWithPort = mProxy.startLocal();
 
-		String host = mProxy.getAddress();
-		String port = addressWithPort.getPort().toString();
+		String host = addressWithPort.getAddress().getHostAddress();
+		Integer iPort = addressWithPort.getPort();
+		String port = iPort.toString();
 		String handshake = mProxy.getSecret();
 		Log.v(String.format("AndroidProxy at: %s @ %s:%s", handshake, host, port));
 
@@ -88,6 +89,7 @@ public class MinimalService extends ForegroundService {
 		netaddress.putExtra("port", port);
 		netaddress.putExtra("handshake", handshake);
 		sendBroadcast(netaddress);
+		Log.v("Sent 'org.alanjds.sl4acompat.STORE_RPC_NETADDRESS'");
 
 		mLatch.countDown();
 	}
