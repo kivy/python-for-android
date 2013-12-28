@@ -29,6 +29,7 @@ import com.googlecode.android_scripting.Log;
 import com.googlecode.android_scripting.NotificationIdFactory;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiverManager;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -75,14 +76,14 @@ public class MinimalService extends ForegroundService {
 
 		Log.v("Starting AndroidProxy");
 		mProxy = new AndroidProxy(this, intent, true);
-		mProxy.startLocal();
+		InetSocketAddress addressWithPort = mProxy.startLocal();
 
-		String host = mProxy.getAddress().getAddress();
-		String port = mProxy.getAddress().getPort().toString();
+		String host = mProxy.getAddress();
+		String port = addressWithPort.getPort().toString();
 		String handshake = mProxy.getSecret();
 		Log.v(String.format("AndroidProxy at: %s @ %s:%s", handshake, host, port));
 
-		Intent netaddress = new Intent(this, "org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
+		Intent netaddress = new Intent("org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
 		netaddress.putExtra("host", host);
 		netaddress.putExtra("port", port);
 		netaddress.putExtra("handshake", handshake);
