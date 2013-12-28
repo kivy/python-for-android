@@ -29,18 +29,26 @@ class BroadcastReceiver(object):
         resolved_actions = []
         if actions:
             for x in actions:
-                name = 'ACTION_{}'.format(x.upper())
-                if not hasattr(Intent, name):
-                    raise Exception('The intent {} doesnt exist'.format(name))
-                resolved_actions += [getattr(Intent, name)]
+                if '.' in x:
+                    full_name = x
+                else:
+                    name = 'ACTION_{}'.format(x.upper())
+                    if not hasattr(Intent, name):
+                        raise Exception('The intent {} doesnt exist'.format(name))
+                    full_name = getattr(Intent, name)
+                resolved_actions += [full_name]
 
         resolved_categories = []
         if categories:
             for x in categories:
-                name = 'CATEGORY_{}'.format(x.upper())
-                if not hasattr(Intent, name):
-                    raise Exception('The intent {} doesnt exist'.format(name))
-                resolved_categories += [getattr(Intent, name)]
+                if '.' in x:
+                    full_name = x
+                else:
+                    name = 'CATEGORY_{}'.format(x.upper())
+                    if not hasattr(Intent, name):
+                        raise Exception('The intent {} doesnt exist'.format(name))
+                    full_name = getattr(Intent, name)
+                resolved_categories += [full_name]
 
         # resolve android API
         PythonActivity = autoclass('org.renpy.android.PythonActivity')
