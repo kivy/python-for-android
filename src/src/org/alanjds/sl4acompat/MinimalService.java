@@ -72,7 +72,9 @@ public class MinimalService extends ForegroundService {
 	public void onStart(Intent intent, final int startId) {
 		super.onStart(intent, startId);
 		mProxy = new AndroidProxy(this, null, true);
+		Log.v('Starting AndroidProxy');
 		mProxy.startLocal();
+		Log.v(String.format("AndroidProxy at: %s @ %s[%s]", mProxy.getSecret(), mProxy.getAddress(), mProxy.getAddress.getPort()))
 		mLatch.countDown();
 	}
 
