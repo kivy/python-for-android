@@ -6,6 +6,16 @@
           android:installLocation="{{ args.install_location }}"
           >
 
+  <supports-screens
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:anyDensity="true"
+        {% if android_api >= 9 %}
+        android:xlargeScreens="true"
+        {% endif %}
+        />
+
   <application android:label="@string/appName"
                android:icon="@drawable/icon"
 			   android:hardwareAccelerated="true"
