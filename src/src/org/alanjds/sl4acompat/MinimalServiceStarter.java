@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 
 
+// Usage: ./adb shell am broadcast -a org.alanjds.sl4acompat.START_MINIMAL_SERVICE
+
 public class MinimalServiceStarter extends BroadcastReceiver {
 
     @Override
