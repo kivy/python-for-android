@@ -75,7 +75,7 @@ public class MinimalService extends ForegroundService {
 		super.onStart(intent, startId);
 
 		Log.v("Starting AndroidProxy");
-		mProxy = new AndroidProxy(this, intent, true);
+		mProxy = new AndroidProxy(MinimalService.this, intent, true);
 		InetSocketAddress addressWithPort = mProxy.startLocal();
 
 		String host = addressWithPort.getAddress().getHostAddress();
