@@ -22,6 +22,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.AsyncTask;
 
 import com.googlecode.android_scripting.AndroidProxy;
 import com.googlecode.android_scripting.ForegroundService;
@@ -47,6 +48,8 @@ public class MinimalService extends ForegroundService {
 	//private InterpreterConfiguration mInterpreterConfiguration;
 	private RpcReceiverManager mFacadeManager;
 	private AndroidProxy mProxy;
+	private InetSocketAddress mAddressWithPort;
+	private String mProxyAddress;
 
 	public class LocalBinder extends Binder {
 		public MinimalService getService() {
@@ -74,24 +77,53 @@ public class MinimalService extends ForegroundService {
 		Log.v("Starting MinimalService");
 		super.onStart(intent, startId);
 
-		Log.v("Starting AndroidProxy");
-		mProxy = new AndroidProxy(MinimalService.this, intent, true);
-		InetSocketAddress addressWithPort = mProxy.startLocal();
+		mProxy = new AndroidProxy(this, null, true);
 
-		String host = addressWithPort.getAddress().getHostAddress();
-		Integer iPort = addressWithPort.getPort();
-		String port = iPort.toString();
-		String handshake = mProxy.getSecret();
-		Log.v(String.format("AndroidProxy at: %s @ %s:%s", handshake, host, port));
-
-		Intent netaddress = new Intent("org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
-		netaddress.putExtra("host", host);
-		netaddress.putExtra("port", port);
-		netaddress.putExtra("handshake", handshake);
-		sendBroadcast(netaddress);
-		Log.v("Sent 'org.alanjds.sl4acompat.STORE_RPC_NETADDRESS'");
+		Log.v("Starting ProxyStarter");
+		mProxyAddress = new ProxyStarter().execute(""); // Thread, as cannot be on UI thread
+		Log.v("Finished ProxyStarter");
 
 		mLatch.countDown();
+	}
+
+	private class ProxyStarter extends AsyncTask<String, Void, String> {
+
+		@Override
+		protected String doInBackground(String... params) {
+			Log.v("Starting AndroidProxy");
+			mAddressWithPort = mProxy.startLocal();
+			Log.v("Started AndroidProxy");
+
+			String host = mAddressWithPort.getAddress().getHostAddress();
+			Integer iPort = mAddressWithPort.getPort();
+			String port = iPort.toString();
+			String handshake = mProxy.getSecret();
+			String proxyAddress = String.format("%s@%s:%s", handshake, host, port);
+			Log.v(String.format("AndroidProxy at: %s @ %s:%s", handshake, host, port));
+
+			Intent netaddress = new Intent("org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
+			netaddress.putExtra("host", host);
+			netaddress.putExtra("port", port);
+			netaddress.putExtra("handshake", handshake);
+			sendBroadcast(netaddress);
+			Log.v("Sent 'org.alanjds.sl4acompat.STORE_RPC_NETADDRESS'");
+
+			return proxyAddress;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+		    //TextView txt = (TextView) findViewById(R.id.output);
+		    //txt.setText("Executed"); // txt.setText(result);
+		    //// might want to change "executed" for the returned string passed
+		    //// into onPostExecute() but that is upto you
+		}
+
+		@Override
+		protected void onPreExecute() {}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {}
 	}
 
 	RpcReceiverManager getRpcReceiverManager() throws InterruptedException {
