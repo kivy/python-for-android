@@ -80,8 +80,13 @@ public class MinimalService extends ForegroundService {
 		mProxy = new AndroidProxy(this, null, true);
 
 		Log.v("Starting ProxyStarter");
-		mProxyAddress = new ProxyStarter().execute(""); // Thread, as cannot be on UI thread
-		Log.v("Finished ProxyStarter");
+		try {
+			mProxyAddress = new ProxyStarter().execute("").get(); // Thread, as cannot be on UI thread
+			Log.v("Finished ProxyStarter");
+		} catch (InterruptedException e) {
+			Log.v("Error on ProxyStarter");
+			//Log.e(e);
+		}
 
 		mLatch.countDown();
 	}
