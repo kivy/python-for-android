@@ -9,6 +9,10 @@
   <application android:label="@string/appName"
                android:icon="@drawable/icon"
 			   android:hardwareAccelerated="true"
+	       {% if args.sl4acompat %}
+		  android:name="org.alanjds.sl4acompat.Sl4aCompatibleApplication"
+		  android:debuggable="true"
+	       {% endif %}
                >
 
 	{% for m in args.meta_data %}
