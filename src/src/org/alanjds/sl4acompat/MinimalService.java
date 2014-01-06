@@ -99,15 +99,10 @@ public class MinimalService extends ForegroundService {
 			mAddressWithPort = mProxy.startLocal();
 			Log.v("Started AndroidProxy");
 
-			try { Thread.sleep(1000); }
-			catch (InterruptedException e) {}
+			if (mAddressWithPort == null) { Log.w("Oops: mAddressWithPort == null"); }
+			Log.v(String.format("Started at %s", mAddressWithPort.toString()));
 
-			if (mAddressWithPort == null) { Log.v("Oops: mAddressWithPort == null"); }
-			if (mAddressWithPort.getAddress() == null) { Log.v("Oops: mAddressWithPort.getAddress() == null"); }
-			if (mAddressWithPort.getAddress().getHostAddress() == null) { Log.v("Oops: mAddressWithPort.getAddress().getHostAddress() == null"); }
-
-			String host = mAddressWithPort.getAddress().getHostAddress();// NullPointerException
-			Integer iPort = mAddressWithPort.getPort();
+			String host = mAddressWithPort.getHostName();
 			String port = iPort.toString();
 			String handshake = mProxy.getSecret();
 			String proxyAddress = String.format("%s@%s:%s", handshake, host, port);
