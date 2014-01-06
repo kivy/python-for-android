@@ -92,6 +92,7 @@ public class MinimalService extends ForegroundService {
 		Log.v(String.format("Started at %s", mAddressWithPort.toString()));
 
 		String host = mAddressWithPort.getHostName();
+		Integer iPort = mAddressWithPort.getPort();
 		String port = iPort.toString();
 		String handshake = mProxy.getSecret();
 		String proxyAddress = String.format("%s@%s:%s", handshake, host, port);
