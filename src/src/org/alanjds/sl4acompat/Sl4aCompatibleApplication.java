@@ -10,21 +10,16 @@ import java.util.concurrent.CountDownLatch;
 
 public class Sl4aCompatibleApplication extends BaseApplication implements ConfigurationObserver {
 
-  private volatile boolean receivedConfigUpdate = false;
+  private volatile boolean receivedConfigUpdate = true;
   private final CountDownLatch mLatch = new CountDownLatch(1);
 
   @Override
   public void onCreate() {
-    //mConfiguration = new InterpreterConfiguration(this);
-    //mConfiguration.registerObserver(this);
-    //mConfiguration.startDiscovering(InterpreterConstants.MIME + Script.getFileExtension(this));
+    mLatch.countDown();
   }
 
   @Override
-  public void onConfigurationChanged() {
-      receivedConfigUpdate = true;
-      mLatch.countDown();
-  }
+  public void onConfigurationChanged() {  }
 
   public boolean readyToStart() {
     try {
