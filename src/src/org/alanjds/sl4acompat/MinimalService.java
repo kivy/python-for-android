@@ -99,7 +99,8 @@ public class MinimalService extends ForegroundService {
 			mAddressWithPort = mProxy.startLocal();
 			Log.v("Started AndroidProxy");
 
-			Thread.sleep(1000);
+			try { Thread.sleep(1000); }
+			catch (InterruptedException e) {}
 
 			if (mAddressWithPort == null) { Log.v("Oops: mAddressWithPort == null"); }
 			if (mAddressWithPort.getAddress() == null) { Log.v("Oops: mAddressWithPort.getAddress() == null"); }
