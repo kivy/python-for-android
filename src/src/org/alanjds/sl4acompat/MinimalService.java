@@ -79,58 +79,32 @@ public class MinimalService extends ForegroundService {
 		super.onStart(intent, startId);
 
 		mProxy = new AndroidProxy(this, null, true);
-
-		Log.v("Starting ProxyStarter");
-		try {
-			mProxyAddress = new ProxyStarter().execute("").get(); // Thread, as cannot be on UI thread
-			Log.v("Finished ProxyStarter");
-		}
-		catch (InterruptedException e) { Log.v("Error on ProxyStarter: InterruptedException"); e.printStackTrace(); }
-		catch (ExecutionException e) { Log.v("Error on ProxyStarter: ExecutionException"); e.printStackTrace(); }
-
+		mProxyAddress = startProxy();
 		mLatch.countDown();
 	}
 
-	private class ProxyStarter extends AsyncTask<String, Void, String> {
+	private String startProxy() {
+		Log.v("Starting AndroidProxy");
+		mAddressWithPort = mProxy.startLocal();
+		Log.v("Started AndroidProxy");
 
-		@Override
-		protected String doInBackground(String... params) {
-			Log.v("Starting AndroidProxy");
-			mAddressWithPort = mProxy.startLocal();
-			Log.v("Started AndroidProxy");
+		if (mAddressWithPort == null) { Log.w("Oops: mAddressWithPort == null"); }
+		Log.v(String.format("Started at %s", mAddressWithPort.toString()));
 
-			if (mAddressWithPort == null) { Log.w("Oops: mAddressWithPort == null"); }
-			Log.v(String.format("Started at %s", mAddressWithPort.toString()));
+		String host = mAddressWithPort.getHostName();
+		String port = iPort.toString();
+		String handshake = mProxy.getSecret();
+		String proxyAddress = String.format("%s@%s:%s", handshake, host, port);
+		Log.d(String.format("AndroidProxy at: %s@%s:%s", handshake, host, port));
 
-			String host = mAddressWithPort.getHostName();
-			String port = iPort.toString();
-			String handshake = mProxy.getSecret();
-			String proxyAddress = String.format("%s@%s:%s", handshake, host, port);
-			Log.v(String.format("AndroidProxy at: %s @ %s:%s", handshake, host, port));
+		Intent netaddress = new Intent("org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
+		netaddress.putExtra("host", host);
+		netaddress.putExtra("port", port);
+		netaddress.putExtra("handshake", handshake);
+		sendBroadcast(netaddress);
+		Log.v("Sent 'org.alanjds.sl4acompat.STORE_RPC_NETADDRESS'");
 
-			Intent netaddress = new Intent("org.alanjds.sl4acompat.STORE_RPC_NETADDRESS");
-			netaddress.putExtra("host", host);
-			netaddress.putExtra("port", port);
-			netaddress.putExtra("handshake", handshake);
-			sendBroadcast(netaddress);
-			Log.v("Sent 'org.alanjds.sl4acompat.STORE_RPC_NETADDRESS'");
-
-			return proxyAddress;
-		}
-
-		@Override
-		protected void onPostExecute(String result) {
-		    //TextView txt = (TextView) findViewById(R.id.output);
-		    //txt.setText("Executed"); // txt.setText(result);
-		    //// might want to change "executed" for the returned string passed
-		    //// into onPostExecute() but that is upto you
-		}
-
-		@Override
-		protected void onPreExecute() {}
-
-		@Override
-		protected void onProgressUpdate(Void... values) {}
+		return proxyAddress;
 	}
 
 	RpcReceiverManager getRpcReceiverManager() throws InterruptedException {
