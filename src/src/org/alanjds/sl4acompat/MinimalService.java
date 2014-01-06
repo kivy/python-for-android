@@ -101,9 +101,9 @@ public class MinimalService extends ForegroundService {
 
 			Thread.sleep(1000);
 
-			if (mAddressWithPort == null) { Log.v('Oops: mAddressWithPort == null'); }
-			if (mAddressWithPort.getAddress() == null) { Log.v('Oops: mAddressWithPort.getAddress() == null'); }
-			if (mAddressWithPort.getAddress().getHostAddress() == null) { Log.v('Oops: mAddressWithPort.getAddress().getHostAddress() == null'); }
+			if (mAddressWithPort == null) { Log.v("Oops: mAddressWithPort == null"); }
+			if (mAddressWithPort.getAddress() == null) { Log.v("Oops: mAddressWithPort.getAddress() == null"); }
+			if (mAddressWithPort.getAddress().getHostAddress() == null) { Log.v("Oops: mAddressWithPort.getAddress().getHostAddress() == null"); }
 
 			String host = mAddressWithPort.getAddress().getHostAddress();// NullPointerException
 			Integer iPort = mAddressWithPort.getPort();
