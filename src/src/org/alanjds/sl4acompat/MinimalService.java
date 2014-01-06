@@ -32,6 +32,7 @@ import com.googlecode.android_scripting.jsonrpc.RpcReceiverManager;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
 /**
  * A service that allows scripts and the RPC server to run in the background.
@@ -83,10 +84,9 @@ public class MinimalService extends ForegroundService {
 		try {
 			mProxyAddress = new ProxyStarter().execute("").get(); // Thread, as cannot be on UI thread
 			Log.v("Finished ProxyStarter");
-		} catch (InterruptedException e) {
-			Log.v("Error on ProxyStarter");
-			//Log.e(e);
 		}
+		catch (InterruptedException e) { Log.v("Error on ProxyStarter: InterruptedException"); e.printStackTrace(); }
+		catch (ExecutionException e) { Log.v("Error on ProxyStarter: ExecutionException"); e.printStackTrace(); }
 
 		mLatch.countDown();
 	}
@@ -99,7 +99,13 @@ public class MinimalService extends ForegroundService {
 			mAddressWithPort = mProxy.startLocal();
 			Log.v("Started AndroidProxy");
 
-			String host = mAddressWithPort.getAddress().getHostAddress();
+			Thread.sleep(1000);
+
+			if (mAddressWithPort == null) { Log.v('Oops: mAddressWithPort == null'); }
+			if (mAddressWithPort.getAddress() == null) { Log.v('Oops: mAddressWithPort.getAddress() == null'); }
+			if (mAddressWithPort.getAddress().getHostAddress() == null) { Log.v('Oops: mAddressWithPort.getAddress().getHostAddress() == null'); }
+
+			String host = mAddressWithPort.getAddress().getHostAddress();// NullPointerException
 			Integer iPort = mAddressWithPort.getPort();
 			String port = iPort.toString();
 			String handshake = mProxy.getSecret();
