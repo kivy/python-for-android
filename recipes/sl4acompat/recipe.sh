@@ -7,21 +7,21 @@ BUILD_sl4acompat=$BUILD_PATH/sl4acompat/
 RECIPE_sl4acompat=$RECIPES_PATH/sl4acompat
 
 function prebuild_sl4acompat() {
-	true
+    true
 }
 
 function shouldbuild_sl4acompat() {
-	true
+    true
 }
 
 function build_sl4acompat() {
-        true
+    true
 }
 
 function postbuild_sl4acompat() {
-        cd $BUILD_sl4acompat
-        mkdir "$DIST_PATH"/libs
-        cp -a libs/* "$DIST_PATH"/libs/
-        cd -
-	true
+    cd $BUILD_sl4acompat
+    mkdir "$DIST_PATH"/libs
+    cp -a libs/* "$DIST_PATH"/libs/
+    cd -
+    true
 }
