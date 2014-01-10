@@ -35,8 +35,8 @@ class BroadcastReceiver(object):
 
         # resolve actions/categories first
         Intent = autoclass('android.content.Intent')
-        resolved_actions = [_expand_partial_name(x) for x in actions]
-        resolved_categories = [_expand_partial_name(x) for x in categories]
+        resolved_actions = [_expand_partial_name(x) for x in actions or []]
+        resolved_categories = [_expand_partial_name(x) for x in categories or []]
 
         # resolve android API
         PythonActivity = autoclass('org.renpy.android.PythonActivity')
