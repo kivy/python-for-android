@@ -725,7 +725,7 @@ function run_distribute() {
 	debug "Copy libs"
 	try mkdir -p libs/$ARCH
 	try cp -a $BUILD_PATH/libs/* libs/$ARCH/
-	try rm "$DIST_PATH"/libs/$ARCH/*.jar || true
+	rm "$DIST_PATH"/libs/$ARCH/*.jar || true
 
 	debug "Copy java files from various libs"
 	cp -a $BUILD_PATH/java/* src
