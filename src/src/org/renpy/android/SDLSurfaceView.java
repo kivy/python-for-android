@@ -45,6 +45,7 @@ import android.view.inputmethod.ExtractedTextRequest;
 import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
+import android.os.Handler;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 import android.graphics.PixelFormat;
@@ -1058,17 +1059,17 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
+        String keys = event.getCharacters();
         if (DEBUG)
             Log.d(TAG, String.format(
-                "onKeyMultiple() keyCode=%d count=%d", keyCode, count));
-        String keys = event.getCharacters();
+                "onKeyMultiple() keyCode=%d count=%d, keys=%s", keyCode, count, keys));
         char[] keysBuffer = new char[keys.length()];
         if (mDelLen > 0){
             mDelLen = 0;
             return true;
         }
         if (keyCode == 0){
-            // FIXME: here is hardcoed value of "q" key
+            // FIXME: here is hardcoded value of "q" key
             // on hacker's keyboard. It is passed to
             // nativeKey function to get it worked if
             // we get 9 and some non-ascii characters
@@ -1076,14 +1077,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             keyCode = 45;
         }
         if (mInputActivated && event.getAction() == KeyEvent.ACTION_MULTIPLE){
-            keys.getChars(0, keys.length(), keysBuffer, 0);
-
-            for(char c: keysBuffer){
-                //Log.i("python", "Char from multiply " + (int) c);
-                // Calls both up/down events to emulate key pressing
-                nativeKey(keyCode, 1, (int) c);
-                nativeKey(keyCode, 0, (int) c);
-            }
+            String message = String.format("INSERTN:%s", keys);
+            dispatchCommand(message);
             return true;
         }else {
             return super.onKeyMultiple(keyCode, count, event);
@@ -1110,6 +1105,50 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         return super.onKeyPreIme(keyCode, event);
     }
 
+    public void delayed_message(String message, int delay){
+        Handler handler = new Handler();
+        final String msg = message;
+        final int d = delay;
+        handler.postDelayed(new Runnable(){
+        @Override
+            public void run(){
+                dispatchCommand(msg);
+        }
+        }, d);
+    }
+
+    public void dispatchCommand(String message){
+
+        Boolean ret = false;
+        int delay = 0;
+        while (message.length() > 50){
+            delayed_message(message.substring(0, 50), delay);
+            delay += 100;
+            message = String.format("INSERTN:%s", message.substring(50, message.length()));
+            if (message.length() <= 50){
+                delayed_message(message, delay+50);
+                return;
+            }
+        }
+
+        if (DEBUG) Log.d(TAG, String.format("dispatch :%s", message));
+        int keyCode = 45;
+        //send control sequence start \x01
+        nativeKey(keyCode, 1, 1);
+        nativeKey(keyCode, 0, 1);
+
+        for(int i=0; i < message.length(); i++){
+            //Calls both up/down events to emulate key pressing
+            nativeKey(keyCode, 1, (int) message.charAt(i));
+            nativeKey(keyCode, 0, (int) message.charAt(i));
+        }
+
+        //send control sequence start \x01
+        nativeKey(keyCode, 1, 2);
+        nativeKey(keyCode, 0, 2);
+
+    }
+
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         // setting inputtype to TYPE_CLASS_TEXT is necessary for swiftkey to enable
@@ -1118,27 +1157,28 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         return new BaseInputConnection(this, false){
 
-
             private void deleteLastText(){
                 // send back space keys
-                for (int i = 0; i < mDelLen; i++){
-                    nativeKey(KeyEvent.KEYCODE_DEL, 1, 23);
-                    nativeKey(KeyEvent.KEYCODE_DEL, 0, 23);
+                if (DEBUG){
+                    Log.i("Python:", String.format("delete text%s", mDelLen));
+                    }
+
+                if (mDelLen == 0){
+                    return;
                 }
+
+                String message = String.format("DEL:%s", mDelLen);
+                dispatchCommand(message);
             }
 
             @Override
             public boolean setComposingText(CharSequence text,
                     int newCursorPosition){
-                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
                 this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
                 // send text
-                for(int i = 0; i < text.length(); i++){
-                    // Calls both up/down events to emulate key pressing
-                    char c = text.charAt(i);
-                    nativeKey(45, 1, (int) c);
-                    nativeKey(45, 0, (int) c);
-                }
+                String message = String.format("INSERT:%s", text);
+                dispatchCommand(message);
                 // store len to be deleted for next time
                 mDelLen = text.length();
                 return super.setComposingText(text, newCursorPosition);
@@ -1147,8 +1187,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean commitText(CharSequence text, int newCursorPosition) {
                 // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
-                if (DEBUG) Log.i("Python:", String.format("Commit Text %s", text));
                 this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("Commit Text %s", text));
                 mDelLen = 0;
                 return super.commitText(text, newCursorPosition);
             }
@@ -1168,6 +1208,17 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean deleteSurroundingText (int beforeLength, int afterLength){
                 if (DEBUG) Log.d("Python:", String.format("deleteLastText %s %s", beforeLength, afterLength));
+                // move cursor to place from where to start deleting
+                // send right arrow keys
+                for (int i = 0; i < afterLength; i++){
+                    nativeKey(45, 1, 39);
+                    nativeKey(45, 0, 39);
+                }
+                // remove text before cursor
+                mDelLen = beforeLength + afterLength;
+                this.deleteLastText();
+                mDelLen = 0;
+
                 return super.deleteSurroundingText(beforeLength, afterLength);
             }
 
