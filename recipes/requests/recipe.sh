@@ -10,7 +10,7 @@ DEPS_requests=()
 URL_requests=https://pypi.python.org/packages/source/r/requests/requests-$VERSION_requests.tar.gz
 
 # md5 of the package
-MD5_requests=adbd3f18445f7fe5e77f65c502e264fb
+MD5_requests=
 
 # default build path
 BUILD_requests=$BUILD_PATH/requests/$(get_directory $URL_requests)
