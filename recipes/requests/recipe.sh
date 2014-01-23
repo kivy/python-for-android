@@ -21,6 +21,21 @@ RECIPE_requests=$RECIPES_PATH/requests
 # function called for preparing source code if needed
 # (you can apply patch etc here.)
 function prebuild_requests() {
+    cd $BUILD_requests/requests/packages/urllib3
+
+    FILES=$(find . -name \*.py -print)
+
+    for f in $FILES
+    do
+        echo "Processing $f file..."
+        line=$(head -n 1 $f)
+        if [[ $line != *UTF-8* ]]
+        then
+            #echo -e "\n\n$(cat $f)" > $f
+            sed -i '1s/^/# -*- coding: utf-8 -*-\n\n/' $f
+        fi
+    done
+
     true
 }
 
