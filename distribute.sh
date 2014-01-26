@@ -18,6 +18,30 @@ if [ "X$PYTHON" == "X" ]; then
 	PYTHON="$(which python)"
 fi
 
+# Resolve pip path
+PIP_NAME="$(which pip-2.7)"
+if [ "X$PIP_NAME" == "X" ]; then
+	PIP_NAME="$(which pip2.7)"
+fi
+if [ "X$PIP_NAME" == "X" ]; then
+	PIP_NAME="$(which pip2)"
+fi
+if [ "X$PIP_NAME" == "X" ]; then
+	PIP_NAME="$(which pip)"
+fi
+
+# Resolve virtualenv path
+VIRTUALENV_NAME="$(which virtualenv-2.7)"
+if [ "X$VIRTUALENV_NAME" == "X" ]; then
+	VIRTUALENV_NAME="$(which virtualenv2.7)"
+fi
+if [ "X$VIRTUALENV_NAME" == "X" ]; then
+	VIRTUALENV_NAME="$(which virtualenv2)"
+fi
+if [ "X$VIRTUALENV_NAME" == "X" ]; then
+	VIRTUALENV_NAME="$(which virtualenv)"
+fi
+
 # Paths
 ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
@@ -35,7 +59,8 @@ HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
 export LIBLINK_PATH="$BUILD_PATH/objects"
 export LIBLINK="$ROOT_PATH/src/tools/liblink"
 export BIGLINK="$ROOT_PATH/src/tools/biglink"
-export PIP="pip-2.7"
+export PIP=$PIP_NAME
+export VIRTUALENV=$VIRTUALENV_NAME
 
 MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
