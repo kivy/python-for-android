@@ -11,6 +11,12 @@ function prebuild_django() {
 	true
 }
 
+function shouldbuild_django() {
+	if [ -d "$SITEPACKAGES_PATH/django" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_django() {
 	cd $BUILD_django
 	push_arm
