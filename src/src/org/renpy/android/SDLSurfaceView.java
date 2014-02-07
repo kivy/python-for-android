@@ -42,6 +42,8 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
+import android.view.inputmethod.CompletionInfo;
+import android.view.inputmethod.CorrectionInfo;
 import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
@@ -55,6 +57,7 @@ import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLUtils;
+import java.lang.Math;
 import java.nio.FloatBuffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -356,6 +359,16 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // Access to our meta-data
     private ApplicationInfo ai;
+
+    // Text before/after cursor
+    static String mTbf = "";
+    static String mTaf = "";
+
+    public static void updateTextFromCursor(String bef, String aft){
+        mTbf = bef;
+        mTaf = aft;
+        if (DEBUG) Log.d(TAG, String.format("mtbf: %s mtaf:%s <<<<<<<<<", mTbf, mTaf));
+        }
 
     // Our own view
     static SDLSurfaceView instance = null;
@@ -1159,9 +1172,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
             private void deleteLastText(){
                 // send back space keys
-                if (DEBUG){
-                    Log.i("Python:", String.format("delete text%s", mDelLen));
-                    }
+                if (DEBUG) Log.i("Python:", String.format("delete text%s", mDelLen));
 
                 if (mDelLen == 0){
                     return;
@@ -1172,16 +1183,27 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
 
             @Override
-            public boolean setComposingText(CharSequence text,
-                    int newCursorPosition){
-                this.deleteLastText();
-                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
-                // send text
-                String message = String.format("INSERT:%s", text);
-                dispatchCommand(message);
-                // store len to be deleted for next time
-                mDelLen = text.length();
-                return super.setComposingText(text, newCursorPosition);
+            public boolean endBatchEdit() {
+                if (DEBUG) Log.i("Python:", "endBatchEdit");
+                return super.endBatchEdit();
+            }
+
+            @Override
+            public boolean beginBatchEdit() {
+                if (DEBUG) Log.i("Python:", "beginBatchEdit");
+                return super.beginBatchEdit();
+            }
+
+            @Override
+            public boolean commitCompletion(CompletionInfo text){
+                if (DEBUG) Log.i("Python:", String.format("Commit Completion %s", text));
+                return super.commitCompletion(text);
+            }
+
+            @Override
+            public boolean commitCorrection(CorrectionInfo correctionInfo){
+                if (DEBUG) Log.i("Python:", String.format("Commit Correction"));
+                return super.commitCorrection(correctionInfo);
             }
 
             @Override
@@ -1202,12 +1224,36 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean setComposingRegion(int start, int end){
                 if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
-                return super.setComposingRegion(start, end);
+                finishComposingText();
+                if (start < 0 || start > end)
+                    return true;
+                //dispatchCommand(String.format("SEL:%s,%s,%s", mTbf.length(), start, end));
+                return true;
+                //return super.setComposingRegion(start, end);
+            }
+
+            @Override
+            public boolean setComposingText(CharSequence text,
+                int newCursorPosition){
+                this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
+                // send text
+                String message = String.format("INSERT:%s", text);
+                dispatchCommand(message);
+                // store len to be deleted for next time
+                mDelLen = text.length();
+                return super.setComposingText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean finishComposingText(){
+                if (DEBUG) Log.i("Python:", String.format("finish Composing Text"));
+                return super.finishComposingText();
             }
 
             @Override
             public boolean deleteSurroundingText (int beforeLength, int afterLength){
-                if (DEBUG) Log.d("Python:", String.format("deleteLastText %s %s", beforeLength, afterLength));
+                if (DEBUG) Log.d("Python:", String.format("delete surrounding Text %s %s", beforeLength, afterLength));
                 // move cursor to place from where to start deleting
                 // send right arrow keys
                 for (int i = 0; i < afterLength; i++){
@@ -1237,13 +1283,20 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public CharSequence getTextBeforeCursor(int n, int flags){
                 if (DEBUG) Log.d("Python:", String.format("getTextBeforeCursor %s %s", n, flags));
-                    return new String(new char[1024]).replace("\0", " ");//#super.getTextBeforeCursor(n, flags);
+                /*int len = mTbf.length();
+                int len_n = Math.min(len, n);
+                int start = Math.max(len - n, 0);
+                String tbf = mTbf.substring(start,  start + len_n);
+                return tbf;*/
+                return super.getTextBeforeCursor(n, flags);
             }
 
             @Override
             public CharSequence getTextAfterCursor(int n, int flags){
                 if (DEBUG) Log.d("Python:", String.format("getTextAfterCursor %s %s", n, flags));
-                    return " ";//super.getTextAfterCursor(n, flags);
+                Log.d("Python:", String.format("TextAfterCursor %s", mTaf));
+                //return mTaf.substring(0, Math.min(mTaf.length(), n));
+                return super.getTextAfterCursor(n, flags);
             }
 
             @Override
