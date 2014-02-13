@@ -48,6 +48,7 @@ function build_c_igraph() {
         }
     fi
 
+
     try $MAKE
     try $MAKE install
 
