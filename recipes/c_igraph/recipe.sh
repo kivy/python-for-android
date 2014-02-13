@@ -39,13 +39,12 @@ function build_c_igraph() {
     cd $BUILD_c_igraph
 
     push_arm
-    if [ ! -e $BUILD_c_igraph/config.h ]; then {
-            export OLD_CPPFLAGS="$CPPFLAGS";
-            export CPPFLAGS="$CPPFLAGS -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/include -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include -L$ANDROIDNDK/platforms/android-$ANDROIDAPI/arch-arm/usr/lib";
-            try ./configure --prefix="$BUILD_PATH/python-install" --build=i686-pc-linux-gnu --host=arm-linux-eabi;
-            try patch $BUILD_c_igraph/config.h $RECIPE_c_igraph/config.h.patch;
-            export CPPFLAGS="$OLD_CPPFLAGS";
-        }
+    if [ ! -e $BUILD_c_igraph/config.h ]; then
+        export OLD_CPPFLAGS="$CPPFLAGS";
+        export CPPFLAGS="$CPPFLAGS -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/include -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include -L$ANDROIDNDK/platforms/android-$ANDROIDAPI/arch-arm/usr/lib";
+        try ./configure --prefix="$BUILD_PATH/python-install" --build=i686-pc-linux-gnu --host=arm-linux-eabi;
+        try patch $BUILD_c_igraph/config.h $RECIPE_c_igraph/config.h.patch;
+        export CPPFLAGS="$OLD_CPPFLAGS";
     fi
 
 

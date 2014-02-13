@@ -18,11 +18,10 @@ RECIPE_igraph=$RECIPES_PATH/igraph
 
 
 function prebuild_igraph() {
-    if [ ! -f "$BUILD_igraph/.patched" ]; then {
-            try patch $BUILD_igraph/setup.py $RECIPE_igraph/setup.py.patch
-            try patch $BUILD_igraph/setup.cfg $RECIPE_igraph/setup.cfg.patch
-            touch $BUILD_igraph/.patched
-        };
+    if [ ! -f "$BUILD_igraph/.patched" ]; then
+        try patch $BUILD_igraph/setup.py $RECIPE_igraph/setup.py.patch
+        try patch $BUILD_igraph/setup.cfg $RECIPE_igraph/setup.cfg.patch
+        touch $BUILD_igraph/.patched
     fi
 }
 
