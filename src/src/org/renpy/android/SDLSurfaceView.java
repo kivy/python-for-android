@@ -40,9 +40,14 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
+import android.view.inputmethod.CompletionInfo;
+import android.view.inputmethod.CorrectionInfo;
 import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
+import android.os.Handler;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 import android.graphics.PixelFormat;
@@ -52,6 +57,7 @@ import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLUtils;
+import java.lang.Math;
 import java.nio.FloatBuffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -353,6 +359,16 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // Access to our meta-data
     private ApplicationInfo ai;
+
+    // Text before/after cursor
+    static String mTbf = "";
+    static String mTaf = "";
+
+    public static void updateTextFromCursor(String bef, String aft){
+        mTbf = bef;
+        mTaf = aft;
+        if (DEBUG) Log.d(TAG, String.format("mtbf: %s mtaf:%s <<<<<<<<<", mTbf, mTaf));
+        }
 
     // Our own view
     static SDLSurfaceView instance = null;
@@ -1056,17 +1072,17 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
+        String keys = event.getCharacters();
         if (DEBUG)
             Log.d(TAG, String.format(
-                "onKeyMultiple() keyCode=%d count=%d", keyCode, count));
-        String keys = event.getCharacters();
+                "onKeyMultiple() keyCode=%d count=%d, keys=%s", keyCode, count, keys));
         char[] keysBuffer = new char[keys.length()];
         if (mDelLen > 0){
             mDelLen = 0;
             return true;
         }
         if (keyCode == 0){
-            // FIXME: here is hardcoed value of "q" key
+            // FIXME: here is hardcoded value of "q" key
             // on hacker's keyboard. It is passed to
             // nativeKey function to get it worked if
             // we get 9 and some non-ascii characters
@@ -1074,14 +1090,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             keyCode = 45;
         }
         if (mInputActivated && event.getAction() == KeyEvent.ACTION_MULTIPLE){
-            keys.getChars(0, keys.length(), keysBuffer, 0);
-
-            for(char c: keysBuffer){
-                //Log.i("python", "Char from multiply " + (int) c);
-                // Calls both up/down events to emulate key pressing
-                nativeKey(keyCode, 1, (int) c);
-                nativeKey(keyCode, 0, (int) c);
-            }
+            String message = String.format("INSERTN:%s", keys);
+            dispatchCommand(message);
             return true;
         }else {
             return super.onKeyMultiple(keyCode, count, event);
@@ -1108,6 +1118,50 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         return super.onKeyPreIme(keyCode, event);
     }
 
+    public void delayed_message(String message, int delay){
+        Handler handler = new Handler();
+        final String msg = message;
+        final int d = delay;
+        handler.postDelayed(new Runnable(){
+        @Override
+            public void run(){
+                dispatchCommand(msg);
+        }
+        }, d);
+    }
+
+    public void dispatchCommand(String message){
+
+        Boolean ret = false;
+        int delay = 0;
+        while (message.length() > 50){
+            delayed_message(message.substring(0, 50), delay);
+            delay += 100;
+            message = String.format("INSERTN:%s", message.substring(50, message.length()));
+            if (message.length() <= 50){
+                delayed_message(message, delay+50);
+                return;
+            }
+        }
+
+        if (DEBUG) Log.d(TAG, String.format("dispatch :%s", message));
+        int keyCode = 45;
+        //send control sequence start \x01
+        nativeKey(keyCode, 1, 1);
+        nativeKey(keyCode, 0, 1);
+
+        for(int i=0; i < message.length(); i++){
+            //Calls both up/down events to emulate key pressing
+            nativeKey(keyCode, 1, (int) message.charAt(i));
+            nativeKey(keyCode, 0, (int) message.charAt(i));
+        }
+
+        //send control sequence start \x01
+        nativeKey(keyCode, 1, 2);
+        nativeKey(keyCode, 0, 2);
+
+    }
+
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         // setting inputtype to TYPE_CLASS_TEXT is necessary for swiftkey to enable
@@ -1116,39 +1170,139 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
         return new BaseInputConnection(this, false){
 
-
             private void deleteLastText(){
                 // send back space keys
-                for (int i = 0; i < mDelLen; i++){
-                    nativeKey(KeyEvent.KEYCODE_DEL, 1, 23);
-                    nativeKey(KeyEvent.KEYCODE_DEL, 0, 23);
+                if (DEBUG) Log.i("Python:", String.format("delete text%s", mDelLen));
+
+                if (mDelLen == 0){
+                    return;
                 }
+
+                String message = String.format("DEL:%s", mDelLen);
+                dispatchCommand(message);
+            }
+
+            @Override
+            public boolean endBatchEdit() {
+                if (DEBUG) Log.i("Python:", "endBatchEdit");
+                return super.endBatchEdit();
+            }
+
+            @Override
+            public boolean beginBatchEdit() {
+                if (DEBUG) Log.i("Python:", "beginBatchEdit");
+                return super.beginBatchEdit();
+            }
+
+            @Override
+            public boolean commitCompletion(CompletionInfo text){
+                if (DEBUG) Log.i("Python:", String.format("Commit Completion %s", text));
+                return super.commitCompletion(text);
+            }
+
+            @Override
+            public boolean commitCorrection(CorrectionInfo correctionInfo){
+                if (DEBUG) Log.i("Python:", String.format("Commit Correction"));
+                return super.commitCorrection(correctionInfo);
+            }
+
+            @Override
+            public boolean commitText(CharSequence text, int newCursorPosition) {
+                // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
+                this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("Commit Text %s", text));
+                mDelLen = 0;
+                return super.commitText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean sendKeyEvent(KeyEvent event){
+                if (DEBUG) Log.d("Python:", String.format("sendKeyEvent %s", event.getKeyCode()));
+                return super.sendKeyEvent(event);
+            }
+
+            @Override
+            public boolean setComposingRegion(int start, int end){
+                if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
+                finishComposingText();
+                if (start < 0 || start > end)
+                    return true;
+                //dispatchCommand(String.format("SEL:%s,%s,%s", mTbf.length(), start, end));
+                return true;
+                //return super.setComposingRegion(start, end);
             }
 
             @Override
             public boolean setComposingText(CharSequence text,
-                    int newCursorPosition){
-                //Log.i("Python:", String.format("set Composing Text %s", text));
+                int newCursorPosition){
                 this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
                 // send text
-                for(int i = 0; i < text.length(); i++){
-                    // Calls both up/down events to emulate key pressing
-                    char c = text.charAt(i);
-                    nativeKey(45, 1, (int) c);
-                    nativeKey(45, 0, (int) c);
-                }
+                String message = String.format("INSERT:%s", text);
+                dispatchCommand(message);
                 // store len to be deleted for next time
                 mDelLen = text.length();
                 return super.setComposingText(text, newCursorPosition);
             }
 
             @Override
-            public boolean commitText(CharSequence text, int newCursorPosition) {
-                // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
-                //Log.i("Python:", String.format("Commit Text %s", text));
+            public boolean finishComposingText(){
+                if (DEBUG) Log.i("Python:", String.format("finish Composing Text"));
+                return super.finishComposingText();
+            }
+
+            @Override
+            public boolean deleteSurroundingText (int beforeLength, int afterLength){
+                if (DEBUG) Log.d("Python:", String.format("delete surrounding Text %s %s", beforeLength, afterLength));
+                // move cursor to place from where to start deleting
+                // send right arrow keys
+                for (int i = 0; i < afterLength; i++){
+                    nativeKey(45, 1, 39);
+                    nativeKey(45, 0, 39);
+                }
+                // remove text before cursor
+                mDelLen = beforeLength + afterLength;
                 this.deleteLastText();
                 mDelLen = 0;
-                return super.commitText(text, newCursorPosition);
+
+                return super.deleteSurroundingText(beforeLength, afterLength);
+            }
+
+            @Override
+            public ExtractedText getExtractedText (ExtractedTextRequest request, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getExtractedText %s %s", request.describeContents(), flags));
+                    return super.getExtractedText(request, flags);
+            }
+
+            @Override
+            public CharSequence getSelectedText(int flags){
+                if (DEBUG) Log.d("Python:", String.format("getSelectedText %s", flags));
+                    return super.getSelectedText(flags);
+            }
+
+            @Override
+            public CharSequence getTextBeforeCursor(int n, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getTextBeforeCursor %s %s", n, flags));
+                /*int len = mTbf.length();
+                int len_n = Math.min(len, n);
+                int start = Math.max(len - n, 0);
+                String tbf = mTbf.substring(start,  start + len_n);
+                return tbf;*/
+                return super.getTextBeforeCursor(n, flags);
+            }
+
+            @Override
+            public CharSequence getTextAfterCursor(int n, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getTextAfterCursor %s %s", n, flags));
+                Log.d("Python:", String.format("TextAfterCursor %s", mTaf));
+                //return mTaf.substring(0, Math.min(mTaf.length(), n));
+                return super.getTextAfterCursor(n, flags);
+            }
+
+            @Override
+            public boolean setSelection(int start, int end){
+                if (DEBUG) Log.d("Python:", String.format("Set Selection %s %s", start, end));
+                return super.setSelection(start, end);
             }
         };
     }
