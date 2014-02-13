@@ -19,7 +19,14 @@ BUILD_c_igraph=$BUILD_PATH/c_igraph/$(get_directory $URL_c_igraph)
 RECIPE_c_igraph=$RECIPES_PATH/c_igraph
 
 function prebuild_c_igraph() {
-    true
+    if [ ! -e $BUILD_c_igraph/.patched ]; then {
+            try patch $BUILD_c_igraph/src/Makefile.am $RECIPE_c_igraph/Makefile.am.patch;
+            try cp -f $RECIPE_c_igraph/arith.h $BUILD_c_igraph/src/f2c/arith.h;
+            try patch $BUILD_c_igraph/src/f2c/sysdep1.h $RECIPE_c_igraph/sysdep1.h.patch;
+            try patch $BUILD_c_igraph/src/f2c/uninit.c $RECIPE_c_igraph/uninit.c.patch;
+            touch $BUILD_c_igraph/.patched;
+        }
+    fi
 }
 
 function shouldbuild_c_igraph() {
@@ -32,15 +39,15 @@ function build_c_igraph() {
     cd $BUILD_c_igraph
 
     push_arm
-    try patch $BUILD_c_igraph/src/Makefile.am $RECIPE_c_igraph/Makefile.am.patch
-    export OLD_CPPFLAGS="$CPPFLAGS"
-    export CPPFLAGS="$CPPFLAGS -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/include -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include -L$ANDROIDNDK/platforms/android-$ANDROIDAPI/arch-arm/usr/lib"
-    try ./configure --prefix="$BUILD_PATH/python-install" --build=i686-pc-linux-gnu --host=arm-linux-eabi
-    export CPPFLAGS="$OLD_CPPFLAGS"
-    try cp -f $RECIPE_c_igraph/arith.h $BUILD_c_igraph/src/f2c/arith.h
-    try patch $BUILD_c_igraph/src/f2c/sysdep1.h $RECIPE_c_igraph/sysdep1.h.patch
-    try patch $BUILD_c_igraph/src/f2c/uninit.c $RECIPE_c_igraph/uninit.c.patch
-    try patch $BUILD_c_igraph/config.h $RECIPE_c_igraph/config.h.patch
+    if [ ! -e $BUILD_c_igraph/config.h ]; then
+        export OLD_CPPFLAGS="$CPPFLAGS";
+        export CPPFLAGS="$CPPFLAGS -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/include -I$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/4.4.3/libs/armeabi/include -L$ANDROIDNDK/platforms/android-$ANDROIDAPI/arch-arm/usr/lib";
+        try ./configure --prefix="$BUILD_PATH/python-install" --build=i686-pc-linux-gnu --host=arm-linux-eabi;
+        try patch $BUILD_c_igraph/config.h $RECIPE_c_igraph/config.h.patch;
+        export CPPFLAGS="$OLD_CPPFLAGS";
+    fi
+
+
     try $MAKE
     try $MAKE install
 
