@@ -1132,7 +1132,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public void dispatchCommand(String message){
 
-        Boolean ret = false;
         int delay = 0;
         while (message.length() > 50){
             delayed_message(message.substring(0, 50), delay);
@@ -1146,7 +1145,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         if (DEBUG) Log.d(TAG, String.format("dispatch :%s", message));
         int keyCode = 45;
-        //send control sequence start \x01
+        //send control sequence start
         nativeKey(keyCode, 1, 1);
         nativeKey(keyCode, 0, 1);
 
@@ -1156,7 +1155,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             nativeKey(keyCode, 0, (int) message.charAt(i));
         }
 
-        //send control sequence start \x01
+        //send control sequence end \x02
         nativeKey(keyCode, 1, 2);
         nativeKey(keyCode, 0, 2);
 
@@ -1164,10 +1163,20 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        // setting inputtype to TYPE_CLASS_TEXT is necessary for swiftkey to enable
         outAttrs.inputType = inputType;
         // ask IME to avoid taking full screen on landscape mode
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+
+        // add a listener for the layout chnages to the IME view
+        final android.view.View activityRootView = mActivity.getWindow().getDecorView();
+        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                //send control sequence start /x04 == kayboard layout changed
+                nativeKey(45, 1, 4);
+                nativeKey(45, 0, 4);
+                }
+            });
         return new BaseInputConnection(this, false){
 
             private void deleteLastText(){
