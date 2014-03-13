@@ -43,7 +43,8 @@ import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.CompletionInfo;
-import android.view.inputmethod.CorrectionInfo;
+//API 11 only
+//import android.view.inputmethod.CorrectionInfo;
 import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
@@ -1200,11 +1201,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 return super.commitCompletion(text);
             }
 
+            /*API11 only
             @Override
             public boolean commitCorrection(CorrectionInfo correctionInfo){
                 if (DEBUG) Log.i("Python:", String.format("Commit Correction"));
                 return super.commitCorrection(correctionInfo);
-            }
+            }*/
 
             @Override
             public boolean commitText(CharSequence text, int newCursorPosition) {
