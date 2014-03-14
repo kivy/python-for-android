@@ -49,6 +49,8 @@ BLACKLIST_PATTERNS = [
     '*.swp',
 ]
 
+WHITELIST_PATTERNS = []
+
 python_files = []
 
 
@@ -80,8 +82,16 @@ def compile_dir(dfn):
     subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
 
 
+def is_whitelist(name):
+    return match_filename(WHITELIST_PATTERNS, name)
+
 def is_blacklist(name):
-    for pattern in BLACKLIST_PATTERNS:
+    if is_whitelist(name):
+    	return False
+    return match_filename(BLACKLIST_PATTERNS, name)
+
+def match_filename(pattern_list, name):
+    for pattern in pattern_list:
         if pattern.startswith('^'):
             pattern = pattern[1:]
         else:
@@ -373,6 +383,9 @@ tools directory of the Android SDK.
     ap.add_argument('--blacklist', dest='blacklist',
         default=join(curdir, 'blacklist.txt'),
         help='Use a blacklist file to match unwanted file in the final APK')
+    ap.add_argument('--whitelist', dest='whitelist',
+        default=join(curdir, 'whitelist.txt'),
+        help='Use a whitelist file to prevent blacklisting of file in the final APK')
     ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
     ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
@@ -405,8 +418,14 @@ tools directory of the Android SDK.
 
     if args.blacklist:
         with open(args.blacklist) as fd:
-            patterns = [x.strip() for x in fd.read().splitlines() if x.strip() or
+            patterns = [x.strip() for x in fd.read().splitlines() if x.strip() and not
                     x.startswith('#')]
         BLACKLIST_PATTERNS += patterns
+    
+    if args.whitelist:
+        with open(args.whitelist) as fd:
+            patterns = [x.strip() for x in fd.read().splitlines() if x.strip() and not
+                    x.startswith('#')]
+        WHITELIST_PATTERNS += patterns
 
     make_package(args)
