@@ -167,7 +167,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
         files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
 
     # create tar.gz of thoses files
-    tf = tarfile.open(tfn, 'w:gz')
+    tf = tarfile.open(tfn, 'w:gz', format=tarfile.PAX_FORMAT)
     dirs = []
     for fn, afn in files:
         print '%s: %s' % (tfn, fn)
