@@ -237,10 +237,10 @@ def make_package(args):
 
     # Figure out if application has service part
     service = False
-    directory = args.private or args.dir
+    directory = args.dir
     if directory:
         service_main = join(realpath(directory), 'service', 'main.py')
-        if os.path.exists(service_main):
+        if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
             service = True
 
     # Check if OUYA support is enabled
