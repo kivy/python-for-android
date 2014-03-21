@@ -378,6 +378,7 @@ function run_prepare() {
 
 	# copy the initial blacklist in build
 	try cp -a $SRC_PATH/blacklist.txt $BUILD_PATH
+	try cp -a $SRC_PATH/whitelist.txt $BUILD_PATH
 
 	# check arm env
 	push_arm
@@ -742,6 +743,7 @@ function run_distribute() {
 	try cp -a $SRC_PATH/templates .
 	try cp -a $SRC_PATH/res .
 	try cp -a $BUILD_PATH/blacklist.txt .
+	try cp -a $BUILD_PATH/whitelist.txt .
 
 	debug "Copy python distribution"
 	$HOSTPYTHON -OO -m compileall $BUILD_PATH/python-install
