@@ -1223,7 +1223,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 return super.sendKeyEvent(event);
             }
 
-            @Override
+            //@Override (not in API 8!)
             public boolean setComposingRegion(int start, int end){
                 if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
                 finishComposingText();
@@ -1276,10 +1276,10 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                     return super.getExtractedText(request, flags);
             }
 
-            @Override
+            //@Override (NOT in API 8)
             public CharSequence getSelectedText(int flags){
                 if (DEBUG) Log.d("Python:", String.format("getSelectedText %s", flags));
-                    return super.getSelectedText(flags);
+                    return ""; // not a valid method for API 8
             }
 
             @Override
