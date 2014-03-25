@@ -18,7 +18,9 @@
 
   <application android:label="@string/appName"
                android:icon="@drawable/icon"
+        {% if android_api >= 9 %}
 			   android:hardwareAccelerated="true"
+        {% endif %}
                >
 
 	{% for m in args.meta_data %}
