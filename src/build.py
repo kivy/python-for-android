@@ -22,7 +22,7 @@ else:
     ANDROID = 'android'
     ANT = 'ant'
 
-#if ANDROIDSDK is on path, use android from this path
+# if ANDROIDSDK is on path, use android from this path
 ANDROIDSDK = os.environ.get('ANDROIDSDK')
 if ANDROIDSDK:
     ANDROID = os.path.join(ANDROIDSDK, 'tools', ANDROID)
@@ -85,10 +85,12 @@ def compile_dir(dfn):
 def is_whitelist(name):
     return match_filename(WHITELIST_PATTERNS, name)
 
+
 def is_blacklist(name):
     if is_whitelist(name):
         return False
     return match_filename(BLACKLIST_PATTERNS, name)
+
 
 def match_filename(pattern_list, name):
     for pattern in pattern_list:
@@ -131,11 +133,11 @@ def make_pythonzip():
         fn = realpath(fn)
         assert(fn.startswith(d))
         fn = fn[len(d):]
-        if fn.startswith('/site-packages/') or \
-            fn.startswith('/config/') or \
-            fn.startswith('/lib-dynload/') or \
-            fn.startswith('/libpymodules.so'):
-                return False
+        if (fn.startswith('/site-packages/') or
+            fn.startswith('/config/') or
+            fn.startswith('/lib-dynload/') or
+            fn.startswith('/libpymodules.so')):
+            return False
         return fn
 
     # get a list of all python file
@@ -300,7 +302,7 @@ def make_package(args):
     # Update the project to a recent version.
     try:
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
-            'android-{}'.format(android_api)])
+                         'android-{}'.format(android_api)])
     except (OSError, IOError):
         print 'An error occured while calling', ANDROID, 'update'
         print 'Your PATH must include android tools.'
@@ -395,7 +397,8 @@ tools directory of the Android SDK.
                     help='The name of the project\'s launcher icon.')
     ap.add_argument('--orientation', dest='orientation', default='landscape',
                     help=('The orientation that the game will display in. '
-                          'Usually one of "landscape", "portrait" or "sensor"'))
+                          'Usually one of "landscape", "portrait" or '
+                          '"sensor"'))
     ap.add_argument('--permission', dest='permissions', action='append',
                     help='The permissions to give this app.')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append',
@@ -439,18 +442,19 @@ tools directory of the Android SDK.
     ap.add_argument('--minsdk', dest='min_sdk_version', default='8',
                     help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
-            help='Indicate if the application will be windowed')
+                    help='Indicate if the application will be windowed')
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
-            help='Indicate if the application needs the device to stay on')
+                    help=('Indicate if the application needs the device '
+                          'to stay on'))
     ap.add_argument('command', nargs='*',
                     help=('The command to pass to ant (debug, release, '
                           'installd, installr)'))
     ap.add_argument('--add-jar', dest='add_jar', action='append',
                     help=('Add a Java .jar to the libs, so you can access its '
-                          'classes with pyjnius. You can specify this argument '
-                          'more than once to include multiple jars'))
+                          'classes with pyjnius. You can specify this '
+                          'argument more than once to include multiple jars'))
     ap.add_argument('--meta-data', dest='meta_data', action='append',
-            help='Custom key=value to add in application metadata')
+                    help='Custom key=value to add in application metadata')
 
     args = ap.parse_args()
 
