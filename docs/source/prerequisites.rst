@@ -41,7 +41,7 @@ You can download them at::
 If it's your very first time into android SDK, don't forget to follow
 documentation for recommended components at::
 
-    http://developer.android.com/sdk/installing.html#which
+    http://developer.android.com/sdk/installing/adding-packages.html
 
         You need to download at least one platform into your environment, so
         that you will be able to compile your application and set up an Android
