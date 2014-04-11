@@ -19,6 +19,9 @@
   <application android:label="@string/appName"
                android:icon="@drawable/icon"
 			   android:hardwareAccelerated="true"
+	       {% if args.sl4acompat %}
+		  android:name="org.alanjds.sl4acompat.Sl4aCompatibleApplication"
+	       {% endif %}
                >
 
 	{% for m in args.meta_data %}
@@ -78,6 +81,33 @@
     {% if service or args.launcher %}
     <service android:name="org.renpy.android.PythonService"
              android:process=":PythonService"/>
+    {% endif %}
+
+    {% if args.sl4acompat %}
+      <!--<service android:name="org.alanjds.sl4acompat.ScriptService" />-->
+      <service android:name="org.alanjds.sl4acompat.MinimalService" android:enabled="true" />
+      <receiver android:name="org.alanjds.sl4acompat.MinimalServiceStarter" android:enabled="true" >
+	<intent-filter>
+	  <action android:name ="org.alanjds.sl4acompat.START_MINIMAL_SERVICE"/>
+	  <category android:name="android.intent.category.DEFAULT" />
+	</intent-filter>
+      </receiver>
+
+      <activity android:name="com.googlecode.android_scripting.activity.FutureActivity"
+		android:configChanges="keyboardHidden|orientation" />
+
+      <!--<activity android:name="org.alanjds.sl4acompat.DialogActivity"
+		android:configChanges="keyboardHidden|orientation"
+		android:theme="@android:style/Theme.Translucent.NoTitleBar" />-->
+
+      <activity android:name="org.alanjds.sl4acompat.ScriptActivity"
+		android:configChanges="keyboardHidden|orientation"
+		android:theme="@android:style/Theme.Translucent.NoTitleBar">
+	<intent-filter>
+	  <action android:name="com.googlecode.android_scripting.action.ACTION_LAUNCH_FOR_RESULT" />
+	  <category android:name="android.intent.category.DEFAULT" />
+	</intent-filter>
+      </activity>
     {% endif %}
 
 	{% if args.billing_pubkey %}
