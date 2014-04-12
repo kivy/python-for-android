@@ -30,7 +30,7 @@ function build_lxml() {
 	export PATH=$PATH:$BUILD_libxslt
 
 	try $HOSTPYTHON setup.py build_ext -I$BUILD_libxml2/include -I$BUILD_libxslt
-	try find . -iname '*.pyx' -exec cython {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 

@@ -29,7 +29,7 @@ function build_audiostream() {
 	export AUDIOSTREAM_ROOT="$BUILD_audiostream/build/audiostream/armeabi-v7a"
 	try cd $BUILD_audiostream
 	$HOSTPYTHON setup.py build_ext &>/dev/null
-	try find . -iname '*.pyx' -exec cython {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $HOSTPYTHON setup.py build_ext -v
 	try $HOSTPYTHON setup.py install -O2
 	try cp -a audiostream/platform/android/org $JAVACLASS_PATH

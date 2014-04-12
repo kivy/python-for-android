@@ -36,7 +36,7 @@ function build_android() {
 	export LDSHARED="$LIBLINK"
 
 	# cythonize
-	try find . -iname '*.pyx' -exec cython {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $HOSTPYTHON setup.py build_ext -v
 	try $HOSTPYTHON setup.py install -O2
 

@@ -54,6 +54,7 @@ JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
 SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
 HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
+CYTHON="cython -t"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"

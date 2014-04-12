@@ -39,7 +39,7 @@ function build_ffmpeg() {
 	export LDFLAGS="$LDFLAGS -lm -L$LIBS_PATH"
 	export FFMPEG_ROOT="$BUILD_ffmpeg/build/ffmpeg/armeabi-v7a"
 	try cd $BUILD_ffmpeg/python
-	try find . -iname '*.pyx' -exec cython {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $HOSTPYTHON setup.py build_ext -v
 	try $HOSTPYTHON setup.py install -O2
 

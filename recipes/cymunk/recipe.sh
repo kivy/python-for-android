@@ -24,7 +24,7 @@ function build_cymunk() {
 
 	export LDSHARED="$LIBLINK"
 
-	try find . -iname '*.pyx' -exec cython {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
