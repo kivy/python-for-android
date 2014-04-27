@@ -68,7 +68,7 @@ import android.content.res.Resources;
 
 public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
     static private final String TAG = "SDLSurface";
-    static private final boolean DEBUG = false;
+    static private final boolean DEBUG = true;
     static private final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
@@ -362,8 +362,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private ApplicationInfo ai;
 
     // Text before/after cursor
-    static String mTbf = "";
-    static String mTaf = "";
+    static String mTbf = " ";
+    static String mTaf = " ";
 
     public static void updateTextFromCursor(String bef, String aft){
         mTbf = bef;
@@ -1226,10 +1226,14 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean setComposingRegion(int start, int end){
                 if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
-                finishComposingText();
+                //finishComposingText();
                 if (start < 0 || start > end)
                     return true;
-                //dispatchCommand(String.format("SEL:%s,%s,%s", mTbf.length(), start, end));
+                //if (start > 0) start -= 1;
+                end = Math.min(end, mTbf.length());
+                if (end < 0) end = 0;
+                dispatchCommand(String.format("SEL:%s,%s,%s", mTbf.length(), start, end));
+                this.setComposingText(mTbf.substring(start, end), 1);
                 return true;
                 //return super.setComposingRegion(start, end);
             }
@@ -1285,20 +1289,19 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public CharSequence getTextBeforeCursor(int n, int flags){
                 if (DEBUG) Log.d("Python:", String.format("getTextBeforeCursor %s %s", n, flags));
-                /*int len = mTbf.length();
+                int len = mTbf.length();
                 int len_n = Math.min(len, n);
                 int start = Math.max(len - n, 0);
                 String tbf = mTbf.substring(start,  start + len_n);
-                return tbf;*/
-                return super.getTextBeforeCursor(n, flags);
+                Log.d("Python:", String.format("getTextBeforeCursor [%s]", tbf));
+                return tbf;
             }
 
             @Override
             public CharSequence getTextAfterCursor(int n, int flags){
                 if (DEBUG) Log.d("Python:", String.format("getTextAfterCursor %s %s", n, flags));
-                Log.d("Python:", String.format("TextAfterCursor %s", mTaf));
-                //return mTaf.substring(0, Math.min(mTaf.length(), n));
-                return super.getTextAfterCursor(n, flags);
+                Log.d("Python:", String.format("TextAfterCursor [%s]", mTaf));
+                return mTaf.substring(0, Math.min(mTaf.length(), n));
             }
 
             @Override
