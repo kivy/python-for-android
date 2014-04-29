@@ -22,7 +22,7 @@ else:
     ANDROID = 'android'
     ANT = 'ant'
 
-#if ANDROIDSDK is on path, use android from this path
+# if ANDROIDSDK is on path, use android from this path
 ANDROIDSDK = os.environ.get('ANDROIDSDK')
 if ANDROIDSDK:
     ANDROID = os.path.join(ANDROIDSDK, 'tools', ANDROID)
@@ -60,9 +60,9 @@ environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
 
 
 def render(template, dest, **kwargs):
-    '''
-    Using jinja2, render `template` to the filename `dest`, supplying the keyword
-    arguments as template parameters.
+    '''Using jinja2, render `template` to the filename `dest`, supplying the
+
+    keyword arguments as template parameters.
     '''
 
     template = environment.get_template(template)
@@ -85,10 +85,12 @@ def compile_dir(dfn):
 def is_whitelist(name):
     return match_filename(WHITELIST_PATTERNS, name)
 
+
 def is_blacklist(name):
     if is_whitelist(name):
-    	return False
+        return False
     return match_filename(BLACKLIST_PATTERNS, name)
+
 
 def match_filename(pattern_list, name):
     for pattern in pattern_list:
@@ -131,11 +133,11 @@ def make_pythonzip():
         fn = realpath(fn)
         assert(fn.startswith(d))
         fn = fn[len(d):]
-        if fn.startswith('/site-packages/') or \
-            fn.startswith('/config/') or \
-            fn.startswith('/lib-dynload/') or \
-            fn.startswith('/libpymodules.so'):
-                return False
+        if (fn.startswith('/site-packages/') or
+            fn.startswith('/config/') or
+            fn.startswith('/lib-dynload/') or
+            fn.startswith('/libpymodules.so')):
+            return False
         return fn
 
     # get a list of all python file
@@ -174,7 +176,8 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     for sd in source_dirs:
         sd = realpath(sd)
         compile_dir(sd)
-        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
+        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd)
+                  if select(x)]
 
     # create tar.gz of thoses files
     tf = tarfile.open(tfn, 'w:gz')
@@ -220,9 +223,11 @@ def make_package(args):
     if args.icon_name:
         args.icon_name = args.icon_name.decode('utf-8')
 
-    versioned_name = args.name.replace(' ', '').replace('\'', '') + '-' + args.version
+    versioned_name = (args.name.replace(' ', '').replace('\'', '') +
+                      '-' + args.version)
 
-    # Android SDK rev14 needs two ant execs (ex: debug installd) and new build.xml
+    # Android SDK rev14 needs two ant execs (ex: debug installd) and
+    # new build.xml
     build_tpl = 'build.xml'
 
     if not args.icon_name:
@@ -257,7 +262,8 @@ def make_package(args):
     if args.ouya_category:
         args.ouya_category = args.ouya_category.upper()
         if args.ouya_category not in ('GAME', 'APP'):
-            print 'Invalid --ouya-category argument. should be one of GAME or APP'
+            print('Invalid --ouya-category argument. should be one of'
+                  'GAME or APP')
             sys.exit(-1)
 
     # Get target android API
@@ -296,7 +302,7 @@ def make_package(args):
     # Update the project to a recent version.
     try:
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
-            'android-{}'.format(android_api)])
+                         'android-{}'.format(android_api)])
     except (OSError, IOError):
         print 'An error occured while calling', ANDROID, 'update'
         print 'Your PATH must include android tools.'
@@ -324,13 +330,15 @@ def make_package(args):
 
     # Copy over the icon and presplash files.
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
-    shutil.copy(args.presplash or default_presplash, 'res/drawable/presplash.jpg')
+    shutil.copy(args.presplash or default_presplash,
+                'res/drawable/presplash.jpg')
 
     # If OUYA support was requested, copy over the OUYA icon
     if args.ouya_category:
         if not os.path.isdir('res/drawable-xhdpi'):
             os.mkdir('res/drawable-xhdpi')
-        shutil.copy(args.ouya_icon or default_ouya_icon, 'res/drawable-xhdpi/ouya_icon.png')
+        shutil.copy(args.ouya_icon or default_ouya_icon,
+                    'res/drawable-xhdpi/ouya_icon.png')
 
     # If extra Java jars were requested, copy them into the libs directory
     if args.add_jar:
@@ -359,43 +367,94 @@ For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
 ''')
 
-    ap.add_argument('--package', dest='package', help='The name of the java package the project will be packaged under.', required=True)
-    ap.add_argument('--name', dest='name', help='The human-readable name of the project.', required=True)
-    ap.add_argument('--version', dest='version', help='The version number of the project. This should consist of numbers and dots, and should have the same number of groups of numbers as previous versions.', required=True)
-    ap.add_argument('--numeric-version', dest='numeric_version', help='The numeric version number of the project. If not given, this is automatically computed from the version.')
-    ap.add_argument('--dir', dest='dir', help='The directory containing public files for the project.')
-    ap.add_argument('--private', dest='private', help='The directory containing additional private files for the project.')
+    ap.add_argument('--package', dest='package',
+                    help=('The name of the java package the project will be'
+                          ' packaged under.'),
+                    required=True)
+    ap.add_argument('--name', dest='name',
+                    help=('The human-readable name of the project.'),
+                    required=True)
+    ap.add_argument('--version', dest='version',
+                    help=('The version number of the project. This should '
+                          'consist of numbers and dots, and should have the '
+                          'same number of groups of numbers as previous '
+                          'versions.'),
+                    required=True)
+    ap.add_argument('--numeric-version', dest='numeric_version',
+                    help=('The numeric version number of the project. If not '
+                          'given, this is automatically computed from the '
+                          'version.'))
+    ap.add_argument('--dir', dest='dir',
+                    help=('The directory containing public files for the '
+                          'project.'))
+    ap.add_argument('--private', dest='private',
+                    help=('The directory containing additional private files '
+                          'for the project.'))
     ap.add_argument('--launcher', dest='launcher', action='store_true',
-            help='Provide this argument to build a multi-app launcher, rather than a single app.')
-    ap.add_argument('--icon-name', dest='icon_name', help='The name of the project\'s launcher icon.')
+                    help=('Provide this argument to build a multi-app '
+                          'launcher, rather than a single app.'))
+    ap.add_argument('--icon-name', dest='icon_name',
+                    help='The name of the project\'s launcher icon.')
     ap.add_argument('--orientation', dest='orientation', default='landscape',
-            help='The orientation that the game will display in. Usually one of "landscape", "portrait" or "sensor"')
-    ap.add_argument('--permission', dest='permissions', action='append', help='The permissions to give this app.')
-    ap.add_argument('--ignore-path', dest='ignore_path', action='append', help='Ignore path when building the app')
-    ap.add_argument('--icon', dest='icon', help='A png file to use as the icon for the application.')
-    ap.add_argument('--presplash', dest='presplash', help='A jpeg file to use as a screen while the application is loading.')
-    ap.add_argument('--ouya-category', dest='ouya_category', help='Valid values are GAME and APP. This must be specified to enable OUYA console support.')
-    ap.add_argument('--ouya-icon', dest='ouya_icon', help='A png file to use as the icon for the application if it is installed on an OUYA console.')
-    ap.add_argument('--install-location', dest='install_location', default='auto', help='The default install location. Should be "auto", "preferExternal" or "internalOnly".')
-    ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true', help='Compile all .py files to .pyo, and only distribute the compiled bytecode.')
-    ap.add_argument('--intent-filters', dest='intent_filters', help='Add intent-filters xml rules to the AndroidManifest.xml file. The argument is a filename containing xml. The filename should be located relative to the python-for-android directory')
-    ap.add_argument('--with-billing', dest='billing_pubkey', help='If set, the billing service will be added')
+                    help=('The orientation that the game will display in. '
+                          'Usually one of "landscape", "portrait" or '
+                          '"sensor"'))
+    ap.add_argument('--permission', dest='permissions', action='append',
+                    help='The permissions to give this app.')
+    ap.add_argument('--ignore-path', dest='ignore_path', action='append',
+                    help='Ignore path when building the app')
+    ap.add_argument('--icon', dest='icon',
+                    help='A png file to use as the icon for the application.')
+    ap.add_argument('--presplash', dest='presplash',
+                    help=('A jpeg file to use as a screen while the '
+                          'application is loading.'))
+    ap.add_argument('--ouya-category', dest='ouya_category',
+                    help=('Valid values are GAME and APP. This must be '
+                          'specified to enable OUYA console support.'))
+    ap.add_argument('--ouya-icon', dest='ouya_icon',
+                    help=('A png file to use as the icon for the application '
+                          'if it is installed on an OUYA console.'))
+    ap.add_argument('--install-location', dest='install_location',
+                    default='auto',
+                    help=('The default install location. Should be "auto", '
+                          '"preferExternal" or "internalOnly".'))
+    ap.add_argument('--compile-pyo', dest='compile_pyo', action='store_true',
+                    help=('Compile all .py files to .pyo, and only distribute '
+                          'the compiled bytecode.'))
+    ap.add_argument('--intent-filters', dest='intent_filters',
+                    help=('Add intent-filters xml rules to the '
+                          'AndroidManifest.xml file. The argument is a '
+                          'filename containing xml. The filename should be '
+                          'located relative to the python-for-android '
+                          'directory'))
+    ap.add_argument('--with-billing', dest='billing_pubkey',
+                    help='If set, the billing service will be added')
     ap.add_argument('--blacklist', dest='blacklist',
-        default=join(curdir, 'blacklist.txt'),
-        help='Use a blacklist file to match unwanted file in the final APK')
+                    default=join(curdir, 'blacklist.txt'),
+                    help=('Use a blacklist file to match unwanted file in '
+                          'the final APK'))
     ap.add_argument('--whitelist', dest='whitelist',
-        default=join(curdir, 'whitelist.txt'),
-        help='Use a whitelist file to prevent blacklisting of file in the final APK')
-    ap.add_argument('--sdk', dest='sdk_version', default='8', help='Android SDK version to use. Default to 8')
-    ap.add_argument('--minsdk', dest='min_sdk_version', default='8', help='Minimum Android SDK version to use. Default to 8')
+                    default=join(curdir, 'whitelist.txt'),
+                    help=('Use a whitelist file to prevent blacklisting of '
+                          'file in the final APK'))
+    ap.add_argument('--sdk', dest='sdk_version', default='8',
+                    help='Android SDK version to use. Default to 8')
+    ap.add_argument('--minsdk', dest='min_sdk_version', default='8',
+                    help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
-            help='Indicate if the application will be windowed')
+                    help='Indicate if the application will be windowed')
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
-            help='Indicate if the application needs the device to stay on')
-    ap.add_argument('command', nargs='*', help='The command to pass to ant (debug, release, installd, installr)')
-    ap.add_argument('--add-jar', dest='add_jar', action='append', help='Add a Java .jar to the libs, so you can access its classes with pyjnius. You can specify this argument more than once to include multiple jars')
+                    help=('Indicate if the application needs the device '
+                          'to stay on'))
+    ap.add_argument('command', nargs='*',
+                    help=('The command to pass to ant (debug, release, '
+                          'installd, installr)'))
+    ap.add_argument('--add-jar', dest='add_jar', action='append',
+                    help=('Add a Java .jar to the libs, so you can access its '
+                          'classes with pyjnius. You can specify this '
+                          'argument more than once to include multiple jars'))
     ap.add_argument('--meta-data', dest='meta_data', action='append',
-            help='Custom key=value to add in application metadata')
+                    help='Custom key=value to add in application metadata')
 
     args = ap.parse_args()
 
@@ -413,19 +472,20 @@ tools directory of the Android SDK.
 
     if args.compile_pyo:
         if PYTHON is None:
-            ap.error('To use --compile-pyo, you need Python 2.7.1 installed and in your PATH.')
+            ap.error('To use --compile-pyo, you need Python 2.7.1 installed '
+                     'and in your PATH.')
         BLACKLIST_PATTERNS += ['*.py', '*.pyc']
 
     if args.blacklist:
         with open(args.blacklist) as fd:
-            patterns = [x.strip() for x in fd.read().splitlines() if x.strip() and not
-                    x.startswith('#')]
+            patterns = [x.strip() for x in fd.read().splitlines() if x.strip()
+                        and not x.startswith('#')]
         BLACKLIST_PATTERNS += patterns
-    
+
     if args.whitelist:
         with open(args.whitelist) as fd:
-            patterns = [x.strip() for x in fd.read().splitlines() if x.strip() and not
-                    x.startswith('#')]
+            patterns = [x.strip() for x in fd.read().splitlines() if x.strip()
+                        and not x.startswith('#')]
         WHITELIST_PATTERNS += patterns
 
     make_package(args)
