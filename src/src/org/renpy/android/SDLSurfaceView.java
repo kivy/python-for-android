@@ -342,6 +342,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // This stores the length of the text in pridiction/swype buffer
     private int mDelLen = 0;
+    private int mRDelLen = 0;
 
     // The width and height. (This should be set at startup time -
     // these values just prevent segfaults and divide by zero, etc.)
@@ -363,10 +364,17 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // Text before/after cursor
     static String mTbf = " ";
     static String mTaf = " ";
+    static InputConnection ic = null;
 
-    public static void updateTextFromCursor(String bef, String aft){
+    public static void updateTextFromCursor(String bef, String aft, int compose){
         mTbf = bef;
         mTaf = aft;
+        ic.getTextBeforeCursor(1024, 0);
+        ic.getTextAfterCursor(1024, 0);
+        int length = mTbf.length();
+        if (compose == 1 && length > 0){
+            ic.setComposingRegion(length - 1, length);
+        }
         if (DEBUG) Log.d(TAG, String.format("mtbf: %s mtaf:%s <<<<<<<<<", mTbf, mTaf));
         }
 
@@ -1168,17 +1176,17 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         outAttrs.inputType = inputType;
         // ask IME to avoid taking full screen on landscape mode
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
-        return new BaseInputConnection(this, false){
+        ic = new BaseInputConnection(this, false){
 
             private void deleteLastText(){
                 // send back space keys
                 if (DEBUG) Log.i("Python:", String.format("delete text%s", mDelLen));
 
-                if (mDelLen == 0){
-                    return;
-                }
+                String message = "";
 
-                String message = String.format("DEL:%s", mDelLen);
+                if (mDelLen == 0) return;
+
+                message = String.format("DEL:%s", mDelLen);
                 dispatchCommand(message);
             }
 
@@ -1201,12 +1209,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
 
             @Override
-            public boolean commitCorrection(CorrectionInfo correctionInfo){
-                if (DEBUG) Log.i("Python:", String.format("Commit Correction"));
-                return super.commitCorrection(correctionInfo);
-            }
-
-            @Override
             public boolean commitText(CharSequence text, int newCursorPosition) {
                 // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
                 this.deleteLastText();
@@ -1223,17 +1225,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
             @Override
             public boolean setComposingRegion(int start, int end){
-                if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
-                //finishComposingText();
-                if (start < 0 || start > end)
+                if (start < 0 || start > end || start == end)
                     return true;
-                //if (start > 0) start -= 1;
-                end = Math.min(end, mTbf.length());
-                if (end < 0) end = 0;
-                dispatchCommand(String.format("SEL:%s,%s,%s", mTbf.length(), start, end));
-                this.setComposingText(mTbf.substring(start, end), 1);
-                return true;
-                //return super.setComposingRegion(start, end);
+                dispatchCommand(String.format("SELWORD:"));
+                Log.d("Python:", String.format("%s, %s", mRDelLen, mTbf));
+                return super.setComposingRegion(start, end);
             }
 
             @Override
@@ -1252,6 +1248,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             @Override
             public boolean finishComposingText(){
                 if (DEBUG) Log.i("Python:", String.format("finish Composing Text"));
+                dispatchCommand(String.format("SEL:0"));
                 return super.finishComposingText();
             }
 
@@ -1260,10 +1257,6 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 if (DEBUG) Log.d("Python:", String.format("delete surrounding Text %s %s", beforeLength, afterLength));
                 // move cursor to place from where to start deleting
                 // send right arrow keys
-                for (int i = 0; i < afterLength; i++){
-                    nativeKey(45, 1, 39);
-                    nativeKey(45, 0, 39);
-                }
                 // remove text before cursor
                 mDelLen = beforeLength + afterLength;
                 this.deleteLastText();
@@ -1308,6 +1301,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 return super.setSelection(start, end);
             }
         };
+        return ic;
     }
 
     static void activateInput() {
