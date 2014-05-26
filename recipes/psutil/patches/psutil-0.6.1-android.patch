@@ -1,0 +1,371 @@
+diff -wuprN psutil-0.6.1/psutil/_pslinux.py psutil-0.6.1-new/psutil/_pslinux.py
+--- psutil-0.6.1/psutil/_pslinux.py	2012-08-16 17:07:37.000000000 +0200
++++ psutil-0.6.1-new/psutil/_pslinux.py	2013-09-21 14:20:14.240988106 +0200
+@@ -455,9 +455,9 @@ class Process(object):
+         f = open("/proc/%s/io" % self.pid)
+         try:
+             for line in f:
+-                if line.startswith("rchar"):
++                if line.startswith("syscr"):
+                     read_count = int(line.split()[1])
+-                elif line.startswith("wchar"):
++                elif line.startswith("syscw"):
+                     write_count = int(line.split()[1])
+                 elif line.startswith("read_bytes"):
+                     read_bytes = int(line.split()[1])
+@@ -588,7 +588,7 @@ class Process(object):
+                            data['Shared_Clean:'], data['Shared_Clean:'],
+                            data['Private_Clean:'], data['Private_Dirty:'],
+                            data['Referenced:'],
+-                           data['Anonymous:'],
++                           data.get('Anonymous:', 0),
+                            data['Swap:'])
+             f.close()
+         except EnvironmentError:
+diff -wuprN psutil-0.6.1/psutil/_psutil_linux.c psutil-0.6.1-new/psutil/_psutil_linux.c
+--- psutil-0.6.1/psutil/_psutil_linux.c	2012-08-13 14:26:21.000000000 +0200
++++ psutil-0.6.1-new/psutil/_psutil_linux.c	2013-09-21 14:15:55.844987989 +0200
+@@ -94,6 +94,151 @@ linux_ioprio_set(PyObject* self, PyObjec
+ }
+ #endif
+ 
++/* Prepare to begin reading and/or writing mount table entries from the
++   beginning of FILE.  MODE is as for `fopen'.  */
++FILE *setmntent (const char *file, const char *mode)
++{
++  /* Extend the mode parameter with "c" to disable cancellation in the
++     I/O functions and "e" to set FD_CLOEXEC.  */
++  size_t modelen = strlen (mode);
++  char newmode[modelen + 3];
++  memcpy (newmode, mode, modelen);
++  memcpy (newmode + modelen, "ce", 3);
++  FILE *result = fopen (file, newmode);
++
++  return result;
++}
++
++/* Close a stream opened with `setmntent'.  */
++int endmntent (FILE *stream)
++{
++  if (stream)		/* SunOS 4.x allows for NULL stream */
++    fclose (stream);
++  return 1;		/* SunOS 4.x says to always return 1 */
++}
++
++/* Since the values in a line are separated by spaces, a name cannot
++   contain a space.  Therefore some programs encode spaces in names
++   by the strings "\040".  We undo the encoding when reading an entry.
++   The decoding happens in place.  */
++static char *
++decode_name (char *buf)
++{
++  char *rp = buf;
++  char *wp = buf;
++
++  do
++    if (rp[0] == '\\' && rp[1] == '0' && rp[2] == '4' && rp[3] == '0')
++      {
++	/* \040 is a SPACE.  */
++	*wp++ = ' ';
++	rp += 3;
++      }
++    else if (rp[0] == '\\' && rp[1] == '0' && rp[2] == '1' && rp[3] == '1')
++      {
++	/* \011 is a TAB.  */
++	*wp++ = '\t';
++	rp += 3;
++      }
++    else if (rp[0] == '\\' && rp[1] == '0' && rp[2] == '1' && rp[3] == '2')
++      {
++	/* \012 is a NEWLINE.  */
++	*wp++ = '\n';
++	rp += 3;
++      }
++    else if (rp[0] == '\\' && rp[1] == '\\')
++      {
++	/* We have to escape \\ to be able to represent all characters.  */
++	*wp++ = '\\';
++	rp += 1;
++      }
++    else if (rp[0] == '\\' && rp[1] == '1' && rp[2] == '3' && rp[3] == '4')
++      {
++	/* \134 is also \\.  */
++	*wp++ = '\\';
++	rp += 3;
++      }
++    else
++      *wp++ = *rp;
++  while (*rp++ != '\0');
++
++  return buf;
++}
++
++/* Read one mount table entry from STREAM.  Returns a pointer to storage
++   reused on the next call, or null for EOF or error (use feof/ferror to
++   check).  */
++struct mntent *custom_getmntent_r (FILE *stream, struct mntent *mp, char *buffer, int bufsiz)
++{
++  char *cp;
++  char *head;
++
++  do
++    {
++      char *end_ptr;
++
++      if (fgets (buffer, bufsiz, stream) == NULL)
++	{
++	  return NULL;
++	}
++
++      end_ptr = strchr (buffer, '\n');
++      if (end_ptr != NULL)	/* chop newline */
++	*end_ptr = '\0';
++      else
++	{
++	  /* Not the whole line was read.  Do it now but forget it.  */
++	  char tmp[1024];
++	  while (fgets (tmp, sizeof tmp, stream) != NULL)
++	    if (strchr (tmp, '\n') != NULL)
++	      break;
++	}
++
++      head = buffer + strspn (buffer, " \t");
++      /* skip empty lines and comment lines:  */
++    }
++  while (head[0] == '\0' || head[0] == '#');
++
++  cp = strsep (&head, " \t");
++  mp->mnt_fsname = cp != NULL ? decode_name (cp) : (char *) "";
++  if (head)
++    head += strspn (head, " \t");
++  cp = strsep (&head, " \t");
++  mp->mnt_dir = cp != NULL ? decode_name (cp) : (char *) "";
++  if (head)
++    head += strspn (head, " \t");
++  cp = strsep (&head, " \t");
++  mp->mnt_type = cp != NULL ? decode_name (cp) : (char *) "";
++  if (head)
++    head += strspn (head, " \t");
++  cp = strsep (&head, " \t");
++  mp->mnt_opts = cp != NULL ? decode_name (cp) : (char *) "";
++  switch (head ? sscanf (head, " %d %d ", &mp->mnt_freq, &mp->mnt_passno) : 0)
++    {
++    case 0:
++      mp->mnt_freq = 0;
++    case 1:
++      mp->mnt_passno = 0;
++    case 2:
++      break;
++    }
++
++  return mp;
++}
++
++struct mntent *getmntent_custom (FILE *stream)
++{
++  static struct mntent m;
++  static char *getmntent_buffer;
++
++  #define BUFFER_SIZE 4096
++  if (getmntent_buffer == NULL) {
++    getmntent_buffer = (char *) malloc (BUFFER_SIZE);
++  }
++
++  return custom_getmntent_r (stream, &m, getmntent_buffer, BUFFER_SIZE);
++  #undef BUFFER_SIZE
++}
+ 
+ /*
+  * Return disk mounted partitions as a list of tuples including device,
+@@ -116,9 +261,9 @@ get_disk_partitions(PyObject* self, PyOb
+         goto error;
+     }
+ 
+-    while ((entry = getmntent(file))) {
++    while ((entry = getmntent_custom(file))) {
+         if (entry == NULL) {
+-            PyErr_Format(PyExc_RuntimeError, "getmntent() failed");
++            PyErr_Format(PyExc_RuntimeError, "getmntent_custom() failed");
+             goto error;
+         }
+         py_tuple = Py_BuildValue("(ssss)", entry->mnt_fsname,  // device
+@@ -164,6 +309,18 @@ get_sysinfo(PyObject* self, PyObject* ar
+ }
+ 
+ 
++static int
++sched_setaffinity(pid_t pid, size_t len, cpu_set_t const * cpusetp)
++{
++	return syscall(__NR_sched_setaffinity, pid, len, cpusetp);
++}
++
++static int
++sched_getaffinity(pid_t pid, size_t len, cpu_set_t const * cpusetp)
++{
++	return syscall(__NR_sched_getaffinity, pid, len, cpusetp);
++}
++
+ /*
+  * Return process CPU affinity as a Python long (the bitmask)
+  */
+diff -wuprN psutil-0.6.1/psutil/_psutil_linux.h psutil-0.6.1-new/psutil/_psutil_linux.h
+--- psutil-0.6.1/psutil/_psutil_linux.h	2012-08-13 14:26:21.000000000 +0200
++++ psutil-0.6.1-new/psutil/_psutil_linux.h	2013-09-21 14:15:55.844987989 +0200
+@@ -10,6 +10,157 @@
+ 
+ #include <Python.h>
+ 
++#ifndef MOUNTED
++#define MOUNTED "/proc/mounts" // android
++#endif
++
++extern int sched_getcpu(void);
++
++/* Our implementation supports up to 32 independent CPUs, which is also
++ * the maximum supported by the kernel at the moment. GLibc uses 1024 by
++ * default.
++ *
++ * If you want to use more than that, you should use CPU_ALLOC() / CPU_FREE()
++ * and the CPU_XXX_S() macro variants.
++ */
++#define CPU_SETSIZE   32
++
++#define __CPU_BITTYPE    unsigned long int  /* mandated by the kernel  */
++#define __CPU_BITSHIFT   5                  /* should be log2(BITTYPE) */
++#define __CPU_BITS       (1 << __CPU_BITSHIFT)
++#define __CPU_ELT(x)     ((x) >> __CPU_BITSHIFT)
++#define __CPU_MASK(x)    ((__CPU_BITTYPE)1 << ((x) & (__CPU_BITS-1)))
++
++typedef struct {
++    __CPU_BITTYPE  __bits[ CPU_SETSIZE / __CPU_BITS ];
++} cpu_set_t;
++
++/* Provide optimized implementation for 32-bit cpu_set_t */
++#if CPU_SETSIZE == __CPU_BITS
++
++#  define CPU_ZERO(set_)   \
++    do{ \
++        (set_)->__bits[0] = 0; \
++    }while(0)
++
++#  define CPU_SET(cpu_,set_) \
++    do {\
++        size_t __cpu = (cpu_); \
++        if (__cpu < CPU_SETSIZE) \
++            (set_)->__bits[0] |= __CPU_MASK(__cpu); \
++    }while (0)
++
++#  define CPU_CLR(cpu_,set_) \
++    do {\
++        size_t __cpu = (cpu_); \
++        if (__cpu < CPU_SETSIZE) \
++            (set_)->__bits[0] &= ~__CPU_MASK(__cpu); \
++    }while (0)
++
++#  define CPU_ISSET(cpu_, set_) \
++    (__extension__({\
++        size_t  __cpu = (cpu_); \
++        (cpu_ < CPU_SETSIZE) \
++            ? ((set_)->__bits[0] & __CPU_MASK(__cpu)) != 0 \
++            : 0; \
++    }))
++
++#  define CPU_EQUAL(set1_, set2_) \
++    ((set1_)->__bits[0] == (set2_)->__bits[0])
++
++#  define __CPU_OP(dst_, set1_, set2_, op_) \
++    do { \
++        (dst_)->__bits[0] = (set1_)->__bits[0] op_ (set2_)->__bits[0]; \
++    } while (0)
++
++#  define CPU_COUNT(set_)  __builtin_popcountl((set_)->__bits[0])
++
++#else /* CPU_SETSIZE != __CPU_BITS */
++
++#  define CPU_ZERO(set_)          CPU_ZERO_S(sizeof(cpu_set_t), set_)
++#  define CPU_SET(cpu_,set_)      CPU_SET_S(cpu_,sizeof(cpu_set_t),set_)
++#  define CPU_CLR(cpu_,set_)      CPU_CLR_S(cpu_,sizeof(cpu_set_t),set_)
++#  define CPU_ISSET(cpu_,set_)    CPU_ISSET_S(cpu_,sizeof(cpu_set_t),set_)
++#  define CPU_COUNT(set_)         CPU_COUNT_S(sizeof(cpu_set_t),set_)
++#  define CPU_EQUAL(set1_,set2_)  CPU_EQUAL_S(sizeof(cpu_set_t),set1_,set2_)
++
++#  define __CPU_OP(dst_,set1_,set2_,op_)  __CPU_OP_S(sizeof(cpu_set_t),dst_,set1_,set2_,op_)
++
++#endif /* CPU_SETSIZE != __CPU_BITS */
++
++#define CPU_AND(set1_,set2_)   __CPU_OP(set1_,set2_,&)
++#define CPU_OR(set1_,set2_)    __CPU_OP(set1_,set2_,|)
++#define CPU_XOR(set1_,set2_)   __CPU_OP(set1_,set2_,^)
++
++/* Support for dynamically-allocated cpu_set_t */
++
++#define CPU_ALLOC_SIZE(count) \
++    __CPU_ELT((count) + (__CPU_BITS-1))*sizeof(__CPU_BITTYPE)
++
++#define CPU_ALLOC(count)   __sched_cpualloc((count));
++#define CPU_FREE(set)      __sched_cpufree((set))
++
++extern cpu_set_t* __sched_cpualloc(size_t count);
++extern void       __sched_cpufree(cpu_set_t* set);
++
++#define CPU_ZERO_S(setsize_,set_)  \
++    do { \
++        size_t __nn = 0; \
++        size_t __nn_max = (setsize_)/sizeof(__CPU_BITTYPE); \
++        for (; __nn < __nn_max; __nn++) \
++            (set_)->__bits[__nn] = 0; \
++    } while (0)
++
++#define CPU_SET_S(cpu_,setsize_,set_) \
++    do { \
++        size_t __cpu = (cpu_); \
++        if (__cpu < 8*(setsize_)) \
++            (set_)->__bits[__CPU_ELT(__cpu)] |= __CPU_MASK(__cpu); \
++    } while (0)
++
++#define CPU_CLR_S(cpu_,setsize_,set_) \
++    do { \
++        size_t __cpu = (cpu_); \
++        if (__cpu < 8*(setsize_)) \
++            (set_)->__bits[__CPU_ELT(__cpu)] &= ~__CPU_MASK(__cpu); \
++    } while (0)
++
++#define CPU_ISSET_S(cpu_, setsize_, set_) \
++    (__extension__ ({ \
++        size_t __cpu = (cpu_); \
++        (__cpu < 8*(setsize_)) \
++          ? ((set_)->__bits[__CPU_ELT(__cpu)] & __CPU_MASK(__cpu)) != 0 \
++          : 0; \
++    }))
++
++#define CPU_EQUAL_S(setsize_, set1_, set2_) \
++    (__extension__ ({ \
++        __const __CPU_BITTYPE* __src1 = (set1_)->__bits; \
++        __const __CPU_BITTYPE* __src2 = (set2_)->__bits; \
++        size_t __nn = 0, __nn_max = (setsize_)/sizeof(__CPU_BITTYPE); \
++        for (; __nn < __nn_max; __nn++) { \
++            if (__src1[__nn] != __src2[__nn]) \
++                break; \
++        } \
++        __nn == __nn_max; \
++    }))
++
++#define __CPU_OP_S(setsize_, dstset_, srcset1_, srcset2_, op) \
++    do { \
++        cpu_set_t* __dst = (dstset); \
++        const __CPU_BITTYPE* __src1 = (srcset1)->__bits; \
++        const __CPU_BITTYPE* __src2 = (srcset2)->__bits; \
++        size_t __nn = 0, __nn_max = (setsize_)/sizeof(__CPU_BITTYPE); \
++        for (; __nn < __nn_max; __nn++) \
++            (__dst)->__bits[__nn] = __src1[__nn] op __src2[__nn]; \
++    } while (0)
++
++#define CPU_COUNT_S(setsize_, set_) \
++    __sched_cpucount((setsize_), (set_))
++
++extern int __sched_cpucount(size_t setsize, cpu_set_t* set);
++
++
+ static PyObject* linux_ioprio_get(PyObject* self, PyObject* args);
+ static PyObject* linux_ioprio_set(PyObject* self, PyObject* args);
+ static PyObject* get_disk_partitions(PyObject* self, PyObject* args);
