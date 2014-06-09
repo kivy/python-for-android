@@ -1,14 +1,25 @@
 #!/bin/bash
 
-VERSION_pycrypto=${VERSION_pycrypto:-2.5}
+VERSION_pycrypto=${VERSION_pycrypto:-2.6.1}
 URL_pycrypto=http://pypi.python.org/packages/source/p/pycrypto/pycrypto-$VERSION_pycrypto.tar.gz
 DEPS_pycrypto=(openssl python)
-MD5_pycrypto=783e45d4a1a309e03ab378b00f97b291
+MD5_pycrypto=55a61a054aa66812daf5161a0d5d7eda
 BUILD_pycrypto=$BUILD_PATH/pycrypto/$(get_directory $URL_pycrypto)
 RECIPE_pycrypto=$RECIPES_PATH/pycrypto
 
 function prebuild_pycrypto() {
-	true
+	cd $BUILD_pycrypto
+
+	# check marker in our source build
+	if [ -f .patched ]; then
+		# no patch needed
+		return
+	fi
+
+	try patch -p1 < $RECIPE_pycrypto/patches/add_length.patch
+
+	# everything done, touch the marker !
+	touch .patched
 }
 
 function shouldbuild_pycrypto() {
