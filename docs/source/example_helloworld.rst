@@ -43,7 +43,7 @@ Let's create a simple Hello world application, with one Label and one Button.
     class HelloWorldScreen(GridLayout):
         counter = NumericProperty(0)
         def my_callback(self):
-            print 'The button have been pushed'
+            print 'The button has been pushed'
             self.counter += 1
 
     class HelloWorldApp(App):
