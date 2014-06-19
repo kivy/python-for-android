@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_openssl=${VERSION_openssl:-1.0.1c}
+VERSION_openssl=${VERSION_openssl:-1.0.1g}
 URL_openssl=http://www.openssl.org/source/openssl-$VERSION_openssl.tar.gz
 DEPS_openssl=()
-MD5_openssl=ae412727c8c15b67880aef7bd2999b2e
+MD5_openssl=de62b43dfcd858e66a74bee1c834e959
 BUILD_openssl=$BUILD_PATH/openssl/$(get_directory $URL_openssl)
 RECIPE_openssl=$RECIPES_PATH/openssl
 
