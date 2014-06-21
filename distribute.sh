@@ -8,6 +8,7 @@
 
 # Modules
 MODULES=
+BOOTSTRAP="legacy"
 
 # Resolve Python path
 PYTHON="$(which python2.7)"
@@ -49,12 +50,13 @@ BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
 JAVACLASS_PATH="$ROOT_PATH/build/java"
 PACKAGES_PATH="${PACKAGES_PATH:-$ROOT_PATH/.packages}"
-SRC_PATH="$ROOT_PATH/src"
-JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
 SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
 HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
 CYTHON="cython -t"
+BOOTSTRAP_PATH="$ROOT_PATH/bootstrap"
+#SRC_PATH="$ROOT_PATH/src"
+#JNI_PATH="$SRC_PATH/jni"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"
@@ -212,7 +214,7 @@ function push_arm() {
 
 	export CC="$TOOLCHAIN_PREFIX-gcc $CFLAGS"
 	export CXX="$TOOLCHAIN_PREFIX-g++ $CXXFLAGS"
-	export AR="$TOOLCHAIN_PREFIX-ar" 
+	export AR="$TOOLCHAIN_PREFIX-ar"
 	export RANLIB="$TOOLCHAIN_PREFIX-ranlib"
 	export LD="$TOOLCHAIN_PREFIX-ld"
 	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
@@ -243,7 +245,7 @@ function pop_arm() {
 
 function usage() {
 	echo "Python for android - distribute.sh"
-	echo 
+	echo
 	echo "Usage:   ./distribute.sh [options]"
 	echo
 	echo "  -d directory           Name of the distribution directory"
@@ -353,6 +355,10 @@ function run_prepare() {
 		try rm -rf "$DIST_PATH"
 	fi
 	try mkdir -p "$DIST_PATH"
+
+	info "Boostrap used: $BOOTSTRAP"
+	export SRC_PATH="$BOOTSTRAP_PATH/$BOOTSTRAP"
+	export JNI_PATH="$BOOTSTRAP_PATH/$BOOTSTRAP/jni"
 
 	if [ $DO_CLEAN_BUILD -eq 1 ]; then
 		info "Cleaning build"
@@ -712,7 +718,7 @@ function run_pymodules_install() {
 			exit -1
 		fi
 	done
-	
+
 	debug "Check if virtualenv is existing"
 	if [ ! -d venv ]; then
 		debug "Installing virtualenv"
@@ -829,7 +835,7 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfxm:u:d:s" opt; do
+while getopts ":hvlfxm:u:d:b:s" opt; do
 	case $opt in
 		h)
 			usage
@@ -859,6 +865,9 @@ while getopts ":hvlfxm:u:d:s" opt; do
 			;;
 		x)
 			DO_SET_X=1
+			;;
+		b)
+			BOOTSTRAP="$OPTARG"
 			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
