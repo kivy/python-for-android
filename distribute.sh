@@ -745,6 +745,7 @@ function run_distribute() {
 	debug "Copy default files"
 	try cp -a $SRC_PATH/default.properties .
 	try cp -a $SRC_PATH/local.properties .
+	try cat $SRC_PATH/bootstrap.properties >> "local.properties"
 	try cp -a $BOOTSTRAP_COMMON_PATH/build.py .
 	try cp -a $BOOTSTRAP_COMMON_PATH/buildlib .
 	try cp -a $BOOTSTRAP_COMMON_PATH/src .

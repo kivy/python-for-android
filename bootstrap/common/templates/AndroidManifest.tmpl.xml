@@ -27,7 +27,7 @@
     <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
 
 
-    <activity android:name="org.renpy.android.PythonActivity"
+    <activity android:name="{{ args.bootstrap.entrypoint }}"
               android:label="@string/iconName"
 			  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if android_api >= 13 %}|screenSize{% endif %}"
               android:launchMode="singleTask"

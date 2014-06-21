@@ -492,4 +492,19 @@ tools directory of the Android SDK.
                         and not x.startswith('#')]
         WHITELIST_PATTERNS += patterns
 
+    # read bootstrap.properties and fill the args
+    args.bootstrap = {}
+    with open("local.properties") as fd:
+        for line in fd.readlines():
+            items = line.split("=", 1)
+            if len(items) != 2:
+                continue
+            key, value = items
+            if not key.startswith("bootstrap."):
+                continue
+            key = key[len("bootstrap:"):]
+            args.bootstrap[key] = value.splitlines()[0]
+
+    print args.bootstrap
+
     make_package(args)
