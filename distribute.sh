@@ -55,6 +55,7 @@ SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
 HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
 CYTHON="cython -t"
 BOOTSTRAP_PATH="$ROOT_PATH/bootstrap"
+BOOTSTRAP_COMMON_PATH="$BOOTSTRAP_PATH/common"
 #SRC_PATH="$ROOT_PATH/src"
 #JNI_PATH="$SRC_PATH/jni"
 
@@ -384,8 +385,8 @@ function run_prepare() {
 	echo "sdk.dir=$ANDROIDSDK" > $SRC_PATH/local.properties
 
 	# copy the initial blacklist in build
-	try cp -a $SRC_PATH/blacklist.txt $BUILD_PATH
-	try cp -a $SRC_PATH/whitelist.txt $BUILD_PATH
+	try cp -a $BOOTSTRAP_COMMON_PATH/blacklist.txt $BUILD_PATH
+	try cp -a $BOOTSTRAP_COMMON_PATH/whitelist.txt $BUILD_PATH
 
 	# check arm env
 	push_arm
@@ -744,11 +745,12 @@ function run_distribute() {
 	debug "Copy default files"
 	try cp -a $SRC_PATH/default.properties .
 	try cp -a $SRC_PATH/local.properties .
-	try cp -a $SRC_PATH/build.py .
-	try cp -a $SRC_PATH/buildlib .
+	try cp -a $BOOTSTRAP_COMMON_PATH/build.py .
+	try cp -a $BOOTSTRAP_COMMON_PATH/buildlib .
+	try cp -a $BOOTSTRAP_COMMON_PATH/src .
+	try cp -a $BOOTSTRAP_COMMON_PATH/templates .
+	try cp -a $BOOTSTRAP_COMMON_PATH/res .
 	try cp -a $SRC_PATH/src .
-	try cp -a $SRC_PATH/templates .
-	try cp -a $SRC_PATH/res .
 	try cp -a $BUILD_PATH/blacklist.txt .
 	try cp -a $BUILD_PATH/whitelist.txt .
 
@@ -766,7 +768,9 @@ function run_distribute() {
 	debug "Fill private directory"
 	try cp -a python-install/lib private/
 	try mkdir -p private/include/python2.7
-	try mv libs/$ARCH/libpymodules.so private/
+	if [ -f "libs/$ARCH/libpymodules.so" ]; then
+		try mv libs/$ARCH/libpymodules.so private/
+	fi
 	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
 
 	debug "Reduce private directory from unwanted files"

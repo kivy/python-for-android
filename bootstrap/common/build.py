@@ -68,6 +68,10 @@ def render(template, dest, **kwargs):
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
+    dir_dest = dirname(dest)
+    if dir_dest and not os.path.exists(dir_dest):
+        os.makedirs(dir_dest)
+
     f = file(dest, 'wb')
     f.write(text.encode('utf-8'))
     f.close()
@@ -267,7 +271,7 @@ def make_package(args):
             sys.exit(-1)
 
     # Get target android API
-    android_api = int(os.environ.get('ANDROIDAPI', '8'))
+    android_api = int(os.environ.get('ANDROIDAPI', '14'))
 
     # Render the various templates into control files.
     render(

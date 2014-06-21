@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="{{ versioned_name }}" default="help">
 
-    <loadproperties srcFile="local.properties" />
+    <property file="local.properties" />
     <property file="ant.properties" />
+    <property environment="env" />
+    <condition property="sdk.dir" value="${env.ANDROID_HOME}">
+        <isset property="env.ANDROID_HOME" />
+    </condition>
+
     <loadproperties srcFile="project.properties" />
 
     <fail
@@ -15,6 +20,7 @@
     </target>
     <target name="-post-compile">
     </target>
+    <!-- version-tag: 1.0 -->
     <import file="${sdk.dir}/tools/ant/build.xml" />
 
 </project>
