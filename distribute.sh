@@ -60,8 +60,8 @@ BOOTSTRAP_PATH="$ROOT_PATH/bootstrap"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"
-export LIBLINK="$ROOT_PATH/src/tools/liblink"
-export BIGLINK="$ROOT_PATH/src/tools/biglink"
+export LIBLINK="$ROOT_PATH/tools/liblink"
+export BIGLINK="$ROOT_PATH/tools/biglink"
 export PIP=$PIP_NAME
 export VIRTUALENV=$VIRTUALENV_NAME
 

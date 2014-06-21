@@ -41,6 +41,10 @@ while args:
 
 
 print('Biglink create %s library' % sys.argv[1])
+if not unique_args:
+    print('Biglink: no library created, no object collected.')
+    sys.exit(0)
+
 print('Biglink arguments:')
 for arg in unique_args:
     print(' %s' % arg)
