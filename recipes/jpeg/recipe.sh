@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_jpeg=
-URL_jpeg=
+VERSION_jpeg=${VERSION_jpeg:-9a}
+URL_jpeg=http://ijg.org/files/jpegsrc.v$VERSION_jpeg.tar.gz
 MD5_jpeg=
-BUILD_jpeg=$SRC_PATH/jni/jpeg
+BUILD_jpeg=$BUILD_PATH/jpeg/$(get_directory $URL_jpeg)
 RECIPE_jpeg=$RECIPES_PATH/jpeg
 
 function prebuild_jpeg() {
@@ -11,9 +11,11 @@ function prebuild_jpeg() {
 }
 
 function build_jpeg() {
-	cd $SRC_PATH/jni
+	cd $BUILD_jpeg
 	push_arm
-	try ndk-build V=1 jpeg
+	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi
+	try make
+	try cp .libs/libjpeg.a $LIBS_PATH
 	pop_arm
 }
 
