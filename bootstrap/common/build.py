@@ -224,8 +224,6 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
 def copy_to_assets(source_dirs, ignore_path=[]):
     print 'copy_to_assets()', source_dirs, ignore_path
     for fn, afn in iterate_sources(source_dirs, ignore_path):
-        print '{}: {}'.format(fn, afn)
-
         if afn.endswith(".so"):
             # copy to libs instead
             afn_dirname = dirname(afn)
@@ -239,6 +237,8 @@ def copy_to_assets(source_dirs, ignore_path=[]):
         dest_dir = dirname(dest_fn)
         if not exists(dest_dir):
             os.makedirs(dest_dir)
+
+        print '{}: {}'.format(fn, dest_fn)
         shutil.copy(fn, dest_fn)
 
 
