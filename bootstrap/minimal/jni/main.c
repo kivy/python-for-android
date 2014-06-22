@@ -9,7 +9,7 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 #ifndef Py_PYTHON_H
-    #error Python headers needed to compile C extensions, please install development version of Python.
+#error Python headers needed to compile C extensions, please install development version of Python.
 #endif
 
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
@@ -23,7 +23,7 @@ static PyObject *androidembed_log(PyObject *self, PyObject *args) {
 
 static PyMethodDef AndroidEmbedMethods[] = {
     {"log", androidembed_log, METH_VARARGS,
-     "Log on android platform"},
+    "Log on android platform"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -35,7 +35,7 @@ int asset_extract(AAssetManager *am, char *src_file, char *dst_file) {
     FILE *fhd = fopen(dst_file, "wb");
     if (fhd == NULL) {
         LOGW("Unable to open descriptor for %s (errno=%d:%s)",
-            dst_file, errno, strerror(errno));
+        dst_file, errno, strerror(errno));
         return -1;
     }
 
@@ -63,7 +63,7 @@ void android_main(struct android_app* state) {
     LOGI("Initialize Python for Android");
     //env_argument = getenv("ANDROID_ARGUMENT");
     //setenv("ANDROID_APP_PATH", env_argument, 1);
-	//setenv("PYTHONVERBOSE", "2", 1);
+    //setenv("PYTHONVERBOSE", "2", 1);
     Py_SetProgramName("python-android");
     Py_Initialize();
     //PySys_SetArgv(argc, argv);
@@ -138,12 +138,12 @@ void android_main(struct android_app* state) {
 
     // test import site
     PyRun_SimpleString(
-		"import site; print site.getsitepackages()\n"\
-		"print 'Android path', sys.path\n" \
-        "print 'Android bootstrap done. __name__ is', __name__");
+    "import site; print site.getsitepackages()\n"\
+    "print 'Android path', sys.path\n" \
+    "print 'Android bootstrap done. __name__ is', __name__");
 
     /* run it !
-     */
+    */
     LOGI("Extract main.py from assets");
     char main_fn[512];
     snprintf(main_fn, 512, "%s/main.pyo", state->activity->internalDataPath);
@@ -151,7 +151,7 @@ void android_main(struct android_app* state) {
         return;
 
     /* run python !
-     */
+    */
     LOGI("Run main.py >>>");
     FILE *fhd = fopen(main_fn, "rb");
     if (fhd == NULL) {
@@ -166,12 +166,12 @@ void android_main(struct android_app* state) {
         LOGW("An error occured.");
         PyErr_Print(); /* This exits with the right code if SystemExit. */
         if (Py_FlushLine())
-			PyErr_Clear();
+            PyErr_Clear();
     }
 
     /* close everything
-     */
-	Py_Finalize();
+    */
+    Py_Finalize();
 
     LOGW("Python for android ended.");
 }
