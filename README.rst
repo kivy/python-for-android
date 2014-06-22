@@ -14,13 +14,13 @@ Global overview
 ---------------
 
 #. Download Android NDK, SDK
- 
+
  * NDK: http://dl.google.com/android/ndk/android-ndk-r8c-linux-x86.tar.bz2
- 
+
  * More details at: http://developer.android.com/tools/sdk/ndk/index.html
- 
+
  * SDK: http://dl.google.com/android/android-sdk_r21.0.1-linux.tgz
- 
+
  * More details at:http://developer.android.com/sdk/index.html
 
 #. Launch "android", and download latest Android platform, here API 14, which would be Android 4.0
@@ -54,6 +54,43 @@ Global overview
     adb install bin/touchtracer-1.0-debug.apk
 
 #. Enjoy.
+
+
+Bootstraps
+----------
+
+We call bootstraps the part of the toolchain/code that will start your Python
+code. For example, Kivy currently require lot of code to start the Activity,
+setup the OpenGL ES 2 context, initialize the native environment, extract your
+application code, and boot on it. This bootstrap is called "legacy".
+
+Another bootstrap currently in experimentation is "minimal". It use a Native
+activity, extract only one file and boot on it, and will start your main.py
+directly from the APK. This can be a place to others experimentation such as
+pure-python / android applications.
+
+You can select a bootstrap with::
+
+    ./distribute -b "minimal" -m "python"
+
+The minimal bootstrap can be used with::
+
+    ./build.py --package org.test.minimal --name __minimal --version 1 \
+               --private ~/code/testmininal/ --minsdk 9 --sdk 14 \
+               --asset \
+               debug
+
+Here is a minimal example of main.py for the minimal bootstrap::
+
+    import androidembed
+    print "Hello world, we are entering in a loop!"
+    while androidembed.poll(1000):
+        print "Plop"
+    print "We leaved our hello world!"
+
+
+Each bootstrap have recommendations and limitations. More informations can be
+found at each bootstrap/NAME/README.
 
 
 Troubleshooting
