@@ -19,8 +19,8 @@
   <application android:label="@string/appName"
                android:icon="@drawable/icon"
 			   android:hardwareAccelerated="true"
+               android:hasCode="{{ args.bootstrap.hascode|default("true") }}"
                >
-
 	{% for m in args.meta_data %}
 	<meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
     <meta-data android:name="fullscreen" android:value="{% if args.window %}0{% else %}1{% endif %}"/>
@@ -35,6 +35,12 @@
               android:screenOrientation="{{ args.orientation }}"
               android:windowSoftInputMode="stateAlwaysHidden"
             >
+
+        {% if args.bootstrap.lib_name %}
+        <meta-data android:name="android.app.lib_name"
+                   android:value="{{ args.bootstrap.lib_name }}" />
+        {% endif %}
+
 
       {% if args.launcher %}
       <intent-filter>
