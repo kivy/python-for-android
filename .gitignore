@@ -2,10 +2,10 @@ build
 *.swp
 *.swo
 *~
-src/obj
-src/local.properties
-src/default.properties
-src/libs/armeabi
+bootstrap/*/obj
+bootstrap/*/local.properties
+bootstrap/*/default.properties
+bootstrap/*/libs/armeabi
 dist
 *.pyc
 testsuite
