@@ -12,6 +12,36 @@
 #error Python headers needed to compile C extensions, please install development version of Python.
 #endif
 
+struct android_app *g_state = NULL;
+
+
+static PyObject *androidembed_poll(PyObject *self, PyObject *args) {
+    int indent;
+    int events;
+    struct android_poll_source *source;
+    int timeout;
+
+    if (!PyArg_ParseTuple(args, "i", &timeout)) {
+        return NULL;
+    }
+
+    while ((indent = ALooper_pollAll(
+        timeout, NULL, &events, (void **)&source)) >= 0) {
+
+        // Process this event
+        if (source != NULL) {
+            source->process(g_state, source);
+        }
+
+        // Check if we are exiting.
+        if (g_state->destroyRequested != 0) {
+            Py_RETURN_FALSE;
+        }
+    }
+
+    Py_RETURN_TRUE;
+}
+
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
     char *logstr = NULL;
     if (!PyArg_ParseTuple(args, "s", &logstr)) {
@@ -22,8 +52,8 @@ static PyObject *androidembed_log(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef AndroidEmbedMethods[] = {
-    {"log", androidembed_log, METH_VARARGS,
-    "Log on android platform"},
+    {"log", androidembed_log, METH_VARARGS, "Log on android platform"},
+    {"poll", androidembed_poll, METH_VARARGS, "Poll the android events"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -55,7 +85,9 @@ int asset_extract(AAssetManager *am, char *src_file, char *dst_file) {
 
 void android_main(struct android_app* state) {
     app_dummy();
+
     LOGI("Starting minimal bootstrap.");
+    g_state = state;
 
     char *env_argument = NULL;
     int fd = -1;
