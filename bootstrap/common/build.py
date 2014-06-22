@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 
-from os.path import dirname, join, isfile, realpath, relpath, split, exists
+from os.path import dirname, join, isfile, realpath, relpath, split, exists, \
+    basename
 from zipfile import ZipFile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
@@ -224,7 +225,17 @@ def copy_to_assets(source_dirs, ignore_path=[]):
     print 'copy_to_assets()', source_dirs, ignore_path
     for fn, afn in iterate_sources(source_dirs, ignore_path):
         print '{}: {}'.format(fn, afn)
-        dest_fn = join('assets', afn)
+
+        if afn.endswith(".so"):
+            # copy to libs instead
+            afn_dirname = dirname(afn)
+            if "python2.7" in afn_dirname:
+                # python lib, strip the directory
+                afn_dirname = ""
+            dest_fn = join("libs", "armeabi", "libpy_{}".format(
+                afn_dirname.replace("/", "_").replace(".", "") + basename(afn)))
+        else:
+            dest_fn = join('assets', afn)
         dest_dir = dirname(dest_fn)
         if not exists(dest_dir):
             os.makedirs(dest_dir)

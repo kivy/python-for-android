@@ -84,6 +84,39 @@ sysconfig.get_config_h_filename = lambda: pyconfig_fn
 
 
 #
+# Step 4: install a custom importer
+#
+
+import imp
+from os.path import join, exists
+
+ANDROID_LIB_PATH = posix.environ["ANDROID_LIB_PATH"]
+
+
+class CustomBuiltinImporter(object):
+    def find_module(self, fullname, mpath=None):
+        modname = "libpy_{}.so".format(fullname.replace(".", "_"))
+        modfn = join(ANDROID_LIB_PATH, modname)
+        if exists(modfn):
+            return self
+
+    def load_module(self, fullname):
+        fn = fullname.replace(".", "_")
+        mod = sys.modules.get(fn)
+        if mod is None:
+            try:
+                mod = imp.load_dynamic(
+                    fn,
+                    join(ANDROID_LIB_PATH, "libpy_{}.so".format(fn)))
+            except ImportError:
+                # untested part, similar to iOS custom importer.
+                mod = imp.load_dynamic(fullname, fullname)
+        return mod
+
+sys.meta_path.append(CustomBuiltinImporter())
+
+
+#
 # Step 4: bootstrap the application !
 #
 

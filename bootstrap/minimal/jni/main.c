@@ -117,10 +117,20 @@ void android_main(struct android_app* state) {
     jboolean isCopy;
     str = (*env)->GetStringUTFChars(env, (jstring)result, &isCopy);
     LOGI("Looked up package code path: %s", str);
+    setenv("ANDROID_APK_FN", str, 1);
+
+    methodID = (*env)->GetMethodID(env, clazz, "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
+    jobject appInfo = (*env)->CallObjectMethod(env, activity->clazz, methodID);
+    jfieldID fieldID = (*env)->GetFieldID(env,
+        (*env)->GetObjectClass(env, appInfo), "nativeLibraryDir", "Ljava/lang/String;");
+    result = (*env)->GetObjectField(env, appInfo, fieldID);
+    str = (*env)->GetStringUTFChars(env, (jstring)result, &isCopy);
+    LOGI("Looked up library code path: %s", str);
+    setenv("ANDROID_LIB_PATH", str, 1);
+
     (*activity->vm)->DetachCurrentThread(activity->vm);
 
     // set some envs
-    setenv("ANDROID_APK_FN", str, 1);
     setenv("ANDROID_INTERNAL_DATA_PATH", state->activity->internalDataPath, 1);
     setenv("ANDROID_EXTERNAL_DATA_PATH", state->activity->externalDataPath, 1);
     LOGI("Internal data path is: %s", state->activity->internalDataPath);
