@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-from os.path import dirname, join, isfile, realpath, relpath, split
+from os.path import dirname, join, isfile, realpath, relpath, split, exists
 from zipfile import ZipFile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
@@ -120,7 +120,7 @@ def listfiles(d):
             yield fn
 
 
-def make_pythonzip():
+def make_pythonzip(use_assets):
     '''
     Search for all the python related files, and construct the pythonXX.zip
     According to
@@ -147,22 +147,27 @@ def make_pythonzip():
     # get a list of all python file
     python_files = [x for x in listfiles(d) if select(x)]
 
-    # create the final zipfile
-    zfn = join('private', 'lib', 'python27.zip')
-    zf = ZipFile(zfn, 'w')
+    if use_assets:
+        for fn in python_files:
+            afn = fn[len(d) + 1:]
+            dest_fn = join("assets", "lib", "python2.7", afn)
+            dest_dir = dirname(dest_fn)
+            if not exists(dest_dir):
+                os.makedirs(dest_dir)
+            shutil.copy(fn, dest_fn)
+    else:
+        # create the final zipfile
+        zfn = join('private', 'lib', 'python27.zip')
+        zf = ZipFile(zfn, 'w')
 
-    # put all the python files in it
-    for fn in python_files:
-        afn = fn[len(d):]
-        zf.write(fn, afn)
-    zf.close()
+        # put all the python files in it
+        for fn in python_files:
+            afn = fn[len(d):]
+            zf.write(fn, afn)
+        zf.close()
 
 
-def make_tar(tfn, source_dirs, ignore_path=[]):
-    '''
-    Make a zip file `fn` from the contents of source_dis.
-    '''
-
+def iterate_sources(source_dirs, ignore_path=[]):
     # selector function
     def select(fn):
         rfn = realpath(fn)
@@ -176,17 +181,24 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
         return not is_blacklist(fn)
 
     # get the files and relpath file of all the directory we asked for
-    files = []
     for sd in source_dirs:
         sd = realpath(sd)
         compile_dir(sd)
-        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd)
-                  if select(x)]
+        for x in listfiles(sd):
+            if not select(x):
+                continue
+            yield (x, relpath(realpath(x), sd))
+
+
+def make_tar(tfn, source_dirs, ignore_path=[]):
+    '''
+    Make a zip file `fn` from the contents of source_dis.
+    '''
 
     # create tar.gz of thoses files
     tf = tarfile.open(tfn, 'w:gz')
     dirs = []
-    for fn, afn in files:
+    for fn, afn in iterate_sources(source_dirs, ignore_path):
         print '%s: %s' % (tfn, fn)
         dn = dirname(afn)
         if dn not in dirs:
@@ -206,6 +218,17 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
         # put the file
         tf.add(fn, afn)
     tf.close()
+
+
+def copy_to_assets(source_dirs, ignore_path=[]):
+    print 'copy_to_assets()', source_dirs, ignore_path
+    for fn, afn in iterate_sources(source_dirs, ignore_path):
+        print '{}: {}'.format(fn, afn)
+        dest_fn = join('assets', afn)
+        dest_dir = dirname(dest_fn)
+        if not exists(dest_dir):
+            os.makedirs(dest_dir)
+        shutil.copy(fn, dest_fn)
 
 
 def make_package(args):
@@ -321,16 +344,23 @@ def make_package(args):
 
     # In order to speedup import and initial depack,
     # construct a python27.zip
-    make_pythonzip()
+    make_pythonzip(args.use_assets)
 
     # Package up the private and public data.
-    if args.private:
-        make_tar('assets/private.mp3', ['private', args.private])
+    if args.use_assets:
+        if args.private:
+            copy_to_assets(['private', args.private])
+        else:
+            copy_to_assets(['private'])
+        if args.dir:
+            copy_to_assets([args.dir], args.ignore_path)
     else:
-        make_tar('assets/private.mp3', ['private'])
-
-    if args.dir:
-        make_tar('assets/public.mp3', [args.dir], args.ignore_path)
+        if args.private:
+            make_tar('assets/private.mp3', ['private', args.private])
+        else:
+            make_tar('assets/private.mp3', ['private'])
+        if args.dir:
+            make_tar('assets/public.mp3', [args.dir], args.ignore_path)
 
     # Copy over the icon and presplash files.
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
@@ -370,7 +400,8 @@ Package a Python application for Android.
 For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
 ''')
-
+    ap.add_argument('--assets', dest='use_assets', action='store_true',
+                    help=('Copy the app into assets/ instead of .tar'))
     ap.add_argument('--package', dest='package',
                     help=('The name of the java package the project will be'
                           ' packaged under.'),
