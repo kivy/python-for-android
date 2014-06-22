@@ -734,6 +734,17 @@ function run_pymodules_install() {
 
 }
 
+function run_bootstrap_build() {
+	info "Compile bootstrap"
+
+	if [ -d "$SRC_PATH/jni" ]; then
+		cd "$SRC_PATH/jni"
+		push_arm
+		try ndk-build V=1
+		pop_arm
+	fi
+}
+
 function run_distribute() {
 	info "Run distribute"
 
@@ -743,15 +754,9 @@ function run_distribute() {
 	try mkdir assets bin private res templates
 
 	debug "Copy default files"
-	try cp -a $SRC_PATH/default.properties .
-	try cp -a $SRC_PATH/local.properties .
+	try cp -a $BOOTSTRAP_COMMON_PATH/* .
+	try cp -a $SRC_PATH/* .
 	try cat $SRC_PATH/bootstrap.properties >> "local.properties"
-	try cp -a $BOOTSTRAP_COMMON_PATH/build.py .
-	try cp -a $BOOTSTRAP_COMMON_PATH/buildlib .
-	try cp -a $BOOTSTRAP_COMMON_PATH/src .
-	try cp -a $BOOTSTRAP_COMMON_PATH/templates .
-	try cp -a $BOOTSTRAP_COMMON_PATH/res .
-	try cp -a $SRC_PATH/src .
 	try cp -a $BUILD_PATH/blacklist.txt .
 	try cp -a $BUILD_PATH/whitelist.txt .
 
@@ -812,6 +817,7 @@ function run() {
 	run_biglink
 	run_postbuild
 	run_pymodules_install
+	run_bootstrap_build
 	run_distribute
 	info "All done !"
 }

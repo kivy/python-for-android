@@ -18,8 +18,12 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := native-activity
 LOCAL_SRC_FILES := main.c
-LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM
+LOCAL_LDLIBS    := -lpython2.7 -ldl -llog -lz -landroid
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
+LOCAL_CFLAGS := \
+    -I$(LOCAL_PATH)/../../../build/python-install/include/python2.7
+LOCAL_LDFLAGS := \
+    -L$(LOCAL_PATH)/../../../build/python-install/lib
 
 include $(BUILD_SHARED_LIBRARY)
 
