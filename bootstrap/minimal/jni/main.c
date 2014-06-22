@@ -94,84 +94,32 @@ void android_main(struct android_app* state) {
     LOGI("Internal data path is: %s", state->activity->internalDataPath);
     LOGI("External data path is: %s", state->activity->externalDataPath);
 
-    // inject our bootstrap code to redirect python stdin/stdout
-    PyRun_SimpleString(
-        "import sys, androidembed\n" \
-        "class LogFile(object):\n" \
-        "    def __init__(self):\n" \
-        "        self.buffer = ''\n" \
-        "    def write(self, s):\n" \
-        "        s = self.buffer + s\n" \
-        "        lines = s.split(\"\\n\")\n" \
-        "        for l in lines[:-1]:\n" \
-        "            androidembed.log(l)\n" \
-        "        self.buffer = lines[-1]\n" \
-        "    def flush(self):\n" \
-        "        return\n" \
-        "sys.stdout = sys.stderr = LogFile()\n");
-
-    // let python knows where the python2.7 library is within the APK
-    PyRun_SimpleString(
-        "import sys, posix;" \
-        "lib_path = '{}/assets/lib/python2.7/'.format(" \
-        "           posix.environ['ANDROID_APK_FN'])\n" \
-        "sys.path[:] = [lib_path, '{}/site-packages'.format(lib_path)]\n" \
-        "import os; from os.path import exists, join\n" \
-        "config_path = join(posix.environ['ANDROID_INTERNAL_DATA_PATH'], 'python2.7', 'config')\n" \
-        "if not exists(config_path): os.makedirs(config_path)\n" \
-        "import sysconfig\n" \
-        "sysconfig._get_makefile_filename = lambda: '{}/Makefile'.format(config_path)\n" \
-        "sysconfig.get_config_h_filename = lambda: '{}/pyconfig.h'.format(config_path)\n" \
-        );
-
     // extract the Makefile, needed for sysconfig
     AAssetManager *am = state->activity->assetManager;
-    char dest_fn[512];
-
-    snprintf(dest_fn, 512, "%s/python2.7/config/Makefile", state->activity->internalDataPath);
-    if (asset_extract(am, "lib/python2.7/config/Makefile", dest_fn) < 0)
-        return;
-
-    snprintf(dest_fn, 512, "%s/python2.7/config/pyconfig.h", state->activity->internalDataPath);
-    if (asset_extract(am, "include/python2.7/pyconfig.h", dest_fn) < 0)
-        return;
-
-    // test import site
-    PyRun_SimpleString(
-    "import site; print site.getsitepackages()\n"\
-    "print 'Android path', sys.path\n" \
-    "print 'Android bootstrap done. __name__ is', __name__");
-
-    /* run it !
-    */
-    LOGI("Extract main.py from assets");
-    char main_fn[512];
-    snprintf(main_fn, 512, "%s/main.pyo", state->activity->internalDataPath);
-    if (asset_extract(am, "main.pyo", main_fn) < 0)
-        return;
-
-    /* run python !
-    */
-    LOGI("Run main.py >>>");
-    FILE *fhd = fopen(main_fn, "rb");
-    if (fhd == NULL) {
-        LOGW("Cannot open main.pyo (errno=%d:%s)", errno, strerror(errno));
+    char bootstrap_fn[512];
+    snprintf(bootstrap_fn, 512, "%s/_bootstrap.py", state->activity->internalDataPath);
+    if (asset_extract(am, "_bootstrap.py", bootstrap_fn) < 0) {
+        LOGW("Unable to extract _bootstrap.py");
         return;
     }
-    int ret = PyRun_SimpleFile(fhd, main_fn);
+
+    // run the python bootstrap
+    LOGI("Run _bootstrap.py >>>");
+    FILE *fhd = fopen(bootstrap_fn, "rb");
+    if (fhd == NULL) {
+        LOGW("Cannot open _bootstrap.py (errno=%d:%s)", errno, strerror(errno));
+        return;
+    }
+    int ret = PyRun_SimpleFile(fhd, bootstrap_fn);
     fclose(fhd);
-    LOGI("Run main.py (ret=%d) <<<", ret);
+    LOGI("Run _bootstrap.py (ret=%d) <<<", ret);
 
     if (PyErr_Occurred() != NULL) {
-        LOGW("An error occured.");
-        PyErr_Print(); /* This exits with the right code if SystemExit. */
+        PyErr_Print();
         if (Py_FlushLine())
             PyErr_Clear();
     }
 
-    /* close everything
-    */
     Py_Finalize();
-
-    LOGW("Python for android ended.");
+    LOGI("Python for android ended.");
 }
