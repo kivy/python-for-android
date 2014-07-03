@@ -170,6 +170,18 @@ def get_dpi():
 cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
+# get keyboard height
+def get_keyboard_height():
+    from jnius import autoclass
+    python_act = autoclass('org.renpy.android.PythonActivity')
+    rctx = autoclass('android.graphics.Rect')()
+    mActivity = python_act.mActivity
+    mActivity.getWindow().getDecorView().\
+        getWindowVisibleDisplayFrame(rctx)
+    height = mActivity.getWindowManager().getDefaultDisplay().getHeight()
+    return height - rctx.bottom
+
+
 # Flags for input_type, for requesting a particular type of keyboard
 #android FLAGS
 TYPE_CLASS_DATETIME = 4
