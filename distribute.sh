@@ -147,7 +147,7 @@ function get_directory() {
 }
 
 function push_arm() {
-	info "Entering in ARM enviromnent"
+	info "Entering in ARM environment"
 
 	# save for pop
 	export OLD_PATH=$PATH
