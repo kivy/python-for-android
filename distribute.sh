@@ -280,7 +280,7 @@ function check_build_deps() {
     DIST=$(lsb_release -is)
 	info "Check build dependencies for $DIST"
     case $DIST in
-		Debian|Ubuntu)
+		Debian|Ubuntu|LinuxMint)
 			check_pkg_deb_installed "build-essential zlib1g-dev cython"
 			;;
 		*)
