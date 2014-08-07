@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION_webob=${VERSION_webob:-1.4}
-DEPS_webob=(setuptools android)
+DEPS_webob=()
 URL_webob=http://pypi.python.org/packages/source/W/WebOb/WebOb-${VERSION_webob}.tar.gz
 MD5_webob=8437607c0cc00c35f658f972516ffb55
 BUILD_webob=$BUILD_PATH/webob/$(get_directory $URL_webob)

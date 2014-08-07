@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION_cjklib=${VERSION_cjklib:-0.3.2}
-DEPS_cjklib=(setuptools android)
+DEPS_cjklib=()
 URL_cjklib=http://pypi.python.org/packages/source/c/cjklib/cjklib-${VERSION_cjklib}.tar.gz
 MD5_cjklib=32780bc5cc0b132204d1c9b8a1642157
 BUILD_cjklib=$BUILD_PATH/cjklib/$(get_directory $URL_cjklib)
