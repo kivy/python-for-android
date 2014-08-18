@@ -63,7 +63,7 @@ export BIGLINK="$ROOT_PATH/src/tools/biglink"
 export PIP=$PIP_NAME
 export VIRTUALENV=$VIRTUALENV_NAME
 
-JELLYBEAN=0
+export JELLYBEAN=0
 
 MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
@@ -219,10 +219,11 @@ function push_arm() {
 	export LD="$TOOLCHAIN_PREFIX-ld"
 	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
 	export MAKE="make -j5"
+	export READELF="$TOOLCHAIN_PREFIX-readelf"
 
-	if [ "$JELLYBEAN" == "1" ]; then
-		export LIBLINK="$CC -shared $LDFLAGS"
-	fi
+	#if [ "$JELLYBEAN" == "1" ]; then
+	#	export LIBLINK="$CC -shared $LDFLAGS"
+	#fi
 
 	# Use ccache ?
 	which ccache &>/dev/null
@@ -772,7 +773,9 @@ function run_distribute() {
 	try cp -a python-install/lib private/
 	try mkdir -p private/include/python2.7
 	
-	if [ "$JELLYBEAN" == "0" ]; then
+	if [ "$JELLYBEAN" == "1" ]; then
+		try sh -c "cat libs/$ARCH/copylibs | xargs -d'\n' cp -t private/"
+	else
 		try mv libs/$ARCH/libpymodules.so private/
 	fi
 	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
@@ -800,11 +803,13 @@ function run_distribute() {
 }
 
 function run_biglink() {
+	push_arm
 	if [ "$JELLYBEAN" == "0" ]; then
-		push_arm
 		try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
-		pop_arm
+	else
+		try $BIGLINK $LIBS_PATH/copylibs $LIBLINK_PATH
 	fi
+	pop_arm
 }
 
 function run() {
@@ -852,6 +857,8 @@ while getopts ":hjvlfxm:u:d:s" opt; do
 			;;
 		j)
 			JELLYBEAN=1
+			LIBLINK=${LIBLINK}-jb
+			BIGLINK=${BIGLINK}-jb
 			;;
 		l)
 			list_modules
