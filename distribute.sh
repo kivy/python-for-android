@@ -279,16 +279,20 @@ function check_pkg_deb_installed() {
 }
 
 function check_build_deps() {
-    DIST=$(lsb_release -is)
-	info "Check build dependencies for $DIST"
-    case $DIST in
-		Debian|Ubuntu|LinuxMint)
-			check_pkg_deb_installed "build-essential zlib1g-dev cython"
-			;;
-		*)
-			debug "Avoid check build dependencies, unknow platform $DIST"
-			;;
-	esac
+    local dist=""
+    if which lsb_release -is >& /dev/null
+    then
+        dist=$(lsb_release -is)
+    fi 
+    info "Check build dependencies for $dist"
+    case $dist in
+        Debian|Ubuntu|LinuxMint)
+            check_pkg_deb_installed "build-essential zlib1g-dev cython"
+            ;;
+        *)
+            debug "Avoid check build dependencies, unknow platform $dist"
+            ;;
+    esac
 }
 
 function run_prepare() {
