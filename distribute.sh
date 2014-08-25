@@ -5,6 +5,8 @@
 # https://github.com/tito/python-for-android
 #
 #------------------------------------------------------------------------------
+ifile="$( dirname "${BASH_SOURCE[0]}" )/tools/distribute.functions.sh"
+. "$ifile" || { echo "$ifile file not found"; exit 1; }
 
 # Modules
 MODULES=
@@ -43,7 +45,7 @@ if [ "X$VIRTUALENV_NAME" == "X" ]; then
 fi
 
 # Paths
-ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
+ROOT_PATH="$(npath "$0")"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
