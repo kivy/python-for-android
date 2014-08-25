@@ -21,6 +21,10 @@
 			   android:hardwareAccelerated="true"
                >
 
+      {%if args.intent_filters %}
+        {{ intent_filters }}
+      {% endif %}
+
 	{% for m in args.meta_data %}
 	<meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
     <meta-data android:name="fullscreen" android:value="{% if args.window %}0{% else %}1{% endif %}"/>
@@ -58,9 +62,6 @@
 
       {% endif %}
 
-      {%if args.intent_filters %}
-        {{ intent_filters }}
-      {% endif %}
     </activity>
 
     {% if args.launcher %}
