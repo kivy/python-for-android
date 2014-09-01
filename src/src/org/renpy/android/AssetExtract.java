@@ -19,7 +19,8 @@ import java.util.zip.GZIPInputStream;
 
 import android.content.res.AssetManager;
 
-import org.xeustechnologies.jtar.*;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.*;
 
 class AssetExtract {
 
@@ -36,18 +37,18 @@ class AssetExtract {
         byte buf[] = new byte[1024 * 1024];
 
         InputStream assetStream = null;
-        TarInputStream tis = null;
+        TarArchiveInputStream tis = null;
 
         try {
             assetStream = mAssetManager.open(asset, AssetManager.ACCESS_STREAMING);
-            tis = new TarInputStream(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(assetStream, 8192)), 8192));
+            tis = new TarArchiveInputStream(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(assetStream, 8192)), 8192));
         } catch (IOException e) {
             Log.e("python", "opening up extract tar", e);
             return false;
         }
 
         while (true) {
-            TarEntry entry = null;
+            ArchiveEntry entry = null;
 
             try {
                 entry = tis.getNextEntry();
