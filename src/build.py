@@ -456,6 +456,9 @@ tools directory of the Android SDK.
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
 
+    ap.add_argument('--resource', dest='resource', action='append',
+                    help='Custom key=value to add in strings.xml resource file')
+
     args = ap.parse_args()
 
     if not args.dir and not args.private and not args.launcher:
@@ -469,6 +472,9 @@ tools directory of the Android SDK.
 
     if args.meta_data is None:
         args.meta_data = []
+
+    if args.resource is None:
+        args.resource = []
 
     if args.compile_pyo:
         if PYTHON is None:
