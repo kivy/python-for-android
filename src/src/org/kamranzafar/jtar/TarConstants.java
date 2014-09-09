@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Xeus Technologies 
+ * Copyright 2012 Kamran Zafar 
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
@@ -15,7 +15,7 @@
  * 
  */
 
-package org.xeustechnologies.jtar;
+package org.kamranzafar.jtar;
 
 /**
  * @author Kamran Zafar

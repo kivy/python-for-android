@@ -19,7 +19,7 @@ import java.util.zip.GZIPInputStream;
 
 import android.content.res.AssetManager;
 
-import org.xeustechnologies.jtar.*;
+import org.kamranzafar.jtar.*;
 
 class AssetExtract {
 
