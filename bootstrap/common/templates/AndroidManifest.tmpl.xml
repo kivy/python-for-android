@@ -82,7 +82,7 @@
     {% endif %}
 
     {% if service or args.launcher %}
-    <service android:name="org.renpy.android.PythonService"
+    <service android:name="{{ args.bootstrap.service_entrypoint }}"
              android:process=":PythonService"/>
     {% endif %}
 
