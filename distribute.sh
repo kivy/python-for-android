@@ -257,7 +257,7 @@ function usage() {
 	echo "  -x                     display expanded values (execute 'set -x')"
 	echo
 	echo "Advanced:"
-	echo "  -L                     Copy libraries instead of using biglink"
+	echo "  -C                     Copy libraries instead of using biglink"
 	echo "                         (may not work before Android 4.3)"
 	echo
 	echo "For developers:"
