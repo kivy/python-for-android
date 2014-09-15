@@ -66,6 +66,15 @@ void android_main(struct android_app* state) {
         return;
     }
 
+    // pass a module name as argument: _bootstrap.py use it as the main module
+    int argc;
+    char * argv[2];
+    argc = 2;
+    argv[0] = "_bootstrap.py";
+    argv[1] = "main";
+
+    PySys_SetArgv(argc, argv);
+
     // run the python bootstrap
     LOGI("Run _bootstrap.py >>>");
     FILE *fhd = fopen(bootstrap_fn, "rb");

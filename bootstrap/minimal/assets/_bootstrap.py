@@ -120,5 +120,8 @@ sys.meta_path.append(CustomBuiltinImporter())
 # Step 4: bootstrap the application !
 #
 
+main_module = sys.argv[1]
+print 'Bootstrapping module: "%s"' % main_module
+
 import runpy
-runpy._run_module_as_main("main", False)
+runpy._run_module_as_main(main_module, False)
