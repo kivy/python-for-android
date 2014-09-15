@@ -103,7 +103,7 @@ for directory in sys.argv[2:]:
             sofiles += found_sofiles
             
             if needed_libs == start_needed_libs:
-                raise RuntimeError('Failed to located needed libraries!\n\t' + '\n\t'.join(needed_libs))
+                raise RuntimeError('Failed to locate needed libraries!\n\t' + '\n\t'.join(needed_libs))
 
 output = sys.argv[1]
 

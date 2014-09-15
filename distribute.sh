@@ -63,7 +63,7 @@ export BIGLINK="$ROOT_PATH/src/tools/biglink"
 export PIP=$PIP_NAME
 export VIRTUALENV=$VIRTUALENV_NAME
 
-export JELLYBEAN=0
+export COPYLIBS=0
 
 MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
@@ -221,10 +221,6 @@ function push_arm() {
 	export MAKE="make -j5"
 	export READELF="$TOOLCHAIN_PREFIX-readelf"
 
-	#if [ "$JELLYBEAN" == "1" ]; then
-	#	export LIBLINK="$CC -shared $LDFLAGS"
-	#fi
-
 	# Use ccache ?
 	which ccache &>/dev/null
 	if [ $? -eq 0 ]; then
@@ -255,11 +251,14 @@ function usage() {
 	echo
 	echo "  -d directory           Name of the distribution directory"
 	echo "  -h                     Show this help"
-	echo "  -j                     Create distribution for JB 4.3+"
 	echo "  -l                     Show a list of available modules"
 	echo "  -m 'mod1 mod2'         Modules to include"
 	echo "  -f                     Restart from scratch (remove the current build)"
 	echo "  -x                     display expanded values (execute 'set -x')"
+	echo
+	echo "Advanced:"
+	echo "  -L                     Copy libraries instead of using biglink"
+	echo "                         (may not work before Android 4.3)"
 	echo
 	echo "For developers:"
 	echo "  -u 'mod1 mod2'         Modules to update (if already compiled)"
@@ -353,8 +352,13 @@ function run_prepare() {
 		fi
 	done
 
-	if [ "$JELLYBEAN" == "1" ]; then
-		info "Distribution for Jelly Bean (4.3) or higher; biglink will be skipped"
+	if [ "$COPYLIBS" == "1" ]; then
+		info "Library files will be copied to the distribution (no biglink)"
+		error "NOTICE: This option is still beta!"
+		error "\tIf you encounter an error 'Failed to locate needed libraries!' and"
+		error "\tthe libraries listed are not supposed to be provided by your app or"
+		error "\tits dependencies, please submit a bug report at"
+		error "\thttps://github.com/kivy/python-for-android/issues"
 	fi
 
 	info "Distribution will be located at $DIST_PATH"
@@ -773,8 +777,10 @@ function run_distribute() {
 	try cp -a python-install/lib private/
 	try mkdir -p private/include/python2.7
 	
-	if [ "$JELLYBEAN" == "1" ]; then
-		try sh -c "cat libs/$ARCH/copylibs | xargs -d'\n' cp -t private/"
+	if [ "$COPYLIBS" == "1" ]; then
+		if [ -s "libs/$ARCH/copylibs" ]; then
+			try sh -c "cat libs/$ARCH/copylibs | xargs -d'\n' cp -t private/"
+		fi
 	else
 		try mv libs/$ARCH/libpymodules.so private/
 	fi
@@ -804,7 +810,7 @@ function run_distribute() {
 
 function run_biglink() {
 	push_arm
-	if [ "$JELLYBEAN" == "0" ]; then
+	if [ "$COPYLIBS" == "0" ]; then
 		try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
 	else
 		try $BIGLINK $LIBS_PATH/copylibs $LIBLINK_PATH
@@ -850,13 +856,13 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hjvlfxm:u:d:s" opt; do
+while getopts ":hCvlfxm:u:d:s" opt; do
 	case $opt in
 		h)
 			usage
 			;;
-		j)
-			JELLYBEAN=1
+		C)
+			COPYLIBS=1
 			LIBLINK=${LIBLINK}-jb
 			BIGLINK=${BIGLINK}-jb
 			;;
