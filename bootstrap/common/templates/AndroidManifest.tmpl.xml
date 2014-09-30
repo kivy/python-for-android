@@ -82,8 +82,17 @@
     {% endif %}
 
     {% if service or args.launcher %}
-    <service android:name="org.renpy.android.PythonService"
+    <service android:name="{{ args.bootstrap.service_entrypoint }}"
              android:process=":PythonService"/>
+    {% endif %}
+
+    {% if args.bootstrap.broadcastreceiver_entrypoint %}
+    <receiver android:name="{{ args.bootstrap.broadcastreceiver_entrypoint }}" android:enabled="true" >
+        <intent-filter>
+          <action android:name ="{{ args.bootstrap.broadcastreceiver_action }}"/>
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </receiver>
     {% endif %}
 
 	{% if args.billing_pubkey %}
