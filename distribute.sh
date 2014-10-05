@@ -192,8 +192,11 @@ function push_arm() {
         export TOOLCHAIN_PREFIX=arm-linux-androideabi
         export TOOLCHAIN_VERSION=4.4.3
     elif  [ "X${ANDROIDNDKVER:0:2}" == "Xr9" ]; then
-            export TOOLCHAIN_PREFIX=arm-linux-androideabi
-            export TOOLCHAIN_VERSION=4.8
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.8
+    elif [ "X${ANDROIDNDKVER:0:3}" == "Xr10" ]; then
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.9
     else
         echo "Error: Please report issue to enable support for newer ndk."
         exit 1
