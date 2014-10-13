@@ -27,7 +27,7 @@ function build_twisted() {
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH"
 	export LDSHARED="$LIBLINK"
 
-	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages:$BUILD_hostpython/build/lib.linux-x86_64-2.7
+	export PYTHONPATH=$SITEPACKAGES_PATH:$BUILDLIB_PATH
 
 	# fake try to be able to cythonize generated files
 	$HOSTPYTHON setup.py build_ext
