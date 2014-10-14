@@ -9,7 +9,7 @@ Prerequisites
 
     The current version is tested only on Ubuntu oneiric (11.10) and precise
     (12.04). If it doesn't work on other platforms, send us patch, not bug
-    report.
+    report. Pyhton for Android works on Linux and Mac OSX, not Windows.
 
 You need the minimal environment for building python. Note that other libraries
 might need other tools (cython is used by some recipes, and ccache to speedup the build)::
@@ -28,15 +28,19 @@ Ensure you have the latest cython version::
 
     pip install --upgrade cython
 
-You must have android SDK and NDK. Right now, it's prefered to use:
+You must have android SDK and NDK. The SDK defines the Android functions you can use. 
+The NDK is used for compilation. Right now, it's prefered to use:
 
-- SDK API 8 or 14 (15 will not work until a new NDK is released)
+- SDK API 8 or 14 (15 will only work with a newly released NDK)
 - NDK r5b or r7
 
 You can download them at::
 
     http://developer.android.com/sdk/index.html
     http://developer.android.com/sdk/ndk/index.html
+
+
+In general, Python for Android currently works with Android 2.3 to L.
 
 If it's your very first time into android SDK, don't forget to follow
 documentation for recommended components at::
