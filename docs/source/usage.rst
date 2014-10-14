@@ -17,6 +17,12 @@ You can include other modules (or "recipes") to compile using `-m`::
     ./distribute.sh -m "openssl kivy"
     ./distribute.sh -m "pil ffmpeg kivy"
 
+.. note::
+    
+    Recipes are instructions for compiling Python modules that require C extensions. 
+    The list of recipes we currently have is at: 
+    https://github.com/kivy/python-for-android/tree/master/recipes
+
 You can also specify a specific version for each package. Please note that the
 compilation might **break** if you don't use the default version. Most recipes
 have patch to fixes android issues, and might not apply if you specify a
@@ -24,11 +30,9 @@ version. We also recommend to clean build/ before changing version.::
 
     ./distribute.sh -m "openssl kivy==master"
 
-The list of available recipes is available at:
-https://github.com/kivy/python-for-android/tree/master/recipes
-
-From python-for-android 1.1, you can now specify pure-python package into the
--m. It will use virtualenv and pip to install pure-python modules into the
+Python modules that don't need C extrnsions don't need a recipe and can be included this way. 
+From python-for-android 1.1 on, you can now specify pure-python package into the
+distribution. It will use virtualenv and pip to install pure-python modules into the
 distribution. Please note that compiler are deactivated, and will break any
 module who try to compile something. If compilation is needed, write a recipe::
 
