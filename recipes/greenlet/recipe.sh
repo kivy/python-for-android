@@ -2,7 +2,7 @@
 
 VERSION_greenlet=${VERSION_greenlet:-0.4.1}
 URL_greenlet=https://pypi.python.org/packages/source/g/greenlet/greenlet-$VERSION_greenlet.zip
-https://github.com/downloads/greenlet/greenlet/greenlet-$VERSION_greenlet.tar.gz
+https://github.com/python-greenlet/greenlet/archive/$VERSION_greenlet.tar.gz
 DEPS_greenlet=(python)
 MD5_greenlet=c2deda75bdda59c38cae12a77cc53adc
 BUILD_greenlet=$BUILD_PATH/greenlet/$(get_directory $URL_greenlet)
