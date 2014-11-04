@@ -8,8 +8,18 @@ BUILD_eventlet=$BUILD_PATH/eventlet/$(get_directory $URL_eventlet)
 RECIPE_eventlet=$RECIPES_PATH/eventlet
 
 function prebuild_eventlet() {
-    # TODO: patch setup.py to use distutils instead of setuptools
-    true
+    cd $BUILD_eventlet
+
+	# check marker in our source build
+	if [ -f .patched ]; then
+		# no patch needed
+		return
+	fi
+
+    try patch -p1 < $RECIPE_eventlet/patches/fix-setuptools.patch
+
+	# everything done, touch the marker !
+	touch .patched
 }
 
 function shouldbuild_eventlet() {
