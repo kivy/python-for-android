@@ -42,6 +42,12 @@ if [ "X$VIRTUALENV_NAME" == "X" ]; then
 	VIRTUALENV_NAME="$(which virtualenv)"
 fi
 
+# Resolve Cython path
+CYTHON="$(which cython2)"
+if [ "X$CYTHON" == "X" ]; then
+        CYTHON="$(which cython)"
+fi
+
 # Paths
 ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
@@ -54,7 +60,7 @@ JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
 SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
 HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
-CYTHON="cython -t"
+CYTHON+=" -t"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"
