@@ -1,10 +1,10 @@
 #!/bin/bash
 
 VERSION_audiostream=${VERSION_audiostream:-master}
-URL_audiostream=https://github.com/kivy/audiostream/zipball/$VERSION_audiostream/audiostream.zip
+URL_audiostream=https://github.com/kivy/audiostream/archive/$VERSION_audiostream.zip
 DEPS_audiostream=(python sdl pyjnius)
 MD5_audiostream=
-BUILD_audiostream=$BUILD_PATH/audiostream/audiostream
+BUILD_audiostream=$BUILD_PATH/audiostream/$(get_directory $URL_audiostream)
 RECIPE_audiostream=$RECIPES_PATH/audiostream
 
 function prebuild_audiostream() {

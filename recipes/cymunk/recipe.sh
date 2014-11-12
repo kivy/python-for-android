@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION_cymunk=${VERSION_cymunk:-master}
-URL_cymunk=http://github.com/tito/cymunk/zipball/$VERSION_cymunk/cymunk.zip
+URL_cymunk=http://github.com/tito/cymunk/archive/$VERSION_cymunk.zip
 DEPS_cymunk=(python)
 MD5_cymunk=
 BUILD_cymunk=$BUILD_PATH/cymunk/$(get_directory $URL_cymunk)
