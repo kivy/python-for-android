@@ -552,6 +552,10 @@ function run_get_packages() {
 			try mkdir -p $BUILD_PATH/$module
 		fi
 
+		if [ ! -d "$PACKAGES_PATH/$module" ]; then
+			try mkdir -p "$PACKAGES_PATH/$module"
+		fi
+
 		if [ "X$url" == "X" ]; then
 			debug "No package for $module"
 			continue
@@ -561,7 +565,7 @@ function run_get_packages() {
 		marker_filename=".mark-$filename"
 		do_download=1
 
-		cd $PACKAGES_PATH
+		cd "$PACKAGES_PATH/$module"
 
 		# check if the file is already present
 		if [ -f $filename ]; then
@@ -631,7 +635,7 @@ function run_get_packages() {
 		fi
 
 		# decompress
-		pfilename=$PACKAGES_PATH/$filename
+		pfilename=$PACKAGES_PATH/$module/$filename
 		info "Extract $pfilename"
 		case $pfilename in
 			*.tar.gz|*.tgz )
