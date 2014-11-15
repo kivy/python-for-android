@@ -1,0 +1,16 @@
+diff --git a/src/port/crypt.c b/src/port/crypt.c
+index 85b98c5..416c509 100644
+--- a/src/port/crypt.c
++++ b/src/port/crypt.c
+@@ -87,7 +87,10 @@ static int	des_cipher(const char *in, char *out, long salt, int num_iter);
+  * define "B64" to be the declaration for a 64 bit integer.
+  * XXX this feature is currently unused, see "endian" comment below.
+  */
+-#define B64 __int64
++//to avoid crypt.c:237: error: expected specifier-qualifier-list before '__int64' when cross compiling for android
++#ifndef ANDROID
++    #define B64 __int64
++#endif
+ 
+ /*
+  * define "LARGEDATA" to get faster permutations, by using about 72 kilobytes
