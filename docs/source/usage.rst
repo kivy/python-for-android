@@ -4,13 +4,13 @@ Usage
 Step 1: compile the toolchain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to compile the toolchain with only kivy module::
+If you want to compile the toolchain with only the kivy module::
 
     ./distribute.sh -m "kivy"
 
-After a long time, you'll get a "dist/default" directory containing all the compiled
-libraries and build.py script to package your application using thoses
-libraries.
+After a long time, you'll get a "dist/default" directory containing
+all the compiled libraries and a build.py script to package your
+application using thoses libraries.
 
 You can include other modules (or "recipes") to compile using `-m`::
 
@@ -23,27 +23,31 @@ You can include other modules (or "recipes") to compile using `-m`::
     The list of recipes we currently have is at: 
     https://github.com/kivy/python-for-android/tree/master/recipes
 
-You can also specify a specific version for each package. Please note that the
-compilation might **break** if you don't use the default version. Most recipes
-have patch to fixes android issues, and might not apply if you specify a
-version. We also recommend to clean build/ before changing version.::
+You can also specify a specific version for each package. Please note
+that the compilation might **break** if you don't use the default
+version. Most recipes have patches to fix Android issues, and might
+not apply if you specify a version. We also recommend to clean build
+before changing version.::
 
     ./distribute.sh -m "openssl kivy==master"
 
-Python modules that don't need C extrnsions don't need a recipe and can be included this way. 
-From python-for-android 1.1 on, you can now specify pure-python package into the
-distribution. It will use virtualenv and pip to install pure-python modules into the
-distribution. Please note that compiler are deactivated, and will break any
-module who try to compile something. If compilation is needed, write a recipe::
+Python modules that don't need C extrnsions don't need a recipe and
+can be included this way.  From python-for-android 1.1 on, you can now
+specify pure-python package into the distribution. It will use
+virtualenv and pip to install pure-python modules into the
+distribution. Please note that the compiler is deactivated, and will
+break any module which tries to compile something. If compilation is
+needed, write a recipe::
 
     ./distribute.sh -m "requests pygments kivy"
 
 .. note::
 
    Recipes download a defined version of their needed package from the
-   internet, and build from it, if you know what you are doing, and want to
-   override that, you can export the env variable `P4A_recipe_name_DIR` and
-   this directory will be copied and used instead.
+   internet, and build from it. If you know what you are doing, and
+   want to override that, you can export the env variable
+   `P4A_recipe_name_DIR` and this directory will be copied and used
+   instead.
 
 Available options to `distribute.sh`::
 
@@ -57,7 +61,7 @@ Available options to `distribute.sh`::
 Step 2: package your application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Go fo your custom python distribution::
+Go to your custom Python distribution::
 
     cd dist/default
 
@@ -66,16 +70,16 @@ Use the build.py for creating the APK::
     ./build.py --package org.test.touchtracer --name touchtracer \
     --version 1.0 --dir ~/code/kivy/examples/demo/touchtracer debug
 
-Then, the android package (APK) will be generated at:
+Then, the Android package (APK) will be generated at:
 
     bin/touchtracer-1.0-debug.apk
 
 .. warning::
 
     Some files and modules for python are blacklisted by default to
-    save a few megabytes on the final apk file, in case your
+    save a few megabytes on the final APK file. In case your
     applications doesn't find a standard python module, check the
-    src/blacklist.txt file remove the module you need from the list,
+    src/blacklist.txt file, remove the module you need from the list,
     and try again.
 
 Available options to `build.py`::
