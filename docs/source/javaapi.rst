@@ -5,8 +5,9 @@ Using `PyJNIus <https://github.com/kivy/pyjnius>`__ to access the Android API
 restricts the usage to a simple call of the **autoclass** constructor function
 and a second call to instantiate this class.
 
-You can access through this method all Java Android API, e.g. to get the DisplayMetrics
-of an Android device could fetched using the following piece of code:
+You can access through this method the entire Java Android API, e.g.,
+the ``DisplayMetrics`` of an Android device could be fetched using the
+following piece of code:
 
 .. code-block:: python
 
@@ -15,17 +16,18 @@ of an Android device could fetched using the following piece of code:
    metrics.setToDefaults()
    self.densityDpi = metrics.densityDpi
 
-You can access all fields and methods as described in the `Java Android
-DisplayMetrics API <http://developer.android.com/reference/android/util/DisplayMetrics.html>`__
-as shown here with the method `setToDefaults()` and the field `densityDpi`.
-Before you use o view a field, you should always call `setToDefaults` to initiate
-to the default values of the device.
+You can access all fields and methods as described in the `Java
+Android DisplayMetrics API
+<http://developer.android.com/reference/android/util/DisplayMetrics.html>`__
+as shown here with the method `setToDefaults()` and the field
+`densityDpi`.  Before you use a view field, you should always call
+`setToDefaults` to initiate to the default values of the device.
 
-Currently only JavaMethod, JavaStaticMethod, JavaField, JavaStaticField
-and JavaMultipleMethod are built into PyJNIus, therefore such constructs like
-registerListener or something like this have to be coded still in Java.
-For this the Android module described below is available to access some of
-the hardware in Android devices.
+Currently only JavaMethod, JavaStaticMethod, JavaField,
+JavaStaticField and JavaMultipleMethod are built into PyJNIus,
+therefore such constructs like registerListener or something like this
+must still be coded in Java. For this the Android module described
+below is available to access some of the hardware on Android devices.
 
 .. module:: org.renpy.android
 

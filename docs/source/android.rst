@@ -1,11 +1,13 @@
 Python API
 ==========
 
-The Python for android project includes a Python module called "android". It
-consists of multiple parts which are mostly there to facilitate the use of the Java API.
+The Python for Android project includes a Python module called
+``android`` which consists of multiple parts that are mostly there to
+facilitate the use of the Java API.
 
-This module is not designed to be comprehensive. Most of the Java API is also accessible with PyJNIus,
-so if you can't find what you need here you can try using the Java API directly instead.
+This module is not designed to be comprehensive. Most of the Java API
+is also accessible with PyJNIus, so if you can't find what you need
+here you can try using the Java API directly instead.
 
 
 Android (``android``)
@@ -88,7 +90,7 @@ This billing module gives an access to the `In-App Billing <http://developer.and
 
 #. `Setup some In-App product <http://developer.android.com/guide/google/play/billing/billing_admin.html>`_ to buy. Let's say you've created a product with the id "org.kivy.gopremium"
 
-#. In your application, you can use the billing module like this::
+#. In your application, you can use the ``billing`` module like this::
 
 
     from android.billing import BillingService
@@ -123,7 +125,7 @@ This billing module gives an access to the `In-App Billing <http://developer.and
             # Return all the items purchased
             return self.service.get_purchased_items()
 
-#. To initiate an in-app purchase, just call the buy() method::
+#. To initiate an in-app purchase, just call the ``buy()`` method::
 
     # Note: start the service at the start, and never twice!
     bs = MyBillingService()
@@ -136,7 +138,7 @@ This billing module gives an access to the `In-App Billing <http://developer.and
 
 #. You'll receive all the notifications about the billing process in the callback.
 
-#. Last step, create your application with `--with-billing $BILLING_PUBKEY`::
+#. Last step, create your application with ``--with-billing $BILLING_PUBKEY``::
 
     ./build.py ... --with-billing $BILLING_PUBKEY
 

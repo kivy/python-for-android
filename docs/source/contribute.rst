@@ -5,16 +5,16 @@ Extending Python for android native support
 -------------------------------------------
 
 So, you want to get into python-for-android and extend what's available
-to python on android ?
+to Python on Android ?
 
 Turns out it's not very complicated, here is a little introduction on how to go
-about it. Without Pyjnius, the schema to access to Java API from Cython is::
+about it. Without Pyjnius, the schema to access the Java API from Cython is::
 
     [1] Cython -> [2] C JNI -> [3] Java
 
-Think about acceleration sensors : you want to get the acceleration values in
-python nothing is available natively, but you have a java API for that : the
-google API is available here
+Think about acceleration sensors: you want to get the acceleration
+values in Python, but nothing is available natively. Lukcily you have
+a Java API for that : the Google API is available here
 http://developer.android.com/reference/android/hardware/Sensor.html
 
 You can't use it directly, you need to do your own API to use it in python,
@@ -82,14 +82,14 @@ Jni gottchas
 Create your own recipes
 -----------------------
 
-A recipe is a script that contain the "definition" of a module to compile.
+A recipe is a script that contains the "definition" of a module to compile.
 The directory layout of a recipe for a <modulename> is something like::
 
     python-for-android/recipes/<modulename>/recipe.sh
     python-for-android/recipes/<modulename>/patches/
     python-for-android/recipes/<modulename>/patches/fix-path.patch
 
-When building, all the recipe build must go to::
+When building, all the recipe builds must go to::
 
     python-for-android/build/<modulename>/<archiveroot>
 
@@ -101,5 +101,5 @@ For example, if you want to create a recipe for sdl, do::
     sed -i 's#XXX#sdl#' sdl/recipe.sh
 
 Then, edit the sdl/recipe.sh to adjust other information (version, url) and
-complete build function.
+complete the build function.
 
