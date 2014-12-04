@@ -13,6 +13,8 @@ import shutil
 import subprocess
 import time
 import jinja2
+import imp
+from xml.etree import ElementTree
 
 # The extension of the android and ant commands.
 if os.name == 'nt':
@@ -67,6 +69,9 @@ def render(template, dest, **kwargs):
 
     template = environment.get_template(template)
     text = template.render(**kwargs)
+
+    if dest is None:
+        return text.encode('utf-8')
 
     f = file(dest, 'wb')
     f.write(text.encode('utf-8'))
@@ -203,6 +208,30 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
         tf.add(fn, afn)
     tf.close()
 
+def process_manifest_hooks(manifest, hooks):
+    XMLNS = 'http://schemas.android.com/apk/res/android'
+    ElementTree.register_namespace('android', XMLNS)
+    root = ElementTree.fromstring(manifest)
+
+    for hook in hooks:
+        try:
+            mod = imp.load_source('__p4a_manifest_hook_mod', hook)
+        except IOError:
+            print('Invalid --manifest-hook file {}'.format(hook))
+            continue
+        except SyntaxError:
+            print('Syntax error in --manifest-hook {}'.format(hook))
+            continue
+
+        if not hasattr(mod, 'androidmanifest_hook'):
+            print('Missing androidmanifset_hook() in {}'.format(hook))
+            continue
+
+        mod.androidmanifest_hook(root, '{' + XMLNS + '}')
+
+    # All hooks processed; write to disk
+    tree = ElementTree.ElementTree(root)
+    tree.write('AndroidManifest.xml', encoding='utf-8', xml_declaration=True)
 
 def make_package(args):
     version_code = 0
@@ -267,15 +296,29 @@ def make_package(args):
             sys.exit(-1)
 
     # Render the various templates into control files.
-    render(
-        'AndroidManifest.tmpl.xml',
-        'AndroidManifest.xml',
-        args=args,
-        service=service,
-        url_scheme=url_scheme,
-        intent_filters=intent_filters,
-        manifest_extra=manifest_extra,
-        )
+    if args.xml_hooks:
+        # Render to a string, run hooks then write to disk
+        manifest = render(
+            'AndroidManifest.tmpl.xml',
+            None,
+            args=args,
+            service=service,
+            url_scheme=url_scheme,
+            intent_filters=intent_filters,
+            manifest_extra=manifest_extra,
+            )
+        process_manifest_hooks(manifest, args.xml_hooks)
+    else:
+        # No hooks, render straight to disk
+        render(
+            'AndroidManifest.tmpl.xml',
+            'AndroidManifest.xml',
+            args=args,
+            service=service,
+            url_scheme=url_scheme,
+            intent_filters=intent_filters,
+            manifest_extra=manifest_extra,
+            )
 
     render(
         'Configuration.tmpl.java',
@@ -459,6 +502,10 @@ tools directory of the Android SDK.
     ap.add_argument('--resource', dest='resource', action='append',
                     help='Custom key=value to add in strings.xml resource file')
 
+    ap.add_argument('--manifest-hook', dest='xml_hooks', action='append',
+                    help='Postprocess AndroidManifest.xml using provided '
+                         'python file (see examples in documentation)')
+
     args = ap.parse_args()
 
     if not args.dir and not args.private and not args.launcher:
@@ -493,5 +540,8 @@ tools directory of the Android SDK.
             patterns = [x.strip() for x in fd.read().splitlines() if x.strip()
                         and not x.startswith('#')]
         WHITELIST_PATTERNS += patterns
+
+    if args.xml_hooks is None:
+        args.xml_hooks = []
 
     make_package(args)
