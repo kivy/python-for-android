@@ -117,7 +117,7 @@ class CustomBuiltinImporter(object):
 sys.meta_path.append(CustomBuiltinImporter())
 
 #
-# Step 4: fix some modules
+# Step 5: fix some modules
 #
 
 # tempfile: https://github.com/kivy/python-for-android/issues/289
@@ -130,7 +130,7 @@ os.environ['TMPDIR'] = tempdir_name
 sys.platform = 'linux2'
 
 #
-# Step 4: bootstrap the application !
+# Step 6: bootstrap the application !
 #
 
 main_module = sys.argv[1]
