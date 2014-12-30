@@ -66,8 +66,8 @@ CYTHON+=" -t"
 export LIBLINK_PATH="$BUILD_PATH/objects"
 export LIBLINK="$ROOT_PATH/src/tools/liblink"
 export BIGLINK="$ROOT_PATH/src/tools/biglink"
-export PIP=$PIP_NAME
-export VIRTUALENV=$VIRTUALENV_NAME
+export PIP=${PIP_NAME:-pip}
+export VIRTUALENV=${VIRTUALENV_NAME:-virtualenv}
 
 export COPYLIBS=0
 
@@ -737,7 +737,7 @@ function run_pymodules_install() {
 	debug "We want to install: $PYMODULES"
 
 	debug "Check if $VIRTUALENV and $PIP are present"
-	for tool in $VIRTUALENV $PIP; do
+	for tool in "$VIRTUALENV" "$PIP"; do
 		which $tool &>/dev/null
 		if [ $? -ne 0 ]; then
 			error "Tool $tool is missing"
