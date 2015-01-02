@@ -26,7 +26,6 @@ function build_audiostream() {
 	export JNI_PATH=$JNI_PATH
 	export CFLAGS="$CFLAGS -I$JNI_PATH/sdl/include -I$JNI_PATH/sdl_mixer/"
 	export LDFLAGS="$LDFLAGS -lm -L$LIBS_PATH"
-	export AUDIOSTREAM_ROOT="$BUILD_audiostream/build/audiostream/armeabi-v7a"
 	try cd $BUILD_audiostream
 	$HOSTPYTHON setup.py build_ext &>/dev/null
 	try find . -iname '*.pyx' -exec $CYTHON {} \;
