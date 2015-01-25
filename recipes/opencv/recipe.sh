@@ -31,23 +31,21 @@ function shouldbuild_opencv() {
 
 function build_opencv() {
 
-        try mkdir -p $_cvbuild
-        cd $_cvbuild
+	try mkdir -p $_cvbuild
+	cd $_cvbuild
 
 	push_arm
 
-        #try set > opencv_p4y_env.log # export env vars for debugging
-
-        export ANDROID_NDK=$ANDROIDNDK
-        try cmake -DP4A=ON -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_TOOLCHAIN_FILE=$_cvsrc/platforms/android/android.toolchain.cmake \
-          -DPYTHON_INCLUDE_PATH=$_pyroot/include/python2.7 -DPYTHON_LIBRARY=$_pyroot/lib/libpython2.7.so \
-          -DPYTHON_NUMPY_INCLUDE_DIR=$SITEPACKAGES_PATH/numpy/core/include \
-          -DANDROID_EXECUTABLE=$ANDROIDSDK/tools/android \
-          -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_ANDROID_EXAMPLES=OFF \
-          -DPYTHON_PACKAGES_PATH=$SITEPACKAGES_PATH \
-          $_cvsrc
-        try make -j8 opencv_python
-        try cmake -DCOMPONENT=python -P ./cmake_install.cmake
+	export ANDROID_NDK=$ANDROIDNDK
+	try cmake -DP4A=ON -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_TOOLCHAIN_FILE=$_cvsrc/platforms/android/android.toolchain.cmake \
+	  -DPYTHON_INCLUDE_PATH=$_pyroot/include/python2.7 -DPYTHON_LIBRARY=$_pyroot/lib/libpython2.7.so \
+	  -DPYTHON_NUMPY_INCLUDE_DIR=$SITEPACKAGES_PATH/numpy/core/include \
+	  -DANDROID_EXECUTABLE=$ANDROIDSDK/tools/android \
+	  -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_ANDROID_EXAMPLES=OFF \
+	  -DPYTHON_PACKAGES_PATH=$SITEPACKAGES_PATH \
+	  $_cvsrc
+	try make -j8 opencv_python
+	try cmake -DCOMPONENT=python -P ./cmake_install.cmake
 
 	pop_arm
 }
