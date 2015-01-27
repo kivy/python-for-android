@@ -37,7 +37,7 @@ function build_opencv() {
 	push_arm
 
 	export ANDROID_NDK=$ANDROIDNDK
-	try cmake -DP4A=ON -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON -DCMAKE_TOOLCHAIN_FILE=$_cvsrc/platforms/android/android.toolchain.cmake \
+	try cmake -DP4A=ON -DANDROID_ABI=$ARCH -DCMAKE_TOOLCHAIN_FILE=$_cvsrc/platforms/android/android.toolchain.cmake \
 	  -DPYTHON_INCLUDE_PATH=$_pyroot/include/python2.7 -DPYTHON_LIBRARY=$_pyroot/lib/libpython2.7.so \
 	  -DPYTHON_NUMPY_INCLUDE_DIR=$SITEPACKAGES_PATH/numpy/core/include \
 	  -DANDROID_EXECUTABLE=$ANDROIDSDK/tools/android \
