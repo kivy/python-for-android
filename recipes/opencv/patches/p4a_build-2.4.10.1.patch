@@ -42,3 +42,24 @@ index 3c0f2fd..7ba234a 100644
    ocv_module_disable(python)
  endif()
  
+diff --git a/modules/androidcamera/src/camera_activity.cpp b/modules/androidcamera/src/camera_activity.cpp
+index 84db3e1..4222526 100644
+--- a/modules/androidcamera/src/camera_activity.cpp
++++ b/modules/androidcamera/src/camera_activity.cpp
+@@ -7,6 +7,7 @@
+ #include <string>
+ #include <vector>
+ #include <algorithm>
++#include <stdlib.h>
+ #include <opencv2/core/version.hpp>
+ #include "camera_activity.hpp"
+ #include "camera_wrapper.h"
+@@ -342,6 +343,8 @@ std::string CameraWrapperConnector::getPathLibFolder()
+ 
+                 char* pathEnd = strrchr(pathBegin, '/');
+                 pathEnd[1] = 0;
++                pathBegin = realpath((std::string(pathBegin)+"../../../../lib").c_str(), lineBuf);
++                pathBegin = strcat(pathBegin, "/");
+ 
+                 LOGD("Libraries folder found: %s", pathBegin);
+ 

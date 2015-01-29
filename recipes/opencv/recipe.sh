@@ -35,6 +35,7 @@ function build_opencv() {
 	cd $_cvbuild
 
 	push_arm
+	#try set > opencv_p4y_env.log # check env vars for debugging
 
 	export ANDROID_NDK=$ANDROIDNDK
 	try cmake -DP4A=ON -DANDROID_ABI=$ARCH -DCMAKE_TOOLCHAIN_FILE=$_cvsrc/platforms/android/android.toolchain.cmake \
@@ -46,6 +47,7 @@ function build_opencv() {
 	  $_cvsrc
 	try make -j8 opencv_python
 	try cmake -DCOMPONENT=python -P ./cmake_install.cmake
+	try cp -a $_cvbuild/lib/$ARCH/lib*.so $LIBS_PATH
 
 	pop_arm
 }
