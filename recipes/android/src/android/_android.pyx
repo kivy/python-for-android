@@ -181,13 +181,16 @@ version_codes = autoclass('android.os.Build$VERSION_CODES')
 python_act = autoclass('org.renpy.android.PythonActivity')
 rctx = autoclass('android.graphics.Rect')()
 mActivity = python_act.mActivity
-decor_view = mActivity.getWindow().getDecorView()
-height = mActivity.getWindowManager().getDefaultDisplay().getHeight()
-# get keyboard height
-def get_keyboard_height():
-    decor_view.getWindowVisibleDisplayFrame(rctx)
-    return height - rctx.bottom
-
+if mActivity:
+    decor_view = mActivity.getWindow().getDecorView()
+    height = mActivity.getWindowManager().getDefaultDisplay().getHeight()
+    # get keyboard height
+    def get_keyboard_height():
+        decor_view.getWindowVisibleDisplayFrame(rctx)
+        return height - rctx.bottom
+else:
+    def get_keyboard_height():
+        return 0
 
 # Flags for input_type, for requesting a particular type of keyboard
 #android FLAGS
