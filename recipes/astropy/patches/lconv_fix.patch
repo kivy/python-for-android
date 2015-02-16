@@ -1,0 +1,40 @@
+--- astropy-0.4.4.orig/cextern/wcslib/C/wcsutil.c	2015-02-15 18:07:46.549935299 -0600
++++ astropy-0.4.4/cextern/wcslib/C/wcsutil.c	2015-02-15 18:36:07.062452345 -0600
+@@ -247,7 +247,7 @@
+ 
+ {
+   struct lconv *locale_data = localeconv();
+-  const char *decimal_point = locale_data->decimal_point;
++  const char *decimal_point = ".";
+ 
+   if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+     size_t decimal_point_len = strlen(decimal_point);
+@@ -311,7 +311,7 @@
+ 
+ {
+   struct lconv *locale_data = localeconv();
+-  const char *decimal_point = locale_data->decimal_point;
++  const char *decimal_point = ".";
+ 
+   if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+     char *out = outbuf;
+--- astropy-0.4.4.orig/cextern/cfitsio/fitscore.c	2015-02-15 18:07:46.553935299 -0600
++++ astropy-0.4.4/cextern/cfitsio/fitscore.c	2015-02-15 18:41:16.626440539 -0600
+@@ -9226,7 +9226,7 @@
+ 
+     if (!decimalpt) { /* only do this once for efficiency */
+        lcc = localeconv();   /* set structure containing local decimal point symbol */
+-       decimalpt = *(lcc->decimal_point);
++       decimalpt = '.';
+     }
+ 
+     errno = 0;
+@@ -9296,7 +9296,7 @@
+ 
+     if (!decimalpt) { /* only do this once for efficiency */
+        lcc = localeconv();   /* set structure containing local decimal point symbol */
+-       decimalpt = *(lcc->decimal_point);
++       decimalpt = '.';
+     }
+    
+     errno = 0;
