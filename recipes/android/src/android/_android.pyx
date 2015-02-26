@@ -227,13 +227,13 @@ def show_keyboard(target, input_type):
     elif input_type == 'address':
         _input_type = TYPE_TEXT_VARIATION_POSTAL_ADDRESS
 
-    if target.password:
+    if hasattr(target, 'password') and target.password:
         if _input_type == TYPE_CLASS_TEXT:
             _input_type |= TYPE_TEXT_VARIATION_PASSWORD
         elif _input_type == TYPE_CLASS_NUMBER:
             _input_type |= TYPE_NUMBER_VARIATION_PASSWORD
 
-    if not target.keyboard_suggestions:
+    if hasattr(target, 'keyboard_suggestions') and not target.keyboard_suggestions:
         if _input_type == TYPE_CLASS_TEXT:
             _input_type = TYPE_CLASS_TEXT | \
                 TYPE_TEXT_FLAG_NO_SUGGESTIONS
