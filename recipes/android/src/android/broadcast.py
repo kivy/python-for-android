@@ -39,7 +39,6 @@ class BroadcastReceiver(object):
         resolved_categories = [_expand_partial_name(x) for x in categories or []]
 
         # resolve android API
-        PythonActivity = autoclass('org.renpy.android.PythonActivity')
         GenericBroadcastReceiver = autoclass('org.renpy.android.GenericBroadcastReceiver')
         IntentFilter = autoclass('android.content.IntentFilter')
         HandlerThread = autoclass('android.os.HandlerThread')
@@ -48,7 +47,6 @@ class BroadcastReceiver(object):
         self.handlerthread = HandlerThread('handlerthread')
 
         # create a listener
-        self.context = PythonActivity.mActivity
         self.listener = BroadcastReceiver.Callback(self.callback)
         self.receiver = GenericBroadcastReceiver(self.listener)
         self.receiver_filter = IntentFilter()
@@ -68,4 +66,12 @@ class BroadcastReceiver(object):
         self.context.unregisterReceiver(self.receiver)
         self.handlerthread.quit()
 
+    @property
+    def context(self):
+        from os import environ
+        if 'PYTHON_SERVICE_ARGUMENT' in environ:
+            PythonService = autoclass('org.renpy.android.PythonService')
+            return PythonService.mService
+        PythonActivity = autoclass('org.renpy.android.PythonActivity')
+        return PythonActivity.mActivity
 

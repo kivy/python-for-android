@@ -3,10 +3,10 @@
 # Only h264+aac build are working.
 
 VERSION_ffmpeg=${VERSION_ffmpeg:-master}
-URL_ffmpeg=https://github.com/tito/ffmpeg-android/zipball/$VERSION_ffmpeg/ffmpeg-android.zip
+URL_ffmpeg=https://github.com/tito/ffmpeg-android/archive/$VERSION_ffmpeg.zip
 DEPS_ffmpeg=(python sdl)
 MD5_ffmpeg=
-BUILD_ffmpeg=$BUILD_PATH/ffmpeg/ffmpeg-android
+BUILD_ffmpeg=$BUILD_PATH/ffmpeg/$(get_directory $URL_ffmpeg)
 RECIPE_ffmpeg=$RECIPES_PATH/ffmpeg
 
 function prebuild_ffmpeg() {
@@ -39,7 +39,7 @@ function build_ffmpeg() {
 	export LDFLAGS="$LDFLAGS -lm -L$LIBS_PATH"
 	export FFMPEG_ROOT="$BUILD_ffmpeg/build/ffmpeg/armeabi-v7a"
 	try cd $BUILD_ffmpeg/python
-	try find . -iname '*.pyx' -exec cython {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $HOSTPYTHON setup.py build_ext -v
 	try $HOSTPYTHON setup.py install -O2
 

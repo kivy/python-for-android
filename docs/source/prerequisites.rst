@@ -1,18 +1,21 @@
 Prerequisites
 -------------
 
-.. note::
-    There is a VirtualBox Image we provide with the prerequisites along with
-    Android SDK and NDK preinstalled to ease your installation woes. You can download it from `here <http://kivy.org/#download>`__.
+.. note:: There is a VirtualBox Image we provide with the
+    prerequisites along with the Android SDK and NDK preinstalled to
+    ease your installation woes. You can download it from `here
+    <http://kivy.org/#download>`__.
 
 .. warning::
 
-    The current version is tested only on Ubuntu oneiric (11.10) and precise
-    (12.04). If it doesn't work on other platforms, send us patch, not bug
-    report.
+    The current version is tested only on Ubuntu oneiric (11.10) and
+    precise (12.04). If it doesn't work on other platforms, send us a
+    patch, not a bug report. Python for Android works on Linux and Mac
+    OS X, not Windows.
 
-You need the minimal environment for building python. Note that other libraries
-might need other tools (cython is used by some recipes, and ccache to speedup the build)::
+You need the minimal environment for building python. Note that other
+libraries might need other tools (cython is used by some recipes, and
+ccache to speedup the build)::
 
     sudo apt-get install build-essential patch git-core ccache ant python-pip python-dev
 
@@ -24,13 +27,15 @@ On debian Squeeze amd64, those packages were found to be necessary ::
 
     sudo apt-get install lib32stdc++6 lib32z1
 
-Ensure you have the latest cython version::
+Ensure you have the latest Cython version::
 
     pip install --upgrade cython
 
-You must have android SDK and NDK. Right now, it's prefered to use:
+You must have android SDK and NDK. The SDK defines the Android
+functions you can use.  The NDK is used for compilation. Right now,
+it's preferred to use:
 
-- SDK API 8 or 14 (15 will not work until a new NDK is released)
+- SDK API 8 or 14 (15 will only work with a newly released NDK)
 - NDK r5b or r7
 
 You can download them at::
@@ -38,8 +43,11 @@ You can download them at::
     http://developer.android.com/sdk/index.html
     http://developer.android.com/sdk/ndk/index.html
 
-If it's your very first time into android SDK, don't forget to follow
-documentation for recommended components at::
+
+In general, Python for Android currently works with Android 2.3 to L.
+
+If it's your very first time using the Android SDK, don't forget to
+follow the documentation for recommended components at::
 
     http://developer.android.com/sdk/installing/adding-packages.html
 
@@ -51,7 +59,8 @@ documentation for recommended components at::
         well, so that you can test your application on the full range of
         Android platform versions that your application supports.
 
-After installing them, export both installation path, NDK version and API to use::
+After installing them, export both installation paths, NDK version,
+and API to use::
 
     export ANDROIDSDK=/path/to/android-sdk
     export ANDROIDNDK=/path/to/android-ndk
@@ -64,7 +73,7 @@ After installing them, export both installation path, NDK version and API to use
     export ANDROIDNDKVER=r7
     export ANDROIDAPI=14
 
-Also, you must configure you're PATH to add the ``android`` binary::
+Also, you must configure your PATH to add the ``android`` binary::
 
     export PATH=$ANDROIDNDK:$ANDROIDSDK/platform-tools:$ANDROIDSDK/tools:$PATH
 

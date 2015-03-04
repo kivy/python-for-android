@@ -10,9 +10,11 @@ Android. Go to :doc:`prerequisites.rst` to see which one are working.
 _sqlite3.so not found
 ---------------------
 
-We recently fixed sqlite3 compilation. In case of, you must:
+We recently fixed sqlite3 compilation. In case of this error, you
+must:
 
-* Install development headers for sqlite3 if it's not already installed. On Ubuntu:
+* Install development headers for sqlite3 if they are not already
+  installed. On Ubuntu:
 
     apt-get install libsqlite3-dev
 
@@ -26,4 +28,4 @@ We recently fixed sqlite3 compilation. In case of, you must:
     sqlite3/*
     lib-dynload/_sqlite3.so
 
-And then, sqlite3 will be compiled, and included in your APK.
+Then sqlite3 will be compiled and included in your APK.

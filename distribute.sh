@@ -42,6 +42,12 @@ if [ "X$VIRTUALENV_NAME" == "X" ]; then
 	VIRTUALENV_NAME="$(which virtualenv)"
 fi
 
+# Resolve Cython path
+CYTHON="$(which cython2)"
+if [ "X$CYTHON" == "X" ]; then
+        CYTHON="$(which cython)"
+fi
+
 # Paths
 ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
@@ -54,13 +60,16 @@ JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
 SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
 HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
+CYTHON+=" -t"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"
 export LIBLINK="$ROOT_PATH/src/tools/liblink"
 export BIGLINK="$ROOT_PATH/src/tools/biglink"
-export PIP=$PIP_NAME
-export VIRTUALENV=$VIRTUALENV_NAME
+export PIP=${PIP_NAME:-pip}
+export VIRTUALENV=${VIRTUALENV_NAME:-virtualenv}
+
+export COPYLIBS=0
 
 MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
@@ -146,7 +155,7 @@ function get_directory() {
 }
 
 function push_arm() {
-	info "Entering in ARM enviromnent"
+	info "Entering in ARM environment"
 
 	# save for pop
 	export OLD_PATH=$PATH
@@ -189,8 +198,11 @@ function push_arm() {
         export TOOLCHAIN_PREFIX=arm-linux-androideabi
         export TOOLCHAIN_VERSION=4.4.3
     elif  [ "X${ANDROIDNDKVER:0:2}" == "Xr9" ]; then
-            export TOOLCHAIN_PREFIX=arm-linux-androideabi
-            export TOOLCHAIN_VERSION=4.8
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.8
+    elif [ "X${ANDROIDNDKVER:0:3}" == "Xr10" ]; then
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.9
     else
         echo "Error: Please report issue to enable support for newer ndk."
         exit 1
@@ -216,6 +228,10 @@ function push_arm() {
 	export LD="$TOOLCHAIN_PREFIX-ld"
 	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
 	export MAKE="make -j5"
+	export READELF="$TOOLCHAIN_PREFIX-readelf"
+
+	# This will need to be updated to support Python versions other than 2.7
+	export BUILDLIB_PATH="$BUILD_hostpython/build/lib.linux-`uname -m`-2.7/"
 
 	# Use ccache ?
 	which ccache &>/dev/null
@@ -252,6 +268,10 @@ function usage() {
 	echo "  -f                     Restart from scratch (remove the current build)"
 	echo "  -x                     display expanded values (execute 'set -x')"
 	echo
+	echo "Advanced:"
+	echo "  -C                     Copy libraries instead of using biglink"
+	echo "                         (may not work before Android 4.3)"
+	echo
 	echo "For developers:"
 	echo "  -u 'mod1 mod2'         Modules to update (if already compiled)"
 	echo
@@ -279,7 +299,7 @@ function check_build_deps() {
     DIST=$(lsb_release -is)
 	info "Check build dependencies for $DIST"
     case $DIST in
-		Debian|Ubuntu)
+		Debian|Ubuntu|LinuxMint)
 			check_pkg_deb_installed "build-essential zlib1g-dev cython"
 			;;
 		*)
@@ -343,6 +363,15 @@ function run_prepare() {
 			exit -1
 		fi
 	done
+
+	if [ "$COPYLIBS" == "1" ]; then
+		info "Library files will be copied to the distribution (no biglink)"
+		error "NOTICE: This option is still beta!"
+		error "\tIf you encounter an error 'Failed to locate needed libraries!' and"
+		error "\tthe libraries listed are not supposed to be provided by your app or"
+		error "\tits dependencies, please submit a bug report at"
+		error "\thttps://github.com/kivy/python-for-android/issues"
+	fi
 
 	info "Distribution will be located at $DIST_PATH"
 	if [ -e "$DIST_PATH" ]; then
@@ -526,6 +555,10 @@ function run_get_packages() {
 			try mkdir -p $BUILD_PATH/$module
 		fi
 
+		if [ ! -d "$PACKAGES_PATH/$module" ]; then
+			try mkdir -p "$PACKAGES_PATH/$module"
+		fi
+
 		if [ "X$url" == "X" ]; then
 			debug "No package for $module"
 			continue
@@ -535,7 +568,7 @@ function run_get_packages() {
 		marker_filename=".mark-$filename"
 		do_download=1
 
-		cd $PACKAGES_PATH
+		cd "$PACKAGES_PATH/$module"
 
 		# check if the file is already present
 		if [ -f $filename ]; then
@@ -605,7 +638,7 @@ function run_get_packages() {
 		fi
 
 		# decompress
-		pfilename=$PACKAGES_PATH/$filename
+		pfilename=$PACKAGES_PATH/$module/$filename
 		info "Extract $pfilename"
 		case $pfilename in
 			*.tar.gz|*.tgz )
@@ -704,7 +737,7 @@ function run_pymodules_install() {
 	debug "We want to install: $PYMODULES"
 
 	debug "Check if $VIRTUALENV and $PIP are present"
-	for tool in $VIRTUALENV $PIP; do
+	for tool in "$VIRTUALENV" "$PIP"; do
 		which $tool &>/dev/null
 		if [ $? -ne 0 ]; then
 			error "Tool $tool is missing"
@@ -719,10 +752,13 @@ function run_pymodules_install() {
 	fi
 
 	debug "Create a requirement file for pure-python modules"
-	try echo "$PYMODULES" | try sed 's/\ /\n/g' > requirements.txt
+	try echo "" > requirements.txt
+	for mod in $PYMODULES; do
+		echo $mod >> requirements.txt
+	done
 
 	debug "Install pure-python modules via pip in venv"
-	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false $PIP install --target '$SITEPACKAGES_PATH' --download-cache '$PACKAGES_PATH' -r requirements.txt"
+	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false pip install --target '$SITEPACKAGES_PATH' --download-cache '$PACKAGES_PATH' -r requirements.txt"
 
 }
 
@@ -759,7 +795,14 @@ function run_distribute() {
 	debug "Fill private directory"
 	try cp -a python-install/lib private/
 	try mkdir -p private/include/python2.7
-	try mv libs/$ARCH/libpymodules.so private/
+	
+	if [ "$COPYLIBS" == "1" ]; then
+		if [ -s "libs/$ARCH/copylibs" ]; then
+			try sh -c "cat libs/$ARCH/copylibs | xargs -d'\n' cp -t private/"
+		fi
+	else
+		try mv libs/$ARCH/libpymodules.so private/
+	fi
 	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
 
 	debug "Reduce private directory from unwanted files"
@@ -786,7 +829,11 @@ function run_distribute() {
 
 function run_biglink() {
 	push_arm
-	try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
+	if [ "$COPYLIBS" == "0" ]; then
+		try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
+	else
+		try $BIGLINK $LIBS_PATH/copylibs $LIBLINK_PATH
+	fi
 	pop_arm
 }
 
@@ -828,10 +875,15 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfxm:u:d:s" opt; do
+while getopts ":hCvlfxm:u:d:s" opt; do
 	case $opt in
 		h)
 			usage
+			;;
+		C)
+			COPYLIBS=1
+			LIBLINK=${LIBLINK}-jb
+			BIGLINK=${BIGLINK}-jb
 			;;
 		l)
 			list_modules

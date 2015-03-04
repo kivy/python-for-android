@@ -113,6 +113,7 @@ function build_python() {
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
 		try cp $RECIPE_python/patches/_scproxy.py $BUILD_python/Lib/
+		try cp $RECIPE_python/patches/_scproxy.py $BUILD_PATH/python-install/lib/python2.7/
 	fi
 	try cp $BUILD_hostpython/hostpython $HOSTPYTHON
 	try cp libpython2.7.so $LIBS_PATH/

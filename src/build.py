@@ -187,7 +187,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
                   if select(x)]
 
     # create tar.gz of thoses files
-    tf = tarfile.open(tfn, 'w:gz')
+    tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
         print('%s: %s' % (tfn, fn))
@@ -261,10 +261,10 @@ def make_package(args):
 
     # Figure out if application has service part
     service = False
-    directory = args.private or args.dir
+    directory = args.dir if public_version else args.private
     if directory:
         service_main = join(realpath(directory), 'service', 'main.py')
-        if os.path.exists(service_main):
+        if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
             service = True
 
     # Check if OUYA support is enabled
@@ -275,9 +275,6 @@ def make_package(args):
                   'GAME or APP')
             sys.exit(-1)
 
-    # Get target android API
-    android_api = int(os.environ.get('ANDROIDAPI', '8'))
-
     # Render the various templates into control files.
     render(
         'AndroidManifest.tmpl.xml',
@@ -287,7 +284,7 @@ def make_package(args):
         url_scheme=url_scheme,
         intent_filters=intent_filters,
         manifest_extra=manifest_extra,
-        android_api=android_api)
+        )
 
     render(
         'Configuration.tmpl.java',
@@ -311,7 +308,7 @@ def make_package(args):
     # Update the project to a recent version.
     try:
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
-                         'android-{}'.format(android_api)])
+                         'android-{}'.format(args.sdk_version)])
     except (OSError, IOError):
         print('An error occured while calling', ANDROID, 'update')
         print('Your PATH must include android tools.')
@@ -368,6 +365,9 @@ def make_package(args):
 
 if __name__ == '__main__':
     import argparse
+
+    # get default SDK version from environment
+    android_api = os.environ.get('ANDROIDAPI', 8)
 
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -446,9 +446,9 @@ tools directory of the Android SDK.
                     default=join(curdir, 'whitelist.txt'),
                     help=('Use a whitelist file to prevent blacklisting of '
                           'file in the final APK'))
-    ap.add_argument('--sdk', dest='sdk_version', default='8',
+    ap.add_argument('--sdk', dest='sdk_version', default=android_api,
                     help='Android SDK version to use. Default to 8')
-    ap.add_argument('--minsdk', dest='min_sdk_version', default='8',
+    ap.add_argument('--minsdk', dest='min_sdk_version', default=android_api,
                     help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
                     help='Indicate if the application will be windowed')
@@ -465,6 +465,9 @@ tools directory of the Android SDK.
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
 
+    ap.add_argument('--resource', dest='resource', action='append',
+                    help='Custom key=value to add in strings.xml resource file')
+
     args = ap.parse_args()
 
     if not args.dir and not args.private and not args.launcher:
@@ -478,6 +481,9 @@ tools directory of the Android SDK.
 
     if args.meta_data is None:
         args.meta_data = []
+
+    if args.resource is None:
+        args.resource = []
 
     if args.compile_pyo:
         if PYTHON is None:

@@ -24,7 +24,7 @@ function build_msgpack() {
 
     # fake try to be able to cythonize generated files
     $HOSTPYTHON setup.py build_ext
-    try find . -iname '*.pyx' -exec cython {} \;
+    try find . -iname '*.pyx' -exec $CYTHON {} \;
     try $HOSTPYTHON setup.py build_ext -v
 
     try find build/lib.* -name "*.o" -exec $STRIP {} \;

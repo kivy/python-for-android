@@ -7,9 +7,9 @@ with this project.
 
 .. note::
 
-    Don't forget that Python for android is not Kivy only, and you might want
-    to use other toolkit libraries. When other toolkits will be available, this
-    documentation will be enhanced.
+    Don't forget that Python for Android is not Kivy only, and you
+    might want to use other toolkit libraries. When other toolkits
+    will be available, this documentation will be enhanced.
 
 Let's create a simple Hello world application, with one Label and one Button.
 
@@ -43,7 +43,7 @@ Let's create a simple Hello world application, with one Label and one Button.
     class HelloWorldScreen(GridLayout):
         counter = NumericProperty(0)
         def my_callback(self):
-            print 'The button have been pushed'
+            print 'The button has been pushed'
             self.counter += 1
 
     class HelloWorldApp(App):
@@ -55,7 +55,7 @@ Let's create a simple Hello world application, with one Label and one Button.
 
 #. Go to the ``python-for-android`` directory
 
-#. Create a distribute with kivy::
+#. Create a distribution with kivy::
 
     ./distribute.sh -m kivy
 
@@ -63,7 +63,8 @@ Let's create a simple Hello world application, with one Label and one Button.
 
     cd dist/default
 
-#. Plug your android device, and ensure you can install development application
+#. Plug your android device, and ensure you can install development
+   application
 
 #. Build your hello world application in debug mode::
 
@@ -72,7 +73,7 @@ Let's create a simple Hello world application, with one Label and one Button.
 
 #. Take your device, and start the application!
 
-#. If it's goes wrong, open the logcat by doing::
+#. If something goes wrong, open the logcat by doing::
 
     adb logcat
 

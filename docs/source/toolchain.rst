@@ -21,13 +21,17 @@ compared to other projects.
 
 .. note::
 
-    For the moment, we are shipping only one "java bootstrap" needed for
-    decompressing all the files of your project, create an OpenGL ES 2.0
-    surface, handle touch input and manage an audio thread.
+    For the moment, we are shipping only one "java bootstrap" (needed for
+    decompressing your packaged zip file project, create an OpenGL ES 2.0
+    surface, handle touch input and manage an audio thread).
 
     If you want to use it without kivy module (an opengl es 2.0 ui toolkit),
     then you might want a lighter java bootstrap, that we don't have right now.
     Help is welcome :)
+    
+    So for the moment, Python for Android can only be used with the kivy GUI toolkit:
+    http://kivy.org/#home
+
 
 How does it work ?
 ------------------
@@ -41,6 +45,7 @@ So for a simple ui project, the first step is to compile Python + Kivy + all
 others libraries. Then you'll have what we call a "distribution".
 A distribution is composed of:
 
+- Python
 - Python libraries
 - All selected libraries (kivy, pygame, pil...)
 - A java bootstrap
