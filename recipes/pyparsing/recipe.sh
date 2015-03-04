@@ -22,7 +22,6 @@ function shouldbuild_pyparsing() {
 function build_pyparsing() {
 	cd $BUILD_pyparsing
 	push_arm
-	export EXTRA_CFLAGS="--host linux-armv"
 	try $HOSTPYTHON setup.py install -O2
 	pop_arm
 }
