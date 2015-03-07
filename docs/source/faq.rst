@@ -29,3 +29,13 @@ must:
     lib-dynload/_sqlite3.so
 
 Then sqlite3 will be compiled and included in your APK.
+
+Too many levels of symbolic links
+-----------------------------------------------------
+
+Python for Android does not work within a virtual enviroment. The Python for 
+Android directory must be outside of the virtual enviroment prior to running
+
+    ./distribute.sh -m "kivy"
+
+or else you may encounter OSError: [Errno 40] Too many levels of symbolic links.
