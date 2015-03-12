@@ -283,7 +283,7 @@ int android_sound_get_pos(int channel) {
         aassert(mid);
     }
 
-    (*env)->CallStaticIntMethod(
+    return (*env)->CallStaticIntMethod(
         env, cls, mid,
         channel);
 }
@@ -302,7 +302,7 @@ int android_sound_get_length(int channel) {
         aassert(mid);
     }
 
-    (*env)->CallStaticIntMethod(
+    return (*env)->CallStaticIntMethod(
         env, cls, mid,
         channel);
 }
