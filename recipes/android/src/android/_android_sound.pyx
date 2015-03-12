@@ -56,10 +56,9 @@ def playing_name(channel):
     android_sound_playing_name(channel, buf, 1024)
 
     rv = buf
-    if not rv:
+    if not len(rv):
         return None
-    else:
-        return rv
+    return rv
 
 def pause(channel):
     android_sound_pause(channel)
