@@ -743,7 +743,7 @@ function run_pymodules_install() {
 	done
 
 	debug "Install pure-python modules via pip in venv"
-	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false pip install --target '$SITEPACKAGES_PATH' --download-cache '$PACKAGES_PATH' -r requirements.txt"
+	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '$SITEPACKAGES_PATH' --download-cache '$PACKAGES_PATH' -r requirements.txt"
 
 }
 
