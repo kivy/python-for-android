@@ -8,6 +8,9 @@ If you want to compile the toolchain with only the kivy module::
 
     ./distribute.sh -m "kivy"
 
+.. warning::
+    Do not run the above command from `within a virtual enviroment <../faq/#too-many-levels-of-symbolic-links>`_.
+
 After a long time, you'll get a "dist/default" directory containing
 all the compiled libraries and a build.py script to package your
 application using thoses libraries.
