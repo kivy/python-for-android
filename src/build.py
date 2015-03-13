@@ -318,7 +318,7 @@ def make_package(args):
 
     # Package up the private and public data.
     if args.private:
-        make_tar('assets/private.mp3', ['private', args.private])
+        make_tar('assets/private.mp3', ['private', args.private], args.ignore_path)
     else:
         make_tar('assets/private.mp3', ['private'])
 
