@@ -5,7 +5,7 @@
  
  # This global variable is used to hold the list of modules to be disabled.
 -disabled_module_list = []
-+disabled_module_list = ['spwd', '_ctypes','bz2','ossaudiodev','_curses','_curses_panel','readline','_locale','_bsddb','gdbm','dbm','nis','linuxaudiodev','crypt','_multiprocessing']
++disabled_module_list = ['spwd','bz2','ossaudiodev','_curses','_curses_panel','readline','_locale','_bsddb','gdbm','dbm','nis','linuxaudiodev','crypt','_multiprocessing']
  
  def add_dir_to_list(dirlist, dir):
      """Add the directory 'dir' to the list 'dirlist' (at the front) if

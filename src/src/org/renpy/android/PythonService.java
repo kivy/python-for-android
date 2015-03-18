@@ -85,9 +85,11 @@ public class PythonService extends Service  implements Runnable {
         System.loadLibrary("python2.7");
         System.loadLibrary("application");
         System.loadLibrary("sdl_main");
+	System.loadLibrary("ctypes");
 
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+	System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_ctypes.so");
 
         try {
             System.loadLibrary("sqlite3");
