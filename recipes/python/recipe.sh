@@ -32,6 +32,7 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
+    try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
@@ -94,7 +95,7 @@ function build_python() {
 	fi
 
 	# CFLAGS for python ctypes library
-	export CFLAGS="$CFLAGS -DNO_MALLINFO"
+	#export CFLAGS="$CFLAGS -DNO_MALLINFO"
 	export BUILDARCH=x86_64-linux-gnu
 	export HOSTARCH=arm-eabi
 
