@@ -654,8 +654,8 @@ function run_get_packages() {
 }
 
 function envfn() {
-	envsave=$(mktemp)
-	envrestore=$(mktemp)
+	envsave=$(mktemp -t envsave)
+	envrestore=$(mktemp -t envsave)
 	set > $envsave
 	$1
 	set > $envrestore
