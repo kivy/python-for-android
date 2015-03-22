@@ -341,6 +341,14 @@ function run_prepare() {
 	export ARCH="armeabi"
 	#export ARCH="armeabi-v7a" # not tested yet.
 
+	info "Check NDK location"
+	if [ ! -d "$NDKPLATFORM" ]; then
+	    error "Invalid NDK platform"
+	    error "Looking in $NDKPLATFORM"
+	    error "Using ANDROIDNDK=$ANDROIDNDK and ANDROIDAPI=$ANDROIDAPI"
+	    exit -1
+	fi
+
 	info "Check mandatory tools"
 	# ensure that some tools are existing
 	for tool in tar bzip2 unzip make gcc g++; do
