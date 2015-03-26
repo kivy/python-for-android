@@ -18,7 +18,7 @@
 +    /* Ensure we have access to libpymodules. */
 +    if (libpymodules == NULL) {
 +        printf("ANDROID_PRIVATE = %s\n", getenv("ANDROID_PRIVATE"));
-+        PyOS_snprintf(pathbuf, sizeof(pathbuf), "%s/libpymodules.so", getenv("ANDROID_PRIVATE"));
++        PyOS_snprintf(pathbuf, sizeof(pathbuf), "%s/__kivy_root__/libpymodules.so", getenv("ANDROID_PRIVATE"));
 +        libpymodules = dlopen(pathbuf, RTLD_NOW);
 +
 +        if (libpymodules == NULL) {
