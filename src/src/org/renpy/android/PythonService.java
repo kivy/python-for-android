@@ -1,5 +1,7 @@
 package org.renpy.android;
 
+import java.io.File;
+
 import android.app.Service;
 import android.os.IBinder;
 import android.os.Bundle;
@@ -74,8 +76,14 @@ public class PythonService extends Service  implements Runnable {
         Process.killProcess(Process.myPid());
     }
 
+    public String getKivyRoot() {
+	return getFilesDir().getAbsolutePath() + "/__kivy_root__";
+    }
+
     @Override
     public void run(){
+	String kivy_root = getKivyRoot();
+	File kivy_root_dir = new File(kivy_root);
 
         // libraries loading, the same way PythonActivity.run() do
         System.loadLibrary("sdl");
@@ -86,26 +94,25 @@ public class PythonService extends Service  implements Runnable {
         System.loadLibrary("application");
         System.loadLibrary("sdl_main");
         
-
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+        System.load(kivy_root + "/lib/python2.7/lib-dynload/_io.so");
+        System.load(kivy_root + "/lib/python2.7/lib-dynload/unicodedata.so");
         
         try {
             System.loadLibrary("ctypes");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_ctypes.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_ctypes.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
         try {
             System.loadLibrary("sqlite3");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_sqlite3.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_sqlite3.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
         try {
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imaging.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingft.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingmath.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_imaging.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_imagingft.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_imagingmath.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
