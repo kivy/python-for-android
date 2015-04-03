@@ -483,6 +483,9 @@ tools directory of the Android SDK.
     if args.resource is None:
         args.resource = []
 
+    if args.manifest_extra is None:
+        args.manifest_extra = []
+
     if args.compile_pyo:
         if PYTHON is None:
             ap.error('To use --compile-pyo, you need Python 2.7.1 installed '
