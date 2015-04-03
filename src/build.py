@@ -206,7 +206,12 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
 
 def make_package(args):
     version_code = 0
-    manifest_extra = '<uses-feature android:glEsVersion="0x00020000" />'
+    manifest_extra = ['<uses-feature android:glEsVersion="0x00020000" />']
+    for filename in args.manifest_extra:
+        with open(filename, "r") as fd:
+            content = fd.read()
+            manifest_extra.append(content)
+    manifest_extra = '\n'.join(manifest_extra)
     url_scheme = 'kivy'
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
@@ -455,9 +460,11 @@ tools directory of the Android SDK.
                           'argument more than once to include multiple jars'))
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
-
     ap.add_argument('--resource', dest='resource', action='append',
                     help='Custom key=value to add in strings.xml resource file')
+    ap.add_argument('--manifest-extra', dest='manifest_extra', action='append',
+                    help='Custom file to add at the end of the manifest')
+
 
     args = ap.parse_args()
 
