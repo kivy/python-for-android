@@ -1,10 +1,10 @@
 #!/bin/bash
 
-VERSION_opencv=${VERSION_opencv:-2.4.10.1}
+VERSION_opencv=${VERSION_opencv:-2.4.11}
 URL_opencv=https://github.com/Itseez/opencv/archive/$VERSION_opencv.zip
 
 DEPS_opencv=(numpy python)
-MD5_opencv=e6667a39c33aa2c63defb9beb94e84ca
+MD5_opencv=32f498451bff1817a60e1aabc2939575
 BUILD_opencv=$BUILD_PATH/opencv/$(get_directory $URL_opencv)
 RECIPE_opencv=$RECIPES_PATH/opencv
 
@@ -19,7 +19,7 @@ function prebuild_opencv() {
 		return
 	fi
 
-	try patch -p1 < $RECIPE_opencv/patches/p4a_build-2.4.10.1.patch
+	try patch -p1 < $RECIPE_opencv/patches/p4a_build-2.4.11.patch
 	touch .patched
 }
 
