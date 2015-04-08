@@ -171,7 +171,7 @@ cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
 
-from jnius import autoclass
+from jnius import autoclass, PythonJavaClass, java_method
 
 # API versions
 api_version = autoclass('android.os.Build$VERSION').SDK_INT
@@ -179,16 +179,25 @@ version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
 python_act = autoclass('org.renpy.android.PythonActivity')
-rctx = autoclass('android.graphics.Rect')()
+Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    decor_view = mActivity.getWindow().getDecorView()
-    default_display = mActivity.getWindowManager().getDefaultDisplay()
-    # get keyboard height
+    class LayoutListener(PythonJavaClass):
+        __javainterfaces__ = ['android/view/ViewTreeObserver$OnGlobalLayoutListener']
+
+        height = 0
+
+        @java_method('()V')
+        def onGlobalLayout(self):
+            rctx = Rect()
+            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
+            self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
+
+    ll = LayoutListener()
+    python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
+
     def get_keyboard_height():
-        height = default_display.getHeight()
-        decor_view.getWindowVisibleDisplayFrame(rctx)
-        return height - rctx.bottom
+        return ll.height
 else:
     def get_keyboard_height():
         return 0
