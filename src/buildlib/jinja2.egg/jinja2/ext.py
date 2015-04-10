@@ -10,13 +10,17 @@
     :copyright: (c) 2010 by the Jinja Team.
     :license: BSD.
 """
-from collections import deque
 from jinja2 import nodes
-from jinja2.defaults import *
-from jinja2.environment import get_spontaneous_environment
-from jinja2.runtime import Undefined, concat
+from jinja2.defaults import BLOCK_START_STRING, \
+     BLOCK_END_STRING, VARIABLE_START_STRING, VARIABLE_END_STRING, \
+     COMMENT_START_STRING, COMMENT_END_STRING, LINE_STATEMENT_PREFIX, \
+     LINE_COMMENT_PREFIX, TRIM_BLOCKS, NEWLINE_SEQUENCE, \
+     KEEP_TRAILING_NEWLINE, LSTRIP_BLOCKS
+from jinja2.environment import Environment
+from jinja2.runtime import concat
 from jinja2.exceptions import TemplateAssertionError, TemplateSyntaxError
-from jinja2.utils import contextfunction, import_string, Markup, next
+from jinja2.utils import contextfunction, import_string, Markup
+from jinja2._compat import next, with_metaclass, string_types, iteritems
 
 
 # the only real useful gettext functions for a Jinja template.  Note
@@ -34,7 +38,7 @@ class ExtensionRegistry(type):
         return rv
 
 
-class Extension(object):
+class Extension(with_metaclass(ExtensionRegistry, object)):
     """Extensions can be used to add extra functionality to the Jinja template
     system at the parser level.  Custom extensions are bound to an environment
     but may not store environment specific data on `self`.  The reason for
@@ -52,7 +56,6 @@ class Extension(object):
     is a terrible name, ``fragment_cache_prefix`` on the other hand is a good
     name as includes the name of the extension (fragment cache).
     """
-    __metaclass__ = ExtensionRegistry
 
     #: if this extension parses this is the list of tags it's listening to.
     tags = set()
@@ -103,7 +106,9 @@ class Extension(object):
 
     def attr(self, name, lineno=None):
         """Return an attribute node for the current extension.  This is useful
-        to pass constants on extensions to generated template code::
+        to pass constants on extensions to generated template code.
+
+        ::
 
             self.attr('_my_attribute', lineno=lineno)
         """
@@ -123,8 +128,29 @@ class Extension(object):
 
 
 @contextfunction
-def _gettext_alias(context, string):
-    return context.resolve('gettext')(string)
+def _gettext_alias(__context, *args, **kwargs):
+    return __context.call(__context.resolve('gettext'), *args, **kwargs)
+
+
+def _make_new_gettext(func):
+    @contextfunction
+    def gettext(__context, __string, **variables):
+        rv = __context.call(func, __string)
+        if __context.eval_ctx.autoescape:
+            rv = Markup(rv)
+        return rv % variables
+    return gettext
+
+
+def _make_new_ngettext(func):
+    @contextfunction
+    def ngettext(__context, __singular, __plural, __num, **variables):
+        variables.setdefault('num', __num)
+        rv = __context.call(func, __singular, __plural, __num)
+        if __context.eval_ctx.autoescape:
+            rv = Markup(rv)
+        return rv % variables
+    return ngettext
 
 
 class InternationalizationExtension(Extension):
@@ -144,23 +170,37 @@ class InternationalizationExtension(Extension):
         environment.extend(
             install_gettext_translations=self._install,
             install_null_translations=self._install_null,
+            install_gettext_callables=self._install_callables,
             uninstall_gettext_translations=self._uninstall,
-            extract_translations=self._extract
+            extract_translations=self._extract,
+            newstyle_gettext=False
         )
 
-    def _install(self, translations):
+    def _install(self, translations, newstyle=None):
         gettext = getattr(translations, 'ugettext', None)
         if gettext is None:
             gettext = translations.gettext
         ngettext = getattr(translations, 'ungettext', None)
         if ngettext is None:
             ngettext = translations.ngettext
-        self.environment.globals.update(gettext=gettext, ngettext=ngettext)
+        self._install_callables(gettext, ngettext, newstyle)
 
-    def _install_null(self):
+    def _install_null(self, newstyle=None):
+        self._install_callables(
+            lambda x: x,
+            lambda s, p, n: (n != 1 and (p,) or (s,))[0],
+            newstyle
+        )
+
+    def _install_callables(self, gettext, ngettext, newstyle=None):
+        if newstyle is not None:
+            self.environment.newstyle_gettext = newstyle
+        if self.environment.newstyle_gettext:
+            gettext = _make_new_gettext(gettext)
+            ngettext = _make_new_ngettext(ngettext)
         self.environment.globals.update(
-            gettext=lambda x: x,
-            ngettext=lambda s, p, n: (n != 1 and (p,) or (s,))[0]
+            gettext=gettext,
+            ngettext=ngettext
         )
 
     def _uninstall(self, translations):
@@ -168,18 +208,20 @@ class InternationalizationExtension(Extension):
             self.environment.globals.pop(key, None)
 
     def _extract(self, source, gettext_functions=GETTEXT_FUNCTIONS):
-        if isinstance(source, basestring):
+        if isinstance(source, string_types):
             source = self.environment.parse(source)
         return extract_from_ast(source, gettext_functions)
 
     def parse(self, parser):
         """Parse a translatable tag."""
         lineno = next(parser.stream).lineno
+        num_called_num = False
 
         # find all the variables referenced.  Additionally a variable can be
         # defined in the body of the trans block too, but this is checked at
         # a later state.
         plural_expr = None
+        plural_expr_assignment = None
         variables = {}
         while parser.stream.current.type != 'block_end':
             if variables:
@@ -201,8 +243,16 @@ class InternationalizationExtension(Extension):
                 variables[name.value] = var = parser.parse_expression()
             else:
                 variables[name.value] = var = nodes.Name(name.value, 'load')
+
             if plural_expr is None:
-                plural_expr = var
+                if isinstance(var, nodes.Call):
+                    plural_expr = nodes.Name('_trans', 'load')
+                    variables[name.value] = plural_expr
+                    plural_expr_assignment = nodes.Assign(
+                        nodes.Name('_trans', 'store'), var)
+                else:
+                    plural_expr = var
+                num_called_num = name.value == 'num'
 
         parser.stream.expect('block_end')
 
@@ -216,6 +266,7 @@ class InternationalizationExtension(Extension):
             referenced.update(singular_names)
             if plural_expr is None:
                 plural_expr = nodes.Name(singular_names[0], 'load')
+                num_called_num = singular_names[0] == 'num'
 
         # if we have a pluralize block, we parse that too
         if parser.stream.current.test('name:pluralize'):
@@ -228,6 +279,7 @@ class InternationalizationExtension(Extension):
                                 name.value, name.lineno,
                                 exc=TemplateAssertionError)
                 plural_expr = variables[name.value]
+                num_called_num = name.value == 'num'
             parser.stream.expect('block_end')
             plural_names, plural = self._parse_block(parser, False)
             next(parser.stream)
@@ -240,26 +292,19 @@ class InternationalizationExtension(Extension):
             if var not in variables:
                 variables[var] = nodes.Name(var, 'load')
 
-        # no variables referenced?  no need to escape
-        if not referenced:
-            singular = singular.replace('%%', '%')
-            if plural:
-                plural = plural.replace('%%', '%')
-
         if not have_plural:
             plural_expr = None
         elif plural_expr is None:
             parser.fail('pluralize without variables', lineno)
 
-        if variables:
-            variables = nodes.Dict([nodes.Pair(nodes.Const(x, lineno=lineno), y)
-                                    for x, y in variables.items()])
-        else:
-            variables = None
-
-        node = self._make_node(singular, plural, variables, plural_expr)
+        node = self._make_node(singular, plural, variables, plural_expr,
+                               bool(referenced),
+                               num_called_num and have_plural)
         node.set_lineno(lineno)
-        return node
+        if plural_expr_assignment is not None:
+            return [plural_expr_assignment, node]
+        else:
+            return node
 
     def _parse_block(self, parser, allow_pluralize):
         """Parse until the next block tag with a given name."""
@@ -293,8 +338,16 @@ class InternationalizationExtension(Extension):
 
         return referenced, concat(buf)
 
-    def _make_node(self, singular, plural, variables, plural_expr):
+    def _make_node(self, singular, plural, variables, plural_expr,
+                   vars_referenced, num_called_num):
         """Generates a useful node from the data provided."""
+        # no variables referenced?  no need to escape for old style
+        # gettext invocations only if there are vars.
+        if not vars_referenced and not self.environment.newstyle_gettext:
+            singular = singular.replace('%%', '%')
+            if plural:
+                plural = plural.replace('%%', '%')
+
         # singular only:
         if plural_expr is None:
             gettext = nodes.Name('gettext', 'load')
@@ -310,13 +363,27 @@ class InternationalizationExtension(Extension):
                 plural_expr
             ], [], None, None)
 
-        # mark the return value as safe if we are in an
-        # environment with autoescaping turned on
-        if self.environment.autoescape:
-            node = nodes.MarkSafe(node)
+        # in case newstyle gettext is used, the method is powerful
+        # enough to handle the variable expansion and autoescape
+        # handling itself
+        if self.environment.newstyle_gettext:
+            for key, value in iteritems(variables):
+                # the function adds that later anyways in case num was
+                # called num, so just skip it.
+                if num_called_num and key == 'num':
+                    continue
+                node.kwargs.append(nodes.Keyword(key, value))
 
-        if variables:
-            node = nodes.Mod(node, variables)
+        # otherwise do that here
+        else:
+            # mark the return value as safe if we are in an
+            # environment with autoescaping turned on
+            node = nodes.MarkSafeIfAutoescape(node)
+            if variables:
+                node = nodes.Mod(node, nodes.Dict([
+                    nodes.Pair(nodes.Const(key), value)
+                    for key, value in variables.items()
+                ]))
         return nodes.Output([node])
 
 
@@ -422,7 +489,7 @@ def extract_from_ast(node, gettext_functions=GETTEXT_FUNCTIONS,
         strings = []
         for arg in node.args:
             if isinstance(arg, nodes.Const) and \
-               isinstance(arg.value, basestring):
+               isinstance(arg.value, string_types):
                 strings.append(arg.value)
             else:
                 strings.append(None)
@@ -494,6 +561,14 @@ def babel_extract(fileobj, keywords, comment_tags, options):
        gettext call in one line of code and the matching comment in the
        same line or the line before.
 
+    .. versionchanged:: 2.5.1
+       The `newstyle_gettext` flag can be set to `True` to enable newstyle
+       gettext calls.
+
+    .. versionchanged:: 2.7
+       A `silent` option can now be provided.  If set to `False` template
+       syntax errors are propagated instead of being ignored.
+
     :param fileobj: the file-like object the messages should be extracted from
     :param keywords: a list of keywords (i.e. function names) that should be
                      recognized as translation functions
@@ -512,7 +587,12 @@ def babel_extract(fileobj, keywords, comment_tags, options):
     if InternationalizationExtension not in extensions:
         extensions.add(InternationalizationExtension)
 
-    environment = get_spontaneous_environment(
+    def getbool(options, key, default=False):
+        return options.get(key, str(default)).lower() in \
+            ('1', 'on', 'yes', 'true')
+
+    silent = getbool(options, 'silent', True)
+    environment = Environment(
         options.get('block_start_string', BLOCK_START_STRING),
         options.get('block_end_string', BLOCK_END_STRING),
         options.get('variable_start_string', VARIABLE_START_STRING),
@@ -521,22 +601,25 @@ def babel_extract(fileobj, keywords, comment_tags, options):
         options.get('comment_end_string', COMMENT_END_STRING),
         options.get('line_statement_prefix') or LINE_STATEMENT_PREFIX,
         options.get('line_comment_prefix') or LINE_COMMENT_PREFIX,
-        str(options.get('trim_blocks', TRIM_BLOCKS)).lower() in \
-            ('1', 'on', 'yes', 'true'),
-        NEWLINE_SEQUENCE, frozenset(extensions),
-        # fill with defaults so that environments are shared
-        # with other spontaneus environments.  The rest of the
-        # arguments are optimizer, undefined, finalize, autoescape,
-        # loader, cache size, auto reloading setting and the
-        # bytecode cache
-        True, Undefined, None, False, None, 0, False, None
+        getbool(options, 'trim_blocks', TRIM_BLOCKS),
+        getbool(options, 'lstrip_blocks', LSTRIP_BLOCKS),
+        NEWLINE_SEQUENCE,
+        getbool(options, 'keep_trailing_newline', KEEP_TRAILING_NEWLINE),
+        frozenset(extensions),
+        cache_size=0,
+        auto_reload=False
     )
+
+    if getbool(options, 'newstyle_gettext'):
+        environment.newstyle_gettext = True
 
     source = fileobj.read().decode(options.get('encoding', 'utf-8'))
     try:
         node = environment.parse(source)
         tokens = list(environment.lex(environment.preprocess(source)))
-    except TemplateSyntaxError, e:
+    except TemplateSyntaxError as e:
+        if not silent:
+            raise
         # skip templates with syntax errors
         return
 

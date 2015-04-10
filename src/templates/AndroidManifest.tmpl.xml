@@ -11,7 +11,7 @@
         android:normalScreens="true"
         android:largeScreens="true"
         android:anyDensity="true"
-        {% if args.min_sdk_version >= 9 %}
+        {% if args.min_sdk_version|int >= 9 %}
         android:xlargeScreens="true"
         {% endif %}
         />
@@ -29,7 +29,7 @@
 
     <activity android:name="org.renpy.android.PythonActivity"
               android:label="@string/iconName"
-			  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 13 %}|screenSize{% endif %}"
+			  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version|int >= 13 %}|screenSize{% endif %}"
               android:launchMode="singleTask"
               android:process=":python"
               android:screenOrientation="{{ args.orientation }}"

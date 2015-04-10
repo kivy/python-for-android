@@ -15,20 +15,45 @@
     :license: BSD.
 """
 from os import path, listdir
+import os
+import sys
+import errno
 import marshal
 import tempfile
-import cPickle as pickle
 import fnmatch
-from cStringIO import StringIO
-try:
-    from hashlib import sha1
-except ImportError:
-    from sha import new as sha1
+from hashlib import sha1
 from jinja2.utils import open_if_exists
+from jinja2._compat import BytesIO, pickle, PY2, text_type
 
 
-bc_version = 1
-bc_magic = 'j2'.encode('ascii') + pickle.dumps(bc_version, 2)
+# marshal works better on 3.x, one hack less required
+if not PY2:
+    marshal_dump = marshal.dump
+    marshal_load = marshal.load
+else:
+
+    def marshal_dump(code, f):
+        if isinstance(f, file):
+            marshal.dump(code, f)
+        else:
+            f.write(marshal.dumps(code))
+
+    def marshal_load(f):
+        if isinstance(f, file):
+            return marshal.load(f)
+        return marshal.loads(f.read())
+
+
+bc_version = 2
+
+# magic version used to only change with new jinja versions.  With 2.6
+# we change this to also take Python version changes into account.  The
+# reason for this is that Python tends to segfault if fed earlier bytecode
+# versions because someone thought it would be a good idea to reuse opcodes
+# or make Python incompatible with earlier versions.
+bc_magic = 'j2'.encode('ascii') + \
+    pickle.dumps(bc_version, 2) + \
+    pickle.dumps((sys.version_info[0] << 24) | sys.version_info[1])
 
 
 class Bucket(object):
@@ -62,12 +87,7 @@ class Bucket(object):
         if self.checksum != checksum:
             self.reset()
             return
-        # now load the code.  Because marshal is not able to load
-        # from arbitrary streams we have to work around that
-        if isinstance(f, file):
-            self.code = marshal.load(f)
-        else:
-            self.code = marshal.loads(f.read())
+        self.code = marshal_load(f)
 
     def write_bytecode(self, f):
         """Dump the bytecode into the file or file like object passed."""
@@ -75,18 +95,15 @@ class Bucket(object):
             raise TypeError('can\'t write empty bucket')
         f.write(bc_magic)
         pickle.dump(self.checksum, f, 2)
-        if isinstance(f, file):
-            marshal.dump(self.code, f)
-        else:
-            f.write(marshal.dumps(self.code))
+        marshal_dump(self.code, f)
 
     def bytecode_from_string(self, string):
         """Load bytecode from a string."""
-        self.load_bytecode(StringIO(string))
+        self.load_bytecode(BytesIO(string))
 
     def bytecode_to_string(self):
         """Return the bytecode as string."""
-        out = StringIO()
+        out = BytesIO()
         self.write_bytecode(out)
         return out.getvalue()
 
@@ -144,9 +161,10 @@ class BytecodeCache(object):
         """Returns the unique hash key for this template name."""
         hash = sha1(name.encode('utf-8'))
         if filename is not None:
-            if isinstance(filename, unicode):
+            filename = '|' + filename
+            if isinstance(filename, text_type):
                 filename = filename.encode('utf-8')
-            hash.update('|' + filename)
+            hash.update(filename)
         return hash.hexdigest()
 
     def get_source_checksum(self, source):
@@ -173,7 +191,9 @@ class FileSystemBytecodeCache(BytecodeCache):
     two arguments: The directory where the cache items are stored and a
     pattern string that is used to build the filename.
 
-    If no directory is specified the system temporary items folder is used.
+    If no directory is specified a default cache directory is selected.  On
+    Windows the user's temp directory is used, on UNIX systems a directory
+    is created for the user in the system temp directory.
 
     The pattern can be used to have multiple separate caches operate on the
     same directory.  The default pattern is ``'__jinja2_%s.cache'``.  ``%s``
@@ -186,9 +206,31 @@ class FileSystemBytecodeCache(BytecodeCache):
 
     def __init__(self, directory=None, pattern='__jinja2_%s.cache'):
         if directory is None:
-            directory = tempfile.gettempdir()
+            directory = tempfile.mkdtemp(prefix='jinja2-cache-')
         self.directory = directory
         self.pattern = pattern
+
+    def _get_default_cache_dir(self):
+        tmpdir = tempfile.gettempdir()
+
+        # On windows the temporary directory is used specific unless
+        # explicitly forced otherwise.  We can just use that.
+        if os.name == 'n':
+            return tmpdir
+        if not hasattr(os, 'getuid'):
+            raise RuntimeError('Cannot determine safe temp directory.  You '
+                               'need to explicitly provide one.')
+
+        dirname = '_jinja2-cache-%d' % os.getuid()
+        actual_dir = os.path.join(tmpdir, dirname)
+        try:
+            # 448 == 0700
+            os.mkdir(actual_dir, 448)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
+        return actual_dir
 
     def _get_cache_filename(self, bucket):
         return path.join(self.directory, self.pattern % bucket.key)
@@ -261,15 +303,26 @@ class MemcachedBytecodeCache(BytecodeCache):
 
     This bytecode cache does not support clearing of used items in the cache.
     The clear method is a no-operation function.
+
+    .. versionadded:: 2.7
+       Added support for ignoring memcache errors through the
+       `ignore_memcache_errors` parameter.
     """
 
-    def __init__(self, client, prefix='jinja2/bytecode/', timeout=None):
+    def __init__(self, client, prefix='jinja2/bytecode/', timeout=None,
+                 ignore_memcache_errors=True):
         self.client = client
         self.prefix = prefix
         self.timeout = timeout
+        self.ignore_memcache_errors = ignore_memcache_errors
 
     def load_bytecode(self, bucket):
-        code = self.client.get(self.prefix + bucket.key)
+        try:
+            code = self.client.get(self.prefix + bucket.key)
+        except Exception:
+            if not self.ignore_memcache_errors:
+                raise
+            code = None
         if code is not None:
             bucket.bytecode_from_string(code)
 
@@ -277,4 +330,8 @@ class MemcachedBytecodeCache(BytecodeCache):
         args = (self.prefix + bucket.key, bucket.bytecode_to_string())
         if self.timeout is not None:
             args += (self.timeout,)
-        self.client.set(*args)
+        try:
+            self.client.set(*args)
+        except Exception:
+            if not self.ignore_memcache_errors:
+                raise
