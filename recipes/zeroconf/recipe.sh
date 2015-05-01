@@ -4,7 +4,7 @@
 VERSION_zeroconf=${VERSION_zeroconf:-0.17.1}
 
 # dependencies of this recipe
-DEPS_zeroconf=(python six netifaces)
+DEPS_zeroconf=(python six enum34 netifaces)
 
 # url of the package
 URL_zeroconf=https://pypi.python.org/packages/source/z/zeroconf/zeroconf-$VERSION_zeroconf.tar.gz
