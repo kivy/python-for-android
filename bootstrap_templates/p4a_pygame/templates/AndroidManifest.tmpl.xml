@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="{{args.package}}"
+          android:versionCode="{{args.numeric_version}}"
+          android:versionName="{{args.version}}"
+          android:installLocation="{{ args.install_location }}"
+          >
+
+  <supports-screens
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:anyDensity="true"
+        {% if args.min_sdk_version >= 9 %}
+        android:xlargeScreens="true"
+        {% endif %}
+        />
+
+  <application android:label="@string/appName"
+               android:icon="@drawable/icon"
+			   android:hardwareAccelerated="true"
+               >
+
+	{% for m in args.meta_data %}
+	<meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
+    <meta-data android:name="fullscreen" android:value="{% if args.window %}0{% else %}1{% endif %}"/>
+    <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
+
+
+    <activity android:name="org.renpy.android.PythonActivity"
+              android:label="@string/iconName"
+			  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 13 %}|screenSize{% endif %}"
+              android:launchMode="singleTask"
+              android:process=":python"
+              android:screenOrientation="{{ args.orientation }}"
+              android:windowSoftInputMode="stateAlwaysHidden"
+            >
+
+      {% if args.launcher %}
+      <intent-filter>
+        <action android:name="org.renpy.LAUNCH" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:scheme="{{ url_scheme }}" />
+      </intent-filter>
+      {% else  %}
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      {% endif %}
+
+      {%if args.ouya_category %}
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+        <category android:name="tv.ouya.intent.category.{{ args.ouya_category }}"/>
+      </intent-filter>
+
+      {% endif %}
+
+      {%if args.intent_filters %}
+        {{ intent_filters }}
+      {% endif %}
+    </activity>
+
+    {% if args.launcher %}
+    <activity android:name="org.renpy.android.ProjectChooser"
+              android:label="@string/iconName">
+
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+
+    </activity>
+    {% endif %}
+
+    {% if service or args.launcher %}
+    <service android:name="org.renpy.android.PythonService"
+             android:process=":PythonService"/>
+    {% endif %}
+
+	{% if args.billing_pubkey %}
+	<service android:name="org.renpy.android.billing.BillingService"
+		android:process=":python" />
+	<receiver
+		android:name="org.renpy.android.billing.BillingReceiver"
+		android:process=":python">
+		<intent-filter>
+			<action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
+			<action android:name="com.android.vending.billing.RESPONSE_CODE" />
+			<action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+		</intent-filter>
+	</receiver>
+	{% endif %}
+
+  </application>
+
+  <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
+  {% if args.wakelock %}
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  {% endif %}
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+  {% for perm in args.permissions %}
+  {% if '.' in perm %}
+  <uses-permission android:name="{{ perm }}" />
+  {% else %}
+  <uses-permission android:name="android.permission.{{ perm }}" />
+  {% endif %}
+  {% endfor %}
+
+  {% if args.billing_pubkey %}
+  <uses-permission android:name="com.android.vending.BILLING" />
+  {% endif %}
+
+
+{{ manifest_extra }}
+</manifest>

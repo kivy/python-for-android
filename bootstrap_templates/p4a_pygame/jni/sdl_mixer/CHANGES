@@ -1,0 +1,312 @@
+1.2.11:
+Sam Lantinga - Sat Nov 14 12:38:01 PST 2009
+ * Fixed initialization error and crashes if MikMod library isn't available
+Sam Lantinga - Sat Nov 14 11:22:14 PST 2009
+ * Fixed bug loading multiple music files
+
+1.2.10:
+Sam Lantinga - Sun Nov  8 08:34:48 PST 2009
+ * Added Mix_Init()/Mix_Quit() to prevent constantly loading and unloading DLLs
+Mike Frysinger - 2009-11-05 09:11:43 PST
+ * Check for fork/vfork on any platform, don't just assume it on UNIX
+Jon Atkins - Thu Nov 5 00:02:50 2009 UTC
+ * Fixed export of Mix_GetNumChunkDecoders() and Mix_GetNumMusicDecoders()
+C.W. Betts - 2009-11-02 00:16:21 PST
+ * Use newer MIDI API on Mac OS X 10.5+
+
+1.2.9:
+Ryan Gordon - Sun Oct 18 11:42:31 PDT 2009
+ * Updated native MIDI support on Mac OS X for 10.6
+Ryan Gordon - Sun Oct 11 05:29:55 2009 UTC
+ * Reset channel volumes after a fade out interrupts a fade in.
+Ryan Gordon - Sun Oct 11 02:59:12 2009 UTC
+ * Fixed crash race condition with position audio functions
+Ryan Gordon - Sat Oct 10 17:05:45 2009 UTC
+ * Fixed stereo panning in 8-bit mode
+Sam Lantinga - Sat Oct 10 11:07:15 2009 UTC
+ * Added /usr/share/timidity to the default timidity.cfg locations
+Sam Lantinga - Sat Oct  3 13:33:36 PDT 2009
+ * MOD support uses libmikmod and is dynamically loaded by default
+ * A patched version of libmikmod is included in libmikmod-3.1.12.zip
+ * The libmikmod patches fix security issues CVE-2007-6720 and CVE-2009-0179.
+Sam Lantinga - Sat Oct  3 02:49:41 PDT 2009
+ * Added TIMIDITY_CFG environment variable to fully locate timidity.cfg
+Sam Lantinga - Fri Oct  2 07:15:35 PDT 2009
+ * Implemented seamless looping for music playback
+Forrest Voight - 2009-06-13 20:31:38 PDT
+ * ID3 files are now recognized as MP3 format
+Steven Noonan - 2008-05-13 13:31:36 PDT
+ * Fixed native MIDI crash on 64-bit Windows
+Ryan Gordon - Fri Jun 5 16:07:08 2009 UTC
+ * Added decoder enumeration API:
+	Mix_GetNumChunkDecoders(), Mix_GetChunkDecoder(),
+	Mix_GetNumMusicDecoders(), Mix_GetMusicDecoder()
+Austen Dicken - Tue Feb 26 23:28:27 PST 2008
+ * Added support for FLAC audio both as chunks and streaming
+Tilman Sauerbeck - Tue Feb 26 03:44:47 PST 2008
+ * Added support for streaming WAV files with Mix_LoadMUS_RW()
+Ryan Gordon - Mon Feb 4 17:10:08 UTC 2008
+ * Fixed crash caused by not resetting position_channels
+
+1.2.8:
+Sam Lantinga - Wed Jul 18 09:45:54 PDT 2007
+ * Improved detection of Ogg Vorbis and Tremor libraries
+Ryan Gordon - Sun Jul 15 12:03:54 EDT 2007
+ * Fixed memory leaks in Effects API.
+David Rose - Sat Jul 14 22:16:09 PDT 2007
+ * Added support for MP3 playback with libmad (for GPL projects only!)
+Sam Lantinga - Sat Jul 14 21:39:30 PDT 2007
+ * Fixed the final loop of audio samples of a certain size
+Sam Lantinga - Sat Jul 14 21:05:09 PDT 2007
+ * Fixed opening Ogg Vorbis files using different C runtimes on Windows
+Philippe Simons - Sat Jul 14 20:33:17 PDT 2007
+ * Added support for Ogg Vorbis playback with Tremor (an integer decoder)
+Sam Lantinga - Sat Jul 14 07:02:09 PDT 2007
+ * Fixed memory corruption in timidity resampling code
+Ryan Gordon - Tue Jul 3 10:44:29 2007 UTC
+ * Fixed building SDL_mixer with SDL 1.3 pre-release
+Ryan Gordon - Tue Feb 13 08:11:54 2007 UTC
+ * Fixed compiling both timidity and native midi in the same build
+Hans de Goede - Sun Aug 20 23:25:46 2006 UTC
+ * Added volume control to playmus
+Jonathan Atkins - Thu Aug 10 15:06:40 2006 UTC
+ * Fixed linking with system libmikmod
+David Ergo - Fri Jun 23 09:07:19 2006 UTC
+ * Corrected no-op conditions in SetDistance(), SetPanning() and SetPosition()
+ * Fixed copy/paste errors in channel amplitudes
+
+1.2.7:
+Sam Lantinga - Fri May 12 00:04:32 PDT 2006
+ * Added support for dynamically loading SMPEG library
+Sam Lantinga - Thu May 11 22:22:43 PDT 2006
+ * Added support for dynamically loading Ogg Vorbis library
+Sam Lantinga - Sun Apr 30 09:01:44 PDT 2006
+ * Removed automake dependency, to allow Universal binaries on Mac OS X
+ * Added gcc-fat.sh for generating Universal binaries on Mac OS X
+Sam Lantinga - Sun Apr 30 01:48:40 PDT 2006
+ * Updated libtool support to version 1.5.22
+Patrice Mandin - Sat Jul 16 16:43:24 UTC 2005
+ * Use SDL_RWops also for native midi mac and win32
+Patrice Mandin - Sat Jul 9 14:40:09 UTC 2005
+ * Use SDL_RWops also for native midi gpl (todo: mac and win32)
+Ryan C. Gordon - Sat Jul  9 01:54:03 EDT 2005
+ * Tweaked Mix_Chunk's definition to make predeclaration easier.
+Patrice Mandin - Mon Jul 4 19:45:40 UTC 2005
+ * Search timidity.cfg also in /etc
+ * Fix memory leaks in timidity player
+ * Use also SDL_RWops to read midifiles for timidity
+Ryan C. Gordon - Mon Jun 13 18:18:12 EDT 2005
+ * Patch from Eric Wing to fix native midi compiling on MacOS/x86.
+Sam Lantinga - Wed Dec 22 17:14:32 PST 2004
+ * Disabled support for the system version of libmikmod by default
+Sam Lantinga - Tue Dec 21 09:51:29 PST 2004
+ * Fixed building mikmod support on UNIX
+ * Always build SDL_RWops music support
+ * Added SDL_RWops support for reading MP3 files
+
+1.2.6:
+Jonathan Atkins - Wed, 15 Sep 2004 23:26:42 -0500
+ * Added support for using the system version of libmikmod
+Martin_Storsjö -  Sun, 22 Aug 2004 02:21:14 +0300 (EEST)
+ * Added SDL_RWops support for reading Ogg Vorbis files
+Greg Lee - Wed, 14 Jul 2004 05:13:14 -1000
+ * Added 4 and 6 channel surround sound output support
+ * Added support for RMID format MIDI files
+ * Improved timidity support (reverb, chorus, Roland & Yamaha sysex dumps, etc.)
+Sam Lantinga - Wed Nov 19 00:23:44 PST 2003
+ * Updated libtool support for new mingw32 DLL build process
+Ryan C. Gordon - Sun Nov  9 23:34:47 EST 2003
+ * Patch from Steven Fuller to fix positioning effect on bigendian systems.
+Laurent Ganter - Mon, 6 Oct 2003 11:51:33 +0200
+ * Fixed bug with MIDI volume in native Windows playback
+Andre Leiradella - Fri, 30 May 2003 16:12:03 -0300
+ * Added SDL_RWops support for reading MOD files
+Kyle Davenport - Sat, 19 Apr 2003 17:13:31 -0500
+ * Added .la files to the development RPM, fixing RPM build on RedHat 8
+
+1.2.5:
+Darrell Walisser - Tue Mar  4 09:24:01 PST 2003
+ * Worked around MacOS X deadlock between CoreAudio and QuickTime
+Darrell Walisser - Fri, 14 Feb 2003 20:56:08 -0500
+ * Fixed crash in native midi code with files with more than 32 tracks
+Marc Le Douarain - Sat, 15 Feb 2003 14:46:41 +0100
+ * Added 8SVX format support to the AIFF loader
+Sam Lantinga Wed Feb 12 21:03:57 PST 2003
+ * Fixed volume control on WAVE music chunks
+Ben Nason - Mon, 10 Feb 2003 11:50:27 -0800
+ * Fixed volume control on MOD music chunks
+Patrice Mandin - Fri, 31 Jan 2003 15:17:30 +0100
+ * Added support for the Atari platform
+Ryan C. Gordon - Fri Dec 27 10:14:07 EST 2002
+ * Patch from Steven Fuller to fix panning effect with 8-bit sounds.
+Ryan C. Gordon - Thu Jan  2 12:31:48 EST 2003
+ * Patch from guy on 3DRealms forums to fix native win32 midi volume.
+Ryan C. Gordon - Wed Oct 30 07:12:06 EST 2002
+ * Small, looping music samples should now be able to fade out correctly.
+Sam Lantinga - Sun Oct 20 20:52:24 PDT 2002
+ * Added shared library support for MacOS X
+Pete Shinners - Wed Oct 16 17:10:08 EDT 2002
+ * Correctly report an error when using an unknown filetype
+Vaclav Slavik - Sun Sep  8 18:57:38 PDT 2002
+ * Added support for loading Ogg Vorbis samples as an audio chunk
+Martin Storsjö - Tue Jul 16 10:38:12 PDT 2002
+ * Fixed to start playing another sample immediately when one finishes
+Martin Storsjö - Tue May 28 13:08:29 PDT 2002
+ * Fixed a volume bug when calling Mix_HaltChannel() on unused channel
+Xavier Wielemans - Wed Jun 12 14:28:14 EDT 2002
+ * Fixed volume reset bug at end of channel fade.
+Ryan C. Gordon - Wed Jun 26 16:30:59 EDT 2002
+ * Mix_LoadMUS() will now accept an MP3 by file extension, instead of relying
+    entirely on the magic number.
+
+1.2.4:
+Sam Lantinga - Mon May 20 09:11:22 PDT 2002
+ * Updated the CodeWarrior project files
+Sam Lantinga - Sun May 19 13:46:29 PDT 2002
+ * Added a function to query the music format: Mix_GetMusicType()
+Sam Lantinga - Sat May 18 12:45:16 PDT 2002
+ * Added a function to load audio data from memory: Mix_QuickLoad_RAW()
+Sam Lantinga - Thu May 16 11:26:46 PDT 2002
+ * Cleaned up threading issues in the music playback code
+Ryan Gordon - Thu May  2 21:08:48 PDT 2002
+ * Fixed deadlock introduced in the last release
+
+1.2.3:
+Sam Lantinga - Sat Apr 13 07:49:47 PDT 2002
+ * Updated autogen.sh for new versions of automake
+ * Specify the SDL API calling convention (C by default)
+Ryan Gordon - Sat Apr 13 07:33:37 PDT 2002
+ * Fixed recursive audio lock in the mixing function
+jean-julien Filatriau - Sat Mar 23 18:05:37 PST 2002
+ * Fixed setting invalid volume when querying mixer and music volumes
+Guillaume Cottenceau - Wed Feb 13 15:43:20 PST 2002
+ * Implemented Ogg Vorbis stream rewinding
+Peter Kutak - Wed Feb 13 10:26:57 PST 2002
+ * Added native midi support on Linux, using GPL code
+	--enable-music-native-midi-gpl
+Pete Shinners - Mon Jan 14 11:31:26 PST 2002
+ * Added seek support for MP3 files
+Ryan Gordon - Mon Jan 14 11:30:44 PST 2002
+ * Sample "finished" callbacks are now always called when a sample is stopped.
+
+1.2.2:
+Guillaume Cottenceau - Wed Dec 19 08:59:05 PST 2001
+ * Added an API for seeking in music files (implemented for MOD and Ogg music)
+	Mix_FadeInMusicPos(), Mix_SetMusicPosition()
+ * Exposed the mikmod synchro value for music synchronization
+	Mix_SetSynchroValue(), Mix_GetSynchroValue()
+
+1.2.1:
+Yi-Huang Han - Wed Oct 24 21:55:47 PDT 2001
+ * Fixed MOD music volume when looping
+David Hedbor - Thu Oct 18 10:01:41 PDT 2001
+ * Stop implicit looping, set fade out and other flags on MOD files
+Sam Lantinga - Tue Oct 16 11:17:12 PDT 2001
+ * The music file type is now determined by extension as well as magic
+Ryan C. Gordon - Tue Sep 11 12:05:54 PDT 2001
+ * Reworked playwave.c to make it more useful as a mixer testbed
+ * Added a realtime sound effect API to SDL_mixer.h
+ * Added the following standard sound effects:
+	panning, distance attenuation, basic positional audio, stereo reversal
+ * Added API for mixer versioning: Mix_Linked_Version() and MIX_VERSION()
+Sam Lantinga - Tue Sep 11 11:48:53 PDT 2001
+ * Updated MikMod code to version 3.1.9a
+Torbjörn Andersson - Tue Sep 11 11:22:29 PDT 2001
+ * Added support for loading AIFF audio chunks
+Max Horn - Tue Sep  4 20:38:11 PDT 2001
+ * Added native MIDI music support on MacOS and MacOS X
+Florian Schulze - Sun Aug 19 14:55:37 PDT 2001
+ * Added native MIDI music support on Windows
+Sam Lantinga - Sun Aug 19 02:20:55 PDT 2001
+ * Added Project Builder projects for building MacOS X framework
+Darrell Walisser - Sun Aug 19 00:47:22 PDT 2001
+ * Fixed compilation problems with mikmod under MacOS X
+Torbjörn Andersson - Sun, 19 Aug 2001 16:03:30
+ * Fixed AIFF music playing support
+Sam Lantinga - Sat Aug 18 04:14:13 PDT 2001
+ * Fixed building Ogg Vorbis support on Windows
+Ryan C. Gordon - Thu, 7 Jun 2001 13:15:51
+ * Added Mix_ChannelFinished() and Mix_GetChunk()
+Ryan C. Gordon - Tue, 5 Jun 2001 11:01:51
+ * Added VOC sound file support
+Guillaume Cottenceau - Thu May 10 11:17:55 PDT 2001
+ * Fixed crashes when API used with audio not initialized
+Paul Jenner - Sat, 14 Apr 2001 09:20:38 -0700 (PDT)
+ * Added support for building RPM directly from tar archive
+
+1.2.0:
+Sam Lantinga - Wed Apr  4 12:42:20 PDT 2001
+ * Synchronized release version with SDL 1.2.0
+
+1.1.1:
+John Hall - Tue Jan  2 13:46:54 PST 2001
+ * Added support to playmus for track switching with Ctrl-C
+ * Added support to playmus for multiple command line files
+
+1.1.0:
+Sam Lantinga - Wed Nov 29 20:47:13 PST 2000
+ * Package specifically for SDL 1.1 (no real reason API-wise, but for clarity)
+
+1.0.7:
+Sam Lantinga - Tue Nov  7 10:22:09 PST 2000
+ * Fixed hang in mikmod re-initialization
+Stephane Peter - Oct 17 13:07:32 PST 2000
+ * Fixed music fading
+Ray Kelm - Fri, 04 Aug 2000 20:58:00 -0400
+ * Added support for cross-compiling Windows DLL from Linux
+
+1.0.6:
+Sam Lantinga - Sun Jul  2 14:16:44 PDT 2000
+ * Added support for the Ogg Vorbis music format: http://www.vorbis.org/
+Darrell Walisser - Wed Jun 28 11:59:40 PDT 2000
+ * Added Codewarrior projects for MacOS
+Sam Lantinga - Mon Jun 26 12:01:11 PDT 2000
+ * Fixed symbol aliasing problem with "channel"
+Matt - Wed, 12 Apr 2000 15:36:13 -0700
+ * Added SDL_RWops support for mikmod loading (not hooked into music.c yet)
+
+1.0.5:
+Paul Furber - Fri Mar  3 14:58:50 PST 2000
+ * Fixed MP3 detection with compilers that use signed char datatypes
+
+1.0.4:
+Sam Lantinga - Thu Feb 10 19:42:03 PST 2000
+ * Ported the base mixer and mikmod libraries to MacOS
+Markus Oberhumer - Wed Feb  2 13:16:17 PST 2000
+ * Fixed problem with short looping sounds
+Sam Lantinga - Tue Feb  1 13:25:44 PST 2000
+ * Added Visual C++ project file
+Markus Oberhumer - Tue Feb  1 13:23:11 PST 2000
+ * Cleaned up code for compiling with Visual C++
+ * Don't hang in Mix_HaltMusic() if the music is paused
+Sam Lantinga - Fri Jan 28 08:54:56 PST 2000
+ * Fixed looping WAVE chunks that are not aligned on sample boundaries
+
+1.0.3:
+Sam Lantinga - Mon Jan 17 19:48:09 PST 2000
+ * Changed the name of the library from "mixer" to "SDL_mixer"
+ * Instead of including "mixer.h", include "SDL_mixer.h",
+ * Instead of linking with libmixer.a, link with libSDL_mixer.a
+
+1.0.2:
+Sam Lantinga - Fri Jan 14 11:06:56 PST 2000
+ * Made the CHANGELOG entries Y2K compliant. :)
+MFX -	Updated the mikmod support to MikMod 3.1.8
+MFX -	Added Mix_HookMusicFinished() API function
+
+1.0.1:
+SOL -	Added a post-mixing callback
+SP  -	A few music-related bugfixes
+
+1.0.0:
+SOL -   Added autoconf support
+SP  -   Added MP3 support using SMPEG
+SP  -   Added fading in/out of music and samples
+SP  -   Added dynamic allocation of channels
+SP  -   Added channel grouping functions
+SP  -   Added expiration delay for samples
+
+Initial Key:
+SOL - Sam Lantinga (hercules@lokigames.com)
+SP  - Stephane Peter (megastep@lokigames.com)
+MFX - Markus Oberhumer (markus.oberhumer@jk.uni-linz.ac.at)
