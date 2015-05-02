@@ -1,0 +1,66 @@
+
+Libpng 1.2.38 - July 16, 2009
+
+This is a public release of libpng, intended for use in production codes.
+
+Files available for download:
+
+Source files with LF line endings (for Unix/Linux) and with a
+"configure" script
+
+   libpng-1.2.38.tar.gz
+   libpng-1.2.38.tar.lzma
+     (Get the lzma codec from <http://tukaani.org/lzma>).
+   libpng-1.2.38.tar.bz2
+
+Source files with LF line endings (for Unix/Linux) without the
+"configure" script
+
+   libpng-1.2.38-no-config.tar.gz
+   libpng-1.2.38-no-config.tar.lzma
+   libpng-1.2.38-no-config.tar.bz2
+
+Source files with CRLF line endings (for Windows), without the
+"configure" script
+
+   lpng1238.zip
+   lpng1238.7z
+   lpng1238.tar.bz2
+
+Project files
+
+   libpng-1.2.38-project-netware.zip
+   libpng-1.2.38-project-wince.zip
+
+Other information:
+
+   libpng-1.2.38-README.txt
+   libpng-1.2.38-KNOWNBUGS.txt
+   libpng-1.2.38-LICENSE.txt
+   libpng-1.2.38-Y2K-compliance.txt
+   libpng-1.2.38-[previous version]-diff.txt
+
+Changes since the last public release (1.2.37):
+
+version 1.2.38 [July 16, 2009]
+
+  Revised libpng*.txt and libpng.3 to mention calling png_set_IHDR()
+    multiple times and to specify the sample order in the tRNS chunk,
+    because the ISO PNG specification has a typo in the tRNS table.
+  Changed several PNG_UNKNOWN_CHUNK_SUPPORTED to
+    PNG_HANDLE_AS_UNKNOWN_SUPPORTED, to make the png_set_keep mechanism
+    available for ignoring known chunks even when not saving unknown chunks.
+  Added PNG_NO_HANDLE_AS_UNKNOWN in the PNG_LEGACY_SUPPORTED block of
+    pngconf.h, and moved the various unknown chunk macro definitions
+    outside of the PNG_READ|WRITE_ANCILLARY_CHUNK_SUPPORTED blocks.
+  Added a reference to the libpng license in each source file.
+  Rebuilt configure scripts with autoconf-2.63.
+
+
+
+Send comments/corrections/commendations to png-mng-implement at lists.sf.net
+(subscription required; visit
+https://lists.sourceforge.net/lists/listinfo/png-mng-implement
+to subscribe) or to glennrp at users.sourceforge.net
+
+Glenn R-P
