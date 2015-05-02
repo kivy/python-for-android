@@ -17,6 +17,8 @@ function shouldbuild_racecaptureapp() {
 
 function build_racecaptureapp() {
 
+    echo HostPython $HOSTPYTHON
+    echo CythonHost $CYTHON
     echo "build racecapture app"
 	cd $BUILD_racecaptureapp
 
@@ -27,10 +29,9 @@ function build_racecaptureapp() {
 	export PYTHONPATH=$SITEPACKAGES_PATH:$BUILDLIB_PATH
 
     # fake try to be able to cythonize generated files
-	$HOSTPYTHON setup.py build_ext
 	try find . -iname '*.pyx' -exec $CYTHON {} \;
-	try $HOSTPYTHON setup.py build_ext -v
-	try find build/lib.* -name "*.o" -exec $STRIP {} \;
+	try $HOSTPYTHON setup.py build_ext --inplace
+#	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 	try $HOSTPYTHON setup.py install -O2
 
 	unset LDSHARED
