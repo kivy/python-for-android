@@ -17,6 +17,7 @@ import io
 import json
 import shutil
 import fnmatch
+import re
 from datetime import datetime
 try:
     from urllib.request import FancyURLopener
@@ -40,23 +41,23 @@ def shprint(command, *args, **kwargs):
         stdout.write(line)
 
 
-def cache_execution(f):
-    def _cache_execution(self, *args, **kwargs):
-        state = self.ctx.state
-        key = "{}.{}".format(self.name, f.__name__)
-        force = kwargs.pop("force", False)
-        if args:
-            for arg in args:
-                key += ".{}".format(arg)
-        key_time = "{}.at".format(key)
-        if key in state and not force:
-            print("# (ignored) {} {}".format(f.__name__.capitalize(), self.name))
-            return
-        print("{} {}".format(f.__name__.capitalize(), self.name))
-        f(self, *args, **kwargs)
-        state[key] = True
-        state[key_time] = str(datetime.utcnow())
-    return _cache_execution
+# def cache_execution(f):
+#     def _cache_execution(self, *args, **kwargs):
+#         state = self.ctx.state
+#         key = "{}.{}".format(self.name, f.__name__)
+#         force = kwargs.pop("force", False)
+#         if args:
+#             for arg in args:
+#                 key += ".{}".format(arg)
+#         key_time = "{}.at".format(key)
+#         if key in state and not force:
+#             print("# (ignored) {} {}".format(f.__name__.capitalize(), self.name))
+#             return
+#         print("{} {}".format(f.__name__.capitalize(), self.name))
+#         f(self, *args, **kwargs)
+#         state[key] = True
+#         state[key_time] = str(datetime.utcnow())
+#     return _cache_execution
 
 
 class ChromeDownloader(FancyURLopener):
@@ -143,64 +144,102 @@ class Arch(object):
             for d in self.ctx.include_dirs]
 
         env = {}
-        env["CC"] = sh.xcrun("-find", "-sdk", self.sdk, "clang").strip()
-        env["AR"] = sh.xcrun("-find", "-sdk", self.sdk, "ar").strip()
-        env["LD"] = sh.xcrun("-find", "-sdk", self.sdk, "ld").strip()
-        env["OTHER_CFLAGS"] = " ".join(include_dirs)
+        # AND: Have to find out what CC, AR and LD should be
+        # env["CC"] = sh.xcrun("-find", "-sdk", self.sdk, "clang").strip()
+        # env["AR"] = sh.xcrun("-find", "-sdk", self.sdk, "ar").strip()
+        # env["LD"] = sh.xcrun("-find", "-sdk", self.sdk, "ld").strip()
+
+        # AND: Added flags manually, removed $OFLAG
+        env["OTHER_CFLAGS"] = " ".join(
+            include_dirs)
+        # AND: 
+
         env["OTHER_LDFLAGS"] = " ".join([
             "-L{}/{}".format(self.ctx.dist_dir, "lib"),
         ])
         env["CFLAGS"] = " ".join([
-            "-arch", self.arch,
-            "-pipe", "-no-cpp-precomp",
-            "--sysroot", self.sysroot,
-            #"-I{}/common".format(self.ctx.include_dir),
-            #"-I{}/{}".format(self.ctx.include_dir, self.arch),
-            "-O3",
-            self.version_min
-        ] + include_dirs)
-        env["LDFLAGS"] = " ".join([
-            "-arch", self.arch,
-            "--sysroot", self.sysroot,
-            "-L{}/{}".format(self.ctx.dist_dir, "lib"),
-            "-lsqlite3",
-            "-undefined", "dynamic_lookup",
-            self.version_min
-        ])
+            "-DANDROID", "-mandroid", "-fomit-frame-pointer",
+            "--sysroot", self.ctx.ndk_platform] +
+                                 include_dirs)
+        env["CXXFLAGS"] = env["CFLAGS"]
+        
+        env["LDFLAGS"] = " ".join(['-lm'])
+
+        py_platform = sys.platform
+        if py_platform in ['linux2', 'linux3']:
+            py_platform = 'linux'
+
+        if self.ctx.ndk_ver == 'r5b':
+            toolchain_prefix = 'arm-eabi'
+            toolchain_version = '4.4.0'
+        elif self.ctx.ndk_ver[:2] == 'r7':
+            toolchain_prefix = 'arm-linux-androideabi'
+            toolchain_version = '4.4.3'
+        elif self.ctx.ndk_ver[:2] == 'r9':
+            toolchain_prefix == 'arm-linux-androideabi'
+            toolchain_version = '4.9'
+        else:
+            print('Error: NDK not supported by these tools?')
+            exit()
+
+        env['TOOLCHAIN_PREFIX'] = toolchain_prefix
+        env['TOOLCHAIN_VERSION'] = toolchain_version
+
+        env['PATH'] = "{sdk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/tools:{path}".format(sdk_dir=sdk_dir, ndk_dir=ndk_dir, toolchain_prefix=toolchain_prefix, toolchain_version=toolchain_version, py_platform=py_platform, path=environ.get('PATH'))
+
+        env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
+            toolchain_prefix=toolchain_prefix,
+            cflags=env['CFLAGS'])
+        env['CXX'] = '{toolchain_prefix}-g++ {cxxflags}'.format(
+            toolchain_prefix=toolchain_prefix,
+            cxxflags=env['CXXFLAGS'])
+
+        # AND: Not sure if these are still important
+        env['AR'] = '{}-ar'.format(toolchain_prefix)
+        env['RANLIB'] = '{}-ranlib'.format(toolchain_prefix)
+        env['LD'] = '{}-ld'.format(toolchain_prefix)
+        env['STRIP'] = '{}-strip --strip-unneeded'.format(toolchain_prefix)
+        env['MAKE'] = 'make -j5'
+        env['READELF'] = '{}-readelf'.format(toolchain_prefix)
+
+        print('path is', env['PATH'])
+
         return env
 
 
+class ArchAndroid(Arch):
+    arch = "armeabi"
 
-class ArchSimulator(Arch):
-    sdk = "iphonesimulator"
-    arch = "i386"
-    triple = "i386-apple-darwin11"
-    version_min = "-miphoneos-version-min=6.0.0"
-    sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
-
-
-class Arch64Simulator(Arch):
-    sdk = "iphonesimulator"
-    arch = "x86_64"
-    triple = "x86_64-apple-darwin13"
-    version_min = "-miphoneos-version-min=7.0"
-    sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
+# class ArchSimulator(Arch):
+#     sdk = "iphonesimulator"
+#     arch = "i386"
+#     triple = "i386-apple-darwin11"
+#     version_min = "-miphoneos-version-min=6.0.0"
+#     sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
 
 
-class ArchIOS(Arch):
-    sdk = "iphoneos"
-    arch = "armv7"
-    triple = "arm-apple-darwin11"
-    version_min = "-miphoneos-version-min=6.0.0"
-    sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
+# class Arch64Simulator(Arch):
+#     sdk = "iphonesimulator"
+#     arch = "x86_64"
+#     triple = "x86_64-apple-darwin13"
+#     version_min = "-miphoneos-version-min=7.0"
+#     sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
 
 
-class Arch64IOS(Arch):
-    sdk = "iphoneos"
-    arch = "arm64"
-    triple = "aarch64-apple-darwin13"
-    version_min = "-miphoneos-version-min=7.0"
-    sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
+# class ArchIOS(Arch):
+#     sdk = "iphoneos"
+#     arch = "armv7"
+#     triple = "arm-apple-darwin11"
+#     version_min = "-miphoneos-version-min=6.0.0"
+#     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
+
+
+# class Arch64IOS(Arch):
+#     sdk = "iphoneos"
+#     arch = "arm64"
+#     triple = "aarch64-apple-darwin13"
+#     version_min = "-miphoneos-version-min=7.0"
+#     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
     
 
 class Graph(object):
@@ -249,15 +288,21 @@ class Graph(object):
 
 class Context(object):
     env = environ.copy()
-    root_dir = None
-    cache_dir = None
-    build_dir = None
-    dist_dir = None
-    install_dir = None
-    ccache = None
-    cython = None
-    sdkver = None
-    sdksimver = None
+    root_dir = None  # the filepath of toolchain.py
+    build_dir = None  # in which bootstraps are copied for building and recipes are built
+    dist_dir = None  # the Android project folder where everything ends up
+    ccache = None  # whether to use ccache
+    cython = None  # the cython interpreter name
+
+    sdk_dir = None  # the directory of the android sdk
+    ndk_dir = None  # the directory of the android ndk
+    ndk_platform = None  # the ndk platform directory
+    ndk_ver = None  # the ndk version, defaults to r9
+    android_api = None  # the android api target, defaults to 14
+    
+    dist_name = None
+    bootstrap = None 
+    bootstrap_build_dir = None
 
     def __init__(self):
         super(Context, self).__init__()
@@ -265,53 +310,71 @@ class Context(object):
 
         ok = True
 
-        sdks = sh.xcodebuild("-showsdks").splitlines()
-
-        # get the latest iphoneos
-        iphoneos = [x for x in sdks if "iphoneos" in x]
-        if not iphoneos:
-            print("No iphone SDK installed")
+        # AND: We should check for ndk-build and ant?
+        self.android_api = environ.get('ANDROIDAPI', 14)
+        self.ndk_ver = environ.get('ANDROIDNDKVER', 'r9')
+        self.sdk_dir = environ.get('ANDROIDSDK', None)
+        if self.sdk_dir is None:
+            ok = False
+        self.ndk_dir = environ.get('ANDROIDNDK', None)
+        if self.ndk_dir is None:
             ok = False
         else:
-            iphoneos = iphoneos[0].split()[-1].replace("iphoneos", "")
-            self.sdkver = iphoneos
-
-        # get the latest iphonesimulator version
-        iphonesim = [x for x in sdks if "iphonesimulator" in x]
-        if not iphonesim:
+            self.ndk_platform = join(
+                self.ndk_dir,
+                'platforms',
+                'android-{}'.format(self.android_api),
+                'arch-arm')
+        if not exists(self.ndk_platform):
+            print('ndk_platform doesn\'t exist')
             ok = False
-            print("Error: No iphonesimulator SDK installed")
-        else:
-            iphonesim = iphonesim[0].split()[-1].replace("iphonesimulator", "")
-            self.sdksimver = iphonesim
+                
 
-        # get the path for Developer
-        self.devroot = "{}/Platforms/iPhoneOS.platform/Developer".format(
-            sh.xcode_select("-print-path").strip())
+        # sdks = sh.xcodebuild("-showsdks").splitlines()
+        # AND: what is the equivalent? Do we care?
 
-        # path to the iOS SDK
-        self.iossdkroot = "{}/SDKs/iPhoneOS{}.sdk".format(
-            self.devroot, self.sdkver)
+        # # get the latest iphoneos
+        # iphoneos = [x for x in sdks if "iphoneos" in x]
+        # if not iphoneos:
+        #     print("No iphone SDK installed")
+        #     ok = False
+        # else:
+        #     iphoneos = iphoneos[0].split()[-1].replace("iphoneos", "")
+        #     self.sdkver = iphoneos
+        # AND: Assume the tools are installed for now
+
+        # # get the path for Developer
+        # self.devroot = "{}/iPhoneOS.platform/Developer".format(
+        #     sh.xcode_select("-print-path").strip())
+        # # path to the iOS SDK
+        # self.iossdkroot = "{}/SDKs/iPhoneOS{}.sdk".format(
+        #     self.devroot, self.sdkver)
+        # AND: Do we need Developer and SDK paths?
 
         # root of the toolchain
         self.root_dir = realpath(dirname(__file__))
         self.build_dir = "{}/build".format(self.root_dir)
         self.cache_dir = "{}/.cache".format(self.root_dir)
         self.dist_dir = "{}/dist".format(self.root_dir)
+        # AND: Are the install_dir and include_dir the same for Android?
         self.install_dir = "{}/dist/root".format(self.root_dir)
         self.include_dir = "{}/dist/include".format(self.root_dir)
         self.archs = (
-            ArchSimulator(self),
-            Arch64Simulator(self),
-            ArchIOS(self),
-            Arch64IOS(self))
+            ArchAndroid(self),  # AND: Just 32 bit for now?
+            )
+        # self.archs = (
+        #     ArchSimulator(self),
+        #     Arch64Simulator(self),
+        #     ArchIOS(self),
+        #     Arch64IOS(self))
 
+        # AND: ccache should be the same here?
         # path to some tools
         self.ccache = sh.which("ccache")
         if not self.ccache:
             #print("ccache is missing, the build will not be optimized in the future.")
             pass
-        for cython_fn in ("cython-2.7", "cython"):
+        for cython_fn in ("cython2", "cython-2.7", "cython"):
             cython = sh.which(cython_fn)
             if cython:
                 self.cython = cython
@@ -320,8 +383,10 @@ class Context(object):
             ok = False
             print("Missing requirement: cython is not installed")
 
+        # AND: Are these necessary? Where to check for and and ndk-build?
         # check the basic tools
-        for tool in ("pkg-config", "autoconf", "automake", "libtool"):
+        for tool in ("pkg-config", "autoconf", "automake", "libtool",
+                     "tar", "bzip2", "unzip", "make", "gcc", "g++"):
             if not sh.which(tool):
                 print("Missing requirement: {} is not installed".format(
                     tool))
@@ -334,12 +399,11 @@ class Context(object):
         ensure_dir(self.cache_dir)
         ensure_dir(self.dist_dir)
         ensure_dir(self.install_dir)
-        ensure_dir(self.include_dir)
-        ensure_dir(join(self.include_dir, "common"))
 
-        # remove the most obvious flags that can break the compilation
-        self.env.pop("MACOSX_DEPLOYMENT_TARGET", None)
-        self.env.pop("PYTHONDONTWRITEBYTECODE", None)
+        ensure_dir(join(self.build_dir, 'bootstrap_builds'))
+        ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
+
+        # # remove the most obvious flags that can break the compilation
         self.env.pop("ARCHFLAGS", None)
         self.env.pop("CFLAGS", None)
         self.env.pop("LDFLAGS", None)
@@ -347,6 +411,67 @@ class Context(object):
         # set the state
         self.state = JsonStore(join(self.dist_dir, "state.db"))
 
+    def prepare_bootstrap(self, bs):
+        bs.ctx = self
+        self.bootstrap = bs
+        self.bootstrap.prepare_build_dir()
+        self.bootstrap_build_dir = self.bootstrap.build_dir
+
+    def prepare_dist(self, name):
+        self.dist_name = name
+        self.bootstrap.prepare_dist_dir(self.dist_name)
+
+
+
+class Bootstrap(object):
+    '''An Android project template, containing recipe stuff for
+    compilation and templated fields for APK info.
+    '''
+    bootstrap_template_dir = ''
+    jni_subdir = '/jni'
+    ctx = None
+
+    build_dir = None
+    dist_dir = None
+    dist_name = None
+
+    # supported_recipes = [] # only necessary if we don't implement
+    # jni dir copying
+
+    # Other things a Bootstrap might need to track (maybe separately):
+    # ndk_main.c
+    # whitelist.txt
+    # blacklist.txt
+    #  
+
+    @property
+    def jni_dir(self):
+        return self.bootstrap_template_dir + self.jni_subdir
+
+    def prepare_build_dir(self):
+        self.build_dir = join(self.ctx.build_dir, 'bootstrap_builds',
+                              self.bootstrap_template_dir)
+        shprint(sh.cp, '-r',
+                join(self.ctx.root_dir,
+                     'bootstrap_templates',
+                     self.bootstrap_template_dir),
+                self.build_dir)
+
+    def prepare_dist_dir(self, name):
+        self.dist_dir = join(self.ctx.dist_dir, name + '_' +
+                             self.bootstrap_template_dir)
+        shprint(sh.cp, '-r',
+                join(self.ctx.root_dir,
+                     'bootstrap_templates',
+                     self.bootstrap_template_dir),
+                self.dist_dir)
+
+
+class PygameBootstrap(Bootstrap):
+    bootstrap_template_dir = 'pygame'
+
+    
+        
 
 class Recipe(object):
     version = None
@@ -361,6 +486,8 @@ class Recipe(object):
     sources = []
     pbx_frameworks = []
     pbx_libraries = []
+
+    can_compile_standalone = True
 
     # API available for recipes
     def download_file(self, url, filename, cwd=None):
@@ -563,7 +690,7 @@ class Recipe(object):
             return
         return d
 
-    @cache_execution
+    # @cache_execution
     def download(self):
         key = "{}.archive_root".format(self.name)
         if self.custom_dir:
@@ -578,7 +705,7 @@ class Recipe(object):
                 self.download_file(self.url.format(version=self.version), fn)
             self.ctx.state[key] = self.get_archive_rootdir(self.archive_fn)
 
-    @cache_execution
+    # @cache_execution
     def extract(self):
         # recipe tmp directory
         for arch in self.filtered_archs:
@@ -602,7 +729,7 @@ class Recipe(object):
             ensure_dir(build_dir)
             self.extract_file(self.archive_fn, build_dir) 
 
-    @cache_execution
+    # @cache_execution
     def build(self, arch):
         self.build_dir = self.get_build_dir(arch.arch)
         if self.has_marker("building"):
@@ -628,7 +755,7 @@ class Recipe(object):
         self.delete_marker("building")
         self.set_marker("build_done")
 
-    @cache_execution
+    # @cache_execution
     def build_all(self):
         filtered_archs = self.filtered_archs
         print("Build {} for {} (filtered)".format(
@@ -677,7 +804,7 @@ class Recipe(object):
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
 
-    @cache_execution
+    # @cache_execution
     def make_lipo(self, filename, library=None):
         if library is None:
             library = self.library
@@ -691,7 +818,7 @@ class Recipe(object):
                 join(self.get_build_dir(arch.arch), library_fn)]
         shprint(sh.lipo, "-create", "-output", filename, *args)
 
-    @cache_execution
+    # @cache_execution
     def install_frameworks(self):
         if not self.frameworks:
             return
@@ -706,7 +833,7 @@ class Recipe(object):
                 shutil.rmtree(dest)
             shutil.copytree(src, dest)
 
-    @cache_execution
+    # @cache_execution
     def install_sources(self):
         if not self.sources:
             return
@@ -721,7 +848,7 @@ class Recipe(object):
                 shutil.rmtree(dest)
             shutil.copytree(src, dest)
 
-    @cache_execution
+    # @cache_execution
     def install_include(self):
         if not self.include_dir:
             return
@@ -759,7 +886,7 @@ class Recipe(object):
                     ensure_dir(dirname(dest))
                     shutil.copy(src_dir, dest)
 
-    @cache_execution
+    # @cache_execution
     def install(self):
         pass
 
@@ -782,9 +909,15 @@ class Recipe(object):
         recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
         return recipe
 
+class NDKRecipe(Recipe):
+    can_compile_standalone = False
+
+    def download(self, *args):
+        return False
+    
 
 class PythonRecipe(Recipe):
-    @cache_execution
+    # @cache_execution
     def install(self):
         self.install_python_package()
         self.reduce_python_package()
@@ -914,77 +1047,6 @@ def ensure_dir(filename):
         makedirs(filename)
 
 
-def update_pbxproj(filename):
-    # list all the compiled recipes
-    ctx = Context()
-    pbx_libraries = []
-    pbx_frameworks = []
-    frameworks = []
-    libraries = []
-    sources = []
-    for recipe in Recipe.list_recipes():
-        key = "{}.build_all".format(recipe)
-        if key not in ctx.state:
-            continue
-        recipe = Recipe.get_recipe(recipe, ctx)
-        recipe.init_with_ctx(ctx)
-        pbx_frameworks.extend(recipe.pbx_frameworks)
-        pbx_libraries.extend(recipe.pbx_libraries)
-        libraries.extend(recipe.dist_libraries)
-        frameworks.extend(recipe.frameworks)
-        if recipe.sources:
-            sources.append(recipe.name)
-
-    pbx_frameworks = list(set(pbx_frameworks))
-    pbx_libraries = list(set(pbx_libraries))
-    libraries = list(set(libraries))
-
-    print("-" * 70)
-    print("The project need to have:")
-    print("iOS Frameworks: {}".format(pbx_frameworks))
-    print("iOS Libraries: {}".format(pbx_libraries))
-    print("iOS local Frameworks: {}".format(frameworks))
-    print("Libraries: {}".format(libraries))
-    print("Sources to link: {}".format(sources))
-
-    print("-" * 70)
-    print("Analysis of {}".format(filename))
-
-    from mod_pbxproj import XcodeProject
-    project = XcodeProject.Load(filename)
-    sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
-
-    group = project.get_or_create_group("Frameworks")
-    g_classes = project.get_or_create_group("Classes")
-    for framework in pbx_frameworks:
-        framework_name = "{}.framework".format(framework)
-        if framework_name in frameworks:
-            print("Ensure {} is in the project (local)".format(framework))
-            f_path = join(ctx.dist_dir, "frameworks", framework_name)
-        else:
-            print("Ensure {} is in the project (system)".format(framework))
-            f_path = join(sysroot, "System", "Library", "Frameworks",
-                          "{}.framework".format(framework))
-        project.add_file_if_doesnt_exist(f_path, parent=group, tree="DEVELOPER_DIR")
-    for library in pbx_libraries:
-        print("Ensure {} is in the project".format(library))
-        f_path = join(sysroot, "usr", "lib",
-                      "{}.dylib".format(library))
-        project.add_file_if_doesnt_exist(f_path, parent=group, tree="DEVELOPER_DIR")
-    for library in libraries:
-        print("Ensure {} is in the project".format(library))
-        project.add_file_if_doesnt_exist(library, parent=group)
-    for name in sources:
-        print("Ensure {} sources are used".format(name))
-        fn = join(ctx.dist_dir, "sources", name)
-        project.add_folder(fn, parent=g_classes)
-
-
-    if project.modified:
-        project.backup()
-        project.save()
-
-
 if __name__ == "__main__":
     import argparse
     
@@ -993,6 +1055,9 @@ if __name__ == "__main__":
             parser = argparse.ArgumentParser(
                     description="Tool for managing the iOS / Python toolchain",
                     usage="""toolchain <command> [<args>]
+
+Currently available commands:
+    create_android_project    Build an android project with all recipes
                     
 Available commands:
     build         Build a specific recipe
@@ -1000,10 +1065,6 @@ Available commands:
     distclean     Clean the build and the result
     recipes       List all the available recipes
     status        List all the recipes and their build status
-
-Xcode:
-    create        Create a new xcode project
-    update        Update an existing xcode project (frameworks, libraries..)
 """)
             parser.add_argument("command", help="Command to run")
             args = parser.parse_args(sys.argv[1:2])
@@ -1013,19 +1074,19 @@ Xcode:
                 exit(1)
             getattr(self, args.command)()
 
-        def build(self):
-            parser = argparse.ArgumentParser(
-                    description="Build the toolchain")
-            parser.add_argument("recipe", nargs="+", help="Recipe to compile")
-            parser.add_argument("--arch", help="Restrict compilation to this arch")
-            args = parser.parse_args(sys.argv[2:])
+        # def build(self):
+        #     parser = argparse.ArgumentParser(
+        #             description="Build the toolchain")
+        #     parser.add_argument("recipe", nargs="+", help="Recipe to compile")
+        #     parser.add_argument("--arch", help="Restrict compilation to this arch")
+        #     args = parser.parse_args(sys.argv[2:])
 
-            ctx = Context()
-            if args.arch:
-                archs = args.arch.split()
-                ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
-                print("Architectures restricted to: {}".format(archs))
-            build_recipes(args.recipe, ctx)
+        #     ctx = Context()
+        #     # if args.arch:
+        #     #     archs = args.arch.split()
+        #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
+        #     #     print("Architectures restricted to: {}".format(archs))
+        #     build_recipes(args.recipe, ctx)
 
         def recipes(self):
             parser = argparse.ArgumentParser(
@@ -1044,108 +1105,139 @@ Xcode:
                     print("{recipe.name:<12} {recipe.version:<8}".format(
                           recipe=recipe))
 
-        def clean(self):
+        # def clean(self):
+        #     parser = argparse.ArgumentParser(
+        #             description="Clean the build")
+        #     parser.add_argument("recipe", nargs="*", help="Recipe to clean")
+        #     args = parser.parse_args(sys.argv[2:])
+        #     ctx = Context()
+        #     if args.recipe:
+        #         for recipe in args.recipe:
+        #             print("Cleaning {} build".format(recipe))
+        #             ctx.state.remove_all("{}.".format(recipe))
+        #             build_dir = join(ctx.build_dir, recipe)
+        #             if exists(build_dir):
+        #                 shutil.rmtree(build_dir)
+        #     else:
+        #         print("Delete build directory")
+        #         if exists(ctx.build_dir):
+        #             shutil.rmtree(ctx.build_dir)
+
+        # def distclean(self):
+        #     parser = argparse.ArgumentParser(
+        #             description="Clean the build, download and dist")
+        #     args = parser.parse_args(sys.argv[2:])
+        #     ctx = Context()
+        #     if exists(ctx.build_dir):
+        #         shutil.rmtree(ctx.build_dir)
+        #     if exists(ctx.dist_dir):
+        #         shutil.rmtree(ctx.dist_dir)
+        #     if exists(ctx.cache_dir):
+        #         shutil.rmtree(ctx.cache_dir)
+
+        # def status(self):
+        #     parser = argparse.ArgumentParser(
+        #             description="Give a status of the build")
+        #     args = parser.parse_args(sys.argv[2:])
+        #     ctx = Context()
+        #     for recipe in Recipe.list_recipes():
+        #         key = "{}.build_all".format(recipe)
+        #         keytime = "{}.build_all.at".format(recipe)
+
+        #         if key in ctx.state:
+        #             status = "Build OK (built at {})".format(ctx.state[keytime])
+        #         else:
+        #             status = "Not built"
+        #         print("{:<12} - {}".format(
+        #             recipe, status))
+
+        def create_android_project(self):
+            '''Create a distribution directory if it doesn't already exist, run
+            any recipes if necessary, and build the apk.
+            '''
             parser = argparse.ArgumentParser(
-                    description="Clean the build")
-            parser.add_argument("recipe", nargs="*", help="Recipe to clean")
+                description='Create a new Android project')
+            parser.add_argument('--name', help='The name of the project')
+            parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
+                                                   'or \'sdl2\''))
+            parser.add_argument('--python_dir', help='Directory of your python code')
+            parser.add_argument('--recipes', help='Recipes to include',
+                                default='kivy,')
             args = parser.parse_args(sys.argv[2:])
-            ctx = Context()
-            if args.recipe:
-                for recipe in args.recipe:
-                    print("Cleaning {} build".format(recipe))
-                    ctx.state.remove_all("{}.".format(recipe))
-                    build_dir = join(ctx.build_dir, recipe)
-                    if exists(build_dir):
-                        shutil.rmtree(build_dir)
+
+            if args.bootstrap == 'pygame':
+                bs = PygameBootstrap()
             else:
-                print("Delete build directory")
-                if exists(ctx.build_dir):
-                    shutil.rmtree(ctx.build_dir)
+                raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
 
-        def distclean(self):
-            parser = argparse.ArgumentParser(
-                    description="Clean the build, download and dist")
-            args = parser.parse_args(sys.argv[2:])
             ctx = Context()
-            if exists(ctx.build_dir):
-                shutil.rmtree(ctx.build_dir)
-            if exists(ctx.dist_dir):
-                shutil.rmtree(ctx.dist_dir)
-            if exists(ctx.cache_dir):
-                shutil.rmtree(ctx.cache_dir)
+            ctx.dist_name = args.name
+            ctx.prepare_bootstrap(bs)
+            ctx.prepare_dist(ctx.dist_name)
 
-        def status(self):
-            parser = argparse.ArgumentParser(
-                    description="Give a status of the build")
-            args = parser.parse_args(sys.argv[2:])
-            ctx = Context()
-            for recipe in Recipe.list_recipes():
-                key = "{}.build_all".format(recipe)
-                keytime = "{}.build_all.at".format(recipe)
-
-                if key in ctx.state:
-                    status = "Build OK (built at {})".format(ctx.state[keytime])
-                else:
-                    status = "Not built"
-                print("{:<12} - {}".format(
-                    recipe, status))
-
-        def create(self):
-            parser = argparse.ArgumentParser(
-                    description="Create a new xcode project")
-            parser.add_argument("name", help="Name of your project")
-            parser.add_argument("directory", help="Directory where your project live")
-            args = parser.parse_args(sys.argv[2:])
+            recipes = re.split('[, ]*', args.recipes)
+            print('Recipes are', recipes)
+            ctx.archs = ['armeabi']
             
-            from cookiecutter.main import cookiecutter
-            ctx = Context()
-            template_dir = join(curdir, "tools", "templates")
-            context = {
-                "title": args.name,
-                "project_name": args.name.lower(),
-                "domain_name": "org.kivy.{}".format(args.name.lower()),
-                "project_dir": realpath(args.directory),
-                "version": "1.0.0",
-                "dist_dir": ctx.dist_dir,
-            }
-            cookiecutter(template_dir, no_input=True, extra_context=context)
-            filename = join(
-                    getcwd(),
-                    "{}-ios".format(args.name.lower()),
-                    "{}.xcodeproj".format(args.name.lower()),
-                    "project.pbxproj")
-            update_pbxproj(filename)
-            print("--")
-            print("Project directory : {}-ios".format(
-                args.name.lower()))
-            print("XCode project     : {0}-ios/{0}.xcodeproj".format(
-                args.name.lower()))
 
-        def update(self):
-            parser = argparse.ArgumentParser(
-                    description="Update an existing xcode project")
-            parser.add_argument("filename", help="Path to your project or xcodeproj")
-            args = parser.parse_args(sys.argv[2:])
+            
+
+        # def create(self):
+        #     parser = argparse.ArgumentParser(
+        #             description="Create a new xcode project")
+        #     parser.add_argument("name", help="Name of your project")
+        #     parser.add_argument("directory", help="Directory where your project live")
+        #     args = parser.parse_args(sys.argv[2:])
+            
+        #     from cookiecutter.main import cookiecutter
+        #     ctx = Context()
+        #     template_dir = join(curdir, "tools", "templates")
+        #     context = {
+        #         "title": args.name,
+        #         "project_name": args.name.lower(),
+        #         "domain_name": "org.kivy.{}".format(args.name.lower()),
+        #         "project_dir": realpath(args.directory),
+        #         "version": "1.0.0",
+        #         "dist_dir": ctx.dist_dir,
+        #     }
+        #     cookiecutter(template_dir, no_input=True, extra_context=context)
+        #     filename = join(
+        #             getcwd(),
+        #             "{}-ios".format(args.name.lower()),
+        #             "{}.xcodeproj".format(args.name.lower()),
+        #             "project.pbxproj")
+        #     update_pbxproj(filename)
+        #     print("--")
+        #     print("Project directory : {}-ios".format(
+        #         args.name.lower()))
+        #     print("XCode project     : {0}-ios/{0}.xcodeproj".format(
+        #         args.name.lower()))
+
+        # def update(self):
+        #     parser = argparse.ArgumentParser(
+        #             description="Update an existing xcode project")
+        #     parser.add_argument("filename", help="Path to your project or xcodeproj")
+        #     args = parser.parse_args(sys.argv[2:])
 
 
-            filename = args.filename
-            if not filename.endswith(".xcodeproj"):
-                # try to find the xcodeproj
-                from glob import glob
-                xcodeproj = glob(join(filename, "*.xcodeproj"))
-                if not xcodeproj:
-                    print("ERROR: Unable to find a xcodeproj in {}".format(filename))
-                    sys.exit(1)
-                filename = xcodeproj[0]
+        #     filename = args.filename
+        #     if not filename.endswith(".xcodeproj"):
+        #         # try to find the xcodeproj
+        #         from glob import glob
+        #         xcodeproj = glob(join(filename, "*.xcodeproj"))
+        #         if not xcodeproj:
+        #             print("ERROR: Unable to find a xcodeproj in {}".format(filename))
+        #             sys.exit(1)
+        #         filename = xcodeproj[0]
 
-            filename = join(filename, "project.pbxproj")
-            if not exists(filename):
-                print("ERROR: {} not found".format(filename))
-                sys.exit(1)
+        #     filename = join(filename, "project.pbxproj")
+        #     if not exists(filename):
+        #         print("ERROR: {} not found".format(filename))
+        #         sys.exit(1)
 
-            update_pbxproj(filename)
-            print("--")
-            print("Project {} updated".format(filename))
+        #     update_pbxproj(filename)
+        #     print("--")
+        #     print("Project {} updated".format(filename))
 
 
     ToolchainCL()
