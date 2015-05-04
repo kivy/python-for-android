@@ -1,0 +1,91 @@
+--- Python-2.7.2.orig/Modules/pwdmodule.c	2010-08-16 22:30:26.000000000 +0200
++++ Python-2.7.2/Modules/pwdmodule.c	2011-04-20 17:52:12.000000000 +0200
+@@ -75,11 +75,7 @@
+ #endif
+     SETI(setIndex++, p->pw_uid);
+     SETI(setIndex++, p->pw_gid);
+-#ifdef __VMS
+     SETS(setIndex++, "");
+-#else
+-    SETS(setIndex++, p->pw_gecos);
+-#endif
+     SETS(setIndex++, p->pw_dir);
+     SETS(setIndex++, p->pw_shell);
+ 
+--- Python-2.7.2.orig/Modules/posixmodule.c	2010-11-26 18:35:50.000000000 +0100
++++ Python-2.7.2/Modules/posixmodule.c	2011-04-20 17:52:12.000000000 +0200
+@@ -3775,13 +3775,6 @@
+     slave_fd = open(slave_name, O_RDWR | O_NOCTTY); /* open slave */
+     if (slave_fd < 0)
+         return posix_error();
+-#if !defined(__CYGWIN__) && !defined(HAVE_DEV_PTC)
+-    ioctl(slave_fd, I_PUSH, "ptem"); /* push ptem */
+-    ioctl(slave_fd, I_PUSH, "ldterm"); /* push ldterm */
+-#ifndef __hpux
+-    ioctl(slave_fd, I_PUSH, "ttcompat"); /* push ttcompat */
+-#endif /* __hpux */
+-#endif /* HAVE_CYGWIN */
+ #endif /* HAVE_OPENPTY */
+ 
+     return Py_BuildValue("(ii)", master_fd, slave_fd);
+--- Python-2.7.2.orig/Objects/stringlib/formatter.h	2010-08-01 12:45:15.000000000 +0200
++++ Python-2.7.2/Objects/stringlib/formatter.h	2011-04-20 17:52:12.000000000 +0200
+@@ -639,13 +639,7 @@
+ get_locale_info(int type, LocaleInfo *locale_info)
+ {
+     switch (type) {
+-    case LT_CURRENT_LOCALE: {
+-        struct lconv *locale_data = localeconv();
+-        locale_info->decimal_point = locale_data->decimal_point;
+-        locale_info->thousands_sep = locale_data->thousands_sep;
+-        locale_info->grouping = locale_data->grouping;
+-        break;
+-    }
++    case LT_CURRENT_LOCALE:
+     case LT_DEFAULT_LOCALE:
+         locale_info->decimal_point = ".";
+         locale_info->thousands_sep = ",";
+--- Python-2.7.2.orig/Objects/stringlib/localeutil.h	2009-04-22 15:29:05.000000000 +0200
++++ Python-2.7.2/Objects/stringlib/localeutil.h	2011-04-20 17:52:12.000000000 +0200
+@@ -202,9 +202,8 @@
+                                   Py_ssize_t n_digits,
+                                   Py_ssize_t min_width)
+ {
+-        struct lconv *locale_data = localeconv();
+-        const char *grouping = locale_data->grouping;
+-        const char *thousands_sep = locale_data->thousands_sep;
++        const char *grouping = "\3\0";
++        const char *thousands_sep = ",";
+ 
+         return _Py_InsertThousandsGrouping(buffer, n_buffer, digits, n_digits,
+                                            min_width, grouping, thousands_sep);
+--- Python-2.7.2.orig/Python/pystrtod.c	2010-05-09 16:46:46.000000000 +0200
++++ Python-2.7.2/Python/pystrtod.c	2011-04-20 17:52:12.000000000 +0200
+@@ -126,7 +126,6 @@
+ {
+     char *fail_pos;
+     double val = -1.0;
+-    struct lconv *locale_data;
+     const char *decimal_point;
+     size_t decimal_point_len;
+     const char *p, *decimal_point_pos;
+@@ -138,8 +137,7 @@
+ 
+     fail_pos = NULL;
+ 
+-    locale_data = localeconv();
+-    decimal_point = locale_data->decimal_point;
++    decimal_point = ".";
+     decimal_point_len = strlen(decimal_point);
+ 
+     assert(decimal_point_len != 0);
+@@ -375,8 +373,7 @@
+ Py_LOCAL_INLINE(void)
+ change_decimal_from_locale_to_dot(char* buffer)
+ {
+-    struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+ 
+     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+         size_t decimal_point_len = strlen(decimal_point);

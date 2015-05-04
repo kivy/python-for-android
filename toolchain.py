@@ -6,6 +6,8 @@ Tool for compiling Android toolchain
 This tool intend to replace all the previous tools/ in shell script.
 """
 
+from __future__ import print_function
+
 import sys
 from sys import stdout
 from os.path import join, dirname, realpath, exists, isdir, basename
@@ -24,6 +26,8 @@ try:
 except ImportError:
     from urllib import FancyURLopener
 
+import requests
+
 curdir = dirname(__file__)
 sys.path.insert(0, join(curdir, "tools", "external"))
 
@@ -37,8 +41,26 @@ def shprint(command, *args, **kwargs):
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
-    for line in command(*args, **kwargs):
+    output = command(*args, **kwargs)
+    for line in output:
         stdout.write(line)
+    return output
+
+def get_directory(filename):
+    if filename.endswith('.tar.gz'):
+        return basename(filename[:-7])
+    elif filename.endswith('.tgz'):
+        return basename(filename[:-4])
+    elif filename.endswith('.tar.bz2'):
+        return basename(filename[:-8])
+    elif filename.endswith('.tbz2'):
+        return basename(filename[:-5])
+    elif filename.endswith('.zip'):
+        return basename(filename[:-4])
+    print('Unknown file extension for {}'.format(filename))
+    exit(1)
+    
+    
 
 
 # def cache_execution(f):
@@ -304,6 +326,11 @@ class Context(object):
     bootstrap = None 
     bootstrap_build_dir = None
 
+    @property
+    def packages_path(self):
+        '''Where packages are downloaded before being unpacked'''
+        return join(self.root_dir, '.packages')
+
     def __init__(self):
         super(Context, self).__init__()
         self.include_dirs = []
@@ -476,16 +503,19 @@ class PygameBootstrap(Bootstrap):
 class Recipe(object):
     version = None
     url = None
-    archs = []
+    md5sum = None
     depends = []
-    library = None
-    libraries = []
-    include_dir = None
-    include_per_arch = False
-    frameworks = []
-    sources = []
-    pbx_frameworks = []
-    pbx_libraries = []
+
+    name = None  # name for the recipe dir
+
+    archs = ['armeabi']  # will android use this?
+
+    # library = None
+    # libraries = []
+    # include_dir = None
+    # include_per_arch = False
+    # frameworks = []
+    # sources = []
 
     can_compile_standalone = True
 
@@ -537,19 +567,19 @@ class Recipe(object):
                 filename))
             raise Exception()
 
-    def get_archive_rootdir(self, filename):
-        if filename.endswith(".tgz") or filename.endswith(".tar.gz") or \
-            filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
-            archive = tarfile.open(filename)
-            root = archive.next().path.split("/")
-            return root[0]
-        elif filename.endswith(".zip"):
-            with zipfile.ZipFile(filename) as zf:
-                return dirname(zf.namelist()[0])
-        else:
-            print("Error: cannot detect root directory")
-            print("Unrecognized extension for {}".format(filename))
-            raise Exception()
+    # def get_archive_rootdir(self, filename):
+    #     if filename.endswith(".tgz") or filename.endswith(".tar.gz") or \
+    #         filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
+    #         archive = tarfile.open(filename)
+    #         root = archive.next().path.split("/")
+    #         return root[0]
+    #     elif filename.endswith(".zip"):
+    #         with zipfile.ZipFile(filename) as zf:
+    #             return dirname(zf.namelist()[0])
+    #     else:
+    #         print("Error: cannot detect root directory")
+    #         print("Unrecognized extension for {}".format(filename))
+    #         raise Exception()
 
     def apply_patch(self, filename):
         """
@@ -575,85 +605,195 @@ class Recipe(object):
         with open(dest, "ab") as fd:
             fd.write(data)
 
-    def has_marker(self, marker):
-        """
-        Return True if the current build directory has the marker set
-        """
-        return exists(join(self.build_dir, ".{}".format(marker)))
+    # def has_marker(self, marker):
+    #     """
+    #     Return True if the current build directory has the marker set
+    #     """
+    #     return exists(join(self.build_dir, ".{}".format(marker)))
 
-    def set_marker(self, marker):
-        """
-        Set a marker info the current build directory
-        """
-        with open(join(self.build_dir, ".{}".format(marker)), "w") as fd:
-            fd.write("ok")
+    # def set_marker(self, marker):
+    #     """
+    #     Set a marker info the current build directory
+    #     """
+    #     with open(join(self.build_dir, ".{}".format(marker)), "w") as fd:
+    #         fd.write("ok")
 
-    def delete_marker(self, marker):
-        """
-        Delete a specific marker
-        """
-        try:
-            unlink(join(self.build_dir, ".{}".format(marker)))
-        except:
-            pass
+    # def delete_marker(self, marker):
+    #     """
+    #     Delete a specific marker
+    #     """
+    #     try:
+    #         unlink(join(self.build_dir, ".{}".format(marker)))
+    #     except:
+    #         pass
 
-    def get_include_dir(self):
-        """
-        Return the common include dir for this recipe
-        """
-        return join(self.ctx.include_dir, "common", self.name)
 
     @property
     def name(self):
         modname = self.__class__.__module__
         return modname.split(".", 1)[-1]
 
-    @property
-    def archive_fn(self):
-        bfn = basename(self.url.format(version=self.version))
-        fn = "{}/{}-{}".format(
-            self.ctx.cache_dir,
-            self.name, bfn)
-        return fn
+    # @property
+    # def archive_fn(self):
+    #     bfn = basename(self.url.format(version=self.version))
+    #     fn = "{}/{}-{}".format(
+    #         self.ctx.cache_dir,
+    #         self.name, bfn)
+    #     return fn
 
-    @property
-    def filtered_archs(self):
-        result = []
-        for arch in self.ctx.archs:
-            if not self.archs or (arch.arch in self.archs):
-                result.append(arch)
-        return result
+    # @property
+    # def filtered_archs(self):
+    #     result = []
+    #     for arch in self.ctx.archs:
+    #         if not self.archs or (arch.arch in self.archs):
+    #             result.append(arch)
+    #     return result
 
-    @property
-    def dist_libraries(self):
-        libraries = []
-        name = self.name
-        if not name.startswith("lib"):
-            name = "lib{}".format(name)
-        if self.library:
-            static_fn = join(self.ctx.dist_dir, "lib", "{}.a".format(name))
-            libraries.append(static_fn)
-        for library in self.libraries:
-            static_fn = join(self.ctx.dist_dir, "lib", basename(library))
-            libraries.append(static_fn)
-        return libraries
+    # @property
+    # def dist_libraries(self):
+    #     libraries = []
+    #     name = self.name
+    #     if not name.startswith("lib"):
+    #         name = "lib{}".format(name)
+    #     if self.library:
+    #         static_fn = join(self.ctx.dist_dir, "lib", "{}.a".format(name))
+    #         libraries.append(static_fn)
+    #     for library in self.libraries:
+    #         static_fn = join(self.ctx.dist_dir, "lib", basename(library))
+    #         libraries.append(static_fn)
+    #     return libraries
 
     def get_build_dir(self, arch):
-        return join(self.ctx.build_dir, self.name, arch, self.archive_root)
+        return join(self.ctx.build_dir, 'other_builds', self.name, arch)
 
     # Public Recipe API to be subclassed if needed
 
-    def init_with_ctx(self, ctx):
+    # def init_with_ctx(self, ctx):
+    #     self.ctx = ctx
+    #     include_dir = None
+    #     if self.include_dir:
+    #         if self.include_per_arch:
+    #             include_dir = join("{arch.arch}", self.name)
+    #         else:
+    #             include_dir = join("common", self.name)
+    #     if include_dir:
+    #         #print("Include dir added: {}".format(include_dir))
+    #         self.ctx.include_dirs.append(include_dir)
+
+    def prepare_build_dir(self, ctx):
+        print('Preparing build dir for {}'.format(self.name))
         self.ctx = ctx
-        include_dir = None
-        if self.include_dir:
-            if self.include_per_arch:
-                include_dir = join("{arch.arch}", self.name)
+
+        build_dir = join(ctx.build_dir, 'other_builds', self.name)
+        
+        user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
+        if user_dir is not None:
+            print('P4A_{}_DIR exists, symlinking instead of downloading'.format(
+                self.name.lower()))
+            shprint(sh.rm, '-rf', build_dir)
+            shprint(sh.mkdir, '-p', build_dir)
+            shprint(sh.rmdir, build_dir)
+            shprint(sh.ln, '-s', user_dir, build_dir)
+
+
+        if self.url is None:
+            print('Nothing to do for {} recipe preparation'.format(self.name))
+            return
+
+        print('Preparing and downloading {}'.format(self.name))
+
+        shprint(sh.mkdir, '-p', join(build_dir))
+        shprint(sh.mkdir, '-p', join(ctx.packages_path, self.name))
+        
+        print('Moving to', join(ctx.packages_path, self.name))
+        chdir(join(ctx.packages_path, self.name))
+
+        url = self.url.format(version=self.version)
+        print('Will download from {}'.format(url))
+        filename = shprint(sh.basename, url).stdout[:-1]
+        marker_filename = '.mark-{}'.format(filename)
+        do_download = True
+        print('filename is', filename)
+        
+        if exists(filename):
+            if not exists(marker_filename):
+                shprint(sh.rm, filename)
+            elif self.md5sum:
+                current_md5 = shprint(sh.md5sum, filename)
+                print('downloaded md5: {}'.format(current_md5))
+                print('expected md5: {}'.format(self.md5sum))
+                print('md5 not handled yet, exiting')
+                exit(1)
             else:
-                include_dir = join("common", self.name)
-        if include_dir:
-            #print("Include dir added: {}".format(include_dir))
-            self.ctx.include_dirs.append(include_dir)
+                do_download = False
+                print('{} download already cached'.format(self.name))
+
+        # Should check headers here!
+        print('Should check headers here! Skipping for now.')
+
+        # If we got this far, we will download
+        if do_download:
+            print('Downloading {} from {}'.format(self.name, url))
+
+            # AND: Should use requests or something for this?
+            shprint(sh.rm, '-f', marker_filename)
+            #shprint(sh.wget, filename, url)
+            r = requests.get(url)
+            with open(filename, 'wb') as fileh:
+                for chunk in r.iter_content():
+                    fileh.write(chunk)
+            shprint(sh.touch, marker_filename)
+
+            if self.md5sum is not None:
+                print('downloaded md5: {}'.format(current_md5))
+                print('expected md5: {}'.format(self.md5sum))
+                print('md5 not handled yet, exiting')
+                exit(1)
+                
+            # Decompress
+            print('Decompressing...')
+            print('Moving to', build_dir)
+            chdir(build_dir)
+
+            directory_name = get_directory(filename)
+
+            if not exists(directory_name) or not isdir(directory_name):
+                extraction_filename = join(self.ctx.packages_path, self.name, filename)
+                if (extraction_filename.endswith('.tar.gz') or
+                    extraction_filename.endswith('.tgz')):
+                    shprint(sh.tar, 'xzf', extraction_filename)
+                    root_directory = shprint(sh.tar, 'tzf', extraction_filename).stdout.split('\n')[0].strip('/')
+                    if root_directory != directory_name:
+                        print('root dir is', root_directory, 'but expected dir is',
+                              extraction_filename, '?')
+                        exit(1)
+                elif (extraction_filename.endswith('.tar.bz2') or
+                      extraction_filename.endswith('.tbz2')):
+                    print('Extracting {}'.format(extraction_filename))
+                    sh.tar('xjf', extraction_filename)
+                    root_directory = sh.tar('tjf', extraction_filename).stdout.split('\n')[0].strip('/')
+                    if root_directory != directory_name:
+                        print('root dir is', root_directory, 'but expected dir is',
+                              extraction_filename, '?')
+                        exit(1)
+                elif extraction_filename.endswith('.zip'):
+                    shprint(sh.unzip, extraction_filename)
+                    print('unzip probably doesn\'t work right, no root dir check')
+                    exit(1)
+                    # root_directory = shprint(sh.unzip, '-l'
+                    # if root_directory != directory_name:
+                    #     print('root dir is', root_directory, 'but expected dir is',
+                    #           extraction_filename, '?')
+                    #     exit(1)
+                    
+                        
+            else:
+                print('{} is already decompressed'.format(self.name))
+            
+
+        print('Moving to', ctx.root_dir)
+        chdir(ctx.root_dir)
+
 
     def get_recipe_env(self, arch=None):
         """Return the env specialized for the recipe
@@ -662,14 +802,14 @@ class Recipe(object):
             arch = self.filtered_archs[0]
         return arch.get_env()
 
-    @property
-    def archive_root(self):
-        key = "{}.archive_root".format(self.name)
-        value = self.ctx.state.get(key)
-        if not key:
-            value = self.get_archive_rootdir(self.archive_fn)
-            self.ctx.state[key] = value
-        return value
+    # @property
+    # def archive_root(self):
+    #     key = "{}.archive_root".format(self.name)
+    #     value = self.ctx.state.get(key)
+    #     if not key:
+    #         value = self.get_archive_rootdir(self.archive_fn)
+    #         self.ctx.state[key] = value
+    #     return value
 
     def execute(self):
         if self.custom_dir:
@@ -678,12 +818,13 @@ class Recipe(object):
         self.extract()
         self.build_all()
 
+    # AND: Will need to change how this works
     @property
     def custom_dir(self):
         """Check if there is a variable name to specify a custom version /
         directory to use instead of the current url.
         """
-        d = environ.get("{}_DIR".format(self.name.upper()))
+        d = environ.get("P4A_{}_DIR".format(self.name.lower()))
         if not d:
             return
         if not exists(d):
@@ -712,22 +853,22 @@ class Recipe(object):
             print("Extract {} for {}".format(self.name, arch.arch))
             self.extract_arch(arch.arch)
 
-    def extract_arch(self, arch):
-        build_dir = join(self.ctx.build_dir, self.name, arch)
-        dest_dir = join(build_dir, self.archive_root)
-        if self.custom_dir:
-            if exists(dest_dir):
-                shutil.rmtree(dest_dir)
-            shutil.copytree(self.custom_dir, dest_dir)
-        else:
-            if exists(dest_dir):
-                return
-            src_dir = join(self.recipe_dir, self.url)
-            if exists(src_dir):
-                shutil.copytree(src_dir, dest_dir)
-                return
-            ensure_dir(build_dir)
-            self.extract_file(self.archive_fn, build_dir) 
+    # def extract_arch(self, arch):
+    #     build_dir = join(self.ctx.build_dir, self.name, arch)
+    #     dest_dir = join(build_dir, self.archive_root)
+    #     if self.custom_dir:
+    #         if exists(dest_dir):
+    #             shutil.rmtree(dest_dir)
+    #         shutil.copytree(self.custom_dir, dest_dir)
+    #     else:
+    #         if exists(dest_dir):
+    #             return
+    #         src_dir = join(self.recipe_dir, self.url)
+    #         if exists(src_dir):
+    #             shutil.copytree(src_dir, dest_dir)
+    #             return
+    #         ensure_dir(build_dir)
+    #         self.extract_file(self.archive_fn, build_dir) 
 
     # @cache_execution
     def build(self, arch):
@@ -1012,7 +1153,7 @@ class CythonRecipe(PythonRecipe):
 
 
 def build_recipes(names, ctx):
-    # gather all the dependencies
+    # Put recipes in correct build order
     print("Want to build {}".format(names))
     graph = Graph()
     recipe_to_load = names
@@ -1024,18 +1165,29 @@ def build_recipes(names, ctx):
         try:
             recipe = Recipe.get_recipe(name, ctx)
         except ImportError:
-            print("ERROR: No recipe named {}".format(name))
+            print('Error: No recipe named {}'.format(name))
             sys.exit(1)
         graph.add(name, name)
-        print("Loaded recipe {} (depends of {})".format(name, recipe.depends))
+        print('Loaded recipe {} (depends on {})'.format(name, recipe.depends))
         for depend in recipe.depends:
             graph.add(name, depend)
             recipe_to_load += recipe.depends
         recipe_loaded.append(name)
-
     build_order = list(graph.find_order())
     print("Build order is {}".format(build_order))
+
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
+
+    print('Recipes are', recipes)
+
+    # 1) download packages
+    for recipe in recipes:
+        recipe.prepare_build_dir(ctx)
+
+    # 2) prebuild packages
+    # 3) build packages
+    
+    return
     for recipe in recipes:
         recipe.init_with_ctx(ctx)
     for recipe in recipes:
@@ -1069,7 +1221,7 @@ Available commands:
             parser.add_argument("command", help="Command to run")
             args = parser.parse_args(sys.argv[1:2])
             if not hasattr(self, args.command):
-                print 'Unrecognized command'
+                print('Unrecognized command')
                 parser.print_help()
                 exit(1)
             getattr(self, args.command)()
@@ -1123,17 +1275,17 @@ Available commands:
         #         if exists(ctx.build_dir):
         #             shutil.rmtree(ctx.build_dir)
 
-        # def distclean(self):
-        #     parser = argparse.ArgumentParser(
-        #             description="Clean the build, download and dist")
-        #     args = parser.parse_args(sys.argv[2:])
-        #     ctx = Context()
-        #     if exists(ctx.build_dir):
-        #         shutil.rmtree(ctx.build_dir)
-        #     if exists(ctx.dist_dir):
-        #         shutil.rmtree(ctx.dist_dir)
-        #     if exists(ctx.cache_dir):
-        #         shutil.rmtree(ctx.cache_dir)
+        def distclean(self):
+            parser = argparse.ArgumentParser(
+                    description="Clean the build cache, downloads and dists")
+            args = parser.parse_args(sys.argv[2:])
+            ctx = Context()
+            if exists(ctx.build_dir):
+                shutil.rmtree(ctx.build_dir)
+            if exists(ctx.dist_dir):
+                shutil.rmtree(ctx.dist_dir)
+            if exists(ctx.packages_path):
+                shutil.rmtree(ctx.packages_path)
 
         # def status(self):
         #     parser = argparse.ArgumentParser(
@@ -1179,7 +1331,10 @@ Available commands:
             print('Recipes are', recipes)
             ctx.archs = ['armeabi']
             
+            build_recipes(recipes, ctx)
 
+            print('Done building recipes, exiting for now.')
+            return
             
 
         # def create(self):

@@ -1,0 +1,13 @@
+--- Python-2.7.2/configure.orig	2012-07-05 16:44:36.000000000 +0200
++++ Python-2.7.2/configure	2012-07-05 16:44:44.000000000 +0200
+@@ -13732,10 +13732,6 @@
+ 
+ fi
+ 
+-if test $ac_sys_system = Darwin
+-then
+-	LIBS="$LIBS -framework CoreFoundation"
+-fi
+ 
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for %zd printf() format support" >&5
