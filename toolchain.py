@@ -462,6 +462,9 @@ class Bootstrap(object):
     dist_dir = None
     dist_name = None
 
+    recipe_depends = []
+    
+
     # supported_recipes = [] # only necessary if we don't implement
     # jni dir copying
 
@@ -497,6 +500,8 @@ class Bootstrap(object):
 class PygameBootstrap(Bootstrap):
     bootstrap_template_dir = 'pygame'
 
+    recipe_depends = ['hostpython', 'python2', 'pyjnius', 'sdl', 'pygame',
+                      'android', 'kivy']
     
         
 
@@ -1156,7 +1161,12 @@ def build_recipes(names, ctx):
     # Put recipes in correct build order
     print("Want to build {}".format(names))
     graph = Graph()
-    recipe_to_load = names
+    recipe_to_load = set(names)
+    bs = ctx.bootstrap
+    if bs.recipe_depends:
+        print('Bootstrap requires additional recipes {}'.format(bs.recipe_depends))
+        recipe_to_load = recipe_to_load.union(set(bs.recipe_depends))
+    print('New list of recipes to build: {}'.format(recipe_to_load))
     recipe_loaded = []
     while names:
         name = recipe_to_load.pop(0)
