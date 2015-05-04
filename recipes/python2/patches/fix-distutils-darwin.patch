@@ -1,0 +1,24 @@
+--- Python-2.7.2.orig/Lib/distutils/command/build_ext.py	2011-06-11 17:46:24.000000000 +0200
++++ Python-2.7.2/Lib/distutils/command/build_ext.py	2012-08-01 18:32:13.000000000 +0200
+@@ -236,7 +236,7 @@
+         # Python's library directory must be appended to library_dirs
+         sysconfig.get_config_var('Py_ENABLE_SHARED')
+         if ((sys.platform.startswith('linux') or sys.platform.startswith('gnu')
+-             or sys.platform.startswith('sunos'))
++             or sys.platform.startswith('sunos') or sys.platform.startswith('darwin'))
+             and sysconfig.get_config_var('Py_ENABLE_SHARED')):
+             if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
+                 # building third party extensions
+@@ -750,9 +750,9 @@
+             # extensions, it is a reference to the original list
+             return ext.libraries + [pythonlib, "m"] + extra
+ 
+-        elif sys.platform == 'darwin':
+-            # Don't use the default code below
+-            return ext.libraries
++        #elif sys.platform == 'darwin':
++        #    # Don't use the default code below
++        #    return ext.libraries
+         elif sys.platform[:3] == 'aix':
+             # Don't use the default code below
+             return ext.libraries

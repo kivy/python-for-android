@@ -6,6 +6,8 @@ import sh
 class LibSDL2Recipe(Recipe):
     version = "2.0.3"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
+
+    name = 'sdl2'
     # version = "iOS-improvements"
     # url = "https://bitbucket.org/slime73/sdl-experiments/get/{version}.tar.gz"
     library = "Xcode-iOS/SDL/build/Release-{arch.sdk}/libSDL2.a"
