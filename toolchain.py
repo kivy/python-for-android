@@ -500,7 +500,7 @@ class Bootstrap(object):
 class PygameBootstrap(Bootstrap):
     bootstrap_template_dir = 'pygame'
 
-    recipe_depends = ['hostpython', 'python2', 'pyjnius', 'sdl', 'pygame',
+    recipe_depends = ['hostpython2', 'python2', 'pyjnius', 'sdl', 'pygame',
                       'android', 'kivy']
     
         
@@ -699,6 +699,7 @@ class Recipe(object):
             shprint(sh.mkdir, '-p', build_dir)
             shprint(sh.rmdir, build_dir)
             shprint(sh.ln, '-s', user_dir, build_dir)
+            return
 
 
         if self.url is None:
@@ -766,25 +767,24 @@ class Recipe(object):
                 extraction_filename = join(self.ctx.packages_path, self.name, filename)
                 if (extraction_filename.endswith('.tar.gz') or
                     extraction_filename.endswith('.tgz')):
-                    shprint(sh.tar, 'xzf', extraction_filename)
+                    sh.tar('xzf', extraction_filename)
                     root_directory = shprint(sh.tar, 'tzf', extraction_filename).stdout.split('\n')[0].strip('/')
                     if root_directory != directory_name:
-                        print('root dir is', root_directory, 'but expected dir is',
-                              extraction_filename, '?')
-                        exit(1)
+                        shprint(sh.mv, root_directory, directory_name)
                 elif (extraction_filename.endswith('.tar.bz2') or
                       extraction_filename.endswith('.tbz2')):
                     print('Extracting {}'.format(extraction_filename))
                     sh.tar('xjf', extraction_filename)
                     root_directory = sh.tar('tjf', extraction_filename).stdout.split('\n')[0].strip('/')
                     if root_directory != directory_name:
-                        print('root dir is', root_directory, 'but expected dir is',
-                              extraction_filename, '?')
-                        exit(1)
+                        shprint(sh.mv, root_directory, directory_name)
                 elif extraction_filename.endswith('.zip'):
-                    shprint(sh.unzip, extraction_filename)
-                    print('unzip probably doesn\'t work right, no root dir check')
-                    exit(1)
+                    sh.unzip(extraction_filename)
+                    import zipfile
+                    fileh = zipfile.ZipFile(extraction_filename, 'r')
+                    root_directory = fileh.filelist[0].filename.strip('/')
+                    if root_directory != directory_name:
+                        shprint(sh.mv, root_directory, directory_name)
                     # root_directory = shprint(sh.unzip, '-l'
                     # if root_directory != directory_name:
                     #     print('root dir is', root_directory, 'but expected dir is',
@@ -1166,9 +1166,10 @@ def build_recipes(names, ctx):
     if bs.recipe_depends:
         print('Bootstrap requires additional recipes {}'.format(bs.recipe_depends))
         recipe_to_load = recipe_to_load.union(set(bs.recipe_depends))
+    recipe_to_load = list(recipe_to_load)
     print('New list of recipes to build: {}'.format(recipe_to_load))
     recipe_loaded = []
-    while names:
+    while recipe_to_load:
         name = recipe_to_load.pop(0)
         if name in recipe_loaded:
             continue
