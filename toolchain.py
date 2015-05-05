@@ -689,7 +689,7 @@ class Recipe(object):
         print('Preparing build dir for {}'.format(self.name))
         self.ctx = ctx
 
-        build_dir = join(ctx.build_dir, 'other_builds', self.name)
+        build_dir = self.get_build_dir('armeabi')
         
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
         if user_dir is not None:
@@ -700,7 +700,6 @@ class Recipe(object):
             shprint(sh.rmdir, build_dir)
             shprint(sh.ln, '-s', user_dir, build_dir)
             return
-
 
         if self.url is None:
             print('Nothing to do for {} recipe preparation'.format(self.name))
@@ -1055,12 +1054,30 @@ class Recipe(object):
         recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
         return recipe
 
-class NDKRecipe(Recipe):
-    can_compile_standalone = False
 
-    def download(self, *args):
-        return False
+class NDKRecipe(Recipe):
+    '''A recipe class for recipes built in an Android project jni dir with
+    an Android.mk. These are not cached separatly, but built in the
+    bootstrap's own building directory.
+
+    In the future they should probably also copy their contents from a
+    standalone set of ndk recipes, but for now the bootstraps include
+    all their recipe code.
+
+    '''
     
+    def get_build_dir(self):
+    return join(self.ctx.bootstrap.build_dir, 'jni', self.name)
+
+    def prepare_build_dir(self, ctx):
+        self.ctx = ctx
+        print('{} is an NDK recipe, it is alread included in the '
+              'bootstrap (for now)'.format(self.name))
+        pass  # Do nothing; in the future an NDKRecipe can copy its
+              # contents to the bootstrap build dir, but for now each
+              # bootstrap already includes available recipes (as was
+              # already the case in p4a)
+        
 
 class PythonRecipe(Recipe):
     # @cache_execution
@@ -1079,7 +1096,9 @@ class PythonRecipe(Recipe):
             name = self.name
         if env is None:
             env = self.get_recipe_env(arch)
-        print("Install {} into the site-packages".format(name))
+        prin
+
+    t("Install {} into the site-packages".format(name))
         build_dir = self.get_build_dir(arch.arch)
         chdir(build_dir)
         hostpython = sh.Command(self.ctx.hostpython)
