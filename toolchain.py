@@ -934,10 +934,17 @@ class Recipe(object):
         print("Install {}".format(self.name))
         self.install()
 
+    def prebuild(self):
+        self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
+                                               # this to support
+                                               # multiple archs
+
     def prebuild_arch(self, arch):
         prebuild = "prebuild_{}".format(arch.arch)
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
+        else:
+            print('{} has no {}, skipping'.format(self.name, prebuild))
 
     def build_arch(self, arch):
         build = "build_{}".format(arch.arch)
@@ -1067,7 +1074,7 @@ class NDKRecipe(Recipe):
     '''
     
     def get_build_dir(self):
-    return join(self.ctx.bootstrap.build_dir, 'jni', self.name)
+        return join(self.ctx.bootstrap.build_dir, 'jni', self.name)
 
     def prepare_build_dir(self, ctx):
         self.ctx = ctx
@@ -1096,9 +1103,8 @@ class PythonRecipe(Recipe):
             name = self.name
         if env is None:
             env = self.get_recipe_env(arch)
-        prin
 
-    t("Install {} into the site-packages".format(name))
+        print("Install {} into the site-packages".format(name))
         build_dir = self.get_build_dir(arch.arch)
         chdir(build_dir)
         hostpython = sh.Command(self.ctx.hostpython)
@@ -1208,13 +1214,17 @@ def build_recipes(names, ctx):
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
-    print('Recipes are', recipes)
+    print('Recipes to build are:', recipes)
+    print('Downloading recipes')
 
     # 1) download packages
     for recipe in recipes:
         recipe.prepare_build_dir(ctx)
 
     # 2) prebuild packages
+    for recipe in recipes:
+        recipe.prebuild()
+    
     # 3) build packages
     
     return
@@ -1227,7 +1237,6 @@ def build_recipes(names, ctx):
 def ensure_dir(filename):
     if not exists(filename):
         makedirs(filename)
-
 
 if __name__ == "__main__":
     import argparse
@@ -1359,7 +1368,6 @@ Available commands:
 
             recipes = re.split('[, ]*', args.recipes)
             print('Recipes are', recipes)
-            ctx.archs = ['armeabi']
             
             build_recipes(recipes, ctx)
 
