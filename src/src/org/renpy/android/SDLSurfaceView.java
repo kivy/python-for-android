@@ -63,6 +63,7 @@ import java.nio.FloatBuffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.content.res.Resources;
 
 
@@ -1171,11 +1172,18 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         // add a listener for the layout chnages to the IME view
         final android.view.View activityRootView = mActivity.getWindow().getDecorView();
         activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+        final android.view.Display default_display = mActivity.getWindowManager().getDefaultDisplay();
+        
             @Override
             public void onGlobalLayout() {
-                //send control sequence start /x04 == kayboard layout changed
-                nativeKey(45, 1, 4);
-                nativeKey(45, 0, 4);
+                Rect rctx = new Rect();
+                activityRootView.getWindowVisibleDisplayFrame(rctx);
+                int heightDiff = default_display.getHeight() - (rctx.bottom - rctx.top);
+                if (heightDiff > 100){
+                    //send control sequence start /x04 == kayboard layout changed
+                    nativeKey(45, 1, 4);
+                    nativeKey(45, 0, 4);
+                    }
                 }
             });
         return new BaseInputConnection(this, false){
