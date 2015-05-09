@@ -61,6 +61,16 @@ def get_directory(filename):
     exit(1)
     
     
+import contextlib
+@contextlib.contextmanager
+def current_directory(new_dir):
+    cur_dir = getcwd()
+    print('Switching current directory to', new_dir)
+    chdir(new_dir)
+    yield
+    print('Directory context ended, switching to', cur_dir)
+    chdir(cur_dir)
+          
 
 
 # def cache_execution(f):
@@ -198,7 +208,7 @@ class Arch(object):
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.4.3'
         elif self.ctx.ndk_ver[:2] == 'r9':
-            toolchain_prefix == 'arm-linux-androideabi'
+            toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
         else:
             print('Error: NDK not supported by these tools?')
@@ -207,7 +217,7 @@ class Arch(object):
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
-        env['PATH'] = "{sdk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/tools:{path}".format(sdk_dir=sdk_dir, ndk_dir=ndk_dir, toolchain_prefix=toolchain_prefix, toolchain_version=toolchain_version, py_platform=py_platform, path=environ.get('PATH'))
+        env['PATH'] = "{sdk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/tools:{path}".format(sdk_dir=self.ctx.sdk_dir, ndk_dir=self.ctx.ndk_dir, toolchain_prefix=toolchain_prefix, toolchain_version=toolchain_version, py_platform=py_platform, path=environ.get('PATH'))
 
         env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
             toolchain_prefix=toolchain_prefix,
@@ -885,30 +895,30 @@ class Recipe(object):
     #         self.extract_file(self.archive_fn, build_dir) 
 
     # @cache_execution
-    def build(self, arch):
-        self.build_dir = self.get_build_dir(arch.arch)
-        if self.has_marker("building"):
-            print("Warning: {} build for {} has been incomplete".format(
-                self.name, arch.arch))
-            print("Warning: deleting the build and restarting.")
-            shutil.rmtree(self.build_dir)
-            self.extract_arch(arch.arch)
+    # def build(self, arch):
+    #     self.build_dir = self.get_build_dir(arch.arch)
+    #     if self.has_marker("building"):
+    #         print("Warning: {} build for {} has been incomplete".format(
+    #             self.name, arch.arch))
+    #         print("Warning: deleting the build and restarting.")
+    #         shutil.rmtree(self.build_dir)
+    #         self.extract_arch(arch.arch)
 
-        if self.has_marker("build_done"):
-            print("Build python for {} already done.".format(arch.arch))
-            return
+    #     if self.has_marker("build_done"):
+    #         print("Build python for {} already done.".format(arch.arch))
+    #         return
 
-        self.set_marker("building")
+    #     self.set_marker("building")
 
-        chdir(self.build_dir)
-        print("Prebuild {} for {}".format(self.name, arch.arch))
-        self.prebuild_arch(arch)
-        print("Build {} for {}".format(self.name, arch.arch))
-        self.build_arch(arch)
-        print("Postbuild {} for {}".format(self.name, arch.arch))
-        self.postbuild_arch(arch)
-        self.delete_marker("building")
-        self.set_marker("build_done")
+    #     chdir(self.build_dir)
+    #     print("Prebuild {} for {}".format(self.name, arch.arch))
+    #     self.prebuild_arch(arch)
+    #     print("Build {} for {}".format(self.name, arch.arch))
+    #     self.build_arch(arch)
+    #     print("Postbuild {} for {}".format(self.name, arch.arch))
+    #     self.postbuild_arch(arch)
+    #     self.delete_marker("building")
+    #     self.set_marker("build_done")
 
     # @cache_execution
     def build_all(self):
@@ -948,6 +958,9 @@ class Recipe(object):
         self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
                                                # this to support
                                                # multiple archs
+
+    def build(self):
+        self.build_arch(self.ctx.archs[0])  # Same here!
 
     def prebuild_arch(self, arch):
         prebuild = "prebuild_{}".format(arch.arch)
@@ -1097,68 +1110,69 @@ class NDKRecipe(Recipe):
         
 
 class PythonRecipe(Recipe):
+    pass
     # @cache_execution
-    def install(self):
-        self.install_python_package()
-        self.reduce_python_package()
+    # def install(self):
+    #     self.install_python_package()
+    #     self.reduce_python_package()
 
-    def install_python_package(self, name=None, env=None, is_dir=True):
-        """Automate the installation of a Python package into the target
-        site-packages.
+    # def install_python_package(self, name=None, env=None, is_dir=True):
+    #     """Automate the installation of a Python package into the target
+    #     site-packages.
 
-        It will works with the first filtered_archs, and the name of the recipe.
-        """
-        arch = self.filtered_archs[0]
-        if name is None:
-            name = self.name
-        if env is None:
-            env = self.get_recipe_env(arch)
+    #     It will works with the first filtered_archs, and the name of the recipe.
+    #     """
+    #     arch = self.filtered_archs[0]
+    #     if name is None:
+    #         name = self.name
+    #     if env is None:
+    #         env = self.get_recipe_env(arch)
 
-        print("Install {} into the site-packages".format(name))
-        build_dir = self.get_build_dir(arch.arch)
-        chdir(build_dir)
-        hostpython = sh.Command(self.ctx.hostpython)
-        iosbuild = join(build_dir, "iosbuild")
-        shprint(hostpython, "setup.py", "install", "-O2",
-                "--prefix", iosbuild,
-                _env=env)
-        dest_dir = join(self.ctx.site_packages_dir, name)
-        if is_dir:
-            if exists(dest_dir):
-                shutil.rmtree(dest_dir)
-            func = shutil.copytree
-        else:
-            func = shutil.copy
-        func(
-            join(iosbuild, "lib",
-                 self.ctx.python_ver_dir, "site-packages", name),
-            dest_dir)
+    #     print("Install {} into the site-packages".format(name))
+    #     build_dir = self.get_build_dir(arch.arch)
+    #     chdir(build_dir)
+    #     hostpython = sh.Command(self.ctx.hostpython)
+    #     iosbuild = join(build_dir, "iosbuild")
+    #     shprint(hostpython, "setup.py", "install", "-O2",
+    #             "--prefix", iosbuild,
+    #             _env=env)
+    #     dest_dir = join(self.ctx.site_packages_dir, name)
+    #     if is_dir:
+    #         if exists(dest_dir):
+    #             shutil.rmtree(dest_dir)
+    #         func = shutil.copytree
+    #     else:
+    #         func = shutil.copy
+    #     func(
+    #         join(iosbuild, "lib",
+    #              self.ctx.python_ver_dir, "site-packages", name),
+    #         dest_dir)
 
-    def reduce_python_package(self):
-        """Feel free to remove things you don't want in the final
-        site-packages.
-        """
-        pass
+    # def reduce_python_package(self):
+    #     """Feel free to remove things you don't want in the final
+    #     site-packages.
+    #     """
+    #     pass
 
 
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
 
-    def cythonize_file(self, filename):
-        if filename.startswith(self.build_dir):
-            filename = filename[len(self.build_dir) + 1:]
-        print("Cythonize {}".format(filename))
-        cmd = sh.Command(join(self.ctx.root_dir, "tools", "cythonize.py"))
-        shprint(cmd, filename)
+    # def cythonize_file(self, filename):
+    #     if filename.startswith(self.build_dir):
+    #         filename = filename[len(self.build_dir) + 1:]
+    #     print("Cythonize {}".format(filename))
+    #     cmd = sh.Command(join(self.ctx.root_dir, "tools", "cythonize.py"))
+    #     shprint(cmd, filename)
 
-    def cythonize_build(self):
-        if not self.cythonize:
-            return
-        root_dir = self.build_dir
-        for root, dirnames, filenames in walk(root_dir):
-            for filename in fnmatch.filter(filenames, "*.pyx"):
-                self.cythonize_file(join(root, filename))
+    # def cythonize_build(self):
+    #     if not self.cythonize:
+    #         return
+    #     root_dir = self.build_dir
+    #     for root, dirnames, filenames in walk(root_dir):
+    #         for filename in fnmatch.filter(filenames, "*.pyx"):
+    #             self.cythonize_file(join(root, filename))
 
     def biglink(self):
         dirs = []
@@ -1168,28 +1182,28 @@ class CythonRecipe(PythonRecipe):
         cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
         shprint(cmd, join(self.build_dir, "lib{}.a".format(self.name)), *dirs)
 
-    def get_recipe_env(self, arch):
-        env = super(CythonRecipe, self).get_recipe_env(arch)
-        env["KIVYIOSROOT"] = self.ctx.root_dir
-        env["IOSSDKROOT"] = arch.sysroot
-        env["LDSHARED"] = join(self.ctx.root_dir, "tools", "liblink")
-        env["ARM_LD"] = env["LD"]
-        env["ARCH"] = arch.arch
-        return env
+    # def get_recipe_env(self, arch):
+    #     env = super(CythonRecipe, self).get_recipe_env(arch)
+    #     env["KIVYIOSROOT"] = self.ctx.root_dir
+    #     env["IOSSDKROOT"] = arch.sysroot
+    #     env["LDSHARED"] = join(self.ctx.root_dir, "tools", "liblink")
+    #     env["ARM_LD"] = env["LD"]
+    #     env["ARCH"] = arch.arch
+    #     return env
 
-    def build_arch(self, arch):
-        build_env = self.get_recipe_env(arch)
-        hostpython = sh.Command(self.ctx.hostpython)
-        if self.pre_build_ext:
-            try:
-                shprint(hostpython, "setup.py", "build_ext", "-g",
-                        _env=build_env)
-            except:
-                pass
-        self.cythonize_build()
-        shprint(hostpython, "setup.py", "build_ext", "-g",
-                _env=build_env)
-        self.biglink()
+    # def build_arch(self, arch):
+    #     build_env = self.get_recipe_env(arch)
+    #     hostpython = sh.Command(self.ctx.hostpython)
+    #     if self.pre_build_ext:
+    #         try:
+    #             shprint(hostpython, "setup.py", "build_ext", "-g",
+    #                     _env=build_env)
+    #         except:
+    #             pass
+    #     self.cythonize_build()
+    #     shprint(hostpython, "setup.py", "build_ext", "-g",
+    #             _env=build_env)
+    #     self.biglink()
 
 
 def build_recipes(names, ctx):
@@ -1221,6 +1235,7 @@ def build_recipes(names, ctx):
         recipe_loaded.append(name)
     build_order = list(graph.find_order())
     print("Build order is {}".format(build_order))
+    ctx.recipe_build_order = build_order
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
@@ -1236,6 +1251,9 @@ def build_recipes(names, ctx):
         recipe.prebuild()
     
     # 3) build packages
+    for recipe in recipes:
+        recipe.build()
+
     
     return
     for recipe in recipes:
