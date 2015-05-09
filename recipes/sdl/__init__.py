@@ -1,13 +1,16 @@
-from toolchain import Recipe, shprint
+from toolchain import NDKRecipe, shprint
 import sh
 
 
 
-class LibSDLRecipe(Recipe):
+class LibSDLRecipe(NDKRecipe):
     version = "1.2.14"
     url = None  
     name = 'sdl'
     depends = ['python2']
+
+    def prebuild_armeabi(self):
+        print('Debug: sdl recipe dir is ' + self.get_build_dir())
 
     def build_arch(self, arch):
         # shprint(sh.xcodebuild,
