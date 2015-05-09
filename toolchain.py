@@ -522,7 +522,11 @@ class Recipe(object):
     # frameworks = []
     # sources = []
 
-    can_compile_standalone = True
+    @property
+    def versioned_url(self):
+        if self.url is None:
+            return None
+        return self.url.format(version=self.version)
 
     # API available for recipes
     def download_file(self, url, filename, cwd=None):
@@ -671,6 +675,10 @@ class Recipe(object):
     def get_build_dir(self, arch):
         return join(self.ctx.build_dir, 'other_builds', self.name, arch)
 
+    def get_recipe_dir(self):
+        # AND: Redundant, an equivalent property is already set by get_recipe
+        return join(self.ctx.root_dir, 'recipes', self.name)
+
     # Public Recipe API to be subclassed if needed
 
     # def init_with_ctx(self, ctx):
@@ -701,13 +709,14 @@ class Recipe(object):
             shprint(sh.ln, '-s', user_dir, build_dir)
             return
 
+        ensure_dir(build_dir)
+
         if self.url is None:
             print('Nothing to do for {} recipe preparation'.format(self.name))
             return
 
         print('Preparing and downloading {}'.format(self.name))
 
-        shprint(sh.mkdir, '-p', join(build_dir))
         shprint(sh.mkdir, '-p', join(ctx.packages_path, self.name))
         
         print('Moving to', join(ctx.packages_path, self.name))
@@ -836,19 +845,19 @@ class Recipe(object):
         return d
 
     # @cache_execution
-    def download(self):
-        key = "{}.archive_root".format(self.name)
-        if self.custom_dir:
-            self.ctx.state[key] = basename(self.custom_dir)
-        else:
-            src_dir = join(self.recipe_dir, self.url)
-            if exists(src_dir):
-                self.ctx.state[key] = basename(src_dir)
-                return
-            fn = self.archive_fn
-            if not exists(fn):
-                self.download_file(self.url.format(version=self.version), fn)
-            self.ctx.state[key] = self.get_archive_rootdir(self.archive_fn)
+    # def download(self):
+    #     key = "{}.archive_root".format(self.name)
+    #     if self.custom_dir:
+    #         self.ctx.state[key] = basename(self.custom_dir)
+    #     else:
+    #         src_dir = join(self.recipe_dir, self.url)
+    #         if exists(src_dir):
+    #             self.ctx.state[key] = basename(src_dir)
+    #             return
+    #         fn = self.archive_fn
+    #         if not exists(fn):
+    #             self.download_file(self.url.format(version=self.version), fn)
+    #         self.ctx.state[key] = self.get_archive_rootdir(self.archive_fn)
 
     # @cache_execution
     def extract(self):
