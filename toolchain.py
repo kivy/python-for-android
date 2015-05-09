@@ -597,7 +597,8 @@ class Recipe(object):
         """
         print("Apply patch {}".format(filename))
         filename = join(self.recipe_dir, filename)
-        sh.patch("-t", "-d", self.build_dir, "-p1", "-i", filename)
+        # AND: get_build_dir shouldn't need to hardcode armeabi
+        sh.patch("-t", "-d", join(self.get_build_dir('armeabi'), get_directory(self.versioned_url)), "-p1", "-i", filename)
 
     def copy_file(self, filename, dest):
         print("Copy {} to {}".format(filename, dest))
