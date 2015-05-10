@@ -32,7 +32,7 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
-    try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
+	try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
@@ -106,7 +106,7 @@ function build_python() {
 
 	# FIXME, the first time, we got a error at:
 	# python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
-    # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
+	# /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
 	# because at this time, python is arm, not x86. even that, why /usr/include/netinet/in.h is used ?
 	# check if we can avoid this part.
 
