@@ -21,6 +21,7 @@ import shutil
 import fnmatch
 import re
 from datetime import datetime
+from distutils.spawn import find_executable
 try:
     from urllib.request import FancyURLopener
 except ImportError:
@@ -182,17 +183,17 @@ class Arch(object):
         # env["LD"] = sh.xcrun("-find", "-sdk", self.sdk, "ld").strip()
 
         # AND: Added flags manually, removed $OFLAG
-        env["OTHER_CFLAGS"] = " ".join(
-            include_dirs)
-        # AND: 
+        # env["OTHER_CFLAGS"] = " ".join(
+        #     include_dirs)
 
-        env["OTHER_LDFLAGS"] = " ".join([
-            "-L{}/{}".format(self.ctx.dist_dir, "lib"),
-        ])
+        # env["OTHER_LDFLAGS"] = " ".join([
+        #     "-L{}/{}".format(self.ctx.dist_dir, "lib"),
+        # ])
+
         env["CFLAGS"] = " ".join([
             "-DANDROID", "-mandroid", "-fomit-frame-pointer",
-            "--sysroot", self.ctx.ndk_platform] +
-                                 include_dirs)
+            "--sysroot", self.ctx.ndk_platform])
+                              
         env["CXXFLAGS"] = env["CFLAGS"]
         
         env["LDFLAGS"] = " ".join(['-lm'])
@@ -212,12 +213,28 @@ class Arch(object):
             toolchain_version = '4.9'
         else:
             print('Error: NDK not supported by these tools?')
-            exit()
+            exit(1)
 
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
-        env['PATH'] = "{sdk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/prebuilt/{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/tools:{path}".format(sdk_dir=self.ctx.sdk_dir, ndk_dir=self.ctx.ndk_dir, toolchain_prefix=toolchain_prefix, toolchain_version=toolchain_version, py_platform=py_platform, path=environ.get('PATH'))
+        env['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
+                       'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
+                       '{toolchain_prefix}-{toolchain_version}/prebuilt/'
+                       '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
+                       'tools:{path}').format(
+                           sdk_dir=self.ctx.sdk_dir, ndk_dir=self.ctx.ndk_dir,
+                           toolchain_prefix=toolchain_prefix,
+                           toolchain_version=toolchain_version,
+                           py_platform=py_platform, path=environ.get('PATH'))
+
+        print('path is', env['PATH'])
+
+        cc = find_executable('{toolchain_prefix}-gcc'.format(
+            toolchain_prefix=toolchain_prefix), path=env['PATH'])
+        if cc is None:
+            print('Couldn\'t find executable for CC. Exiting.')
+            exit(1)
 
         env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
             toolchain_prefix=toolchain_prefix,
@@ -233,8 +250,6 @@ class Arch(object):
         env['STRIP'] = '{}-strip --strip-unneeded'.format(toolchain_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(toolchain_prefix)
-
-        print('path is', env['PATH'])
 
         return env
 
@@ -323,6 +338,7 @@ class Context(object):
     root_dir = None  # the filepath of toolchain.py
     build_dir = None  # in which bootstraps are copied for building and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
+    libs_dir = None
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
 
@@ -392,6 +408,7 @@ class Context(object):
         self.root_dir = realpath(dirname(__file__))
         self.build_dir = "{}/build".format(self.root_dir)
         self.cache_dir = "{}/.cache".format(self.root_dir)
+        self.libs_dir = join(self.build_dir, 'libs')
         self.dist_dir = "{}/dist".format(self.root_dir)
         # AND: Are the install_dir and include_dir the same for Android?
         self.install_dir = "{}/dist/root".format(self.root_dir)
@@ -436,6 +453,7 @@ class Context(object):
         ensure_dir(self.cache_dir)
         ensure_dir(self.dist_dir)
         ensure_dir(self.install_dir)
+        ensure_dir(self.libs_dir)
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
@@ -685,6 +703,10 @@ class Recipe(object):
 
     def get_build_dir(self, arch):
         return join(self.ctx.build_dir, 'other_builds', self.name, arch)
+
+    def get_actual_build_dir(self, arch):
+        return join(self.ctx.build_dir, 'other_builds', self.name, arch,
+                    get_directory(self.versioned_url))
 
     def get_recipe_dir(self):
         # AND: Redundant, an equivalent property is already set by get_recipe
@@ -1401,6 +1423,13 @@ Available commands:
 
             print('Done building recipes, exiting for now.')
             return
+
+        def print_context_info(self):
+            ctx = Context()
+            for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
+                              'ccache', 'cython', 'sdk_dir', 'ndk_dir', 'ndk_platform',
+                              'ndk_ver', 'android_api'):
+                print('{} is {}'.format(attribute, getattr(ctx, attribute)))
             
 
         # def create(self):
