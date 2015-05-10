@@ -29,6 +29,12 @@ class Hostpython2Recipe(Recipe):
 
             if exists('hostpython'):
                 print('hostpython already exists, skipping build')
+                self.ctx.hostpython = join(self.get_build_dir('armeabi'),
+                                           get_directory(self.versioned_url),
+                                           'hostpython')
+                self.ctx.hostpgen = join(self.get_build_dir('armeabi'),
+                                           get_directory(self.versioned_url),
+                                           'hostpgen')
                 return
             
             configure = sh.Command('./configure')
