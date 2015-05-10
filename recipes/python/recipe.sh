@@ -20,6 +20,7 @@ function prebuild_python() {
 	fi
 
 	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-xcompile.patch
+	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-ctypes-disable-wchar.patch
 	try patch -p1 < $RECIPE_python/patches/disable-modules.patch
 	try patch -p1 < $RECIPE_python/patches/fix-locale.patch
 	try patch -p1 < $RECIPE_python/patches/fix-gethostbyaddr.patch
@@ -31,6 +32,7 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
+	try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
@@ -92,14 +94,19 @@ function build_python() {
 		export LDFLAGS="$LDFLAGS -L$SRC_PATH/obj/local/$ARCH/"
 	fi
 
-	try ./configure --host=arm-eabi OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
-	echo ./configure --host=arm-eabi  OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
+	# CFLAGS for python ctypes library
+	#export CFLAGS="$CFLAGS -DNO_MALLINFO"
+	export BUILDARCH=x86_64-linux-gnu
+	export HOSTARCH=arm-eabi
+
+	try ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
+	echo ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo $MAKE HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	cp HOSTPYTHON=$BUILD_python/hostpython python
 
 	# FIXME, the first time, we got a error at:
 	# python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
-    # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
+	# /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
 	# because at this time, python is arm, not x86. even that, why /usr/include/netinet/in.h is used ?
 	# check if we can avoid this part.
 
@@ -117,6 +124,7 @@ function build_python() {
 	fi
 	try cp $BUILD_hostpython/hostpython $HOSTPYTHON
 	try cp libpython2.7.so $LIBS_PATH/
+	try cp -a build/lib.linux-x86_64-2.7/_ctypes*.so $LIBS_PATH
 
 	# reduce python
 	rm -rf "$BUILD_PATH/python-install/lib/python2.7/test"
