@@ -1,0 +1,12 @@
+diff -Nur zeroconf-0.17.1.orig/setup.py zeroconf-0.17.1/setup.py
+--- zeroconf-0.17.1.orig/setup.py	2015-04-30 22:21:46.000000000 +0600
++++ zeroconf-0.17.1/setup.py	2015-04-30 22:21:58.215207238 +0600
+@@ -3,7 +3,7 @@
+ 
+ from os.path import abspath, dirname, join
+ 
+-from setuptools import setup
++from distutils.core import setup
+ 
+ PROJECT_ROOT = abspath(dirname(__file__))
+ with open(join(PROJECT_ROOT, 'README.rst')) as f:
