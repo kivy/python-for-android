@@ -161,9 +161,15 @@ typedef struct backing_store_struct {
   FSSpec tempSpec;		/* the FSSpec for the temp file */
   char temp_name[TEMP_NAME_LENGTH]; /* name if it's a file */
 #else
+#ifdef USE_ANDROID_ASHMEM
+  short temp_file;		/* file reference number to temp file */
+  unsigned char* addr;  /* the memory address mapped to ashmem */
+  long size;            /* the requested ashmem size */
+#else
   /* For a typical implementation with temp files, we need: */
   FILE * temp_file;		/* stdio reference to temp file */
   char temp_name[TEMP_NAME_LENGTH]; /* name of temp file */
+#endif
 #endif
 #endif
 } backing_store_info;

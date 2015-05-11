@@ -2,6 +2,7 @@
  * jddctmgr.c
  *
  * Copyright (C) 1994-1996, Thomas G. Lane.
+ * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -20,6 +21,35 @@
 #include "jpeglib.h"
 #include "jdct.h"		/* Private declarations for DCT subsystem */
 
+#ifdef ANDROID_ARMV6_IDCT
+  #undef ANDROID_ARMV6_IDCT
+  #ifdef __arm__
+    #include <machine/cpu-features.h>
+    #if __ARM_ARCH__ >= 6
+      #define ANDROID_ARMV6_IDCT
+    #else
+      #warning "ANDROID_ARMV6_IDCT is disabled"
+    #endif
+  #endif
+#endif
+
+#ifdef ANDROID_ARMV6_IDCT
+
+/* Intentionally declare the prototype with arguments of primitive types instead
+ * of type-defined ones. This will at least generate some warnings if jmorecfg.h
+ * is changed and becomes incompatible with the assembly code.
+ */
+extern void armv6_idct(short *coefs, int *quans, unsigned char **rows, int col);
+
+void jpeg_idct_armv6 (j_decompress_ptr cinfo, jpeg_component_info * compptr,
+		 JCOEFPTR coef_block,
+		 JSAMPARRAY output_buf, JDIMENSION output_col)
+{
+  IFAST_MULT_TYPE *dct_table = (IFAST_MULT_TYPE *)compptr->dct_table;
+  armv6_idct(coef_block, dct_table, output_buf, output_col);
+}
+
+#endif
 
 /*
  * The decompressor input side (jdinput.c) saves away the appropriate
@@ -115,6 +145,13 @@ start_pass (j_decompress_ptr cinfo)
 #endif
     case DCTSIZE:
       switch (cinfo->dct_method) {
+#ifdef ANDROID_ARMV6_IDCT
+      case JDCT_ISLOW:
+      case JDCT_IFAST:
+	method_ptr = jpeg_idct_armv6;
+	method = JDCT_IFAST;
+	break;
+#else /* ANDROID_ARMV6_IDCT */
 #ifdef DCT_ISLOW_SUPPORTED
       case JDCT_ISLOW:
 	method_ptr = jpeg_idct_islow;
@@ -123,10 +160,17 @@ start_pass (j_decompress_ptr cinfo)
 #endif
 #ifdef DCT_IFAST_SUPPORTED
       case JDCT_IFAST:
+#ifdef ANDROID_JPEG_USE_VENUM
+        /* Use VeNum implementation of jpeg_idct_islow even if fast DCT option is selected */
+	method_ptr = jpeg_idct_islow;
+	method = JDCT_ISLOW;
+#else
 	method_ptr = jpeg_idct_ifast;
 	method = JDCT_IFAST;
+#endif /* ANDROID_JPEG_USE_VENUM */
 	break;
 #endif
+#endif /* ANDROID_ARMV6_IDCT */
 #ifdef DCT_FLOAT_SUPPORTED
       case JDCT_FLOAT:
 	method_ptr = jpeg_idct_float;
@@ -181,6 +225,27 @@ start_pass (j_decompress_ptr cinfo)
 	 * IFAST_SCALE_BITS.
 	 */
 	IFAST_MULT_TYPE * ifmtbl = (IFAST_MULT_TYPE *) compptr->dct_table;
+#ifdef ANDROID_ARMV6_IDCT
+	/* Precomputed values scaled up by 15 bits. */
+	static const unsigned short scales[DCTSIZE2] = {
+	  32768, 45451, 42813, 38531, 32768, 25746, 17734,  9041,
+	  45451, 63042, 59384, 53444, 45451, 35710, 24598, 12540,
+	  42813, 59384, 55938, 50343, 42813, 33638, 23170, 11812,
+	  38531, 53444, 50343, 45308, 38531, 30274, 20853, 10631,
+	  32768, 45451, 42813, 38531, 32768, 25746, 17734,  9041,
+	  25746, 35710, 33638, 30274, 25746, 20228, 13933,  7103,
+	  17734, 24598, 23170, 20853, 17734, 13933,  9598,  4893,
+	   9041, 12540, 11812, 10631,  9041,  7103,  4893,  2494,
+	};
+	/* Inverse map of [7, 5, 1, 3, 0, 2, 4, 6]. */
+	static const char orders[DCTSIZE] = {4, 2, 5, 3, 6, 1, 7, 0};
+	/* Reorder the columns after transposing. */
+	for (i = 0; i < DCTSIZE2; ++i) {
+	  int j = ((i & 7) << 3) + orders[i >> 3];
+	  ifmtbl[j] = (qtbl->quantval[i] * scales[i] + 2) >> 2;
+	}
+#else /* ANDROID_ARMV6_IDCT */
+
 #define CONST_BITS 14
 	static const INT16 aanscales[DCTSIZE2] = {
 	  /* precomputed values scaled up by 14 bits */
@@ -201,6 +266,7 @@ start_pass (j_decompress_ptr cinfo)
 				  (INT32) aanscales[i]),
 		    CONST_BITS-IFAST_SCALE_BITS);
 	}
+#endif /* ANDROID_ARMV6_IDCT */
       }
       break;
 #endif

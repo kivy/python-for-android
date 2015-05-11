@@ -83,7 +83,6 @@ METHODDEF(boolean) decode_mcu_DC_refine JPP((j_decompress_ptr cinfo,
 METHODDEF(boolean) decode_mcu_AC_refine JPP((j_decompress_ptr cinfo,
 					     JBLOCKROW *MCU_data));
 
-
 /*
  * Initialize for a Huffman-compressed scan.
  */
@@ -632,11 +631,113 @@ undoit:
   return FALSE;
 }
 
+/*
+ * Save the current Huffman deocde position and the DC coefficients
+ * for each component into bitstream_offset and dc_info[], respectively.
+ */
+METHODDEF(void)
+get_huffman_decoder_configuration(j_decompress_ptr cinfo,
+        huffman_offset_data *offset)
+{
+  int i;
+  phuff_entropy_ptr entropy = (phuff_entropy_ptr) cinfo->entropy;
+  jpeg_get_huffman_decoder_configuration_progressive(cinfo, offset);
+  offset->EOBRUN = entropy->saved.EOBRUN;
+  for (i = 0; i < cinfo->comps_in_scan; i++)
+    offset->prev_dc[i] = entropy->saved.last_dc_val[i];
+}
+
+
+/*
+ * Save the current Huffman decoder position and the bit buffer
+ * into bitstream_offset and get_buffer, respectively.
+ */
+GLOBAL(void)
+jpeg_get_huffman_decoder_configuration_progressive(j_decompress_ptr cinfo,
+        huffman_offset_data *offset)
+{
+  phuff_entropy_ptr entropy = (phuff_entropy_ptr) cinfo->entropy;
+
+  if (cinfo->restart_interval) {
+    // We are at the end of a data segment
+    if (entropy->restarts_to_go == 0)
+      if (! process_restart(cinfo))
+	return;
+  }
+
+  // Save restarts_to_go and next_restart_num.
+  offset->restarts_to_go = (unsigned short) entropy->restarts_to_go;
+  offset->next_restart_num = cinfo->marker->next_restart_num;
+
+  offset->bitstream_offset =
+      (jget_input_stream_position(cinfo) << LOG_TWO_BIT_BUF_SIZE)
+      + entropy->bitstate.bits_left;
+
+  offset->get_buffer = entropy->bitstate.get_buffer;
+}
+
+
+/*
+ * Configure the Huffman decoder to decode the image
+ * starting from (iMCU_row_offset, iMCU_col_offset).
+ */
+METHODDEF(void)
+configure_huffman_decoder(j_decompress_ptr cinfo, huffman_offset_data offset)
+{
+  int i;
+  phuff_entropy_ptr entropy = (phuff_entropy_ptr) cinfo->entropy;
+  jpeg_configure_huffman_decoder_progressive(cinfo, offset);
+  entropy->saved.EOBRUN = offset.EOBRUN;
+  for (i = 0; i < cinfo->comps_in_scan; i++)
+    entropy->saved.last_dc_val[i] = offset.prev_dc[i];
+}
+
+/*
+ * Configure the Huffman decoder reader position and bit buffer.
+ */
+GLOBAL(void)
+jpeg_configure_huffman_decoder_progressive(j_decompress_ptr cinfo,
+        huffman_offset_data offset)
+{
+	phuff_entropy_ptr entropy = (phuff_entropy_ptr) cinfo->entropy;
+
+  // Restore restarts_to_go and next_restart_num
+  cinfo->unread_marker = 0;
+  entropy->restarts_to_go = offset.restarts_to_go;
+  cinfo->marker->next_restart_num = offset.next_restart_num;
+
+  unsigned int bitstream_offset = offset.bitstream_offset;
+  int blkn, i;
+
+  unsigned int byte_offset = bitstream_offset >> LOG_TWO_BIT_BUF_SIZE;
+  unsigned int bit_in_bit_buffer =
+      bitstream_offset & ((1 << LOG_TWO_BIT_BUF_SIZE) - 1);
+
+  jset_input_stream_position_bit(cinfo, byte_offset,
+          bit_in_bit_buffer, offset.get_buffer);
+}
+
+GLOBAL(void)
+jpeg_configure_huffman_index_scan(j_decompress_ptr cinfo,
+        huffman_index *index, int scan_no, int offset)
+{
+  phuff_entropy_ptr entropy = (phuff_entropy_ptr) cinfo->entropy;
+  if (scan_no >= index->scan_count) {
+    index->scan = realloc(index->scan,
+                    (scan_no + 1) * sizeof(huffman_scan_header));
+    index->mem_used += (scan_no - index->scan_count + 1)
+      * (sizeof(huffman_scan_header) + cinfo->total_iMCU_rows
+      * sizeof(huffman_offset_data*));
+    index->scan_count = scan_no + 1;
+  }
+  index->scan[scan_no].offset = (huffman_offset_data**)malloc(
+          cinfo->total_iMCU_rows * sizeof(huffman_offset_data*));
+  index->scan[scan_no].bitstream_offset = offset;
+}
 
 /*
  * Module initialization routine for progressive Huffman entropy decoding.
  */
-
 GLOBAL(void)
 jinit_phuff_decoder (j_decompress_ptr cinfo)
 {
@@ -649,6 +750,9 @@ jinit_phuff_decoder (j_decompress_ptr cinfo)
 				SIZEOF(phuff_entropy_decoder));
   cinfo->entropy = (struct jpeg_entropy_decoder *) entropy;
   entropy->pub.start_pass = start_pass_phuff_decoder;
+  entropy->pub.configure_huffman_decoder = configure_huffman_decoder;
+  entropy->pub.get_huffman_decoder_configuration =
+        get_huffman_decoder_configuration;
 
   /* Mark derived tables unallocated */
   for (i = 0; i < NUM_HUFF_TBLS; i++) {
