@@ -94,6 +94,7 @@
 	</receiver>
 	{% endif %}
 
+  <uses-library required="false" name="com.sec.android.app.multiwindow" />
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
