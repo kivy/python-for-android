@@ -338,6 +338,9 @@ compress_output (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
 	/* Suspension forced; update state counters and exit */
 	coef->MCU_vert_offset = yoffset;
 	coef->mcu_ctr = MCU_col_num;
+#ifdef NEEDS_ARM_ERRATA_754319_754320
+    asm volatile ( "vmov s0,s0\n" );
+#endif
 	return FALSE;
       }
     }
@@ -347,6 +350,10 @@ compress_output (j_compress_ptr cinfo, JSAMPIMAGE input_buf)
   /* Completed the iMCU row, advance counters for next one */
   coef->iMCU_row_num++;
   start_iMCU_row(cinfo);
+#ifdef NEEDS_ARM_ERRATA_754319_754320
+  asm volatile ( "vmov s0,s0\n" );
+#endif
+
   return TRUE;
 }
 

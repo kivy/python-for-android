@@ -2,6 +2,7 @@
  * jdmerge.c
  *
  * Copyright (C) 1994-1996, Thomas G. Lane.
+ * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -250,6 +251,35 @@ METHODDEF(void)
 h2v1_merged_upsample (j_decompress_ptr cinfo,
 		      JSAMPIMAGE input_buf, JDIMENSION in_row_group_ctr,
 		      JSAMPARRAY output_buf)
+#ifdef ANDROID_JPEG_USE_VENUM
+{
+  my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
+  JSAMPROW inptr0, inptr1, inptr2;
+  JSAMPROW outptr;
+
+  inptr0 = input_buf[0][in_row_group_ctr];
+  inptr1 = input_buf[1][in_row_group_ctr];
+  inptr2 = input_buf[2][in_row_group_ctr];
+  outptr = output_buf[0];
+
+#ifdef ANDROID_RGB
+  if (cinfo->out_color_space == JCS_RGBA_8888) {
+    yyvup2abgr8888_venum((UINT8*) inptr0,
+                         (UINT8*) inptr2,
+                         (UINT8*) inptr1,
+                         (UINT8*) outptr,
+                         cinfo->output_width);
+  } else
+#endif
+  {
+    yyvup2bgr888_venum((UINT8*) inptr0,
+                       (UINT8*) inptr2,
+                       (UINT8*) inptr1,
+                       (UINT8*) outptr,
+                       cinfo->output_width);
+  }
+}
+#else
 {
   my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
   register int y, cred, cgreen, cblue;
@@ -263,7 +293,14 @@ h2v1_merged_upsample (j_decompress_ptr cinfo,
   int * Cbbtab = upsample->Cb_b_tab;
   INT32 * Crgtab = upsample->Cr_g_tab;
   INT32 * Cbgtab = upsample->Cb_g_tab;
+  JDIMENSION pixelWidth = RGB_PIXELSIZE;
   SHIFT_TEMPS
+
+#ifdef ANDROID_RGB
+  if ((cinfo->out_color_components == 4) &&
+      (cinfo->out_color_space == JCS_RGBA_8888))
+     pixelWidth = 4;  // RGBA pixel size
+#endif /* ANDROID_RGB */
 
   inptr0 = input_buf[0][in_row_group_ctr];
   inptr1 = input_buf[1][in_row_group_ctr];
@@ -282,12 +319,12 @@ h2v1_merged_upsample (j_decompress_ptr cinfo,
     outptr[RGB_RED] = range_limit[y + cred];
     outptr[RGB_GREEN] = range_limit[y + cgreen];
     outptr[RGB_BLUE] = range_limit[y + cblue];
-    outptr += RGB_PIXELSIZE;
+    outptr += pixelWidth;
     y  = GETJSAMPLE(*inptr0++);
     outptr[RGB_RED] = range_limit[y + cred];
     outptr[RGB_GREEN] = range_limit[y + cgreen];
     outptr[RGB_BLUE] = range_limit[y + cblue];
-    outptr += RGB_PIXELSIZE;
+    outptr += pixelWidth;
   }
   /* If image width is odd, do the last output column separately */
   if (cinfo->output_width & 1) {
@@ -302,6 +339,7 @@ h2v1_merged_upsample (j_decompress_ptr cinfo,
     outptr[RGB_BLUE] = range_limit[y + cblue];
   }
 }
+#endif /* ANDROID_JPEG_USE_VENUM */
 
 
 #ifdef ANDROID_RGB
@@ -309,6 +347,24 @@ METHODDEF(void)
 h2v1_merged_upsample_565 (j_decompress_ptr cinfo,
               JSAMPIMAGE input_buf, JDIMENSION in_row_group_ctr,
               JSAMPARRAY output_buf)
+#if defined(ANDROID_JPEG_USE_VENUM)
+{
+  my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
+  JSAMPROW inptr0, inptr1, inptr2;
+  JSAMPROW outptr;
+
+  inptr0 = input_buf[0][in_row_group_ctr];
+  inptr1 = input_buf[1][in_row_group_ctr];
+  inptr2 = input_buf[2][in_row_group_ctr];
+  outptr = output_buf[0];
+
+  yyvup2rgb565_venum((UINT8*) inptr0,
+                     (UINT8*) inptr2,
+                     (UINT8*) inptr1,
+                     (UINT8*) outptr,
+                     cinfo->output_width);
+}
+#else
 {
   my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
   register int y, cred, cgreen, cblue;
@@ -367,6 +423,7 @@ h2v1_merged_upsample_565 (j_decompress_ptr cinfo,
     *(INT16*)outptr = rgb;
   }
 }
+#endif /* ANDROID_JPEG_USE_VENUM */
 
 
 METHODDEF(void)
@@ -447,6 +504,46 @@ METHODDEF(void)
 h2v2_merged_upsample (j_decompress_ptr cinfo,
 		      JSAMPIMAGE input_buf, JDIMENSION in_row_group_ctr,
 		      JSAMPARRAY output_buf)
+#ifdef ANDROID_JPEG_USE_VENUM
+{
+  my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
+  JSAMPROW outptr0, outptr1;
+  JSAMPROW inptr00, inptr01, inptr1, inptr2;
+  inptr00 = input_buf[0][in_row_group_ctr*2];
+  inptr01 = input_buf[0][in_row_group_ctr*2 + 1];
+  inptr1  = input_buf[1][in_row_group_ctr];
+  inptr2  = input_buf[2][in_row_group_ctr];
+  outptr0 = output_buf[0];
+  outptr1 = output_buf[1];
+#ifdef ANDROID_RGB
+  if (cinfo->out_color_space == JCS_RGBA_8888) {
+    yyvup2abgr8888_venum((UINT8*) inptr00,
+                         (UINT8*) inptr2,
+                         (UINT8*) inptr1,
+                         (UINT8*) outptr0,
+                         cinfo->output_width);
+    yyvup2abgr8888_venum((UINT8*) inptr01,
+                         (UINT8*) inptr2,
+                         (UINT8*) inptr1,
+                         (UINT8*) outptr1,
+                         cinfo->output_width);
+  } else
+#endif
+  {
+    yyvup2bgr888_venum((UINT8*) inptr00,
+                       (UINT8*) inptr2,
+                       (UINT8*) inptr1,
+                       (UINT8*) outptr0,
+                       cinfo->output_width);
+
+    yyvup2bgr888_venum((UINT8*) inptr01,
+                       (UINT8*) inptr2,
+                       (UINT8*) inptr1,
+                       (UINT8*) outptr1,
+                       cinfo->output_width);
+  }
+}
+#else
 {
   my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
   register int y, cred, cgreen, cblue;
@@ -460,7 +557,14 @@ h2v2_merged_upsample (j_decompress_ptr cinfo,
   int * Cbbtab = upsample->Cb_b_tab;
   INT32 * Crgtab = upsample->Cr_g_tab;
   INT32 * Cbgtab = upsample->Cb_g_tab;
+  JDIMENSION pixelWidth = RGB_PIXELSIZE;
   SHIFT_TEMPS
+
+#ifdef ANDROID_RGB
+  if ((cinfo->out_color_components == 4) &&
+      (cinfo->out_color_space == JCS_RGBA_8888))
+     pixelWidth = 4;  // RGBA pixel size
+#endif /* ANDROID_RGB */
 
   inptr00 = input_buf[0][in_row_group_ctr*2];
   inptr01 = input_buf[0][in_row_group_ctr*2 + 1];
@@ -481,22 +585,22 @@ h2v2_merged_upsample (j_decompress_ptr cinfo,
     outptr0[RGB_RED] = range_limit[y + cred];
     outptr0[RGB_GREEN] = range_limit[y + cgreen];
     outptr0[RGB_BLUE] = range_limit[y + cblue];
-    outptr0 += RGB_PIXELSIZE;
+    outptr0 += pixelWidth;
     y  = GETJSAMPLE(*inptr00++);
     outptr0[RGB_RED] = range_limit[y + cred];
     outptr0[RGB_GREEN] = range_limit[y + cgreen];
     outptr0[RGB_BLUE] = range_limit[y + cblue];
-    outptr0 += RGB_PIXELSIZE;
+    outptr0 += pixelWidth;
     y  = GETJSAMPLE(*inptr01++);
     outptr1[RGB_RED] = range_limit[y + cred];
     outptr1[RGB_GREEN] = range_limit[y + cgreen];
     outptr1[RGB_BLUE] = range_limit[y + cblue];
-    outptr1 += RGB_PIXELSIZE;
+    outptr1 += pixelWidth;
     y  = GETJSAMPLE(*inptr01++);
     outptr1[RGB_RED] = range_limit[y + cred];
     outptr1[RGB_GREEN] = range_limit[y + cgreen];
     outptr1[RGB_BLUE] = range_limit[y + cblue];
-    outptr1 += RGB_PIXELSIZE;
+    outptr1 += pixelWidth;
   }
   /* If image width is odd, do the last output column separately */
   if (cinfo->output_width & 1) {
@@ -515,6 +619,7 @@ h2v2_merged_upsample (j_decompress_ptr cinfo,
     outptr1[RGB_BLUE] = range_limit[y + cblue];
   }
 }
+#endif /* ANDROID_JPEG_USE_VENUM */
 
 
 #ifdef ANDROID_RGB
@@ -523,6 +628,31 @@ METHODDEF(void)
 h2v2_merged_upsample_565 (j_decompress_ptr cinfo,
               JSAMPIMAGE input_buf, JDIMENSION in_row_group_ctr,
               JSAMPARRAY output_buf)
+#if defined(ANDROID_JPEG_USE_VENUM)
+{
+  my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
+  JSAMPROW outptr0, outptr1;
+  JSAMPROW inptr00, inptr01, inptr1, inptr2;
+  inptr00 = input_buf[0][in_row_group_ctr*2];
+  inptr01 = input_buf[0][in_row_group_ctr*2 + 1];
+  inptr1  = input_buf[1][in_row_group_ctr];
+  inptr2  = input_buf[2][in_row_group_ctr];
+  outptr0 = output_buf[0];
+  outptr1 = output_buf[1];
+
+  yyvup2rgb565_venum((UINT8*) inptr00,
+                     (UINT8*) inptr2,
+                     (UINT8*) inptr1,
+                     (UINT8*) outptr0,
+                     cinfo->output_width);
+
+  yyvup2rgb565_venum((UINT8*) inptr01,
+                     (UINT8*) inptr2,
+                     (UINT8*) inptr1,
+                     (UINT8*) outptr1,
+                     cinfo->output_width);
+}
+#else
 {
   my_upsample_ptr upsample = (my_upsample_ptr) cinfo->upsample;
   register int y, cred, cgreen, cblue;
@@ -601,7 +731,7 @@ h2v2_merged_upsample_565 (j_decompress_ptr cinfo,
    *(INT16*)outptr1 = rgb;
   }
 }
-
+#endif /* ANDROID_JPEG_USE_VENUM */
 
 
 METHODDEF(void)
@@ -724,11 +854,16 @@ jinit_merged_upsampler (j_decompress_ptr cinfo)
     upsample->upmethod = h2v2_merged_upsample;
 #ifdef ANDROID_RGB
     if (cinfo->out_color_space == JCS_RGB_565) {
-        if (cinfo->dither_mode == JDITHER_NONE) {
-            upsample->upmethod = h2v2_merged_upsample_565;
-        } else {
-            upsample->upmethod = h2v2_merged_upsample_565D;
-        }
+#if !defined(ANDROID_JPEG_USE_VENUM)
+      if (cinfo->dither_mode != JDITHER_NONE) {
+        upsample->upmethod = h2v2_merged_upsample_565D;
+      } else
+#endif
+      {
+        /* If VeNum routines are enabled, use h2v2_merged_upsample_565
+         * function regardless of dither mode. */
+        upsample->upmethod = h2v2_merged_upsample_565;
+      }
     }
 #endif
     /* Allocate a spare row buffer */
@@ -740,18 +875,28 @@ jinit_merged_upsampler (j_decompress_ptr cinfo)
     upsample->upmethod = h2v1_merged_upsample;
 #ifdef ANDROID_RGB
     if (cinfo->out_color_space == JCS_RGB_565) {
-        if (cinfo->dither_mode == JDITHER_NONE) {
-            upsample->upmethod = h2v1_merged_upsample_565;
-        } else {
-            upsample->upmethod = h2v1_merged_upsample_565D;
-        }
+#ifndef ANDROID_JPEG_USE_VENUM
+      if (cinfo->dither_mode != JDITHER_NONE) {
+        upsample->upmethod = h2v1_merged_upsample_565D;
+      } else
+#endif
+      {
+        /* If VeNum routines are enabled, use h2v1_merged_upsample_565
+         * function regardless of dither mode. */
+        upsample->upmethod = h2v1_merged_upsample_565;
+      }
     }
 #endif
     /* No spare row needed */
     upsample->spare_row = NULL;
   }
 
-  build_ycc_rgb_table(cinfo);
+#if !defined(ANDROID_JPEG_USE_VENUM)
+    build_ycc_rgb_table(cinfo);
+#endif
+#ifdef NEEDS_ARM_ERRATA_754319_754320
+  asm volatile ( "vmov s0,s0\n" );
+#endif
 }
 
 #endif /* UPSAMPLE_MERGING_SUPPORTED */

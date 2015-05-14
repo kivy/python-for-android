@@ -103,8 +103,12 @@ jpeg_calc_output_dimensions (j_decompress_ptr cinfo)
 #endif
 
   /* Prevent application from calling me at wrong times */
-  if (cinfo->global_state != DSTATE_READY)
-    ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
+#if ANDROID_TILE_BASED_DECODE
+  // Tile based decoding may call this function several times.
+  if (!cinfo->tile_decode)
+#endif
+    if (cinfo->global_state != DSTATE_READY)
+      ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
 
 #ifdef IDCT_SCALING_SUPPORTED
 

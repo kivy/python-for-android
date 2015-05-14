@@ -86,6 +86,12 @@ jround_up (long a, long b)
   return a - (a % b);
 }
 
+GLOBAL(long)
+jmin (long a, long b)
+{
+  return a < b ? a : b;
+}
+
 
 /* On normal machines we can apply MEMCOPY() and MEMZERO() to sample arrays
  * and coefficient-block arrays.  This won't work on 80x86 because the arrays

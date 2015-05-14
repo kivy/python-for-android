@@ -1,0 +1,9 @@
+# Copyright 2010 Google Inc. All Rights Reserved.
+#Fri Jul 16 10:03:09 PDT 2010
+currentVersion=8a
+version=6b
+isNative=true
+name=jpeg
+keywords=jpeg
+onDevice=true
+homepage=http\://www.ijg.org/
