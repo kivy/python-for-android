@@ -96,8 +96,15 @@ function build_python() {
 
 	# CFLAGS for python ctypes library
 	#export CFLAGS="$CFLAGS -DNO_MALLINFO"
-	machine=`uname -m`
-	export BUILDARCH=${machine}-linux-gnu
+	machine=$(uname -m)
+	system=$(uname -s)
+	system=${system,,}  # convert to lowercase
+
+	if [ "$machine" == "i386" ]; then
+		machine=x86
+	fi
+
+	export BUILDARCH=${machine}-${system}-gnu
 	export HOSTARCH=arm-eabi
 
 	try ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
@@ -118,14 +125,13 @@ function build_python() {
 	$MAKE install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	pop_arm
 
-	system=$(uname -s)
-	if [ "X$system" == "XDarwin" ]; then
+	if [ "X$system" == "Xdarwin" ]; then
 		try cp $RECIPE_python/patches/_scproxy.py $BUILD_python/Lib/
 		try cp $RECIPE_python/patches/_scproxy.py $BUILD_PATH/python-install/lib/python2.7/
 	fi
 	try cp $BUILD_hostpython/hostpython $HOSTPYTHON
 	try cp libpython2.7.so $LIBS_PATH/
-	try cp -a build/lib.linux-${machine}-2.7/_ctypes*.so $LIBS_PATH
+	try cp -a build/lib.${system}-${machine}-2.7/_ctypes*.so $LIBS_PATH
 
 	# reduce python
 	rm -rf "$BUILD_PATH/python-install/lib/python2.7/test"
