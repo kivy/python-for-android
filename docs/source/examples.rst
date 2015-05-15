@@ -13,9 +13,11 @@ USB device using the VirtualBox OS settings.
 
 .. include:: example_helloworld.rst
 .. include:: example_compass.rst
+.. include:: example_manifest.rst
 
 .. toctree::
     :hidden:
 
     example_helloworld
     example_compass
+    example_manifest
