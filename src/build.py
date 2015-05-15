@@ -68,7 +68,11 @@ def render(template, dest, **kwargs):
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
-    f = file(dest, 'wb')
+    if sys.version_info[0] < 3:
+        f = file(dest, "wb")
+    else:
+        f = open(dest, 'wb')
+
     f.write(text.encode('utf-8'))
     f.close()
 
@@ -183,7 +187,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
-        print '%s: %s' % (tfn, fn)
+        print('%s: %s' % (tfn, fn))
         dn = dirname(afn)
         if dn not in dirs:
             # create every dirs first if not exist yet
@@ -224,7 +228,8 @@ def make_package(args):
 
         args.numeric_version = str(version_code)
 
-    args.name = args.name.decode('utf-8')
+    if sys.version_info[0] < 3:
+        args.name = args.name.decode('utf-8')
     if args.icon_name:
         args.icon_name = args.icon_name.decode('utf-8')
 
@@ -306,8 +311,8 @@ def make_package(args):
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
                          'android-{}'.format(args.sdk_version)])
     except (OSError, IOError):
-        print 'An error occured while calling', ANDROID, 'update'
-        print 'Your PATH must include android tools.'
+        print('An error occured while calling', ANDROID, 'update')
+        print('Your PATH must include android tools.')
         sys.exit(-1)
 
     # Delete the old assets.
@@ -346,7 +351,7 @@ def make_package(args):
     if args.add_jar:
         for jarname in args.add_jar:
             if not os.path.exists(jarname):
-                print 'Requested jar does not exist: {}'.format(jarname)
+                print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'libs')
 
@@ -355,8 +360,8 @@ def make_package(args):
         for arg in args.command:
             subprocess.check_call([ANT, arg])
     except (OSError, IOError):
-        print 'An error occured while calling', ANT
-        print 'Did you install ant on your system ?'
+        print('An error occured while calling', ANT)
+        print('Did you install ant on your system ?')
         sys.exit(-1)
 
 if __name__ == '__main__':
@@ -442,9 +447,10 @@ tools directory of the Android SDK.
                     default=join(curdir, 'whitelist.txt'),
                     help=('Use a whitelist file to prevent blacklisting of '
                           'file in the final APK'))
-    ap.add_argument('--sdk', dest='sdk_version', default=android_api,
+    ap.add_argument('--sdk', type=int, dest='sdk_version', default=android_api,
                     help='Android SDK version to use. Default to 8')
-    ap.add_argument('--minsdk', dest='min_sdk_version', default=android_api,
+    ap.add_argument('--minsdk', type=int, dest='min_sdk_version',
+                    default=android_api,
                     help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
                     help='Indicate if the application will be windowed')
