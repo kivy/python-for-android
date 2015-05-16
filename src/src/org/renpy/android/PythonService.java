@@ -77,7 +77,7 @@ public class PythonService extends Service  implements Runnable {
     }
 
     public String getKivyRoot() {
-	return getFilesDir().getAbsolutePath() + "/__kivy_root__";
+	return getFilesDir().getAbsolutePath() + "/app";
     }
 
     @Override

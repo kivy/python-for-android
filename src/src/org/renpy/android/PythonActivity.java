@@ -186,11 +186,11 @@ public class PythonActivity extends Activity implements Runnable {
 
 
     public String getKivyRoot() {
-	return getFilesDir().getAbsolutePath() + "/__kivy_root__";
+	return getFilesDir().getAbsolutePath() + "/app";
     }
 
     public String getKivyPublicRoot() {
-	return externalStorage.getAbsolutePath() + "/__kivy_root__";
+	return externalStorage.getAbsolutePath() + "/app";
     }
 
     /**

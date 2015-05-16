@@ -73,10 +73,10 @@ int main(int argc, char **argv) {
         "private = posix.environ['ANDROID_PRIVATE']\n" \
         "argument = posix.environ['ANDROID_ARGUMENT']\n" \
         "sys.path[:] = [ \n" \
-		"    private + '/__kivy_root__/lib/python27.zip', \n" \
-		"    private + '/__kivy_root__/lib/python2.7/', \n" \
-		"    private + '/__kivy_root__/lib/python2.7/lib-dynload/', \n" \
-		"    private + '/__kivy_root__/lib/python2.7/site-packages/', \n" \
+		"    private + '/app/lib/python27.zip', \n" \
+		"    private + '/app/lib/python2.7/', \n" \
+		"    private + '/app/lib/python2.7/lib-dynload/', \n" \
+		"    private + '/app/lib/python2.7/site-packages/', \n" \
 		"    argument ]\n" \
         "import androidembed\n" \
         "class LogFile(object):\n" \
