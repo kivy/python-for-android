@@ -11,7 +11,7 @@ from __future__ import print_function
 import sys
 from sys import stdout
 from os.path import join, dirname, realpath, exists, isdir, basename
-from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk
+from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
 import zipfile
 import tarfile
 import importlib
@@ -251,6 +251,15 @@ class Arch(object):
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(toolchain_prefix)
 
+        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
+        
+        # AND: This hardcodes python version 2.7, needs fixing
+        # AND: This also hardcodes armeabi, which isn't even correct, don't forget to fix!
+        env['BUILDLIB_PATH'] = join(hostpython_recipe.get_actual_build_dir('armeabi'),
+                                    'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
+
+        env['ARCH'] = self.arch
+
         return env
 
 
@@ -459,9 +468,9 @@ class Context(object):
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
 
         # # remove the most obvious flags that can break the compilation
+        self.env.pop("LDFLAGS", None)
         self.env.pop("ARCHFLAGS", None)
         self.env.pop("CFLAGS", None)
-        self.env.pop("LDFLAGS", None)
 
         # set the state
         self.state = JsonStore(join(self.dist_dir, "state.db"))
@@ -501,6 +510,7 @@ class Bootstrap(object):
     # whitelist.txt
     # blacklist.txt
     #  
+
 
     @property
     def jni_dir(self):
@@ -984,6 +994,9 @@ class Recipe(object):
     def build(self):
         self.build_arch(self.ctx.archs[0])  # Same here!
 
+    def postbuild(self):
+        self.postbuild_arch(self.ctx.archs[0])
+
     def prebuild_arch(self, arch):
         prebuild = "prebuild_{}".format(arch.arch)
         if hasattr(self, prebuild):
@@ -1120,6 +1133,9 @@ class NDKRecipe(Recipe):
     
     def get_build_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni', self.name)
+
+    def get_jni_dir(self):
+        return join(self.ctx.bootstrap.build_dir, 'jni')
 
     def prepare_build_dir(self, ctx):
         self.ctx = ctx
@@ -1276,12 +1292,21 @@ def build_recipes(names, ctx):
     for recipe in recipes:
         recipe.build()
 
+    # 4) biglink everything
+    biglink(ctx)
+
+    # 5) postbuild packages
+    for recipe in recipes:
+        recipe.postbuild()
     
     return
     for recipe in recipes:
         recipe.init_with_ctx(ctx)
     for recipe in recipes:
         recipe.execute()
+
+def biglink(ctx):
+    print('skipping biglink...there is no libpymodules.so?')
 
 
 def ensure_dir(filename):

@@ -18,7 +18,8 @@ LOCAL_CFLAGS := $(foreach D, $(APP_SUBDIRS), -I$(LOCAL_PATH)/$(D)) \
 				-I$(LOCAL_PATH)/../jpeg \
 				-I$(LOCAL_PATH)/../intl \
 				-I$(LOCAL_PATH)/.. \
-				-I$(LOCAL_PATH)/../../../build/python-install/include/python2.7
+				-I$(LOCAL_PATH)/../../../../python-install/include/python2.7
+				# -I$(LOCAL_PATH)/../../../build/python-install/include/python2.7
 
 
 LOCAL_CFLAGS += $(APPLICATION_ADDITIONAL_CFLAGS)
@@ -36,7 +37,8 @@ LOCAL_STATIC_LIBRARIES := jpeg png
 
 LOCAL_LDLIBS := -lpython2.7 -lGLESv1_CM -ldl -llog -lz
 
-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../build/python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
+# AND: Another hardcoded path that should be templated
+LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
 
 LIBS_WITH_LONG_SYMBOLS := $(strip $(shell \
 	for f in $(LOCAL_PATH)/../../libs/$ARCH/*.so ; do \

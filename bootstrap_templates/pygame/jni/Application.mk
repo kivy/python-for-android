@@ -8,5 +8,8 @@ APP_PROJECT_PATH := $(call my-dir)/..
 APP_MODULES := application sdl sdl_main tremor png jpeg freetype sdl_ttf sdl_image sqlite3
 
 APP_ABI := $(ARCH)
+# AND: I have no idea why I have to specify app_platform when distribute.sh seems to just set the sysroot cflag
+# AND: Either way, this has to *at least* be configurable
+APP_PLATFORM := android-14
 APP_STL := gnustl_static
 APP_CFLAGS += $(OFLAG)

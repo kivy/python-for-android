@@ -1,8 +1,8 @@
 
-from toolchain import PythonRecipe, shprint
+from toolchain import CythonRecipe, shprint
 
 
-class PyjniusRecipe(PythonRecipe):
+class PyjniusRecipe(CythonRecipe):
     version  = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'

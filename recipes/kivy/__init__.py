@@ -1,8 +1,8 @@
 
-from toolchain import PythonRecipe, shprint
+from toolchain import CythonRecipe, shprint
 
 
-class KivyRecipe(PythonRecipe):
+class KivyRecipe(CythonRecipe):
     version = 'stable'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
