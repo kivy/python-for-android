@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_numpy=${VERSION_numpy:-1.7.1}
+VERSION_numpy=${VERSION_numpy:-1.9.2}
 URL_numpy=http://pypi.python.org/packages/source/n/numpy/numpy-$VERSION_numpy.tar.gz
 DEPS_numpy=(python)
-MD5_numpy=0ab72b3b83528a7ae79c6df9042d61c6
+MD5_numpy=a1ed53432dbcd256398898d35bc8e645
 BUILD_numpy=$BUILD_PATH/numpy/$(get_directory $URL_numpy)
 RECIPE_numpy=$RECIPES_PATH/numpy
 
