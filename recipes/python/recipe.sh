@@ -78,6 +78,9 @@ function build_python() {
 	try cp $BUILD_hostpython/hostpython .
 	try cp $BUILD_hostpython/hostpgen .
 
+	export BUILDARCH=$(gcc -dumpmachine)
+	export HOSTARCH=arm-eabi
+
 	push_arm
 
 	# openssl activated ?
@@ -96,8 +99,6 @@ function build_python() {
 
 	# CFLAGS for python ctypes library
 	#export CFLAGS="$CFLAGS -DNO_MALLINFO"
-	export BUILDARCH=x86_64-linux-gnu
-	export HOSTARCH=arm-eabi
 
 	try ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
@@ -124,7 +125,7 @@ function build_python() {
 	fi
 	try cp $BUILD_hostpython/hostpython $HOSTPYTHON
 	try cp libpython2.7.so $LIBS_PATH/
-	try cp -a build/lib.linux-x86_64-2.7/_ctypes*.so $LIBS_PATH
+	try cp -a build/lib.*-2.7/_ctypes*.so $LIBS_PATH
 
 	# reduce python
 	rm -rf "$BUILD_PATH/python-install/lib/python2.7/test"
