@@ -22,7 +22,11 @@ function build_harfbuzz() {
     cd $BUILD_harfbuzz
 
     push_arm
-    try ./configure --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --enable-shared --without-freetype --without-glib
+	#~ export LDFLAGS="-L$LIBS_PATH"
+	#~ export LDSHARED="$LIBLINK"
+    #try ./configure --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --enable-shared --without-freetype --without-glib
+    #~ try ./autogen.sh  --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-freetype --without-glib
+    try ./configure --without-icu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-freetype --without-glib
     try make -j5
     pop_arm
     try cp -L $BUILD_harfbuzz/src/.libs/libharfbuzz.so $LIBS_PATH
