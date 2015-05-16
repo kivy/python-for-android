@@ -5,6 +5,8 @@
 # https://github.com/tito/python-for-android
 #
 #------------------------------------------------------------------------------
+ifile="$( dirname "${BASH_SOURCE[0]}" )/tools/distribute.functions.sh"
+. "$ifile" || { echo "$ifile file not found"; exit 1; }
 
 # Modules
 MODULES=
@@ -37,7 +39,7 @@ if [ "X$CYTHON" == "X" ]; then
 fi
 
 # Paths
-ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
+ROOT_PATH="$(npath "$0" ..)"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
@@ -283,16 +285,20 @@ function check_pkg_deb_installed() {
 }
 
 function check_build_deps() {
-    DIST=$(lsb_release -is)
-	info "Check build dependencies for $DIST"
-    case $DIST in
-		Debian|Ubuntu|LinuxMint)
-			check_pkg_deb_installed "build-essential zlib1g-dev cython"
-			;;
-		*)
-			debug "Avoid check build dependencies, unknow platform $DIST"
-			;;
-	esac
+    local dist=""
+    if which lsb_release -is >& /dev/null
+    then
+        dist=$(lsb_release -is)
+    fi 
+    info "Check build dependencies for $dist"
+    case $dist in
+        Debian|Ubuntu|LinuxMint)
+            check_pkg_deb_installed "build-essential zlib1g-dev cython"
+            ;;
+        *)
+            debug "Avoid check build dependencies, unknow platform $dist"
+            ;;
+    esac
 }
 
 function run_prepare() {
