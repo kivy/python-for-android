@@ -2,6 +2,7 @@
 from toolchain import PythonRecipe, shprint, ArchAndroid, current_directory
 from os.path import exists, join
 import sh
+import glob
 
 class PygameRecipe(PythonRecipe):
     name = 'pygame'
@@ -45,7 +46,15 @@ class PygameRecipe(PythonRecipe):
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
 
             print('strip is', env['STRIP'])
-            exit(1)
+            build_lib = glob.glob('./build/lib*')
+            assert len(build_lib) == 1
+            print('stripping pygame')
+            shprint(sh.find, build_lib[0], '-name', '"*.o"', '-exec',
+                    env['STRIP'], '{}', ';')
+
+        python_install_path = join(self.ctx.build_dir, 'python-install')
+        # AND: Should do some deleting here!
+        print('Should remove pygame tests etc. here, but skipping for now')
 
 
 recipe = PygameRecipe()
