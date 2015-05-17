@@ -42,6 +42,7 @@ def shprint(command, *args, **kwargs):
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
+    print('EXEC: ', command, *args)
     output = command(*args, **kwargs)
     for line in output:
         stdout.write(line)
@@ -261,7 +262,8 @@ class Arch(object):
 
         # AND: This stuff is set elsewhere in distribute.sh. Does that matter?
         env['ARCH'] = self.arch
-        env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds')
+        env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds', 'objects')
+        ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
         env['LIBLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'liblink')
         env['BIGLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'biglink')
 
@@ -353,6 +355,7 @@ class Context(object):
     build_dir = None  # in which bootstraps are copied for building and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
     libs_dir = None
+    javaclass_dir = None
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
 
@@ -427,6 +430,7 @@ class Context(object):
         # AND: Are the install_dir and include_dir the same for Android?
         self.install_dir = "{}/dist/root".format(self.root_dir)
         self.include_dir = "{}/dist/include".format(self.root_dir)
+        self.javaclass_dir = join(self.build_dir, 'java')
         self.archs = (
             ArchAndroid(self),  # AND: Just 32 bit for now?
             )
@@ -468,6 +472,7 @@ class Context(object):
         ensure_dir(self.dist_dir)
         ensure_dir(self.install_dir)
         ensure_dir(self.libs_dir)
+        ensure_dir(self.javaclass_dir)
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built

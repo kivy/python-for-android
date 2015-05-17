@@ -1,5 +1,8 @@
 
-from toolchain import CythonRecipe, shprint
+from toolchain import CythonRecipe, shprint, ArchAndroid, current_directory
+import sh
+import glob
+from os.path import join
 
 
 class PyjniusRecipe(CythonRecipe):
@@ -7,6 +10,46 @@ class PyjniusRecipe(CythonRecipe):
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
     depends = ['python2', 'sdl']
+
+    def build_armeabi(self):
+        env = ArchAndroid(self.ctx).get_env()
+
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(self.ctx.libs_dir)
+        env['LDSHARED'] = env['LIBLINK']
+
+        # AND: Hack to make pyjnius setup.py detect android build
+        env['NDKPLATFORM'] = 'NOTNONE'
+
+        with current_directory(self.get_actual_build_dir('armeabi')):
+            hostpython = sh.Command(self.ctx.hostpython)
+
+            # First build is fake in order to generate files that will be cythonized
+            print('First build attempt will fail as hostpython doesn\'t have cython available:')
+            try:
+                shprint(hostpython, 'setup.py', 'build_ext', _env=env)
+            except sh.ErrorReturnCode_1:
+                print('failed (as expected)')
+
+
+            print('Running cython where appropriate')
+            shprint(sh.find, self.get_actual_build_dir('armeabi'), '-iname', '*.pyx', '-exec',
+                    self.ctx.cython, '{}', ';', _env=env)
+            print('ran cython')
+
+            print('testing')
+            shprint(sh.echo, 'test', '')
+
+            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
+
+            build_lib = glob.glob('./build/lib*')
+            shprint(sh.find, build_lib[0], '-name', '"*.o"', '-exec',
+                    env['STRIP'], '{}', ';', _env=env)
+
+            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+
+            shprint(sh.cp, '-a', join('jnius', 'src', 'org'), self.ctx.javaclass_dir)
+
+            
 
 
 recipe = PyjniusRecipe()
