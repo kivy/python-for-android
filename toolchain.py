@@ -258,7 +258,12 @@ class Arch(object):
         env['BUILDLIB_PATH'] = join(hostpython_recipe.get_actual_build_dir('armeabi'),
                                     'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
 
+
+        # AND: This stuff is set elsewhere in distribute.sh. Does that matter?
         env['ARCH'] = self.arch
+        env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds')
+        env['LIBLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'liblink')
+        env['BIGLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'biglink')
 
         return env
 

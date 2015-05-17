@@ -40,6 +40,9 @@ class Python2Recipe(Recipe):
             print('sqlite or openssl support not yet enabled in python recipe')
             exit(1)
 
+        self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
+                                   'bin', 'python.host')
+
         if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
             print('libpython2.7.so already exists, skipping python build.')
             return
@@ -96,6 +99,14 @@ class Python2Recipe(Recipe):
 
             print('Ready to copy .so for python arm')
             shprint(sh.cp, 'libpython2.7.so', self.ctx.libs_dir)
+
+            print('Copying hostpython binary to targetpython folder')
+            shprint(sh.cp, self.ctx.hostpython,
+                    join(self.ctx.build_dir, 'python-install', 'bin',
+                         'python.host'))
+            self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
+                                       'bin', 'python.host')
+                    
             
             # reduce python?
             for dir_name in ('test', join('json', 'tests'), 'lib-tk',
