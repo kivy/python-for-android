@@ -1305,6 +1305,7 @@ def build_recipes(names, ctx):
         recipe.build()
 
     # 4) biglink everything
+    # AND: Should make this optional (could use 
     biglink(ctx)
 
     # 5) postbuild packages
@@ -1318,7 +1319,15 @@ def build_recipes(names, ctx):
         recipe.execute()
 
 def biglink(ctx):
-    print('skipping biglink...there is no libpymodules.so?')
+    # AND: Shouldn't hardcode ArchAndroid! In reality need separate
+    # build dirs for each arch
+    env = ArchAndroid(ctx).get_env()
+
+    print('Biglinking')
+    bl = sh.Command(env['BIGLINK'])
+    shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
+            env['LIBLINK_PATH'], _env=env)
+
 
 
 def ensure_dir(filename):
