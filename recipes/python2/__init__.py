@@ -88,7 +88,7 @@ class Python2Recipe(Recipe):
             shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(self.ctx.hostpython),
                     'HOSTPGEN={}'.format(self.ctx.hostpgen),
                     'CROSS_COMPILE_TARGET=yes',
-                    'INSTONAME=libpython2.7.so',
+                    'INSTSONAME=libpython2.7.so',
                     _env=env)
 
             if uname()[0] == 'Darwin':
