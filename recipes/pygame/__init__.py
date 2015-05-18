@@ -49,7 +49,7 @@ class PygameRecipe(PythonRecipe):
             build_lib = glob.glob('./build/lib*')
             assert len(build_lib) == 1
             print('stripping pygame')
-            shprint(sh.find, build_lib[0], '-name', '"*.o"', '-exec',
+            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                     env['STRIP'], '{}', ';')
 
         python_install_path = join(self.ctx.build_dir, 'python-install')
