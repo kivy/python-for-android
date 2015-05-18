@@ -23,6 +23,7 @@ class PyjniusRecipe(CythonRecipe):
 
         # AND: Don't forget to add a check whether pyjnius has already
         # been compiled. Currently it redoes it every time.
+        # AND: This check can be for jnius in site packages
 
         with current_directory(self.get_actual_build_dir('armeabi')):
             if exists('.done'):
@@ -44,9 +45,6 @@ class PyjniusRecipe(CythonRecipe):
                     self.ctx.cython, '{}', ';', _env=env)
             print('ran cython')
 
-            print('testing')
-            shprint(sh.echo, 'test', '')
-
             shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
 
 
@@ -58,7 +56,7 @@ class PyjniusRecipe(CythonRecipe):
 
             shprint(sh.cp, '-a', join('jnius', 'src', 'org'), self.ctx.javaclass_dir)
 
-            shprint(sh.touch, '.done')
+            sh.touch('.done')
             
 
 
