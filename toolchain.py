@@ -17,6 +17,7 @@ import tarfile
 import importlib
 import io
 import json
+import glob
 import shutil
 import fnmatch
 import re
@@ -61,6 +62,24 @@ def get_directory(filename):
         return basename(filename[:-4])
     print('Unknown file extension for {}'.format(filename))
     exit(1)
+
+def which(program, path_env):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in path_env.split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
     
     
 import contextlib
@@ -538,11 +557,17 @@ class Bootstrap(object):
     def prepare_dist_dir(self, name):
         self.dist_dir = join(self.ctx.dist_dir, name + '_' +
                              self.bootstrap_template_dir)
-        shprint(sh.cp, '-r',
-                join(self.ctx.root_dir,
-                     'bootstrap_templates',
-                     self.bootstrap_template_dir),
-                self.dist_dir)
+        # shprint(sh.cp, '-r',
+        #         join(self.ctx.root_dir,
+        #              'bootstrap_templates',
+        #              self.bootstrap_template_dir),
+        #         self.dist_dir)
+        ensure_dir(self.dist_dir)
+
+    def run_distribute(self):
+        print('Running distribute')
+        print('Default bootstrap being used doesn\'t know how to distribute...failing.')
+        exit(1)
 
 
 class PygameBootstrap(Bootstrap):
@@ -551,6 +576,96 @@ class PygameBootstrap(Bootstrap):
     recipe_depends = ['hostpython2', 'python2', 'pyjnius', 'sdl', 'pygame',
                       'android', 'kivy']
     
+    def run_distribute(self):
+        print('Running distribute!')
+
+        src_path = join(self.ctx.root_dir, 'bootstrap_templates',
+                        self.bootstrap_template_dir)
+        
+        with current_directory(self.dist_dir):
+
+            print('Creating initial layout')
+            for dirname in ('assets', 'bin', 'private', 'res', 'templates'):
+                if not exists(dirname):
+                    shprint(sh.mkdir, dirname)
+
+            print('Copying default files')
+            shprint(sh.cp, '-a', join(src_path, 'default.properties'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'local.properties'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'build.py'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'buildlib'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'src'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'templates'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'res'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'blacklist.txt'), '.')
+            shprint(sh.cp, '-a', join(src_path, 'whitelist.txt'), '.')
+            
+            print('Copying python distribution')
+            hostpython = sh.Command(self.ctx.hostpython)
+            shprint(hostpython, '-OO', '-m', 'compileall', join(self.ctx.build_dir, 'python-install'))
+            if not exists('python-install'):
+                shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
+
+            print('Copying libs')
+            # AND: Hardcoding armeabi - naughty!
+            shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
+            for lib in glob.glob(join(self.ctx.libs_dir, '*')):
+                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
+
+            print('Copying java files')
+            for filename in glob.glob(join(self.ctx.build_dir, 'java', '*')):
+                shprint(sh.cp, '-a', filename, 'src')
+
+            print('Filling private directory')
+            if not exists(join('private', 'lib')):
+                shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
+            shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
+            
+            # AND: Copylibs stuff should go here
+            shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
+            shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
+
+            print('Remove some unwanted files')
+            shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
+            shprint(sh.rm, '-rf', join('private', 'lib', 'pkgconfig'))
+
+            with current_directory(join(self.dist_dir, 'private', 'lib', 'python2.7')):
+                # shprint(sh.xargs, 'rm', sh.grep('-E', '*\.(py|pyx|so\.o|so\.a|so\.libs)$', sh.find('.')))
+                removes = []
+                for dirname, something, filens in walk('.'):
+                    for filename in filens:
+                        for suffix in ('py', 'pyc', 'so.o', 'so.a', 'so.libs'):
+                            if filename.endswith(suffix):
+                                removes.append(filename)
+                shprint(sh.rm, '-f', *removes)
+
+                print('Deleting some other stuff not used on android')
+                # To quote the original distribute.sh, 'well...'
+                shprint(sh.rm, '-rf', 'ctypes')
+                shprint(sh.rm, '-rf', 'lib2to3')
+                shprint(sh.rm, '-rf', 'idlelib')
+                for filename in glob.glob('config/libpython*.a'):
+                    shprint(sh.rm, '-f', filename)
+                shprint(sh.rm, '-rf', 'config/python.o')
+                shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
+                shprint(sh.rm, '-rf', 'lib-dynloat/_testcapi.so')
+
+
+        print('Stripping libraries')
+        env = ArchAndroid(self.ctx).get_env()
+        print('env is', env)
+        strip = which('arm-linux-androideabi-strip', env['PATH'])
+        if strip is None:
+            print('Can\'t find strip in PATH...')
+        strip = sh.Command(strip)
+        filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
+                '-iname', '*.so', _env=env).stdout
+        for filen in filens.split('\n'):
+            try:
+                shprint(strip, filen, _env=env)
+            except sh.ErrorReturnCode_1:
+                print('Something went wrong with strip...not sure if this is important.')
+
         
 
 class Recipe(object):
@@ -1471,6 +1586,8 @@ Available commands:
             build_recipes(recipes, ctx)
 
             run_pymodules_install([])
+
+            ctx.bootstrap.run_distribute()
 
             print('Done building recipes, exiting for now.')
             return
