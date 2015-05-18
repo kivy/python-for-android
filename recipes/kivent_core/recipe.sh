@@ -1,25 +1,24 @@
 #!/bin/bash
 
-VERSION_kivent=1.0.0
-URL_kivent=https://github.com/Kovak/KivEnt/archive/master.zip
-MD5_kivent=
-DEPS_kivent=(python cymunk kivy)
-BUILD_kivent=$BUILD_PATH/kivent/master/kivent/
-RECIPE_kivent=$RECIPES_PATH/kivent
+VERSION_kivent_core=2.0.0
+URL_kivent_core=https://github.com/kivy/KivEnt/archive/master.zip
+MD5_kivent_core=
+DEPS_kivent_core=(python kivy)
+BUILD_kivent_core=$BUILD_PATH/kivent_core/master/modules/core
+RECIPE_kivent_core=$RECIPES_PATH/kivent_core
 
-function prebuild_kivent() {
+function prebuild_kivent_core() {
 	true
 }
 
-function build_kivent() {
-	cd $BUILD_kivent
+function build_kivent_core() {
+	cd $BUILD_kivent_core
 
 	push_arm
 
 	export LDSHARED="$LIBLINK"
 	export PYTHONPATH=$BUILD_kivy/:$PYTHONPATH
-	export PYTHONPATH=$BUILD_cymunk/cymunk/python:$PYTHONPATH
-	try find . -iname '__init__.pyx' -exec $CYTHON {} \;
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
 	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
@@ -30,6 +29,6 @@ function build_kivent() {
 	pop_arm
 }
 
-function postbuild_kivent() {
+function postbuild_kivent_core() {
 	true
 }
