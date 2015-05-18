@@ -759,7 +759,8 @@ class Recipe(object):
             shprint(sh.rm, '-rf', build_dir)
             shprint(sh.mkdir, '-p', build_dir)
             shprint(sh.rmdir, build_dir)
-            shprint(sh.ln, '-s', user_dir, build_dir)
+            ensure_dir(build_dir)
+            shprint(sh.ln, '-s', user_dir, join(build_dir, get_directory(self.versioned_url)))
             return
 
         ensure_dir(build_dir)
@@ -805,6 +806,7 @@ class Recipe(object):
             # AND: Should use requests or something for this?
             shprint(sh.rm, '-f', marker_filename)
             #shprint(sh.wget, filename, url)
+            print('wgetting')  # AND: Use tito's nice function for this
             r = requests.get(url)
             with open(filename, 'wb') as fileh:
                 for chunk in r.iter_content():
