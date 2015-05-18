@@ -1313,10 +1313,13 @@ def build_recipes(names, ctx):
         recipe.postbuild()
     
     return
-    for recipe in recipes:
-        recipe.init_with_ctx(ctx)
-    for recipe in recipes:
-        recipe.execute()
+
+def run_pymodules_install(modules):
+    print('Pymodules can\'t currently be installed. Skipping.')
+    if len(modules):
+        print('Asked to build some python modules. Refusing!')
+        exit(1)
+        
 
 def biglink(ctx):
     # AND: Shouldn't hardcode ArchAndroid! In reality need separate
@@ -1466,6 +1469,8 @@ Available commands:
             print('Recipes are', recipes)
             
             build_recipes(recipes, ctx)
+
+            run_pymodules_install([])
 
             print('Done building recipes, exiting for now.')
             return
