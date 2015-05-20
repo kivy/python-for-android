@@ -94,23 +94,23 @@ def current_directory(new_dir):
           
 
 
-# def cache_execution(f):
-#     def _cache_execution(self, *args, **kwargs):
-#         state = self.ctx.state
-#         key = "{}.{}".format(self.name, f.__name__)
-#         force = kwargs.pop("force", False)
-#         if args:
-#             for arg in args:
-#                 key += ".{}".format(arg)
-#         key_time = "{}.at".format(key)
-#         if key in state and not force:
-#             print("# (ignored) {} {}".format(f.__name__.capitalize(), self.name))
-#             return
-#         print("{} {}".format(f.__name__.capitalize(), self.name))
-#         f(self, *args, **kwargs)
-#         state[key] = True
-#         state[key_time] = str(datetime.utcnow())
-#     return _cache_execution
+def cache_execution(f):
+    def _cache_execution(self, *args, **kwargs):
+        state = self.ctx.state
+        key = "{}.{}".format(self.name, f.__name__)
+        force = kwargs.pop("force", False)
+        if args:
+            for arg in args:
+                key += ".{}".format(arg)
+        key_time = "{}.at".format(key)
+        if key in state and not force:
+            print("# (ignored) {} {}".format(f.__name__.capitalize(), self.name))
+            return
+        print("{} {}".format(f.__name__.capitalize(), self.name))
+        f(self, *args, **kwargs)
+        state[key] = True
+        state[key_time] = str(datetime.utcnow())
+    return _cache_execution
 
 
 class ChromeDownloader(FancyURLopener):
@@ -674,6 +674,7 @@ class Recipe(object):
     url = None
     md5sum = None
     depends = []
+    conflicts = []
 
     name = None  # name for the recipe dir
 
@@ -1513,6 +1514,8 @@ Available commands:
                     recipe = Recipe.get_recipe(name, ctx)
                     print("{recipe.name:<12} {recipe.version:<8}".format(
                           recipe=recipe))
+                    print('    depends: {recipe.depends}'.format(recipe=recipe))
+                    print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
         # def clean(self):
         #     parser = argparse.ArgumentParser(
@@ -1532,7 +1535,7 @@ Available commands:
         #         if exists(ctx.build_dir):
         #             shutil.rmtree(ctx.build_dir)
 
-        def distclean(self):
+        def clean(self):
             parser = argparse.ArgumentParser(
                     description="Clean the build cache, downloads and dists")
             args = parser.parse_args(sys.argv[2:])
@@ -1543,6 +1546,15 @@ Available commands:
                 shutil.rmtree(ctx.dist_dir)
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
+
+        def dist_clean(self):
+            parser = argparse.ArgumentParser(
+                    description="Delete any distributions that have been built.")
+            args = parser.parse_args(sys.argv[2:])
+            ctx = Context()
+            if exists(ctx.dist_dir):
+                shutil.rmtree(ctx.dist_dir)
+            
 
         # def status(self):
         #     parser = argparse.ArgumentParser(
@@ -1560,12 +1572,12 @@ Available commands:
         #         print("{:<12} - {}".format(
         #             recipe, status))
 
-        def create_android_project(self):
+        def create(self):
             '''Create a distribution directory if it doesn't already exist, run
             any recipes if necessary, and build the apk.
             '''
             parser = argparse.ArgumentParser(
-                description='Create a new Android project')
+                description='Create a newAndroid project')
             parser.add_argument('--name', help='The name of the project')
             parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
                                                    'or \'sdl2\''))
@@ -1635,6 +1647,7 @@ Available commands:
         #     print("XCode project     : {0}-ios/{0}.xcodeproj".format(
         #         args.name.lower()))
 
+         
         # def update(self):
         #     parser = argparse.ArgumentParser(
         #             description="Update an existing xcode project")
