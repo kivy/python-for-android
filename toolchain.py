@@ -602,6 +602,7 @@ class PygameBootstrap(Bootstrap):
             
             print('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)
+            # AND: This *doesn't* need to be in arm env?
             shprint(hostpython, '-OO', '-m', 'compileall', join(self.ctx.build_dir, 'python-install'))
             if not exists('python-install'):
                 shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
@@ -871,11 +872,14 @@ class Recipe(object):
         if user_dir is not None:
             print('P4A_{}_DIR exists, symlinking instead of downloading'.format(
                 self.name.lower()))
+            if exists(self.get_actual_build_dir('armeabi')):
+                return
             shprint(sh.rm, '-rf', build_dir)
             shprint(sh.mkdir, '-p', build_dir)
             shprint(sh.rmdir, build_dir)
             ensure_dir(build_dir)
-            shprint(sh.ln, '-s', user_dir, join(build_dir, get_directory(self.versioned_url)))
+            # shprint(sh.ln, '-s', user_dir, join(build_dir, get_directory(self.versioned_url)))
+            shprint(sh.git, 'clone', user_dir, self.get_actual_build_dir('armeabi'))
             return
 
         ensure_dir(build_dir)

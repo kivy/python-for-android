@@ -48,9 +48,12 @@ class PyjniusRecipe(CythonRecipe):
             shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
 
 
+            print('stripping')
             build_lib = glob.glob('./build/lib*')
             shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
+            print('stripped!?')
+            # exit(1)
 
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
 
