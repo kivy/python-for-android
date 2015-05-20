@@ -40,7 +40,16 @@ class Python2Recipe(Recipe):
             print('sqlite or openssl support not yet enabled in python recipe')
             exit(1)
 
-        if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
+        import ipdb
+        ipdb.set_trace()
+
+        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
+        shprint(sh.cp, self.ctx.hostpython, self.get_actual_build_dir('armeabi'))
+        shprint(sh.cp, self.ctx.hostpgen, self.get_actual_build_dir('armeabi'))
+        hostpython = join(self.get_actual_build_dir('armeabi'), 'hostpython')
+        hostpgen = join(self.get_actual_build_dir('armeabi'), 'hostpython')
+
+        if exists(join(self.get_actual_build_dir('armeabi'), 'libpython2.7.so')):
             print('libpython2.7.so already exists, skipping python build.')
             self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
                                        'bin', 'python.host')
@@ -75,8 +84,8 @@ class Python2Recipe(Recipe):
             make = sh.Command(env['MAKE'].split(' ')[0])
             print('First install (expected to fail...')
             try:
-                shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(self.ctx.hostpython),
-                        'HOSTPGEN={}'.format(self.ctx.hostpgen),
+                shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
+                        'HOSTPGEN={}'.format(hostpgen),
                         'CROSS_COMPILE_TARGET=yes',
                         'INSTSONAME=libpython2.7.so',
                         _env=env)
@@ -85,8 +94,9 @@ class Python2Recipe(Recipe):
                 
 
             print('Second install (expected to work)')
-            shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(self.ctx.hostpython),
-                    'HOSTPGEN={}'.format(self.ctx.hostpgen),
+            shprint(sh.touch, 'python.exe', 'python')
+            shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
+                    'HOSTPGEN={}'.format(hostpgen),
                     'CROSS_COMPILE_TARGET=yes',
                     'INSTSONAME=libpython2.7.so',
                     _env=env)
