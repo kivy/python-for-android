@@ -40,9 +40,6 @@ class Python2Recipe(Recipe):
             print('sqlite or openssl support not yet enabled in python recipe')
             exit(1)
 
-        import ipdb
-        ipdb.set_trace()
-
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
         shprint(sh.cp, self.ctx.hostpython, self.get_actual_build_dir('armeabi'))
         shprint(sh.cp, self.ctx.hostpgen, self.get_actual_build_dir('armeabi'))
