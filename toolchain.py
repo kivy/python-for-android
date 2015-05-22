@@ -45,13 +45,20 @@ logger = logging.getLogger('p4a')
 # logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler(stdout)
-formatter = logging.Formatter('[%(levelname)s]: %(message)s')
+formatter = logging.Formatter('{}[%(levelname)s]{}: %(message)s'.format(
+    Style.BRIGHT, Style.RESET_ALL))
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 # logger.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+info = logger.info
+
 
 
 IS_PY3 = sys.version_info[0] >= 3
+
+def info_main(*args):
+    logger.info(''.join([Style.BRIGHT, Fore.GREEN] + list(args) +
+                        [Style.RESET_ALL, Fore.RESET]))
 
 def shprint(command, *args, **kwargs):
     kwargs["_iter"] = True
@@ -59,7 +66,11 @@ def shprint(command, *args, **kwargs):
     kwargs["_err_to_out"] = True
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
-    string = ' '.join(str(i) for i in ['ran ', Style.BRIGHT, command] + list(args))
+    command_path = str(command).split('/')
+    command_string = command_path[-1]
+    # if len(command_path) > 1:
+    #     command_string = '.../' + command_string
+    string = ' '.join(['running', Style.DIM, command_string] + list(args))
     short_string = string
     if len(string) > 100:
         short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
@@ -110,10 +121,12 @@ def which(program, path_env):
 @contextlib.contextmanager
 def current_directory(new_dir):
     cur_dir = getcwd()
-    logger.info('Switching current directory to ' + new_dir)
+    logger.info(''.join((Fore.CYAN, '-> directory context ', new_dir,
+                         Fore.RESET)))
     chdir(new_dir)
     yield
-    logger.info('Directory context ended, switching to ' + cur_dir)
+    logger.info(''.join((Fore.CYAN, '<- directory context ', cur_dir,
+                         Fore.RESET)))
     chdir(cur_dir)
           
 
@@ -651,7 +664,7 @@ class PygameBootstrap(Bootstrap):
                     shprint(sh.rm, '-f', filename)
                 shprint(sh.rm, '-rf', 'config/python.o')
                 shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
-                shprint(sh.rm, '-rf', 'lib-dynloat/_testcapi.so')
+                shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
 
         print('Stripping libraries')
@@ -866,7 +879,7 @@ class Recipe(object):
     #         self.ctx.include_dirs.append(include_dir)
 
     def prepare_build_dir(self, ctx):
-        print('Preparing build dir for {}'.format(self.name))
+        info_main('Preparing build dir for {}'.format(self.name))
         self.ctx = ctx
 
         build_dir = self.get_build_dir('armeabi')
@@ -1132,6 +1145,7 @@ class Recipe(object):
         self.postbuild_arch(self.ctx.archs[0])
 
     def prebuild_arch(self, arch):
+        info_main('Prebuilding {} for {}'.format(self.name, arch.arch))
         prebuild = "prebuild_{}".format(arch.arch)
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
@@ -1139,11 +1153,13 @@ class Recipe(object):
             print('{} has no {}, skipping'.format(self.name, prebuild))
 
     def build_arch(self, arch):
+        info_main('Building {} for {}'.format(self.name, arch.arch))
         build = "build_{}".format(arch.arch)
         if hasattr(self, build):
             getattr(self, build)()
 
     def postbuild_arch(self, arch):
+        info_main('Postbuilding {} for {}'.format(self.name, arch.arch))
         postbuild = "postbuild_{}".format(arch.arch)
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
@@ -1579,6 +1595,7 @@ Available commands:
                 bs = PygameBootstrap()
             else:
                 raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
+            info_main('Creating dist with with pygame bootstrap')
 
             ctx = Context()
             ctx.dist_name = args.name
