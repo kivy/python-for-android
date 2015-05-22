@@ -29,25 +29,50 @@ except ImportError:
     from urllib import FancyURLopener
 
 import requests
+from appdirs import user_data_dir
 
 curdir = dirname(__file__)
 sys.path.insert(0, join(curdir, "tools", "external"))
 
 import sh
+import logging
+import contextlib
+
+from colorama import Style, Fore
+
+
+logger = logging.getLogger('p4a')
+# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+ch = logging.StreamHandler(stdout)
+formatter = logging.Formatter('[%(levelname)s]: %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+# logger.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 
 IS_PY3 = sys.version_info[0] >= 3
-
 
 def shprint(command, *args, **kwargs):
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
-    print('EXEC: ', command, *args)
+    if len(logger.handlers) > 1:
+        logger.removeHandler(logger.handlers[1])
+    string = ' '.join(str(i) for i in ['ran ', Style.BRIGHT, command] + list(args))
+    short_string = string
+    if len(string) > 100:
+        short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
+    logger.info(short_string + Style.RESET_ALL)
+    logger.debug(string + Style.RESET_ALL)
     output = command(*args, **kwargs)
     for line in output:
-        stdout.write(line)
+        logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
     return output
+
+# shprint(sh.ls, '-lah')
+# exit(1)
+
 
 def get_directory(filename):
     if filename.endswith('.tar.gz'):
@@ -82,14 +107,13 @@ def which(program, path_env):
     return None
     
     
-import contextlib
 @contextlib.contextmanager
 def current_directory(new_dir):
     cur_dir = getcwd()
-    print('Switching current directory to', new_dir)
+    logger.info('Switching current directory to ' + new_dir)
     chdir(new_dir)
     yield
-    print('Directory context ended, switching to', cur_dir)
+    logger.info('Directory context ended, switching to ' + cur_dir)
     chdir(cur_dir)
           
 
@@ -248,8 +272,6 @@ class Arch(object):
                            toolchain_version=toolchain_version,
                            py_platform=py_platform, path=environ.get('PATH'))
 
-        print('path is', env['PATH'])
-
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=env['PATH'])
         if cc is None:
@@ -371,6 +393,7 @@ class Graph(object):
 class Context(object):
     env = environ.copy()
     root_dir = None  # the filepath of toolchain.py
+    storage_dir = None  # the root dir where builds and dists will be stored
     build_dir = None  # in which bootstraps are copied for building and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
     libs_dir = None
@@ -392,6 +415,25 @@ class Context(object):
     def packages_path(self):
         '''Where packages are downloaded before being unpacked'''
         return join(self.root_dir, '.packages')
+
+    def setup_dirs(self):
+        '''Calculates all the storage and build dirs, and makes sure
+        the directories exist where necessary.'''
+        self.root_dir = realpath(dirname(__file__))
+
+        # AND: TODO: Allow the user to set the build_dir
+        # self.storage_dir = user_data_dir('python-for-android')
+        self.storage_dir = self.root_dir
+        self.build_dir = join(self.storage_dir, 'build')
+        self.libs_dir = join(self.build_dir, 'libs')
+        self.dist_dir = join(self.storage_dir, 'dists')
+        self.javaclass_dir = join(self.build_dir, 'java')
+
+        ensure_dir(self.storage_dir)
+        ensure_dir(self.build_dir)
+        ensure_dir(self.libs_dir)
+        ensure_dir(self.dist_dir)
+        ensure_dir(self.javaclass_dir)
 
     def __init__(self):
         super(Context, self).__init__()
@@ -419,52 +461,20 @@ class Context(object):
             ok = False
                 
 
-        # sdks = sh.xcodebuild("-showsdks").splitlines()
-        # AND: what is the equivalent? Do we care?
-
-        # # get the latest iphoneos
-        # iphoneos = [x for x in sdks if "iphoneos" in x]
-        # if not iphoneos:
-        #     print("No iphone SDK installed")
-        #     ok = False
-        # else:
-        #     iphoneos = iphoneos[0].split()[-1].replace("iphoneos", "")
-        #     self.sdkver = iphoneos
-        # AND: Assume the tools are installed for now
-
-        # # get the path for Developer
-        # self.devroot = "{}/iPhoneOS.platform/Developer".format(
-        #     sh.xcode_select("-print-path").strip())
-        # # path to the iOS SDK
-        # self.iossdkroot = "{}/SDKs/iPhoneOS{}.sdk".format(
-        #     self.devroot, self.sdkver)
-        # AND: Do we need Developer and SDK paths?
+        # AND: How to check that the sdk is available?
 
         # root of the toolchain
-        self.root_dir = realpath(dirname(__file__))
-        self.build_dir = "{}/build".format(self.root_dir)
-        self.cache_dir = "{}/.cache".format(self.root_dir)
-        self.libs_dir = join(self.build_dir, 'libs')
-        self.dist_dir = "{}/dist".format(self.root_dir)
-        # AND: Are the install_dir and include_dir the same for Android?
-        self.install_dir = "{}/dist/root".format(self.root_dir)
-        self.include_dir = "{}/dist/include".format(self.root_dir)
-        self.javaclass_dir = join(self.build_dir, 'java')
-        self.archs = (
-            ArchAndroid(self),  # AND: Just 32 bit for now?
-            )
-        # self.archs = (
-        #     ArchSimulator(self),
-        #     Arch64Simulator(self),
-        #     ArchIOS(self),
-        #     Arch64IOS(self))
+        self.setup_dirs()
 
-        # AND: ccache should be the same here?
+        # AND: Currently only the Android architecture is supported
+        self.archs = (
+            ArchAndroid(self),
+            )
+        
         # path to some tools
         self.ccache = sh.which("ccache")
         if not self.ccache:
-            #print("ccache is missing, the build will not be optimized in the future.")
-            pass
+            print("ccache is missing, the build will not be optimized in the future.")
         for cython_fn in ("cython2", "cython-2.7", "cython"):
             cython = sh.which(cython_fn)
             if cython:
@@ -484,14 +494,6 @@ class Context(object):
 
         if not ok:
             sys.exit(1)
-
-        ensure_dir(self.root_dir)
-        ensure_dir(self.build_dir)
-        ensure_dir(self.cache_dir)
-        ensure_dir(self.dist_dir)
-        ensure_dir(self.install_dir)
-        ensure_dir(self.libs_dir)
-        ensure_dir(self.javaclass_dir)
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
@@ -654,18 +656,18 @@ class PygameBootstrap(Bootstrap):
 
         print('Stripping libraries')
         env = ArchAndroid(self.ctx).get_env()
-        print('env is', env)
         strip = which('arm-linux-androideabi-strip', env['PATH'])
         if strip is None:
             print('Can\'t find strip in PATH...')
         strip = sh.Command(strip)
         filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
                 '-iname', '*.so', _env=env).stdout
+        logger.info('Stripping libraries in private dir')
         for filen in filens.split('\n'):
             try:
-                shprint(strip, filen, _env=env)
+                strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
-                print('Something went wrong with strip...not sure if this is important.')
+                logger.debug('Failed to strip ' + 'filen')
 
         
 
@@ -1517,25 +1519,7 @@ Available commands:
                     print('    depends: {recipe.depends}'.format(recipe=recipe))
                     print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
-        # def clean(self):
-        #     parser = argparse.ArgumentParser(
-        #             description="Clean the build")
-        #     parser.add_argument("recipe", nargs="*", help="Recipe to clean")
-        #     args = parser.parse_args(sys.argv[2:])
-        #     ctx = Context()
-        #     if args.recipe:
-        #         for recipe in args.recipe:
-        #             print("Cleaning {} build".format(recipe))
-        #             ctx.state.remove_all("{}.".format(recipe))
-        #             build_dir = join(ctx.build_dir, recipe)
-        #             if exists(build_dir):
-        #                 shutil.rmtree(build_dir)
-        #     else:
-        #         print("Delete build directory")
-        #         if exists(ctx.build_dir):
-        #             shutil.rmtree(ctx.build_dir)
-
-        def clean(self):
+        def clean_all(self):
             parser = argparse.ArgumentParser(
                     description="Clean the build cache, downloads and dists")
             args = parser.parse_args(sys.argv[2:])
@@ -1547,30 +1531,35 @@ Available commands:
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
 
-        def dist_clean(self):
+        def clean_dists(self):
             parser = argparse.ArgumentParser(
                     description="Delete any distributions that have been built.")
             args = parser.parse_args(sys.argv[2:])
             ctx = Context()
             if exists(ctx.dist_dir):
                 shutil.rmtree(ctx.dist_dir)
+
+        def clean_builds(self):
+            parser = argparse.ArgumentParser(
+                    description="Delete all build and download caches")
+            args = parser.parse_args(sys.argv[2:])
+            ctx = Context()
+            if exists(ctx.dist_dir):
+                shutil.rmtree(ctx.dist_dir)
+            if exists(ctx.packages_path):
+                shutil.rmtree(ctx.packages_path)
             
+        def status(self):
+            parser = argparse.ArgumentParser(
+                    description="Give a status of the build")
+            args = parser.parse_args(sys.argv[2:])
+            ctx = Context()
+            # AND: TODO
 
-        # def status(self):
-        #     parser = argparse.ArgumentParser(
-        #             description="Give a status of the build")
-        #     args = parser.parse_args(sys.argv[2:])
-        #     ctx = Context()
-        #     for recipe in Recipe.list_recipes():
-        #         key = "{}.build_all".format(recipe)
-        #         keytime = "{}.build_all.at".format(recipe)
+            print('This isn\'t implemented yet, but should list all currently existing '
+                  'distributions, the modules they include, and all the build caches.')
+            exit(1)
 
-        #         if key in ctx.state:
-        #             status = "Build OK (built at {})".format(ctx.state[keytime])
-        #         else:
-        #             status = "Not built"
-        #         print("{:<12} - {}".format(
-        #             recipe, status))
 
         def create(self):
             '''Create a distribution directory if it doesn't already exist, run
