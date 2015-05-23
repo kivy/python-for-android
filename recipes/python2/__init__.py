@@ -12,7 +12,7 @@ class Python2Recipe(Recipe):
     depends = ['hostpython2']  
 
     def prebuild_armeabi(self):
-        build_dir = self.get_build_dir('armeabi')
+        build_dir = self.get_build_container_dir('armeabi')
         if exists(join(build_dir, '.patched')):
             print('Python2 already patched, skipping.')
             return
@@ -41,19 +41,19 @@ class Python2Recipe(Recipe):
             exit(1)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
-        shprint(sh.cp, self.ctx.hostpython, self.get_actual_build_dir('armeabi'))
-        shprint(sh.cp, self.ctx.hostpgen, self.get_actual_build_dir('armeabi'))
-        hostpython = join(self.get_actual_build_dir('armeabi'), 'hostpython')
-        hostpgen = join(self.get_actual_build_dir('armeabi'), 'hostpython')
+        shprint(sh.cp, self.ctx.hostpython, self.get_build_dir('armeabi'))
+        shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir('armeabi'))
+        hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
+        hostpgen = join(self.get_build_dir('armeabi'), 'hostpython')
 
-        if exists(join(self.get_actual_build_dir('armeabi'), 'libpython2.7.so')):
+        if exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
             print('libpython2.7.so already exists, skipping python build.')
             self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
                                        'bin', 'python.host')
 
             return
 
-        with current_directory(self.get_actual_build_dir('armeabi')):
+        with current_directory(self.get_build_dir('armeabi')):
 
             
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
@@ -100,7 +100,7 @@ class Python2Recipe(Recipe):
 
             if uname()[0] == 'Darwin':
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
-                        join(self.get_actual_build_dir(), 'Lib'))
+                        join(self.get_build_dir(), 'Lib'))
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
                         join(self.ctx.build_dir, 'python-install', 'lib', 'python2.7'))
 

@@ -25,7 +25,7 @@ class PyjniusRecipe(CythonRecipe):
         # been compiled. Currently it redoes it every time.
         # AND: This check can be for jnius in site packages
 
-        with current_directory(self.get_actual_build_dir('armeabi')):
+        with current_directory(self.get_build_dir('armeabi')):
             if exists('.done'):
                 print('android module already compiled, exiting')
                 return
@@ -41,7 +41,7 @@ class PyjniusRecipe(CythonRecipe):
 
 
             print('Running cython where appropriate')
-            shprint(sh.find, self.get_actual_build_dir('armeabi'), '-iname', '*.pyx', '-exec',
+            shprint(sh.find, self.get_build_dir('armeabi'), '-iname', '*.pyx', '-exec',
                     self.ctx.cython, '{}', ';', _env=env)
             print('ran cython')
 

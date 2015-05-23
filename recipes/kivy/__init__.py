@@ -21,7 +21,7 @@ class KivyRecipe(CythonRecipe):
         # AND: Hack to make pyjnius setup.py detect android build
         env['NDKPLATFORM'] = 'NOTNONE'
 
-        with current_directory(self.get_actual_build_dir('armeabi')):
+        with current_directory(self.get_build_dir('armeabi')):
             if exists('.done'):
                 print('android module already compiled, exiting')
                 return
@@ -34,7 +34,7 @@ class KivyRecipe(CythonRecipe):
             except sh.ErrorReturnCode_1:
                 print('failed (as expected)')
             print('Running cython where appropriate')
-            shprint(sh.find, self.get_actual_build_dir('armeabi'), '-iname', '*.pyx', '-exec',
+            shprint(sh.find, self.get_build_dir('armeabi'), '-iname', '*.pyx', '-exec',
                     self.ctx.cython, '{}', ';', _env=env)
             print('ran cython')
 
