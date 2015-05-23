@@ -237,18 +237,6 @@ class Arch(object):
             for d in self.ctx.include_dirs]
 
         env = {}
-        # AND: Have to find out what CC, AR and LD should be
-        # env["CC"] = sh.xcrun("-find", "-sdk", self.sdk, "clang").strip()
-        # env["AR"] = sh.xcrun("-find", "-sdk", self.sdk, "ar").strip()
-        # env["LD"] = sh.xcrun("-find", "-sdk", self.sdk, "ld").strip()
-
-        # AND: Added flags manually, removed $OFLAG
-        # env["OTHER_CFLAGS"] = " ".join(
-        #     include_dirs)
-
-        # env["OTHER_LDFLAGS"] = " ".join([
-        #     "-L{}/{}".format(self.ctx.dist_dir, "lib"),
-        # ])
 
         env["CFLAGS"] = " ".join([
             "-DANDROID", "-mandroid", "-fomit-frame-pointer",
@@ -312,8 +300,6 @@ class Arch(object):
         env['ARCH'] = self.arch
         env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds', 'objects')
         ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
-        # env['LIBLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'liblink')
-        # env['BIGLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'biglink')
 
         return env
 
@@ -1007,6 +993,7 @@ class Recipe(object):
         with current_directory(build_dir):
             directory_name = get_directory(filename)
 
+            # AND: Could use tito's get_archive_rootdir here
             if not exists(directory_name) or not isdir(directory_name):
                 extraction_filename = join(self.ctx.packages_path, self.name, filename)
                 if (extraction_filename.endswith('.tar.gz') or
@@ -1029,13 +1016,6 @@ class Recipe(object):
                     root_directory = fileh.filelist[0].filename.strip('/')
                     if root_directory != directory_name:
                         shprint(sh.mv, root_directory, directory_name)
-                    # root_directory = shprint(sh.unzip, '-l'
-                    # if root_directory != directory_name:
-                    #     print('root dir is', root_directory, 'but expected dir is',
-                    #           extraction_filename, '?')
-                    #     exit(1)
-                    
-                        
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
             
@@ -1075,105 +1055,6 @@ class Recipe(object):
         if not exists(d):
             return
         return d
-
-    # @cache_execution
-    # def download(self):
-    #     key = "{}.archive_root".format(self.name)
-    #     if self.custom_dir:
-    #         self.ctx.state[key] = basename(self.custom_dir)
-    #     else:
-    #         src_dir = join(self.recipe_dir, self.url)
-    #         if exists(src_dir):
-    #             self.ctx.state[key] = basename(src_dir)
-    #             return
-    #         fn = self.archive_fn
-    #         if not exists(fn):
-    #             self.download_file(self.url.format(version=self.version), fn)
-    #         self.ctx.state[key] = self.get_archive_rootdir(self.archive_fn)
-
-    # @cache_execution
-    def extract(self):
-        # recipe tmp directory
-        for arch in self.filtered_archs:
-            print("Extract {} for {}".format(self.name, arch.arch))
-            self.extract_arch(arch.arch)
-
-    # def extract_arch(self, arch):
-    #     build_dir = join(self.ctx.build_dir, self.name, arch)
-    #     dest_dir = join(build_dir, self.archive_root)
-    #     if self.custom_dir:
-    #         if exists(dest_dir):
-    #             shutil.rmtree(dest_dir)
-    #         shutil.copytree(self.custom_dir, dest_dir)
-    #     else:
-    #         if exists(dest_dir):
-    #             return
-    #         src_dir = join(self.recipe_dir, self.url)
-    #         if exists(src_dir):
-    #             shutil.copytree(src_dir, dest_dir)
-    #             return
-    #         ensure_dir(build_dir)
-    #         self.extract_file(self.archive_fn, build_dir) 
-
-    # @cache_execution
-    # def build(self, arch):
-    #     self.build_dir = self.get_build_dir(arch.arch)
-    #     if self.has_marker("building"):
-    #         print("Warning: {} build for {} has been incomplete".format(
-    #             self.name, arch.arch))
-    #         print("Warning: deleting the build and restarting.")
-    #         shutil.rmtree(self.build_dir)
-    #         self.extract_arch(arch.arch)
-
-    #     if self.has_marker("build_done"):
-    #         print("Build python for {} already done.".format(arch.arch))
-    #         return
-
-    #     self.set_marker("building")
-
-    #     chdir(self.build_dir)
-    #     print("Prebuild {} for {}".format(self.name, arch.arch))
-    #     self.prebuild_arch(arch)
-    #     print("Build {} for {}".format(self.name, arch.arch))
-    #     self.build_arch(arch)
-    #     print("Postbuild {} for {}".format(self.name, arch.arch))
-    #     self.postbuild_arch(arch)
-    #     self.delete_marker("building")
-    #     self.set_marker("build_done")
-
-    # @cache_execution
-    def build_all(self):
-        filtered_archs = self.filtered_archs
-        print("Build {} for {} (filtered)".format(
-            self.name,
-            ", ".join([x.arch for x in filtered_archs])))
-        for arch in self.filtered_archs:
-            self.build(arch)
-
-        name = self.name
-        if self.library:
-            print("Create lipo library for {}".format(name))
-            if not name.startswith("lib"):
-                name = "lib{}".format(name)
-            static_fn = join(self.ctx.dist_dir, "lib", "{}.a".format(name))
-            ensure_dir(dirname(static_fn))
-            print("Lipo {} to {}".format(self.name, static_fn))
-            self.make_lipo(static_fn)
-        if self.libraries:
-            print("Create multiple lipo for {}".format(name))
-            for library in self.libraries:
-                static_fn = join(self.ctx.dist_dir, "lib", basename(library))
-                ensure_dir(dirname(static_fn))
-                print("  - Lipo-ize {}".format(library))
-                self.make_lipo(static_fn, library)
-        print("Install include files for {}".format(self.name))
-        self.install_include()
-        print("Install frameworks for {}".format(self.name))
-        self.install_frameworks()
-        print("Install sources for {}".format(self.name))
-        self.install_sources()
-        print("Install {}".format(self.name))
-        self.install()
 
     def prebuild(self):
         self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
@@ -1490,20 +1371,6 @@ class CythonRecipe(PythonRecipe):
                                         # pyjnius detect the android
                                         # build process
         return env
-
-    # def build_arch(self, arch):
-    #     build_env = self.get_recipe_env(arch)
-    #     hostpython = sh.Command(self.ctx.hostpython)
-    #     if self.pre_build_ext:
-    #         try:
-    #             shprint(hostpython, "setup.py", "build_ext", "-g",
-    #                     _env=build_env)
-    #         except:
-    #             pass
-    #     self.cythonize_build()
-    #     shprint(hostpython, "setup.py", "build_ext", "-g",
-    #             _env=build_env)
-    #     self.biglink()
 
 
 def build_recipes(names, ctx):
