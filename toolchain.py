@@ -320,8 +320,8 @@ class Arch(object):
         env['ARCH'] = self.arch
         env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds', 'objects')
         ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
-        env['LIBLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'liblink')
-        env['BIGLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'biglink')
+        # env['LIBLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'liblink')
+        # env['BIGLINK'] = join(self.ctx.bootstrap.build_dir, 'tools', 'biglink')
 
         return env
 
@@ -1467,6 +1467,7 @@ class CythonRecipe(PythonRecipe):
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
             self.ctx.get_libs_dir(arch.arch))
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+        env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = 'NOTNONE'  # AND: Hack to make kivy and
                                         # pyjnius detect the android
                                         # build process
@@ -1559,7 +1560,7 @@ def biglink(ctx):
     env = ArchAndroid(ctx).get_env()
 
     print('Biglinking')
-    bl = sh.Command(env['BIGLINK'])
+    bl = sh.Command(join(ctx.root_dir, 'tools', 'biglink'))
     shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
             env['LIBLINK_PATH'], _env=env)
 

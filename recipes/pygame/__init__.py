@@ -37,7 +37,7 @@ class PygameRecipe(Recipe):
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{libs_path} -L{src_path}/obj/local/{arch} -lm -lz'.format(
             libs_path=self.ctx.libs_dir, src_path=self.ctx.bootstrap.build_dir, arch=env['ARCH'])
 
-        env['LDSHARED'] = env['LIBLINK']
+        env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
 
         with current_directory(self.get_build_dir('armeabi')):
             info('hostpython is ' + self.ctx.hostpython)
