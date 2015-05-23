@@ -55,8 +55,9 @@ debug = logger.debug
 warning = logger.warning
 
 
-
 IS_PY3 = sys.version_info[0] >= 3
+
+
 
 def info_main(*args):
     logger.info(''.join([Style.BRIGHT, Fore.GREEN] + list(args) +
@@ -277,18 +278,8 @@ class Arch(object):
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
-        env['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
-                       'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
-                       '{toolchain_prefix}-{toolchain_version}/prebuilt/'
-                       '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
-                       'tools:{path}').format(
-                           sdk_dir=self.ctx.sdk_dir, ndk_dir=self.ctx.ndk_dir,
-                           toolchain_prefix=toolchain_prefix,
-                           toolchain_version=toolchain_version,
-                           py_platform=py_platform, path=environ.get('PATH'))
-
         cc = find_executable('{toolchain_prefix}-gcc'.format(
-            toolchain_prefix=toolchain_prefix), path=env['PATH'])
+            toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
             print('Couldn\'t find executable for CC. Exiting.')
             exit(1)
@@ -315,6 +306,7 @@ class Arch(object):
         env['BUILDLIB_PATH'] = join(hostpython_recipe.get_build_dir('armeabi'),
                                     'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
 
+        env['PATH'] = environ['PATH']
 
         # AND: This stuff is set elsewhere in distribute.sh. Does that matter?
         env['ARCH'] = self.arch
@@ -498,6 +490,32 @@ class Context(object):
         if not self.cython:
             ok = False
             print("Missing requirement: cython is not installed")
+
+        # Modify the path so that sh finds modules appropriately
+        py_platform = sys.platform
+        if py_platform in ['linux2', 'linux3']:
+            py_platform = 'linux'
+        if self.ndk_ver == 'r5b':
+            toolchain_prefix = 'arm-eabi'
+            toolchain_version = '4.4.0'
+        elif self.ndk_ver[:2] == 'r7':
+            toolchain_prefix = 'arm-linux-androideabi'
+            toolchain_version = '4.4.3'
+        elif self.ndk_ver[:2] == 'r9':
+            toolchain_prefix = 'arm-linux-androideabi'
+            toolchain_version = '4.9'
+        else:
+            print('Error: NDK not supported by these tools?')
+            exit(1)
+        environ['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
+                           'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
+                           '{toolchain_prefix}-{toolchain_version}/prebuilt/'
+                           '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
+                           'tools:{path}').format(
+                               sdk_dir=self.sdk_dir, ndk_dir=self.ndk_dir,
+                               toolchain_prefix=toolchain_prefix,
+                               toolchain_version=toolchain_version,
+                               py_platform=py_platform, path=environ.get('PATH'))
 
         # AND: Are these necessary? Where to check for and and ndk-build?
         # check the basic tools
