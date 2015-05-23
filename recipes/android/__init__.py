@@ -10,9 +10,6 @@ class AndroidRecipe(PythonRecipe):
     url = None
     depends = ['pygame']
 
-    def get_build_dir(self, arch):
-        return join(self.get_build_container_dir('armeabi'), 'src')
-
     def prebuild_armeabi(self):
         shprint(sh.cp, '-a', self.get_recipe_dir() + '/src', self.get_build_dir('armeabi'))
         

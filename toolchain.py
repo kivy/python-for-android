@@ -584,7 +584,6 @@ class Bootstrap(object):
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):
-        print('Running distribute')
         print('Default bootstrap being used doesn\'t know how to distribute...failing.')
         exit(1)
 
@@ -596,19 +595,20 @@ class PygameBootstrap(Bootstrap):
                       'android', 'kivy']
     
     def run_distribute(self):
-        print('Running distribute!')
+        info_main('# Creating Android project from build and {} bootstrap'.format(
+            self.bootstrap_template_dir))
 
         src_path = join(self.ctx.root_dir, 'bootstrap_templates',
                         self.bootstrap_template_dir)
         
         with current_directory(self.dist_dir):
 
-            print('Creating initial layout')
+            info('Creating initial layout')
             for dirname in ('assets', 'bin', 'private', 'res', 'templates'):
                 if not exists(dirname):
                     shprint(sh.mkdir, dirname)
 
-            print('Copying default files')
+            info('Copying default files')
             shprint(sh.cp, '-a', join(src_path, 'default.properties'), '.')
             shprint(sh.cp, '-a', join(src_path, 'local.properties'), '.')
             shprint(sh.cp, '-a', join(src_path, 'build.py'), '.')
@@ -619,24 +619,24 @@ class PygameBootstrap(Bootstrap):
             shprint(sh.cp, '-a', join(src_path, 'blacklist.txt'), '.')
             shprint(sh.cp, '-a', join(src_path, 'whitelist.txt'), '.')
             
-            print('Copying python distribution')
+            info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)
             # AND: This *doesn't* need to be in arm env?
             shprint(hostpython, '-OO', '-m', 'compileall', join(self.ctx.build_dir, 'python-install'))
             if not exists('python-install'):
                 shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
 
-            print('Copying libs')
+            info('Copying libs')
             # AND: Hardcoding armeabi - naughty!
             shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
             for lib in glob.glob(join(self.ctx.libs_dir, '*')):
                 shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
 
-            print('Copying java files')
+            info('Copying java files')
             for filename in glob.glob(join(self.ctx.build_dir, 'java', '*')):
                 shprint(sh.cp, '-a', filename, 'src')
 
-            print('Filling private directory')
+            info('Filling private directory')
             if not exists(join('private', 'lib')):
                 shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
@@ -645,7 +645,7 @@ class PygameBootstrap(Bootstrap):
             shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
             shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
-            print('Remove some unwanted files')
+            info('Removing some unwanted files')
             shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
             shprint(sh.rm, '-rf', join('private', 'lib', 'pkgconfig'))
 
@@ -659,7 +659,7 @@ class PygameBootstrap(Bootstrap):
                                 removes.append(filename)
                 shprint(sh.rm, '-f', *removes)
 
-                print('Deleting some other stuff not used on android')
+                info('Deleting some other stuff not used on android')
                 # To quote the original distribute.sh, 'well...'
                 shprint(sh.rm, '-rf', 'ctypes')
                 shprint(sh.rm, '-rf', 'lib2to3')
@@ -671,7 +671,7 @@ class PygameBootstrap(Bootstrap):
                 shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
 
-        print('Stripping libraries')
+        info('Stripping libraries')
         env = ArchAndroid(self.ctx).get_env()
         strip = which('arm-linux-androideabi-strip', env['PATH'])
         if strip is None:
@@ -779,7 +779,7 @@ class Recipe(object):
         Apply a patch from the current recipe directory into the current
         build directory.
         """
-        print("Apply patch {}".format(filename))
+        info("Applying patch {}".format(filename))
         filename = join(self.recipe_dir, filename)
         # AND: get_build_dir shouldn't need to hardcode armeabi
         sh.patch("-t", "-d", self.get_build_dir('armeabi'), "-p1", "-i", filename)
@@ -865,8 +865,10 @@ class Recipe(object):
         '''Given the arch name, returns the directory where the
         downloaded/copied package will be built.'''
 
-        return join(self.get_build_container_dir(arch),
-                    get_directory(self.versioned_url))
+        if self.url is not None:
+            return join(self.get_build_container_dir(arch),
+                        get_directory(self.versioned_url))
+        return join(self.get_build_container_dir(arch), self.name)
 
     def get_recipe_dir(self):
         # AND: Redundant, an equivalent property is already set by get_recipe
@@ -1449,7 +1451,7 @@ def build_recipes(names, ctx):
         recipe.download_if_necessary()
 
     for arch in ctx.archs:
-        info_main('Building all recipes for {}'.format(arch.arch))
+        info_main('# Building all recipes for {}'.format(arch.arch))
 
         for recipe in recipes:
             ensure_dir(recipe.get_build_container_dir(arch.arch))
@@ -1474,7 +1476,7 @@ def build_recipes(names, ctx):
     return
 
 def run_pymodules_install(modules):
-    print('Pymodules can\'t currently be installed. Skipping.')
+    warning('Pymodules can\'t currently be installed. Skipping.')
     if len(modules):
         print('Asked to build some python modules. Refusing!')
         exit(1)
@@ -1616,7 +1618,7 @@ Available commands:
                 bs = PygameBootstrap()
             else:
                 raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
-            info_main('Creating dist with with pygame bootstrap')
+            info_main('# Creating dist with with pygame bootstrap')
 
             ctx = Context()
             ctx.dist_name = args.name
@@ -1628,6 +1630,7 @@ Available commands:
             
             build_recipes(recipes, ctx)
 
+            info_main('# Installing pure Python modules')
             run_pymodules_install([])
 
             ctx.bootstrap.run_distribute()
