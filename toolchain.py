@@ -531,6 +531,15 @@ class Context(object):
         self.dist_name = name
         self.bootstrap.prepare_dist_dir(self.dist_name)
 
+    def get_libs_dir(self, arch):
+        '''The libs dir for a given arch.'''
+        ensure_dir(join(self.libs_dir, arch))
+        # AND: See warning:
+        warning('Ensuring libs dir in get_libs_dir, should fix this '
+                'to ensure elsewhere')
+        return join(self.libs_dir, arch)
+
+
 
 
 class Bootstrap(object):
@@ -835,13 +844,14 @@ class Recipe(object):
     #         self.name, bfn)
     #     return fn
 
-    # @property
-    # def filtered_archs(self):
-    #     result = []
-    #     for arch in self.ctx.archs:
-    #         if not self.archs or (arch.arch in self.archs):
-    #             result.append(arch)
-    #     return result
+    @property
+    def filtered_archs(self):
+        '''Return archs of self.ctx that are valid build archs for the Recipe.'''
+        result = []
+        for arch in self.ctx.archs:
+            if not self.archs or (arch.arch in self.archs):
+                result.append(arch)
+        return result
 
     # @property
     # def dist_libraries(self):
@@ -1320,11 +1330,31 @@ class NDKRecipe(Recipe):
         
 
 class PythonRecipe(Recipe):
-    pass
+    def build_arch(self, arch):
+        '''Install the Python module by calling setup.py install with
+        the target Python dir.'''
+        super(PythonRecipe, self).build_arch(arch)
+        self.install_python_package()
     # @cache_execution
     # def install(self):
     #     self.install_python_package()
     #     self.reduce_python_package()
+
+    def install_python_package(self, name=None, env=None, is_dir=True):
+        '''Automate the installation of a Python package (or a cython
+        package where the cython components are pre-built).'''
+        arch = self.filtered_archs[0]
+        if name is None:
+            name = self.name
+        if env is None:
+            env = self.get_recipe_env(arch)
+
+        info('Installing {} into site-packages'.format(self.name))
+
+        with current_directory(self.get_build_dir(arch.arch)):
+            hostpython = sh.Command(self.ctx.hostpython)
+
+            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
 
     # def install_python_package(self, name=None, env=None, is_dir=True):
     #     """Automate the installation of a Python package into the target
@@ -1369,6 +1399,46 @@ class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
 
+    def build_arch(self, arch):
+        '''Build any cython components, then install the Python module by
+        calling setup.py install with the target Python dir.
+        '''
+        Recipe.build_arch(self, arch)  # AND: Having to directly call the
+                                 # method like this is nasty...could
+                                 # use tito's method of having an
+                                 # install method that always runs
+                                 # after everything else but isn't
+                                 # used by a normal recipe.
+        self.build_cython_components(arch)
+        self.install_python_package()
+
+    def build_cython_components(self, arch):
+        # AND: Should we use tito's cythonize methods? How do they work?
+        info('Cythonizing anything necessary in {}'.format(self.name))
+        env = self.get_recipe_env(arch)
+        with current_directory(self.get_build_dir(arch.arch)):
+            hostpython = sh.Command(self.ctx.hostpython)
+            info('Trying first build of {} to get cython files: this is '
+                 'expected to fail'.format(self.name))
+            try:
+                shprint(hostpython, 'setup.py', 'build_ext', _env=env)
+            except sh.ErrorReturnCode_1:
+                info('{} first build failed (as expected)'.format(self.name))
+
+            info('Running cython where appropriate')
+            shprint(sh.find, self.get_build_dir('armeabi'), '-iname', '*.pyx', '-exec',
+                    self.ctx.cython, '{}', ';', _env=env)
+            info('ran cython')
+
+            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
+
+            print('stripping')
+            build_lib = glob.glob('./build/lib*')
+            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
+                    env['STRIP'], '{}', ';', _env=env)
+            print('stripped!?')
+            # exit(1)
+        
     # def cythonize_file(self, filename):
     #     if filename.startswith(self.build_dir):
     #         filename = filename[len(self.build_dir) + 1:]
@@ -1384,22 +1454,23 @@ class CythonRecipe(PythonRecipe):
     #         for filename in fnmatch.filter(filenames, "*.pyx"):
     #             self.cythonize_file(join(root, filename))
 
-    def biglink(self):
-        dirs = []
-        for root, dirnames, filenames in walk(self.build_dir):
-            if fnmatch.filter(filenames, "*.so.libs"):
-                dirs.append(root)
-        cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
-        shprint(cmd, join(self.build_dir, "lib{}.a".format(self.name)), *dirs)
+    # def biglink(self):
+    #     dirs = []
+    #     for root, dirnames, filenames in walk(self.build_dir):
+    #         if fnmatch.filter(filenames, "*.so.libs"):
+    #             dirs.append(root)
+    #     cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
+    #     shprint(cmd, join(self.build_dir, "lib{}.a".format(self.name)), *dirs)
 
-    # def get_recipe_env(self, arch):
-    #     env = super(CythonRecipe, self).get_recipe_env(arch)
-    #     env["KIVYIOSROOT"] = self.ctx.root_dir
-    #     env["IOSSDKROOT"] = arch.sysroot
-    #     env["LDSHARED"] = join(self.ctx.root_dir, "tools", "liblink")
-    #     env["ARM_LD"] = env["LD"]
-    #     env["ARCH"] = arch.arch
-    #     return env
+    def get_recipe_env(self, arch):
+        env = super(CythonRecipe, self).get_recipe_env(arch)
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
+            self.ctx.get_libs_dir(arch.arch))
+        env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+        env['NDKPLATFORM'] = 'NOTNONE'  # AND: Hack to make kivy and
+                                        # pyjnius detect the android
+                                        # build process
+        return env
 
     # def build_arch(self, arch):
     #     build_env = self.get_recipe_env(arch)
