@@ -9,7 +9,7 @@ class LibSDLRecipe(NDKRecipe):
     depends = ['python2']
 
     def prebuild_armeabi(self):
-        print('Debug: sdl recipe dir is ' + self.get_build_dir())
+        print('Debug: sdl recipe dir is ' + self.get_build_container_dir('armeabi'))
 
     def build_armeabi(self):
 

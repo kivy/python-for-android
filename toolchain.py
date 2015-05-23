@@ -312,7 +312,7 @@ class Arch(object):
         
         # AND: This hardcodes python version 2.7, needs fixing
         # AND: This also hardcodes armeabi, which isn't even correct, don't forget to fix!
-        env['BUILDLIB_PATH'] = join(hostpython_recipe.get_actual_build_dir('armeabi'),
+        env['BUILDLIB_PATH'] = join(hostpython_recipe.get_build_dir('armeabi'),
                                     'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
 
 
@@ -782,7 +782,7 @@ class Recipe(object):
         print("Apply patch {}".format(filename))
         filename = join(self.recipe_dir, filename)
         # AND: get_build_dir shouldn't need to hardcode armeabi
-        sh.patch("-t", "-d", join(self.get_build_dir('armeabi'), get_directory(self.versioned_url)), "-p1", "-i", filename)
+        sh.patch("-t", "-d", self.get_build_dir('armeabi'), "-p1", "-i", filename)
 
     def copy_file(self, filename, dest):
         print("Copy {} to {}".format(filename, dest))
@@ -987,7 +987,7 @@ class Recipe(object):
                         shprint(sh.mv, root_directory, directory_name)
                 elif (extraction_filename.endswith('.tar.bz2') or
                       extraction_filename.endswith('.tbz2')):
-                    print('Extracting {}'.format(extraction_filename))
+                    info('Extracting {} at {}'.format(extraction_filename, filename))
                     sh.tar('xjf', extraction_filename)
                     root_directory = sh.tar('tjf', extraction_filename).stdout.split('\n')[0].strip('/')
                     if root_directory != directory_name:
@@ -1454,9 +1454,6 @@ def build_recipes(names, ctx):
         for recipe in recipes:
             ensure_dir(recipe.get_build_container_dir(arch.arch))
             recipe.unpack(arch.arch)
-
-        print('ending early for test')
-        exit(1)
 
         # 2) prebuild packages
         for recipe in recipes:

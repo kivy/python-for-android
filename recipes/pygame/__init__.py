@@ -11,14 +11,14 @@ class PygameRecipe(PythonRecipe):
     depends = ['python2', 'sdl']
 
     def prebuild_armeabi(self):
-        if exists(join(self.get_build_dir('armeabi'), '.patched')):
+        if exists(join(self.get_build_container_dir('armeabi'), '.patched')):
             print('Pygame already patched, skipping.')
             return
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
-                join(self.get_actual_build_dir('armeabi'), 'Setup'))
+                join(self.get_build_dir('armeabi'), 'Setup'))
         self.apply_patch(join('patches', 'fix-surface-access.patch'))
         self.apply_patch(join('patches', 'fix-array-surface.patch'))
-        shprint(sh.touch, join(self.get_build_dir('armeabi'), '.patched'))
+        shprint(sh.touch, join(self.get_build_container_dir('armeabi'), '.patched'))
         
     def build_armeabi(self):
         # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now
@@ -40,7 +40,7 @@ class PygameRecipe(PythonRecipe):
 
         env['LDSHARED'] = env['LIBLINK']
 
-        with current_directory(self.get_actual_build_dir('armeabi')):
+        with current_directory(self.get_build_dir('armeabi')):
             print('hostpython is', self.ctx.hostpython)
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
