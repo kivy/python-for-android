@@ -51,6 +51,8 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 # logger.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 info = logger.info
+debug = logger.debug
+warning = logger.warning
 
 
 
@@ -561,6 +563,8 @@ class Bootstrap(object):
         return self.bootstrap_template_dir + self.jni_subdir
 
     def prepare_build_dir(self):
+        '''Ensure that a build dir exists for the recipe. This same single
+        dir will be used for building all different archs.'''
         self.build_dir = join(self.ctx.build_dir, 'bootstrap_builds',
                               self.bootstrap_template_dir)
         shprint(sh.cp, '-r',
@@ -729,7 +733,7 @@ class Recipe(object):
         if exists(filename):
             unlink(filename)
 
-        print('Downloading {0}'.format(url))
+        info('Downloading {} from {}'.format(self.name, url))
         urlretrieve(url, filename, report_hook)
         return filename
 
@@ -853,11 +857,15 @@ class Recipe(object):
     #         libraries.append(static_fn)
     #     return libraries
 
-    def get_build_dir(self, arch):
+    def get_build_container_dir(self, arch):
+        '''Given the arch name, returns the directory where it will be built.'''
         return join(self.ctx.build_dir, 'other_builds', self.name, arch)
 
-    def get_actual_build_dir(self, arch):
-        return join(self.ctx.build_dir, 'other_builds', self.name, arch,
+    def get_build_dir(self, arch):
+        '''Given the arch name, returns the directory where the
+        downloaded/copied package will be built.'''
+
+        return join(self.get_build_container_dir(arch),
                     get_directory(self.versioned_url))
 
     def get_recipe_dir(self):
@@ -878,87 +886,95 @@ class Recipe(object):
     #         #print("Include dir added: {}".format(include_dir))
     #         self.ctx.include_dirs.append(include_dir)
 
-    def prepare_build_dir(self, ctx):
+    def ensure_build_container_dir(self):
         info_main('Preparing build dir for {}'.format(self.name))
-        self.ctx = ctx
 
-        build_dir = self.get_build_dir('armeabi')
+        build_dir = self.get_build_container_dir('armeabi')
+        ensure_dir(build_dir)
         
+    def download_if_necessary(self):
+        info_main('Downloading {}'.format(self.name))
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
         if user_dir is not None:
-            print('P4A_{}_DIR exists, symlinking instead of downloading'.format(
+            info('P4A_{}_DIR is set, skipping download for {}'.format(
+                self.name, self.name))
+            return
+        self.download()
+        
+    def download(self):
+        if self.url is None:
+            info('Skipping {} download as no URL is set'.format(self.name))
+            return
+
+        url = self.versioned_url
+
+        shprint(sh.mkdir, '-p', join(self.ctx.packages_path, self.name))
+
+        with current_directory(join(self.ctx.packages_path, self.name)):
+            filename = shprint(sh.basename, url).stdout[:-1]
+
+            do_download = True
+
+            marker_filename = '.mark-{}'.format(filename)
+            if exists(filename):
+                if not exists(marker_filename):
+                    shprint(sh.rm, filename)
+                elif self.md5sum:
+                    current_md5 = shprint(sh.md5sum, filename)
+                    print('downloaded md5: {}'.format(current_md5))
+                    print('expected md5: {}'.format(self.md5sum))
+                    print('md5 not handled yet, exiting')
+                    exit(1)
+                else:
+                    do_download = False
+                    info('{} download already cached, skipping'.format(self.name))
+
+            # Should check headers here!
+            warning('Should check headers here! Skipping for now.')
+
+            # If we got this far, we will download
+            if do_download:
+                print('Downloading {} from {}'.format(self.name, url))
+
+                shprint(sh.rm, '-f', marker_filename)
+                self.download_file(url, filename)
+                shprint(sh.touch, marker_filename)
+
+                if self.md5sum is not None:
+                    print('downloaded md5: {}'.format(current_md5))
+                    print('expected md5: {}'.format(self.md5sum))
+                    print('md5 not handled yet, exiting')
+                    exit(1)
+
+    def unpack(self, arch):
+        info_main('Unpacking {} for {}'.format(self.name, arch))
+
+        build_dir = self.get_build_container_dir(arch)
+
+        user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
+        if user_dir is not None:
+            info('P4A_{}_DIR exists, symlinking instead'.format(
                 self.name.lower()))
-            if exists(self.get_actual_build_dir('armeabi')):
+            # AND: Currently there's something wrong if I use ln, fix this
+            warning('Using git clone instead of symlink...fix this!')
+            if exists(self.get_build_dir(arch)):
                 return
             shprint(sh.rm, '-rf', build_dir)
             shprint(sh.mkdir, '-p', build_dir)
             shprint(sh.rmdir, build_dir)
             ensure_dir(build_dir)
             # shprint(sh.ln, '-s', user_dir, join(build_dir, get_directory(self.versioned_url)))
-            shprint(sh.git, 'clone', user_dir, self.get_actual_build_dir('armeabi'))
+            shprint(sh.git, 'clone', user_dir, self.get_build_dir('armeabi'))
             return
-
-        ensure_dir(build_dir)
 
         if self.url is None:
-            print('Nothing to do for {} recipe preparation'.format(self.name))
+            info('Skipping {} unpack as no URL is set'.format(self.name))
             return
 
-        print('Preparing and downloading {}'.format(self.name))
-
-        shprint(sh.mkdir, '-p', join(ctx.packages_path, self.name))
+        filename = shprint(sh.basename, self.versioned_url).stdout[:-1]
         
-        print('Moving to', join(ctx.packages_path, self.name))
-        chdir(join(ctx.packages_path, self.name))
-
-        url = self.url.format(version=self.version)
-        print('Will download from {}'.format(url))
-        filename = shprint(sh.basename, url).stdout[:-1]
-        marker_filename = '.mark-{}'.format(filename)
-        do_download = True
-        print('filename is', filename)
-        
-        if exists(filename):
-            if not exists(marker_filename):
-                shprint(sh.rm, filename)
-            elif self.md5sum:
-                current_md5 = shprint(sh.md5sum, filename)
-                print('downloaded md5: {}'.format(current_md5))
-                print('expected md5: {}'.format(self.md5sum))
-                print('md5 not handled yet, exiting')
-                exit(1)
-            else:
-                do_download = False
-                print('{} download already cached'.format(self.name))
-
-        # Should check headers here!
-        print('Should check headers here! Skipping for now.')
-
-        # If we got this far, we will download
-        if do_download:
-            print('Downloading {} from {}'.format(self.name, url))
-
-            # AND: Should use requests or something for this?
-            shprint(sh.rm, '-f', marker_filename)
-            #shprint(sh.wget, filename, url)
-            print('wgetting')  # AND: Use tito's nice function for this
-            r = requests.get(url)
-            with open(filename, 'wb') as fileh:
-                for chunk in r.iter_content():
-                    fileh.write(chunk)
-            shprint(sh.touch, marker_filename)
-
-            if self.md5sum is not None:
-                print('downloaded md5: {}'.format(current_md5))
-                print('expected md5: {}'.format(self.md5sum))
-                print('md5 not handled yet, exiting')
-                exit(1)
-                
-            # Decompress
-            print('Decompressing...')
-            print('Moving to', build_dir)
-            chdir(build_dir)
-
+        # AND: TODO: Use tito's better unpacking method
+        with current_directory(build_dir):
             directory_name = get_directory(filename)
 
             if not exists(directory_name) or not isdir(directory_name):
@@ -991,12 +1007,8 @@ class Recipe(object):
                     
                         
             else:
-                print('{} is already decompressed'.format(self.name))
+                info('{} is already unpacked, skipping'.format(self.name))
             
-
-        print('Moving to', ctx.root_dir)
-        chdir(ctx.root_dir)
-
 
     def get_recipe_env(self, arch=None):
         """Return the env specialized for the recipe
@@ -1265,8 +1277,11 @@ class Recipe(object):
         if name in cls.recipes:
             return cls.recipes[name]
         mod = importlib.import_module("recipes.{}".format(name))
+        if len(logger.handlers) > 1:
+            logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
         recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
+        recipe.ctx = ctx
         return recipe
 
 
@@ -1287,14 +1302,19 @@ class NDKRecipe(Recipe):
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
-    def prepare_build_dir(self, ctx):
-        self.ctx = ctx
-        print('{} is an NDK recipe, it is alread included in the '
-              'bootstrap (for now)'.format(self.name))
-        pass  # Do nothing; in the future an NDKRecipe can copy its
-              # contents to the bootstrap build dir, but for now each
-              # bootstrap already includes available recipes (as was
-              # already the case in p4a)
+    def download_if_necessary(self):
+        info_main('Downloading {}'.format(self.name))
+        info('{} is an NDK recipe, it is alread included in the '
+              'bootstrap (for now), so skipping'.format(self.name))
+        # Do nothing; in the future an NDKRecipe can copy its
+        # contents to the bootstrap build dir, but for now each
+        # bootstrap already includes available recipes (as was
+        # already the case in p4a)
+
+    def unpack(self, arch):
+        info_main('Unpacking {} for {}'.format(self.name, arch))
+        info('{} is included in the bootstrap, unpacking currently '
+             'unnecessary, so skipping'.format(self.name))
         
 
 class PythonRecipe(Recipe):
@@ -1396,15 +1416,13 @@ class CythonRecipe(PythonRecipe):
 
 def build_recipes(names, ctx):
     # Put recipes in correct build order
-    print("Want to build {}".format(names))
     graph = Graph()
     recipe_to_load = set(names)
     bs = ctx.bootstrap
     if bs.recipe_depends:
-        print('Bootstrap requires additional recipes {}'.format(bs.recipe_depends))
+        info('Bootstrap requires recipes {}'.format(bs.recipe_depends))
         recipe_to_load = recipe_to_load.union(set(bs.recipe_depends))
     recipe_to_load = list(recipe_to_load)
-    print('New list of recipes to build: {}'.format(recipe_to_load))
     recipe_loaded = []
     while recipe_to_load:
         name = recipe_to_load.pop(0)
@@ -1416,39 +1434,45 @@ def build_recipes(names, ctx):
             print('Error: No recipe named {}'.format(name))
             sys.exit(1)
         graph.add(name, name)
-        print('Loaded recipe {} (depends on {})'.format(name, recipe.depends))
+        info('Loaded recipe {} (depends on {})'.format(name, recipe.depends))
         for depend in recipe.depends:
             graph.add(name, depend)
             recipe_to_load += recipe.depends
         recipe_loaded.append(name)
     build_order = list(graph.find_order())
-    print("Build order is {}".format(build_order))
+    info("Recipe build order is {}".format(build_order))
     ctx.recipe_build_order = build_order
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
-    print('Recipes to build are:', recipes)
-    print('Downloading recipes')
-
-    # 1) download packages
     for recipe in recipes:
-        recipe.prepare_build_dir(ctx)
+        recipe.download_if_necessary()
 
-    # 2) prebuild packages
-    for recipe in recipes:
-        recipe.prebuild()
-    
-    # 3) build packages
-    for recipe in recipes:
-        recipe.build()
+    for arch in ctx.archs:
+        info_main('Building all recipes for {}'.format(arch.arch))
 
-    # 4) biglink everything
-    # AND: Should make this optional (could use 
-    biglink(ctx)
+        for recipe in recipes:
+            ensure_dir(recipe.get_build_container_dir(arch.arch))
+            recipe.unpack(arch.arch)
 
-    # 5) postbuild packages
-    for recipe in recipes:
-        recipe.postbuild()
+        print('ending early for test')
+        exit(1)
+
+        # 2) prebuild packages
+        for recipe in recipes:
+            recipe.prebuild()
+
+        # 3) build packages
+        for recipe in recipes:
+            recipe.build()
+
+        # 4) biglink everything
+        # AND: Should make this optional (could use 
+        biglink(ctx)
+
+        # 5) postbuild packages
+        for recipe in recipes:
+            recipe.postbuild()
     
     return
 
@@ -1603,7 +1627,7 @@ Available commands:
             ctx.prepare_dist(ctx.dist_name)
 
             recipes = re.split('[, ]*', args.recipes)
-            print('Recipes are', recipes)
+            info('Requested recipes are' + str(recipes))
             
             build_recipes(recipes, ctx)
 
