@@ -1,10 +1,10 @@
 
-from toolchain import PythonRecipe, shprint, ArchAndroid, current_directory, debug, info
+from toolchain import Recipe, shprint, ArchAndroid, current_directory, debug, info
 from os.path import exists, join
 import sh
 import glob
 
-class PygameRecipe(PythonRecipe):
+class PygameRecipe(Recipe):
     name = 'pygame'
     version = '1.9.1'
     url = 'http://pygame.org/ftp/pygame-{version}release.tar.gz'
