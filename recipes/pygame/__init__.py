@@ -1,5 +1,5 @@
 
-from toolchain import PythonRecipe, shprint, ArchAndroid, current_directory
+from toolchain import PythonRecipe, shprint, ArchAndroid, current_directory, debug, info
 from os.path import exists, join
 import sh
 import glob
@@ -12,7 +12,7 @@ class PygameRecipe(PythonRecipe):
 
     def prebuild_armeabi(self):
         if exists(join(self.get_build_container_dir('armeabi'), '.patched')):
-            print('Pygame already patched, skipping.')
+            info('Pygame already patched, skipping.')
             return
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
                 join(self.get_build_dir('armeabi'), 'Setup'))
@@ -31,21 +31,20 @@ class PygameRecipe(PythonRecipe):
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/sdl_ttf -I{jni_path}/sdl_image'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
-        print('pygame cflags', env['CFLAGS'])
+        debug('pygame cflags', env['CFLAGS'])
 
         
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{libs_path} -L{src_path}/obj/local/{arch} -lm -lz'.format(
             libs_path=self.ctx.libs_dir, src_path=self.ctx.bootstrap.build_dir, arch=env['ARCH'])
-        print('pygame ldflags', env['LDFLAGS'])
 
         env['LDSHARED'] = env['LIBLINK']
 
         with current_directory(self.get_build_dir('armeabi')):
-            print('hostpython is', self.ctx.hostpython)
+            info('hostpython is ' + self.ctx.hostpython)
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
 
-            print('strip is', env['STRIP'])
+            info('strip is ' + env['STRIP'])
             build_lib = glob.glob('./build/lib*')
             assert len(build_lib) == 1
             print('stripping pygame')
