@@ -16,7 +16,7 @@ some recipes. It should duplicate the functionality of distribute.sh
 code is currently bad and only the few essential recipes are
 supported.
 
-     python2 toolchain.py create_android_project --name=testproject --bootstrap=pygame --recipes=sdl,python2
+     python2 toolchain.py create --name=testproject --bootstrap=pygame --recipes=sdl,python2
 
 
 # Dependencies
