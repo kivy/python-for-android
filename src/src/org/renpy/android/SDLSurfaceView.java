@@ -293,6 +293,9 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     // what is the textinput type while calling the keyboard
     public int inputType = EditorInfo.TYPE_CLASS_TEXT;
+    
+    //
+    public int kHeight = 0;
 
     // Is Python ready to receive input events?
     static boolean mInputActivated = false;
@@ -1179,11 +1182,13 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 Rect rctx = new Rect();
                 activityRootView.getWindowVisibleDisplayFrame(rctx);
                 int heightDiff = default_display.getHeight() - (rctx.bottom - rctx.top);
-                if (heightDiff > 100){
+                if (heightDiff != kHeight){
+                    Log.i("Python:", String.format("Layout Triggered, Keyboard_height: %s", heightDiff));
                     //send control sequence start /x04 == kayboard layout changed
                     nativeKey(45, 1, 4);
                     nativeKey(45, 0, 4);
                     }
+                kHeight = heightDiff;
                 }
             });
         return new BaseInputConnection(this, false){
