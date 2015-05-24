@@ -179,18 +179,14 @@ version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
 python_act = autoclass('org.renpy.android.PythonActivity')
-Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    # do not add a listener here, one is already implemented in the Hardware.java
-    # that sends a event to kivy which makes a call to `get_keyboard_height`. 
-    decorview = mActivity.getWindow().getDecorView()
-    default_display = mActivity.getWindowManager().getDefaultDisplay()
+    # do not add a listener here, one is already implemented in
+    # SDLSurfaceView.java which sends a event to kivy which makes
+    # a call to `get_keyboard_height`. 
 
     def get_keyboard_height():
-        rctx = Rect()
-        decorview.getWindowVisibleDisplayFrame(rctx)
-        return default_display.getHeight() - (rctx.bottom - rctx.top)
+        return python_act.mView.kHeight
 else:
     def get_keyboard_height():
         return 0
