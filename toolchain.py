@@ -81,7 +81,16 @@ def shprint(command, *args, **kwargs):
     logger.debug(string + Style.RESET_ALL)
     output = command(*args, **kwargs)
     for line in output:
-        logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
+        if logger.level > logging.DEBUG:
+            string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip()
+            if len(string) < 120:
+                string = string + ' '*(120 - len(string))
+            sys.stdout.write(string)
+            sys.stdout.flush()
+        else:
+            logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
+    if logger.level > logging.DEBUG:
+        print()
     return output
 
 # shprint(sh.ls, '-lah')
@@ -872,20 +881,6 @@ class Recipe(object):
                 result.append(arch)
         return result
 
-    # @property
-    # def dist_libraries(self):
-    #     libraries = []
-    #     name = self.name
-    #     if not name.startswith("lib"):
-    #         name = "lib{}".format(name)
-    #     if self.library:
-    #         static_fn = join(self.ctx.dist_dir, "lib", "{}.a".format(name))
-    #         libraries.append(static_fn)
-    #     for library in self.libraries:
-    #         static_fn = join(self.ctx.dist_dir, "lib", basename(library))
-    #         libraries.append(static_fn)
-    #     return libraries
-
     def get_build_container_dir(self, arch):
         '''Given the arch name, returns the directory where it will be built.'''
         return join(self.ctx.build_dir, 'other_builds', self.name, arch)
@@ -1090,91 +1085,13 @@ class Recipe(object):
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
 
-    # @cache_execution
-    def make_lipo(self, filename, library=None):
-        if library is None:
-            library = self.library
-        if not library:
-            return
-        args = []
-        for arch in self.filtered_archs:
-            library_fn = library.format(arch=arch)
-            args += [
-                "-arch", arch.arch,
-                join(self.get_build_dir(arch.arch), library_fn)]
-        shprint(sh.lipo, "-create", "-output", filename, *args)
-
-    # @cache_execution
-    def install_frameworks(self):
-        if not self.frameworks:
-            return
-        arch = self.filtered_archs[0]
-        build_dir = self.get_build_dir(arch.arch)
-        for framework in self.frameworks:
-            print(" - Install {}".format(framework))
-            src = join(build_dir, framework)
-            dest = join(self.ctx.dist_dir, "frameworks", framework)
-            ensure_dir(dirname(dest))
-            if exists(dest):
-                shutil.rmtree(dest)
-            shutil.copytree(src, dest)
-
-    # @cache_execution
-    def install_sources(self):
-        if not self.sources:
-            return
-        arch = self.filtered_archs[0]
-        build_dir = self.get_build_dir(arch.arch)
-        for source in self.sources:
-            print(" - Install {}".format(source))
-            src = join(build_dir, source)
-            dest = join(self.ctx.dist_dir, "sources", self.name)
-            ensure_dir(dirname(dest))
-            if exists(dest):
-                shutil.rmtree(dest)
-            shutil.copytree(src, dest)
-
-    # @cache_execution
-    def install_include(self):
-        if not self.include_dir:
-            return
-        if self.include_per_arch:
-            archs = self.ctx.archs
-        else:
-            archs = self.filtered_archs[:1]
-
-        include_dirs = self.include_dir
-        if not isinstance(include_dirs, (list, tuple)):
-            include_dirs = list([include_dirs])
-
-        for arch in archs:
-            arch_dir = "common"
-            if self.include_per_arch:
-                arch_dir = arch.arch
-            dest_dir = join(self.ctx.include_dir, arch_dir, self.name)
-            if exists(dest_dir):
-                shutil.rmtree(dest_dir)
-            build_dir = self.get_build_dir(arch.arch)
-
-            for include_dir in include_dirs:
-                dest_name = None
-                if isinstance(include_dir, (list, tuple)):
-                    include_dir, dest_name = include_dir
-                include_dir = include_dir.format(arch=arch, ctx=self.ctx)
-                src_dir = join(build_dir, include_dir)
-                if dest_name is None:
-                    dest_name = basename(src_dir)
-                if isdir(src_dir):
-                    shutil.copytree(src_dir, dest_dir)
-                else:
-                    dest = join(dest_dir, dest_name)
-                    print("Copy {} to {}".format(src_dir, dest))
-                    ensure_dir(dirname(dest))
-                    shutil.copy(src_dir, dest)
-
-    # @cache_execution
-    def install(self):
-        pass
+    def prepare_build_dir(self, arch):
+        '''Copies the recipe data into a build dir for the given arch. By
+        default, this unpacks a downloaded recipe. You should override
+        it (or use a Recipe subclass with different behaviour) if you
+        want to do something else.
+        '''
+        self.unpack(arch)
 
     @classmethod
     def list_recipes(cls):
@@ -1221,8 +1138,11 @@ class NDKRecipe(Recipe):
 
     '''
     
-    def get_build_dir(self):
+    def get_build_dir(self, arch):
         return join(self.ctx.bootstrap.build_dir, 'jni', self.name)
+
+    def get_build_container_dir(self, arch):
+        return self.get_build_dir(arch)
 
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
@@ -1418,6 +1338,7 @@ def build_recipes(names, ctx):
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
+    # download is arch independent
     for recipe in recipes:
         recipe.download_if_necessary()
 
