@@ -1,19 +1,11 @@
-from toolchain import Recipe, shprint
+from toolchain import NDKRecipe, shprint, current_directory
 import sh
 
 
 
-class LibSDL2Recipe(Recipe):
-    version = "2.0.3"
-    url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
-
-    name = 'sdl2'
-    # version = "iOS-improvements"
-    # url = "https://bitbucket.org/slime73/sdl-experiments/get/{version}.tar.gz"
-    library = "Xcode-iOS/SDL/build/Release-{arch.sdk}/libSDL2.a"
-    include_dir = "include"
-    pbx_frameworks = ["OpenGLES", "AudioToolbox", "QuartzCore", "CoreGraphics",
-            "CoreMotion"]
+class LibSDL2Recipe(NDKRecipe):
+    # version = "2.0.3"
+    # url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
 
     def build_arch(self, arch):
         # shprint(sh.xcodebuild,
@@ -23,8 +15,10 @@ class LibSDL2Recipe(Recipe):
         #         "-project", "Xcode-iOS/SDL/SDL.xcodeproj",
         #         "-target", "libSDL",
         #         "-configuration", "Release")
-        shprint(sh.ndk_build,
-                "V=1", "sdl2")
+        env = self.get_recipe_env(arch)
+
+        with current_directory(self.get_jni_dir()):
+            shprint(sh.ndk_build, "V=1", _env=env)
 
 
 recipe = LibSDL2Recipe()
