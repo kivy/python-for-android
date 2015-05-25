@@ -82,7 +82,9 @@ def shprint(command, *args, **kwargs):
     output = command(*args, **kwargs)
     for line in output:
         if logger.level > logging.DEBUG:
-            string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip()
+            string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
+            if len(string) < 20:
+                continue
             if len(string) < 120:
                 string = string + ' '*(120 - len(string))
             sys.stdout.write(string)
@@ -569,16 +571,10 @@ class Bootstrap(object):
 
     recipe_depends = []
     
-
-    # supported_recipes = [] # only necessary if we don't implement
-    # jni dir copying
-
     # Other things a Bootstrap might need to track (maybe separately):
     # ndk_main.c
     # whitelist.txt
     # blacklist.txt
-    #  
-
 
     @property
     def jni_dir(self):
@@ -615,6 +611,12 @@ class SDL2Bootstrap(Bootstrap):
 
     recipe_depends = ['sdl2']
 
+    def prepare_build_dir(self):
+        super(SDL2Bootstrap, self).prepare_build_dir()
+        with current_directory(join(self.build_dir, 'jni')):
+            if not exists('SDL'):
+                shprint(sh.ln, '-s', '/home/asandy/devel/SDL', '.')
+
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.bootstrap_template_dir))
@@ -622,6 +624,9 @@ class SDL2Bootstrap(Bootstrap):
         info('This currently just copies the SDL2 build stuff straight from the build dir.')
         shprint(sh.rm, '-rf', self.dist_dir)
         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
+        with current_directory(self.dist_dir):
+            with open('local.properties', 'w') as fileh:
+                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
         
 
 
@@ -1379,6 +1384,9 @@ def biglink(ctx):
     # build dirs for each arch
     env = ArchAndroid(ctx).get_env()
 
+    if not len(glob.glob(join(ctx.build_dir, 'other_builds', 'objects', '*'))):
+        info('There seem to be no libraries to biglink, skipping.')
+        return
     print('Biglinking')
     bl = sh.Command(join(ctx.root_dir, 'tools', 'biglink'))
     shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
@@ -1508,6 +1516,8 @@ Available commands:
 
             if args.bootstrap == 'pygame':
                 bs = PygameBootstrap()
+            elif args.bootstrap == 'sdl2':
+                bs = SDL2Bootstrap()
             else:
                 raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
             info_main('# Creating dist with with pygame bootstrap')
