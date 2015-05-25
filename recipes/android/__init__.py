@@ -1,17 +1,18 @@
 
-from toolchain import PythonRecipe, shprint, ensure_dir, current_directory, ArchAndroid
+from toolchain import PythonRecipe, shprint, ensure_dir, current_directory, ArchAndroid, IncludedFilesBehaviour
 import sh
 from os.path import exists, join
 
 
-class AndroidRecipe(PythonRecipe):
+class AndroidRecipe(IncludedFilesBehaviour, PythonRecipe):
     # name = 'android'
     version = None
     url = None
     depends = ['pygame']
+    src_filename = 'src'
 
-    def prebuild_armeabi(self):
-        shprint(sh.cp, '-a', self.get_recipe_dir() + '/src', self.get_build_dir('armeabi'))
+    # def prebuild_armeabi(self):
+    #     shprint(sh.cp, '-a', self.get_recipe_dir() + '/src', self.get_build_dir('armeabi'))
         
     def build_armeabi(self):
 
@@ -23,7 +24,7 @@ class AndroidRecipe(PythonRecipe):
             env = ArchAndroid(self.ctx).get_env()
 
             env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(self.ctx.libs_dir)
-            env['LDSHARED'] = env['LIBLINK']
+            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
 
             shprint(sh.find, '.', '-iname', '*.pyx', '-exec', self.ctx.cython, '{}', ';')
 

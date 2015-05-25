@@ -601,12 +601,27 @@ class Bootstrap(object):
         exit(1)
 
 
+class SDL2Bootstrap(Bootstrap):
+    bootstrap_template_dir = 'sdl2'
+
+    recipe_depends = ['sdl2']
+
+    def run_distribute(self):
+        info_main('# Creating Android project from build and {} bootstrap'.format(
+            self.bootstrap_template_dir))
+
+        info('This currently just copies the SDL2 build stuff straight from the build dir.')
+        shprint(sh.rm, '-rf', self.dist_dir)
+        shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
+        
+
+
 class PygameBootstrap(Bootstrap):
     bootstrap_template_dir = 'pygame'
 
     recipe_depends = ['hostpython2', 'python2', 'pyjnius', 'sdl', 'pygame',
                       'android', 'kivy']
-    
+
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.bootstrap_template_dir))
@@ -889,18 +904,6 @@ class Recipe(object):
         return join(self.ctx.root_dir, 'recipes', self.name)
 
     # Public Recipe API to be subclassed if needed
-
-    # def init_with_ctx(self, ctx):
-    #     self.ctx = ctx
-    #     include_dir = None
-    #     if self.include_dir:
-    #         if self.include_per_arch:
-    #             include_dir = join("{arch.arch}", self.name)
-    #         else:
-    #             include_dir = join("common", self.name)
-    #     if include_dir:
-    #         #print("Include dir added: {}".format(include_dir))
-    #         self.ctx.include_dirs.append(include_dir)
 
     def ensure_build_container_dir(self):
         info_main('Preparing build dir for {}'.format(self.name))
@@ -1196,6 +1199,17 @@ class Recipe(object):
         return recipe
 
 
+class IncludedFilesBehaviour(object):
+    '''Recipe mixin class that will automatically unpack files included in
+    the recipe directory.'''
+    src_filename = None
+    def prepare_build_dir(self, arch):
+        if self.src_filename is None:
+            print('IncludedFilesBehaviour failed: no src_filename specified')
+            exit(1)
+        shprint(sh.cp, '-a', join(self.get_recipe_dir(), self.src_filename),
+                self.get_build_dir(arch))
+
 class NDKRecipe(Recipe):
     '''A recipe class for recipes built in an Android project jni dir with
     an Android.mk. These are not cached separatly, but built in the
@@ -1222,7 +1236,7 @@ class NDKRecipe(Recipe):
         # bootstrap already includes available recipes (as was
         # already the case in p4a)
 
-    def unpack(self, arch):
+    def prepare_build_dir(self, arch):
         info_main('Unpacking {} for {}'.format(self.name, arch))
         info('{} is included in the bootstrap, unpacking currently '
              'unnecessary, so skipping'.format(self.name))
@@ -1412,7 +1426,7 @@ def build_recipes(names, ctx):
 
         for recipe in recipes:
             ensure_dir(recipe.get_build_container_dir(arch.arch))
-            recipe.unpack(arch.arch)
+            recipe.prepare_build_dir(arch.arch)
 
         # 2) prebuild packages
         for recipe in recipes:
