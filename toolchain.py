@@ -611,11 +611,11 @@ class SDL2Bootstrap(Bootstrap):
 
     recipe_depends = ['sdl2']
 
-    def prepare_build_dir(self):
-        super(SDL2Bootstrap, self).prepare_build_dir()
-        with current_directory(join(self.build_dir, 'jni')):
-            if not exists('SDL'):
-                shprint(sh.ln, '-s', '/home/asandy/devel/SDL', '.')
+    # def prepare_build_dir(self):
+    #     super(SDL2Bootstrap, self).prepare_build_dir()
+        # with current_directory(join(self.build_dir, 'jni')):
+        #     if not exists('SDL'):
+        #         shprint(sh.ln, '-s', '/home/asandy/devel/SDL', '.')
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
@@ -1071,7 +1071,6 @@ class Recipe(object):
         self.postbuild_arch(self.ctx.archs[0])
 
     def prebuild_arch(self, arch):
-        info_main('Prebuilding {} for {}'.format(self.name, arch.arch))
         prebuild = "prebuild_{}".format(arch.arch)
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
@@ -1079,13 +1078,11 @@ class Recipe(object):
             print('{} has no {}, skipping'.format(self.name, prebuild))
 
     def build_arch(self, arch):
-        info_main('Building {} for {}'.format(self.name, arch.arch))
         build = "build_{}".format(arch.arch)
         if hasattr(self, build):
             getattr(self, build)()
 
     def postbuild_arch(self, arch):
-        info_main('Postbuilding {} for {}'.format(self.name, arch.arch))
         postbuild = "postbuild_{}".format(arch.arch)
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
@@ -1142,29 +1139,26 @@ class NDKRecipe(Recipe):
     all their recipe code.
 
     '''
-    
-    def get_build_dir(self, arch):
-        return join(self.ctx.bootstrap.build_dir, 'jni', self.name)
 
     def get_build_container_dir(self, arch):
-        return self.get_build_dir(arch)
+        return join(self.ctx.bootstrap.build_dir, 'jni')
 
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
-    def download_if_necessary(self):
-        info_main('Downloading {}'.format(self.name))
-        info('{} is an NDK recipe, it is alread included in the '
-              'bootstrap (for now), so skipping'.format(self.name))
-        # Do nothing; in the future an NDKRecipe can copy its
-        # contents to the bootstrap build dir, but for now each
-        # bootstrap already includes available recipes (as was
-        # already the case in p4a)
+    # def download_if_necessary(self):
+    #     info_main('Downloading {}'.format(self.name))
+    #     info('{} is an NDK recipe, it is alread included in the '
+    #           'bootstrap (for now), so skipping'.format(self.name))
+    #     # Do nothing; in the future an NDKRecipe can copy its
+    #     # contents to the bootstrap build dir, but for now each
+    #     # bootstrap already includes available recipes (as was
+    #     # already the case in p4a)
 
-    def prepare_build_dir(self, arch):
-        info_main('Unpacking {} for {}'.format(self.name, arch))
-        info('{} is included in the bootstrap, unpacking currently '
-             'unnecessary, so skipping'.format(self.name))
+    # def prepare_build_dir(self, arch):
+    #     info_main('Unpacking {} for {}'.format(self.name, arch))
+    #     info('{} is included in the bootstrap, unpacking currently '
+    #          'unnecessary, so skipping'.format(self.name))
         
 
 class PythonRecipe(Recipe):
@@ -1356,10 +1350,12 @@ def build_recipes(names, ctx):
 
         # 2) prebuild packages
         for recipe in recipes:
+            info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
             recipe.prebuild()
 
         # 3) build packages
         for recipe in recipes:
+            info_main('Building {} for {}'.format(recipe.name, arch.arch))
             recipe.build()
 
         # 4) biglink everything
@@ -1368,6 +1364,7 @@ def build_recipes(names, ctx):
 
         # 5) postbuild packages
         for recipe in recipes:
+            info_main('Postbuilding {} for {}'.format(recipe.name, arch.arch))
             recipe.postbuild()
     
     return
@@ -1480,13 +1477,22 @@ Available commands:
 
         def clean_builds(self):
             parser = argparse.ArgumentParser(
-                    description="Delete all build and download caches")
+                    description="Delete all build files (but not download caches)")
             args = parser.parse_args(sys.argv[2:])
             ctx = Context()
             if exists(ctx.dist_dir):
                 shutil.rmtree(ctx.dist_dir)
+            if exists(ctx.build_dir):
+                shutil.rmtree(ctx.build_dir)
+
+        def clean_download_cache(self):
+            parser = argparse.ArgumentParser(
+                    description="Delete all download caches")
+            args = parser.parse_args(sys.argv[2:])
+            ctx = Context()
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
+            
             
         def status(self):
             parser = argparse.ArgumentParser(
