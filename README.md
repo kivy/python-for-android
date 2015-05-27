@@ -29,3 +29,14 @@ Cython
 Pip:
 - appdirs
 - colorama
+
+
+# Current status
+
+Currently moving towards trying to build sdl2 + python. SDL2 alone
+will build, but several python components need modification to work
+with it.
+
+If trying to build SDL2 with other stuff, you probably need SDL_image,
+SDL_ttf and SDL_mixer as these don't have recipes yet (and unlike with
+p4a probably don't need to be included in this repo).
