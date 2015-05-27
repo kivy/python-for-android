@@ -31,6 +31,15 @@ Pip:
 - colorama
 
 
+# Known missing stuff from P4A
+
+- Pymodules install
+- Some recipes/components aren't stripped properly of doc etc.
+- Downloaded file md5 and headers aren't checked
+- Biglink is essential (the p4a disable option isn't implemented)
+- Probably some other stuff
+
+
 # Current status
 
 Currently moving towards trying to build sdl2 + python. SDL2 alone
