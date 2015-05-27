@@ -1300,9 +1300,7 @@ class CythonRecipe(PythonRecipe):
             self.ctx.get_libs_dir(arch.arch))
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         env['LIBLINK'] = 'NOTNONE'
-        env['NDKPLATFORM'] = 'NOTNONE'  # AND: Hack to make kivy and
-                                        # pyjnius detect the android
-                                        # build process
+        env['NDKPLATFORM'] = self.ctx.ndk_platform
         return env
 
 

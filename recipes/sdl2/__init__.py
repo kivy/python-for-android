@@ -9,10 +9,12 @@ class LibSDL2Recipe(NDKRecipe):
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
 
     def prebuild_arch(self, arch):
-        info_main('Prebuilding sdl2?')
         with current_directory(self.get_build_container_dir(arch)):
-            if exists('SDL2-{}'.format(self.version)) and not exists('SDL'):
-                shprint(sh.mv, 'SDL2-{}'.format(self.version), 'SDL')
+            if exists('SDL2-{}'.format(self.version)):
+                if not exists('SDL'):
+                    shprint(sh.mv, 'SDL2-{}'.format(self.version), 'SDL')
+                else:
+                    shprint(sh.rm, '-rf', 'SDL2-{}'.format(self.version))
 
     def build_arch(self, arch):
         # shprint(sh.xcodebuild,
@@ -22,7 +24,6 @@ class LibSDL2Recipe(NDKRecipe):
         #         "-project", "Xcode-iOS/SDL/SDL.xcodeproj",
         #         "-target", "libSDL",
         #         "-configuration", "Release")
-        info_main('Building {} for {}'.format(self.name, arch.arch))
         env = self.get_recipe_env(arch)
 
         with current_directory(self.get_jni_dir()):
