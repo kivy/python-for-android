@@ -21,10 +21,10 @@ supported.
 
 # Dependencies
 
-Virtualenv
-Android SDK (link by setting the ANDROIDSDK environment variable)
-Android NDK (link by setting the ANDROIDSDK environment variable)
-Cython
+- Virtualenv
+- Android SDK (link by setting the ANDROIDSDK environment variable)
+- Android NDK (link by setting the ANDROIDSDK environment variable)
+- Cython
 
 Pip:
 - appdirs
