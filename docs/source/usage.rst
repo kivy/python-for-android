@@ -34,7 +34,7 @@ before changing version.::
 
     ./distribute.sh -m "openssl kivy==master"
 
-Python modules that don't need C extrnsions don't need a recipe and
+Python modules that don't need C extensions don't need a recipe and
 can be included this way.  From python-for-android 1.1 on, you can now
 specify pure-python package into the distribution. It will use
 virtualenv and pip to install pure-python modules into the
