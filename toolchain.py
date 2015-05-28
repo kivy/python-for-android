@@ -41,15 +41,21 @@ import contextlib
 from colorama import Style, Fore
 
 
+print('new reload! logger stuff!')
+
 logger = logging.getLogger('p4a')
 # logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler(stdout)
-formatter = logging.Formatter('{}[%(levelname)s]{}: %(message)s'.format(
-    Style.BRIGHT, Style.RESET_ALL))
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-# logger.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
+                                    # this, which would add a second
+                                    # handler and reset the level
+    logger.setLevel(logging.INFO)
+    logger.touched = True
+    ch = logging.StreamHandler(stdout)
+    formatter = logging.Formatter('{}[%(levelname)s]{}: %(message)s'.format(
+        Style.BRIGHT, Style.RESET_ALL))
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    # logger.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 info = logger.info
 debug = logger.debug
 warning = logger.warning
@@ -64,6 +70,8 @@ def info_main(*args):
                         [Style.RESET_ALL, Fore.RESET]))
 
 def shprint(command, *args, **kwargs):
+    print('logger is', logger, id(logger))
+    print(logger.level, logging.DEBUG, logger.level > logging.DEBUG)
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
@@ -80,21 +88,17 @@ def shprint(command, *args, **kwargs):
     logger.info(short_string + Style.RESET_ALL)
     logger.debug(string + Style.RESET_ALL)
     output = command(*args, **kwargs)
-    try:
-        for line in output:
-            if logger.level > logging.DEBUG:
-                string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
-                if len(string) < 20:
-                    continue
-                if len(string) < 120:
-                    string = string + ' '*(120 - len(string))
-                sys.stdout.write(string)
-                sys.stdout.flush()
-            else:
-                logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
-    except:
-        print()
-        raise
+    for line in output:
+        if logger.level > logging.DEBUG:
+            string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
+            if len(string) < 20:
+                continue
+            if len(string) < 120:
+                string = string + ' '*(120 - len(string))
+            sys.stdout.write(string)
+            sys.stdout.flush()
+        else:
+            logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
     if logger.level > logging.DEBUG:
         print()
     return output
@@ -1074,16 +1078,16 @@ class Recipe(object):
             return
         return d
 
-    def prebuild(self):
-        self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
-                                               # this to support
-                                               # multiple archs
+    # def prebuild(self):
+    #     self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
+    #                                            # this to support
+    #                                            # multiple archs
 
-    def build(self):
-        self.build_arch(self.ctx.archs[0])  # Same here!
+    # def build(self):
+    #     self.build_arch(self.ctx.archs[0])  # Same here!
 
-    def postbuild(self):
-        self.postbuild_arch(self.ctx.archs[0])
+    # def postbuild(self):
+    #     self.postbuild_arch(self.ctx.archs[0])
 
     def prebuild_arch(self, arch):
         prebuild = "prebuild_{}".format(arch.arch)
@@ -1390,15 +1394,15 @@ def build_recipes(names, ctx):
         # 2) prebuild packages
         for recipe in recipes:
             info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
-            recipe.prebuild()
+            recipe.prebuild_arch(arch)
 
         # 3) build packages
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
             if recipe.should_build():
-                recipe.build()
+                recipe.build_arch(arch)
             else:
-                info('{} said it is already built, skipping')
+                info('{} said it is already built, skipping'.format(recipe.name))
 
         # 4) biglink everything
         # AND: Should make this optional (could use 
@@ -1407,7 +1411,7 @@ def build_recipes(names, ctx):
         # 5) postbuild packages
         for recipe in recipes:
             info_main('Postbuilding {} for {}'.format(recipe.name, arch.arch))
-            recipe.postbuild()
+            recipe.postbuild_arch(arch)
     
     return
 
@@ -1457,12 +1461,21 @@ Available commands:
     status        List all the recipes and their build status
 """)
             parser.add_argument("command", help="Command to run")
-            args = parser.parse_args(sys.argv[1:2])
+            parser.add_argument('--debug', dest='debug', action='store_true',
+                                help='Display debug output and all build info')
+            args, unknown = parser.parse_known_args(sys.argv[1:])
+            print('args are', args)
+            print('unknown are', unknown)
+            print('args debug', args.debug)
+            if args.debug:
+                print('setting level', logger.level)
+                logger.setLevel(logging.DEBUG)
+                print('to', logger.level)
             if not hasattr(self, args.command):
                 print('Unrecognized command')
                 parser.print_help()
                 exit(1)
-            getattr(self, args.command)()
+            getattr(self, args.command)(unknown)
 
         # def build(self):
         #     parser = argparse.ArgumentParser(
@@ -1478,13 +1491,13 @@ Available commands:
         #     #     print("Architectures restricted to: {}".format(archs))
         #     build_recipes(args.recipe, ctx)
 
-        def recipes(self):
+        def recipes(self, args):
             parser = argparse.ArgumentParser(
                     description="List all the available recipes")
             parser.add_argument(
                     "--compact", action="store_true",
                     help="Produce a compact list suitable for scripting")
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
 
             if args.compact:
                 print(" ".join(list(Recipe.list_recipes())))
@@ -1497,10 +1510,10 @@ Available commands:
                     print('    depends: {recipe.depends}'.format(recipe=recipe))
                     print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
-        def clean_all(self):
+        def clean_all(self, args):
             parser = argparse.ArgumentParser(
                     description="Clean the build cache, downloads and dists")
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
             ctx = Context()
             if exists(ctx.build_dir):
                 shutil.rmtree(ctx.build_dir)
@@ -1509,37 +1522,37 @@ Available commands:
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
 
-        def clean_dists(self):
+        def clean_dists(self, args):
             parser = argparse.ArgumentParser(
                     description="Delete any distributions that have been built.")
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
             ctx = Context()
             if exists(ctx.dist_dir):
                 shutil.rmtree(ctx.dist_dir)
 
-        def clean_builds(self):
+        def clean_builds(self, args):
             parser = argparse.ArgumentParser(
                     description="Delete all build files (but not download caches)")
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
             ctx = Context()
             if exists(ctx.dist_dir):
                 shutil.rmtree(ctx.dist_dir)
             if exists(ctx.build_dir):
                 shutil.rmtree(ctx.build_dir)
 
-        def clean_download_cache(self):
+        def clean_download_cache(self, args):
             parser = argparse.ArgumentParser(
                     description="Delete all download caches")
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
             ctx = Context()
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
             
             
-        def status(self):
+        def status(self, args):
             parser = argparse.ArgumentParser(
                     description="Give a status of the build")
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
             ctx = Context()
             # AND: TODO
 
@@ -1548,7 +1561,7 @@ Available commands:
             exit(1)
 
 
-        def create(self):
+        def create(self, args):
             '''Create a distribution directory if it doesn't already exist, run
             any recipes if necessary, and build the apk.
             '''
@@ -1560,7 +1573,7 @@ Available commands:
             parser.add_argument('--python_dir', help='Directory of your python code')
             parser.add_argument('--recipes', help='Recipes to include',
                                 default='kivy,')
-            args = parser.parse_args(sys.argv[2:])
+            args = parser.parse_args(args)
 
             if args.bootstrap == 'pygame':
                 bs = PygameBootstrap()
@@ -1588,7 +1601,7 @@ Available commands:
             print('Done building recipes, exiting for now.')
             return
 
-        def print_context_info(self):
+        def print_context_info(self, args):
             ctx = Context()
             for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
                               'ccache', 'cython', 'sdk_dir', 'ndk_dir', 'ndk_platform',
