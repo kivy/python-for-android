@@ -86,6 +86,7 @@ def shprint(command, *args, **kwargs):
     logger.info(short_string + Style.RESET_ALL)
     logger.debug(string + Style.RESET_ALL)
     output = command(*args, **kwargs)
+    need_closing_newline = False
     for line in output:
         if logger.level > logging.DEBUG:
             string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
@@ -95,9 +96,10 @@ def shprint(command, *args, **kwargs):
                 string = string + ' '*(120 - len(string))
             sys.stdout.write(string)
             sys.stdout.flush()
+            need_closing_newline = True
         else:
             logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
-    if logger.level > logging.DEBUG:
+    if logger.level > logging.DEBUG and need_closing_newline:
         print()
     return output
 
