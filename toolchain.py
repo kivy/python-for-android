@@ -70,7 +70,6 @@ def info_main(*args):
                         [Style.RESET_ALL, Fore.RESET]))
 
 def shprint(command, *args, **kwargs):
-    print('logger is', logger, id(logger))
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
