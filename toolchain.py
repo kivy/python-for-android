@@ -71,7 +71,6 @@ def info_main(*args):
 
 def shprint(command, *args, **kwargs):
     print('logger is', logger, id(logger))
-    print(logger.level, logging.DEBUG, logger.level > logging.DEBUG)
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
@@ -1468,9 +1467,7 @@ Available commands:
             print('unknown are', unknown)
             print('args debug', args.debug)
             if args.debug:
-                print('setting level', logger.level)
                 logger.setLevel(logging.DEBUG)
-                print('to', logger.level)
             if not hasattr(self, args.command):
                 print('Unrecognized command')
                 parser.print_help()
