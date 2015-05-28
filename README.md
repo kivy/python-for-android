@@ -18,6 +18,8 @@ supported.
 
      python2 toolchain.py create --name=testproject --bootstrap=pygame --recipes=sdl,python2
 
+Add the `--debug` option to any command to enable printing all the
+debug information, including output of shell commands.
 
 # Dependencies
 
