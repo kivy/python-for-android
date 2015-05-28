@@ -80,17 +80,21 @@ def shprint(command, *args, **kwargs):
     logger.info(short_string + Style.RESET_ALL)
     logger.debug(string + Style.RESET_ALL)
     output = command(*args, **kwargs)
-    for line in output:
-        if logger.level > logging.DEBUG:
-            string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
-            if len(string) < 20:
-                continue
-            if len(string) < 120:
-                string = string + ' '*(120 - len(string))
-            sys.stdout.write(string)
-            sys.stdout.flush()
-        else:
-            logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
+    try:
+        for line in output:
+            if logger.level > logging.DEBUG:
+                string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
+                if len(string) < 20:
+                    continue
+                if len(string) < 120:
+                    string = string + ' '*(120 - len(string))
+                sys.stdout.write(string)
+                sys.stdout.flush()
+            else:
+                logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
+    except:
+        print()
+        raise
     if logger.level > logging.DEBUG:
         print()
     return output
@@ -545,6 +549,17 @@ class Context(object):
     def prepare_dist(self, name):
         self.dist_name = name
         self.bootstrap.prepare_dist_dir(self.dist_name)
+
+    def get_site_packages_dir(self, arch=None):
+        '''Returns the location of site-packages in the python-install build
+        dir.
+        '''
+
+        # AND: This *must* be replaced with something more general in
+        # order to support multiple python versions and/or multiple
+        # archs.
+        return join(self.build_dir, 'python-install', 'lib', 'python2.7',
+                    'site-packages')
 
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
@@ -1077,6 +1092,13 @@ class Recipe(object):
         else:
             print('{} has no {}, skipping'.format(self.name, prebuild))
 
+    def should_build(self):
+        '''Should perform any necessary test and return True only if it needs
+        building again.
+
+        '''
+        return True
+
     def build_arch(self, arch):
         build = "build_{}".format(arch.arch)
         if hasattr(self, build):
@@ -1162,6 +1184,24 @@ class NDKRecipe(Recipe):
         
 
 class PythonRecipe(Recipe):
+    site_packages_name = None  # The name of the module in
+                               # site_packages (i.e. as a python
+                               # module)
+
+    def should_build(self):
+        # AND: This should be different for each arch and use some
+        # kind of data store to know what has been built in a given
+        # python env
+        name = self.site_packages_name
+        if name is None:
+            name = self.name
+        if exists(join(self.ctx.get_site_packages_dir(), name)):
+            info('Python package already exists in site-packages')
+            return False
+        return True
+                       
+
+    
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
@@ -1355,7 +1395,10 @@ def build_recipes(names, ctx):
         # 3) build packages
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
-            recipe.build()
+            if recipe.should_build():
+                recipe.build()
+            else:
+                info('{} said it is already built, skipping')
 
         # 4) biglink everything
         # AND: Should make this optional (could use 

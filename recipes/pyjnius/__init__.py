@@ -10,6 +10,7 @@ class PyjniusRecipe(CythonRecipe):
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
     depends = ['python2', 'sdl']
+    site_packages_name = 'jnius'
 
     def postbuild_arch(self, arch):
         super(PyjniusRecipe, self).postbuild_arch(arch)
