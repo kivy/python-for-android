@@ -1255,6 +1255,7 @@ class CythonRecipe(PythonRecipe):
             try:
                 shprint(hostpython, 'setup.py', 'build_ext', _env=env)
             except sh.ErrorReturnCode_1:
+                print()
                 info('{} first build failed (as expected)'.format(self.name))
 
             info('Running cython where appropriate')
