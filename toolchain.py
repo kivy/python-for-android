@@ -12,6 +12,7 @@ import sys
 from sys import stdout
 from os.path import join, dirname, realpath, exists, isdir, basename
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
+import os
 import zipfile
 import tarfile
 import importlib
@@ -1196,12 +1197,15 @@ class PythonRecipe(Recipe):
         # AND: This should be different for each arch and use some
         # kind of data store to know what has been built in a given
         # python env
+        print('name is', self.site_packages_name, type(self))
         name = self.site_packages_name
         if name is None:
             name = self.name
         if exists(join(self.ctx.get_site_packages_dir(), name)):
             info('Python package already exists in site-packages')
             return False
+        print('site packages', self.ctx.get_site_packages_dir())
+        info('{} apparently isn\'t already in site-packages'.format(name))
         return True
                        
 
@@ -1425,15 +1429,80 @@ def run_pymodules_install(modules):
 def biglink(ctx):
     # AND: Shouldn't hardcode ArchAndroid! In reality need separate
     # build dirs for each arch
+    arch = ArchAndroid(ctx)
     env = ArchAndroid(ctx).get_env()
+    env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
+        join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi'))
 
     if not len(glob.glob(join(ctx.build_dir, 'other_builds', 'objects', '*'))):
         info('There seem to be no libraries to biglink, skipping.')
         return
     print('Biglinking')
-    bl = sh.Command(join(ctx.root_dir, 'tools', 'biglink'))
-    shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
-            env['LIBLINK_PATH'], _env=env)
+    # bl = sh.Command(join(ctx.root_dir, 'tools', 'biglink'))
+    print('ldflags are', env['LDFLAGS'])
+    # shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
+    #         env['LIBLINK_PATH'], _env=env)
+    biglink_function(
+        'libpymodules.so', env['LIBLINK_PATH'].split(' '),
+        extra_link_dirs=[join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi')],
+        env=env)
+
+def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
+    print('objs_paths are', objs_paths)
+    sofiles = []
+
+    for directory in objs_paths:
+        for fn in os.listdir(directory):
+            fn = os.path.join(directory, fn)
+
+            if not fn.endswith(".so.o"):
+                continue
+            if not os.path.exists(fn[:-2] + ".libs"):
+                continue
+
+            sofiles.append(fn[:-2])
+
+    # The raw argument list.
+    args = [ ]
+
+    for fn in sofiles:
+        afn = fn + ".o"
+        libsfn = fn + ".libs"
+
+        args.append(afn)
+        with open(libsfn) as fd:
+            data = fd.read()
+            args.extend(data.split(" "))
+
+    unique_args = [ ]
+    while args:
+        a = args.pop()
+        if a in ('-L', ):
+            continue
+        if a not in unique_args:
+            unique_args.insert(0, a)
+
+    for dir in extra_link_dirs:
+        link = '-L{}'.format(dir)
+        if link not in unique_args:
+            unique_args.append(link)
+    
+    print('Biglink create %s library' % soname)
+    print('Biglink arguments:')
+    for arg in unique_args:
+        print(' %s' % arg)
+
+    cc_name = env['CC']
+    print('cc_name is', cc_name)
+    cc = sh.Command(cc_name.split()[0])
+    cc = cc.bake(*cc_name.split()[1:])
+
+    shprint(cc, '-shared', '-O3', '-o', soname, *unique_args, _env=env)
+    # args = os.environ['CC'].split() + \
+    #     ['-shared', '-O3', '-o', soname] + \
+    #     unique_args
+
+    # sys.exit(subprocess.call(args))
 
 
 
@@ -1579,7 +1648,7 @@ Available commands:
                 bs = SDL2Bootstrap()
             else:
                 raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
-            info_main('# Creating dist with with pygame bootstrap')
+            info_main('# Creating dist with with {} bootstrap'.format(bs.bootstrap_template_dir))
 
             ctx = Context()
             ctx.dist_name = args.name
