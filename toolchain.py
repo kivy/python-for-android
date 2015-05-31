@@ -1443,7 +1443,8 @@ def biglink(ctx):
     # shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
     #         env['LIBLINK_PATH'], _env=env)
     biglink_function(
-        'libpymodules.so', env['LIBLINK_PATH'].split(' '),
+        join(ctx.libs_dir, 'libpymodules.so'),
+        env['LIBLINK_PATH'].split(' '),
         extra_link_dirs=[join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi')],
         env=env)
 
