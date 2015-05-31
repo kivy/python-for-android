@@ -653,6 +653,8 @@ class SDL2Bootstrap(Bootstrap):
 
             if not exists('private'):
                 shprint(sh.mkdir, 'private')
+            if not exists('assets'):
+                shprint(sh.mkdir, 'assets')
             
             hostpython = sh.Command(self.ctx.hostpython)
             # AND: This *doesn't* need to be in arm env?
@@ -1461,22 +1463,26 @@ def build_recipes(names, ctx):
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
     # download is arch independent
+    info_main('# Downloading recipes ')
     for recipe in recipes:
         recipe.download_if_necessary()
 
     for arch in ctx.archs:
-        info_main('# Building all recipes for {}'.format(arch.arch))
+        info_main('# Building all recipes for arch {}'.format(arch.arch))
 
+        info_main('# Unpacking recipes')
         for recipe in recipes:
             ensure_dir(recipe.get_build_container_dir(arch.arch))
             recipe.prepare_build_dir(arch.arch)
 
+        info_main('# Prebuilding recipes')
         # 2) prebuild packages
         for recipe in recipes:
             info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
             recipe.prebuild_arch(arch)
 
         # 3) build packages
+        info_main('# Building recipes')
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
             if recipe.should_build():
@@ -1486,9 +1492,11 @@ def build_recipes(names, ctx):
 
         # 4) biglink everything
         # AND: Should make this optional (could use 
+        info_main('# Biglinking object files')
         biglink(ctx)
 
         # 5) postbuild packages
+        info_main('# Postbuilding recipes')
         for recipe in recipes:
             info_main('Postbuilding {} for {}'.format(recipe.name, arch.arch))
             recipe.postbuild_arch(arch)
