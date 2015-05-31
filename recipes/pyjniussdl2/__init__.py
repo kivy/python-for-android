@@ -8,8 +8,8 @@ from os.path import join, exists
 class PyjniusRecipe(CythonRecipe):
     version  = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
-    name = 'pyjnius'
     depends = ['python2']
+    site_packages_name = 'jnius'
 
     def postbuild_arch(self, arch):
         super(PyjniusRecipe, self).postbuild_arch(arch)
