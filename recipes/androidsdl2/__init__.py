@@ -8,7 +8,7 @@ class AndroidRecipe(IncludedFilesBehaviour, PythonRecipe):
     # name = 'android'
     version = None
     url = None
-    depends = ['sdl2']
+    depends = ['sdl2', 'python2']
     src_filename = 'src'
 
     # def prebuild_armeabi(self):

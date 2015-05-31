@@ -8,12 +8,20 @@ import glob
 class KivySDL2Recipe(CythonRecipe):
     version = 'stable'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
+    site_packages_name = 'kivy'
 
-    depends = ['sdl2', 'pyjniussdl2', 'androidsdl2']
+    depends = ['sdl2', 'python2', 'pyjniussdl2']
 
     def get_recipe_env(self, arch):
         env = super(KivySDL2Recipe, self).get_recipe_env(arch)
         env['ITBEANDROID'] = 'YARR'
+
+        env['KIVY_SDL2_PATH'] = ':'.join([
+            join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
+            join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
+            join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer'),
+            join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
+            ])
         return env
         
     # def build_armeabi(self):
