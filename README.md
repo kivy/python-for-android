@@ -19,7 +19,7 @@ supported.
      python2 toolchain.py create --name=testproject --bootstrap=pygame --recipes=sdl,python2
 
 Add the `--debug` option to any command to enable printing all the
-debug information, including output of shell commands.
+debug information, including output of shell commands (there's a lot if it!).
 
 # Dependencies
 
@@ -51,3 +51,12 @@ with it.
 If trying to build SDL2 with other stuff, you probably need SDL_image,
 SDL_ttf and SDL_mixer as these don't have recipes yet (and unlike with
 p4a probably don't need to be included in this repo).
+
+You can try running
+
+    python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
+
+to get an sdl2 dist, which has its own build.py. This is at a very
+early stage! Pyjnius and kivy are not included, the build.py only does
+the zipping and tarballing, and the SDL2 activity doesn't support any
+customisation yet.
