@@ -32,7 +32,7 @@ import android.hardware.*;
     SDL Activity
 */
 public class SDLActivity extends Activity {
-    private static final String TAG = "SDL";
+    protected static final String TAG = "SDL";
 
     // Keep track of the paused state
     public static boolean mIsPaused, mIsSurfaceReady, mHasFocus;
