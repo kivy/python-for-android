@@ -1,9 +1,32 @@
 
 package net.inclem.android;
 
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.File;
+
+import android.app.Activity;
+import android.util.Log;
+import android.widget.Toast;
+import android.os.Bundle;
+
 import org.libsdl.app.SDLActivity;
 
+import org.renpy.android.ResourceManager;
+import org.renpy.android.AssetExtract;
+
 public class NewPythonActivity extends SDLActivity {
+    
+    private ResourceManager resourceManager;
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        resourceManager = new ResourceManager(this);
+    }
     
     // This is just overrides the normal SDLActivity, which just loads
     // SDL2 and main
@@ -24,6 +47,97 @@ public class NewPythonActivity extends SDLActivity {
             System.loadLibrary(lib);
         }
         
+        // AND: Loading libraries from filepaths expected to go here
+    }
+    
+    public void run() {
+        
+        unpackData("private", getFilesDir());
+        
     }
 
+    public void recursiveDelete(File f) {
+        if (f.isDirectory()) {
+            for (File r : f.listFiles()) {
+                recursiveDelete(r);
+            }
+        }
+        f.delete();
+    }
+
+    /**
+     * Show an error using a toast. (Only makes sense from non-UI
+     * threads.)
+     */
+    public void toastError(final String msg) {
+
+        final Activity thisActivity = this;
+
+        runOnUiThread(new Runnable () {
+            public void run() {
+                Toast.makeText(thisActivity, msg, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // Wait to show the error.
+        synchronized (this) {
+            try {
+                this.wait(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+    
+    public void unpackData(final String resource, File target) {
+        
+        // The version of data in memory and on disk.
+        String data_version = resourceManager.getString(resource + "_version");
+        String disk_version = null;
+
+        // If no version, no unpacking is necessary.
+        if (data_version == null) {
+            return;
+        }
+
+        // Check the current disk version, if any.
+        String filesDir = target.getAbsolutePath();
+        String disk_version_fn = filesDir + "/" + resource + ".version";
+
+        try {
+            byte buf[] = new byte[64];
+            InputStream is = new FileInputStream(disk_version_fn);
+            int len = is.read(buf);
+            disk_version = new String(buf, 0, len);
+            is.close();
+        } catch (Exception e) {
+            disk_version = "";
+        }
+
+        // If the disk data is out of date, extract it and write the
+        // version file.
+        if (! data_version.equals(disk_version)) {
+            Log.v(TAG, "Extracting " + resource + " assets.");
+
+            recursiveDelete(target);
+            target.mkdirs();
+
+            AssetExtract ae = new AssetExtract(this);
+            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
+                toastError("Could not extract " + resource + " data.");
+            }
+
+            try {
+                // Write .nomedia.
+                new File(target, ".nomedia").createNewFile();
+
+                // Write version file.
+                FileOutputStream os = new FileOutputStream(disk_version_fn);
+                os.write(data_version.getBytes());
+                os.close();
+            } catch (Exception e) {
+                Log.w("python", e);
+            }
+        }
+
+    }
 }
