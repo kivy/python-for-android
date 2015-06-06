@@ -10,7 +10,9 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include
 
 # Add your application source files here...
 LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
-	testgles2.c
+	start.c
+
+LOCAL_CFLAGS := -I$(LOCAL_PATH)/../../../../python-install/include/python2.7
 
 LOCAL_SHARED_LIBRARIES := SDL2
 
