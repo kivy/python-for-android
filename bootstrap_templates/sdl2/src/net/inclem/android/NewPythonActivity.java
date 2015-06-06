@@ -23,9 +23,14 @@ public class NewPythonActivity extends SDLActivity {
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.v(TAG, "My oncreate running");
         super.onCreate(savedInstanceState);
+        Log.v(TAG, "Did super onCreate");
         
         resourceManager = new ResourceManager(this);
+
+        Log.v(TAG, "Ready to unpack");
+        unpackData("private", getFilesDir());
     }
     
     // This is just overrides the normal SDLActivity, which just loads
@@ -50,11 +55,10 @@ public class NewPythonActivity extends SDLActivity {
         // AND: Loading libraries from filepaths expected to go here
     }
     
-    public void run() {
+    // public void run() {
         
-        unpackData("private", getFilesDir());
         
-    }
+    // }
 
     public void recursiveDelete(File f) {
         if (f.isDirectory()) {
@@ -90,9 +94,13 @@ public class NewPythonActivity extends SDLActivity {
     
     public void unpackData(final String resource, File target) {
         
+        Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
+        
         // The version of data in memory and on disk.
         String data_version = resourceManager.getString(resource + "_version");
         String disk_version = null;
+        
+        Log.v(TAG, "Data version is " + data_version);
 
         // If no version, no unpacking is necessary.
         if (data_version == null) {

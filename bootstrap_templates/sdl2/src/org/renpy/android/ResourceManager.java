@@ -11,6 +11,8 @@ import android.app.Activity;
 import android.content.res.Resources;
 import android.view.View;
 
+import android.util.Log;
+
 public class ResourceManager {
 
     private Activity act;
@@ -22,14 +24,19 @@ public class ResourceManager {
     }
 
     public int getIdentifier(String name, String kind) {
+        Log.v("SDL", "getting identifier");
+        Log.v("SDL", "kind is " + kind + " and name " + name);
+        Log.v("SDL", "result is " + res.getIdentifier(name, kind, act.getPackageName()));
         return res.getIdentifier(name, kind, act.getPackageName());
     }
 
     public String getString(String name) {
 
         try {
+            Log.v("SDL", "asked to get string " + name);
             return res.getString(getIdentifier(name, "string"));
         } catch (Exception e) {
+            Log.v("SDL", "got exception looking for string!");
             return null;
         }
     }
