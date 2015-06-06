@@ -18,6 +18,7 @@ import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
 
 public class NewPythonActivity extends SDLActivity {
+    private static final String TAG = "NewPythonActivity";
     
     private ResourceManager resourceManager;
     
@@ -52,14 +53,12 @@ public class NewPythonActivity extends SDLActivity {
             System.loadLibrary(lib);
         }
         
-        // AND: Loading libraries from filepaths expected to go here
+        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
+        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+
+        Log.v(TAG, "Loaded everything!");
     }
     
-    // public void run() {
-        
-        
-    // }
-
     public void recursiveDelete(File f) {
         if (f.isDirectory()) {
             for (File r : f.listFiles()) {
