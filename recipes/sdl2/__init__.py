@@ -7,6 +7,7 @@ import sh
 class LibSDL2Recipe(NDKRecipe):
     version = "2.0.3"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
+    depends = ['python2']
 
     def prebuild_arch(self, arch):
         with current_directory(self.get_build_container_dir(arch)):
