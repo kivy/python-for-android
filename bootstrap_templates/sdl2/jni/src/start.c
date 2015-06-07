@@ -25,6 +25,7 @@
 #define LOG(x) __android_log_write(ANDROID_LOG_INFO, "python", (x))
 
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
+  LOG("androidembed_log was called");
     char *logstr = NULL;
     if (!PyArg_ParseTuple(args, "s", &logstr)) {
         return NULL;
@@ -61,9 +62,16 @@ int main(int argc, char *argv[]) {
     FILE *fd;
 
     LOG("Initialize Python for Android");
+    env_argument = "/data/data/net.inclem.android/";
+    LOG(env_argument);
     /* env_argument = getenv("ANDROID_ARGUMENT"); */
     /* setenv("ANDROID_APP_PATH", env_argument, 1); */
-    env_argument = "yay";
+
+    setenv("ANDROID_ARGUMENT", env_argument, 1);
+    setenv("ANDROID_PRIVATE", env_argument, 1);
+    setenv("PYTHONHOME", env_argument, 1);
+    setenv("PYTHONPATH", "/data/data/net.inclem.android:/data/data/net.inclem.android/lib", 1);
+
     LOG("AND: Set env vars");
     LOG(argv[0]);
     LOG("AND: That was argv 0");
