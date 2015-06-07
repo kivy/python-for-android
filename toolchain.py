@@ -81,11 +81,16 @@ def shprint(command, *args, **kwargs):
     # if len(command_path) > 1:
     #     command_string = '.../' + command_string
     string = ' '.join(['running', Style.DIM, command_string] + list(args))
-    short_string = string
-    if len(string) > 100:
-        short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
-    logger.info(short_string + Style.RESET_ALL)
-    logger.debug(string + Style.RESET_ALL)
+
+    # If logging is not in DEBUG mode, trim the command if necessary
+    if logger.level > logging.DEBUG:
+        short_string = string
+        if len(string) > 100:
+            short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
+        logger.info(short_string + Style.RESET_ALL)
+    else:
+        logger.debug(string + Style.RESET_ALL)
+        
     output = command(*args, **kwargs)
     need_closing_newline = False
     for line in output:

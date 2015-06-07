@@ -25,7 +25,6 @@
 #define LOG(x) __android_log_write(ANDROID_LOG_INFO, "python", (x))
 
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
-  LOG("androidembed_log was called");
     char *logstr = NULL;
     if (!PyArg_ParseTuple(args, "s", &logstr)) {
         return NULL;
