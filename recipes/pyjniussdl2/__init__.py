@@ -8,7 +8,7 @@ from os.path import join, exists
 class PyjniusRecipe(CythonRecipe):
     version  = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
-    depends = ['python2']
+    depends = ['python2', 'sdl2']
     site_packages_name = 'jnius'
 
     def postbuild_arch(self, arch):

@@ -61,6 +61,9 @@ int main(int argc, char *argv[]) {
     int ret = 0;
     FILE *fd;
 
+ /* AND: Several filepaths are hardcoded here, these must be made
+    configurable */
+ /* AND: P4A uses env vars...not sure what's best */
     LOG("Initialize Python for Android");
     env_argument = "/data/data/net.inclem.android/files";
     LOG(env_argument);
