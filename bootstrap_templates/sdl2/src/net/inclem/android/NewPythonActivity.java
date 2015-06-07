@@ -32,6 +32,8 @@ public class NewPythonActivity extends SDLActivity {
 
         Log.v(TAG, "Ready to unpack");
         unpackData("private", getFilesDir());
+        
+        // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
     }
     
     // This is just overrides the normal SDLActivity, which just loads
@@ -122,7 +124,8 @@ public class NewPythonActivity extends SDLActivity {
 
         // If the disk data is out of date, extract it and write the
         // version file.
-        if (! data_version.equals(disk_version)) {
+        // if (! data_version.equals(disk_version)) {
+        if (true) {
             Log.v(TAG, "Extracting " + resource + " assets.");
 
             recursiveDelete(target);
