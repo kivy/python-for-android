@@ -2,19 +2,21 @@
 from math import sqrt
 
 for i in range(50):
-    print i, sqrt(i)
+    print(i, sqrt(i))
 
-print 'Just printing stuff apparently worked, trying pyjnius'
+print('Just printing stuff apparently worked, trying pyjnius')
 
 import jnius
 
-print 'Importing jnius worked'
+print('Importing jnius worked')
 
-print 'Trying to autoclass activity'
+print('Trying to autoclass activity')
 
 from jnius import autoclass
 
+print('Imported autoclass')
+
 NewPythonActivity = autoclass('net.inclem.android.NewPythonActivity')
 
-print ':o the autoclass worked!'
+print(':o the autoclass worked!')
 
