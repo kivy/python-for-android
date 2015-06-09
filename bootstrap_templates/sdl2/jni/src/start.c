@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
 
     setenv("ANDROID_ARGUMENT", env_argument, 1);
     setenv("ANDROID_PRIVATE", env_argument, 1);
+    setenv("ANDROID_APP_PATH", env_argument, 1);
     setenv("PYTHONHOME", env_argument, 1);
     setenv("PYTHONPATH", "/data/data/net.inclem.android/files:/data/data/net.inclem.android/files/lib", 1);
 
@@ -95,7 +96,7 @@ int main(int argc, char *argv[]) {
     initandroidembed();
 
     LOG("AND: Init embed");
-
+    
     /* inject our bootstrap code to redirect python stdin/stdout
      * replace sys.path with our path
      */
