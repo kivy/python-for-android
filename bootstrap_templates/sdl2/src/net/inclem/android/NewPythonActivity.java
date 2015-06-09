@@ -19,6 +19,8 @@ import org.renpy.android.AssetExtract;
 
 public class NewPythonActivity extends SDLActivity {
     private static final String TAG = "NewPythonActivity";
+
+    public static NewPythonActivity mActivity = null;
     
     private ResourceManager resourceManager;
     
@@ -27,6 +29,8 @@ public class NewPythonActivity extends SDLActivity {
         Log.v(TAG, "My oncreate running");
         super.onCreate(savedInstanceState);
         Log.v(TAG, "Did super onCreate");
+        
+        this.mActivity = this;
         
         resourceManager = new ResourceManager(this);
 
