@@ -4,6 +4,11 @@ from kivy.lang import Builder
 from kivy.properties import StringProperty
 
 from kivy.uix.popup import Popup
+from kivy.clock import Clock
+
+print('Imported kivy')
+from kivy.utils import platform
+print('platform is', platform)
 
 
 kv = '''
@@ -20,6 +25,10 @@ ScrollView:
         FixedSizeButton:
             text: 'test pyjnius'
             on_press: app.test_pyjnius()
+        Widget:
+            size_hint_y: None
+            height: 1000
+            on_touch_down: print 'touched at', args[-1].pos
 
 <ErrorPopup>:
     title: 'Error' 
@@ -39,12 +48,17 @@ def raise_error(error):
 class TestApp(App):
     def build(self):
         root = Builder.load_string(kv)
+        Clock.schedule_interval(self.print_something, 2)
+        Clock.schedule_interval(self.test_pyjnius, 5)
         return root
+
+    def print_something(self, *args):
+        print('App print tick', Clock.get_boottime())
 
     def on_pause(self):
         return True
 
-    def test_pyjnius(self):
+    def test_pyjnius(self, *args):
         try:
             from jnius import autoclass
         except ImportError:
@@ -52,8 +66,10 @@ class TestApp(App):
             return
         
         print('Attempting to vibrate with pyjnius')
-        PythonActivity = autoclass('org.renpy.android.PythonActivity')
-        activity = PythonActivity.mActivity
+        # PythonActivity = autoclass('org.renpy.android.PythonActivity')
+        # activity = PythonActivity.mActivity
+        NewPythonActivity = autoclass('net.inclem.android.NewPythonActivity')
+        activity = NewPythonActivity.mActivity
         Intent = autoclass('android.content.Intent')
         Context = autoclass('android.content.Context')
         vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE)
