@@ -25,6 +25,20 @@ ScrollView:
         FixedSizeButton:
             text: 'test pyjnius'
             on_press: app.test_pyjnius()
+        Image:
+            keep_ratio: False
+            allow_stretch: True
+            source: 'colours.png'
+            size_hint_y: None
+            height: dp(100)
+        Label:
+            height: self.texture_size[1]
+            size_hint_y: None
+            font_size: 100
+            text_size: self.size[0], None
+            markup: True
+            text: '[b]Kivy[/b] on [b]SDL2[/b] on [b]Android[/b]!'
+            halign: 'center'
         Widget:
             size_hint_y: None
             height: 1000
@@ -49,7 +63,7 @@ class TestApp(App):
     def build(self):
         root = Builder.load_string(kv)
         Clock.schedule_interval(self.print_something, 2)
-        Clock.schedule_interval(self.test_pyjnius, 5)
+        # Clock.schedule_interval(self.test_pyjnius, 5)
         return root
 
     def print_something(self, *args):
