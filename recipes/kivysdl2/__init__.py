@@ -14,7 +14,7 @@ class KivySDL2Recipe(CythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(KivySDL2Recipe, self).get_recipe_env(arch)
-        env['ITBEANDROID'] = 'YARR'
+        env['USE_SDL2'] = '1'
 
         env['KIVY_SDL2_PATH'] = ':'.join([
             join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
