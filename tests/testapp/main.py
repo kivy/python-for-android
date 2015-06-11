@@ -64,6 +64,11 @@ class TestApp(App):
         root = Builder.load_string(kv)
         Clock.schedule_interval(self.print_something, 2)
         # Clock.schedule_interval(self.test_pyjnius, 5)
+        print('testing metrics')
+        from kivy.metrics import Metrics
+        print('dpi is', Metrics.dpi)
+        print('density is', Metrics.density)
+        print('fontscale is', Metrics.fontscale)
         return root
 
     def print_something(self, *args):
