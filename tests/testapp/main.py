@@ -50,7 +50,7 @@ ScrollView:
             font_size: 50
             text_size: self.size[0], None
             markup: True
-            text: 'dpi: {}\ndensity: {}\nfontscale: {}'.format(Metrics.dpi, Metrics.density, Metrics.fontscale)
+            text: 'dpi: {}\\ndensity: {}\\nfontscale: {}'.format(Metrics.dpi, Metrics.density, Metrics.fontscale)
             halign: 'center'
         Widget:
             size_hint_y: None
