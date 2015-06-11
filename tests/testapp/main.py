@@ -12,6 +12,8 @@ print('platform is', platform)
 
 
 kv = '''
+#:import Metrics kivy.metrics.Metrics
+
 <FixedSizeButton@Button>:
     size_hint_y: None
     height: dp(60)
@@ -38,6 +40,17 @@ ScrollView:
             text_size: self.size[0], None
             markup: True
             text: '[b]Kivy[/b] on [b]SDL2[/b] on [b]Android[/b]!'
+            halign: 'center'
+        Widget:
+            size_hint_y: None
+            height: 20
+        Label:
+            height: self.texture_size[1]
+            size_hint_y: None
+            font_size: 50
+            text_size: self.size[0], None
+            markup: True
+            text: 'dpi: {}\ndensity: {}\nfontscale: {}'.format(Metrics.dpi, Metrics.density, Metrics.fontscale)
             halign: 'center'
         Widget:
             size_hint_y: None
