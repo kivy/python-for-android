@@ -6,6 +6,8 @@ pythonic toolchain of kivy-ios. Broad goals are:
 - Support SDL2
 - Support multiple bootstraps (user-chosen java + NDK code)
 - Support python3
+- Support some kind of binary distribution (?)
+  (including on Windows)
 - Be a standalone Pypi module (?)
 
 This is in a very early stage and is really just an experiment,
@@ -25,7 +27,7 @@ debug information, including output of shell commands (there's a lot if it!).
 
 - Virtualenv
 - Android SDK (link by setting the ANDROIDSDK environment variable)
-- Android NDK (link by setting the ANDROIDSDK environment variable)
+- Android NDK (link by setting the ANDROIDNDK environment variable)
 - Cython
 
 Pip:
@@ -44,9 +46,11 @@ Pip:
 
 # Current status
 
-Currently moving towards trying to build sdl2 + python. SDL2 alone
-will build, but several python components need modification to work
-with it.
+Currently can build working APKs with SDL2, kivy and pyjnius. Only the
+few core recipes are avilable, but kivy apps that don't need anything
+more than this will work. However, there are many hacks and bugs along
+the way that now need fixing. Kivy and Pyjnius need some
+(undocumented) patches.
 
 If trying to build SDL2 with other stuff, you probably need SDL_image,
 SDL_ttf and SDL_mixer as these don't have recipes yet (and unlike with
@@ -57,6 +61,5 @@ You can try running
     python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
 
 to get an sdl2 dist, which has its own build.py. This is at a very
-early stage! Pyjnius and kivy are not included, the build.py only does
-the zipping and tarballing, and the SDL2 activity doesn't support any
-customisation yet.
+early stage! The build.py only does the zipping and tarballing, and
+the SDL2 activity doesn't support any customisation yet.
