@@ -29,7 +29,7 @@ function build_leveldb() {
 	# Make sure leveldb is compiled for Android and does not include versioned numbers
 	export TARGET_OS=OS_ANDROID_CROSSCOMPILE
 	#FIXME: Not idempotent
-	sed -i "127i\ \ \ \ \ \ \ \ PLATFORM_SHARED_VERSIONED=" build_detect_platform
+	try sed -i "127i\ \ \ \ \ \ \ \ PLATFORM_SHARED_VERSIONED=" build_detect_platform
 	
 	# Build
 	try make
