@@ -1,0 +1,47 @@
+import os ;
+
+local ANDROIDNDK = [ os.environ ANDROIDNDK ] ;
+local ANDROIDAPI = [ os.environ ANDROIDAPI ] ;
+local TOOLCHAIN_VERSION = [ os.environ TOOLCHAIN_VERSION ] ;
+local TOOLCHAIN_PREFIX = [ os.environ TOOLCHAIN_PREFIX ] ;
+local ARCH = [ os.environ ARCH ] ;
+local PYTHON_INSTALL = [ os.environ PYTHON_INSTALL ] ;
+
+using python : 2.7 : : : : ;
+
+using gcc : android
+:
+$(TOOLCHAIN_PREFIX)-g++
+:
+<archiver>$(TOOLCHAIN_PREFIX)-ar
+<compileflags>-fexceptions
+<compileflags>-frtti
+<compileflags>-fPIC
+<compileflags>-ffunction-sections
+<compileflags>-funwind-tables
+<compileflags>-Wno-psabi
+<compileflags>-mtune=xscale
+<compileflags>-Os
+<compileflags>-fomit-frame-pointer
+<compileflags>-fno-strict-aliasing
+<compileflags>-finline-limit=64
+<compileflags>-I$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-arm/usr/include
+<compileflags>-Wa,--noexecstack
+<compileflags>-DANDROID
+<compileflags>-D__ANDROID__
+<compileflags>-DNDEBUG
+<compileflags>-O2
+<compileflags>-g
+<compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/include
+<compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)/include
+<architecture>arm
+<compileflags>-fvisibility=hidden
+<compileflags>-fvisibility-inlines-hidden
+<compileflags>-fdata-sections
+<cxxflags>-D__arm__
+<cxxflags>-D_REENTRANT
+<cxxflags>-DBOOST_SP_USE_PTHREADS
+<cxxflags>-DBOOST_AC_USE_PTHREADS
+<cxxflags>-D_GLIBCXX__PTHREADS
+<compileflags>-I$(PYTHON_INSTALL)/include/python2.7
+;
