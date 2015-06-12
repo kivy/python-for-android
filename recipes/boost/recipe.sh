@@ -31,7 +31,7 @@ function prebuild_boost() {
 	
 	# Create Android case for library linking when building Boost.Python
 	#FIXME: Not idempotent
-	sed -i "622i\ \ \ \ \ \ \ \ case * : return ;" tools/build/src/tools/python.jam
+	try sed -i "622i\ \ \ \ \ \ \ \ case * : return ;" tools/build/src/tools/python.jam
 }
 
 function build_boost() {
