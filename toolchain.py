@@ -1122,6 +1122,10 @@ class Recipe(object):
                     root_directory = fileh.filelist[0].filename.strip('/')
                     if root_directory != directory_name:
                         shprint(sh.mv, root_directory, directory_name)
+                else:
+                    raise Exception('Could not extract {} download, it must be .zip, '
+                                    '.tar.gz or .tar.bz2')
+                        
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
             
@@ -1250,8 +1254,16 @@ class NDKRecipe(Recipe):
 
     '''
 
+    dir_name = None  # The name of the recipe build folder in the jni dir
+
     def get_build_container_dir(self, arch):
-        return join(self.ctx.bootstrap.build_dir, 'jni')
+        return self.get_jni_dir()
+
+    def get_build_dir(self, arch):
+        if self.dir_name is None:
+            raise ValueError('{} recipe doesn\'t define a dir_name, but '
+                             'this is necessary'.format(self.name))
+        return join(self.get_build_container_dir, self.dir_name)
 
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
