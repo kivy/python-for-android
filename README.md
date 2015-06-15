@@ -10,18 +10,30 @@ pythonic toolchain of kivy-ios. Broad goals are:
   (including on Windows)
 - Be a standalone Pypi module (?)
 
-This is in a very early stage and is really just an experiment,
-currently working to duplicate existing python-for-android
-functionality. The following command will try to download and build
-some recipes. It should duplicate the functionality of distribute.sh
-(and you can build an apk with the result using build.py!), but the
-code is currently bad and only the few essential recipes are
-supported.
+This is in a very early stage. The following command will try to
+download and build some recipes. It should duplicate the functionality
+of distribute.sh (and you can build an apk with the result using
+build.py!), but the code is currently bad and only the few essential
+recipes are supported.
 
      python2 toolchain.py create --name=testproject --bootstrap=pygame --recipes=sdl,python2
 
 Add the `--debug` option to any command to enable printing all the
 debug information, including output of shell commands (there's a lot if it!).
+
+It's also now possible to build working APKs that run kivy with sdl2, but requires some manual intervention to add the SDL_{image,mixer,ttf} jni folders, and depends on patched versions of kivy and pyjnius. Adding these as recipes (and making the download automatic) is the next thing to be done. Creating an sdl2 dist would be possible with e.g.
+
+    python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
+
+Like the pygame bootstrap, this makes a dist dir with a build.py. This
+supports only the --private option, and you must manually run ant to
+install the APK, then the app will crash at least twice on the device
+before it works. This is probably a weird unpacking problem, under
+investigation.
+
+All the details here are highly preliminary; the current priority is
+to get different parts of the tool basically working (even if hacky)
+before going back to set technical decisions in stone.
 
 # Dependencies
 
@@ -46,20 +58,5 @@ Pip:
 
 # Current status
 
-Currently can build working APKs with SDL2, kivy and pyjnius. Only the
-few core recipes are avilable, but kivy apps that don't need anything
-more than this will work. However, there are many hacks and bugs along
-the way that now need fixing. Kivy and Pyjnius need some
-(undocumented) patches.
-
-If trying to build SDL2 with other stuff, you probably need SDL_image,
-SDL_ttf and SDL_mixer as these don't have recipes yet (and unlike with
-p4a probably don't need to be included in this repo).
-
-You can try running
-
-    python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
-
-to get an sdl2 dist, which has its own build.py. This is at a very
-early stage! The build.py only does the zipping and tarballing, and
-the SDL2 activity doesn't support any customisation yet.
+Currently working to fully automate SDL2 dist creation by adding
+required recipes and patches for kivy and pyjnius.
