@@ -163,6 +163,7 @@ public class Hardware {
      * Get display DPI.
      */
     public static int getDPI() {
+        // AND: Shouldn't have to get the metrics like this every time...
         NewPythonActivity.mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         return metrics.densityDpi;
     }
