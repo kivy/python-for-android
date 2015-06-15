@@ -1,10 +1,10 @@
 #!/bin/bash
 
-VERSION_twisted=${VERSION_twisted:-14.0}
-URL_twisted=http://twistedmatrix.com/Releases/Twisted/$VERSION_twisted/Twisted-$VERSION_twisted.0.tar.bz2
+VERSION_twisted=${VERSION_twisted:-15.2}
+URL_twisted=http://twistedmatrix.com/Releases/Twisted/$VERSION_twisted/Twisted-$VERSION_twisted.1.tar.bz2
 
 DEPS_twisted=(zope)
-MD5_twisted=9625c094e0a18da77faa4627b98c9815
+MD5_twisted=4be066a899c714e18af1ecfcb01cfef7
 BUILD_twisted=$BUILD_PATH/twisted/$(get_directory $URL_twisted)
 RECIPE_twisted=$RECIPES_PATH/twisted
 
