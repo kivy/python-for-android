@@ -7,7 +7,7 @@ VERSION_apsw=${VERSION_apsw:-3.8.4.1-r1}
 DEPS_apsw=(python)
 
 # url of the package
-URL_apsw=https://github.com/rogerbinns/apsw/releases/download/3.8.4.1-r1/apsw-3.8.4.1-r1.zip
+URL_apsw=https://github.com/rogerbinns/apsw/releases/download/${VERSION_apsw}/apsw-${VERSION_apsw}.zip
 
 # md5 of the package
 MD5_apsw=5ad3098489576929b90f4215eb5b2621
