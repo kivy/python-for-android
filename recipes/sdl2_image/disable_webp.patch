@@ -1,0 +1,11 @@
+--- a/Android.mk	2013-08-10 18:38:35.000000000 +0100
++++ b/Android.mk 22:54:50.238816146 +0100
+@@ -16,7 +16,7 @@
+ 
+ # Enable this if you want to support loading WebP images
+ # The library path should be a relative path to this directory.
+-SUPPORT_WEBP := true
++SUPPORT_WEBP := false
+ WEBP_LIBRARY_PATH := external/libwebp-0.3.0
+ 
+ 
