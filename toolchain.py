@@ -997,9 +997,9 @@ class Recipe(object):
         '''Given the arch name, returns the directory where the
         downloaded/copied package will be built.'''
 
-        if self.url is not None:
-            return join(self.get_build_container_dir(arch),
-                        get_directory(self.versioned_url))
+        # if self.url is not None:
+        #     return join(self.get_build_container_dir(arch),
+        #                 get_directory(self.versioned_url))
         return join(self.get_build_container_dir(arch), self.name)
 
     def get_recipe_dir(self):
@@ -1097,7 +1097,7 @@ class Recipe(object):
         
         # AND: TODO: Use tito's better unpacking method
         with current_directory(build_dir):
-            directory_name = get_directory(filename)
+            directory_name = self.get_build_dir(arch)
 
             # AND: Could use tito's get_archive_rootdir here
             if not exists(directory_name) or not isdir(directory_name):
@@ -1263,7 +1263,7 @@ class NDKRecipe(Recipe):
         if self.dir_name is None:
             raise ValueError('{} recipe doesn\'t define a dir_name, but '
                              'this is necessary'.format(self.name))
-        return join(self.get_build_container_dir, self.dir_name)
+        return join(self.get_build_container_dir(arch), self.dir_name)
 
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
