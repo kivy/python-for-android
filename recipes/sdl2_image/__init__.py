@@ -9,9 +9,9 @@ class LibSDL2Image(NDKRecipe):
     
     def prebuild_arch(self, arch):
         super(LibSDL2Image, self).prebuild_arch(arch)
-        build_dir = self.get_build_container_dir(arch.arch)
+        build_dir = self.get_build_dir(arch.arch)
         if exists(join(build_dir, '.patched')):
-            print('SDL2_image already pathed, skipping')
+            print('SDL2_image already patched, skipping')
             return
         self.apply_patch('disable_webp.patch')
         shprint(sh.touch, join(build_dir, '.patched'))

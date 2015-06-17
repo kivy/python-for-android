@@ -10,12 +10,12 @@ class LibSDL2Mixer(NDKRecipe):
 
     def prebuild_arch(self, arch):
         super(LibSDL2Mixer, self).prebuild_arch(arch)
-        build_dir = self.get_build_container_dir(arch.arch)
+        build_dir = self.get_build_dir(arch.arch)
 
         if exists(join(build_dir, '.patched')):
-            print('SDL2_mixer already pathed, skipping')
+            print('SDL2_mixer already patched, skipping')
             return
-        self.apply_patch('disable_webp.patch')
+        self.apply_patch('disable_modplug_mikmod_smpeg.patch')
         shprint(sh.touch, join(build_dir, '.patched'))
 
 recipe = LibSDL2Mixer()

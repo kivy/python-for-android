@@ -1,6 +1,8 @@
---- a/Android.mk	2013-08-10 18:39:54.000000000 +0100
-+++ b/Android.mk 22:55:03.849036414 +0100
-@@ -6,17 +6,17 @@
+diff --git a/Android.mk b/Android.mk
+index 81c94b5..357500c 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -6,17 +6,17 @@ LOCAL_MODULE := SDL2_mixer
  
  # Enable this if you want to support loading MOD music via modplug
  # The library path should be a relative path to this directory.
