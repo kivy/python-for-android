@@ -509,7 +509,7 @@ class Context(object):
         if self.ndk_ver == 'r5b':
             toolchain_prefix = 'arm-eabi'
             toolchain_version = '4.4.0'
-        elif self.ndk_ver[:2] == 'r7':
+        elif self.ndk_ver[:2] in ('r7', 'r8'):
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.4.3'
         elif self.ndk_ver[:2] == 'r9':
