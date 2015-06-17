@@ -43,6 +43,7 @@ before going back to set technical decisions in stone.
 - Cython
 
 Pip:
+- sh
 - appdirs
 - colorama
 
