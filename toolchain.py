@@ -460,7 +460,7 @@ class Context(object):
         ok = True
 
         # AND: We should check for ndk-build and ant?
-        self.android_api = environ.get('ANDROIDAPI', 14)
+        self.android_api = environ.get('ANDROIDAPI', '14')
         self.ndk_ver = environ.get('ANDROIDNDKVER', 'r9')
         self.sdk_dir = environ.get('ANDROIDSDK', None)
         if self.sdk_dir is None:
@@ -1635,9 +1635,6 @@ Available commands:
             parser.add_argument('--debug', dest='debug', action='store_true',
                                 help='Display debug output and all build info')
             args, unknown = parser.parse_known_args(sys.argv[1:])
-            print('args are', args)
-            print('unknown are', unknown)
-            print('args debug', args.debug)
             if args.debug:
                 logger.setLevel(logging.DEBUG)
             if not hasattr(self, args.command):
