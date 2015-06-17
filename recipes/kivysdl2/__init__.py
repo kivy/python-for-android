@@ -6,11 +6,21 @@ import glob
 
 
 class KivySDL2Recipe(CythonRecipe):
-    version = 'stable'
+    # version = 'stable'
+    version = 'master'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     site_packages_name = 'kivy'
 
     depends = ['sdl2', 'python2', 'pyjniussdl2']
+
+    def prebuild_arch(self, arch):
+        super(KivySDL2Recipe, self).prebuild_arch(arch)
+        build_dir = self.get_build_dir(arch.arch)
+        if exists(join(build_dir, '.patched')):
+            print('kivysdl2 already patched, skipping')
+            return
+        self.apply_patch('android_sdl2_compat.patch')
+        shprint(sh.touch, join(build_dir, '.patched'))
 
     def get_recipe_env(self, arch):
         env = super(KivySDL2Recipe, self).get_recipe_env(arch)
