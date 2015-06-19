@@ -54,6 +54,7 @@ Pip:
 - Some recipes/components aren't stripped properly of doc etc.
 - Downloaded file md5 and headers aren't checked
 - Biglink is essential (the p4a disable option isn't implemented)
+- Android services are not implemented at all
 - Probably some other stuff
 
 
