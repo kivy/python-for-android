@@ -9,6 +9,7 @@ import time
 import subprocess
 from zipfile import ZipFile
 import sys
+import re
 
 from fnmatch import fnmatch
 
@@ -219,6 +220,18 @@ def make_package(args):
     #     print 'An error occured while calling', ANT
     #     print 'Did you install ant on your system ?'
     #     sys.exit(-1)
+
+    with open(join(dirname(__file__), 'res',
+                   'values', 'strings.xml')) as fileh:
+        lines = fileh.read()
+
+    with open(join(dirname(__file__), 'res',
+                   'values', 'strings.xml'), 'w') as fileh:
+        fileh.write(re.sub(r'"private_version">[0-9\.]*<',
+                           '"private_version">{}<'.format(
+                               str(time.time())), lines))
+              
+        
 
 if __name__ == "__main__":
     import argparse
