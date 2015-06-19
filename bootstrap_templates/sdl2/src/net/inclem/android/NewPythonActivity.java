@@ -129,7 +129,7 @@ public class NewPythonActivity extends SDLActivity {
         // If the disk data is out of date, extract it and write the
         // version file.
         // if (! data_version.equals(disk_version)) {
-        if (true) {
+        if (! data_version.equals(disk_version)) {
             Log.v(TAG, "Extracting " + resource + " assets.");
 
             recursiveDelete(target);
