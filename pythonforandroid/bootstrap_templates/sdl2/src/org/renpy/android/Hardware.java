@@ -21,7 +21,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import net.inclem.android.NewPythonActivity;
+import org.kivy.android.PythonActivity;
 
 /**
  * Methods that are expected to be called via JNI, to access the
@@ -164,7 +164,7 @@ public class Hardware {
      */
     public static int getDPI() {
         // AND: Shouldn't have to get the metrics like this every time...
-        NewPythonActivity.mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        PythonActivity.mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         return metrics.densityDpi;
     }
 

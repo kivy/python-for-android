@@ -81,8 +81,8 @@ index 71a7003..76755ae 100644
 -            config = PythonActivity.mActivity.getResources().getConfiguration()
 +            if USE_SDL2:
 +                # This activity name is temporary, it will need to be changed later
-+                NewPythonActivity = autoclass('net.inclem.android.NewPythonActivity')
-+                config = NewPythonActivity.mActivity.getResources().getConfiguration()
++                PythonActivity = autoclass('org.kivy.android.PythonActivity')
++                config = PythonActivity.mActivity.getResources().getConfiguration()
 +            else:
 +                PythonActivity = autoclass('org.renpy.android.PythonActivity')
 +                config = PythonActivity.mActivity.getResources().getConfiguration()

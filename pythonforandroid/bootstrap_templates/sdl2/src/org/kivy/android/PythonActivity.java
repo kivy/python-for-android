@@ -1,5 +1,5 @@
 
-package net.inclem.android;
+package org.kivy.android;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -17,10 +17,10 @@ import org.libsdl.app.SDLActivity;
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
 
-public class NewPythonActivity extends SDLActivity {
-    private static final String TAG = "NewPythonActivity";
+public class PythonActivity extends SDLActivity {
+    private static final String TAG = "PythonActivity";
 
-    public static NewPythonActivity mActivity = null;
+    public static PythonActivity mActivity = null;
     
     private ResourceManager resourceManager;
     
