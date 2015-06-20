@@ -53,7 +53,7 @@ from jnius import autoclass
 
 print('Imported autoclass')
 
-NewPythonActivity = autoclass('net.inclem.android.NewPythonActivity')
+PythonActivity = autoclass('org.kivy.android.PythonActivity')
 
 print(':o the autoclass worked!')
 

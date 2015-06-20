@@ -123,8 +123,8 @@ class TestApp(App):
         print('Attempting to vibrate with pyjnius')
         # PythonActivity = autoclass('org.renpy.android.PythonActivity')
         # activity = PythonActivity.mActivity
-        NewPythonActivity = autoclass('net.inclem.android.NewPythonActivity')
-        activity = NewPythonActivity.mActivity
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
         Intent = autoclass('android.content.Intent')
         Context = autoclass('android.content.Context')
         vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE)
