@@ -34,7 +34,7 @@ BLACKLIST_PATTERNS = [
 
     # pyc/py
     '*.pyc',
-    '*.py',
+    # '*.py',  # AND: Need to fix this to add it back
 
     # temp files
     '~',
@@ -171,6 +171,7 @@ def compile_dir(dfn):
     Compile *.py in directory `dfn` to *.pyo
     '''
 
+    return  # AND: Currently leaving out the compile to pyo step because it's somehow broken
     # -OO = strip docstrings
     subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
 
