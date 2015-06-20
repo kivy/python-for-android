@@ -27,15 +27,17 @@ public class NewPythonActivity extends SDLActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
+        resourceManager = new ResourceManager(this);
+
+        Log.v(TAG, "Ready to unpack");
+        unpackData("private", getFilesDir());
+
+        Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
         Log.v(TAG, "Did super onCreate");
         
         this.mActivity = this;
         
-        resourceManager = new ResourceManager(this);
-
-        Log.v(TAG, "Ready to unpack");
-        unpackData("private", getFilesDir());
         
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
     }
