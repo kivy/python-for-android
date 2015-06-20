@@ -1,3 +1,26 @@
+print('main.py was successfully called')
+
+import os
+print('imported os')
+
+print('contents of ./lib/python2.7/site-packages/kivy etc.')
+print(os.listdir('./lib'))
+print(os.listdir('./lib/python2.7'))
+print(os.listdir('./lib/python2.7/site-packages'))
+print(os.listdir('./lib/python2.7/site-packages/kivy'))
+
+print('contents of this dir', os.listdir('./'))
+
+with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
+    print('app.pyo size is', len(fileh.read()))
+
+import sys
+print('pythonpath is', sys.path)
+
+import kivy
+print('imported kivy')
+print('file is', kivy.__file__)
+
 from kivy.app import App
 
 from kivy.lang import Builder
