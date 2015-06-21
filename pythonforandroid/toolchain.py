@@ -42,8 +42,6 @@ import contextlib
 from colorama import Style, Fore
 
 
-print('new reload! logger stuff!')
-
 logger = logging.getLogger('p4a')
 # logger.setLevel(logging.DEBUG)
 if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
@@ -429,6 +427,8 @@ class Context(object):
     bootstrap = None 
     bootstrap_build_dir = None
 
+    recipe_build_order = None  # Will hold the list of all built recipes
+
     @property
     def packages_path(self):
         '''Where packages are downloaded before being unpacked'''
@@ -627,8 +627,17 @@ class Bootstrap(object):
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):
-        print('Default bootstrap being used doesn\'t know how to distribute...failing.')
-        exit(1)
+        # print('Default bootstrap being used doesn\'t know how to distribute...failing.')
+        # exit(1)
+        with current_directory(self.dist_dir):
+            info('Saving distribution info')
+            with open('dist_info.json', 'w') as fileh:
+                json.dump({'dist_name': self.ctx.dist_name,
+                           'bootstrap': self.ctx.bootstrap.name,
+                           'recipes': self.ctx.recipe_build_order},
+                          fileh)
+        
+
 
 
 class SDL2Bootstrap(Bootstrap):
@@ -1774,6 +1783,25 @@ Available commands:
                               'ndk_ver', 'android_api'):
                 print('{} is {}'.format(attribute, getattr(ctx, attribute)))
             
+        def list_dists(self, args):
+            ctx = Context()
+            dists = glob.glob(join(ctx.dist_dir, '*'))
+
+            infos = []
+            for dist in dists:
+                filen = join(dist, 'dist_info.json')
+                if exists(filen):
+                    with open(filen, 'r') as fileh:
+                        dist_info = json.load(fileh)
+                    infos.append('{}: includes recipes {}, with {} bootstrap'.format(
+                        dist_info['dist_name'], dist_info['recipes'], dist_info['bootstrap']))
+                else:
+                    infos.append('{}: recipes and bootstrap not known'.format(dist.split('/')[-1]))
+
+            print('Distributions stored internally are:')
+            for line in infos:
+                print('\t' + line)
+                    
 
         # def create(self):
         #     parser = argparse.ArgumentParser(
