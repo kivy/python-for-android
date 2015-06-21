@@ -841,7 +841,7 @@ class PygameBootstrap(Bootstrap):
             except sh.ErrorReturnCode_1:
                 logger.debug('Failed to strip ' + 'filen')
 
-        super(SDL2Bootstrap, self).run_distribute()
+        super(PygameBootstrap, self).run_distribute()
 
         
 
