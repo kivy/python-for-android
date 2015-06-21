@@ -633,7 +633,7 @@ class Bootstrap(object):
             info('Saving distribution info')
             with open('dist_info.json', 'w') as fileh:
                 json.dump({'dist_name': self.ctx.dist_name,
-                           'bootstrap': self.ctx.bootstrap.name,
+                           'bootstrap': self.ctx.bootstrap.bootstrap_template_dir,
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
         
@@ -740,6 +740,7 @@ class SDL2Bootstrap(Bootstrap):
                 strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
                 logger.debug('Failed to strip ' + 'filen')
+        super(SDL2Bootstrap, self).run_distribute()
 
 
 class PygameBootstrap(Bootstrap):
@@ -839,6 +840,8 @@ class PygameBootstrap(Bootstrap):
                 strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
                 logger.debug('Failed to strip ' + 'filen')
+
+        super(SDL2Bootstrap, self).run_distribute()
 
         
 
@@ -1793,8 +1796,10 @@ Available commands:
                 if exists(filen):
                     with open(filen, 'r') as fileh:
                         dist_info = json.load(fileh)
-                    infos.append('{}: includes recipes {}, with {} bootstrap'.format(
-                        dist_info['dist_name'], dist_info['recipes'], dist_info['bootstrap']))
+                    infos.append('{}: includes recipes ({}), with {} bootstrap'.format(
+                        dist_info['dist_name'],
+                        ', '.join(dist_info['recipes']),
+                        dist_info['bootstrap']))
                 else:
                     infos.append('{}: recipes and bootstrap not known'.format(dist.split('/')[-1]))
 
