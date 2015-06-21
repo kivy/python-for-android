@@ -6,7 +6,7 @@ class LibSDLRecipe(NDKRecipe):
     version = "1.2.14"
     url = None  
     name = 'sdl'
-    depends = ['python2']
+    depends = ['python2', 'pygame_bootstrap_components']
 
     def build_armeabi(self):
 
