@@ -581,6 +581,174 @@ class Context(object):
         return join(self.libs_dir, arch)
 
 
+class Distribution(object):
+    '''State container for information about a distribution (i.e. an
+    Android project).
+
+    This is separate from a Bootstrap because the Bootstrap is
+    concerned with building and populating the dist directory, whereas
+    the dist itself could also come from e.g. a binary download.
+    '''
+    ctx = None
+    
+    name = None  # A name identifying the dist. May not be None.
+    build_dir = None  # Where the dist is built. May be None.
+    url = None
+    dist_dir = None  # Where the dist dir ultimately is. Should not be None.
+
+    recipes = []
+
+    description = ''  # A long description
+
+    def __init__(self, ctx):
+        self.ctx = ctx
+
+    def __str__(self):
+        return '<Distribution: name {} with recipes ({})>'.format(
+            # self.name, ', '.join([recipe.name for recipe in self.recipes]))
+            self.name, ', '.join(self.recipes))
+
+    def __repr__(self):
+        return str(self)
+
+    @classmethod
+    def get_distribution(cls, ctx, name=None, recipes=[], allow_download=True,
+                         allow_build=True, extra_dist_dirs=[],
+                         require_perfect_match=False):
+        '''Takes information about the distribution, and decides what kind of
+        distribution it will be.
+
+        If parameters conflict (e.g. a dist with that name already
+        exists, but doesn't have the right set of recipes),
+        an error is thrown.
+
+        Parameters
+        ----------
+        name : str
+            The name of the distribution. If a dist with this name already '
+            exists, it will be used.
+        recipes : list
+            The recipes that the distribution must contain.
+        allow_download : bool
+            Whether binary dists may be downloaded.
+        allow_build : bool
+            Whether the distribution may be built from scratch if necessary.
+            This is always False on e.g. Windows.
+        force_download: bool
+            If True, only downloaded dists are considered.
+        force_build : bool
+            If True, the dist is forced to be built locally.
+        extra_dist_dirs : list
+            Any extra directories in which to search for dists.
+        require_perfect_match : bool
+            If True, will only match distributions with precisely the 
+            correct set of recipes.
+        '''
+
+        # AND: This whole function is a bit hacky, it needs checking
+        # properly to make sure it follows logically correct
+        # possibilities
+
+        existing_dists = Distribution.get_distributions(ctx)
+    
+        needs_build = True  # whether the dist needs building, will be returned
+
+        possible_dists = existing_dists
+
+        # 0) Check if a dist with that name already exists
+        if name is not None:
+            possible_dists = [d for d in possible_dists if d.name == name]
+
+        # 1) Check if any existing dists meet the requirements
+        _possible_dists = []
+        for dist in possible_dists:
+            for recipe in recipes:
+                if recipe not in dist.recipes:
+                    break
+            else:
+                _possible_dists.append(dist)
+        possible_dists = _possible_dists
+
+        info('Of the existing distributions, the following meet '
+             'the given requirements:')
+        for dist in possible_dists:
+            info('\tname {}: recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
+
+        for dist in possible_dists:
+            if set(dist.recipes) == set(recipes):
+                if not force_build:
+                    info('{} has exactly the right recipes, using this one')
+                    return dist
+                else:
+                    raise ValueError(
+                        '{} has exactly the right recipes, '
+                        'but parameters included force_build'.format(dist))
+
+        # 2) Check if any downloadable dists meet the requirements
+
+        online_dists = [('testsdl2', ['hostpython2', 'sdl2_image',
+                                      'sdl2_mixer', 'sdl2_ttf',
+                                      'python2', 'sdl2',
+                                      'pyjniussdl2', 'kivysdl2'],
+                         'https://github.com/inclement/sdl2-example-dist/archive/master.zip'), 
+                         ]
+        _possible_dists = []
+        for dist_name, dist_recipes, dist_url in online_dists:
+            for recipe in recipes:
+                if recipe not in dist_recipes:
+                    break
+            else:
+                dist = Distribution(ctx)
+                dist.name = dist_name
+                dist.url = dist_url
+                _possible_dists.append(dist)
+        if _possible_dists
+           	
+
+        # 3) If we can build a dist, arrange to do so
+
+    @classmethod
+    def get_distributions(cls, ctx, extra_dist_dirs=[]):
+        '''Returns all the distributions found locally.'''
+        dist_dir = ctx.dist_dir
+        folders = glob.glob(join(dist_dir, '*'))
+        for dir in extra_dist_dirs:
+            folders.extend(glob.glob(join(dir, '*')))
+
+        dists = []
+        for folder in folders:
+            if exists(join(folder, 'dist_info.json')):
+                with open(join(folder, 'dist_info.json')) as fileh:
+                    dist_info = json.load(fileh)
+                dist = cls(ctx)
+                dist.name = folder.split('/')[-1]
+                dist.dist_dir = folder
+                dist.recipes = dist_info['recipes']
+                dists.append(dist)
+        return dists
+
+
+    def save_info(self):
+        '''
+        Save information about the distribution in its dist_dir.
+        '''
+        with current_directory(self.dist_dir):
+            info('Saving distribution info')
+            with open('dist_info.json', 'w') as fileh:
+                json.dump({'dist_name': self.name,
+                           'recipes': self.ctx.recipe_build_order},
+                          fileh)
+
+    def load_info(self):
+        with current_directory(self.dist_dir):
+            filen = 'dist_info.json'
+            if not exists(filen):
+                return None
+            with open('dist_info.json', 'r') as fileh:
+                dist_info = json.load(fileh)
+        return dist_info
+            
+
 
 
 class Bootstrap(object):
@@ -1781,6 +1949,11 @@ Available commands:
             info_main('# Creating dist with with {} bootstrap'.format(bs.bootstrap_template_dir))
 
             ctx = Context()
+
+            # print('dists are', Distribution.get_distributions(ctx))
+            # recipes = re.split('[, ]*', args.recipes)
+            # possible_dists = Distribution.get_distribution(ctx, recipes=recipes)
+
             ctx.dist_name = args.name
             ctx.prepare_bootstrap(bs)
             ctx.prepare_dist(ctx.dist_name)
@@ -1815,10 +1988,10 @@ Available commands:
                 if exists(filen):
                     with open(filen, 'r') as fileh:
                         dist_info = json.load(fileh)
-                    infos.append('{}: includes recipes ({}), with {} bootstrap'.format(
+                    infos.append('{}: includes recipes ({})'.format(
                         dist_info['dist_name'],
                         ', '.join(dist_info['recipes']),
-                        dist_info['bootstrap']))
+                        ))
                 else:
                     infos.append('{}: recipes and bootstrap not known'.format(dist.split('/')[-1]))
 
