@@ -122,7 +122,7 @@ def get_directory(filename):
         return basename(filename[:-5])
     elif filename.endswith('.zip'):
         return basename(filename[:-4])
-    print('Unknown file extension for {}'.format(filename))
+    info('Unknown file extension for {}'.format(filename))
     exit(1)
 
 def which(program, path_env):
@@ -283,7 +283,7 @@ class Arch(object):
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
         else:
-            print('Error: NDK not supported by these tools?')
+            warning('Error: NDK not supported by these tools?')
             exit(1)
 
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
@@ -292,7 +292,7 @@ class Arch(object):
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
-            print('Couldn\'t find executable for CC. Exiting.')
+            warning('Couldn\'t find executable for CC. Exiting.')
             exit(1)
 
         env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
@@ -476,7 +476,7 @@ class Context(object):
                 'android-{}'.format(self.android_api),
                 'arch-arm')
         if not exists(self.ndk_platform):
-            print('ndk_platform doesn\'t exist')
+            warning('ndk_platform doesn\'t exist')
             ok = False
                 
 
@@ -493,7 +493,7 @@ class Context(object):
         # path to some tools
         self.ccache = sh.which("ccache")
         if not self.ccache:
-            print("ccache is missing, the build will not be optimized in the future.")
+            info("ccache is missing, the build will not be optimized in the future.")
         for cython_fn in ("cython2", "cython-2.7", "cython"):
             cython = sh.which(cython_fn)
             if cython:
@@ -501,7 +501,7 @@ class Context(object):
                 break
         if not self.cython:
             ok = False
-            print("Missing requirement: cython is not installed")
+            warning("Missing requirement: cython is not installed")
 
         # Modify the path so that sh finds modules appropriately
         py_platform = sys.platform
@@ -517,7 +517,7 @@ class Context(object):
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
         else:
-            print('Error: NDK not supported by these tools?')
+            warning('Error: NDK not supported by these tools?')
             exit(1)
         environ['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
                            'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
@@ -534,7 +534,7 @@ class Context(object):
         for tool in ("pkg-config", "autoconf", "automake", "libtool",
                      "tar", "bzip2", "unzip", "make", "gcc", "g++"):
             if not sh.which(tool):
-                print("Missing requirement: {} is not installed".format(
+                warning("Missing requirement: {} is not installed".format(
                     tool))
 
         if not ok:
@@ -637,8 +637,6 @@ class Bootstrap(object):
                            'bootstrap': self.ctx.bootstrap.bootstrap_template_dir,
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
-        
-
 
 
 class SDL2Bootstrap(Bootstrap):
@@ -689,11 +687,8 @@ class SDL2Bootstrap(Bootstrap):
 
             info('Filling private directory')
             if not exists(join('private', 'lib')):
-                print('private/lib does not exist, making')
-                print('one', os.listdir('private'))
+                info('private/lib does not exist, making')
                 shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
-                print('two', os.listdir('private'))
-            print('and listing', os.listdir(join('private', 'lib')))
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
             
             # AND: Copylibs stuff should go here
@@ -731,7 +726,7 @@ class SDL2Bootstrap(Bootstrap):
         env = ArchAndroid(self.ctx).get_env()
         strip = which('arm-linux-androideabi-strip', env['PATH'])
         if strip is None:
-            print('Can\'t find strip in PATH...')
+            warning('Can\'t find strip in PATH...')
         strip = sh.Command(strip)
         filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
                 '-iname', '*.so', _env=env).stdout
@@ -831,7 +826,7 @@ class PygameBootstrap(Bootstrap):
         env = ArchAndroid(self.ctx).get_env()
         strip = which('arm-linux-androideabi-strip', env['PATH'])
         if strip is None:
-            print('Can\'t find strip in PATH...')
+            warning('Can\'t find strip in PATH...')
         strip = sh.Command(strip)
         filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
                 '-iname', '*.so', _env=env).stdout
@@ -901,7 +896,7 @@ class Recipe(object):
         """
         if not filename:
             return
-        print("Extract {} into {}".format(filename, cwd))
+        info("Extract {} into {}".format(filename, cwd))
         if filename.endswith(".tgz") or filename.endswith(".tar.gz"):
             shprint(sh.tar, "-C", cwd, "-xvzf", filename)
 
@@ -914,7 +909,7 @@ class Recipe(object):
             zf.close()
 
         else:
-            print("Error: cannot extract, unreconized extension for {}".format(
+            warning("Error: cannot extract, unreconized extension for {}".format(
                 filename))
             raise Exception()
 
@@ -943,13 +938,13 @@ class Recipe(object):
         sh.patch("-t", "-d", self.get_build_dir('armeabi'), "-p1", "-i", filename)
 
     def copy_file(self, filename, dest):
-        print("Copy {} to {}".format(filename, dest))
+        info("Copy {} to {}".format(filename, dest))
         filename = join(self.recipe_dir, filename)
         dest = join(self.build_dir, dest)
         shutil.copy(filename, dest)
 
     def append_file(self, filename, dest):
-        print("Append {} to {}".format(filename, dest))
+        info("Append {} to {}".format(filename, dest))
         filename = join(self.recipe_dir, filename)
         dest = join(self.build_dir, dest)
         with open(filename, "rb") as fd:
@@ -1574,7 +1569,7 @@ def biglink(ctx, arch):
     if not len(glob.glob(join(obj_dir, '*'))):
         info('There seem to be no libraries to biglink, skipping.')
         return
-    print('Biglinking')
+    info('Biglinking')
     # bl = sh.Command(join(ctx.root_dir, 'tools', 'biglink'))
     print('ldflags are', env['LDFLAGS'])
     # shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
@@ -1626,13 +1621,12 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
         if link not in unique_args:
             unique_args.append(link)
     
-    print('Biglink create %s library' % soname)
-    print('Biglink arguments:')
-    for arg in unique_args:
-        print(' %s' % arg)
+    # print('Biglink create %s library' % soname)
+    # print('Biglink arguments:')
+    # for arg in unique_args:
+    #     print(' %s' % arg)
 
     cc_name = env['CC']
-    print('cc_name is', cc_name)
     cc = sh.Command(cc_name.split()[0])
     cc = cc.bake(*cc_name.split()[1:])
 
