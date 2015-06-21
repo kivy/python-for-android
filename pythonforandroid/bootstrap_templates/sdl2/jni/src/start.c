@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     configurable */
  /* AND: P4A uses env vars...not sure what's best */
     LOG("Initialize Python for Android");
-    env_argument = "/data/data/net.inclem.android/files";
+    env_argument = "/data/data/org.kivy.android/files";
     LOG(env_argument);
     /* env_argument = getenv("ANDROID_ARGUMENT"); */
     /* setenv("ANDROID_APP_PATH", env_argument, 1); */
