@@ -432,7 +432,7 @@ class Context(object):
     @property
     def packages_path(self):
         '''Where packages are downloaded before being unpacked'''
-        return join(self.root_dir, '.packages')
+        return join(self.storage_dir, 'packages')
 
     def setup_dirs(self):
         '''Calculates all the storage and build dirs, and makes sure
@@ -440,8 +440,8 @@ class Context(object):
         self.root_dir = realpath(dirname(__file__))
 
         # AND: TODO: Allow the user to set the build_dir
-        # self.storage_dir = user_data_dir('python-for-android')
-        self.storage_dir = self.root_dir
+        self.storage_dir = user_data_dir('python-for-android')
+        # self.storage_dir = self.root_dir
         self.build_dir = join(self.storage_dir, 'build')
         self.libs_dir = join(self.build_dir, 'libs')
         self.dist_dir = join(self.storage_dir, 'dists')
