@@ -23,7 +23,8 @@ class PygameRecipe(Recipe):
     def build_armeabi(self):
         # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now
         
-        env = ArchAndroid(self.ctx).get_env()
+        arch = ArchAndroid(self.ctx)
+        env = self.get_recipe_env(arch)
         
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))

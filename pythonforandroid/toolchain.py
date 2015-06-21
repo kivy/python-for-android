@@ -321,8 +321,9 @@ class Arch(object):
 
         # AND: This stuff is set elsewhere in distribute.sh. Does that matter?
         env['ARCH'] = self.arch
-        env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds', 'objects')
-        ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
+
+        # env['LIBLINK_PATH'] = join(self.ctx.build_dir, 'other_builds', 'objects')
+        # ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
 
         return env
 
@@ -1457,6 +1458,11 @@ class CythonRecipe(PythonRecipe):
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
+
+        # Every recipe uses its own liblink path, object files are collected and biglinked later
+        liblink_path = join(self.get_build_container_dir(arch.arch), 'objects_{}'.format(self.name))
+        env['LIBLINK_PATH'] = liblink_path
+        ensure_dir(liblink_path)
         return env
 
 
@@ -1522,7 +1528,7 @@ def build_recipes(names, ctx):
         # 4) biglink everything
         # AND: Should make this optional (could use 
         info_main('# Biglinking object files')
-        biglink(ctx)
+        biglink(ctx, arch)
 
         # 5) postbuild packages
         info_main('# Postbuilding recipes')
@@ -1539,7 +1545,25 @@ def run_pymodules_install(modules):
         exit(1)
         
 
-def biglink(ctx):
+def biglink(ctx, arch):
+    # First, collate object files from each recipe
+    info('Collating object files from each recipe')
+    obj_dir = join(ctx.bootstrap.build_dir, 'collated_objects')
+    ensure_dir(obj_dir)
+    recipes = [Recipe.get_recipe(name, ctx) for name in ctx.recipe_build_order]
+    for recipe in recipes:
+        recipe_obj_dir = join(recipe.get_build_container_dir(arch.arch),
+                              'objects_{}'.format(recipe.name))
+        if not exists(recipe_obj_dir):
+            info('{} recipe has no biglinkable files dir, skipping'.format(recipe.name))
+            continue
+        files = glob.glob(join(recipe_obj_dir, '*'))
+        if not len(files):
+            info('{} recipe has no biglinkable files, skipping'.format(recipe.name))
+        info('{} recipe has object files, copying'.format(recipe.name))
+        files.append(obj_dir)
+        shprint(sh.cp, '-r', *files)
+    
     # AND: Shouldn't hardcode ArchAndroid! In reality need separate
     # build dirs for each arch
     arch = ArchAndroid(ctx)
@@ -1547,7 +1571,7 @@ def biglink(ctx):
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
         join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi'))
 
-    if not len(glob.glob(join(ctx.build_dir, 'other_builds', 'objects', '*'))):
+    if not len(glob.glob(join(obj_dir, '*'))):
         info('There seem to be no libraries to biglink, skipping.')
         return
     print('Biglinking')
@@ -1557,7 +1581,8 @@ def biglink(ctx):
     #         env['LIBLINK_PATH'], _env=env)
     biglink_function(
         join(ctx.libs_dir, 'libpymodules.so'),
-        env['LIBLINK_PATH'].split(' '),
+        obj_dir.split(' '),
+        # env['LIBLINK_PATH'].split(' '),  # AND: This line should be obselete now
         extra_link_dirs=[join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi')],
         env=env)
 
