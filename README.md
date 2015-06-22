@@ -21,7 +21,8 @@ recipes are supported.
 Add the `--debug` option to any command to enable printing all the
 debug information, including output of shell commands (there's a lot if it!).
 
-It's also now possible to build working APKs that run kivy with sdl2, but requires some manual intervention to add the SDL_{image,mixer,ttf} jni folders, and depends on patched versions of kivy and pyjnius. Adding these as recipes (and making the download automatic) is the next thing to be done. Creating an sdl2 dist would be possible with e.g.
+It's also now possible to build working APKs that run kivy with
+sdl2. The following command *should* work:
 
     python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
 
@@ -55,10 +56,14 @@ Pip:
 - Downloaded file md5 and headers aren't checked
 - Biglink is essential (the p4a disable option isn't implemented)
 - Android services are not implemented at all
+- App loading screen
+- Billing support
+- Kivy Launcher build (can now be implemented as a bootstrap)
 - Probably some other stuff
 
 
 # Current status
 
-Currently working to fully automate SDL2 dist creation by adding
-required recipes and patches for kivy and pyjnius.
+Working to abstract out build.py for dists based on a bootstrap
+template, as well as abstracting Distribution support both to improve
+the code and to make automatic binary distribution easy.

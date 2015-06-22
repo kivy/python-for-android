@@ -702,7 +702,7 @@ class Distribution(object):
                 dist.name = dist_name
                 dist.url = dist_url
                 _possible_dists.append(dist)
-        if _possible_dists
+        # if _possible_dists
            	
 
         # 3) If we can build a dist, arrange to do so

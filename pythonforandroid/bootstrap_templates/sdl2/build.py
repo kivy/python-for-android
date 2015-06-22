@@ -13,6 +13,8 @@ import re
 
 from fnmatch import fnmatch
 
+import jinja2
+
 if os.name == 'nt':
     ANDROID = 'android.bat'
     ANT = 'ant.bat'
@@ -45,6 +47,24 @@ BLACKLIST_PATTERNS = [
 WHITELIST_PATTERNS = []
 
 python_files = []
+
+
+environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
+    join(curdir, 'templates')))
+
+def render(template, dest, **kwargs):
+    '''Using jinja2, render `template` to the filename `dest`, supplying the
+
+    keyword arguments as template parameters.
+    '''
+
+    template = environment.get_template(template)
+    text = template.render(**kwargs)
+
+    f = file(dest, 'wb')
+    f.write(text.encode('utf-8'))
+    f.close()
+
 
 def is_whitelist(name):
     return match_filename(WHITELIST_PATTERNS, name)
@@ -222,6 +242,35 @@ def make_package(args):
     #     print 'Did you install ant on your system ?'
     #     sys.exit(-1)
 
+
+    # Prepare some variables for templating process
+    versioned_name = (args.name.replace(' ', '').replace('\'', '') +
+                      '-' + args.version)
+
+    version_code = 0
+    if not args.numeric_version:
+        for i in args.version.split('.'):
+            version_code *= 100
+            version_code += int(i)
+        args.numeric_version = str(version_code)
+
+    render(
+        'AndroidManifest.xml.tmpl',
+        'AndroidManifest.xml',
+        args=args,
+        )
+
+    render(
+        'build.xml.tmpl',
+        'build.xml',
+        args=args,
+        versioned_name=versioned_name)
+
+    render(
+        'strings.xml.tmpl',
+        'res/values/strings.xml',
+        args=args)
+
     with open(join(dirname(__file__), 'res',
                    'values', 'strings.xml')) as fileh:
         lines = fileh.read()
@@ -246,8 +295,30 @@ tools directory of the Android SDK.
     ap.add_argument('--private', dest='private',
                     help='the dir of user files',
                     required=True)
+    ap.add_argument('--package', dest='package',
+                    help=('The name of the java package the project will be'
+                          ' packaged under.'),
+                    required=True)
+    ap.add_argument('--name', dest='name',
+                    help=('The human-readable name of the project.'),
+                    required=True)
+    ap.add_argument('--numeric-version', dest='numeric_version',
+                    help=('The numeric version number of the project. If not '
+                          'given, this is automatically computed from the '
+                          'version.'))
+    ap.add_argument('--version', dest='version',
+                    help=('The version number of the project. This should '
+                          'consist of numbers and dots, and should have the '
+                          'same number of groups of numbers as previous '
+                          'versions.'),
+                    required=True)
+    ap.add_argument('--orientation', dest='orientation', default='portrait',
+                    help=('The orientation that the game will display in. '
+                          'Usually one of "landscape", "portrait" or '
+                          '"sensor"'))
 
     args = ap.parse_args()
     args.ignore_path = []
+
 
     make_package(args)
