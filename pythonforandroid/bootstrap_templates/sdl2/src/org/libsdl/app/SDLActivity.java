@@ -404,6 +404,7 @@ public class SDLActivity extends Activity {
                                           float value);
     public static native void onNativeHat(int device_id, int hat_id,
                                           int x, int y);
+    public static native void nativeSetEnv(String j_name, String j_value);
     public static native void onNativeKeyDown(int keycode);
     public static native void onNativeKeyUp(int keycode);
     public static native void onNativeKeyboardFocusLost();

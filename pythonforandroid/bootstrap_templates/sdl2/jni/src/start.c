@@ -64,20 +64,19 @@ int main(int argc, char *argv[]) {
     configurable */
  /* AND: P4A uses env vars...not sure what's best */
     LOG("Initialize Python for Android");
-    env_argument = "/data/data/org.kivy.android/files";
-    LOG(env_argument);
-    /* env_argument = getenv("ANDROID_ARGUMENT"); */
+    /* env_argument = "/data/data/org.kivy.android/files"; */
+    env_argument = getenv("ANDROID_ARGUMENT");
     /* setenv("ANDROID_APP_PATH", env_argument, 1); */
+    
+    /* setenv("ANDROID_ARGUMENT", env_argument, 1); */
+    /* setenv("ANDROID_PRIVATE", env_argument, 1); */
+    /* setenv("ANDROID_APP_PATH", env_argument, 1); */
+    /* setenv("PYTHONHOME", env_argument, 1); */
+    /* setenv("PYTHONPATH", "/data/data/org.kivy.android/files:/data/data/org.kivy.android/files/lib", 1); */
 
-    setenv("ANDROID_ARGUMENT", env_argument, 1);
-    setenv("ANDROID_PRIVATE", env_argument, 1);
-    setenv("ANDROID_APP_PATH", env_argument, 1);
-    setenv("PYTHONHOME", env_argument, 1);
-    setenv("PYTHONPATH", "/data/data/net.inclem.android/files:/data/data/net.inclem.android/files/lib", 1);
-
-    LOG("AND: Set env vars");
-    LOG(argv[0]);
-    LOG("AND: That was argv 0");
+    /* LOG("AND: Set env vars"); */
+    /* LOG(argv[0]); */
+    /* LOG("AND: That was argv 0"); */
 	//setenv("PYTHONVERBOSE", "2", 1);
     Py_SetProgramName(argv[0]);
     Py_Initialize();
