@@ -7,6 +7,7 @@ import os
 import tarfile
 import time
 import subprocess
+import shutil
 from zipfile import ZipFile
 import sys
 import re
@@ -244,6 +245,10 @@ def make_package(args):
 
 
     # Prepare some variables for templating process
+
+    default_icon = 'templates/kivy-icon.png'
+    shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
+    
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
 
@@ -316,6 +321,8 @@ tools directory of the Android SDK.
                     help=('The orientation that the game will display in. '
                           'Usually one of "landscape", "portrait" or '
                           '"sensor"'))
+    ap.add_argument('--icon', dest='icon',
+                    help='A png file to use as the icon for the application.')
 
     args = ap.parse_args()
     args.ignore_path = []
