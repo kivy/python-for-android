@@ -1824,11 +1824,19 @@ Currently available commands:
     create_android_project    Build an android project with all recipes
                     
 Available commands:
-    build         Build a specific recipe
-    clean         Clean the build
-    distclean     Clean the build and the result
-    recipes       List all the available recipes
-    status        List all the recipes and their build status
+    Not yet confirmed
+
+Planned commands:
+    recipes
+    distributions
+    build_dist
+    symlink_dist
+    copy_dist
+    clean_all
+    status
+    clean_builds
+    clean_download_cache
+    clean_dists
 """)
             parser.add_argument("command", help="Command to run")
             parser.add_argument('--debug', dest='debug', action='store_true',
