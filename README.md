@@ -6,11 +6,11 @@ pythonic toolchain of kivy-ios. Broad goals are:
 - Support SDL2
 - Support multiple bootstraps (user-chosen java + NDK code)
 - Support python3
-- Support some kind of binary distribution (?)
+- Support some kind of binary distribution
   (including on Windows)
-- Be a standalone Pypi module (?)
+- Be a standalone Pypi module
 
-This is in a very early stage. The following command will try to
+This is at an early (but working!) stage. The following command will try to
 download and build some recipes. It should duplicate the functionality
 of distribute.sh (and you can build an apk with the result using
 build.py!), but the code is currently bad and only the few essential
@@ -27,10 +27,8 @@ sdl2. The following command *should* work:
     python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
 
 Like the pygame bootstrap, this makes a dist dir with a build.py. This
-supports only the --private option, and you must manually run ant to
-install the APK, then the app will crash at least twice on the device
-before it works. This is probably a weird unpacking problem, under
-investigation.
+doesn't support all the same options as the old bootstrap (yet), but
+you can customise things like the APK name.
 
 All the details here are highly preliminary; the current priority is
 to get different parts of the tool basically working (even if hacky)
@@ -47,6 +45,7 @@ Pip:
 - sh
 - appdirs
 - colorama
+- jinja2
 
 
 # Known missing stuff from P4A
@@ -59,6 +58,7 @@ Pip:
 - App loading screen
 - Billing support
 - Kivy Launcher build (can now be implemented as a bootstrap)
+- Several build options for build.py
 - Probably some other stuff
 
 
