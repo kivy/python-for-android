@@ -9,12 +9,6 @@ class SDL2Bootstrap(Bootstrap):
 
     recipe_depends = ['sdl2']
 
-    # def prepare_build_dir(self):
-    #     super(SDL2Bootstrap, self).prepare_build_dir()
-        # with current_directory(join(self.build_dir, 'jni')):
-        #     if not exists('SDL'):
-        #         shprint(sh.ln, '-s', '/home/asandy/devel/SDL', '.')
-
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.name))

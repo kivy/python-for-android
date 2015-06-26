@@ -1,5 +1,5 @@
 
-from toolchain import Recipe, shprint, ArchAndroid, current_directory, debug, info
+from toolchain import Recipe, shprint, ArchAndroid, current_directory, debug, info, ensure_dir
 from os.path import exists, join
 import sh
 import glob
@@ -9,6 +9,20 @@ class PygameRecipe(Recipe):
     version = '1.9.1'
     url = 'http://pygame.org/ftp/pygame-{version}release.tar.gz'
     depends = ['python2', 'sdl']
+
+    def get_recipe_env(self, arch):
+        env = super(PygameRecipe, self).get_recipe_env(arch)
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
+            self.ctx.get_libs_dir(arch.arch))
+        env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+        env['LIBLINK'] = 'NOTNONE'
+        env['NDKPLATFORM'] = self.ctx.ndk_platform
+
+        # Every recipe uses its own liblink path, object files are collected and biglinked later
+        liblink_path = join(self.get_build_container_dir(arch.arch), 'objects_{}'.format(self.name))
+        env['LIBLINK_PATH'] = liblink_path
+        ensure_dir(liblink_path)
+        return env
 
     def prebuild_armeabi(self):
         if exists(join(self.get_build_container_dir('armeabi'), '.patched')):
