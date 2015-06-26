@@ -2024,7 +2024,8 @@ Planned commands:
 
             ctx.bootstrap.run_distribute()
 
-            print('Done building recipes, exiting for now.')
+            info_main('# Your distribution was created successfully, exiting.')
+            info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
             return
 
         def print_context_info(self, args):
