@@ -435,6 +435,10 @@ class Context(object):
         '''Where packages are downloaded before being unpacked'''
         return join(self.storage_dir, 'packages')
 
+    @property
+    def templates_dir(self):
+        return join(self.root_dir, 'templates')
+
     def setup_dirs(self):
         '''Calculates all the storage and build dirs, and makes sure
         the directories exist where necessary.'''
@@ -755,7 +759,7 @@ class Bootstrap(object):
     '''An Android project template, containing recipe stuff for
     compilation and templated fields for APK info.
     '''
-    bootstrap_template_dir = ''
+    name = ''
     jni_subdir = '/jni'
     ctx = None
 
@@ -772,27 +776,32 @@ class Bootstrap(object):
 
     @property
     def jni_dir(self):
-        return self.bootstrap_template_dir + self.jni_subdir
+        return self.name + self.jni_subdir
+
+    def get_build_dir(self):
+        return join(self.ctx.build_dir, 'bootstrap_builds', self.name)
+
+    def get_dist_dir(self, name):
+        return join(self.ctx.dist_dir, name)
+
+    @property
+    def name(self):
+        modname = self.__class__.__module__
+        return modname.split(".", 1)[-1]
 
     def prepare_build_dir(self):
         '''Ensure that a build dir exists for the recipe. This same single
         dir will be used for building all different archs.'''
-        self.build_dir = join(self.ctx.build_dir, 'bootstrap_builds',
-                              self.bootstrap_template_dir)
+        self.build_dir = self.get_build_dir()
         shprint(sh.cp, '-r',
-                join(self.ctx.root_dir,
-                     'bootstrap_templates',
-                     self.bootstrap_template_dir),
+                join(self.bootstrap_dir, 'build'),
+                # join(self.ctx.root_dir,
+                #      'bootstrap_templates',
+                #      self.name),
                 self.build_dir)
 
     def prepare_dist_dir(self, name):
-        self.dist_dir = join(self.ctx.dist_dir, name + '_' +
-                             self.bootstrap_template_dir)
-        # shprint(sh.cp, '-r',
-        #         join(self.ctx.root_dir,
-        #              'bootstrap_templates',
-        #              self.bootstrap_template_dir),
-        #         self.dist_dir)
+        self.dist_dir = self.get_dist_dir(name)
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):
@@ -802,123 +811,157 @@ class Bootstrap(object):
             info('Saving distribution info')
             with open('dist_info.json', 'w') as fileh:
                 json.dump({'dist_name': self.ctx.dist_name,
-                           'bootstrap': self.ctx.bootstrap.bootstrap_template_dir,
+                           'bootstrap': self.ctx.bootstrap.name,
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
 
+    # AND: This method must be replaced by manual dir setting, in
+    # order to allow for user dirs
+    # def get_bootstrap_dir(self):
+    #     return(dirname(__file__))
 
-class SDL2Bootstrap(Bootstrap):
-    bootstrap_template_dir = 'sdl2'
+    @classmethod
+    def list_bootstraps(cls):
+        bootstraps_dir = join(dirname(__file__), 'bootstraps')
+        for name in listdir(bootstraps_dir):
+            filen = join(bootstraps_dir, name)
+            if isdir(filen):
+                yield name
 
-    recipe_depends = ['sdl2']
+    @classmethod
+    def get_bootstrap(cls, name, ctx):
+        '''Returns an instance of a bootstrap with the given name.
 
-    # def prepare_build_dir(self):
-    #     super(SDL2Bootstrap, self).prepare_build_dir()
-        # with current_directory(join(self.build_dir, 'jni')):
-        #     if not exists('SDL'):
-        #         shprint(sh.ln, '-s', '/home/asandy/devel/SDL', '.')
+        This is the only way you should access a bootstrap class, as
+        it sets the bootstrap directory correctly.
+        '''
+        # AND: This method will need to check user dirs, and access
+        # bootstraps in a slightly different way
+        if not hasattr(cls, 'bootstraps'):
+            cls.bootstraps = {}
+        if name in cls.bootstraps:
+            return cls.bootstraps[name]
+        mod = importlib.import_module('bootstraps.{}'.format(name))
+        if len(logger.handlers) > 1:
+            logger.removeHandler(logger.handlers[1])
+        bootstrap = mod.bootstrap
+        bootstrap.bootstrap_dir = join(ctx.root_dir, 'bootstraps', name)
+        bootstrap.ctx = ctx
+        return bootstrap
 
-    def run_distribute(self):
-        info_main('# Creating Android project from build and {} bootstrap'.format(
-            self.bootstrap_template_dir))
 
-        info('This currently just copies the SDL2 build stuff straight from the build dir.')
-        shprint(sh.rm, '-rf', self.dist_dir)
-        shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
-        with current_directory(self.dist_dir):
-            with open('local.properties', 'w') as fileh:
-                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+# class SDL2Bootstrap(Bootstrap):
+#     name = 'sdl2'
+
+#     recipe_depends = ['sdl2']
+
+#     # def prepare_build_dir(self):
+#     #     super(SDL2Bootstrap, self).prepare_build_dir()
+#         # with current_directory(join(self.build_dir, 'jni')):
+#         #     if not exists('SDL'):
+#         #         shprint(sh.ln, '-s', '/home/asandy/devel/SDL', '.')
+
+#     def run_distribute(self):
+#         info_main('# Creating Android project from build and {} bootstrap'.format(
+#             self.name))
+
+#         info('This currently just copies the SDL2 build stuff straight from the build dir.')
+#         shprint(sh.rm, '-rf', self.dist_dir)
+#         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
+#         with current_directory(self.dist_dir):
+#             with open('local.properties', 'w') as fileh:
+#                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
         
-        with current_directory(self.dist_dir):
-            info('Copying python distribution')
+#         with current_directory(self.dist_dir):
+#             info('Copying python distribution')
 
-            if not exists('private'):
-                shprint(sh.mkdir, 'private')
-            if not exists('assets'):
-                shprint(sh.mkdir, 'assets')
+#             if not exists('private'):
+#                 shprint(sh.mkdir, 'private')
+#             if not exists('assets'):
+#                 shprint(sh.mkdir, 'assets')
             
-            hostpython = sh.Command(self.ctx.hostpython)
-            # AND: This *doesn't* need to be in arm env?
-            shprint(hostpython, '-OO', '-m', 'compileall', join(self.ctx.build_dir, 'python-install'))
-            if not exists('python-install'):
-                shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
+#             hostpython = sh.Command(self.ctx.hostpython)
+#             # AND: This *doesn't* need to be in arm env?
+#             shprint(hostpython, '-OO', '-m', 'compileall', join(self.ctx.build_dir, 'python-install'))
+#             if not exists('python-install'):
+#                 shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
 
-            info('Copying libs')
-            # AND: Hardcoding armeabi - naughty!
-            shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
-            for lib in glob.glob(join(self.ctx.libs_dir, '*')):
-                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
+#             info('Copying libs')
+#             # AND: Hardcoding armeabi - naughty!
+#             shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
+#             for lib in glob.glob(join(self.ctx.libs_dir, '*')):
+#                 shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
 
-            info('Copying java files')
-            for filename in glob.glob(join(self.ctx.build_dir, 'java', '*')):
-                shprint(sh.cp, '-a', filename, 'src')
+#             info('Copying java files')
+#             for filename in glob.glob(join(self.ctx.build_dir, 'java', '*')):
+#                 shprint(sh.cp, '-a', filename, 'src')
 
-            info('Filling private directory')
-            if not exists(join('private', 'lib')):
-                info('private/lib does not exist, making')
-                shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
-            shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
+#             info('Filling private directory')
+#             if not exists(join('private', 'lib')):
+#                 info('private/lib does not exist, making')
+#                 shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
+#             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
             
-            # AND: Copylibs stuff should go here
-            if exists(join('libs', 'armeabi', 'libpymodules.so')):
-                shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
-            shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
+#             # AND: Copylibs stuff should go here
+#             if exists(join('libs', 'armeabi', 'libpymodules.so')):
+#                 shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
+#             shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
-            info('Removing some unwanted files')
-            shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
-            shprint(sh.rm, '-rf', join('private', 'lib', 'pkgconfig'))
+#             info('Removing some unwanted files')
+#             shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
+#             shprint(sh.rm, '-rf', join('private', 'lib', 'pkgconfig'))
 
-            with current_directory(join(self.dist_dir, 'private', 'lib', 'python2.7')):
-                # shprint(sh.xargs, 'rm', sh.grep('-E', '*\.(py|pyx|so\.o|so\.a|so\.libs)$', sh.find('.')))
-                removes = []
-                for dirname, something, filens in walk('.'):
-                    for filename in filens:
-                        for suffix in ('py', 'pyc', 'so.o', 'so.a', 'so.libs'):
-                            if filename.endswith(suffix):
-                                removes.append(filename)
-                shprint(sh.rm, '-f', *removes)
+#             with current_directory(join(self.dist_dir, 'private', 'lib', 'python2.7')):
+#                 # shprint(sh.xargs, 'rm', sh.grep('-E', '*\.(py|pyx|so\.o|so\.a|so\.libs)$', sh.find('.')))
+#                 removes = []
+#                 for dirname, something, filens in walk('.'):
+#                     for filename in filens:
+#                         for suffix in ('py', 'pyc', 'so.o', 'so.a', 'so.libs'):
+#                             if filename.endswith(suffix):
+#                                 removes.append(filename)
+#                 shprint(sh.rm, '-f', *removes)
 
-                info('Deleting some other stuff not used on android')
-                # To quote the original distribute.sh, 'well...'
-                shprint(sh.rm, '-rf', 'ctypes')
-                shprint(sh.rm, '-rf', 'lib2to3')
-                shprint(sh.rm, '-rf', 'idlelib')
-                for filename in glob.glob('config/libpython*.a'):
-                    shprint(sh.rm, '-f', filename)
-                shprint(sh.rm, '-rf', 'config/python.o')
-                shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
-                shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
+#                 info('Deleting some other stuff not used on android')
+#                 # To quote the original distribute.sh, 'well...'
+#                 shprint(sh.rm, '-rf', 'ctypes')
+#                 shprint(sh.rm, '-rf', 'lib2to3')
+#                 shprint(sh.rm, '-rf', 'idlelib')
+#                 for filename in glob.glob('config/libpython*.a'):
+#                     shprint(sh.rm, '-f', filename)
+#                 shprint(sh.rm, '-rf', 'config/python.o')
+#                 shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
+#                 shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
 
-        info('Stripping libraries')
-        env = ArchAndroid(self.ctx).get_env()
-        strip = which('arm-linux-androideabi-strip', env['PATH'])
-        if strip is None:
-            warning('Can\'t find strip in PATH...')
-        strip = sh.Command(strip)
-        filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
-                '-iname', '*.so', _env=env).stdout
-        logger.info('Stripping libraries in private dir')
-        for filen in filens.split('\n'):
-            try:
-                strip(filen, _env=env)
-            except sh.ErrorReturnCode_1:
-                logger.debug('Failed to strip ' + 'filen')
-        super(SDL2Bootstrap, self).run_distribute()
+#         info('Stripping libraries')
+#         env = ArchAndroid(self.ctx).get_env()
+#         strip = which('arm-linux-androideabi-strip', env['PATH'])
+#         if strip is None:
+#             warning('Can\'t find strip in PATH...')
+#         strip = sh.Command(strip)
+#         filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
+#                 '-iname', '*.so', _env=env).stdout
+#         logger.info('Stripping libraries in private dir')
+#         for filen in filens.split('\n'):
+#             try:
+#                 strip(filen, _env=env)
+#             except sh.ErrorReturnCode_1:
+#                 logger.debug('Failed to strip ' + 'filen')
+#         super(SDL2Bootstrap, self).run_distribute()
 
 
 class PygameBootstrap(Bootstrap):
-    bootstrap_template_dir = 'pygame'
+    name = 'pygame'
 
     recipe_depends = ['hostpython2', 'python2', 'pyjnius', 'sdl', 'pygame',
                       'android', 'kivy']
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
-            self.bootstrap_template_dir))
+            self.name))
 
         src_path = join(self.ctx.root_dir, 'bootstrap_templates',
-                        self.bootstrap_template_dir)
+                        self.name)
         
         with current_directory(self.dist_dir):
 
@@ -1883,6 +1926,9 @@ Planned commands:
                     print('    depends: {recipe.depends}'.format(recipe=recipe))
                     print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
+        def list_bootstraps(self, args):
+            print(list(Bootstrap.list_bootstraps()))
+
         def clean_all(self, args):
             parser = argparse.ArgumentParser(
                     description="Clean the build cache, downloads and dists")
@@ -1948,15 +1994,17 @@ Planned commands:
                                 default='kivy,')
             args = parser.parse_args(args)
 
+            ctx = Context()
+
             if args.bootstrap == 'pygame':
                 bs = PygameBootstrap()
             elif args.bootstrap == 'sdl2':
-                bs = SDL2Bootstrap()
+                # bs = SDL2Bootstrap()
+                bs = Bootstrap.get_bootstrap('sdl2', ctx)
             else:
                 raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
-            info_main('# Creating dist with with {} bootstrap'.format(bs.bootstrap_template_dir))
+            info_main('# Creating dist with with {} bootstrap'.format(bs.name))
 
-            ctx = Context()
 
             # print('dists are', Distribution.get_distributions(ctx))
             # recipes = re.split('[, ]*', args.recipes)
