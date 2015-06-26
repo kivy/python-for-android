@@ -3,6 +3,14 @@
 This is an experimental Python for Android APK builder based on the
 pythonic toolchain of kivy-ios. Broad goals are:
 
+Update: Basic SDL2 support **is done**. Support for building an APK is
+still rudimentary (only a few options supported), but it should now be
+possible to properly attack any feature of the current
+python-for-android without this all needing to be refactored
+later. I'd be grateful to anyone interested in testing this, and will
+start writing documentation on how to do so shortly (beyond the brief
+snippets below).
+
 - Support SDL2
 - Support multiple bootstraps (user-chosen java + NDK code)
 - Support python3
