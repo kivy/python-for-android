@@ -596,6 +596,7 @@ class Distribution(object):
     ctx = None
     
     name = None  # A name identifying the dist. May not be None.
+    needs_build = False  # Whether the dist needs compiling
     build_dir = None  # Where the dist is built. May be None.
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
@@ -678,38 +679,62 @@ class Distribution(object):
         for dist in possible_dists:
             info('\tname {}: recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
 
+        # If any dist has perfect recipes, return it
         for dist in possible_dists:
-            if set(dist.recipes) == set(recipes):
-                if not force_build:
-                    info('{} has exactly the right recipes, using this one')
-                    return dist
-                else:
-                    raise ValueError(
-                        '{} has exactly the right recipes, '
-                        'but parameters included force_build'.format(dist))
+            if force_build:
+                continue
+            if (set(dist.recipes) == set(recipes) or
+                (set(recipes).issubset(set(dist.recipes) and not require_perfect_match))):
+                info('{} has exactly the right recipes, using this one')
 
-        # 2) Check if any downloadable dists meet the requirements
+        if name is not None:
+            info('Asked for dist with name {} with recipes ({}), but a dist '
+                 'with this name already exists and has incompatible recipes '
+                 '({})'.format(name, ', '.join(recipes), ', '.join(dist.recipes)))
+            info('No compatible dist found, so exiting.')
+            exit(1)
 
-        online_dists = [('testsdl2', ['hostpython2', 'sdl2_image',
-                                      'sdl2_mixer', 'sdl2_ttf',
-                                      'python2', 'sdl2',
-                                      'pyjniussdl2', 'kivysdl2'],
-                         'https://github.com/inclement/sdl2-example-dist/archive/master.zip'), 
-                         ]
-        _possible_dists = []
-        for dist_name, dist_recipes, dist_url in online_dists:
-            for recipe in recipes:
-                if recipe not in dist_recipes:
-                    break
-            else:
-                dist = Distribution(ctx)
-                dist.name = dist_name
-                dist.url = dist_url
-                _possible_dists.append(dist)
-        # if _possible_dists
+        # # 2) Check if any downloadable dists meet the requirements
+
+        # online_dists = [('testsdl2', ['hostpython2', 'sdl2_image',
+        #                               'sdl2_mixer', 'sdl2_ttf',
+        #                               'python2', 'sdl2',
+        #                               'pyjniussdl2', 'kivysdl2'],
+        #                  'https://github.com/inclement/sdl2-example-dist/archive/master.zip'), 
+        #                  ]
+        # _possible_dists = []
+        # for dist_name, dist_recipes, dist_url in online_dists:
+        #     for recipe in recipes:
+        #         if recipe not in dist_recipes:
+        #             break
+        #     else:
+        #         dist = Distribution(ctx)
+        #         dist.name = dist_name
+        #         dist.url = dist_url
+        #         _possible_dists.append(dist)
+        # # if _possible_dists
            	
 
-        # 3) If we can build a dist, arrange to do so
+        # If we got this far, we need to build a new dist
+        dist = Distribution(ctx)
+        dist.needs_build = True
+
+        filen = 'unnamed_dist_{}'
+        i = 1
+        while exists(join(ctx.dist_dir, filen.format(i))):
+            i += 1
+
+        dist.name = 'unnamed_dist_{}'.format(i)
+        dist.dist_dir = join(ctx.dist_dir, dist.name)
+        dist.recipes = recipes
+
+
+
+
+                 
+        
+        return dist
+
 
     @classmethod
     def get_distributions(cls, ctx, extra_dist_dirs=[]):
@@ -727,6 +752,7 @@ class Distribution(object):
                 dist = cls(ctx)
                 dist.name = folder.split('/')[-1]
                 dist.dist_dir = folder
+                dist.needs_build = False
                 dist.recipes = dist_info['recipes']
                 dists.append(dist)
         return dists
@@ -1652,267 +1678,257 @@ def ensure_dir(filename):
     if not exists(filename):
         makedirs(filename)
 
+def dist_from_args(ctx, args):
+    
+
+class ToolchainCL(object):
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+                description="Tool for managing the iOS / Python toolchain",
+                usage="""toolchain <command> [<args>]
+
+Currently available commands:
+create_android_project    Build an android project with all recipes
+
+Available commands:
+Not yet confirmed
+
+Planned commands:
+recipes
+distributions
+build_dist
+symlink_dist
+copy_dist
+clean_all
+status
+clean_builds
+clean_download_cache
+clean_dists
+""")
+        parser.add_argument("command", help="Command to run")
+        parser.add_argument('--debug', dest='debug', action='store_true',
+                            help='Display debug output and all build info')
+        args, unknown = parser.parse_known_args(sys.argv[1:])
+        if args.debug:
+            logger.setLevel(logging.DEBUG)
+        if not hasattr(self, args.command):
+            print('Unrecognized command')
+            parser.print_help()
+            exit(1)
+        getattr(self, args.command)(unknown)
+
+    # def build(self):
+    #     parser = argparse.ArgumentParser(
+    #             description="Build the toolchain")
+    #     parser.add_argument("recipe", nargs="+", help="Recipe to compile")
+    #     parser.add_argument("--arch", help="Restrict compilation to this arch")
+    #     args = parser.parse_args(sys.argv[2:])
+
+    #     ctx = Context()
+    #     # if args.arch:
+    #     #     archs = args.arch.split()
+    #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
+    #     #     print("Architectures restricted to: {}".format(archs))
+    #     build_recipes(args.recipe, ctx)
+
+    def recipes(self, args):
+        parser = argparse.ArgumentParser(
+                description="List all the available recipes")
+        parser.add_argument(
+                "--compact", action="store_true",
+                help="Produce a compact list suitable for scripting")
+        args = parser.parse_args(args)
+
+        if args.compact:
+            print(" ".join(list(Recipe.list_recipes())))
+        else:
+            ctx = Context()
+            for name in Recipe.list_recipes():
+                recipe = Recipe.get_recipe(name, ctx)
+                print("{recipe.name:<12} {recipe.version:<8}".format(
+                      recipe=recipe))
+                print('    depends: {recipe.depends}'.format(recipe=recipe))
+                print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
+
+    def list_bootstraps(self, args):
+        print(list(Bootstrap.list_bootstraps()))
+
+    def clean_all(self, args):
+        parser = argparse.ArgumentParser(
+                description="Clean the build cache, downloads and dists")
+        args = parser.parse_args(args)
+        ctx = Context()
+        if exists(ctx.build_dir):
+            shutil.rmtree(ctx.build_dir)
+        if exists(ctx.dist_dir):
+            shutil.rmtree(ctx.dist_dir)
+        if exists(ctx.packages_path):
+            shutil.rmtree(ctx.packages_path)
+
+    def clean_dists(self, args):
+        parser = argparse.ArgumentParser(
+                description="Delete any distributions that have been built.")
+        args = parser.parse_args(args)
+        ctx = Context()
+        if exists(ctx.dist_dir):
+            shutil.rmtree(ctx.dist_dir)
+
+    def clean_builds(self, args):
+        parser = argparse.ArgumentParser(
+                description="Delete all build files (but not download caches)")
+        args = parser.parse_args(args)
+        ctx = Context()
+        if exists(ctx.dist_dir):
+            shutil.rmtree(ctx.dist_dir)
+        if exists(ctx.build_dir):
+            shutil.rmtree(ctx.build_dir)
+
+    def clean_download_cache(self, args):
+        parser = argparse.ArgumentParser(
+                description="Delete all download caches")
+        args = parser.parse_args(args)
+        ctx = Context()
+        if exists(ctx.packages_path):
+            shutil.rmtree(ctx.packages_path)
+
+
+    def status(self, args):
+        parser = argparse.ArgumentParser(
+                description="Give a status of the build")
+        args = parser.parse_args(args)
+        ctx = Context()
+        # AND: TODO
+
+        print('This isn\'t implemented yet, but should list all currently existing '
+              'distributions, the modules they include, and all the build caches.')
+        exit(1)
+
+
+    def create(self, args):
+        '''Create a distribution directory if it doesn't already exist, run
+        any recipes if necessary, and build the apk.
+        '''
+        parser = argparse.ArgumentParser(
+            description='Create a newAndroid project')
+        parser.add_argument('--name', help='The name of the project')
+        parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
+                                               'or \'sdl2\''))
+        parser.add_argument('--python_dir', help='Directory of your python code')
+        parser.add_argument('--recipes', help='Recipes to include',
+                            default='kivy,')
+        args = parser.parse_args(args)
+
+        ctx = Context()
+
+        bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
+        info_main('# Creating dist with with {} bootstrap'.format(bs.name))
+
+
+        # print('dists are', Distribution.get_distributions(ctx))
+        # recipes = re.split('[, ]*', args.recipes)
+        # possible_dists = Distribution.get_distribution(ctx, recipes=recipes)
+
+        ctx.dist_name = args.name
+        ctx.prepare_bootstrap(bs)
+        ctx.prepare_dist(ctx.dist_name)
+
+        recipes = re.split('[, ]*', args.recipes)
+        info('Requested recipes are' + str(recipes))
+
+        build_recipes(recipes, ctx)
+
+        info_main('# Installing pure Python modules')
+        run_pymodules_install([])
+
+        ctx.bootstrap.run_distribute()
+
+        info_main('# Your distribution was created successfully, exiting.')
+        info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
+        return
+
+    def print_context_info(self, args):
+        ctx = Context()
+        for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
+                          'ccache', 'cython', 'sdk_dir', 'ndk_dir', 'ndk_platform',
+                          'ndk_ver', 'android_api'):
+            print('{} is {}'.format(attribute, getattr(ctx, attribute)))
+
+    def list_dists(self, args):
+        ctx = Context()
+        dists = Distribution.get_distributions(ctx)
+
+        infos = []
+        for dist in dists:
+            infos.append('{}: includes recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
+            
+        print('Distributions stored internally are:')
+        for line in infos:
+            print('\t' + line)
+        
+
+    # def create(self):
+    #     parser = argparse.ArgumentParser(
+    #             description="Create a new xcode project")
+    #     parser.add_argument("name", help="Name of your project")
+    #     parser.add_argument("directory", help="Directory where your project live")
+    #     args = parser.parse_args(sys.argv[2:])
+
+    #     from cookiecutter.main import cookiecutter
+    #     ctx = Context()
+    #     template_dir = join(curdir, "tools", "templates")
+    #     context = {
+    #         "title": args.name,
+    #         "project_name": args.name.lower(),
+    #         "domain_name": "org.kivy.{}".format(args.name.lower()),
+    #         "project_dir": realpath(args.directory),
+    #         "version": "1.0.0",
+    #         "dist_dir": ctx.dist_dir,
+    #     }
+    #     cookiecutter(template_dir, no_input=True, extra_context=context)
+    #     filename = join(
+    #             getcwd(),
+    #             "{}-ios".format(args.name.lower()),
+    #             "{}.xcodeproj".format(args.name.lower()),
+    #             "project.pbxproj")
+    #     update_pbxproj(filename)
+    #     print("--")
+    #     print("Project directory : {}-ios".format(
+    #         args.name.lower()))
+    #     print("XCode project     : {0}-ios/{0}.xcodeproj".format(
+    #         args.name.lower()))
+
+
+    # def update(self):
+    #     parser = argparse.ArgumentParser(
+    #             description="Update an existing xcode project")
+    #     parser.add_argument("filename", help="Path to your project or xcodeproj")
+    #     args = parser.parse_args(sys.argv[2:])
+
+
+    #     filename = args.filename
+    #     if not filename.endswith(".xcodeproj"):
+    #         # try to find the xcodeproj
+    #         from glob import glob
+    #         xcodeproj = glob(join(filename, "*.xcodeproj"))
+    #         if not xcodeproj:
+    #             print("ERROR: Unable to find a xcodeproj in {}".format(filename))
+    #             sys.exit(1)
+    #         filename = xcodeproj[0]
+
+    #     filename = join(filename, "project.pbxproj")
+    #     if not exists(filename):
+    #         print("ERROR: {} not found".format(filename))
+    #         sys.exit(1)
+
+    #     update_pbxproj(filename)
+    #     print("--")
+    #     print("Project {} updated".format(filename))
+
+        
+
 if __name__ == "__main__":
     import argparse
     
-    class ToolchainCL(object):
-        def __init__(self):
-            parser = argparse.ArgumentParser(
-                    description="Tool for managing the iOS / Python toolchain",
-                    usage="""toolchain <command> [<args>]
-
-Currently available commands:
-    create_android_project    Build an android project with all recipes
-                    
-Available commands:
-    Not yet confirmed
-
-Planned commands:
-    recipes
-    distributions
-    build_dist
-    symlink_dist
-    copy_dist
-    clean_all
-    status
-    clean_builds
-    clean_download_cache
-    clean_dists
-""")
-            parser.add_argument("command", help="Command to run")
-            parser.add_argument('--debug', dest='debug', action='store_true',
-                                help='Display debug output and all build info')
-            args, unknown = parser.parse_known_args(sys.argv[1:])
-            if args.debug:
-                logger.setLevel(logging.DEBUG)
-            if not hasattr(self, args.command):
-                print('Unrecognized command')
-                parser.print_help()
-                exit(1)
-            getattr(self, args.command)(unknown)
-
-        # def build(self):
-        #     parser = argparse.ArgumentParser(
-        #             description="Build the toolchain")
-        #     parser.add_argument("recipe", nargs="+", help="Recipe to compile")
-        #     parser.add_argument("--arch", help="Restrict compilation to this arch")
-        #     args = parser.parse_args(sys.argv[2:])
-
-        #     ctx = Context()
-        #     # if args.arch:
-        #     #     archs = args.arch.split()
-        #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
-        #     #     print("Architectures restricted to: {}".format(archs))
-        #     build_recipes(args.recipe, ctx)
-
-        def recipes(self, args):
-            parser = argparse.ArgumentParser(
-                    description="List all the available recipes")
-            parser.add_argument(
-                    "--compact", action="store_true",
-                    help="Produce a compact list suitable for scripting")
-            args = parser.parse_args(args)
-
-            if args.compact:
-                print(" ".join(list(Recipe.list_recipes())))
-            else:
-                ctx = Context()
-                for name in Recipe.list_recipes():
-                    recipe = Recipe.get_recipe(name, ctx)
-                    print("{recipe.name:<12} {recipe.version:<8}".format(
-                          recipe=recipe))
-                    print('    depends: {recipe.depends}'.format(recipe=recipe))
-                    print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
-
-        def list_bootstraps(self, args):
-            print(list(Bootstrap.list_bootstraps()))
-
-        def clean_all(self, args):
-            parser = argparse.ArgumentParser(
-                    description="Clean the build cache, downloads and dists")
-            args = parser.parse_args(args)
-            ctx = Context()
-            if exists(ctx.build_dir):
-                shutil.rmtree(ctx.build_dir)
-            if exists(ctx.dist_dir):
-                shutil.rmtree(ctx.dist_dir)
-            if exists(ctx.packages_path):
-                shutil.rmtree(ctx.packages_path)
-
-        def clean_dists(self, args):
-            parser = argparse.ArgumentParser(
-                    description="Delete any distributions that have been built.")
-            args = parser.parse_args(args)
-            ctx = Context()
-            if exists(ctx.dist_dir):
-                shutil.rmtree(ctx.dist_dir)
-
-        def clean_builds(self, args):
-            parser = argparse.ArgumentParser(
-                    description="Delete all build files (but not download caches)")
-            args = parser.parse_args(args)
-            ctx = Context()
-            if exists(ctx.dist_dir):
-                shutil.rmtree(ctx.dist_dir)
-            if exists(ctx.build_dir):
-                shutil.rmtree(ctx.build_dir)
-
-        def clean_download_cache(self, args):
-            parser = argparse.ArgumentParser(
-                    description="Delete all download caches")
-            args = parser.parse_args(args)
-            ctx = Context()
-            if exists(ctx.packages_path):
-                shutil.rmtree(ctx.packages_path)
-            
-            
-        def status(self, args):
-            parser = argparse.ArgumentParser(
-                    description="Give a status of the build")
-            args = parser.parse_args(args)
-            ctx = Context()
-            # AND: TODO
-
-            print('This isn\'t implemented yet, but should list all currently existing '
-                  'distributions, the modules they include, and all the build caches.')
-            exit(1)
-
-
-        def create(self, args):
-            '''Create a distribution directory if it doesn't already exist, run
-            any recipes if necessary, and build the apk.
-            '''
-            parser = argparse.ArgumentParser(
-                description='Create a newAndroid project')
-            parser.add_argument('--name', help='The name of the project')
-            parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
-                                                   'or \'sdl2\''))
-            parser.add_argument('--python_dir', help='Directory of your python code')
-            parser.add_argument('--recipes', help='Recipes to include',
-                                default='kivy,')
-            args = parser.parse_args(args)
-
-            ctx = Context()
-
-            bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
-            # if args.bootstrap == 'pygame':
-            #     bs = PygameBootstrap()
-            # elif args.bootstrap == 'sdl2':
-            #     # bs = SDL2Bootstrap()
-            #     bs = Bootstrap.get_bootstrap('sdl2', ctx)
-            # else:
-            #     raise ValueError('Invalid bootstrap name: {}'.format(args.bootstrap))
-            info_main('# Creating dist with with {} bootstrap'.format(bs.name))
-
-
-            # print('dists are', Distribution.get_distributions(ctx))
-            # recipes = re.split('[, ]*', args.recipes)
-            # possible_dists = Distribution.get_distribution(ctx, recipes=recipes)
-
-            ctx.dist_name = args.name
-            ctx.prepare_bootstrap(bs)
-            ctx.prepare_dist(ctx.dist_name)
-
-            recipes = re.split('[, ]*', args.recipes)
-            info('Requested recipes are' + str(recipes))
-            
-            build_recipes(recipes, ctx)
-
-            info_main('# Installing pure Python modules')
-            run_pymodules_install([])
-
-            ctx.bootstrap.run_distribute()
-
-            info_main('# Your distribution was created successfully, exiting.')
-            info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
-            return
-
-        def print_context_info(self, args):
-            ctx = Context()
-            for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
-                              'ccache', 'cython', 'sdk_dir', 'ndk_dir', 'ndk_platform',
-                              'ndk_ver', 'android_api'):
-                print('{} is {}'.format(attribute, getattr(ctx, attribute)))
-            
-        def list_dists(self, args):
-            ctx = Context()
-            dists = glob.glob(join(ctx.dist_dir, '*'))
-
-            infos = []
-            for dist in dists:
-                filen = join(dist, 'dist_info.json')
-                if exists(filen):
-                    with open(filen, 'r') as fileh:
-                        dist_info = json.load(fileh)
-                    infos.append('{}: includes recipes ({})'.format(
-                        dist_info['dist_name'],
-                        ', '.join(dist_info['recipes']),
-                        ))
-                else:
-                    infos.append('{}: recipes and bootstrap not known'.format(dist.split('/')[-1]))
-
-            print('Distributions stored internally are:')
-            for line in infos:
-                print('\t' + line)
-                    
-
-        # def create(self):
-        #     parser = argparse.ArgumentParser(
-        #             description="Create a new xcode project")
-        #     parser.add_argument("name", help="Name of your project")
-        #     parser.add_argument("directory", help="Directory where your project live")
-        #     args = parser.parse_args(sys.argv[2:])
-            
-        #     from cookiecutter.main import cookiecutter
-        #     ctx = Context()
-        #     template_dir = join(curdir, "tools", "templates")
-        #     context = {
-        #         "title": args.name,
-        #         "project_name": args.name.lower(),
-        #         "domain_name": "org.kivy.{}".format(args.name.lower()),
-        #         "project_dir": realpath(args.directory),
-        #         "version": "1.0.0",
-        #         "dist_dir": ctx.dist_dir,
-        #     }
-        #     cookiecutter(template_dir, no_input=True, extra_context=context)
-        #     filename = join(
-        #             getcwd(),
-        #             "{}-ios".format(args.name.lower()),
-        #             "{}.xcodeproj".format(args.name.lower()),
-        #             "project.pbxproj")
-        #     update_pbxproj(filename)
-        #     print("--")
-        #     print("Project directory : {}-ios".format(
-        #         args.name.lower()))
-        #     print("XCode project     : {0}-ios/{0}.xcodeproj".format(
-        #         args.name.lower()))
-
-         
-        # def update(self):
-        #     parser = argparse.ArgumentParser(
-        #             description="Update an existing xcode project")
-        #     parser.add_argument("filename", help="Path to your project or xcodeproj")
-        #     args = parser.parse_args(sys.argv[2:])
-
-
-        #     filename = args.filename
-        #     if not filename.endswith(".xcodeproj"):
-        #         # try to find the xcodeproj
-        #         from glob import glob
-        #         xcodeproj = glob(join(filename, "*.xcodeproj"))
-        #         if not xcodeproj:
-        #             print("ERROR: Unable to find a xcodeproj in {}".format(filename))
-        #             sys.exit(1)
-        #         filename = xcodeproj[0]
-
-        #     filename = join(filename, "project.pbxproj")
-        #     if not exists(filename):
-        #         print("ERROR: {} not found".format(filename))
-        #         sys.exit(1)
-
-        #     update_pbxproj(filename)
-        #     print("--")
-        #     print("Project {} updated".format(filename))
 
 
     ToolchainCL()
