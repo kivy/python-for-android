@@ -597,7 +597,6 @@ class Distribution(object):
     
     name = None  # A name identifying the dist. May not be None.
     needs_build = False  # Whether the dist needs compiling
-    build_dir = None  # Where the dist is built. May be None.
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
 
@@ -618,6 +617,7 @@ class Distribution(object):
 
     @classmethod
     def get_distribution(cls, ctx, name=None, recipes=[], allow_download=True,
+                         force_build=False,
                          allow_build=True, extra_dist_dirs=[],
                          require_perfect_match=False):
         '''Takes information about the distribution, and decides what kind of
@@ -686,11 +686,14 @@ class Distribution(object):
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes) and not require_perfect_match))):
                 info('{} has exactly the right recipes, using this one')
+                return dist
 
-        if name is not None:
+        assert len(possible_dists) < 2
+
+        if name is not None and possible_dists:
             info('Asked for dist with name {} with recipes ({}), but a dist '
                  'with this name already exists and has incompatible recipes '
-                 '({})'.format(name, ', '.join(recipes), ', '.join(dist.recipes)))
+                 '({})'.format(name, ', '.join(recipes), ', '.join(possible_dists[0].recipes)))
             info('No compatible dist found, so exiting.')
             exit(1)
 
@@ -728,17 +731,15 @@ class Distribution(object):
         dist.dist_dir = join(ctx.dist_dir, dist.name)
         dist.recipes = recipes
 
-
-
-
-                 
-        
         return dist
 
 
     @classmethod
     def get_distributions(cls, ctx, extra_dist_dirs=[]):
         '''Returns all the distributions found locally.'''
+        if extra_dist_dirs:
+            warning('extra_dist_dirs argument to get_distributions is not yet implemented')
+            exit(1)
         dist_dir = ctx.dist_dir
         folders = glob.glob(join(dist_dir, '*'))
         for dir in extra_dist_dirs:
@@ -792,6 +793,7 @@ class Bootstrap(object):
     build_dir = None
     dist_dir = None
     dist_name = None
+    distribution = None
 
     recipe_depends = []
     
@@ -799,6 +801,15 @@ class Bootstrap(object):
     # ndk_main.c
     # whitelist.txt
     # blacklist.txt
+
+    @property
+    def dist_dir(self):
+        if self.distribution is None:
+            warning('Tried to access {}.dist_dir, but {}.distribution '
+                    'is None'.format(self, self))
+            exit(1)
+        return self.distribution.dist_dir
+        
 
     @property
     def jni_dir(self):
@@ -827,7 +838,7 @@ class Bootstrap(object):
                 self.build_dir)
 
     def prepare_dist_dir(self, name):
-        self.dist_dir = self.get_dist_dir(name)
+        # self.dist_dir = self.get_dist_dir(name)
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):
@@ -1412,6 +1423,32 @@ class PythonRecipe(Recipe):
     #     """
     #     pass
 
+class CompiledComponentsPythonRecipe(PythonRecipe):
+    pre_build_ext = False
+    def build_arch(self, arch):
+        '''Build any cython components, then install the Python module by
+        calling setup.py install with the target Python dir.
+        '''
+        Recipe.build_arch(self, arch)  # AND: Having to directly call the
+                                 # method like this is nasty...could
+                                 # use tito's method of having an
+                                 # install method that always runs
+                                 # after everything else but isn't
+                                 # used by a normal recipe.
+        self.build_compiled_components(arch)
+        self.install_python_package()
+
+    def build_compiled_components(self, arch):
+        info('Building compiled components in {}'.format(self.name))
+        
+        env = self.get_recipe_env(arch)
+        with current_directory(self.get_build_dir(arch.arch)):
+            hostpython = sh.Command(self.ctx.hostpython)
+            shprint(hostpython, 'setup.py', 'build_ext', '-v')
+            build_dir = glob.glob('build/lib.*')[0]
+            shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
+                    env['STRIP'], '{}', ';', _env=env)
+            
 
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
@@ -1678,8 +1715,22 @@ def ensure_dir(filename):
     if not exists(filename):
         makedirs(filename)
 
-def dist_from_args(ctx, args):
-    
+def dist_from_args(ctx, dist_args):
+    '''Parses out any distribution-related arguments, and uses them to
+    obtain a Distribution class instance for the build.
+    '''
+    return Distribution.get_distribution(
+        ctx,
+        name=dist_args.name,
+        recipes=split_argument_list(dist_args.requirements),
+        allow_download=dist_args.allow_download,
+        allow_build=dist_args.allow_build,
+        extra_dist_dirs=split_argument_list(dist_args.extra_dist_dirs),
+        require_perfect_match=dist_args.require_perfect_match)
+        
+
+def split_argument_list(l):
+    return re.split(r'[ ,]*', l)
 
 class ToolchainCL(object):
     def __init__(self):
@@ -1708,9 +1759,56 @@ clean_dists
         parser.add_argument("command", help="Command to run")
         parser.add_argument('--debug', dest='debug', action='store_true',
                             help='Display debug output and all build info')
+
+        # Options for specifying the Distribution
+        parser.add_argument(
+            '--name', help='The name of the distribution to use or create',
+            default='')
+        parser.add_argument(
+            '--requirements',
+            help='Dependencies of your app, should be recipe names or Python modules',
+            default='')
+        parser.add_argument(
+            '--allow_download', help='Allow binary dist download.',
+            default=False, type=bool)
+        parser.add_argument(
+            '--allow_build', help='Allow compilation of a new distribution.',
+            default=True, type=bool)
+        parser.add_argument(
+            '--force_build', help='Force compilation of a new distribution.',
+            default=False, type=bool)
+        parser.add_argument(
+            '--extra_dist_dirs', help='Directories in which to look for distributions',
+            default='')
+        parser.add_argument(
+            '--require_perfect_match', help=('Whether the dist recipes must '
+                                             'perfectly match those requested.'),
+            type=bool, default=False)
+
+        
         args, unknown = parser.parse_known_args(sys.argv[1:])
+        self.dist_args = args
+        self.ctx = Context()
+        
         if args.debug:
             logger.setLevel(logging.DEBUG)
+
+        # import ipdb
+        # ipdb.set_trace()
+        # AND: Fail nicely if the args aren't handled yet
+        if args.extra_dist_dirs:
+            warning('Received --extra_dist_dirs but this arg currently is not '
+                    'handled, exiting.')
+            exit(1)
+        if args.allow_download:
+            warning('Received --allow_download but this arg currently is not '
+                    'handled, exiting.')
+            exit(1)
+        # if args.allow_build:
+        #     warning('Received --allow_build but this arg currently is not '
+        #             'handled, exiting.')
+        #     exit(1)
+            
         if not hasattr(self, args.command):
             print('Unrecognized command')
             parser.print_help()
@@ -1810,31 +1908,35 @@ clean_dists
         '''
         parser = argparse.ArgumentParser(
             description='Create a newAndroid project')
-        parser.add_argument('--name', help='The name of the project')
+        # parser.add_argument('--name', help='The name of the project')
         parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
                                                'or \'sdl2\''))
-        parser.add_argument('--python_dir', help='Directory of your python code')
-        parser.add_argument('--recipes', help='Recipes to include',
-                            default='kivy,')
+        # parser.add_argument('--python_dir', help='Directory of your python code')
+        # parser.add_argument('--recipes', help='Recipes to include',
+        #                     default='kivy,')
         args = parser.parse_args(args)
 
-        ctx = Context()
+        ctx = self.ctx
+
+        print('dists are', Distribution.get_distributions(ctx))
+        dist = dist_from_args(ctx, self.dist_args)
+        info('Ready to create dist {}, contains recipes {}'.format(
+            dist.name, ', '.join(dist.recipes)))
+        if not dist.needs_build:
+            info('This dist already exists! If you dont\'t want to use '
+                 'it, you must delete it and rebuild with the new set of '
+                 'recipes, or create your new dist with a different name.')
+            exit(1)
 
         bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
         info_main('# Creating dist with with {} bootstrap'.format(bs.name))
+        bs.distribution = dist
 
-
-        # print('dists are', Distribution.get_distributions(ctx))
-        # recipes = re.split('[, ]*', args.recipes)
-        # possible_dists = Distribution.get_distribution(ctx, recipes=recipes)
-
-        ctx.dist_name = args.name
+        ctx.dist_name = bs.distribution.name
         ctx.prepare_bootstrap(bs)
         ctx.prepare_dist(ctx.dist_name)
 
-        recipes = re.split('[, ]*', args.recipes)
-        info('Requested recipes are' + str(recipes))
-
+        recipes = dist.recipes
         build_recipes(recipes, ctx)
 
         info_main('# Installing pure Python modules')
