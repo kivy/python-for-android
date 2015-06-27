@@ -29,6 +29,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   quickstart
+   commands
+   recipes
+   bootstraps
+
 To include:
 
 - install guide
