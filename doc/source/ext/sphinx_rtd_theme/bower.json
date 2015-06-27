@@ -1,0 +1,33 @@
+{
+  "name": "sphinx-rtd-theme",
+  "version": "1.0",
+  "homepage": "https://github.com/snide/wyrm",
+  "authors": [
+    "Dave Snider <dave.snider@gmail.com>"
+  ],
+  "description": "Sphinx theme for readthedocs.org.",
+  "license": "MIT",
+  "main": [
+    "dist/**"
+  ],
+  "ignore": [
+    "docs",
+    "demo_docs",
+    ".gitignore",
+    ".DS_Store",
+    ".sass-cache*",
+    ".bowerrc",
+    "bower.json",
+    "package.json",
+    "Gruntfile.js",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "src"
+  ],
+  "dependencies": {
+    "wyrm": "~0.0.x"
+  }
+}
+
