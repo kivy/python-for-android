@@ -29,6 +29,8 @@ try:
 except ImportError:
     from urllib import FancyURLopener
 
+import argparse
+
 import requests
 from appdirs import user_data_dir
 
@@ -2063,8 +2065,5 @@ clean_dists
         
 
 if __name__ == "__main__":
-    import argparse
-    
-
 
     ToolchainCL()
