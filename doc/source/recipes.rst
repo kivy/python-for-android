@@ -374,6 +374,18 @@ what the jni dir folder name should be. If it is omitted, the recipe
 name is used. Be careful here, sometimes the folder name is important,
 especially if this folder is a dependency of something else.
 
+Examples of recipes
+-------------------
+
+The above documentation has included a number of snippets
+demonstrating different behaviour. Together, these cover most of what
+is ever necessary to make a recipe work.
+
+The following short sections further demonstrate a few full recipes from p4a's
+internal recipes folder. Unless your own module has some unusual
+complication, following these templates should be all you need to make
+your own recipes work. 
+
 .. _recipe_class:
 
 The ``Recipe`` class
