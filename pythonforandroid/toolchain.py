@@ -722,12 +722,14 @@ class Distribution(object):
         dist = Distribution(ctx)
         dist.needs_build = True
 
-        filen = 'unnamed_dist_{}'
-        i = 1
-        while exists(join(ctx.dist_dir, filen.format(i))):
-            i += 1
+        if name is None:
+            filen = 'unnamed_dist_{}'
+            i = 1
+            while exists(join(ctx.dist_dir, filen.format(i))):
+                i += 1
+            name = filen.format(i)
 
-        dist.name = 'unnamed_dist_{}'.format(i)
+        dist.name = name
         dist.dist_dir = join(ctx.dist_dir, dist.name)
         dist.recipes = recipes
 
@@ -751,7 +753,11 @@ class Distribution(object):
                 with open(join(folder, 'dist_info.json')) as fileh:
                     dist_info = json.load(fileh)
                 dist = cls(ctx)
-                dist.name = folder.split('/')[-1]
+                dist.name = folder.split('/')[-1]  # AND: also equal
+                                                   # to
+                                                   # dist_info['dist_name']...which
+                                                   # one should we
+                                                   # use?
                 dist.dist_dir = folder
                 dist.needs_build = False
                 dist.recipes = dist_info['recipes']
@@ -1931,6 +1937,8 @@ clean_dists
         bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
         info_main('# Creating dist with with {} bootstrap'.format(bs.name))
         bs.distribution = dist
+        info('Dist will have name {} and recipes ({})'.format(
+            dist.name, ', '.join(dist.recipes)))
 
         ctx.dist_name = bs.distribution.name
         ctx.prepare_bootstrap(bs)
