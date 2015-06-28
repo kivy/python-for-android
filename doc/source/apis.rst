@@ -5,7 +5,8 @@ Accessing Android APIs
 When writing an Android application you may want to access the normal
 Android APIs, which are available in Java. It is by calling these that
 you would normally accomplish everything from vibration, to opening
-other applications, to accessing sensor data.
+other applications, to accessing sensor data, to controlling settings
+like screen orientation and wakelocks.
 
 These APIs can be accessed from Python to perform all of these tasks
 and many more. This is made possible by the `Pyjnius
@@ -28,9 +29,9 @@ Using Pyjnius
 -------------
 
 Pyjnius lets you call the Android API directly from Python; this let's
-you do everything you can (and probably would) do in a Java app, from
-vibration, to starting other applications, to getting sensor data, to
-controlling settings like screen orientation and wakelocks.
+you do almost everything you can (and probably would) do in a Java
+app. Pyjnius is works by dynamically wrapping Java classes, so you
+don't have to wait for any particular feature to be pre-supported.
 
 You can include Pyjnius in your APKs by adding the `pyjnius` or
 `pyjniussdl2` recipes to your build requirements (the former works
@@ -91,7 +92,9 @@ platform-specific APIs. Android is a supported platform, but it also
 supports iOS and desktop operating systems, with the idea that the
 same Plyer code would do the right thing on any of them, though Plyer
 is a work in progress and not all platforms support all Plyer calls
-yet.
+yet. This is the disadvantage of Plyer, it does not support all APIs
+yet, but you can always Pyjnius to call anything that is currently
+missing.
 
 You can include Plyer in your APKs by adding the `Plyer` recipe to
 your build requirements. It is not included automatically.
