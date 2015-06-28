@@ -466,7 +466,8 @@ tools directory of the Android SDK.
                     help='Custom file to add at the end of the manifest')
 
     if args is None:
-        args = ap.parse_args()
+        args = sys.argv
+    args = ap.parse_args(args)
 
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
