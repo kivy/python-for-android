@@ -39,6 +39,7 @@ sys.path.insert(0, join(curdir, "tools", "external"))
 import sh
 import logging
 import contextlib
+import imp
 
 from colorama import Style, Fore
 
@@ -662,7 +663,8 @@ class Distribution(object):
         possible_dists = existing_dists
 
         # 0) Check if a dist with that name already exists
-        if name is not None:
+        if name is not None and name:
+            print('name is not None')
             possible_dists = [d for d in possible_dists if d.name == name]
 
         # 1) Check if any existing dists meet the requirements
@@ -1752,7 +1754,7 @@ def dist_from_args(ctx, dist_args):
     '''
     return Distribution.get_distribution(
         ctx,
-        name=dist_args.name,
+        name=dist_args.dist_name,
         recipes=split_argument_list(dist_args.requirements),
         allow_download=dist_args.allow_download,
         allow_build=dist_args.allow_build,
@@ -1794,7 +1796,7 @@ clean_dists
 
         # Options for specifying the Distribution
         parser.add_argument(
-            '--name', help='The name of the distribution to use or create',
+            '--dist_name', help='The name of the distribution to use or create',
             default='')
         parser.add_argument(
             '--requirements',
@@ -1959,6 +1961,42 @@ clean_dists
     #           'distributions, the modules they include, and all the build caches.')
     #     exit(1)
 
+    def apk(self, args):
+        '''Create an APK using the given distribution.'''
+
+        # AND: Need to add a parser here for any extra options
+        # parser = argparse.ArgumentParser(
+        #     description='Build an APK')
+        # args = parser.parse_args(args)
+
+        ctx = self.ctx
+        dist = dist_from_args(ctx, self.dist_args)
+        if dist.needs_build:
+            info('You asked to build an APK, but there is no dist with suitable '
+                 'recipes available. For now, you must create one first with '
+                 'the create argument. In the future the apk command will be '
+                 'able to automatically build or download a distribution.')
+            exit(1)
+
+        build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
+        with current_directory(dist.dist_dir):
+            build.parse_args(args)
+
+            shprint(sh.ant, 'debug')
+
+        # AND: This is very crude, needs improving. Also only works
+        # for debug for now.
+
+        info_main('# Copying APK to current directory')
+        apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-debug.apk'))
+        if len(apks) == 0:
+            raise ValueError('Couldn\'t find the built APK')
+        if len(apks) > 1:
+            info('More than one built APK found...guessing you '
+                 'just built {}'.format(apks[-1]))
+        shprint(sh.cp, apks[-1], './')
+        
+
     def create(self, args):
         '''Create a distribution directory if it doesn't already exist, run
         any recipes if necessary, and build the apk.
@@ -1975,7 +2013,6 @@ clean_dists
 
         ctx = self.ctx
 
-        print('dists are', Distribution.get_distributions(ctx))
         dist = dist_from_args(ctx, self.dist_args)
         if not dist.needs_build:
             info('You asked to create a distribution, but a dist with this name '
