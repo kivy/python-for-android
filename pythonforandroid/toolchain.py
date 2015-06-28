@@ -1771,7 +1771,7 @@ class ToolchainCL(object):
                 usage="""toolchain <command> [<args>]
 
 Currently available commands:
-create_android_project    Build an android project with all recipes
+create    Build an android project with all recipes
 
 Available commands:
 Not yet confirmed
@@ -1893,10 +1893,13 @@ clean_dists
                     print('    depends: {recipe.depends}'.format(recipe=recipe))
                     print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
-    def list_bootstraps(self, args):
+    def bootstraps(self, args):
+        '''List all the bootstraps available to build with.'''
         print(list(Bootstrap.list_bootstraps()))
 
     def clean_all(self, args):
+        '''Delete all build components; the package cache, package builds,
+        bootstrap builds and distributions.'''
         parser = argparse.ArgumentParser(
                 description="Clean the build cache, downloads and dists")
         args = parser.parse_args(args)
@@ -1909,6 +1912,8 @@ clean_dists
             shutil.rmtree(ctx.packages_path)
 
     def clean_dists(self, args):
+        '''Delete all compiled distributions in the internal distribution
+        directory.'''
         parser = argparse.ArgumentParser(
                 description="Delete any distributions that have been built.")
         args = parser.parse_args(args)
@@ -1917,6 +1922,10 @@ clean_dists
             shutil.rmtree(ctx.dist_dir)
 
     def clean_builds(self, args):
+        '''Delete all build caches for each recipe.
+
+        This does *not* delete the package download cache or the final distributions.
+        '''
         parser = argparse.ArgumentParser(
                 description="Delete all build files (but not download caches)")
         args = parser.parse_args(args)
@@ -1927,6 +1936,11 @@ clean_dists
             shutil.rmtree(ctx.build_dir)
 
     def clean_download_cache(self, args):
+        '''
+        Deletes any downloaded recipe packages.
+
+        This does *not* delete the build caches or final distributions.
+        '''
         parser = argparse.ArgumentParser(
                 description="Delete all download caches")
         args = parser.parse_args(args)
@@ -1934,18 +1948,16 @@ clean_dists
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
 
+    # def status(self, args):
+    #     parser = argparse.ArgumentParser(
+    #             description="Give a status of the build")
+    #     args = parser.parse_args(args)
+    #     ctx = Context()
+    #     # AND: TODO
 
-    def status(self, args):
-        parser = argparse.ArgumentParser(
-                description="Give a status of the build")
-        args = parser.parse_args(args)
-        ctx = Context()
-        # AND: TODO
-
-        print('This isn\'t implemented yet, but should list all currently existing '
-              'distributions, the modules they include, and all the build caches.')
-        exit(1)
-
+    #     print('This isn\'t implemented yet, but should list all currently existing '
+    #           'distributions, the modules they include, and all the build caches.')
+    #     exit(1)
 
     def create(self, args):
         '''Create a distribution directory if it doesn't already exist, run
@@ -1997,13 +2009,19 @@ clean_dists
         return
 
     def print_context_info(self, args):
+        '''Prints some debug information about which system paths
+        python-for-android will internally use for package building, along
+        with information about where the Android SDK and NDK will be called
+        from.'''
         ctx = Context()
         for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir', 'ndk_platform',
                           'ndk_ver', 'android_api'):
             print('{} is {}'.format(attribute, getattr(ctx, attribute)))
 
-    def list_dists(self, args):
+    def distributions(self, args):
+        '''Lists all distributions currently available (i.e. that have already
+        been built).'''
         ctx = Context()
         dists = Distribution.get_distributions(ctx)
 
@@ -2019,66 +2037,6 @@ clean_dists
               '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
         for line in infos:
             print('\t' + line)
-        
-
-    # def create(self):
-    #     parser = argparse.ArgumentParser(
-    #             description="Create a new xcode project")
-    #     parser.add_argument("name", help="Name of your project")
-    #     parser.add_argument("directory", help="Directory where your project live")
-    #     args = parser.parse_args(sys.argv[2:])
-
-    #     from cookiecutter.main import cookiecutter
-    #     ctx = Context()
-    #     template_dir = join(curdir, "tools", "templates")
-    #     context = {
-    #         "title": args.name,
-    #         "project_name": args.name.lower(),
-    #         "domain_name": "org.kivy.{}".format(args.name.lower()),
-    #         "project_dir": realpath(args.directory),
-    #         "version": "1.0.0",
-    #         "dist_dir": ctx.dist_dir,
-    #     }
-    #     cookiecutter(template_dir, no_input=True, extra_context=context)
-    #     filename = join(
-    #             getcwd(),
-    #             "{}-ios".format(args.name.lower()),
-    #             "{}.xcodeproj".format(args.name.lower()),
-    #             "project.pbxproj")
-    #     update_pbxproj(filename)
-    #     print("--")
-    #     print("Project directory : {}-ios".format(
-    #         args.name.lower()))
-    #     print("XCode project     : {0}-ios/{0}.xcodeproj".format(
-    #         args.name.lower()))
-
-
-    # def update(self):
-    #     parser = argparse.ArgumentParser(
-    #             description="Update an existing xcode project")
-    #     parser.add_argument("filename", help="Path to your project or xcodeproj")
-    #     args = parser.parse_args(sys.argv[2:])
-
-
-    #     filename = args.filename
-    #     if not filename.endswith(".xcodeproj"):
-    #         # try to find the xcodeproj
-    #         from glob import glob
-    #         xcodeproj = glob(join(filename, "*.xcodeproj"))
-    #         if not xcodeproj:
-    #             print("ERROR: Unable to find a xcodeproj in {}".format(filename))
-    #             sys.exit(1)
-    #         filename = xcodeproj[0]
-
-    #     filename = join(filename, "project.pbxproj")
-    #     if not exists(filename):
-    #         print("ERROR: {} not found".format(filename))
-    #         sys.exit(1)
-
-    #     update_pbxproj(filename)
-    #     print("--")
-    #     print("Project {} updated".format(filename))
-
         
 
 if __name__ == "__main__":
