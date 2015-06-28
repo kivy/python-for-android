@@ -2009,9 +2009,14 @@ clean_dists
 
         infos = []
         for dist in dists:
-            infos.append('{}: includes recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
+            infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
+                         'includes recipes ({Fore.GREEN}{recipes}'
+                         '{Style.RESET_ALL})'.format(
+                             name=dist.name, recipes=', '.join(dist.recipes),
+                             Fore=Fore, Style=Style))
             
-        print('Distributions stored internally are:')
+        print('{Style.BRIGHT}Distributions stored internally are:'
+              '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
         for line in infos:
             print('\t' + line)
         
