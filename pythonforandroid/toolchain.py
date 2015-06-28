@@ -684,8 +684,8 @@ class Distribution(object):
             if force_build:
                 continue
             if (set(dist.recipes) == set(recipes) or
-                (set(recipes).issubset(set(dist.recipes) and not require_perfect_match))):
-                info('{} has exactly the right recipes, using this one')
+                (set(recipes).issubset(set(dist.recipes)) and not require_perfect_match)):
+                info('{} has exactly the right recipes, using this one'.format(dist.name))
                 return dist
 
         assert len(possible_dists) < 2
@@ -894,33 +894,57 @@ class Bootstrap(object):
 
 
 class Recipe(object):
-    version = None
     url = None
-    md5sum = None
-    depends = []
-    conflicts = []
+    '''The address from which the recipe may be downloaded. This is not
+    essential, it may be omitted if the source is available some other
+    way, such as via the :class:`IncludedFilesBehaviour` mixin.
 
-    name = None  # name for the recipe dir
+    If the url includes the version, you may (and probably should)
+    replace this with ``{version}``, which will automatically be
+    replaced by the :attr:`version` string during download.
+
+    .. note:: Methods marked (internal) are used internally and you
+              probably don't need to call them, but they are available
+              if you want.
+    '''
+
+    version = None
+    '''A string giving the version of the software the recipe describes,
+    e.g. ``2.0.3`` or ``master``.'''
+
+    
+    md5sum = None
+    '''The md5sum of the source from the :attr:`url`. Non-essential, but
+    you should try to include this, it is used to check that the download
+    finished correctly.
+    '''
+    
+    depends = []
+    '''A list containing the names of any recipes that this recipe depends on.
+    '''
+    
+    conflicts = []
+    # AND: Not currently used
+    '''A list containing the names of any recipes that are known to be
+    incompatible with this one.'''
+    
+    # name = None  # name for the recipe dir
 
     archs = ['armeabi']  # will android use this?
 
-    # library = None
-    # libraries = []
-    # include_dir = None
-    # include_per_arch = False
-    # frameworks = []
-    # sources = []
 
     @property
     def versioned_url(self):
+        '''A property returning the url of the recipe with ``{version}``
+        replaced by the :attr:`url`. If accessing the url, you should use this
+        property, *not* access the url directly.'''
         if self.url is None:
             return None
         return self.url.format(version=self.version)
 
-    # API available for recipes
     def download_file(self, url, filename, cwd=None):
         """
-        Download an `url` to `outfn`
+        (internal) Download an ``url`` to a ``filename``.
         """
         if not url:
             return
@@ -944,7 +968,7 @@ class Recipe(object):
 
     def extract_file(self, filename, cwd):
         """
-        Extract the `filename` into the directory `cwd`.
+        (internal) Extract the `filename` into the directory `cwd`.
         """
         if not filename:
             return
@@ -961,7 +985,7 @@ class Recipe(object):
             zf.close()
 
         else:
-            warning("Error: cannot extract, unreconized extension for {}".format(
+            warning("Error: cannot extract, unrecognized extension for {}".format(
                 filename))
             raise Exception()
 
@@ -1206,25 +1230,25 @@ class Recipe(object):
     #         self.ctx.state[key] = value
     #     return value
 
-    def execute(self):
-        if self.custom_dir:
-            self.ctx.state.remove_all(self.name)
-        self.download()
-        self.extract()
-        self.build_all()
+    # def execute(self):
+    #     if self.custom_dir:
+    #         self.ctx.state.remove_all(self.name)
+    #     self.download()
+    #     self.extract()
+    #     self.build_all()
 
     # AND: Will need to change how this works
-    @property
-    def custom_dir(self):
-        """Check if there is a variable name to specify a custom version /
-        directory to use instead of the current url.
-        """
-        d = environ.get("P4A_{}_DIR".format(self.name.lower()))
-        if not d:
-            return
-        if not exists(d):
-            return
-        return d
+    # @property
+    # def custom_dir(self):
+    #     """Check if there is a variable name to specify a custom version /
+    #     directory to use instead of the current url.
+    #     """
+    #     d = environ.get("P4A_{}_DIR".format(self.name.lower()))
+    #     if not d:
+    #         return
+    #     if not exists(d):
+    #         return
+    #     return d
 
     # def prebuild(self):
     #     self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
@@ -1738,6 +1762,7 @@ def dist_from_args(ctx, dist_args):
 def split_argument_list(l):
     return re.split(r'[ ,]*', l)
 
+
 class ToolchainCL(object):
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -1926,13 +1951,14 @@ clean_dists
 
         print('dists are', Distribution.get_distributions(ctx))
         dist = dist_from_args(ctx, self.dist_args)
+        if not dist.needs_build:
+            info('You asked to create a distribution, but a dist with this name '
+                 'already exists. If you don\'t want to use '
+                 'it, you must delete it and rebuild, or create your '
+                 'new dist with a different name.')
+            exit(1)
         info('Ready to create dist {}, contains recipes {}'.format(
             dist.name, ', '.join(dist.recipes)))
-        if not dist.needs_build:
-            info('This dist already exists! If you dont\'t want to use '
-                 'it, you must delete it and rebuild with the new set of '
-                 'recipes, or create your new dist with a different name.')
-            exit(1)
 
         bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
         info_main('# Creating dist with with {} bootstrap'.format(bs.name))
