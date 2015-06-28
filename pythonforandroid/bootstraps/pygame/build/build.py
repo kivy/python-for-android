@@ -359,7 +359,7 @@ def make_package(args):
         print 'Did you install ant on your system ?'
         sys.exit(-1)
 
-if __name__ == '__main__':
+def parse_args(args=None):
     import argparse
 
     # get default SDK version from environment
@@ -465,8 +465,8 @@ tools directory of the Android SDK.
     ap.add_argument('--manifest-extra', dest='manifest_extra', action='append',
                     help='Custom file to add at the end of the manifest')
 
-
-    args = ap.parse_args()
+    if args is None:
+        args = ap.parse_args()
 
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
@@ -505,3 +505,6 @@ tools directory of the Android SDK.
         WHITELIST_PATTERNS += patterns
 
     make_package(args)
+
+if __name__ == '__main__':
+    parse_args()

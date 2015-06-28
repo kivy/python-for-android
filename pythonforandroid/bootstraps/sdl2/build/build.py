@@ -286,9 +286,8 @@ def make_package(args):
                            '"private_version">{}<'.format(
                                str(time.time())), lines))
               
-        
 
-if __name__ == "__main__":
+def parse_args(args=None):
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -324,8 +323,12 @@ tools directory of the Android SDK.
     ap.add_argument('--icon', dest='icon',
                     help='A png file to use as the icon for the application.')
 
-    args = ap.parse_args()
+    if args is None:
+        args = ap.parse_args()
     args.ignore_path = []
 
-
     make_package(args)
+
+if __name__ == "__main__":
+
+    parse_args()
