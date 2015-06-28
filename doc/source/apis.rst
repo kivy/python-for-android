@@ -27,13 +27,17 @@ along with explanation of how to include these modules in your APKs.
 Using Pyjnius
 -------------
 
-Pyjnius lets you call the Android API directly from Python. You can
-include it in your APKs by adding the `pyjnius` or `pyjniussdl2`
-recipes to your build requirements (the former works with Pygame/SDL1,
-the latter with SDL2, the need to make this choice will be removed
-later when pyjnius internally supports multiple Android backends). It
-is automatically included in any APK containing Kivy, in which case
-you don't need to specify it manually.
+Pyjnius lets you call the Android API directly from Python; this let's
+you do everything you can (and probably would) do in a Java app, from
+vibration, to starting other applications, to getting sensor data, to
+controlling settings like screen orientation and wakelocks.
+
+You can include Pyjnius in your APKs by adding the `pyjnius` or
+`pyjniussdl2` recipes to your build requirements (the former works
+with Pygame/SDL1, the latter with SDL2, the need to make this choice
+will be removed later when pyjnius internally supports multiple
+Android backends). It is automatically included in any APK containing
+Kivy, in which case you don't need to specify it manually.
 
 The basic mechanism of Pyjnius is the `autoclass` command, which wraps
 a Java class. For instance, here is the code to vibrate your device::
@@ -82,4 +86,12 @@ You can check the `Pyjnius documentation <Pyjnius_>`_ for further details.
 Using Plyer
 -----------
 
+Plyer aims to provide a much less verbose, Pythonic wrapper to
+platform-specific APIs. Android is a supported platform, but it also
+supports iOS and desktop operating systems, with the idea that the
+same Plyer code would do the right thing on any of them, though Plyer
+is a work in progress and not all platforms support all Plyer calls
+yet.
 
+You can include Plyer in your APKs by adding the `Plyer` recipe to
+your build requirements. It is not included automatically.
