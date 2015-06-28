@@ -35,6 +35,7 @@ Contents:
    recipes
    bootstraps
    apis
+   old_p4a
    related
    contribute
 
