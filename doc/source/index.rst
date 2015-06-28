@@ -30,9 +30,13 @@ Contents:
    :maxdepth: 2
 
    quickstart
+   installation
    commands
    recipes
    bootstraps
+   apis
+   related
+   contribute
 
 To include:
 
