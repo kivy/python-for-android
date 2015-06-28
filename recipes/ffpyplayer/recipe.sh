@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION_ffpyplayer=${VERSION_ffpyplayer:-master}
-URL_ffpyplayer=http://github.com/tito/ffpyplayer/archive/$VERSION_ffpyplayer.zip
+URL_ffpyplayer=http://github.com/matham/ffpyplayer/archive/$VERSION_ffpyplayer.zip
 DEPS_ffpyplayer=(python ffmpeg2)
 MD5_ffpyplayer=
 BUILD_ffpyplayer=$BUILD_PATH/ffpyplayer/$(get_directory $URL_ffpyplayer)
