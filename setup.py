@@ -10,5 +10,10 @@ setup(name='python-for-android',
       license='MIT', 
       packages=['pythonforandroid'],
       install_requires=['appdirs', 'colorama', 'sh'],
+      entry_points={
+          'console_scripts': [
+              'python-for-android = pythonforandroid.toolchain:ToolchainCL'
+              ],
+          }
       )
 
