@@ -307,6 +307,34 @@ CythonRecipe inherits from it (to avoid code duplication).
 Using an NDKRecipe
 ------------------
 
+If you are writing a recipe not for a Python module but for something
+that would normall go in the JNI dir of an Android project (i.e. it
+has an ``Application.mk`` and ``Android.mk`` that the Android build
+system can use), you can use an NDKRecipe to automatically set it
+up. The NDKRecipe overrides the normal ``get_build_dir`` method to
+place things in the Android project.
+
+.. warning:: The NDKRecipe does *not* currently actually call
+             ndk-build, you must add this call (for your module) by
+             manually making a build_arch method. This may be fixed
+             later.
+
+For instance, the following recipe is all that's necessary to place
+SDL2_ttf in the jni dir. This is built later by the SDL2 recipe, which
+calls ndk-build with this as a dependency::
+
+ class LibSDL2TTF(NDKRecipe):
+     version = '2.0.12'
+     url = 'https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-{version}.tar.gz'
+     dir_name = 'SDL2_ttf'
+
+ recipe = LibSDL2TTF()
+
+The dir_name argument is a new class attribute that tells the recipe
+what the jni dir folder name should be. If it is omitted, the recipe
+name is used. Be careful here, sometimes the folder name is important,
+especially if this folder is a dependency of something else.
+
 .. _recipe_class:
 
 The ``Recipe`` class
