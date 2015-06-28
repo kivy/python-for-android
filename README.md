@@ -69,9 +69,15 @@ Pip:
 - Several build options for build.py
 - Probably some other stuff
 
+# Untested recipes
+
+These recipes exist and probably should work, but haven't been
+properly tested (if at all).
+
+- vispy
+- numpy
+
 
 # Current status
 
-Working to abstract out build.py for dists based on a bootstrap
-template, as well as abstracting Distribution support both to improve
-the code and to make automatic binary distribution easy.
+Working to make the basic API stable, ready for people to try it.
