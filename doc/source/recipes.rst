@@ -32,12 +32,18 @@ The basic declaration of a recipe is as follows::
 
       depends = ['kivy', 'sdl2']  # These are just examples
       conflicts = ['pygame'] 
+    
+  recipe = YourRecipe()
 
 See the `Recipe class documentation <recipe_class_>`_ for full
 information about each parameter.
 
 These core options are vital for all recipes, though the url may be
 omitted if the source is somehow loaded from elsewhere.
+
+The ``recipe = YourRecipe()`` is also vital. This variable is used
+when the recipe is imported as the recipe instance to build with. If
+it is omitted, your recipe won't work.
 
 .. note:: The url includes the ``{version}`` tag. You should only
           access the url with the ``versioned_url`` property, which
