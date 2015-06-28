@@ -1,0 +1,64 @@
+diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/core/src/multiarray/numpyos.c numpy-1.7.1/numpy/core/src/multiarray/numpyos.c
+--- numpy-1.7.1.orig/numpy/core/src/multiarray/numpyos.c	2013-04-07 07:04:05.000000000 +0200
++++ numpy-1.7.1/numpy/core/src/multiarray/numpyos.c	2013-05-03 10:57:35.812501674 +0200
+@@ -170,8 +170,7 @@
+ static void
+ _change_decimal_from_locale_to_dot(char* buffer)
+ {
+-    struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+ 
+     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+         size_t decimal_point_len = strlen(decimal_point);
+@@ -455,8 +454,7 @@
+ NPY_NO_EXPORT double
+ NumPyOS_ascii_strtod(const char *s, char** endptr)
+ {
+-    struct lconv *locale_data = localeconv();
+-    const char *decimal_point = locale_data->decimal_point;
++    const char *decimal_point = ".";
+     size_t decimal_point_len = strlen(decimal_point);
+ 
+     char buffer[FLOAT_FORMATBUFLEN+1];
+diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/core/src/private/npy_config.h numpy-1.7.1/numpy/core/src/private/npy_config.h
+--- numpy-1.7.1.orig/numpy/core/src/private/npy_config.h	2013-04-07 07:04:05.000000000 +0200
++++ numpy-1.7.1/numpy/core/src/private/npy_config.h	2013-05-03 10:57:35.812501674 +0200
+@@ -41,4 +41,12 @@
+         #define SIZEOF_PY_INTPTR_T  4
+     #endif
+ #endif
++
++/* Android only
++ */
++#ifdef ANDROID
++#undef HAVE_LDEXPL
++#undef HAVE_FREXPL
++#endif
++
+ #endif
+diff -x build -x '*.pyc' -x '*.swp' -Naur numpy-1.7.1.orig/numpy/testing/__init__.py numpy-1.7.1/numpy/testing/__init__.py
+--- numpy-1.7.1.orig/numpy/testing/__init__.py	2013-04-07 07:04:05.000000000 +0200
++++ numpy-1.7.1/numpy/testing/__init__.py	2013-05-03 11:09:29.316488099 +0200
+@@ -1,15 +1,7 @@
+-"""Common test support for all numpy test scripts.
+-
+-This single module should provide all the common functionality for numpy tests
+-in a single location, so that test scripts can just import it and work right
+-away.
+-"""
+-
+-from unittest import TestCase
+-
+-import decorators as dec
+-from utils import *
+-from numpytest import *
+-from nosetester import NoseTester as Tester
+-from nosetester import run_module_suite
++# fake tester, android don't have unittest
++class Tester(object):
++    def test(self, *args, **kwargs):
++        pass
++    def bench(self, *args, **kwargs):
++        pass
+ test = Tester().test
