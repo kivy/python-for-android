@@ -1,5 +1,5 @@
 
-from toolchain import NDKRecipe, shprint
+from pythonforandroid.toolchain import NDKRecipe, shprint
 from os.path import exists, join
 import sh
 

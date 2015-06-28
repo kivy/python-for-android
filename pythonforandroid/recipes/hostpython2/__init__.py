@@ -1,5 +1,5 @@
 
-from toolchain import Recipe, shprint, get_directory, current_directory, info, warning
+from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, info, warning
 from os.path import join, exists
 from os import chdir
 import sh

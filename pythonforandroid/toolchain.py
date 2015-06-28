@@ -31,7 +31,6 @@ except ImportError:
 
 import argparse
 
-import requests
 from appdirs import user_data_dir
 
 curdir = dirname(__file__)
@@ -1309,7 +1308,7 @@ class Recipe(object):
            cls.recipes = {}
         if name in cls.recipes:
             return cls.recipes[name]
-        mod = importlib.import_module("recipes.{}".format(name))
+        mod = importlib.import_module("pythonforandroid.recipes.{}".format(name))
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe

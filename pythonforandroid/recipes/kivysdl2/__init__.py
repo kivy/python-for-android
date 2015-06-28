@@ -1,5 +1,5 @@
 
-from toolchain import CythonRecipe, shprint, current_directory, ArchAndroid
+from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchAndroid
 from os.path import exists, join
 import sh
 import glob
