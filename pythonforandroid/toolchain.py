@@ -1055,7 +1055,7 @@ class Recipe(object):
     @property
     def name(self):
         modname = self.__class__.__module__
-        return modname.split(".", 1)[-1]
+        return modname.split(".", 2)[-1]
 
     # @property
     # def archive_fn(self):
@@ -1867,6 +1867,9 @@ clean_dists
         parser.add_argument(
                 "--compact", action="store_true",
                 help="Produce a compact list suitable for scripting")
+        parser.add_argument(
+            '--color', type=bool, default=True,
+            help='Whether the output should be coloured')
         args = parser.parse_args(args)
 
         if args.compact:
@@ -1875,10 +1878,20 @@ clean_dists
             ctx = Context()
             for name in Recipe.list_recipes():
                 recipe = Recipe.get_recipe(name, ctx)
-                print("{recipe.name:<12} {recipe.version:<8}".format(
-                      recipe=recipe))
-                print('    depends: {recipe.depends}'.format(recipe=recipe))
-                print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
+                if args.color:
+                    print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
+                          '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
+                          '{recipe.version:<8}{Style.RESET_ALL}'.format(
+                          recipe=recipe, Fore=Fore, Style=Style))
+                    print('    {Fore.GREEN}depends: {recipe.depends}'
+                          '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                    print('    {Fore.RED}conflicts: {recipe.conflicts}'
+                          '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                else:
+                    print("{recipe.name:<12} {recipe.version:<8}".format(
+                          recipe=recipe))
+                    print('    depends: {recipe.depends}'.format(recipe=recipe))
+                    print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
     def list_bootstraps(self, args):
         print(list(Bootstrap.list_bootstraps()))
