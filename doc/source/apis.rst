@@ -96,7 +96,7 @@ yet.
 You can include Plyer in your APKs by adding the `Plyer` recipe to
 your build requirements. It is not included automatically.
 
-You should check the Plyer documentation for details of all supported
+You should check the `Plyer documentation <Plyer_>`_ for details of all supported
 facades (platform APIs), but as an example the following is how you
 would achieve vibration as described in the Pyjnius section above::
 
