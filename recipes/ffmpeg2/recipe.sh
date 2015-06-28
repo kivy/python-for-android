@@ -5,6 +5,7 @@
 VERSION_ffmpeg2=${VERSION_ffmpeg2:-2.7.1}
 URL_ffmpeg2=http://ffmpeg.org/releases/ffmpeg-$VERSION_ffmpeg2.tar.bz2
 DEPS_ffmpeg2=(sdl)
+DEPS_OPTIONAL_ffmpeg2=(openssl)
 MD5_ffmpeg2=
 BUILD_ffmpeg2=$BUILD_PATH/ffmpeg2/$(get_directory $URL_ffmpeg2)
 RECIPE_ffmpeg2=$RECIPES_PATH/ffmpeg2
@@ -30,19 +31,34 @@ function build_ffmpeg2() {
 	# configure
 	DEST=build/ffmpeg
 
+	# openssl activated ?
+	SSL_CFLAGS=""
+	SSL_LDFLAGS=""
+	if [ "X$BUILD_openssl" != "X" ]; then
+		debug "Activate flags for openssl / ffmpeg2"
+		SSL_CFLAGS="-I$BUILD_openssl/include/"
+		SSL_LDFLAGS="-L$BUILD_openssl/"
+	fi
+
 	for version in $ARCH_ffmpeg2; do
 
 	FLAGS="--disable-everything"
 	FLAGS="$FLAGS --enable-parser=h264,aac"
 	FLAGS="$FLAGS --enable-decoder=h263,h264,aac"
 	FLAGS="$FLAGS --enable-filter=aresample,resample,crop"
-	FLAGS="$FLAGS --enable-protocol=file,http"
+	FLAGS="$FLAGS --enable-protocol=file,http,https,tls_openssl"
 	FLAGS="$FLAGS --enable-demuxer=sdp --enable-pic"
 	FLAGS="$FLAGS --enable-small"
 	FLAGS="$FLAGS --enable-hwaccels"
 	FLAGS="$FLAGS --disable-static --enable-shared"
 	# libpostproc is GPL: https://ffmpeg.org/pipermail/ffmpeg-user/2012-February/005162.html
 	FLAGS="$FLAGS --enable-gpl"
+
+	# enable openssl if needed
+	if [ "X$BUILD_openssl" != "X" ]; then
+		FLAGS="$FLAGS --enable-openssl --enable-nonfree"
+		FLAGS="$FLAGS --enable-protocol=https,tls_openssl"
+	fi
 
 	# needed to prevent _ffmpeg.so: version node not found for symbol av_init_packet@LIBAVFORMAT_52
 	# /usr/bin/ld: failed to set dynamic section sizes: Bad value
@@ -60,10 +76,8 @@ function build_ffmpeg2() {
 
 	case "$version" in
 		x86)
-
-			EXTRA_CFLAGS=""
-			#EXTRA_LDFLAGS="-Wl,-Bsymbolic"
-			EXTRA_LDFLAGS=""
+			EXTRA_CFLAGS="$SSL_CFLAGS"
+			EXTRA_LDFLAGS="$SSL_LDFLAGS"
 			ABI="x86"
 			;;
 		armv7a)
@@ -71,8 +85,8 @@ function build_ffmpeg2() {
 			ARM_FLAGS="$ARM_FLAGS --sysroot=$NDKPLATFORM"
 			FLAGS="$ARM_FLAGS $FLAGS"
 			FLAGS="$FLAGS --enable-neon"
-			EXTRA_CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -fPIC -DANDROID"
-			EXTRA_LDFLAGS=""
+			EXTRA_CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -fPIC -DANDROID $SSL_CFLAGS"
+			EXTRA_LDFLAGS="$SSL_LDFLAGS"
 			ABI="armeabi-v7a"
 			;;
 		*)
