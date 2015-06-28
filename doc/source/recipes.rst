@@ -27,6 +27,10 @@ This documentation jumps straight to the practicalities of creating
 your own recipe. The formal reference documentation of the Recipe
 class can be found in the `Recipe class <recipe_class_>`_ section and below.
 
+Check the `recipe template section <recipe_template_>`_ for a template
+that combines all of these ideas, in which you can replace whichever
+components you like.
+
 The basic declaration of a recipe is as follows::
 
   class YourRecipe(Recipe):
@@ -343,6 +347,7 @@ similar mechanism to compile with the right environment.
 This isn't documented yet because it will probably be changed so that
 CythonRecipe inherits from it (to avoid code duplication).
 
+
 Using an NDKRecipe
 ------------------
 
@@ -374,6 +379,66 @@ what the jni dir folder name should be. If it is omitted, the recipe
 name is used. Be careful here, sometimes the folder name is important,
 especially if this folder is a dependency of something else.
 
+.. _recipe_template:
+
+A Recipe template
+-----------------
+
+The following template includes all the recipe sections you might
+use. Note that none are compulsory, feel free to delete method
+overrides if you do not use them::
+
+    from toolchain import Recipe, shprint, current_directory
+    from os.path import exists, join
+    import sh
+    import glob
+
+
+    class YourRecipe(Recipe):
+        # This could also inherit from PythonRecipe etc. if you want to
+        # use their pre-written build processes
+
+        version = 'some_version_string'
+        url = 'http://example.com/example-{version}.tar.gz'
+
+        depends = ['python2', 'numpy']  # A list of any other recipe names
+                                        # that must be built before this
+                                        # one
+
+        conflicts = []  # A list of any recipe names that cannot be built
+                        # alongside this one
+
+        def get_recipe_env(self, arch):
+            env = super(YourRecipe, self).get_recipe_env()
+            # Manipulate the env here if you want
+            return env
+
+        def should_build(self):
+            # Add a check for whether the recipe is already built if you
+            # want, and return False if it is.
+            return True
+
+        def prebuild_arch(self, arch):
+            super(YourRecipe, self).prebuild_arch(self)
+            # Do any extra prebuilding you want, e.g.:
+            self.apply_patch('path/to/patch.patch')
+
+        def build_arch(self, arch):
+            super(YourRecipe, self).build_arch(self)
+            # Build the code. Make sure to use the right build dir, e.g.
+            with current_directory(self.get_build_dir(arch.arch)):
+                sh.ls('-lathr')  # Or run some commands that actually do
+                                 # something
+
+        def postbuild_arch(self, arch):
+            super(YourRecipe, self).prebuild_arch(self)
+            # Do anything you want after the build, e.g. deleting
+            # unnecessary files such as documentation
+
+
+    recipe = YourRecipe()
+
+
 Examples of recipes
 -------------------
 
@@ -385,6 +450,8 @@ The following short sections further demonstrate a few full recipes from p4a's
 internal recipes folder. Unless your own module has some unusual
 complication, following these templates should be all you need to make
 your own recipes work. 
+
+TODO
 
 .. _recipe_class:
 
