@@ -95,3 +95,16 @@ yet.
 
 You can include Plyer in your APKs by adding the `Plyer` recipe to
 your build requirements. It is not included automatically.
+
+You should check the Plyer documentation for details of all supported
+facades (platform APIs), but as an example the following is how you
+would achieve vibration as described in the Pyjnius section above::
+
+    from plyer.vibrator import vibrate
+    vibrate(10)  # in Plyer, the argument is in seconds
+
+This is obviously *much* less verbose!
+
+.. warning:: At the time of writing, the Plyer recipe is not yet
+             ported, and Plyer doesn't support SDL2. These issues will
+             be fixed soon.
