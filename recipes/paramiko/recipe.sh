@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_paramiko=${VERSION_paramiko:-1.10.1}
+VERSION_paramiko=${VERSION_paramiko:-1.15.2}
 DEPS_paramiko=(pycrypto python)
 URL_paramiko=http://pypi.python.org/packages/source/p/paramiko/paramiko-$VERSION_paramiko.tar.gz
-MD5_paramiko=4ba105e2d8535496fd633889396b20b7
+MD5_paramiko=6bbfb328fe816c3d3652ba6528cc8b4c
 BUILD_paramiko=$BUILD_PATH/paramiko/$(get_directory $URL_paramiko)
 RECIPE_paramiko=$RECIPES_PATH/paramiko
 
