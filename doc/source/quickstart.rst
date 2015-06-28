@@ -15,7 +15,13 @@ options available.
 Installation
 ------------
 
-You can obtain python-for-android from Github, either via git::
+The easiest way to install is with pip. You need to have setuptools installed, but then can do::
+
+  pip install git+https://github.com/inclement/python-for-android-revamp.git
+  
+This should install python-for-android (though you may need to run as root or add --user).
+  
+You could also install python-for-android manually, either via git::
 
   git clone git@github.com:inclement/python-for-android-revamp.git
   cd python-for-android
@@ -25,11 +31,21 @@ Or by direct download::
   wget https://github.com/inclement/python-for-android-revamp/archive/master.zip
   unzip master.zip
   cd python-for-android-revamp-master
+  
+Then in both cases run `python setup.py install``.
 
   
 Basic use
 ---------
 
+You can test that p4a was installed correctly by running
+``python-for-android recipes``. This should print a list of all the
+recipes available to be built into your APKs.
+
+.. warning:: The below instructions are out of date, if you installed
+             with pip you can replace ``python2 toolchain.py`` with
+             ``python-for-android``.
+             
 Navigate to the ``pythonforandroid`` directory within the downloaded package.
 
 .. note:: This will soon be replaced with a normal call to setup.py,
