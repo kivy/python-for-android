@@ -1,5 +1,5 @@
 
-from toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid
+from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid
 from os.path import exists, join
 from os import uname
 import sh

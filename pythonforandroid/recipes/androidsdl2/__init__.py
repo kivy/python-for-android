@@ -1,5 +1,5 @@
 
-from toolchain import PythonRecipe, shprint, ensure_dir, current_directory, ArchAndroid, IncludedFilesBehaviour
+from pythonforandroid.toolchain import PythonRecipe, shprint, ensure_dir, current_directory, ArchAndroid, IncludedFilesBehaviour
 import sh
 from os.path import exists, join
 

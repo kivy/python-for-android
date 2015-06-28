@@ -1,4 +1,4 @@
-from toolchain import NDKRecipe
+from pythonforandroid.toolchain import NDKRecipe
 from os.path import exists
 
 class LibSDL2TTF(NDKRecipe):

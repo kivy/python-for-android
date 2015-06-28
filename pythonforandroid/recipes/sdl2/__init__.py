@@ -1,4 +1,4 @@
-from toolchain import NDKRecipe, shprint, current_directory, info_main
+from pythonforandroid.toolchain import NDKRecipe, shprint, current_directory, info_main
 from os.path import exists, join
 import sh
 

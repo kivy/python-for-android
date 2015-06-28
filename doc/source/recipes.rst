@@ -85,7 +85,7 @@ directory, which you can access with
 this directory. It may be convenient to use the ``current_directory``
 context manager defined in toolchain.py::
 
-  from toolchain import current_directory
+  from pythonforandroid.toolchain import current_directory
   def build_arch(self, arch):
       super(YourRecipe, self).build_arch(arch)
       with current_directory(self.get_build_dir(arch.arch)):
@@ -162,7 +162,7 @@ You can also use the ``shprint`` helper function from the p4a
 toolchain module, which will print information about the process and
 its current status::
 
-  from toolchain import shprint
+  from pythonforandroid.toolchain import shprint
   shprint(sh.echo, '$PATH', _env=env)
 
 You can also override the ``get_recipe_env`` method to add new env
@@ -227,7 +227,7 @@ install`` with an appropriate environment.
 For instance, the following is all that's necessary to create a recipe
 for the Vispy module::
 
-  from toolchain import PythonRecipe
+  from pythonforandroid.toolchain import PythonRecipe
   class VispyRecipe(PythonRecipe):
       version = 'master'
       url = 'https://github.com/vispy/vispy/archive/{version}.zip'
@@ -388,7 +388,7 @@ The following template includes all the recipe sections you might
 use. Note that none are compulsory, feel free to delete method
 overrides if you do not use them::
 
-    from toolchain import Recipe, shprint, current_directory
+    from pythonforandroid.toolchain import Recipe, shprint, current_directory
     from os.path import exists, join
     import sh
     import glob
