@@ -831,7 +831,7 @@ class Bootstrap(object):
     @property
     def name(self):
         modname = self.__class__.__module__
-        return modname.split(".", 1)[-1]
+        return modname.split(".", 2)[-1]
 
     def prepare_build_dir(self):
         '''Ensure that a build dir exists for the recipe. This same single
@@ -885,7 +885,7 @@ class Bootstrap(object):
             cls.bootstraps = {}
         if name in cls.bootstraps:
             return cls.bootstraps[name]
-        mod = importlib.import_module('bootstraps.{}'.format(name))
+        mod = importlib.import_module('pythonforandroid.bootstraps.{}'.format(name))
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         bootstrap = mod.bootstrap
