@@ -485,6 +485,18 @@ class Context(object):
             warning('ndk_platform doesn\'t exist')
             ok = False
                 
+        virtualenv = None
+        if virtualenv is None:
+            virtualenv = sh.which('virtualenv2')
+        if virtualenv is None:
+            virtualenv = sh.which('virtualenv-2.7')
+        if virtualenv is None:
+            virtualenv = sh.which('virtualenv7')
+        if virtualenv is None:
+            raise IOError('Couldn\'t find a virtualenv executable, '
+                          'you must install this to use p4a.')
+        self.virtualenv = virtualenv
+        info('Found virtualenv at {}'.format(virtualenv))
 
         # AND: How to check that the sdk is available?
 
@@ -1576,6 +1588,7 @@ def build_recipes(names, ctx):
         recipe_to_load = recipe_to_load.union(set(bs.recipe_depends))
     recipe_to_load = list(recipe_to_load)
     recipe_loaded = []
+    python_modules = []
     while recipe_to_load:
         name = recipe_to_load.pop(0)
         if name in recipe_loaded:
@@ -1583,8 +1596,8 @@ def build_recipes(names, ctx):
         try:
             recipe = Recipe.get_recipe(name, ctx)
         except ImportError:
-            print('Error: No recipe named {}'.format(name))
-            sys.exit(1)
+            info('No recipe named {}; will attempt to install with pip'.format(name))
+            python_modules.append(name)
         graph.add(name, name)
         info('Loaded recipe {} (depends on {})'.format(name, recipe.depends))
         for depend in recipe.depends:
@@ -1635,14 +1648,35 @@ def build_recipes(names, ctx):
         for recipe in recipes:
             info_main('Postbuilding {} for {}'.format(recipe.name, arch.arch))
             recipe.postbuild_arch(arch)
+
+    info_main('# Installing pure Python modules')
+    run_pymodules_install(ctx, python_modules)
     
     return
 
-def run_pymodules_install(modules):
-    warning('Pymodules can\'t currently be installed. Skipping.')
-    if len(modules):
-        print('Asked to build some python modules. Refusing!')
-        exit(1)
+def run_pymodules_install(ctx, modules):
+    if not len(modules):
+        info('There are no Python modules to install, skipping')
+    info('The requirements ({}) don\'t have recipes, attempting to install '
+         'them with pip'.format(', '.join(modules)))
+    info('If this fails, it may mean that the module has compiled '
+         'components and needs a recipe.')
+
+    venv = sh.Command(ctx.virtualenv)
+    with current_directory(join(ctx.build_dir)):
+        shprint(venv, '--python=python2.7', 'venv')
+
+        info('Creating a requirements.txt file for the Python modules')
+        with open('requirements.txt', 'w') as fileh:
+            for module in modules:
+                fileh.write('{}\n'.format(module))
+
+        info('Installing Python modules with pip')
+
+        shprint(sh.bash, '-c', '''"source venv/bin/activate && env CC=/bin/false CXX=/bin/false pip install --target '{}' -r requirements.txt"'''.format(ctx.get_site_packages_dir()))
+            
+
+    
         
 
 def biglink(ctx, arch):
@@ -2036,9 +2070,6 @@ clean_dists
         recipes = dist.recipes
         build_recipes(recipes, ctx)
 
-        info_main('# Installing pure Python modules')
-        run_pymodules_install([])
-
         ctx.bootstrap.run_distribute()
 
         info_main('# Your distribution was created successfully, exiting.')
@@ -2075,6 +2106,9 @@ clean_dists
         for line in infos:
             print('\t' + line)
         
+def test_setuptools_entry(*args, **kwargs):
+    print('args are', args)
+    print('kwargs are', kwargs)
 
 if __name__ == "__main__":
 
