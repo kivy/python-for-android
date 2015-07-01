@@ -16,7 +16,7 @@ setup(name='python-for-android',
               'python-for-android = pythonforandroid.toolchain:ToolchainCL',
               ],
           'distutils.commands': [
-              'apktest = pythonforandroid.toolchain:test_setuptools_entry',
+              'apktest = pythonforandroid.bdist_apk:BdistAPK',
               ],
           },
       )
