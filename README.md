@@ -58,14 +58,19 @@ Pip:
 
 # Known missing stuff from P4A
 
-- Pymodules install
-- Some recipes/components aren't stripped properly of doc etc.
+This list relates only to the SDL2 bootstrap unless stated otherwise -
+the pygame version has many of them implemented internally
+
+- Pymodules install (all bootstraps)
+- Public dir installation
+- Some recipes/components aren't stripped properly of doc etc. (all bootstraps)
 - Downloaded file md5 and headers aren't checked
+- Some command line options of distribute.sh
 - Biglink is essential (the p4a disable option isn't implemented)
 - Android services are not implemented at all
 - App loading screen
 - Billing support
-- Kivy Launcher build (can now be implemented as a bootstrap)
+- Kivy Launcher build (can now be implemented as a bootstrap...maybe?)
 - Several build options for build.py
 - Probably some other stuff
 
