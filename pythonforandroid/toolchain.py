@@ -1995,6 +1995,26 @@ clean_dists
     #           'distributions, the modules they include, and all the build caches.')
     #     exit(1)
 
+    def export_dist(self, args):
+        '''Copies a created dist to an output dir.
+        '''
+        parser = argparse.ArgumentParser(
+            description='Create a newAndroid project')
+        # parser.add_argument('--name', help='The name of the project')
+        parser.add_argument('--output', help=('The output dir to copy to'),
+                            required=True)
+        args = parser.parse_args(args)
+
+        ctx = self.ctx
+        dist = dist_from_args(ctx, self.dist_args)
+        if dist.needs_build:
+            info('You asked to export a dist, but there is no dist with suitable '
+                 'recipes available. For now, you must create one first with '
+                 'the create argument.')
+            exit(1)
+        shprint(sh.cp, '-r', dist.dist_dir, args.output)
+
+
     def apk(self, args):
         '''Create an APK using the given distribution.'''
 
