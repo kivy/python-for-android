@@ -324,7 +324,7 @@ tools directory of the Android SDK.
                     help='A png file to use as the icon for the application.')
 
     if args is None:
-        args = sys.argv
+        args = sys.argv[1:]
     args = ap.parse_args(args)
     args.ignore_path = []
 
