@@ -2014,6 +2014,24 @@ clean_dists
             exit(1)
         shprint(sh.cp, '-r', dist.dist_dir, args.output)
 
+    def symlink_dist(self, args):
+        '''Symlinks a created dist to an output dir.
+        '''
+        parser = argparse.ArgumentParser(
+            description='Symlink a created dist to a given directory')
+        parser.add_argument('--output', help=('The output dir to copy to'),
+                            required=True)
+        args = parser.parse_args(args)
+
+        ctx = self.ctx
+        dist = dist_from_args(ctx, self.dist_args)
+        if dist.needs_build:
+            info('You asked to symlink a dist, but there is no dist with suitable '
+                 'recipes available. For now, you must create one first with '
+                 'the create argument.')
+            exit(1)
+        shprint(sh.ln, '-s', dist.dist_dir, args.output)
+
 
     def apk(self, args):
         '''Create an APK using the given distribution.'''
