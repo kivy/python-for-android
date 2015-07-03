@@ -676,7 +676,6 @@ class Distribution(object):
 
         # 0) Check if a dist with that name already exists
         if name is not None and name:
-            print('name is not None')
             possible_dists = [d for d in possible_dists if d.name == name]
 
         # 1) Check if any existing dists meet the requirements
@@ -689,10 +688,14 @@ class Distribution(object):
                 _possible_dists.append(dist)
         possible_dists = _possible_dists
 
-        info('Of the existing distributions, the following meet '
-             'the given requirements:')
-        for dist in possible_dists:
-            info('\tname {}: recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
+        if possible_dists:
+            info('Of the existing distributions, the following meet '
+                 'the given requirements:')
+            for dist in possible_dists:
+                info('\tname {}: recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
+        else:
+            info('No existsing dists meet the given requirements!')
+                
 
         # If any dist has perfect recipes, return it
         for dist in possible_dists:
@@ -700,7 +703,7 @@ class Distribution(object):
                 continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and not require_perfect_match)):
-                info('{} has exactly the right recipes, using this one'.format(dist.name))
+                info('{} has compatible recipes, using this one'.format(dist.name))
                 return dist
 
         assert len(possible_dists) < 2
@@ -942,6 +945,12 @@ class Recipe(object):
     # AND: Not currently used
     '''A list containing the names of any recipes that are known to be
     incompatible with this one.'''
+
+    # patches = []
+    # '''Filepaths (relative to the recipe script) for any pathches that are
+    # to be applied. By default, these are applied in prebuild_arch, so
+    # if you override this but want to use patches then don't forget to
+    # call super().
     
     # name = None  # name for the recipe dir
 
@@ -1598,6 +1607,7 @@ def build_recipes(names, ctx):
         except ImportError:
             info('No recipe named {}; will attempt to install with pip'.format(name))
             python_modules.append(name)
+            continue
         graph.add(name, name)
         info('Loaded recipe {} (depends on {})'.format(name, recipe.depends))
         for depend in recipe.depends:
@@ -1655,8 +1665,9 @@ def build_recipes(names, ctx):
     return
 
 def run_pymodules_install(ctx, modules):
-    if not len(modules):
+    if not modules:
         info('There are no Python modules to install, skipping')
+        return
     info('The requirements ({}) don\'t have recipes, attempting to install '
          'them with pip'.format(', '.join(modules)))
     info('If this fails, it may mean that the module has compiled '
@@ -1673,6 +1684,7 @@ def run_pymodules_install(ctx, modules):
 
         info('Installing Python modules with pip')
 
+        # AND: This doesn't work yet
         shprint(sh.bash, '-c', '''"source venv/bin/activate && env CC=/bin/false CXX=/bin/false pip install --target '{}' -r requirements.txt"'''.format(ctx.get_site_packages_dir()))
             
 
@@ -1802,7 +1814,7 @@ def build_dist_from_args(ctx, dist, args_list):
         description='Create a newAndroid project')
     parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
                                            'or \'sdl2\''))
-    args = parser.parse_args(args_list)
+    args, unknown = parser.parse_known_args(args_list)
 
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
     info_main('# Creating dist with with {} bootstrap'.format(bs.name))
@@ -1822,6 +1834,7 @@ def build_dist_from_args(ctx, dist, args_list):
     info_main('# Your distribution was created successfully, exiting.')
     info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
 
+    return unknown
 
 
 def split_argument_list(l):
@@ -2029,10 +2042,13 @@ clean_dists
 
     def export_dist(self, args):
         '''Copies a created dist to an output dir.
+
+        This makes it easy to navigate to the dist to investigate it
+        or call build.py, though you do not in general need to do this
+        and can use the apk command instead.
         '''
         parser = argparse.ArgumentParser(
-            description='Create a newAndroid project')
-        # parser.add_argument('--name', help='The name of the project')
+            description='Copy a created dist to a given directory')
         parser.add_argument('--output', help=('The output dir to copy to'),
                             required=True)
         args = parser.parse_args(args)
@@ -2048,6 +2064,11 @@ clean_dists
 
     def symlink_dist(self, args):
         '''Symlinks a created dist to an output dir.
+
+        This makes it easy to navigate to the dist to investigate it
+        or call build.py, though you do not in general need to do this
+        and can use the apk command instead.
+
         '''
         parser = argparse.ArgumentParser(
             description='Symlink a created dist to a given directory')
@@ -2076,11 +2097,9 @@ clean_dists
         ctx = self.ctx
         dist = dist_from_args(ctx, self.dist_args)
         if dist.needs_build:
-            info('You asked to build an APK, but there is no dist with suitable '
-                 'recipes available. For now, you must create one first with '
-                 'the create argument. In the future the apk command will be '
-                 'able to automatically build or download a distribution.')
-            exit(1)
+            info('No dist exists that meets your requirements, so one will '
+                 'be built.')
+            args = build_dist_from_args(ctx, dist, args)
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
@@ -2105,16 +2124,6 @@ clean_dists
         '''Create a distribution directory if it doesn't already exist, run
         any recipes if necessary, and build the apk.
         '''
-        parser = argparse.ArgumentParser(
-            description='Create a newAndroid project')
-        # parser.add_argument('--name', help='The name of the project')
-        parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
-                                               'or \'sdl2\''))
-        # parser.add_argument('--python_dir', help='Directory of your python code')
-        # parser.add_argument('--recipes', help='Recipes to include',
-        #                     default='kivy,')
-        args = parser.parse_args(args)
-
         ctx = self.ctx
 
         dist = dist_from_args(ctx, self.dist_args)
