@@ -1794,11 +1794,43 @@ def dist_from_args(ctx, dist_args):
         allow_build=dist_args.allow_build,
         extra_dist_dirs=split_argument_list(dist_args.extra_dist_dirs),
         require_perfect_match=dist_args.require_perfect_match)
-        
+
+def build_dist_from_args(ctx, dist, args_list):
+    '''Parses out any bootstrap related arguments, and uses them to build
+    a dist.'''
+    parser = argparse.ArgumentParser(
+        description='Create a newAndroid project')
+    parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
+                                           'or \'sdl2\''))
+    args = parser.parse_args(args_list)
+
+    bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
+    info_main('# Creating dist with with {} bootstrap'.format(bs.name))
+    bs.distribution = dist
+    info('Dist will have name {} and recipes ({})'.format(
+        dist.name, ', '.join(dist.recipes)))
+
+    ctx.dist_name = bs.distribution.name
+    ctx.prepare_bootstrap(bs)
+    ctx.prepare_dist(ctx.dist_name)
+
+    recipes = dist.recipes
+    build_recipes(recipes, ctx)
+
+    ctx.bootstrap.run_distribute()
+
+    info_main('# Your distribution was created successfully, exiting.')
+    info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
+
+
 
 def split_argument_list(l):
+    if not len(l):
+        return []
     return re.split(r'[ ,]*', l)
 
+
+# def create_dist
 
 class ToolchainCL(object):
     def __init__(self):
@@ -2095,24 +2127,7 @@ clean_dists
         info('Ready to create dist {}, contains recipes {}'.format(
             dist.name, ', '.join(dist.recipes)))
 
-        bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
-        info_main('# Creating dist with with {} bootstrap'.format(bs.name))
-        bs.distribution = dist
-        info('Dist will have name {} and recipes ({})'.format(
-            dist.name, ', '.join(dist.recipes)))
-
-        ctx.dist_name = bs.distribution.name
-        ctx.prepare_bootstrap(bs)
-        ctx.prepare_dist(ctx.dist_name)
-
-        recipes = dist.recipes
-        build_recipes(recipes, ctx)
-
-        ctx.bootstrap.run_distribute()
-
-        info_main('# Your distribution was created successfully, exiting.')
-        info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
-        return
+        build_dist_from_args(ctx, dist, args)
 
     def print_context_info(self, args):
         '''Prints some debug information about which system paths
