@@ -88,7 +88,7 @@ class SDL2Bootstrap(Bootstrap):
             warning('Can\'t find strip in PATH...')
         strip = sh.Command(strip)
         filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
-                '-iname', '*.so', _env=env).stdout
+                '-iname', '*.so', _env=env).stdout.decode('utf-8')
         logger.info('Stripping libraries in private dir')
         for filen in filens.split('\n'):
             try:
