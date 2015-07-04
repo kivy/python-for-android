@@ -88,7 +88,7 @@ class Python2Recipe(Recipe):
                         _env=env)
             except sh.ErrorReturnCode_2:
                 print('First python2 make failed. This is expected, trying again.')
-
+                
 
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')

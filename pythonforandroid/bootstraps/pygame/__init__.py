@@ -18,7 +18,7 @@ class PygameBootstrap(Bootstrap):
         # src_path = join(self.ctx.root_dir, 'bootstrap_templates',
         #                 self.name)
         src_path = join(self.bootstrap_dir, 'build')
-        
+
         with current_directory(self.dist_dir):
 
             info('Creating initial layout')
