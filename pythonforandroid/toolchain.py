@@ -2210,10 +2210,6 @@ clean_dists
             print('\t' + line)
         
 
-def test_setuptools_entry(*args, **kwargs):
-    print('args are', args)
-    print('kwargs are', kwargs)
-
 if __name__ == "__main__":
 
     ToolchainCL()
