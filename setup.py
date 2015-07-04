@@ -1,7 +1,57 @@
 
 from setuptools import setup, find_packages
+from os import walk
+from os.path import join, dirname
+import os
+import glob
 
-# NOTE: All package data is set in MANIFEST.in
+# NOTE: All package data should also be set in MANIFEST.in
+
+packages = find_packages()
+
+package_data = {'': ['*.tmpl',
+                     '*.patch', ], }
+
+
+data_files = []
+
+# Include any patches under recipes
+# recipes = {}
+# recipes_allowed_ext = ('patch', )
+# for root, subfolders, files in walk('pythonforandroid/recipes'):
+#     for fn in files:
+#         ext = fn.split('.')[-1].lower()
+#         if ext not in recipes_allowed_ext:
+#             continue
+#         filename = join(root, fn)
+#         # directory = '%s%s' % (data_file_prefix, dirname(filename))
+#         directory = root
+#         if not directory in recipes:
+#             recipes[directory] = []
+#         recipes[directory].append(filename)
+
+# print('recipes is', recipes)
+# data_files = recipes.items()
+
+def recursively_include(results, directory, allowed_exts):
+    for root, subfolders, files in walk(directory):
+        for fn in files:
+            if not any([glob.fnmatch.fnmatch(fn, pattern) for pattern in allowed_exts]):
+                continue
+            # ext = fn.split('.')[-1].lower()
+            # if ext not in allowed_exts:
+            #     continue
+            filename = join(root, fn)
+            directory = root
+            if directory not in results:
+                results[directory] = []
+            results[directory].append(filename)
+
+data_files = {}
+recursively_include(data_files, 'pythonforandroid/recipes', ['*.patch', ])
+recursively_include(data_files, 'pythonforandroid/bootstraps',
+                    ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png'])
+
 
 setup(name='python-for-android',
       version='0.2',
@@ -34,4 +84,7 @@ setup(name='python-for-android',
           'Topic :: Software Development',
           'Topic :: Utilities',
           ],
+      packages=packages,
+      package_data=package_data,
+      data_files=data_files.items(),
       )
