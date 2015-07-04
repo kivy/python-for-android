@@ -1,0 +1,62 @@
+--- pygame-1.9.1release/src/_arraysurfarray.c.orig	2009-05-26 23:15:24.000000000 +0200
++++ pygame-1.9.1release/src/_arraysurfarray.c	2012-01-06 15:10:08.273825849 +0100
+@@ -193,9 +193,6 @@
+             case sizeof (Uint32):
+                 COPYMACRO_2D(Uint8, Uint32);
+                 break;
+-            case sizeof (Uint64):
+-                COPYMACRO_2D(Uint8, Uint64);
+-                break;
+             default:
+                 Py_DECREF(cobj);
+                 if (!PySurface_UnlockBy(surfobj, (PyObject *) arrayobj)) {
+@@ -223,9 +220,6 @@
+             case sizeof (Uint32):
+                 COPYMACRO_2D(Uint16, Uint32);
+                 break;
+-            case sizeof (Uint64):
+-                COPYMACRO_2D(Uint16, Uint64);
+-                break;
+             default:
+                 Py_DECREF(cobj);
+                 if (!PySurface_UnlockBy(surfobj, (PyObject *) arrayobj)) {
+@@ -250,9 +244,6 @@
+             case sizeof (Uint32):
+                 COPYMACRO_3D(Uint16, Uint32);
+                 break;
+-            case sizeof (Uint64):
+-                COPYMACRO_3D(Uint16, Uint64);
+-                break;
+             default:
+                 Py_DECREF(cobj);
+                 if (!PySurface_UnlockBy(surfobj, (PyObject *) arrayobj)) {
+@@ -316,9 +307,6 @@
+             case sizeof (Uint32):
+                 COPYMACRO_3D_24(Uint32);
+                 break;
+-            case sizeof (Uint64):
+-                COPYMACRO_3D_24(Uint64);
+-                break;
+             default:
+                 Py_DECREF(cobj);
+                 if (!PySurface_UnlockBy(surfobj, (PyObject *) arrayobj)) {
+@@ -335,9 +323,6 @@
+             case sizeof (Uint32):
+                 COPYMACRO_2D(Uint32, Uint32);
+                 break;
+-            case sizeof (Uint64):
+-                COPYMACRO_2D(Uint32, Uint64);
+-                break;
+             default:
+                 Py_DECREF(cobj);
+                 if (!PySurface_UnlockBy(surfobj, (PyObject *) arrayobj)) {
+@@ -362,9 +347,6 @@
+             case sizeof (Uint32):
+                 COPYMACRO_3D(Uint32, Uint32);
+                 break;
+-            case sizeof (Uint64):
+-                COPYMACRO_3D(Uint32, Uint64);
+-                break;
+             default:
+                 Py_DECREF(cobj);
+                 if (!PySurface_UnlockBy(surfobj, (PyObject *) arrayobj)) {
