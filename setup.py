@@ -10,7 +10,7 @@ setup(name='python-for-android',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/inclement/python-for-android-revamp', 
       license='MIT', 
-      install_requires=['appdirs', 'colorama', 'sh'],
+      install_requires=['appdirs', 'colorama', 'sh', 'jinja2'],
       entry_points={
           'console_scripts': [
               'python-for-android = pythonforandroid.toolchain:ToolchainCL',
