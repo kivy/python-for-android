@@ -10,6 +10,18 @@ RECIPE_hostpython=$RECIPES_PATH/hostpython
 
 function prebuild_hostpython() {
 	cd $BUILD_hostpython
+
+	# check marker in our source build
+	if [ -f .patched ]; then
+		# no patch needed
+		return
+	fi
+
+	try patch -p1 < $RECIPE_hostpython/patches/fix-bug-17547.patch
+
+	# everything done, touch the marker !
+	touch .patched
+
 	try cp $RECIPE_hostpython/Setup Modules/Setup
 }
 
@@ -25,7 +37,8 @@ function build_hostpython() {
 	cd $BUILD_hostpython
 
     try ./configure
-    try make -j5
+    try make -j5 -k
+    try make
     try mv Parser/pgen hostpgen
 
 	if [ -f python.exe ]; then

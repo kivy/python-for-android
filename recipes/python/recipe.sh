@@ -22,17 +22,18 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-xcompile.patch
 	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-ctypes-disable-wchar.patch
 	try patch -p1 < $RECIPE_python/patches/disable-modules.patch
-	try patch -p1 < $RECIPE_python/patches/fix-locale.patch
+	try patch -p1 < $RECIPE_python/patches/fix-locale-$VERSION_python.patch
 	try patch -p1 < $RECIPE_python/patches/fix-gethostbyaddr.patch
-	try patch -p1 < $RECIPE_python/patches/fix-setup-flags.patch
+	try patch -p1 < $RECIPE_python/patches/fix-setup-flags-$VERSION_python.patch
 	try patch -p1 < $RECIPE_python/patches/fix-filesystemdefaultencoding.patch
 	try patch -p1 < $RECIPE_python/patches/fix-termios.patch
 	try patch -p1 < $RECIPE_python/patches/custom-loader.patch
-	try patch -p1 < $RECIPE_python/patches/verbose-compilation.patch
+	try patch -p1 < $RECIPE_python/patches/verbose-compilation-$VERSION_python.patch
 	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
 	try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
+	try patch -p1 < $RECIPE_python/patches/fix-bug-17547.patch
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
