@@ -974,8 +974,11 @@ class Bootstrap(object):
 
     @classmethod
     def list_bootstraps(cls):
+        forbidden_dirs = ('__pycache__', )
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
         for name in listdir(bootstraps_dir):
+            if name in forbidden_dirs:
+                continue
             filen = join(bootstraps_dir, name)
             if isdir(filen):
                 yield name
@@ -1911,7 +1914,8 @@ def build_dist_from_args(ctx, dist, args_list):
     parser = argparse.ArgumentParser(
         description='Create a newAndroid project')
     parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
-                                           'or \'sdl2\''))
+                                             'or \'sdl2\''),
+                        default='sdl2')
     args, unknown = parser.parse_known_args(args_list)
 
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
