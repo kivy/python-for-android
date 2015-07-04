@@ -107,3 +107,12 @@ You can build an SDL2 APK similarly, creating a dist as follows::
 
 You can then make an APK in the same way, but this is more
 experimental and doesn't support as much customisation yet.
+
+python-for-android also has commands to list internal information
+about distributions available, to export or symlink these (they come
+with a standalone APK build script), and in future will also support
+features including binary download to avoid the manual compilation
+step.
+
+See the :doc:`commands` documentation for full details of available
+functionality.
