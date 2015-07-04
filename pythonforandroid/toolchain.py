@@ -125,7 +125,7 @@ def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
-        dist = self.dist
+        dist = self._dist
         if dist.needs_build:
             info('No dist exists that meets your requirements, so one will '
                  'be built.')
@@ -761,7 +761,7 @@ class Distribution(object):
         dist = Distribution(ctx)
         dist.needs_build = True
 
-        if name is None:
+        if not name:
             filen = 'unnamed_dist_{}'
             i = 1
             while exists(join(ctx.dist_dir, filen.format(i))):
@@ -2114,7 +2114,7 @@ clean_dists
     #     dist = dist_from_args(ctx, self.dist_args)
 
     @property
-    def dist(self):
+    def _dist(self):
         ctx = self.ctx
         dist = dist_from_args(ctx, self.dist_args)
         return dist
@@ -2129,7 +2129,7 @@ clean_dists
         # args = parser.parse_args(args)
 
         ctx = self.ctx
-        dist = self.dist
+        dist = self._dist
         # dist = dist_from_args(ctx, self.dist_args)
         # if dist.needs_build:
         #     info('No dist exists that meets your requirements, so one will '
@@ -2209,6 +2209,7 @@ clean_dists
         for line in infos:
             print('\t' + line)
         
+
 def test_setuptools_entry(*args, **kwargs):
     print('args are', args)
     print('kwargs are', kwargs)
