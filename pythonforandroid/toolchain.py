@@ -1434,7 +1434,6 @@ class Recipe(object):
         mod = importlib.import_module("pythonforandroid.recipes.{}".format(name))
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
-        print('mod is', mod)
         recipe = mod.recipe
         recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
         recipe.ctx = ctx
@@ -2069,8 +2068,6 @@ clean_dists
             ctx = self.ctx
             for name in Recipe.list_recipes():
                 recipe = Recipe.get_recipe(name, ctx)
-                print('recipe is', recipe, recipe.name, recipe.version)
-                print(type(recipe.name), type(recipe.version))
                 version = str(recipe.version)
                 if args.color:
                     print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
