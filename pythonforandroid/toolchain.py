@@ -22,6 +22,7 @@ import glob
 import shutil
 import fnmatch
 import re
+from functools import wraps
 from datetime import datetime
 from distutils.spawn import find_executable
 try:
@@ -111,6 +112,19 @@ def shprint(command, *args, **kwargs):
 
 # shprint(sh.ls, '-lah')
 # exit(1)
+
+
+def ensure_dist_is_built(func):
+    @wraps(func)
+    def wrapper_func(self, args):
+        ctx = self.ctx
+        dist = self.dist
+        if dist.needs_build:
+            info('No dist exists that meets your requirements, so one will '
+                 'be built.')
+            args = build_dist_from_args(ctx, dist, args)
+        func(args)
+    return wrapper_func
 
 
 def get_directory(filename):
@@ -2085,7 +2099,17 @@ clean_dists
             exit(1)
         shprint(sh.ln, '-s', dist.dist_dir, args.output)
 
+    # def _get_dist(self):
+    #     ctx = self.ctx
+    #     dist = dist_from_args(ctx, self.dist_args)
 
+    @property
+    def dist(self):
+        ctx = self.ctx
+        dist = dist_from_args(ctx, self.dist_args)
+        return dist
+
+    @ensure_dist_is_built
     def apk(self, args):
         '''Create an APK using the given distribution.'''
 
@@ -2095,11 +2119,11 @@ clean_dists
         # args = parser.parse_args(args)
 
         ctx = self.ctx
-        dist = dist_from_args(ctx, self.dist_args)
-        if dist.needs_build:
-            info('No dist exists that meets your requirements, so one will '
-                 'be built.')
-            args = build_dist_from_args(ctx, dist, args)
+        # dist = dist_from_args(ctx, self.dist_args)
+        # if dist.needs_build:
+        #     info('No dist exists that meets your requirements, so one will '
+        #          'be built.')
+        #     args = build_dist_from_args(ctx, dist, args)
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
@@ -2120,23 +2144,25 @@ clean_dists
         shprint(sh.cp, apks[-1], './')
         
 
+    @ensure_dist_is_built
     def create(self, args):
         '''Create a distribution directory if it doesn't already exist, run
         any recipes if necessary, and build the apk.
         '''
-        ctx = self.ctx
+        pass  # The decorator does this for us
+        # ctx = self.ctx
 
-        dist = dist_from_args(ctx, self.dist_args)
-        if not dist.needs_build:
-            info('You asked to create a distribution, but a dist with this name '
-                 'already exists. If you don\'t want to use '
-                 'it, you must delete it and rebuild, or create your '
-                 'new dist with a different name.')
-            exit(1)
-        info('Ready to create dist {}, contains recipes {}'.format(
-            dist.name, ', '.join(dist.recipes)))
+        # dist = dist_from_args(ctx, self.dist_args)
+        # if not dist.needs_build:
+        #     info('You asked to create a distribution, but a dist with this name '
+        #          'already exists. If you don\'t want to use '
+        #          'it, you must delete it and rebuild, or create your '
+        #          'new dist with a different name.')
+        #     exit(1)
+        # info('Ready to create dist {}, contains recipes {}'.format(
+        #     dist.name, ', '.join(dist.recipes)))
 
-        build_dist_from_args(ctx, dist, args)
+        # build_dist_from_args(ctx, dist, args)
 
     def print_context_info(self, args):
         '''Prints some debug information about which system paths
