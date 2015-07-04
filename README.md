@@ -1,48 +1,59 @@
-# P4A experiment
+# python-for-android revamp
 
 This is an experimental Python for Android APK builder based on the
-pythonic toolchain of kivy-ios. Broad goals are:
+pythonic toolchain of kivy-ios. It is intended to replace the current
+python-for-android toolchain, but to be significantly better. Broad goals include:
 
-Update: Basic SDL2 support **is done**. Support for building an APK is
-still rudimentary (only a few options supported), but it should now be
-possible to properly attack any feature of the current
-python-for-android without this all needing to be refactored
-later. I'd be grateful to anyone interested in testing this, and will
-start writing documentation on how to do so shortly (beyond the brief
-snippets below).
-
+- Replace the old toolchain with a more extensible pythonic one
 - Support SDL2
-- Support multiple bootstraps (user-chosen java + NDK code)
+- Support multiple bootstraps (user-chosen java + NDK code, e.g. for
+  multiple graphics backends or non-Kivy projects)
 - Support python3
 - Support some kind of binary distribution
   (including on Windows)
 - Be a standalone Pypi module
 
-This is at an early (but working!) stage. The following command will try to
-download and build some recipes. It should duplicate the functionality
-of distribute.sh (and you can build an apk with the result using
-build.py!), but the code is currently bad and only the few essential
-recipes are supported.
+This is at an early (but working!) stage; the new toolchain has been
+fully written (save for clearing up bugs and non-essential features),
+and the toolchain supports both SDL2 and Pygame backends. The other
+features will be tackled soon.
 
-     python2 toolchain.py create --name=testproject --bootstrap=pygame --recipes=sdl,python2
+We are currently working to stabilise all parts of the toolchain and
+add more features. Testing is welcome.
 
-Add the `--debug` option to any command to enable printing all the
-debug information, including output of shell commands (there's a lot if it!).
+# Documentation
 
-It's also now possible to build working APKs that run kivy with
-sdl2. The following command *should* work:
+This toolchain is documented (temporarily)
+[here](http://inclem.net/files/p4a_revamp_doc/).
 
-    python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
+Quick instructions to start would be:
 
-Like the pygame bootstrap, this makes a dist dir with a build.py. This
-doesn't support all the same options as the old bootstrap (yet), but
-you can customise things like the APK name.
+    pip install git+https://github.com/kivy/python-for-android.git@revamp
 
-All the details here are highly preliminary; the current priority is
-to get different parts of the tool basically working (even if hacky)
-before going back to set technical decisions in stone.
+The executable is called `python-for-android` or `p4a` (both are
+equivalent). To test that the installation worked, try
+
+    python-for-android recipes
+
+This should return a list of recipes available to be built.
+
+To build any distributions, you need to set up the Android SDK and NDK
+as described in the documentation linked above.
+
+If you did this, to build an APK with SDL2 you can try e.g.
+
+    p4a apk --requirements=kivysdl2 --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
+
+This may currently fail, the api is being sorted out. If it works, the
+apk will be returned in the current directory. The full dist will be
+built the first time (taking several minutes) but not subsequent
+times.
+
 
 # Dependencies
+
+This list is not exhaustive. Where possible, these are not installed
+automatically by pip.
 
 - Virtualenv
 - Android SDK (link by setting the ANDROIDSDK environment variable)
@@ -85,4 +96,4 @@ properly tested (if at all).
 
 # Current status
 
-Working to make the basic API stable, ready for people to try it.
+Working to make some kind of alpha release.
