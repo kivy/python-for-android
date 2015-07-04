@@ -115,6 +115,13 @@ def shprint(command, *args, **kwargs):
 
 
 def require_prebuilt_dist(func):
+    '''Decorator for ToolchainCL methods. If present, the method will
+    automatically make sure a dist has been built before continuing
+    or, if no dists are present or can be obtained, will raise an
+    error.
+
+    '''
+
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
