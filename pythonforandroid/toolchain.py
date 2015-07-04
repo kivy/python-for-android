@@ -431,6 +431,9 @@ class Graph(object):
 
 
 class Context(object):
+    '''A build context. If anything will be built, an instance this class
+    will be instantiated and used to hold all the build state.'''
+    
     env = environ.copy()
     root_dir = None  # the filepath of toolchain.py
     storage_dir = None  # the root dir where builds and dists will be stored
@@ -1867,7 +1870,10 @@ def split_argument_list(l):
 # def create_dist
 
 class ToolchainCL(object):
+
     def __init__(self):
+        self._ctx = None
+
         parser = argparse.ArgumentParser(
                 description="Tool for managing the iOS / Python toolchain",
                 usage="""toolchain <command> [<args>]
@@ -1922,7 +1928,6 @@ clean_dists
         
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
-        self.ctx = Context()
         
         if args.debug:
             logger.setLevel(logging.DEBUG)
@@ -1962,6 +1967,12 @@ clean_dists
     #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
     #     #     print("Architectures restricted to: {}".format(archs))
     #     build_recipes(args.recipe, ctx)
+
+    @property
+    def ctx(self):
+        if self._ctx is None:
+            self._ctx = Context()
+        return self._ctx
 
     def recipes(self, args):
         parser = argparse.ArgumentParser(
