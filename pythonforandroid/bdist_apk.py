@@ -3,7 +3,9 @@ from setuptools import Command
 from pythonforandroid import toolchain
 
 class BdistAPK(Command):
+    description = 'Create an APK with python-for-android'
     user_options = []
+
     def initialize_options(sel):
         print('initialising!')
 
