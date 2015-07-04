@@ -17,17 +17,17 @@ class Python2Recipe(Recipe):
             print('Python2 already patched, skipping.')
             return
         self.apply_patch(join('patches', 'Python-{}-xcompile.patch'.format(self.version)))
-	self.apply_patch(join('patches', 'disable-modules.patch'))
-	self.apply_patch(join('patches', 'fix-locale.patch'))
-	self.apply_patch(join('patches', 'fix-gethostbyaddr.patch'))
-	self.apply_patch(join('patches', 'fix-setup-flags.patch'))
-	self.apply_patch(join('patches', 'fix-filesystemdefaultencoding.patch'))
-	self.apply_patch(join('patches', 'fix-termios.patch'))
-	self.apply_patch(join('patches', 'custom-loader.patch'))
-	self.apply_patch(join('patches', 'verbose-compilation.patch'))
-	self.apply_patch(join('patches', 'fix-remove-corefoundation.patch'))
-	self.apply_patch(join('patches', 'fix-dynamic-lookup.patch'))
-	self.apply_patch(join('patches', 'fix-dlfcn.patch'))
+        self.apply_patch(join('patches', 'disable-modules.patch'))
+        self.apply_patch(join('patches', 'fix-locale.patch'))
+        self.apply_patch(join('patches', 'fix-gethostbyaddr.patch'))
+        self.apply_patch(join('patches', 'fix-setup-flags.patch'))
+        self.apply_patch(join('patches', 'fix-filesystemdefaultencoding.patch'))
+        self.apply_patch(join('patches', 'fix-termios.patch'))
+        self.apply_patch(join('patches', 'custom-loader.patch'))
+        self.apply_patch(join('patches', 'verbose-compilation.patch'))
+        self.apply_patch(join('patches', 'fix-remove-corefoundation.patch'))
+        self.apply_patch(join('patches', 'fix-dynamic-lookup.patch'))
+        self.apply_patch(join('patches', 'fix-dlfcn.patch'))
 
         if uname()[0] == 'Linux':
             self.apply_patch(join('patches', 'fix-configure-darwin.patch'))
@@ -55,7 +55,7 @@ class Python2Recipe(Recipe):
 
         with current_directory(self.get_build_dir('armeabi')):
 
-            
+
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
@@ -88,7 +88,7 @@ class Python2Recipe(Recipe):
                         _env=env)
             except sh.ErrorReturnCode_2:
                 print('First python2 make failed. This is expected, trying again.')
-                
+
 
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')
@@ -113,8 +113,8 @@ class Python2Recipe(Recipe):
                          'python.host'))
             self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
                                        'bin', 'python.host')
-                    
-            
+
+
             # reduce python?
             for dir_name in ('test', join('json', 'tests'), 'lib-tk',
                              join('sqlite3', 'test'), join('unittest, test'),
@@ -123,11 +123,6 @@ class Python2Recipe(Recipe):
                              'curses'):
                 shprint(sh.rm, '-rf', join(self.ctx.build_dir, 'python-install',
                                            'lib', 'python2.7', dir_name))
-            
-
-            
-
-        
 
 
 recipe = Python2Recipe()
