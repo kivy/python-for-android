@@ -114,7 +114,7 @@ def shprint(command, *args, **kwargs):
 # exit(1)
 
 
-def ensure_dist_is_built(func):
+def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
@@ -2054,6 +2054,7 @@ clean_dists
     #           'distributions, the modules they include, and all the build caches.')
     #     exit(1)
 
+    @require_prebuilt_dist
     def export_dist(self, args):
         '''Copies a created dist to an output dir.
 
@@ -2076,6 +2077,7 @@ clean_dists
             exit(1)
         shprint(sh.cp, '-r', dist.dist_dir, args.output)
 
+    @require_prebuilt_dist
     def symlink_dist(self, args):
         '''Symlinks a created dist to an output dir.
 
@@ -2109,7 +2111,7 @@ clean_dists
         dist = dist_from_args(ctx, self.dist_args)
         return dist
 
-    @ensure_dist_is_built
+    @require_prebuilt_dist
     def apk(self, args):
         '''Create an APK using the given distribution.'''
 
@@ -2144,7 +2146,7 @@ clean_dists
         shprint(sh.cp, apks[-1], './')
         
 
-    @ensure_dist_is_built
+    @require_prebuilt_dist
     def create(self, args):
         '''Create a distribution directory if it doesn't already exist, run
         any recipes if necessary, and build the apk.
