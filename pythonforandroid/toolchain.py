@@ -125,6 +125,7 @@ def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
+        ctx.prepare_build_environment()
         dist = self._dist
         if dist.needs_build:
             info('No dist exists that meets your requirements, so one will '
@@ -303,6 +304,9 @@ class Arch(object):
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.4.3'
         elif self.ctx.ndk_ver[:2] == 'r9':
+            toolchain_prefix = 'arm-linux-androideabi'
+            toolchain_version = '4.9'
+        elif self.ctx.ndk_ver[:3] == 'r10':
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
         else:
@@ -484,9 +488,63 @@ class Context(object):
         ensure_dir(self.dist_dir)
         ensure_dir(self.javaclass_dir)
 
-    def __init__(self):
-        super(Context, self).__init__()
-        self.include_dirs = []
+    @property
+    def android_api(self):
+        if self._android_api is None:
+            raise ValueError('Tried to access android_api but it has not '
+                             'been set - this should not happen, something '
+                             'went wrong!')
+        return self._android_api
+
+    @android_api.setter
+    def android_api(self, value):
+        self._android_api = value
+
+    @property
+    def ndk_ver(self):
+        if self._ndk_ver is None:
+            raise ValueError('Tried to access android_api but it has not '
+                             'been set - this should not happen, something '
+                             'went wrong!')
+        return self._ndk_ver
+
+    @ndk_ver.setter
+    def ndk_ver(self, value):
+        self._ndk_ver = value
+
+    @property
+    def sdk_dir(self):
+        if self._sdk_dir is None:
+            raise ValueError('Tried to access android_api but it has not '
+                             'been set - this should not happen, something '
+                             'went wrong!')
+        return self._sdk_dir
+
+    @sdk_dir.setter
+    def sdk_dir(self, value):
+        self._sdk_dir = value
+
+    @property
+    def ndk_dir(self):
+        if self._ndk_dir is None:
+            raise ValueError('Tried to access android_api but it has not '
+                             'been set - this should not happen, something '
+                             'went wrong!')
+        return self._ndk_dir
+
+    @ndk_dir.setter
+    def ndk_dir(self, value):
+        self._ndk_dir = value
+
+    def prepare_build_environment(self):
+        '''Checks that build dependencies exist and sets internal variables
+        for the Android SDK etc.
+
+        ..warning:: This *must* be called before trying any build stuff
+        '''
+
+        if self._build_env_prepared:
+            return
 
         ok = True
 
@@ -505,9 +563,10 @@ class Context(object):
                 'platforms',
                 'android-{}'.format(self.android_api),
                 'arch-arm')
-        if not exists(self.ndk_platform):
-            warning('ndk_platform doesn\'t exist')
-            ok = False
+            print('ndk platform', self.ndk_platform)
+            if not exists(self.ndk_platform):
+                warning('ndk_platform doesn\'t exist')
+                ok = False
                 
         virtualenv = None
         if virtualenv is None:
@@ -522,16 +581,6 @@ class Context(object):
         self.virtualenv = virtualenv
         info('Found virtualenv at {}'.format(virtualenv))
 
-        # AND: How to check that the sdk is available?
-
-        # root of the toolchain
-        self.setup_dirs()
-
-        # AND: Currently only the Android architecture is supported
-        self.archs = (
-            ArchAndroid(self),
-            )
-        
         # path to some tools
         self.ccache = sh.which("ccache")
         if not self.ccache:
@@ -544,7 +593,7 @@ class Context(object):
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
-
+        
         # Modify the path so that sh finds modules appropriately
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
@@ -556,6 +605,9 @@ class Context(object):
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.4.3'
         elif self.ndk_ver[:2] == 'r9':
+            toolchain_prefix = 'arm-linux-androideabi'
+            toolchain_version = '4.9'
+        elif self.ndk_ver[:3] == 'r10':
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
         else:
@@ -582,6 +634,20 @@ class Context(object):
         if not ok:
             sys.exit(1)
 
+    def __init__(self):
+        super(Context, self).__init__()
+        self.include_dirs = []
+
+        self._build_env_prepared = False
+
+        # root of the toolchain
+        self.setup_dirs()
+
+        # AND: Currently only the Android architecture is supported
+        self.archs = (
+            ArchAndroid(self),
+            )
+        
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
 
@@ -1988,7 +2054,7 @@ clean_dists
         if args.compact:
             print(" ".join(list(Recipe.list_recipes())))
         else:
-            ctx = Context()
+            ctx = self.ctx
             for name in Recipe.list_recipes():
                 recipe = Recipe.get_recipe(name, ctx)
                 if args.color:
