@@ -491,6 +491,7 @@ tools directory of the Android SDK.
         if PYTHON is None:
             ap.error('To use --compile-pyo, you need Python 2.7.1 installed '
                      'and in your PATH.')
+        global BLACKLIST_PATTERNS
         BLACKLIST_PATTERNS += ['*.py', '*.pyc']
 
     if args.blacklist:
@@ -503,6 +504,7 @@ tools directory of the Android SDK.
         with open(args.whitelist) as fd:
             patterns = [x.strip() for x in fd.read().splitlines() if x.strip()
                         and not x.startswith('#')]
+        global WHITELIST_PATTERNS
         WHITELIST_PATTERNS += patterns
 
     make_package(args)
