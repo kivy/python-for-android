@@ -33,14 +33,11 @@ data_files = []
 # print('recipes is', recipes)
 # data_files = recipes.items()
 
-def recursively_include(results, directory, allowed_exts):
+def recursively_include(results, directory, patterns):
     for root, subfolders, files in walk(directory):
         for fn in files:
-            if not any([glob.fnmatch.fnmatch(fn, pattern) for pattern in allowed_exts]):
+            if not any([glob.fnmatch.fnmatch(fn, pattern) for pattern in patterns]):
                 continue
-            # ext = fn.split('.')[-1].lower()
-            # if ext not in allowed_exts:
-            #     continue
             filename = join(root, fn)
             directory = root
             if directory not in results:
