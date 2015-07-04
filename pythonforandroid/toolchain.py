@@ -81,6 +81,7 @@ def shprint(command, *args, **kwargs):
     command_string = command_path[-1]
     # if len(command_path) > 1:
     #     command_string = '.../' + command_string
+    print('args are', args)
     string = ' '.join(['running', Style.DIM, command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
@@ -1231,7 +1232,7 @@ class Recipe(object):
         shprint(sh.mkdir, '-p', join(self.ctx.packages_path, self.name))
 
         with current_directory(join(self.ctx.packages_path, self.name)):
-            filename = shprint(sh.basename, url).stdout[:-1]
+            filename = shprint(sh.basename, url).stdout[:-1].decode('utf-8')
 
             do_download = True
 
@@ -1291,7 +1292,7 @@ class Recipe(object):
             info('Skipping {} unpack as no URL is set'.format(self.name))
             return
 
-        filename = shprint(sh.basename, self.versioned_url).stdout[:-1]
+        filename = shprint(sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
         
         # AND: TODO: Use tito's better unpacking method
         with current_directory(build_dir):
@@ -1303,14 +1304,17 @@ class Recipe(object):
                 if (extraction_filename.endswith('.tar.gz') or
                     extraction_filename.endswith('.tgz')):
                     sh.tar('xzf', extraction_filename)
-                    root_directory = shprint(sh.tar, 'tzf', extraction_filename).stdout.split('\n')[0].strip('/')
+                    root_directory = shprint(
+                        sh.tar, 'tzf', extraction_filename).stdout.decode(
+                            'utf-8').split('\n')[0].strip('/')
                     if root_directory != directory_name:
                         shprint(sh.mv, root_directory, directory_name)
                 elif (extraction_filename.endswith('.tar.bz2') or
                       extraction_filename.endswith('.tbz2')):
                     info('Extracting {} at {}'.format(extraction_filename, filename))
                     sh.tar('xjf', extraction_filename)
-                    root_directory = sh.tar('tjf', extraction_filename).stdout.split('\n')[0].strip('/')
+                    root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
+                        'utf-8').split('\n')[0].strip('/')
                     if root_directory != directory_name:
                         shprint(sh.mv, root_directory, directory_name)
                 elif extraction_filename.endswith('.zip'):
