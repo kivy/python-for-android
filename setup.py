@@ -14,9 +14,10 @@ setup(name='python-for-android',
       entry_points={
           'console_scripts': [
               'python-for-android = pythonforandroid.toolchain:ToolchainCL',
+              'p4a = pythonforandroid.toolchain:ToolchainCL',
               ],
           'distutils.commands': [
-              'apktest = pythonforandroid.bdist_apk:BdistAPK',
+              'bdist_apk = pythonforandroid.bdist_apk:BdistAPK',
               ],
           },
       )
