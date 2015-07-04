@@ -130,7 +130,7 @@ def require_prebuilt_dist(func):
             info('No dist exists that meets your requirements, so one will '
                  'be built.')
             args = build_dist_from_args(ctx, dist, args)
-        func(args)
+        func(self, args)
     return wrapper_func
 
 
@@ -512,7 +512,7 @@ class Context(object):
         if virtualenv is None:
             virtualenv = sh.which('virtualenv-2.7')
         if virtualenv is None:
-            virtualenv = sh.which('virtualenv7')
+            virtualenv = sh.which('virtualenv')
         if virtualenv is None:
             raise IOError('Couldn\'t find a virtualenv executable, '
                           'you must install this to use p4a.')
@@ -729,7 +729,7 @@ class Distribution(object):
 
         assert len(possible_dists) < 2
 
-        if name is not None and possible_dists:
+        if not name and possible_dists:
             info('Asked for dist with name {} with recipes ({}), but a dist '
                  'with this name already exists and has incompatible recipes '
                  '({})'.format(name, ', '.join(recipes), ', '.join(possible_dists[0].recipes)))
@@ -2128,6 +2128,7 @@ clean_dists
         # args = parser.parse_args(args)
 
         ctx = self.ctx
+        dist = self.dist
         # dist = dist_from_args(ctx, self.dist_args)
         # if dist.needs_build:
         #     info('No dist exists that meets your requirements, so one will '
@@ -2183,6 +2184,10 @@ clean_dists
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir', 'ndk_platform',
                           'ndk_ver', 'android_api'):
             print('{} is {}'.format(attribute, getattr(ctx, attribute)))
+
+    def dists(self, args):
+        '''The same as :meth:`distributions`.'''
+        self.distributions(args)
 
     def distributions(self, args):
         '''Lists all distributions currently available (i.e. that have already
