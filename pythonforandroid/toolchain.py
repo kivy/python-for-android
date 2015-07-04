@@ -1987,8 +1987,9 @@ clean_dists
                           recipe=recipe, Fore=Fore, Style=Style))
                     print('    {Fore.GREEN}depends: {recipe.depends}'
                           '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
-                    print('    {Fore.RED}conflicts: {recipe.conflicts}'
-                          '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                    if recipe.conflicts:
+                        print('    {Fore.RED}conflicts: {recipe.conflicts}'
+                              '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
                 else:
                     print("{recipe.name:<12} {recipe.version:<8}".format(
                           recipe=recipe))
