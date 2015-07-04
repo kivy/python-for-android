@@ -23,7 +23,7 @@ This should install python-for-android (though you may need to run as root or ad
   
 You could also install python-for-android manually, either via git::
 
-  git clone git@github.com:inclement/python-for-android-revamp.git
+  git clone https://github.com/inclement/python-for-android-revamp.git
   cd python-for-android
   
 Or by direct download::
