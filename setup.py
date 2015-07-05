@@ -33,7 +33,9 @@ recursively_include(package_data, 'pythonforandroid/recipes',
                     ['*.patch', 'Setup', '*.pyx', '*.py'])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
-                     '*.mk', '*.c', '*.py'])
+                     '*.mk', '*.c', '*.h', '*.py'])
+recursively_include(package_data, 'pythonforandroid/bootstraps',
+                    ['sdl-config', ])
 recursively_include(package_data, 'pythonforandroid',
                     ['liblink', 'biglink'])
 
