@@ -12,26 +12,7 @@ packages = find_packages()
 package_data = {'': ['*.tmpl',
                      '*.patch', ], }
 
-
 data_files = []
-
-# Include any patches under recipes
-# recipes = {}
-# recipes_allowed_ext = ('patch', )
-# for root, subfolders, files in walk('pythonforandroid/recipes'):
-#     for fn in files:
-#         ext = fn.split('.')[-1].lower()
-#         if ext not in recipes_allowed_ext:
-#             continue
-#         filename = join(root, fn)
-#         # directory = '%s%s' % (data_file_prefix, dirname(filename))
-#         directory = root
-#         if not directory in recipes:
-#             recipes[directory] = []
-#         recipes[directory].append(filename)
-
-# print('recipes is', recipes)
-# data_files = recipes.items()
 
 def recursively_include(results, directory, patterns):
     for root, subfolders, files in walk(directory):
