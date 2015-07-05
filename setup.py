@@ -34,6 +34,8 @@ recursively_include(package_data, 'pythonforandroid/recipes',
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
                      '*.mk', '*.c', '*.py'])
+recursively_include(package_data, 'pythonforandroid',
+                    ['liblink', 'biglink'])
 
 setup(name='python-for-android',
       version='0.2',
