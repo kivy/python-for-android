@@ -31,7 +31,8 @@ def recursively_include(results, directory, patterns):
 
 recursively_include(package_data, 'pythonforandroid/recipes', ['*.patch', 'Setup'])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
-                    ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png'])
+                    ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
+                     '*.mk', ])
 
 setup(name='python-for-android',
       version='0.2',
