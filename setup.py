@@ -14,6 +14,10 @@ package_data = {'': ['*.tmpl',
 
 data_files = []
 
+# By specifying every file manually, package_data will be able to
+# include them in binary distributions. Note that we have to add
+# everything as a 'pythonforandroid' rule, using '' apparently doesn't
+# work.
 def recursively_include(results, directory, patterns):
     for root, subfolders, files in walk(directory):
         for fn in files:
