@@ -1,7 +1,7 @@
 
 from setuptools import setup, find_packages
 from os import walk
-from os.path import join, dirname
+from os.path import join, dirname, sep
 import os
 import glob
 
@@ -20,15 +20,17 @@ def recursively_include(results, directory, patterns):
             if not any([glob.fnmatch.fnmatch(fn, pattern) for pattern in patterns]):
                 continue
             filename = join(root, fn)
-            directory = root
+            directory = 'pythonforandroid'
             if directory not in results:
                 results[directory] = []
-            results[directory].append(filename)
+            results[directory].append(join(*filename.split(sep)[1:]))
 
-data_files = {}
-recursively_include(data_files, 'pythonforandroid/recipes', ['*.patch', ])
-recursively_include(data_files, 'pythonforandroid/bootstraps',
+recursively_include(package_data, 'pythonforandroid/recipes', ['*.patch', ])
+recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png'])
+
+# package_data.update(data_files)
+print('package_data is', package_data)
 
 
 setup(name='python-for-android',
@@ -64,5 +66,4 @@ setup(name='python-for-android',
           ],
       packages=packages,
       package_data=package_data,
-      data_files=data_files.items(),
       )
