@@ -97,3 +97,9 @@ properly tested (if at all).
 # Current status
 
 Working to make some kind of alpha release.
+
+# Development notes
+
+Original reference commit of p4a master was
+7c8d4ce9db384528f7ea83e0841fe2464a558db8 - things after this
+(including ctypes stuff) need adding to the new toolchain.
