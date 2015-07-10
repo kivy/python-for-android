@@ -641,6 +641,11 @@ class Context(object):
 
         self._build_env_prepared = False
 
+        self._sdk_dir = None
+        self._ndk_dir = None
+        self._android_api = None
+        self._ndk_ver = None
+
         # root of the toolchain
         self.setup_dirs()
 
@@ -1943,8 +1948,6 @@ def split_argument_list(l):
         return []
     return re.split(r'[ ,]*', l)
 
-
-# def create_dist
 
 class ToolchainCL(object):
 
