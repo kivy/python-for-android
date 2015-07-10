@@ -6,8 +6,13 @@ This page documents all the commands and options that can be passed to
 toolchain.py.
 
 
-Main commands
--------------
+Commands index
+--------------
+
+The commands available are the methods of the ToolchainCL class,
+documented below. They may have options of their own, or you can
+always pass `general arguments`_ or `distribution arguments`_ to any
+command (though if irrelevant they may not have an effect).
 
 .. autoclass:: toolchain.ToolchainCL
    :members:
