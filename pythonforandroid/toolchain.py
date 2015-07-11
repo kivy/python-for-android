@@ -131,7 +131,7 @@ def require_prebuilt_dist(func):
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
-                                      user_ndk_version=self.ndk_version)
+                                      user_ndk_ver=self.ndk_version)
         dist = self._dist
         if dist.needs_build:
             info('No dist exists that meets your requirements, so one will '
@@ -543,7 +543,7 @@ class Context(object):
         self._ndk_dir = value
 
     def prepare_build_environment(self, user_sdk_dir, user_ndk_dir,
-                                  user_android_api, user_ndk_version):
+                                  user_android_api, user_ndk_ver):
         '''Checks that build dependencies exist and sets internal variables
         for the Android SDK etc.
 
@@ -559,10 +559,10 @@ class Context(object):
         sdk_dir = None
         if user_sdk_dir:
             sdk_dir = user_sdk_dir
-        if sdk_dir is None:
+        if sdk_dir is None:  # This is the old P4A-specific var
             sdk_dir = environ.get('ANDROIDSDK', None)
-        if sdk_dir is None:
-            sdk_dir = environ.get('ANDROID_HOME', None)
+        if sdk_dir is None:  # This seems used more conventionally
+            sdk_dir = environ.get('ANDROID_HOME', None)  
         if sdk_dir is None:
             warning('Android SDK dir was not specified, exiting.')
             exit(1)
@@ -600,23 +600,81 @@ class Context(object):
         # AND: If the android api target doesn't exist, we should
         # offer to install it here
 
-        # AND: We should check for ndk-build and ant?
-        self.ndk_ver = environ.get('ANDROIDNDKVER', 'r9')
-        if self.sdk_dir is None:
-            ok = False
-        self.ndk_dir = environ.get('ANDROIDNDK', None)
-        if self.ndk_dir is None:
-            ok = False
+
+        # Find the Android NDK
+        # Could also use ANDROID_NDK, but doesn't look like many tools use this
+        ndk_dir = None
+        if user_ndk_dir:
+            ndk_dir = user_ndk_dir
+            if ndk_dir is not None:
+                info('Getting NDK dir from from user argument')
+        if ndk_dir is None:  # The old P4A-specific dir
+            ndk_dir = environ.get('ANDROIDNDK', None)
+            if ndk_dir is not None:
+                info('Found NDK dir in $ANDROIDNDK')
+        if ndk_dir is None:  # Apparently the most common convention
+            ndk_dir = environ.get('NDK_HOME', None)
+            if ndk_dir is not None:
+                info('Found NDK dir in $NDK_HOME')
+        if ndk_dir is None:  # Another convention (with maven?)
+            ndk_dir = environ.get('ANDROID_NDK_HOME', None)
+            if ndk_dir is not None:
+                info('Found NDK dir in $ANDROID_NDK_HOME')
+        if ndk_dir is None:
+            warning('Android NDK dir was not specified, exiting.')
+            exit(1)
+        self.ndk_dir = ndk_dir
+
+
+        # Find the NDK version, and check it against what the NDK dir
+        # seems to report
+        ndk_ver = None
+        if user_ndk_ver:
+            ndk_ver = user_ndk_ver
+            if ndk_dir is not None:
+                info('Got NDK version from from user argument')
+        if ndk_ver is None:
+            ndk_ver = environ.get('ANDROIDNDKVER', None)
+            if ndk_dir is not None:
+                info('Got NDK version from $ANDROIDNDKVER')
+
+        try:
+            with open(join(ndk_dir, 'RELEASE.TXT')) as fileh:
+                reported_ndk_ver = fileh.read().split(' ')[0]
+        except IOError:
+            pass
         else:
-            self.ndk_platform = join(
-                self.ndk_dir,
-                'platforms',
-                'android-{}'.format(self.android_api),
-                'arch-arm')
-            print('ndk platform', self.ndk_platform)
-            if not exists(self.ndk_platform):
-                warning('ndk_platform doesn\'t exist')
-                ok = False
+            if ndk_ver is None:
+                ndk_ver = reported_ndk_ver
+                info('Got Android NDK version from the NDK dir: it is {}'.format(ndk_ver))
+            else:
+                if ndk_ver != reported_ndk_ver:
+                    warning('NDK version was set as {}, but checking '
+                            'the NDK dir claims it is {}.'.format(
+                                ndk_ver, reported_ndk_ver))
+                    warning('The build will try to continue, but it may '
+                            'fail and you should check '
+                            'that your setting is correct.')
+                    warning('If the NDK dir result is correct, you don\'t '
+                            'need to manually set the NDK ver.')
+        if ndk_ver is None:
+            warning('Android NDK version could not be found, exiting.')
+
+        exit(1)
+            
+                            
+              
+
+
+        self.ndk_platform = join(
+            self.ndk_dir,
+            'platforms',
+            'android-{}'.format(self.android_api),
+            'arch-arm')
+        print('ndk platform', self.ndk_platform)
+        if not exists(self.ndk_platform):
+            warning('ndk_platform doesn\'t exist')
+            ok = False
                 
         virtualenv = None
         if virtualenv is None:
