@@ -572,8 +572,12 @@ class Context(object):
         android_api = None
         if user_android_api:
             android_api = user_android_api
+            if android_api is not None:
+                info('Getting Android API version from user argument')
         if android_api is None:
             android_api = environ.get('ANDROIDAPI', None)
+            if android_api is not None:
+                info('Found Android API target in $ANDROIDAPI')
         if android_api is None:
             info('Android API target was not set manually, using '
                  'the default of {}'.format(DEFAULT_ANDROID_API))
@@ -588,7 +592,9 @@ class Context(object):
         if android_api in apis:
             info('Requested API target {} is available, continuing.'.format(android_api))
         else:
-            warning('Requested API target {} is not available, exiting.'.format(android_api))
+            warning('Requested API target {} is not available, install '
+                    'it with the SDK android tool.'.format(android_api))
+            warning('Exiting.')
             exit(1)
 
         exit(1)
