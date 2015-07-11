@@ -4,7 +4,7 @@ VERSION_opencv=${VERSION_opencv:-2.4.10.1}
 URL_opencv=https://github.com/Itseez/opencv/archive/$VERSION_opencv.zip
 
 DEPS_opencv=(numpy python)
-MD5_opencv=e6667a39c33aa2c63defb9beb94e84ca
+MD5_opencv=2ddfa98e867e6611254040df841186dc
 BUILD_opencv=$BUILD_PATH/opencv/$(get_directory $URL_opencv)
 RECIPE_opencv=$RECIPES_PATH/opencv
 
