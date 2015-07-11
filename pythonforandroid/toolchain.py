@@ -659,6 +659,7 @@ class Context(object):
                             'need to manually set the NDK ver.')
         if ndk_ver is None:
             warning('Android NDK version could not be found, exiting.')
+        self.ndk_ver = ndk_ver
 
         self.ndk_platform = join(
             self.ndk_dir,
