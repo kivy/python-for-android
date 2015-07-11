@@ -566,9 +566,9 @@ class Context(object):
         if sdk_dir is None:
             warning('Android SDK dir was not specified, exiting.')
             exit(1)
+        self.sdk_dir = sdk_dir
         
-        # Check what Android API we're using, and install platform
-        # tools if necessary
+        # Check what Android API we're using
         android_api = None
         if user_android_api:
             android_api = user_android_api
@@ -583,6 +583,7 @@ class Context(object):
                  'the default of {}'.format(DEFAULT_ANDROID_API))
             android_api = DEFAULT_ANDROID_API
         android_api = int(android_api)
+        self.android_api = android_api
 
         android = sh.Command(join(sdk_dir, 'tools', 'android'))
         targets = android('list').stdout.split('\n')
@@ -596,16 +597,10 @@ class Context(object):
                     'it with the SDK android tool.'.format(android_api))
             warning('Exiting.')
             exit(1)
-
-        exit(1)
-        
-
-
-        
-        self.sdk_dir = environ.get('ANDROIDSDK', None)
+        # AND: If the android api target doesn't exist, we should
+        # offer to install it here
 
         # AND: We should check for ndk-build and ant?
-        self.android_api = environ.get('ANDROIDAPI', '14')
         self.ndk_ver = environ.get('ANDROIDNDKVER', 'r9')
         if self.sdk_dir is None:
             ok = False
