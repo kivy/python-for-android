@@ -660,12 +660,6 @@ class Context(object):
         if ndk_ver is None:
             warning('Android NDK version could not be found, exiting.')
 
-        exit(1)
-            
-                            
-              
-
-
         self.ndk_platform = join(
             self.ndk_dir,
             'platforms',
