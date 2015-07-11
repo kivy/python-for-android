@@ -21,10 +21,30 @@ command (though if irrelevant they may not have an effect).
 General arguments
 -----------------
 
-These arguments may be passed to any command in order to modify its behaviour.
+These arguments may be passed to any command in order to modify its
+behaviour, though not all commands make use of them.
 
 ``--debug``
   Print extra debug information about the build, including all compilation output.
+  
+``--sdk_dir``
+  The filepath where the Android SDK is installed. This can
+  alternatively be set in several other ways.
+
+``--android_api``
+  The Android API level to target; python-for-android will check if
+  the platform tools for this level are installed.
+  
+``--ndk_dir``
+  The filepath where the Android NDK is installed. This can
+  alternatively be set in several other ways.
+
+``--ndk_version``
+  The version of the NDK installed, important because the internal
+  filepaths to build tools depend on this. This can alternatively be
+  set in several other ways, or if your NDK dir contains a RELEASE.TXT
+  containing the version this is automatically checked so you don't
+  need to manually set it.
 
 
 Distribution arguments
