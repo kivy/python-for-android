@@ -44,6 +44,8 @@ import imp
 
 from colorama import Style, Fore
 
+DEFAULT_ANDROID_API = 14
+
 
 logger = logging.getLogger('p4a')
 # logger.setLevel(logging.DEBUG)
@@ -126,7 +128,10 @@ def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
-        ctx.prepare_build_environment()
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+                                      user_ndk_dir=self.ndk_dir,
+                                      user_android_api=self.android_api,
+                                      user_ndk_version=self.ndk_version)
         dist = self._dist
         if dist.needs_build:
             info('No dist exists that meets your requirements, so one will '
@@ -537,7 +542,8 @@ class Context(object):
     def ndk_dir(self, value):
         self._ndk_dir = value
 
-    def prepare_build_environment(self):
+    def prepare_build_environment(self, user_sdk_dir, user_ndk_dir,
+                                  user_android_api, user_ndk_version):
         '''Checks that build dependencies exist and sets internal variables
         for the Android SDK etc.
 
@@ -549,10 +555,52 @@ class Context(object):
 
         ok = True
 
+        # Work out where the Android SDK is
+        sdk_dir = None
+        if user_sdk_dir:
+            sdk_dir = user_sdk_dir
+        if sdk_dir is None:
+            sdk_dir = environ.get('ANDROIDSDK', None)
+        if sdk_dir is None:
+            sdk_dir = environ.get('ANDROID_HOME', None)
+        if sdk_dir is None:
+            warning('Android SDK dir was not specified, exiting.')
+            exit(1)
+        
+        # Check what Android API we're using, and install platform
+        # tools if necessary
+        android_api = None
+        if user_android_api:
+            android_api = user_android_api
+        if android_api is None:
+            android_api = environ.get('ANDROIDAPI', None)
+        if android_api is None:
+            info('Android API target was not set manually, using '
+                 'the default of {}'.format(DEFAULT_ANDROID_API))
+            android_api = DEFAULT_ANDROID_API
+        android_api = int(android_api)
+
+        android = sh.Command(join(sdk_dir, 'tools', 'android'))
+        targets = android('list').stdout.split('\n')
+        apis = [s for s in targets if re.match(r'^ *API level: ', s)]
+        apis = [int(re.findall(r'[0-9]+', s)[0]) for s in apis]
+        info('Available Android APIs are ({})'.format(', '.join(map(str, apis))))
+        if android_api in apis:
+            info('Requested API target {} is available, continuing.'.format(android_api))
+        else:
+            warning('Requested API target {} is not available, exiting.'.format(android_api))
+            exit(1)
+
+        exit(1)
+        
+
+
+        
+        self.sdk_dir = environ.get('ANDROIDSDK', None)
+
         # AND: We should check for ndk-build and ant?
         self.android_api = environ.get('ANDROIDAPI', '14')
         self.ndk_ver = environ.get('ANDROIDNDKVER', 'r9')
-        self.sdk_dir = environ.get('ANDROIDSDK', None)
         if self.sdk_dir is None:
             ok = False
         self.ndk_dir = environ.get('ANDROIDNDK', None)
@@ -1955,7 +2003,7 @@ class ToolchainCL(object):
         self._ctx = None
 
         parser = argparse.ArgumentParser(
-                description="Tool for managing the iOS / Python toolchain",
+                description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
 
 Currently available commands:
@@ -1977,8 +2025,20 @@ clean_download_cache
 clean_dists
 """)
         parser.add_argument("command", help="Command to run")
+
+        # General options
         parser.add_argument('--debug', dest='debug', action='store_true',
                             help='Display debug output and all build info')
+        parser.add_argument('--sdk_dir', dest='sdk_dir', default='',
+                            help='The filepath where the Android SDK is installed')
+        parser.add_argument('--ndk_dir', dest='ndk_dir', default='',
+                            help='The filepath where the Android NDK is installed')
+        parser.add_argument('--android_api', dest='android_api', default=0, type=int,
+                            help='The Android API level to build against.')
+        parser.add_argument('--ndk_version', dest='ndk_version', default='',
+                            help=('The version of the Android NDK. This is optional, '
+                                  'we try to work it out automatically from the ndk_dir.'))
+
 
         # Options for specifying the Distribution
         parser.add_argument(
@@ -2011,6 +2071,10 @@ clean_dists
         
         if args.debug:
             logger.setLevel(logging.DEBUG)
+        self.sdk_dir = args.sdk_dir
+        self.ndk_dir = args.ndk_dir
+        self.android_api = args.android_api
+        self.ndk_version = args.ndk_version
 
         # import ipdb
         # ipdb.set_trace()
