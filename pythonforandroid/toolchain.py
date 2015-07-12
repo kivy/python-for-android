@@ -1490,6 +1490,7 @@ class Recipe(object):
         building again.
 
         '''
+        # AND: This should take arch as an argument!
         return True
 
     def build_arch(self, arch):
@@ -1771,7 +1772,8 @@ class CythonRecipe(PythonRecipe):
     def get_recipe_env(self, arch):
         env = super(CythonRecipe, self).get_recipe_env(arch)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
-            self.ctx.get_libs_dir(arch.arch))
+            self.ctx.get_libs_dir(arch.arch) +
+            '-L{}'.format(self.ctx.libs_dir))
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
