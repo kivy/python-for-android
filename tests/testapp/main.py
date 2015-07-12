@@ -78,6 +78,9 @@ ScrollView:
         FixedSizeButton:
             text: 'test ctypes'
             on_press: app.test_ctypes()
+        FixedSizeButton:
+            text: 'test numpy'
+            on_press: app.test_numpy()
         Widget:
             size_hint_y: None
             height: 1000
@@ -137,6 +140,12 @@ class TestApp(App):
     def test_ctypes(self, *args):
         import ctypes
             
+    def test_numpy(self, *args):
+        import numpy
+
+        print(numpy.zeros(5))
+        print(numpy.arange(5))
+        print(numpy.random.random((3, 3)))
                     
 
 TestApp().run()
