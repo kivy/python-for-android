@@ -71,6 +71,13 @@ public class PythonActivity extends SDLActivity {
         
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+        
+        try {
+            System.loadLibrary("ctypes");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_ctypes.so");
+        } catch(UnsatisfiedLinkError e) {
+            Log.v(TAG, "Unsatisfied linker when loading ctypes");
+        }
 
         Log.v(TAG, "Loaded everything!");
     }
