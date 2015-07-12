@@ -75,6 +75,9 @@ ScrollView:
             markup: True
             text: 'dpi: {}\\ndensity: {}\\nfontscale: {}'.format(Metrics.dpi, Metrics.density, Metrics.fontscale)
             halign: 'center'
+        FixedSizeButton:
+            text: 'test ctypes'
+            on_press: app.test_ctypes()
         Widget:
             size_hint_y: None
             height: 1000
@@ -131,5 +134,9 @@ class TestApp(App):
 
         vibrator.vibrate(1000)
 
+    def test_ctypes(self, *args):
+        import ctypes
+            
+                    
 
 TestApp().run()
