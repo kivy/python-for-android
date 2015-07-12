@@ -77,8 +77,8 @@ class SDL2Bootstrap(Bootstrap):
                 for filename in glob.glob('config/libpython*.a'):
                     shprint(sh.rm, '-f', filename)
                 shprint(sh.rm, '-rf', 'config/python.o')
-                shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
-                shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
+                # shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
+                # shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
 
         info('Stripping libraries')

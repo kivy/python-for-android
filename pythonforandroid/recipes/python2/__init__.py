@@ -66,9 +66,18 @@ class Python2Recipe(Recipe):
 
             env = ArchAndroid(self.ctx).get_env()
 
+            # AND: Should probably move these to get_recipe_env for
+            # neatness, but the whole recipe needs tidying along these
+            # lines
+            env['HOSTARCH'] = 'arm-eabi'
+            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0]
+            env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
+
             configure = sh.Command('./configure')
             # AND: OFLAG isn't actually set, should it be?
-            shprint(configure, '--host=arm-eabi',
+            shprint(configure,
+                    '--host={}'.format(env['HOSTARCH']),
+                    '--build={}'.format(env['BUILDARCH']),
                     # 'OPT={}'.format(env['OFLAG']),
                     '--prefix={}'.format(join(self.ctx.build_dir, 'python-install')),
                     '--enable-shared',
@@ -111,8 +120,8 @@ class Python2Recipe(Recipe):
 
             print('Ready to copy .so for python arm')
             shprint(sh.cp, 'libpython2.7.so', self.ctx.libs_dir)
-            for filen in glob.glob('build/lib.*-2.7/_ctypes*.so'):
-                shprint(sh.cp, '-a', filen, self.ctx.libs_dir)
+            # for filen in glob.glob('build/lib.*-2.7/_ctypes*.so'):
+            #     shprint(sh.cp, '-a', filen, self.ctx.libs_dir)
 
             print('Copying hostpython binary to targetpython folder')
             shprint(sh.cp, self.ctx.hostpython,
@@ -130,6 +139,9 @@ class Python2Recipe(Recipe):
                              'curses'):
                 shprint(sh.rm, '-rf', join(self.ctx.build_dir, 'python-install',
                                            'lib', 'python2.7', dir_name))
+
+        # print('python2 build done, exiting for debug')
+        # exit(1)
 
 
 recipe = Python2Recipe()
