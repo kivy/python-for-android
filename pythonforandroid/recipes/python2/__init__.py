@@ -2,6 +2,7 @@
 from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid
 from os.path import exists, join
 from os import uname
+import glob
 import sh
 
 class Python2Recipe(Recipe):
@@ -17,6 +18,7 @@ class Python2Recipe(Recipe):
             print('Python2 already patched, skipping.')
             return
         self.apply_patch(join('patches', 'Python-{}-xcompile.patch'.format(self.version)))
+        self.apply_patch(join('patches', 'Python-{}-ctypes-disable-wchar.patch'.format(self.version)))
         self.apply_patch(join('patches', 'disable-modules.patch'))
         self.apply_patch(join('patches', 'fix-locale.patch'))
         self.apply_patch(join('patches', 'fix-gethostbyaddr.patch'))
@@ -28,6 +30,7 @@ class Python2Recipe(Recipe):
         self.apply_patch(join('patches', 'fix-remove-corefoundation.patch'))
         self.apply_patch(join('patches', 'fix-dynamic-lookup.patch'))
         self.apply_patch(join('patches', 'fix-dlfcn.patch'))
+        self.apply_patch(join('patches', 'ctypes-find-library.patch'))
 
         if uname()[0] == 'Linux':
             self.apply_patch(join('patches', 'fix-configure-darwin.patch'))
@@ -45,6 +48,8 @@ class Python2Recipe(Recipe):
         shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir('armeabi'))
         hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
         hostpgen = join(self.get_build_dir('armeabi'), 'hostpython')
+
+        # ctypes: Need to set buildarch?
 
         if exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
             print('libpython2.7.so already exists, skipping python build.')
@@ -106,6 +111,8 @@ class Python2Recipe(Recipe):
 
             print('Ready to copy .so for python arm')
             shprint(sh.cp, 'libpython2.7.so', self.ctx.libs_dir)
+            for filen in glob.glob('build/lib.*-2.7/_ctypes*.so'):
+                shprint(sh.cp, '-a', filen, self.ctx.libs_dir)
 
             print('Copying hostpython binary to targetpython folder')
             shprint(sh.cp, self.ctx.hostpython,

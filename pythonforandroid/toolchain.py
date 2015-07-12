@@ -1884,7 +1884,7 @@ def run_pymodules_install(ctx, modules):
         info('Installing Python modules with pip')
 
         # AND: This doesn't work yet
-        shprint(sh.bash, '-c', '''"source venv/bin/activate && env CC=/bin/false CXX=/bin/false pip install --target '{}' -r requirements.txt"'''.format(ctx.get_site_packages_dir()))
+        shprint(sh.bash, '-c', '''"source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '{}' -r requirements.txt"'''.format(ctx.get_site_packages_dir()))
             
 
     
