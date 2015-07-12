@@ -308,19 +308,8 @@ class Arch(object):
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
-        print('prefix, version', toolchain_prefix, toolchain_version)
-        print('looking for {toolchain_prefix}-gcc'.format(toolchain_prefix=toolchain_prefix))
-        print('in the path', environ['PATH'])
-
-        print('toolchain_prefix is', toolchain_prefix)
-        print('path is', environ['PATH'])
-        print('command is', '''
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
-        ''')
-        cc = find_executable('{toolchain_prefix}-gcc'.format(
-            toolchain_prefix=toolchain_prefix), path=environ['PATH'])
-        print('cc is', cc)
         if cc is None:
             warning('Couldn\'t find executable for CC. Exiting.')
             exit(1)
@@ -563,7 +552,7 @@ class Context(object):
         if sdk_dir is None:
             warning('Android SDK dir was not specified, exiting.')
             exit(1)
-        self.sdk_dir = sdk_dir
+        self.sdk_dir = realpath(sdk_dir)
         
         # Check what Android API we're using
         android_api = None
@@ -621,7 +610,7 @@ class Context(object):
         if ndk_dir is None:
             warning('Android NDK dir was not specified, exiting.')
             exit(1)
-        self.ndk_dir = ndk_dir
+        self.ndk_dir = realpath(ndk_dir)
 
 
         # Find the NDK version, and check it against what the NDK dir
