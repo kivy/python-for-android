@@ -309,7 +309,7 @@ class Arch(object):
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
         print('prefix, version', toolchain_prefix, toolchain_version)
-        print('looking for {toolchain_prefix}-gcc'.format(toolchain_prefix-toolchain_prefix))
+        print('looking for {toolchain_prefix}-gcc'.format(toolchain_prefix=toolchain_prefix))
         print('in the path', environ['PATH'])
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
