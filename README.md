@@ -99,6 +99,8 @@ properly tested (if at all).
 
 - vispy
 - numpy
+- harfbuzz
+- freetype (assuming this works in normal p4a...)
 
 
 # Current status
