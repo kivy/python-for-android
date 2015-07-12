@@ -107,7 +107,7 @@ def shprint(command, *args, **kwargs):
             sys.stdout.flush()
             need_closing_newline = True
         else:
-            logger.debug(''.join([Style.DIM, '\t', line.rstrip()]))
+            logger.debug(''.join(['\t', line.rstrip()]))
     if logger.level > logging.DEBUG and need_closing_newline:
         print()
     return output
