@@ -83,7 +83,7 @@ def shprint(command, *args, **kwargs):
     command_string = command_path[-1]
     # if len(command_path) > 1:
     #     command_string = '.../' + command_string
-    string = ' '.join(['running', Style.DIM, command_string] + list(args))
+    string = ' '.join(['running', command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
     if logger.level > logging.DEBUG:
@@ -1776,7 +1776,8 @@ class CythonRecipe(PythonRecipe):
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
-        # Every recipe uses its own liblink path, object files are collected and biglinked later
+        # Every recipe uses its own liblink path, object files are
+        # collected and biglinked later
         liblink_path = join(self.get_build_container_dir(arch.arch), 'objects_{}'.format(self.name))
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
