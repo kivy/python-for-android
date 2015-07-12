@@ -85,6 +85,13 @@ the pygame version has many of them implemented internally
 - Several build options for build.py
 - Probably some other stuff
 
+Here are some specific things relating to changes in p4a itself since
+the reference commit that the revamp is based on:
+
+- Changed how keyboard height getter works
+- Numpy recipe has been fixed and improved
+- ctypes patch added
+
 # Untested recipes
 
 These recipes exist and probably should work, but haven't been
