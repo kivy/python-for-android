@@ -83,7 +83,6 @@ def shprint(command, *args, **kwargs):
     command_string = command_path[-1]
     # if len(command_path) > 1:
     #     command_string = '.../' + command_string
-    print('args are', args)
     string = ' '.join(['running', Style.DIM, command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
@@ -303,25 +302,15 @@ class Arch(object):
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
 
-        if self.ctx.ndk_ver == 'r5b':
-            toolchain_prefix = 'arm-eabi'
-            toolchain_version = '4.4.0'
-        elif self.ctx.ndk_ver[:2] in ('r7', 'r8'):
-            toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.4.3'
-        elif self.ctx.ndk_ver[:2] == 'r9':
-            toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.9'
-        elif self.ctx.ndk_ver[:3] == 'r10':
-            toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.9'
-        else:
-            warning('Error: NDK not supported by these tools?')
-            exit(1)
+        toolchain_prefix = self.ctx.toolchain_prefix
+        toolchain_version = self.ctx.toolchain_version
 
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
+        print('prefix, version', toolchain_prefix, toolchain_version)
+        print('looking for {toolchain_prefix}-gcc'.format(toolchain_prefix-toolchain_prefix))
+        print('in the path', environ['PATH'])
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
@@ -717,6 +706,8 @@ class Context(object):
         else:
             warning('Error: NDK not supported by these tools?')
             exit(1)
+        self.toolchain_prefix = toolchain_prefix
+        self.toolchain_version = toolchain_version
         environ['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
                            'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
                            '{toolchain_prefix}-{toolchain_version}/prebuilt/'
