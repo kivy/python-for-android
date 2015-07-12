@@ -588,7 +588,8 @@ class Context(object):
         android = sh.Command(join(sdk_dir, 'tools', 'android'))
         targets = android('list').stdout.split('\n')
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
-        apis = [int(re.findall(r'[0-9]+', s)[0]) for s in apis]
+        apis = [re.findall(r'[0-9]+', s) for s in apis]
+        apis = [int(s[0]) for s in apis if s]
         info('Available Android APIs are ({})'.format(', '.join(map(str, apis))))
         if android_api in apis:
             info('Requested API target {} is available, continuing.'.format(android_api))
