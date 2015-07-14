@@ -2411,6 +2411,12 @@ clean_dists
               '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
         for line in infos:
             print('\t' + line)
+
+    def delete_dist(self, args):
+        dist = self._dist
+        if dist.needs_build:
+            info('No dist exists that matches your specifications, exiting without deleting.')
+        shutil.rmtree(dist.dist_dir)
         
 
 if __name__ == "__main__":
