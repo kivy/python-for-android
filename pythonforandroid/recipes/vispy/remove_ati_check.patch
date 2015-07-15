@@ -1,0 +1,34 @@
+diff --git a/vispy/gloo/glir.py b/vispy/gloo/glir.py
+index 67419b5..341c13d 100644
+--- a/vispy/gloo/glir.py
++++ b/vispy/gloo/glir.py
+@@ -878,19 +878,19 @@ class GlirBuffer(GlirObject):
+         self.activate()
+         nbytes = data.nbytes
+         
+-        # Determine whether to check errors to try handling the ATI bug
+-        check_ati_bug = ((not self._bufferSubDataOk) and
+-                         (gl.current_backend is gl.gl2) and
+-                         sys.platform.startswith('win'))
+-
+-        # flush any pending errors
+-        if check_ati_bug:
+-            gl.check_error('periodic check')
++        # # Determine whether to check errors to try handling the ATI bug
++        # check_ati_bug = ((not self._bufferSubDataOk) and
++        #                  (gl.current_backend is gl.gl2) and
++        #                  sys.platform.startswith('win'))
++
++        # # flush any pending errors
++        # if check_ati_bug:
++        #     gl.check_error('periodic check')
+         
+         try:
+             gl.glBufferSubData(self._target, offset, data)
+-            if check_ati_bug:
+-                gl.check_error('glBufferSubData')
++            # if check_ati_bug:
++            #     gl.check_error('glBufferSubData')
+             self._bufferSubDataOk = True  # glBufferSubData seems to work
+         except Exception:
+             # This might be due to a driver error (seen on ATI), issue #64.
