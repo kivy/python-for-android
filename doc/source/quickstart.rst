@@ -15,7 +15,7 @@ options available.
 Installation
 ------------
 
-The easiest way to install is with pip. You need to have setuptools installed, but then can do::
+The easiest way to install is with pip. You need to have setuptools installed, then run::
 
   pip install git+https://github.com/kivy/python-for-android.git@revamp
 
@@ -34,6 +34,30 @@ Or by direct download::
   
 Then in both cases run ``python setup.py install``.
 
+Dependencies
+------------
+
+python-for-android has several dependencies that must be installed,
+via your package manager or otherwise. These include:
+
+- git
+- ant
+- python2
+- the Android `SDK <https://developer.android.com/sdk/index.html#Other>`_ and `NDK <https://developer.android.com/ndk/downloads/index.html>`_ (see below)
+- a Java JDK (e.g. openjdk-7)
+- zlib (including 32 bit)
+- libncurses (including 32 bit)
+- unzip
+- ccache (optional)
+
+On recent versions of Ubuntu and its derivatives you may be able to
+install all many of these with::
+
+    sudo dpkg --add-architecture i386
+    sudo apt-get update
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip
+    
+When installing 
   
 Basic use
 ---------
@@ -48,7 +72,8 @@ You can test that p4a was installed correctly by running
 recipes available to be built into your APKs.
 
 Before running any apk packaging or distribution creation, it is
-essential to set some env vars. First install the Android SDK and NDK, then:
+essential to set some env vars. Make sure you have installed the
+Android SDK and NDK, then:
 
 - Set the ``ANDROIDSDK`` env var to the ``/path/to/the/sdk``
 - Set the ``ANDROIDNDK`` env var to the ``/path/to/the/ndk``
