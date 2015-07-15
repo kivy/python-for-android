@@ -35,6 +35,7 @@ Contents:
    recipes
    bootstraps
    apis
+   troubleshooting
    old_p4a
    related
    contribute
