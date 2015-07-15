@@ -195,7 +195,7 @@ Android 4.0. This may be changed in the near future.
 You must pass the target API to python-for-android, and can do this in
 several ways. Each choice overrides all the later ones:
 
-- The ``-android_api`` argument to any python-for-android command.
+- The ``--android_api`` argument to any python-for-android command.
 - The ``ANDROIDAPI`` environment variables.
 - If neither of the above, the default target is used (currently 14).
   
