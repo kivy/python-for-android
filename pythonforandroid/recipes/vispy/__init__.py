@@ -8,8 +8,10 @@ import glob
 class VispyRecipe(PythonRecipe):
     version = '0.4.0'
     url = 'https://github.com/vispy/vispy/archive/v{version}.tar.gz'
+    # version = 'campagnola-scenegraph-update'
+    # url = 'https://github.com/campagnola/vispy/archive/scenegraph-update.zip'
 
-    depends = ['python2', 'numpy']
+    depends = ['python2', 'numpy', 'pysdl2']
 
     def prebuild_arch(self, arch):
         super(VispyRecipe, self).prebuild_arch(arch)
@@ -20,6 +22,7 @@ class VispyRecipe(PythonRecipe):
         self.apply_patch('disable_freetype.patch')
         self.apply_patch('disable_font_triage.patch')
         self.apply_patch('use_es2.patch')
+        self.apply_patch('remove_ati_check.patch')
         shprint(sh.touch, join(build_dir, '.patched'))
 
 recipe = VispyRecipe()
