@@ -30,7 +30,8 @@ class Python2Recipe(Recipe):
         self.apply_patch(join('patches', 'fix-remove-corefoundation.patch'))
         self.apply_patch(join('patches', 'fix-dynamic-lookup.patch'))
         self.apply_patch(join('patches', 'fix-dlfcn.patch'))
-        self.apply_patch(join('patches', 'ctypes-find-library.patch'))
+        # self.apply_patch(join('patches', 'ctypes-find-library.patch'))
+        self.apply_patch(join('patches', 'ctypes-find-library-updated.patch'))
 
         if uname()[0] == 'Linux':
             self.apply_patch(join('patches', 'fix-configure-darwin.patch'))
