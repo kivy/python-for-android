@@ -1,5 +1,5 @@
---- numpy/linalg/setup.orig.py	2015-07-09 14:15:59.850853336 +0200
-+++ numpy/linalg/setup.py	2015-07-09 14:21:59.403889000 +0200
+--- a/numpy/linalg/setup.py	2015-07-09 14:15:59.850853336 +0200
++++ b/numpy/linalg/setup.py	2015-07-09 14:21:59.403889000 +0200
 @@ -37,7 +37,8 @@
      config.add_extension('lapack_lite',
                           sources = [get_lapack_lite_sources],
@@ -19,8 +19,8 @@
                           )
  
      return config
---- numpy/fft/setup.orig.py	2015-07-09 14:35:22.299888028 +0200
-+++ numpy/fft/setup.py	2015-07-09 14:33:54.858392578 +0200
+--- a/numpy/fft/setup.py	2015-07-09 14:35:22.299888028 +0200
++++ b/numpy/fft/setup.py	2015-07-09 14:33:54.858392578 +0200
 @@ -9,7 +9,8 @@
  
      # Configure fftpack_lite
@@ -31,8 +31,8 @@
                           )
  
  
---- numpy/random/setup.orig.py	2015-07-09 14:44:41.105174826 +0200
-+++ numpy/random/setup.py	2015-07-09 14:46:08.592679877 +0200
+--- a/numpy/random/setup.orig.py	2015-07-09 14:44:41.105174826 +0200
++++ b/numpy/random/setup.py	2015-07-09 14:46:08.592679877 +0200
 @@ -38,7 +38,7 @@
      if needs_mingw_ftime_workaround():
          defs.append(("NPY_NEEDS_MINGW_TIME_WORKAROUND", None))

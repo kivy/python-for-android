@@ -1,0 +1,12 @@
+diff --git a/numpy/distutils/system_info.py b/numpy/distutils/system_info.py
+index a050430..471e958 100644
+--- a/numpy/distutils/system_info.py
++++ b/numpy/distutils/system_info.py
+@@ -610,6 +610,7 @@ class system_info:
+         return self.get_paths(self.section, key)
+ 
+     def get_libs(self, key, default):
++        return []
+         try:
+             libs = self.cp.get(self.section, key)
+         except NoOptionError:
