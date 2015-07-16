@@ -67,6 +67,9 @@ warning = logger.warning
 
 IS_PY3 = sys.version_info[0] >= 3
 
+info(Style.BRIGHT + Fore.RED + 'This python-for-android revamp is an experimental alpha release!' + Style.RESET_ALL)
+info(Fore.RED + 'It should work (mostly), but you may experience missing features or bugs.' + Style.RESET_ALL)
+info(Fore.RED + 'See http://inclem.net/files/p4a_revamp_doc/index.html for the current (WIP) documentation.' + Style.RESET_ALL)
 
 
 def info_main(*args):
