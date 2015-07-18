@@ -79,6 +79,18 @@ def info_main(*args):
     logger.info(''.join([Style.BRIGHT, Fore.GREEN] + list(args) +
                         [Style.RESET_ALL, Fore.RESET]))
 
+def pretty_log_dists(dists):
+    infos = []
+    for dist in dists:
+        infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
+                     'includes recipes ({Fore.GREEN}{recipes}'
+                     '{Style.RESET_ALL})'.format(
+                         name=dist.name, recipes=', '.join(dist.recipes),
+                         Fore=Fore, Style=Style))
+
+    for line in infos:
+        info('\t' + line)
+
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
     logging the output.'''
@@ -898,10 +910,9 @@ class Distribution(object):
         if possible_dists:
             info('Of the existing distributions, the following meet '
                  'the given requirements:')
-            for dist in possible_dists:
-                info('\tname {}: recipes ({})'.format(dist.name, ', '.join(dist.recipes)))
+            pretty_log_dists(possible_dists)
         else:
-            info('No existsing dists meet the given requirements!')
+            info('{}No existing dists meet the given requirements!{}'.format(Fore.RED, Fore.RESET))
                 
 
         # If any dist has perfect recipes, return it
@@ -2397,18 +2408,10 @@ clean_dists
         ctx = Context()
         dists = Distribution.get_distributions(ctx)
 
-        infos = []
-        for dist in dists:
-            infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
-                         'includes recipes ({Fore.GREEN}{recipes}'
-                         '{Style.RESET_ALL})'.format(
-                             name=dist.name, recipes=', '.join(dist.recipes),
-                             Fore=Fore, Style=Style))
-            
-        print('{Style.BRIGHT}Distributions stored internally are:'
-              '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
-        for line in infos:
-            print('\t' + line)
+        info('{Style.BRIGHT}Distributions currently installed are:'
+             '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
+
+        pretty_log_dists(dists)
 
     def delete_dist(self, args):
         dist = self._dist
