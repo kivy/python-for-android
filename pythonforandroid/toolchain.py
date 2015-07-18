@@ -20,8 +20,10 @@ import io
 import json
 import glob
 import shutil
-import fnmatch
 import re
+import imp
+import contextlib
+import logging
 from functools import wraps
 from datetime import datetime
 from distutils.spawn import find_executable
@@ -31,24 +33,18 @@ except ImportError:
     from urllib import FancyURLopener
 
 import argparse
-
 from appdirs import user_data_dir
+import sh
+from colorama import Style, Fore
 
 curdir = dirname(__file__)
 sys.path.insert(0, join(curdir, "tools", "external"))
 
-import sh
-import logging
-import contextlib
-import imp
-
-from colorama import Style, Fore
 
 DEFAULT_ANDROID_API = 14
 
 
 logger = logging.getLogger('p4a')
-# logger.setLevel(logging.DEBUG)
 if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
                                     # this, which would add a second
                                     # handler and reset the level
@@ -59,7 +55,6 @@ if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
         Style.BRIGHT, Style.RESET_ALL))
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    # logger.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 info = logger.info
 debug = logger.debug
 warning = logger.warning
@@ -67,9 +62,17 @@ warning = logger.warning
 
 IS_PY3 = sys.version_info[0] >= 3
 
-info(Style.BRIGHT + Fore.RED + 'This python-for-android revamp is an experimental alpha release!' + Style.RESET_ALL)
-info(Fore.RED + 'It should work (mostly), but you may experience missing features or bugs.' + Style.RESET_ALL)
-info(Fore.RED + 'See http://inclem.net/files/p4a_revamp_doc/index.html for the current (WIP) documentation.' + Style.RESET_ALL)
+info(''.join([Style.BRIGHT, Fore.RED,
+              'This python-for-android revamp is an experimental alpha release!',
+              Style.RESET_ALL]))
+info(''.join([Fore.RED,
+              ('It should work (mostly), but you may experience '
+               'missing features or bugs.'),
+              Style.RESET_ALL]))
+info(''.join([Fore.RED,
+              ('See http://inclem.net/files/p4a_revamp_doc/index.html '
+               'for the current (WIP) documentation.'),
+              Style.RESET_ALL]))
 
 
 def info_main(*args):
@@ -77,6 +80,8 @@ def info_main(*args):
                         [Style.RESET_ALL, Fore.RESET]))
 
 def shprint(command, *args, **kwargs):
+    '''Runs the command (which should be an sh.Command instance), while
+    logging the output.'''
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
@@ -84,8 +89,6 @@ def shprint(command, *args, **kwargs):
         logger.removeHandler(logger.handlers[1])
     command_path = str(command).split('/')
     command_string = command_path[-1]
-    # if len(command_path) > 1:
-    #     command_string = '.../' + command_string
     string = ' '.join(['running', command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
@@ -96,7 +99,7 @@ def shprint(command, *args, **kwargs):
         logger.info(short_string + Style.RESET_ALL)
     else:
         logger.debug(string + Style.RESET_ALL)
-        
+
     output = command(*args, **kwargs)
     need_closing_newline = False
     for line in output:
@@ -144,6 +147,8 @@ def require_prebuilt_dist(func):
 
 
 def get_directory(filename):
+    '''If the filename ends with a recognised file extension, return the
+    filename without this extension.'''
     if filename.endswith('.tar.gz'):
         return basename(filename[:-7])
     elif filename.endswith('.tgz'):
@@ -158,6 +163,7 @@ def get_directory(filename):
     exit(1)
 
 def which(program, path_env):
+    '''Locate an executable in the system.'''
     import os
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
@@ -432,25 +438,22 @@ class Graph(object):
 class Context(object):
     '''A build context. If anything will be built, an instance this class
     will be instantiated and used to hold all the build state.'''
-    
+
     env = environ.copy()
     root_dir = None  # the filepath of toolchain.py
     storage_dir = None  # the root dir where builds and dists will be stored
     build_dir = None  # in which bootstraps are copied for building and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
-    libs_dir = None
+    libs_dir = None  # where Android libs are cached after build but
+                     # before being placed in dists
     javaclass_dir = None
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
 
-    sdk_dir = None  # the directory of the android sdk
-    ndk_dir = None  # the directory of the android ndk
     ndk_platform = None  # the ndk platform directory
-    ndk_ver = None  # the ndk version, defaults to r9
-    android_api = None  # the android api target, defaults to 14
-    
-    dist_name = None
-    bootstrap = None 
+
+    dist_name = None  # should be deprecated in favour of self.dist.dist_name
+    bootstrap = None
     bootstrap_build_dir = None
 
     recipe_build_order = None  # Will hold the list of all built recipes
@@ -485,6 +488,7 @@ class Context(object):
 
     @property
     def android_api(self):
+        '''The Android API being targeted.'''
         if self._android_api is None:
             raise ValueError('Tried to access android_api but it has not '
                              'been set - this should not happen, something '
@@ -497,6 +501,7 @@ class Context(object):
 
     @property
     def ndk_ver(self):
+        '''The version of the NDK being used for compilation.'''
         if self._ndk_ver is None:
             raise ValueError('Tried to access android_api but it has not '
                              'been set - this should not happen, something '
@@ -509,6 +514,7 @@ class Context(object):
 
     @property
     def sdk_dir(self):
+        '''The path to the Android SDK.'''
         if self._sdk_dir is None:
             raise ValueError('Tried to access android_api but it has not '
                              'been set - this should not happen, something '
@@ -521,6 +527,7 @@ class Context(object):
 
     @property
     def ndk_dir(self):
+        '''The path to the Android NDK.'''
         if self._ndk_dir is None:
             raise ValueError('Tried to access android_api but it has not '
                              'been set - this should not happen, something '
@@ -537,11 +544,14 @@ class Context(object):
         for the Android SDK etc.
 
         ..warning:: This *must* be called before trying any build stuff
+
         '''
 
         if self._build_env_prepared:
             return
 
+        # AND: This needs revamping to carefully check each dependency
+        # in turn
         ok = True
 
         # Work out where the Android SDK is
@@ -579,12 +589,14 @@ class Context(object):
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
         apis = [re.findall(r'[0-9]+', s) for s in apis]
         apis = [int(s[0]) for s in apis if s]
-        info('Available Android APIs are ({})'.format(', '.join(map(str, apis))))
+        info('Available Android APIs are ({})'.format(
+            ', '.join(map(str, apis))))
         if android_api in apis:
-            info('Requested API target {} is available, continuing.'.format(android_api))
+            info(('Requested API target {} is available, '
+                  'continuing.').format(android_api))
         else:
-            warning('Requested API target {} is not available, install '
-                    'it with the SDK android tool.'.format(android_api))
+            warning(('Requested API target {} is not available, install '
+                     'it with the SDK android tool.').format(android_api))
             warning('Exiting.')
             exit(1)
         # AND: If the android api target doesn't exist, we should
@@ -636,7 +648,8 @@ class Context(object):
         else:
             if ndk_ver is None:
                 ndk_ver = reported_ndk_ver
-                info('Got Android NDK version from the NDK dir: it is {}'.format(ndk_ver))
+                info(('Got Android NDK version from the NDK dir: '
+                      'it is {}').format(ndk_ver))
             else:
                 if ndk_ver != reported_ndk_ver:
                     warning('NDK version was set as {}, but checking '
@@ -677,7 +690,8 @@ class Context(object):
         # path to some tools
         self.ccache = sh.which("ccache")
         if not self.ccache:
-            info("ccache is missing, the build will not be optimized in the future.")
+            info('ccache is missing, the build will not be optimized in the '
+                 'future.')
         for cython_fn in ("cython2", "cython-2.7", "cython"):
             cython = sh.which(cython_fn)
             if cython:
