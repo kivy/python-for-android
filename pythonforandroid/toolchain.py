@@ -2245,8 +2245,8 @@ clean_dists
                 description="Delete all build files (but not download caches)")
         args = parser.parse_args(args)
         ctx = Context()
-        if exists(ctx.dist_dir):
-            shutil.rmtree(ctx.dist_dir)
+        # if exists(ctx.dist_dir):
+        #     shutil.rmtree(ctx.dist_dir)
         if exists(ctx.build_dir):
             shutil.rmtree(ctx.build_dir)
 
