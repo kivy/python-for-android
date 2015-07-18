@@ -754,6 +754,9 @@ class Context(object):
         self._android_api = None
         self._ndk_ver = None
 
+        self.toolchain_prefix = None
+        self.toolchain_version = None
+
         # root of the toolchain
         self.setup_dirs()
 
@@ -812,7 +815,7 @@ class Distribution(object):
     the dist itself could also come from e.g. a binary download.
     '''
     ctx = None
-    
+
     name = None  # A name identifying the dist. May not be None.
     needs_build = False  # Whether the dist needs compiling
     url = None
@@ -999,6 +1002,8 @@ class Distribution(object):
                           fileh)
 
     def load_info(self):
+        '''Load information about the dist from the info file that p4a
+        automatically creates.'''
         with current_directory(self.dist_dir):
             filen = 'dist_info.json'
             if not exists(filen):
@@ -1006,8 +1011,6 @@ class Distribution(object):
             with open('dist_info.json', 'r') as fileh:
                 dist_info = json.load(fileh)
         return dist_info
-            
-
 
 
 class Bootstrap(object):
@@ -1017,6 +1020,8 @@ class Bootstrap(object):
     name = ''
     jni_subdir = '/jni'
     ctx = None
+
+    bootstrap_dir = None
 
     build_dir = None
     dist_dir = None
@@ -1032,6 +1037,7 @@ class Bootstrap(object):
 
     @property
     def dist_dir(self):
+        '''The dist dir at which to place the finished distribution.'''
         if self.distribution is None:
             warning('Tried to access {}.dist_dir, but {}.distribution '
                     'is None'.format(self, self))
@@ -1087,6 +1093,7 @@ class Bootstrap(object):
 
     @classmethod
     def list_bootstraps(cls):
+        '''Find all the available bootstraps and return them.'''
         forbidden_dirs = ('__pycache__', )
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
         for name in listdir(bootstraps_dir):
@@ -1137,19 +1144,19 @@ class Recipe(object):
     '''A string giving the version of the software the recipe describes,
     e.g. ``2.0.3`` or ``master``.'''
 
-    
+
     md5sum = None
     '''The md5sum of the source from the :attr:`url`. Non-essential, but
     you should try to include this, it is used to check that the download
     finished correctly.
     '''
-    
+
     depends = []
     '''A list containing the names of any recipes that this recipe depends on.
     '''
-    
+
     conflicts = []
-    # AND: Not currently used
+    # AND: Not currently used, needs modifications to the dependency Graph
     '''A list containing the names of any recipes that are known to be
     incompatible with this one.'''
 
@@ -1158,7 +1165,7 @@ class Recipe(object):
     # to be applied. By default, these are applied in prebuild_arch, so
     # if you override this but want to use patches then don't forget to
     # call super().
-    
+
     # name = None  # name for the recipe dir
 
     archs = ['armeabi']  # will android use this?
