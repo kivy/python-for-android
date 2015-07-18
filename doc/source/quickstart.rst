@@ -137,10 +137,15 @@ project unless they have precisely the same requirements.
 
 You can build an SDL2 APK similarly, creating a dist as follows::
 
-    python2 toolchain.py create --name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
+    python-for-android create --dist_name=testsdl2 --bootstrap=sdl2 --recipes=sdl2,python2
 
 You can then make an APK in the same way, but this is more
 experimental and doesn't support as much customisation yet.
+
+There is also experimental support for building APKs with Vispy, which
+do not include Kivy. The basic command for this would be e.g.::
+
+    python-for-android create --dist_name=testvispy --bootstrap=sdl2 --recipes=vispy
 
 python-for-android also has commands to list internal information
 about distributions available, to export or symlink these (they come
