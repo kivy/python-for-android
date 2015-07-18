@@ -1291,6 +1291,7 @@ class Recipe(object):
 
     @property
     def name(self):
+        '''The name of the recipe, the same as the folder containing it.'''
         modname = self.__class__.__module__
         return modname.split(".", 2)[-1]
 
@@ -1335,7 +1336,7 @@ class Recipe(object):
 
         build_dir = self.get_build_container_dir('armeabi')
         ensure_dir(build_dir)
-        
+
     def download_if_necessary(self):
         info_main('Downloading {}'.format(self.name))
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
@@ -1344,7 +1345,7 @@ class Recipe(object):
                 self.name, self.name))
             return
         self.download()
-        
+
     def download(self):
         if self.url is None:
             info('Skipping {} download as no URL is set'.format(self.name))
@@ -1450,10 +1451,10 @@ class Recipe(object):
                 else:
                     raise Exception('Could not extract {} download, it must be .zip, '
                                     '.tar.gz or .tar.bz2')
-                        
+
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
-            
+
 
     def get_recipe_env(self, arch=None):
         """Return the env specialized for the recipe
@@ -1503,6 +1504,9 @@ class Recipe(object):
     #     self.postbuild_arch(self.ctx.archs[0])
 
     def prebuild_arch(self, arch):
+        '''Run any pre-build tasks for the Recipe. By default, this checks if
+        any prebuild_archname methods exist for the archname of the current
+        architecture, and runs them if so.'''
         prebuild = "prebuild_{}".format(arch.arch)
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
@@ -1518,11 +1522,18 @@ class Recipe(object):
         return True
 
     def build_arch(self, arch):
+        '''Run any build tasks for the Recipe. By default, this checks if
+        any build_archname methods exist for the archname of the current
+        architecture, and runs them if so.'''
         build = "build_{}".format(arch.arch)
         if hasattr(self, build):
             getattr(self, build)()
 
     def postbuild_arch(self, arch):
+        '''Run any post-build tasks for the Recipe. By default, this checks if
+        any postbuild_archname methods exist for the archname of the
+        current architecture, and runs them if so.
+        '''
         postbuild = "postbuild_{}".format(arch.arch)
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
@@ -1548,6 +1559,7 @@ class Recipe(object):
 
     @classmethod
     def get_recipe(cls, name, ctx):
+        '''Returns the Recipe with the given name, if it exists.'''
         if not hasattr(cls, "recipes"):
            cls.recipes = {}
         if name in cls.recipes:
@@ -1628,7 +1640,6 @@ class PythonRecipe(Recipe):
         if exists(join(self.ctx.get_site_packages_dir(), name)):
             info('Python package already exists in site-packages')
             return False
-        print('site packages', self.ctx.get_site_packages_dir())
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
                        
@@ -1660,43 +1671,6 @@ class PythonRecipe(Recipe):
 
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
 
-    # def install_python_package(self, name=None, env=None, is_dir=True):
-    #     """Automate the installation of a Python package into the target
-    #     site-packages.
-
-    #     It will works with the first filtered_archs, and the name of the recipe.
-    #     """
-    #     arch = self.filtered_archs[0]
-    #     if name is None:
-    #         name = self.name
-    #     if env is None:
-    #         env = self.get_recipe_env(arch)
-
-    #     print("Install {} into the site-packages".format(name))
-    #     build_dir = self.get_build_dir(arch.arch)
-    #     chdir(build_dir)
-    #     hostpython = sh.Command(self.ctx.hostpython)
-    #     iosbuild = join(build_dir, "iosbuild")
-    #     shprint(hostpython, "setup.py", "install", "-O2",
-    #             "--prefix", iosbuild,
-    #             _env=env)
-    #     dest_dir = join(self.ctx.site_packages_dir, name)
-    #     if is_dir:
-    #         if exists(dest_dir):
-    #             shutil.rmtree(dest_dir)
-    #         func = shutil.copytree
-    #     else:
-    #         func = shutil.copy
-    #     func(
-    #         join(iosbuild, "lib",
-    #              self.ctx.python_ver_dir, "site-packages", name),
-    #         dest_dir)
-
-    # def reduce_python_package(self):
-    #     """Feel free to remove things you don't want in the final
-    #     site-packages.
-    #     """
-    #     pass
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
     pre_build_ext = False
