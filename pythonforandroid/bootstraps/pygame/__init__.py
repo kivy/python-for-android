@@ -40,18 +40,20 @@ class PygameBootstrap(Bootstrap):
             info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)
             # AND: This *doesn't* need to be in arm env?
-            shprint(hostpython, '-OO', '-m', 'compileall', join(self.ctx.build_dir, 'python-install'))
+            shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir())
             if not exists('python-install'):
-                shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
+                shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
             info('Copying libs')
             # AND: Hardcoding armeabi - naughty!
             shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
-            for lib in glob.glob(join(self.ctx.libs_dir, '*')):
+            for lib in glob.glob(join(self.build_dir, 'libs', 'armeabi', '*')):
+                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
+            for lib in glob.glob(join(self.ctx.get_libs_dir('armeabi'), '*')):
                 shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
 
             info('Copying java files')
-            for filename in glob.glob(join(self.ctx.build_dir, 'java', '*')):
+            for filename in glob.glob(self.ctx.javaclass_dir):
                 shprint(sh.cp, '-a', filename, 'src')
 
             info('Filling private directory')
