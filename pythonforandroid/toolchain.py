@@ -479,6 +479,30 @@ class Context(object):
     def templates_dir(self):
         return join(self.root_dir, 'templates')
 
+    @property
+    def libs_dir(self):
+        # Was previously hardcoded as self.build_dir/libs
+        dir = join(self.build_dir, 'libs_collections', self.bootstrap.distribution.name)
+        ensure_dir(dir)
+        return dir
+
+    @property
+    def javaclass_dir(self):
+        # Was previously hardcoded as self.build_dir/java
+        dir = join(self.build_dir, 'javaclasses', self.bootstrap.distribution.name)
+        ensure_dir(dir)
+        return dir
+
+    @property
+    def python_installs_dir(self):
+        dir = join(self.build_dir, 'python-installs')
+        ensure_dir(dir)
+        return dir
+
+    def get_python_install_dir(self):
+        dir = join(self.python_installs_dir, self.bootstrap.distribution.name)
+        return dir
+
     def setup_dirs(self):
         '''Calculates all the storage and build dirs, and makes sure
         the directories exist where necessary.'''
@@ -486,17 +510,13 @@ class Context(object):
 
         # AND: TODO: Allow the user to set the build_dir
         self.storage_dir = user_data_dir('python-for-android')
-        # self.storage_dir = self.root_dir
         self.build_dir = join(self.storage_dir, 'build')
-        self.libs_dir = join(self.build_dir, 'libs')
         self.dist_dir = join(self.storage_dir, 'dists')
-        self.javaclass_dir = join(self.build_dir, 'java')
 
         ensure_dir(self.storage_dir)
         ensure_dir(self.build_dir)
-        ensure_dir(self.libs_dir)
         ensure_dir(self.dist_dir)
-        ensure_dir(self.javaclass_dir)
+
 
     @property
     def android_api(self):
@@ -806,8 +826,7 @@ class Context(object):
         # AND: This *must* be replaced with something more general in
         # order to support multiple python versions and/or multiple
         # archs.
-        return join(self.build_dir, 'python-install', 'lib', 'python2.7',
-                    'site-packages')
+        return join(self.get_python_install_dir(), 'lib', 'python2.7', 'site-packages')
 
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
@@ -1929,14 +1948,10 @@ def biglink(ctx, arch):
         info('There seem to be no libraries to biglink, skipping.')
         return
     info('Biglinking')
-    # bl = sh.Command(join(ctx.root_dir, 'tools', 'biglink'))
-    print('ldflags are', env['LDFLAGS'])
-    # shprint(bl, join(ctx.libs_dir, 'libpymodules.so'),
-    #         env['LIBLINK_PATH'], _env=env)
+    info('target', join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'))
     biglink_function(
-        join(ctx.libs_dir, 'libpymodules.so'),
+        join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
         obj_dir.split(' '),
-        # env['LIBLINK_PATH'].split(' '),  # AND: This line should be obselete now
         extra_link_dirs=[join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi')],
         env=env)
 
@@ -1995,7 +2010,6 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
     #     unique_args
 
     # sys.exit(subprocess.call(args))
-
 
 
 def ensure_dir(filename):
@@ -2219,12 +2233,9 @@ clean_dists
                 description="Clean the build cache, downloads and dists")
         args = parser.parse_args(args)
         ctx = Context()
-        if exists(ctx.build_dir):
-            shutil.rmtree(ctx.build_dir)
-        if exists(ctx.dist_dir):
-            shutil.rmtree(ctx.dist_dir)
-        if exists(ctx.packages_path):
-            shutil.rmtree(ctx.packages_path)
+        self.clean_dists(args)
+        self.clean_builds(args)
+        self.clean_download_cache(args)
 
     def clean_dists(self, args):
         '''Delete all compiled distributions in the internal distribution
@@ -2235,7 +2246,7 @@ clean_dists
         ctx = Context()
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
-
+        
     def clean_builds(self, args):
         '''Delete all build caches for each recipe.
 
@@ -2249,6 +2260,11 @@ clean_dists
         #     shutil.rmtree(ctx.dist_dir)
         if exists(ctx.build_dir):
             shutil.rmtree(ctx.build_dir)
+        if exists(ctx.python_installs_dir):
+            shutil.rmtree(ctx.python_installs_dir)
+        libs_dir = join(self.ctx.build_dir, 'libs_collections')
+        if exists(libs_dir):
+            shutil.rmtree(libs_dir)
 
     def clean_download_cache(self, args):
         '''
