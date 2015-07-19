@@ -1,9 +1,10 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid
-from os.path import exists, join
+from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid, info
+from os.path import exists, join, realpath
 from os import uname
 import glob
 import sh
+
 
 class Python2Recipe(Recipe):
     version = "2.7.2"
@@ -40,6 +41,35 @@ class Python2Recipe(Recipe):
         shprint(sh.touch, join(build_dir, '.patched'))
 
     def build_armeabi(self):
+
+        if not exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
+            self.do_python_build()
+
+        if not exists(self.ctx.get_python_install_dir()):
+            shprint(sh.cp, '-a', join(self.get_build_dir('armeabi'), 'python-install'),
+                    self.ctx.get_python_install_dir())
+
+        # This should be safe to run every time
+        info('Copying hostpython binary to targetpython folder')
+        shprint(sh.cp, self.ctx.hostpython,
+                join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
+        self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
+
+        if not exists(join(self.ctx.get_libs_dir('armeabi'), 'libpython2.7.so')):
+            shprint(sh.cp, join(self.get_build_dir('armeabi'), 'libpython2.7.so'), self.ctx.get_libs_dir('armeabi'))
+
+
+        # # if exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
+        # if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
+        #     info('libpython2.7.so already exists, skipping python build.')
+        #     if not exists(join(self.ctx.get_python_install_dir(), 'libpython2.7.so')):
+        #         info('Copying python-install to dist-dependent location')
+        #         shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
+        #     self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
+
+        #     return
+
+    def do_python_build(self):
         if 'sqlite' in self.ctx.recipe_build_order or 'openssl' in self.ctx.recipe_build_order:
             print('sqlite or openssl support not yet enabled in python recipe')
             exit(1)
@@ -49,15 +79,6 @@ class Python2Recipe(Recipe):
         shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir('armeabi'))
         hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
         hostpgen = join(self.get_build_dir('armeabi'), 'hostpython')
-
-        # ctypes: Need to set buildarch?
-
-        if exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
-            print('libpython2.7.so already exists, skipping python build.')
-            self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
-                                       'bin', 'python.host')
-
-            return
 
         with current_directory(self.get_build_dir('armeabi')):
 
@@ -80,10 +101,10 @@ class Python2Recipe(Recipe):
                     '--host={}'.format(env['HOSTARCH']),
                     '--build={}'.format(env['BUILDARCH']),
                     # 'OPT={}'.format(env['OFLAG']),
-                    '--prefix={}'.format(join(self.ctx.build_dir, 'python-install')),
+                    '--prefix={}'.format(realpath('./python-install')),
                     '--enable-shared',
                     '--disable-toolbox-glue',
-                    '--disable-framefork',
+                    '--disable-framework',
                     _env=env)
 
             # AND: tito left this comment in the original source. It's still true!
@@ -115,31 +136,29 @@ class Python2Recipe(Recipe):
 
             if uname()[0] == 'Darwin':
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
-                        join(self.get_build_dir(), 'Lib'))
+                        join('python-install', 'Lib'))
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
-                        join(self.ctx.build_dir, 'python-install', 'lib', 'python2.7'))
+                        join('python-install', 'lib', 'python2.7'))
 
-            print('Ready to copy .so for python arm')
-            shprint(sh.cp, 'libpython2.7.so', self.ctx.libs_dir)
-            # for filen in glob.glob('build/lib.*-2.7/_ctypes*.so'):
-            #     shprint(sh.cp, '-a', filen, self.ctx.libs_dir)
-
-            print('Copying hostpython binary to targetpython folder')
-            shprint(sh.cp, self.ctx.hostpython,
-                    join(self.ctx.build_dir, 'python-install', 'bin',
-                         'python.host'))
-            self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
-                                       'bin', 'python.host')
-
-
-            # reduce python?
+            # reduce python
             for dir_name in ('test', join('json', 'tests'), 'lib-tk',
                              join('sqlite3', 'test'), join('unittest, test'),
                              join('lib2to3', 'tests'), join('bsddb', 'tests'),
                              join('distutils', 'tests'), join('email', 'test'),
                              'curses'):
-                shprint(sh.rm, '-rf', join(self.ctx.build_dir, 'python-install',
+                shprint(sh.rm, '-rf', join('python-install',
                                            'lib', 'python2.7', dir_name))
+
+
+            # info('Copying python-install to dist-dependent location')
+            # shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
+
+            # print('Copying hostpython binary to targetpython folder')
+            # shprint(sh.cp, self.ctx.hostpython,
+            #         join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
+            # self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
+
+
 
         # print('python2 build done, exiting for debug')
         # exit(1)
