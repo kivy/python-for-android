@@ -1914,7 +1914,6 @@ def run_pymodules_install(ctx, modules):
              'pip as it needs a compilation recipe.')
 
         shprint(sh.bash, '-c', '''source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '{}' -r requirements.txt'''.format(ctx.get_site_packages_dir()))
-        exit(1)
             
 def biglink(ctx, arch):
     # First, collate object files from each recipe
