@@ -342,7 +342,6 @@ class Arch(object):
             toolchain_prefix=toolchain_prefix,
             cxxflags=env['CXXFLAGS'])
 
-        # AND: Not sure if these are still important
         env['AR'] = '{}-ar'.format(toolchain_prefix)
         env['RANLIB'] = '{}-ranlib'.format(toolchain_prefix)
         env['LD'] = '{}-ld'.format(toolchain_prefix)
@@ -1910,14 +1909,13 @@ def run_pymodules_install(ctx, modules):
                 fileh.write('{}\n'.format(module))
 
         info('Installing Python modules with pip')
+        info('If this fails with a message about /bin/false, this '
+             'probably means the package cannot be installed with '
+             'pip as it needs a compilation recipe.')
 
-        # AND: This doesn't work yet
-        shprint(sh.bash, '-c', '''"source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '{}' -r requirements.txt"'''.format(ctx.get_site_packages_dir()))
+        shprint(sh.bash, '-c', '''source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '{}' -r requirements.txt'''.format(ctx.get_site_packages_dir()))
+        exit(1)
             
-
-    
-        
-
 def biglink(ctx, arch):
     # First, collate object files from each recipe
     info('Collating object files from each recipe')
