@@ -79,6 +79,9 @@ def info_main(*args):
     logger.info(''.join([Style.BRIGHT, Fore.GREEN] + list(args) +
                         [Style.RESET_ALL, Fore.RESET]))
 
+def info_notify(s):
+    info('{}{}{}{}'.format(Style.BRIGHT, Fore.LIGHTBLUE_EX, s, Style.RESET_ALL))
+
 def pretty_log_dists(dists):
     infos = []
     for dist in dists:
@@ -1868,6 +1871,8 @@ def build_recipes(names, ctx):
         recipe_loaded.append(name)
     build_order = list(graph.find_order())
     info("Recipe build order is {}".format(build_order))
+    info_notify(('The requirements ({}) were not found as recipes, they will be '
+                 'installed with pip.').format(', '.join(python_modules)))
     ctx.recipe_build_order = build_order
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
@@ -2069,7 +2074,7 @@ def build_dist_from_args(ctx, dist, args_list):
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
     info_main('# Creating dist with with {} bootstrap'.format(bs.name))
     bs.distribution = dist
-    info('Dist will have name {} and recipes ({})'.format(
+    info_notify('Dist will have name {} and recipes ({})'.format(
         dist.name, ', '.join(dist.recipes)))
 
     ctx.dist_name = bs.distribution.name
