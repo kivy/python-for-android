@@ -1575,6 +1575,32 @@ class Recipe(object):
         '''
         self.unpack(arch)
 
+    def clean_build(self, arch=None):
+        '''Deletes all the build information of the recipe.
+
+        If arch is not None, only this arch dir is deleted. Otherwise
+        (the default) all builds for all archs are deleted.
+
+        By default, this just deletes the main build dir. If the
+        recipe has e.g. object files biglinked, or .so files stored
+        elsewhere, you should override this method.
+
+        This method is intended for testing purposes, it may have
+        strange results. Rebuild everything if this seems to happen.
+
+        '''
+        if arch is None:
+            dir = join(self.ctx.build_dir, 'other_builds', self.name)
+        else:
+            dir = self.get_build_container_dir(arch)
+        if exists(dir):
+            shutil.rmtree(dir)
+        else:
+            warning(('Attempted to clean build for {} but build'
+                     'did not exist').format(self.name))
+        
+        
+
     @classmethod
     def list_recipes(cls):
         forbidden_dirs = ('__pycache__', )
@@ -1913,7 +1939,11 @@ def run_pymodules_install(ctx, modules):
              'probably means the package cannot be installed with '
              'pip as it needs a compilation recipe.')
 
-        shprint(sh.bash, '-c', '''source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '{}' -r requirements.txt'''.format(ctx.get_site_packages_dir()))
+        # This bash method is what old-p4a used
+        # It works but should be replaced with something better
+        shprint(sh.bash, '-c', (
+            "source venv/bin/activate && env CC=/bin/false CXX=/bin/false"
+            "PYTHONPATH= pip install --target '{}' -r requirements.txt").format(ctx.get_site_packages_dir()))
             
 def biglink(ctx, arch):
     # First, collate object files from each recipe
@@ -2245,9 +2275,12 @@ clean_dists
             shutil.rmtree(ctx.dist_dir)
         
     def clean_builds(self, args):
-        '''Delete all build caches for each recipe.
+        '''Delete all build caches for each recipe, python-install, java code
+        and compiled libs collection.
 
         This does *not* delete the package download cache or the final distributions.
+
+        You can also use clean_recipe_build to delete the build of a specific recipe.
         '''
         parser = argparse.ArgumentParser(
                 description="Delete all build files (but not download caches)")
@@ -2263,7 +2296,27 @@ clean_dists
         if exists(libs_dir):
             shutil.rmtree(libs_dir)
 
+    def clean_recipe_build(self, args):
+        '''Deletes the build files of the given recipe.
+
+        This is intended for debug purposes, you may experience
+        strange behaviour or problems with some recipes (if their
+        build has done unexpected state changes). If this happens, run
+        clean_builds, or attempt to clean other recipes until things
+        work again.
+        '''
+        parser = argparse.ArgumentParser(
+                description="Delete all build files for the given recipe name.")
+        parser.add_argument('recipe', help='The recipe name')
+        args = parser.parse_args(args)
+
+        recipe = Recipe.get_recipe(args.recipe, self.ctx)
+        info('Cleaning build for {} recipe.'.format(recipe.name))
+        recipe.clean_build()
+        
+
     def clean_download_cache(self, args):
+
         '''
         Deletes any downloaded recipe packages.
 
