@@ -53,14 +53,14 @@ times.
 
 Relating to all bootstraps:
 - Some recipes/components aren't stripped properly of doc etc.
-- Public dir installation
 - Some command line options of distribute.sh
+- Biglink is essential (the p4a disable option isn't implemented)
 
 Relating to SDL2 only:
 - Downloaded file md5 and headers aren't checked
-- Biglink is essential (the p4a disable option isn't implemented)
 - Android services are not implemented at all
 - App loading screen
+- Public dir installation
 - Keyboard height getter
 - Billing support
 - Kivy Launcher build (can now be implemented as a bootstrap...maybe?)
