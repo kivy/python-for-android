@@ -18,6 +18,9 @@ class HarfbuzzRecipe(Recipe):
     def build_arch(self, arch):
 
         env = self.get_recipe_env(arch)
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
+            self.ctx.get_libs_dir(arch.arch) +
+            '-L{}'.format(self.ctx.libs_dir))
         with current_directory(self.get_build_dir(arch.arch)):
             configure = sh.Command('./configure')
             shprint(configure, '--without-icu', '--host=arm-linux=androideabi',
