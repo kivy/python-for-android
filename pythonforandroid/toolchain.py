@@ -10,7 +10,8 @@ from __future__ import print_function
 
 import sys
 from sys import stdout
-from os.path import join, dirname, realpath, exists, isdir, basename
+from os.path import (join, dirname, realpath, exists, isdir, basename,
+                     expanduser)
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
 import os
 import zipfile
@@ -596,6 +597,18 @@ class Context(object):
             sdk_dir = environ.get('ANDROIDSDK', None)
         if sdk_dir is None:  # This seems used more conventionally
             sdk_dir = environ.get('ANDROID_HOME', None)  
+        if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
+                             # for debug tests of p4a
+            possible_dirs = glob.glob(expanduser(join(
+                '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
+            if possible_dirs:
+                info('Found possible SDK dirs in buildozer dir: {}'.format(
+                    ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
+                info('Will attempt to use SDK at {}'.format(possible_dirs[0]))
+                warning('This SDK lookup is intended for debug only, if you '
+                        'use python-for-android much you should probably '
+                        'maintain your own SDK download.')
+                sdk_dir = possible_dirs[0]
         if sdk_dir is None:
             warning('Android SDK dir was not specified, exiting.')
             exit(1)
@@ -656,6 +669,18 @@ class Context(object):
             ndk_dir = environ.get('ANDROID_NDK_HOME', None)
             if ndk_dir is not None:
                 info('Found NDK dir in $ANDROID_NDK_HOME')
+        if ndk_dir is None:  # Checks in the buildozer NDK dir, useful
+                             # for debug tests of p4a
+            possible_dirs = glob.glob(expanduser(join(
+                '~', '.buildozer', 'android', 'platform', 'android-ndk-r*')))
+            if possible_dirs:
+                info('Found possible NDK dirs in buildozer dir: {}'.format(
+                    ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
+                info('Will attempt to use NDK at {}'.format(possible_dirs[0]))
+                warning('This NDK lookup is intended for debug only, if you '
+                        'use python-for-android much you should probably '
+                        'maintain your own NDK download.')
+                ndk_dir = possible_dirs[0]
         if ndk_dir is None:
             warning('Android NDK dir was not specified, exiting.')
             exit(1)
