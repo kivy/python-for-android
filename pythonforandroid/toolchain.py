@@ -50,10 +50,10 @@ class LevelDifferentiatingFormatter(logging.Formatter):
             record.msg = '{}{}[WARNING]{}{}: '.format(
                 Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL) + record.msg
         elif record.levelno > 10:
-            record.msg = '{}[INFO]{}: '.format(
+            record.msg = '{}[INFO]{}:    '.format(
                 Style.BRIGHT, Style.RESET_ALL) + record.msg
         else:
-            record.msg = '{}{}[DEBUG]{}{}: '.format(
+            record.msg = '{}{}[DEBUG]{}{}:   '.format(
                 Style.BRIGHT, Fore.LIGHTBLACK_EX, Fore.RESET, Style.RESET_ALL) + record.msg
         return super(LevelDifferentiatingFormatter, self).format(record)
 
@@ -131,7 +131,7 @@ def shprint(command, *args, **kwargs):
     need_closing_newline = False
     for line in output:
         if logger.level > logging.DEBUG:
-            string = '\r' + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
+            string = '\r' + ' '*11 + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
             if len(string) < 20:
                 continue
             if len(string) < 120:
@@ -969,7 +969,7 @@ class Distribution(object):
                  'the given requirements:')
             pretty_log_dists(possible_dists)
         else:
-            info('{}No existing dists meet the given requirements!{}'.format(Fore.RED, Fore.RESET))
+            info('No existing dists meet the given requirements!')
                 
 
         # If any dist has perfect recipes, return it
