@@ -11,6 +11,7 @@ class Python3Recipe(Recipe):
     name = 'python3'
 
     depends = ['hostpython3']  
+    conflicts = ['python2']
 
     def prebuild_armeabi(self):
         build_dir = self.get_build_container_dir('armeabi')

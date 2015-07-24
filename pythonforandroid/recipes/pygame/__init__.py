@@ -8,7 +8,9 @@ class PygameRecipe(Recipe):
     name = 'pygame'
     version = '1.9.1'
     url = 'http://pygame.org/ftp/pygame-{version}release.tar.gz'
+
     depends = ['python2', 'sdl']
+    conflicts = ['sdl2']
 
     def get_recipe_env(self, arch):
         env = super(PygameRecipe, self).get_recipe_env(arch)
