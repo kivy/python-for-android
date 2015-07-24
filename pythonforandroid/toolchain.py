@@ -425,6 +425,11 @@ class Graph(object):
         if dependent != dependency:
             self.graph[dependent].add(dependency)
 
+    def conflicts(self, conflict):
+        if conflict in self.graph:
+            return True
+        return False
+
     def add_optional(self, dependent, dependency):
         """Add an optional (ordering only) dependency relationship to the graph
 
@@ -1878,7 +1883,7 @@ def build_recipes(names, ctx):
     recipes_to_load = set(names)
     bs = ctx.bootstrap
     if bs is not None and bs.recipe_depends:
-        info('Bootstrap requires recipes {}'.format(bs.recipe_depends))
+        info_notify('Bootstrap requires recipes {}'.format(bs.recipe_depends))
         recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
     recipes_to_load = list(recipes_to_load)
     recipe_loaded = []
@@ -1894,12 +1899,14 @@ def build_recipes(names, ctx):
             python_modules.append(name)
             continue
         graph.add(name, name)
-        info('Loaded recipe {} (depends on {}, conflicts {})'.format(name, recipe.depends, recipe.conflicts))
+        info('Loaded recipe {} (depends on {}{})'.format(
+            name, recipe.depends,
+            ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
         for depend in recipe.depends:
             graph.add(name, depend)
             recipes_to_load += recipe.depends
         for conflict in recipe.conflicts:
-            if conflict in graph.graph:
+            if graph.conflicts(conflict):
                 warning(
                     ('{} conflicts with {}, but both have been '
                      'included in the requirements.'.format(recipe.name, conflict)))
@@ -1907,9 +1914,10 @@ def build_recipes(names, ctx):
                 exit(1)
         recipe_loaded.append(name)
     build_order = list(graph.find_order())
-    info("Recipe build order is {}".format(build_order))
-    info_notify(('The requirements ({}) were not found as recipes, they will be '
-                 'installed with pip.').format(', '.join(python_modules)))
+    info_notify("Recipe build order is {}".format(build_order))
+    if python_modules:
+        info_notify(('The requirements ({}) were not found as recipes, they will be '
+                     'installed with pip.').format(', '.join(python_modules)))
     ctx.recipe_build_order = build_order
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
