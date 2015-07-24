@@ -177,6 +177,10 @@ order; setting any of these variables overrides all the later ones:
 - The ``ANDROIDSDK`` environment variable.
 - The ``ANDROID_HOME`` environment variable (this may be used or set
   by other tools).
+- By using buildozer and letting it download the SDK;
+  python-for-android automatically checks the default buildozer
+  download directory. This is intended to make testing
+  python-for-android easy.
   
 If none of these is set, python-for-android will raise an error and exit.
   
@@ -219,6 +223,10 @@ order; setting any of these variables overrides all the later ones:
 - The ``NDK_HOME`` environment variable (this may be used or set
   by other tools).
 - The ``ANDROID_NDK_HOME`` environment variable (this may be used or set
+- By using buildozer and letting it download the NDK;
+  python-for-android automatically checks the default buildozer
+  download directory. This is intended to make testing
+  python-for-android easy.
   by other tools).
 
 If none of these is set, python-for-android will raise an error and exit.
