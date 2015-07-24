@@ -28,9 +28,16 @@ logcat stream. You can see this by enabling developer mode on your
 Android device, enabling adb on the device, connecting it to your PC
 (you should see a notification that USB debugging is connected) and
 running ``adb logcat``. If adb is not in your PATH, you can find it at
-``/path/to/Android/SDK/platform-tools/adb``.
+``/path/to/Android/SDK/platform-tools/adb``, or access it through
+python-for-android with the shortcut::
 
-Running this command gives a lot of information about what Android is
+    python-for-android logcat
+
+or::
+
+    python-for-android adb logcat
+
+Running logcat command gives a lot of information about what Android is
 doing. You can usually see important lines by using logcat's built in
 functionality to see only lines with the ``python`` tag (or just
 grepping this).
@@ -38,6 +45,16 @@ grepping this).
 When your app crashes, you'll see the normal Python traceback here, as
 well as the output of any print statements etc. that your app
 runs. Use these to diagnose the problem just as normal.
+    
+The adb command passes its arguments straight to adb itself, so you
+can also do other debugging tasks such as ``python-for-android adb
+devices`` to get the list of connected devices.
+
+For further information, see the Android docs on `adb
+<http://developer.android.com/intl/zh-cn/tools/help/adb.html>`_, and
+on `logcat
+<http://developer.android.com/intl/zh-cn/tools/help/logcat.html>`_ in
+particular.
 
 Common errors
 -------------
