@@ -10,6 +10,8 @@ class Hostpython2Recipe(Recipe):
     url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'hostpython2'
 
+    conflicts = ['hostpython3']
+
     def prebuild_armeabi(self):
         # Override hostpython Setup?
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
