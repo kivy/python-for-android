@@ -81,11 +81,6 @@ info(''.join([Fore.RED,
               ('It should work (mostly), but you may experience '
                'missing features or bugs.'),
               Style.RESET_ALL]))
-info(''.join([Fore.RED,
-              ('See http://inclem.net/files/p4a_revamp_doc/index.html '
-               'for the current (WIP) documentation.'),
-              Style.RESET_ALL]))
-
 
 def info_main(*args):
     logger.info(''.join([Style.BRIGHT, Fore.GREEN] + list(args) +
@@ -739,7 +734,6 @@ class Context(object):
             'platforms',
             'android-{}'.format(self.android_api),
             'arch-arm')
-        print('ndk platform', self.ndk_platform)
         if not exists(self.ndk_platform):
             warning('ndk_platform doesn\'t exist')
             ok = False
@@ -978,7 +972,7 @@ class Distribution(object):
                 continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and not require_perfect_match)):
-                info('{} has compatible recipes, using this one'.format(dist.name))
+                info_notify('{} has compatible recipes, using this one'.format(dist.name))
                 return dist
 
         assert len(possible_dists) < 2
@@ -2108,7 +2102,7 @@ def build_dist_from_args(ctx, dist, args_list):
     args, unknown = parser.parse_known_args(args_list)
 
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
-    info_main('# Creating dist with with {} bootstrap'.format(bs.name))
+    info_main('# Creating dist with {} bootstrap'.format(bs.name))
     bs.distribution = dist
     info_notify('Dist will have name {} and recipes ({})'.format(
         dist.name, ', '.join(dist.recipes)))
