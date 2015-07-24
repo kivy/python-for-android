@@ -9,7 +9,7 @@ This tool intend to replace all the previous tools/ in shell script.
 from __future__ import print_function
 
 import sys
-from sys import stdout
+from sys import stdout, platform
 from os.path import (join, dirname, realpath, exists, isdir, basename,
                      expanduser)
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
@@ -2520,6 +2520,27 @@ clean_dists
             info('No dist exists that matches your specifications, exiting without deleting.')
         shutil.rmtree(dist.dist_dir)
         
+    def adb(self, args):
+        '''Runs the adb binary from the detected SDK directory, passing all
+        arguments straight to it.'''
+        ctx = self.ctx
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+                                      user_ndk_dir=self.ndk_dir,
+                                      user_android_api=self.android_api,
+                                      user_ndk_ver=self.ndk_version)
+        if platform in ('win32', 'cygwin'):
+            adb = sh.Command(join(ctx.sdk_dir, 'platform-tools', 'adb.exe'))
+        else:
+            adb = sh.Command(join(ctx.sdk_dir, 'platform-tools', 'adb'))
+        info_notify('Starting adb...')
+        output = adb(args, _iter=True, _out_bufsize=1, _err_to_out=True)
+        for line in output:
+            print(line)
+
+    def logcat(self, args):
+        '''Runs ``adb logcat`` using the adb binary from the detected SDK
+        directory. All extra args are passed as arguments to logcat.'''
+        self.adb(['logcat'] + args)
 
 if __name__ == "__main__":
 
