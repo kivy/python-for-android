@@ -44,6 +44,18 @@ sys.path.insert(0, join(curdir, "tools", "external"))
 
 DEFAULT_ANDROID_API = 14
 
+class LevelDifferentiatingFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelno > 20:
+            record.msg = '{}{}[WARNING]{}{}: '.format(
+                Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL) + record.msg
+        elif record.levelno > 10:
+            record.msg = '{}[INFO]{}: '.format(
+                Style.BRIGHT, Style.RESET_ALL) + record.msg
+        else:
+            record.msg = '{}{}[DEBUG]{}{}: '.format(
+                Style.BRIGHT, Fore.LIGHTBLACK_EX, Fore.RESET, Style.RESET_ALL) + record.msg
+        return super(LevelDifferentiatingFormatter, self).format(record)
 
 logger = logging.getLogger('p4a')
 if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
@@ -52,8 +64,7 @@ if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
     logger.setLevel(logging.INFO)
     logger.touched = True
     ch = logging.StreamHandler(stdout)
-    formatter = logging.Formatter('{}[%(levelname)s]{}: %(message)s'.format(
-        Style.BRIGHT, Style.RESET_ALL))
+    formatter = LevelDifferentiatingFormatter('%(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 info = logger.info
@@ -155,8 +166,8 @@ def require_prebuilt_dist(func):
                                       user_ndk_ver=self.ndk_version)
         dist = self._dist
         if dist.needs_build:
-            info('No dist exists that meets your requirements, so one will '
-                 'be built.')
+            info_notify('No dist exists that meets your requirements, so one will '
+                        'be built.')
             args = build_dist_from_args(ctx, dist, args)
         func(self, args)
     return wrapper_func
