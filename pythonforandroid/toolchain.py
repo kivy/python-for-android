@@ -413,7 +413,7 @@ class ArchAndroid(Arch):
     
 
 class Graph(object):
-    # Taken from python-for-android/depsort
+    # Taken from the old python-for-android/depsort
     def __init__(self):
         # `graph`: dict that maps each package to a set of its dependencies.
         self.graph = {}
@@ -1875,16 +1875,16 @@ class CythonRecipe(PythonRecipe):
 def build_recipes(names, ctx):
     # Put recipes in correct build order
     graph = Graph()
-    recipe_to_load = set(names)
+    recipes_to_load = set(names)
     bs = ctx.bootstrap
-    if bs.recipe_depends:
+    if bs is not None and bs.recipe_depends:
         info('Bootstrap requires recipes {}'.format(bs.recipe_depends))
-        recipe_to_load = recipe_to_load.union(set(bs.recipe_depends))
-    recipe_to_load = list(recipe_to_load)
+        recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
+    recipes_to_load = list(recipes_to_load)
     recipe_loaded = []
     python_modules = []
-    while recipe_to_load:
-        name = recipe_to_load.pop(0)
+    while recipes_to_load:
+        name = recipes_to_load.pop(0)
         if name in recipe_loaded:
             continue
         try:
@@ -1894,10 +1894,17 @@ def build_recipes(names, ctx):
             python_modules.append(name)
             continue
         graph.add(name, name)
-        info('Loaded recipe {} (depends on {})'.format(name, recipe.depends))
+        info('Loaded recipe {} (depends on {}, conflicts {})'.format(name, recipe.depends, recipe.conflicts))
         for depend in recipe.depends:
             graph.add(name, depend)
-            recipe_to_load += recipe.depends
+            recipes_to_load += recipe.depends
+        for conflict in recipe.conflicts:
+            if conflict in graph.graph:
+                warning(
+                    ('{} conflicts with {}, but both have been '
+                     'included in the requirements.'.format(recipe.name, conflict)))
+                warning('Due to this conflict the build cannot continue, exiting.')
+                exit(1)
         recipe_loaded.append(name)
     build_order = list(graph.find_order())
     info("Recipe build order is {}".format(build_order))
@@ -2102,6 +2109,7 @@ def build_dist_from_args(ctx, dist, args_list):
     args, unknown = parser.parse_known_args(args_list)
 
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
+    info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
     bs.distribution = dist
     info_notify('Dist will have name {} and recipes ({})'.format(
@@ -2522,7 +2530,9 @@ clean_dists
         
     def adb(self, args):
         '''Runs the adb binary from the detected SDK directory, passing all
-        arguments straight to it.'''
+        arguments straight to it. This is intended as a convenience
+        function if adb is not in your $PATH.
+        '''
         ctx = self.ctx
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
@@ -2535,7 +2545,8 @@ clean_dists
         info_notify('Starting adb...')
         output = adb(args, _iter=True, _out_bufsize=1, _err_to_out=True)
         for line in output:
-            print(line)
+            sys.stdout.write(line)
+            sys.stdout.flush()
 
     def logcat(self, args):
         '''Runs ``adb logcat`` using the adb binary from the detected SDK
