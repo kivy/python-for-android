@@ -1,0 +1,20 @@
+README-VeNum
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum
+=================================================================
+
+Consumers are increasingly browsing Web based photo galleries incorporating
+high-resolution JPEG images with their mobile devices. These images are
+decoded by the mobile device, and typically also scaled down to fit the user's
+zoom selection on the device's browser.
+
+In order to improve both decode and download times, Qualcomm Innovation Center
+has optimized the JPEG library found on many common OS platforms such as Web
+OS, Android, and Chrome OS. Our team re-implemented several routines to utilize the
+DSP-like SIMD capabilities of the ARM NEON instruction set. These were then
+tuned and tested on Qualcomm's Snapdragon platform which implements the VeNum
+implementation of these same instructions.
+
+The specific areas of focus cover VeNum/NEON acceleration of Inverse Discrete
+Cosine Transform (iDCT) for 8x8, 4x4, 2x2, and 1x1 block sizes and YUV to RGB
+color space conversion. This resulted in a range of 18-32% improvement in JPEG
+decode and downscale times for images greater than 2Mpixels.

@@ -13,14 +13,16 @@ function prebuild_hostpython() {
 	try cp $RECIPE_hostpython/Setup Modules/Setup
 }
 
+function shouldbuild_hostpython() {
+	cd $BUILD_hostpython
+	if [ -f hostpython ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_hostpython() {
 	# placeholder for building
 	cd $BUILD_hostpython
-
-	# don't do the build if we already got hostpython binary
-	if [ -f hostpython ]; then
-		return
-	fi
 
     try ./configure
     try make -j5

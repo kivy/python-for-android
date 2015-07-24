@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_openssl=1.0.1c
-URL_openssl=http://www.openssl.org/source/openssl-$VERSION_openssl.tar.gz
+VERSION_openssl=${VERSION_openssl:-1.0.2d}
+URL_openssl=https://www.openssl.org/source/openssl-$VERSION_openssl.tar.gz
 DEPS_openssl=()
-MD5_openssl=ae412727c8c15b67880aef7bd2999b2e
+MD5_openssl=38dd619b2e77cbac69b99f52a053d25a
 BUILD_openssl=$BUILD_PATH/openssl/$(get_directory $URL_openssl)
 RECIPE_openssl=$RECIPES_PATH/openssl
 
@@ -11,12 +11,14 @@ function prebuild_openssl() {
 	true
 }
 
+function shouldbuild_openssl() {
+	if [ -f "$BUILD_openssl/libssl.a" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_openssl() {
 	cd $BUILD_openssl
-
-	if [ -f libssl.a ]; then
-		return
-	fi
 
 	push_arm
 

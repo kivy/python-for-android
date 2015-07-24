@@ -605,6 +605,10 @@ jpeg_simple_progression (j_compress_ptr cinfo)
     scanptr = fill_dc_scans(scanptr, ncomps, 1, 0);
     scanptr = fill_scans(scanptr, ncomps, 1, 63, 1, 0);
   }
+#ifdef NEEDS_ARM_ERRATA_754319_754320
+  asm volatile ( "vmov s0,s0\n" );
+#endif
+
 }
 
 #endif /* C_PROGRESSIVE_SUPPORTED */

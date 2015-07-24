@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_pygame=1.9.1
+VERSION_pygame=${VERSION_pygame:-1.9.1}
 URL_pygame=http://pygame.org/ftp/pygame-$(echo $VERSION_pygame)release.tar.gz
 DEPS_pygame=(python sdl)
 MD5_pygame=1c4cdc708d17c8250a2d78ef997222fc
@@ -24,6 +24,12 @@ function prebuild_pygame() {
 	touch .patched
 }
 
+function shouldbuild_pygame() {
+	if [ -d $BUILD_PATH/python-install/lib/python*/site-packages/pygame ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_pygame() {
 	cd $BUILD_pygame
 
@@ -35,7 +41,7 @@ function build_pygame() {
 	export CFLAGS="$CFLAGS"
 	export LDFLAGS="$LDFLAGS -L$LIBS_PATH -L$SRC_PATH/obj/local/$ARCH/ -lm -lz"
 	export LDSHARED="$LIBLINK"
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
 	try rm -rf $BUILD_PATH/python-install/lib/python*/site-packages/pygame/docs

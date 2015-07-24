@@ -10,8 +10,8 @@
 """
 from jinja2 import nodes
 from jinja2.exceptions import TemplateSyntaxError, TemplateAssertionError
-from jinja2.utils import next
 from jinja2.lexer import describe_token, describe_token_expr
+from jinja2._compat import next, imap
 
 
 #: statements that callinto 
@@ -53,7 +53,7 @@ class Parser(object):
     def _fail_ut_eof(self, name, end_token_stack, lineno):
         expected = []
         for exprs in end_token_stack:
-            expected.extend(map(describe_token_expr, exprs))
+            expected.extend(imap(describe_token_expr, exprs))
         if end_token_stack:
             currently_looking = ' or '.join(
                 "'%s'" % describe_token_expr(expr)
@@ -223,7 +223,7 @@ class Parser(object):
         # raise a nicer error message in that case.
         if self.stream.current.type == 'sub':
             self.fail('Block names in Jinja have to be valid Python '
-                      'identifiers and may not contain hypens, use an '
+                      'identifiers and may not contain hyphens, use an '
                       'underscore instead.')
 
         node.body = self.parse_statements(('name:endblock',), drop_needle=True)
@@ -370,7 +370,7 @@ class Parser(object):
                 target = self.parse_tuple(simplified=True,
                                           extra_end_rules=extra_end_rules)
             else:
-                target = self.parse_primary(with_postfix=False)
+                target = self.parse_primary()
             target.set_ctx('store')
         if not target.can_assign():
             self.fail('can\'t assign to %r' % target.__class__.
@@ -525,20 +525,23 @@ class Parser(object):
             lineno = self.stream.current.lineno
         return left
 
-    def parse_unary(self):
+    def parse_unary(self, with_filter=True):
         token_type = self.stream.current.type
         lineno = self.stream.current.lineno
         if token_type == 'sub':
             next(self.stream)
-            node = self.parse_unary()
-            return nodes.Neg(node, lineno=lineno)
-        if token_type == 'add':
+            node = nodes.Neg(self.parse_unary(False), lineno=lineno)
+        elif token_type == 'add':
             next(self.stream)
-            node = self.parse_unary()
-            return nodes.Pos(node, lineno=lineno)
-        return self.parse_primary()
+            node = nodes.Pos(self.parse_unary(False), lineno=lineno)
+        else:
+            node = self.parse_primary()
+        node = self.parse_postfix(node)
+        if with_filter:
+            node = self.parse_filter_expr(node)
+        return node
 
-    def parse_primary(self, with_postfix=True):
+    def parse_primary(self):
         token = self.stream.current
         if token.type == 'name':
             if token.value in ('true', 'false', 'True', 'False'):
@@ -570,8 +573,6 @@ class Parser(object):
             node = self.parse_dict()
         else:
             self.fail("unexpected '%s'" % describe_token(token), token.lineno)
-        if with_postfix:
-            node = self.parse_postfix(node)
         return node
 
     def parse_tuple(self, simplified=False, with_condexpr=True,
@@ -596,7 +597,7 @@ class Parser(object):
         """
         lineno = self.stream.current.lineno
         if simplified:
-            parse = lambda: self.parse_primary(with_postfix=False)
+            parse = self.parse_primary
         elif with_condexpr:
             parse = self.parse_expression
         else:
@@ -661,12 +662,25 @@ class Parser(object):
             token_type = self.stream.current.type
             if token_type == 'dot' or token_type == 'lbracket':
                 node = self.parse_subscript(node)
+            # calls are valid both after postfix expressions (getattr
+            # and getitem) as well as filters and tests
             elif token_type == 'lparen':
                 node = self.parse_call(node)
-            elif token_type == 'pipe':
+            else:
+                break
+        return node
+
+    def parse_filter_expr(self, node):
+        while 1:
+            token_type = self.stream.current.type
+            if token_type == 'pipe':
                 node = self.parse_filter(node)
             elif token_type == 'name' and self.stream.current.value == 'is':
                 node = self.parse_test(node)
+            # calls are valid both after postfix expressions (getattr
+            # and getitem) as well as filters and tests
+            elif token_type == 'lparen':
+                node = self.parse_call(node)
             else:
                 break
         return node
@@ -684,7 +698,6 @@ class Parser(object):
             arg = nodes.Const(attr_token.value, lineno=attr_token.lineno)
             return nodes.Getitem(node, arg, 'load', lineno=token.lineno)
         if token.type == 'lbracket':
-            priority_on_attribute = False
             args = []
             while self.stream.current.type != 'rbracket':
                 if args:

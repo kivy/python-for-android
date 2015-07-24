@@ -97,9 +97,31 @@ void SDL_ANDROID_WaitForResume()
 JNIEXPORT void JNICALL 
 JAVA_EXPORT_NAME(SDLSurfaceView_nativeResize) ( JNIEnv*  env, jobject  thiz, jint w, jint h )
 {
+    __android_log_print(ANDROID_LOG_INFO, "libSDL", "Physical screen resolution is %dx%d", w, h);
+
     SDL_ANDROID_sWindowWidth  = w;
     SDL_ANDROID_sWindowHeight = h;
-    __android_log_print(ANDROID_LOG_INFO, "libSDL", "Physical screen resolution is %dx%d", w, h);
+}
+
+
+JNIEXPORT void JNICALL 
+JAVA_EXPORT_NAME(SDLSurfaceView_nativeResizeEvent) ( JNIEnv*  env, jobject  thiz, jint w, jint h)
+{
+    __android_log_print(ANDROID_LOG_INFO, "libSDL", "Private resize to %dx%d", w, h);
+    SDL_PrivateResize(w, h);
+    SDL_ANDROID_sWindowWidth  = w;
+    SDL_ANDROID_sWindowHeight = h;
+    if ( SDL_VideoSurface ) {
+        SDL_VideoSurface->w = w;
+        SDL_VideoSurface->h = h;
+    }
+}
+
+
+JNIEXPORT void JNICALL 
+JAVA_EXPORT_NAME(SDLSurfaceView_nativeExpose) ( JNIEnv*  env, jobject  thiz, jint w, jint h)
+{
+    SDL_PrivateExpose();
 }
 
 JNIEXPORT void JNICALL 
@@ -128,4 +150,10 @@ JAVA_EXPORT_NAME(SDLSurfaceView_nativeInitJavaCallbacks) ( JNIEnv*  env, jobject
 	JavaWaitForResume = (*JavaEnv)->GetMethodID(JavaEnv, JavaRendererClass, "waitForResume", "()V");
 	
 	ANDROID_InitOSKeymap();	
+}
+
+JNIEXPORT void JNICALL
+JAVA_EXPORT_NAME(PythonService_nativeInitJavaEnv) ( JNIEnv*  env, jobject thiz )
+{
+	JavaEnv = env;
 }

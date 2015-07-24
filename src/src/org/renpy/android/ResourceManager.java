@@ -15,7 +15,7 @@ public class ResourceManager {
 
     private Activity act;
     private Resources res;
-    
+
     public ResourceManager(Activity activity) {
         act = activity;
         res = act.getResources();
@@ -24,7 +24,7 @@ public class ResourceManager {
     public int getIdentifier(String name, String kind) {
         return res.getIdentifier(name, kind, act.getPackageName());
     }
-        
+
     public String getString(String name) {
 
         try {
@@ -43,5 +43,5 @@ public class ResourceManager {
         int id = getIdentifier(name, "id");
         return v.findViewById(id);
     }
-    
+
 }

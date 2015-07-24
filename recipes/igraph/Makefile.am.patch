@@ -1,0 +1,47 @@
+170c170,180
+< 		scg_headers.h igraph_hacks_internal.h
+---
+> 		scg_headers.h igraph_hacks_internal.h \
+> 		arpackobject.h \
+> 		pyattributes.h	bfsiter.h \
+> 		common.h	convert.h \
+> 		edgeobject.h	edgeseqobject.h \
+> 		error.h	filehandle.h \
+> 		graphobject.h	igraphmodule_api.h \
+> 		indexing.h	platform.h \
+> 		py2compat.h	pyhelpers.h \
+> 		pyrandom.h	vertexobject.h \
+> 		vertexseqobject.h
+260c270,287
+< 			     qsort.c qsort_r.c types.c hacks.c
+---
+> 			     qsort.c qsort_r.c types.c hacks.c \
+> 			     arpackobject.c \
+> 			     pyattributes.c \
+> 			     bfsiter.c \
+> 			     common.c \
+> 			     convert.c \
+> 			     edgeobject.c \
+> 			     edgeseqobject.c \
+> 			     error.c \
+> 			     filehandle.c \
+> 			     graphobject.c \
+> 			     igraphmodule.c \
+> 			     indexing.c \
+> 			     py2compat.c \
+> 			     pyhelpers.c \
+> 			     pyrandom.c \
+> 			     vertexobject.c \
+> 			     vertexseqobject.c
+263,265c290,292
+< libigraph_la_CFLAGS        = -I$(top_srcdir)/include -I$(top_builddir)/include $(WARNING_CFLAGS)
+< libigraph_la_CXXFLAGS	   = -I$(top_srcdir)/include -I$(top_builddir)/include $(WARNING_CFLAGS)
+< libigraph_la_LDFLAGS       = -no-undefined
+---
+> libigraph_la_CFLAGS        = -I$(top_srcdir)/include -I$(top_builddir)/include $(WARNING_CFLAGS) -IBUILD_PATH/python-install/include/python2.7
+> libigraph_la_CXXFLAGS	   = -I$(top_srcdir)/include -I$(top_builddir)/include $(WARNING_CFLAGS) -IBUILD_PATH/python-install/include/python2.7
+> libigraph_la_LDFLAGS       = -no-undefined -LBUILD_PATH/python-install/lib -IBUILD_PATH/python-install/include/python2.7
+267c294
+< 				 $(LAPACK_LIB) $(ARPACK_LIB) $(GLPK_LIB) $(PLFIT_LIB)
+---
+> 				 $(LAPACK_LIB) $(ARPACK_LIB) $(GLPK_LIB) $(PLFIT_LIB) -lpython2.7

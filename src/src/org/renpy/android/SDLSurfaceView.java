@@ -34,27 +34,43 @@ import android.content.pm.ActivityInfo;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.ExtractedText;
+import android.view.inputmethod.ExtractedTextRequest;
+import android.view.inputmethod.CompletionInfo;
+//API 11 only
+//import android.view.inputmethod.CorrectionInfo;
+import android.opengl.GLSurfaceView;
 import android.net.Uri;
 import android.os.PowerManager;
+import android.os.Handler;
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
+import android.graphics.PixelFormat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLUtils;
+import java.lang.Math;
 import java.nio.FloatBuffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.content.res.Resources;
 
 
 public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
-	private static String TAG = "SDLSurface";
-    private final String mVertexShader =
+    static private final String TAG = "SDLSurface";
+    static private final boolean DEBUG = false;
+    static private final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
         "attribute vec2 aTextureCoord;\n" +
@@ -64,7 +80,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         "  vTextureCoord = aTextureCoord;\n" +
         "}\n";
 
-    private final String mFragmentShader =
+    static private final String mFragmentShader =
         "precision mediump float;\n" +
         "varying vec2 vTextureCoord;\n" +
         "uniform sampler2D sTexture;\n" +
@@ -72,202 +88,214 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
 
         "}\n";
-	private static class ConfigChooser implements GLSurfaceView.EGLConfigChooser {
+    private static class ConfigChooser implements GLSurfaceView.EGLConfigChooser {
 
-		public ConfigChooser(int r, int g, int b, int a, int depth, int stencil) {
-			mRedSize = r;
-			mGreenSize = g;
-			mBlueSize = b;
-			mAlphaSize = a;
-			mDepthSize = depth;
-			mStencilSize = stencil;
-		}
+        public ConfigChooser(int r, int g, int b, int a, int depth, int stencil) {
+            mRedSize = r;
+            mGreenSize = g;
+            mBlueSize = b;
+            mAlphaSize = a;
+            mDepthSize = depth;
+            mStencilSize = stencil;
+        }
 
-		/* This EGL config specification is used to specify 2.0 rendering.
-		 * We use a minimum size of 4 bits for red/green/blue, but will
-		 * perform actual matching in chooseConfig() below.
-		 */
-		private static int EGL_OPENGL_ES2_BIT = 4;
-		private static int[] s_configAttribs2 =
-		{
-			EGL10.EGL_RED_SIZE, 4,
-			EGL10.EGL_GREEN_SIZE, 4,
-			EGL10.EGL_BLUE_SIZE, 4,
-			EGL10.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-			EGL10.EGL_NONE
-		};
+        /* This EGL config specification is used to specify 2.0 rendering.
+         * We use a minimum size of 4 bits for red/green/blue, but will
+         * perform actual matching in chooseConfig() below.
+         */
+        private static int EGL_OPENGL_ES2_BIT = 4;
+        private static int[] s_configAttribs2 =
+        {
+            EGL10.EGL_RED_SIZE, 4,
+            EGL10.EGL_GREEN_SIZE, 4,
+            EGL10.EGL_BLUE_SIZE, 4,
+            EGL10.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL10.EGL_NONE
+        };
 
-		public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
+        public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
 
-			/* Get the number of minimally matching EGL configurations
-			*/
-			int[] num_config = new int[1];
-			egl.eglChooseConfig(display, s_configAttribs2, null, 0, num_config);
+            /* Get the number of minimally matching EGL configurations
+            */
+            int[] num_config = new int[1];
+            egl.eglChooseConfig(display, s_configAttribs2, null, 0, num_config);
 
-			int numConfigs = num_config[0];
+            int numConfigs = num_config[0];
 
-			if (numConfigs <= 0) {
-				throw new IllegalArgumentException("No configs match configSpec");
-			}
+            if (numConfigs <= 0) {
+                throw new IllegalArgumentException("No configs match configSpec");
+            }
 
-			/* Allocate then read the array of minimally matching EGL configs
-			*/
-			EGLConfig[] configs = new EGLConfig[numConfigs];
-			egl.eglChooseConfig(display, s_configAttribs2, configs, numConfigs, num_config);
+            /* Allocate then read the array of minimally matching EGL configs
+            */
+            EGLConfig[] configs = new EGLConfig[numConfigs];
+            egl.eglChooseConfig(display, s_configAttribs2, configs, numConfigs, num_config);
 
-			/* Now return the "best" one
-			*/
-			//printConfigs(egl, display, configs);
-			return chooseConfig(egl, display, configs);
-		}
+            /* Now return the "best" one
+            */
+            //printConfigs(egl, display, configs);
+            return chooseConfig(egl, display, configs);
+        }
 
-		public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display,
-				EGLConfig[] configs) {
-			for(EGLConfig config : configs) {
-				int d = findConfigAttrib(egl, display, config,
-						EGL10.EGL_DEPTH_SIZE, 0);
-				int s = findConfigAttrib(egl, display, config,
-						EGL10.EGL_STENCIL_SIZE, 0);
+        public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display,
+                EGLConfig[] configs) {
+            for(EGLConfig config : configs) {
+                int d = findConfigAttrib(egl, display, config,
+                        EGL10.EGL_DEPTH_SIZE, 0);
+                int s = findConfigAttrib(egl, display, config,
+                        EGL10.EGL_STENCIL_SIZE, 0);
 
-				// We need at least mDepthSize and mStencilSize bits
-				if (d < mDepthSize || s < mStencilSize)
-					continue;
+                // We need at least mDepthSize and mStencilSize bits
+                if (d < mDepthSize || s < mStencilSize)
+                    continue;
 
-				// We want an *exact* match for red/green/blue/alpha
-				int r = findConfigAttrib(egl, display, config,
-						EGL10.EGL_RED_SIZE, 0);
-				int g = findConfigAttrib(egl, display, config,
-						EGL10.EGL_GREEN_SIZE, 0);
-				int b = findConfigAttrib(egl, display, config,
-						EGL10.EGL_BLUE_SIZE, 0);
-				int a = findConfigAttrib(egl, display, config,
-						EGL10.EGL_ALPHA_SIZE, 0);
+                // We want an *exact* match for red/green/blue/alpha
+                int r = findConfigAttrib(egl, display, config,
+                        EGL10.EGL_RED_SIZE, 0);
+                int g = findConfigAttrib(egl, display, config,
+                        EGL10.EGL_GREEN_SIZE, 0);
+                int b = findConfigAttrib(egl, display, config,
+                        EGL10.EGL_BLUE_SIZE, 0);
+                int a = findConfigAttrib(egl, display, config,
+                        EGL10.EGL_ALPHA_SIZE, 0);
 
-				if (r == mRedSize && g == mGreenSize && b == mBlueSize && a == mAlphaSize)
-					return config;
-			}
-			return null;
-		}
+                if (r == mRedSize && g == mGreenSize && b == mBlueSize && a == mAlphaSize)
+                    return config;
+            }
+            return null;
+        }
 
-		private int findConfigAttrib(EGL10 egl, EGLDisplay display,
-				EGLConfig config, int attribute, int defaultValue) {
+        private int findConfigAttrib(EGL10 egl, EGLDisplay display,
+                EGLConfig config, int attribute, int defaultValue) {
 
-			if (egl.eglGetConfigAttrib(display, config, attribute, mValue)) {
-				return mValue[0];
-			}
-			return defaultValue;
-		}
+            if (egl.eglGetConfigAttrib(display, config, attribute, mValue)) {
+                return mValue[0];
+            }
+            return defaultValue;
+        }
 
-		private void printConfigs(EGL10 egl, EGLDisplay display,
-				EGLConfig[] configs) {
-			int numConfigs = configs.length;
-			Log.w(TAG, String.format("%d configurations", numConfigs));
-			for (int i = 0; i < numConfigs; i++) {
-				Log.w(TAG, String.format("Configuration %d:\n", i));
-				printConfig(egl, display, configs[i]);
-			}
-		}
+        private void printConfigs(EGL10 egl, EGLDisplay display,
+                EGLConfig[] configs) {
+            int numConfigs = configs.length;
+            Log.w(TAG, String.format("%d configurations", numConfigs));
+            for (int i = 0; i < numConfigs; i++) {
+                Log.w(TAG, String.format("Configuration %d:\n", i));
+                printConfig(egl, display, configs[i]);
+            }
+        }
 
-		private void printConfig(EGL10 egl, EGLDisplay display,
-				EGLConfig config) {
-			int[] attributes = {
-				EGL10.EGL_BUFFER_SIZE,
-				EGL10.EGL_ALPHA_SIZE,
-				EGL10.EGL_BLUE_SIZE,
-				EGL10.EGL_GREEN_SIZE,
-				EGL10.EGL_RED_SIZE,
-				EGL10.EGL_DEPTH_SIZE,
-				EGL10.EGL_STENCIL_SIZE,
-				EGL10.EGL_CONFIG_CAVEAT,
-				EGL10.EGL_CONFIG_ID,
-				EGL10.EGL_LEVEL,
-				EGL10.EGL_MAX_PBUFFER_HEIGHT,
-				EGL10.EGL_MAX_PBUFFER_PIXELS,
-				EGL10.EGL_MAX_PBUFFER_WIDTH,
-				EGL10.EGL_NATIVE_RENDERABLE,
-				EGL10.EGL_NATIVE_VISUAL_ID,
-				EGL10.EGL_NATIVE_VISUAL_TYPE,
-				0x3030, // EGL10.EGL_PRESERVED_RESOURCES,
-				EGL10.EGL_SAMPLES,
-				EGL10.EGL_SAMPLE_BUFFERS,
-				EGL10.EGL_SURFACE_TYPE,
-				EGL10.EGL_TRANSPARENT_TYPE,
-				EGL10.EGL_TRANSPARENT_RED_VALUE,
-				EGL10.EGL_TRANSPARENT_GREEN_VALUE,
-				EGL10.EGL_TRANSPARENT_BLUE_VALUE,
-				0x3039, // EGL10.EGL_BIND_TO_TEXTURE_RGB,
-				0x303A, // EGL10.EGL_BIND_TO_TEXTURE_RGBA,
-				0x303B, // EGL10.EGL_MIN_SWAP_INTERVAL,
-				0x303C, // EGL10.EGL_MAX_SWAP_INTERVAL,
-				EGL10.EGL_LUMINANCE_SIZE,
-				EGL10.EGL_ALPHA_MASK_SIZE,
-				EGL10.EGL_COLOR_BUFFER_TYPE,
-				EGL10.EGL_RENDERABLE_TYPE,
-				0x3042 // EGL10.EGL_CONFORMANT
-			};
-			String[] names = {
-				"EGL_BUFFER_SIZE",
-				"EGL_ALPHA_SIZE",
-				"EGL_BLUE_SIZE",
-				"EGL_GREEN_SIZE",
-				"EGL_RED_SIZE",
-				"EGL_DEPTH_SIZE",
-				"EGL_STENCIL_SIZE",
-				"EGL_CONFIG_CAVEAT",
-				"EGL_CONFIG_ID",
-				"EGL_LEVEL",
-				"EGL_MAX_PBUFFER_HEIGHT",
-				"EGL_MAX_PBUFFER_PIXELS",
-				"EGL_MAX_PBUFFER_WIDTH",
-				"EGL_NATIVE_RENDERABLE",
-				"EGL_NATIVE_VISUAL_ID",
-				"EGL_NATIVE_VISUAL_TYPE",
-				"EGL_PRESERVED_RESOURCES",
-				"EGL_SAMPLES",
-				"EGL_SAMPLE_BUFFERS",
-				"EGL_SURFACE_TYPE",
-				"EGL_TRANSPARENT_TYPE",
-				"EGL_TRANSPARENT_RED_VALUE",
-				"EGL_TRANSPARENT_GREEN_VALUE",
-				"EGL_TRANSPARENT_BLUE_VALUE",
-				"EGL_BIND_TO_TEXTURE_RGB",
-				"EGL_BIND_TO_TEXTURE_RGBA",
-				"EGL_MIN_SWAP_INTERVAL",
-				"EGL_MAX_SWAP_INTERVAL",
-				"EGL_LUMINANCE_SIZE",
-				"EGL_ALPHA_MASK_SIZE",
-				"EGL_COLOR_BUFFER_TYPE",
-				"EGL_RENDERABLE_TYPE",
-				"EGL_CONFORMANT"
-			};
-			int[] value = new int[1];
-			for (int i = 0; i < attributes.length; i++) {
-				int attribute = attributes[i];
-				String name = names[i];
-				if ( egl.eglGetConfigAttrib(display, config, attribute, value)) {
-					Log.w(TAG, String.format("  %s: %d\n", name, value[0]));
-				} else {
-					// Log.w(TAG, String.format("  %s: failed\n", name));
-					while (egl.eglGetError() != EGL10.EGL_SUCCESS);
-				}
-			}
-		}
+        private void printConfig(EGL10 egl, EGLDisplay display,
+                EGLConfig config) {
+            int[] attributes = {
+                EGL10.EGL_BUFFER_SIZE,
+                EGL10.EGL_ALPHA_SIZE,
+                EGL10.EGL_BLUE_SIZE,
+                EGL10.EGL_GREEN_SIZE,
+                EGL10.EGL_RED_SIZE,
+                EGL10.EGL_DEPTH_SIZE,
+                EGL10.EGL_STENCIL_SIZE,
+                EGL10.EGL_CONFIG_CAVEAT,
+                EGL10.EGL_CONFIG_ID,
+                EGL10.EGL_LEVEL,
+                EGL10.EGL_MAX_PBUFFER_HEIGHT,
+                EGL10.EGL_MAX_PBUFFER_PIXELS,
+                EGL10.EGL_MAX_PBUFFER_WIDTH,
+                EGL10.EGL_NATIVE_RENDERABLE,
+                EGL10.EGL_NATIVE_VISUAL_ID,
+                EGL10.EGL_NATIVE_VISUAL_TYPE,
+                0x3030, // EGL10.EGL_PRESERVED_RESOURCES,
+                EGL10.EGL_SAMPLES,
+                EGL10.EGL_SAMPLE_BUFFERS,
+                EGL10.EGL_SURFACE_TYPE,
+                EGL10.EGL_TRANSPARENT_TYPE,
+                EGL10.EGL_TRANSPARENT_RED_VALUE,
+                EGL10.EGL_TRANSPARENT_GREEN_VALUE,
+                EGL10.EGL_TRANSPARENT_BLUE_VALUE,
+                0x3039, // EGL10.EGL_BIND_TO_TEXTURE_RGB,
+                0x303A, // EGL10.EGL_BIND_TO_TEXTURE_RGBA,
+                0x303B, // EGL10.EGL_MIN_SWAP_INTERVAL,
+                0x303C, // EGL10.EGL_MAX_SWAP_INTERVAL,
+                EGL10.EGL_LUMINANCE_SIZE,
+                EGL10.EGL_ALPHA_MASK_SIZE,
+                EGL10.EGL_COLOR_BUFFER_TYPE,
+                EGL10.EGL_RENDERABLE_TYPE,
+                0x3042 // EGL10.EGL_CONFORMANT
+            };
+            String[] names = {
+                "EGL_BUFFER_SIZE",
+                "EGL_ALPHA_SIZE",
+                "EGL_BLUE_SIZE",
+                "EGL_GREEN_SIZE",
+                "EGL_RED_SIZE",
+                "EGL_DEPTH_SIZE",
+                "EGL_STENCIL_SIZE",
+                "EGL_CONFIG_CAVEAT",
+                "EGL_CONFIG_ID",
+                "EGL_LEVEL",
+                "EGL_MAX_PBUFFER_HEIGHT",
+                "EGL_MAX_PBUFFER_PIXELS",
+                "EGL_MAX_PBUFFER_WIDTH",
+                "EGL_NATIVE_RENDERABLE",
+                "EGL_NATIVE_VISUAL_ID",
+                "EGL_NATIVE_VISUAL_TYPE",
+                "EGL_PRESERVED_RESOURCES",
+                "EGL_SAMPLES",
+                "EGL_SAMPLE_BUFFERS",
+                "EGL_SURFACE_TYPE",
+                "EGL_TRANSPARENT_TYPE",
+                "EGL_TRANSPARENT_RED_VALUE",
+                "EGL_TRANSPARENT_GREEN_VALUE",
+                "EGL_TRANSPARENT_BLUE_VALUE",
+                "EGL_BIND_TO_TEXTURE_RGB",
+                "EGL_BIND_TO_TEXTURE_RGBA",
+                "EGL_MIN_SWAP_INTERVAL",
+                "EGL_MAX_SWAP_INTERVAL",
+                "EGL_LUMINANCE_SIZE",
+                "EGL_ALPHA_MASK_SIZE",
+                "EGL_COLOR_BUFFER_TYPE",
+                "EGL_RENDERABLE_TYPE",
+                "EGL_CONFORMANT"
+            };
+            int[] value = new int[1];
+            for (int i = 0; i < attributes.length; i++) {
+                int attribute = attributes[i];
+                String name = names[i];
+                if ( egl.eglGetConfigAttrib(display, config, attribute, value)) {
+                    Log.w(TAG, String.format("  %s: %d\n", name, value[0]));
+                } else {
+                    // Log.w(TAG, String.format("  %s: failed\n", name));
+                    while (egl.eglGetError() != EGL10.EGL_SUCCESS);
+                }
+            }
+        }
 
-		// Subclasses can adjust these values:
-		protected int mRedSize;
-		protected int mGreenSize;
-		protected int mBlueSize;
-		protected int mAlphaSize;
-		protected int mDepthSize;
-		protected int mStencilSize;
-		private int[] mValue = new int[1];
-	}
+        // Subclasses can adjust these values:
+        protected int mRedSize;
+        protected int mGreenSize;
+        protected int mBlueSize;
+        protected int mAlphaSize;
+        protected int mDepthSize;
+        protected int mStencilSize;
+        private int[] mValue = new int[1];
+    }
+
+    public interface OnInterceptTouchListener {
+        boolean onTouch(MotionEvent ev);
+    }
+
+    private OnInterceptTouchListener mOnInterceptTouchListener = null;
 
     // The activity we're a part of.
-    private static Activity mActivity;
+    private static PythonActivity mActivity;
 
     // Have we started yet?
     public boolean mStarted = false;
+
+    // what is the textinput type while calling the keyboard
+    public int inputType = EditorInfo.TYPE_CLASS_TEXT;
+    
+    //
+    public int kHeight = 0;
 
     // Is Python ready to receive input events?
     static boolean mInputActivated = false;
@@ -309,13 +337,16 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // The user program is waiting in waitForResume.
     static int PAUSE_WAIT_FOR_RESUME = 3;
 
-	static int PAUSE_STOP_REQUEST = 4;
-	static int PAUSE_STOP_ACK = 5;
+    static int PAUSE_STOP_REQUEST = 4;
+    static int PAUSE_STOP_ACK = 5;
 
     // This stores the state of the pause system.
     static int mPause = PAUSE_NOT_PARTICIPATING;
 
     private PowerManager.WakeLock wakeLock;
+
+    // This stores the length of the text in pridiction/swype buffer
+    private int mDelLen = 0;
 
     // The width and height. (This should be set at startup time -
     // these values just prevent segfaults and divide by zero, etc.)
@@ -331,13 +362,25 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     // The resource manager we use.
     ResourceManager mResourceManager;
 
-	// Our own view
-	static SDLSurfaceView instance = null;
+    // Access to our meta-data
+    private ApplicationInfo ai;
 
-    public SDLSurfaceView(Activity act, String argument) {
+    // Text before/after cursor
+    static String mTbf = "";
+    static String mTaf = "";
+
+    public static void updateTextFromCursor(String bef, String aft){
+        mTbf = bef;
+        mTaf = aft;
+        if (DEBUG) Log.d(TAG, String.format("mtbf: %s mtaf:%s <<<<<<<<<", mTbf, mTaf));
+        }
+
+    // Our own view
+    static SDLSurfaceView instance = null;
+
+    public SDLSurfaceView(PythonActivity act, String argument) {
         super(act);
-
-		SDLSurfaceView.instance = this;
+        SDLSurfaceView.instance = this;
 
         mActivity = act;
         mResourceManager = new ResourceManager(act);
@@ -350,7 +393,25 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         mArgument = argument;
 
         PowerManager pm = (PowerManager) act.getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+
+        wakeLock = null;
+        try {
+            ai = act.getPackageManager().getApplicationInfo(
+                    act.getPackageName(), PackageManager.GET_META_DATA);
+            if ( (Integer)ai.metaData.get("wakelock") == 1 ) {
+                wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+
+        if ( ai.metaData.getInt("surface.transparent") != 0 ) {
+            Log.d(TAG, "Surface will be transparent.");
+            setZOrderOnTop(true);
+            getHolder().setFormat(PixelFormat.TRANSPARENT);
+        } else {
+            Log.i(TAG, "Surface will NOT be transparent");
+        }
+
     }
 
 
@@ -412,6 +473,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+
+    public void closeSoftKeyboard(){
+        // close the IME overlay(keyboard)
+        Hardware.hideKeyboard();
+    }
+
     /**
      * Inform the view that the activity is paused. The owner of this view must
      * call this method when the activity is paused. Calling this method will
@@ -420,6 +487,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      */
     public void onPause() {
 
+        this.closeSoftKeyboard();
         synchronized (this) {
             if (mPause == PAUSE_NONE) {
                 mPause = PAUSE_REQUEST;
@@ -434,7 +502,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
 
-        wakeLock.release();
+        if ( wakeLock != null )
+            wakeLock.release();
 
     }
 
@@ -452,49 +521,52 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 this.notifyAll();
             }
         }
-        wakeLock.acquire();
+        if ( wakeLock != null )
+            wakeLock.acquire();
     }
 
-	public void onDestroy() {
-		Log.w(TAG, "onDestroy() called");
-		synchronized (this) {
-			this.notifyAll();
+    public void onDestroy() {
+        Log.w(TAG, "onDestroy() called");
+        this.closeSoftKeyboard();
+        synchronized (this) {
+            this.notifyAll();
 
-			if ( mPause == PAUSE_STOP_ACK ) {
-				Log.d(TAG, "onDestroy() app already leaved.");
-				return;
-			}
+            if ( mPause == PAUSE_STOP_ACK ) {
+                Log.d(TAG, "onDestroy() app already leaved.");
+                return;
+            }
 
-			// application didn't leave, give 10s before closing.
-			// hopefully, this could be enough for launching the on_stop() trigger within the app.
-			mPause = PAUSE_STOP_REQUEST;
-			int i = 50;
 
-			Log.d(TAG, "onDestroy() stop requested, wait for an event from the app");
-			for (; i >= 0 && mPause == PAUSE_STOP_REQUEST; i--) {
-				try {
-					this.wait(200);
-				} catch (InterruptedException e) {
-					break;
-				}
-			}
-			Log.d(TAG, "onDestroy() stop finished waiting.");
-		}
-	}
+            // application didn't leave, give 10s before closing.
+            // hopefully, this could be enough for launching the on_stop() trigger within the app.
+            mPause = PAUSE_STOP_REQUEST;
+            int i = 50;
 
-	static int checkStop() {
+            Log.d(TAG, "onDestroy() stop requested, wait for an event from the app");
+            for (; i >= 0 && mPause == PAUSE_STOP_REQUEST; i--) {
+                try {
+                    this.wait(200);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+            Log.d(TAG, "onDestroy() stop finished waiting.");
+        }
+    }
+
+    static int checkStop() {
         if (mPause == PAUSE_STOP_REQUEST)
-			return 1;
-		return 0;
-	}
+            return 1;
+        return 0;
+    }
 
-	static void ackStop() {
-		Log.d(TAG, "ackStop() notify");
-		synchronized (instance) {
-			mPause = PAUSE_STOP_ACK;
-			instance.notifyAll();
-		}
-	}
+    static void ackStop() {
+        Log.d(TAG, "ackStop() notify");
+        synchronized (instance) {
+            mPause = PAUSE_STOP_ACK;
+            instance.notifyAll();
+        }
+    }
 
 
     /**
@@ -502,7 +574,12 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceCreated(SurfaceHolder holder) {
-		Log.i(TAG, "surfaceCreated() is not handled :|");
+        if (DEBUG) Log.d(TAG, "surfaceCreated()");
+        synchronized (this) {
+            if (!mStarted) {
+                this.notifyAll();
+            }
+        }
     }
 
     /**
@@ -510,7 +587,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-		Log.i(TAG, "surfaceDestroyed() is not handled :|");
+        if (DEBUG) Log.d(TAG, "surfaceDestroyed()");
     }
 
     /**
@@ -518,24 +595,29 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * not normally called or subclassed by clients of GLSurfaceView.
      */
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+        if (DEBUG) Log.i(TAG, String.format("surfaceChanged() fmt=%d size=%dx%d", format, w, h));
+
         mWidth = w;
         mHeight = h;
 
         if (mActivity.getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE &&
-            mWidth < mHeight) {
+                mWidth < mHeight) {
             return;
-        }
+                }
 
         if (mActivity.getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT &&
-            mWidth > mHeight) {
+                mWidth > mHeight) {
             return;
-        }
+                }
 
         if (!mRunning) {
             mRunning = true;
             new Thread(this).start();
         } else {
             mChanged = true;
+            if (mStarted) {
+                nativeExpose();
+            }
         }
     }
 
@@ -557,61 +639,73 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         };
 
         EGLConfig[] configs = new EGLConfig[1];
-		int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+        int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
         int[] num_config = new int[1];
-		int[] attrib_list = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
+        int[] attrib_list = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
 
-		// Create an opengl es 2.0 surface
-		Log.w(TAG, "Choose egl configuration");
-		int configToTest = 0;
-		boolean configFound = false;
+        // Create an opengl es 2.0 surface
+        Log.i(TAG, "Choose egl configuration");
+        int configToTest = 0;
+        boolean configFound = false;
 
-		while (true) {
-			try {
-				if (configToTest == 0) {
-					Log.i(TAG, "Try to use graphics config R8G8B8A8S8");
-					ConfigChooser chooser = new ConfigChooser(8, 8, 8, 8, 0, 8);
-					mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
-				} else if (configToTest == 1) {
-					Log.i(TAG, "Try to use graphics config R5G6B5S8");
-					ConfigChooser chooser = new ConfigChooser(5, 6, 5, 0, 0, 8);
-					mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
-				} else {
-					Log.e(TAG, "Unable to find a correct surface for this device !");
-					break;
-				}
+        while (true) {
+            try {
+                if (configToTest == 0) {
+                    Log.i(TAG, "Try to use graphics config R8G8B8A8S8");
+                    ConfigChooser chooser = new ConfigChooser(
+                            // rgba
+                            8, 8, 8, 8,
+                            // depth
+                            ai.metaData.getInt("surface.depth", 0),
+                            // stencil
+                            ai.metaData.getInt("surface.stencil", 8));
+                    mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
+                } else if (configToTest == 1) {
+                    Log.i(TAG, "Try to use graphics config R5G6B5S8");
+                    ConfigChooser chooser = new ConfigChooser(
+                            // rgba
+                            5, 6, 5, 0,
+                            // depth
+                            ai.metaData.getInt("surface.depth", 0),
+                            // stencil
+                            ai.metaData.getInt("surface.stencil", 8));
+                    mEglConfig = chooser.chooseConfig(mEgl, mEglDisplay);
+                } else {
+                    Log.e(TAG, "Unable to find a correct surface for this device !");
+                    break;
+                }
 
-			} catch (IllegalArgumentException e) {
-				configToTest++;
-				continue;
-			}
+            } catch (IllegalArgumentException e) {
+                configToTest++;
+                continue;
+            }
 
-			Log.w(TAG, "Create egl context");
-			mEglContext = mEgl.eglCreateContext(mEglDisplay, mEglConfig, EGL10.EGL_NO_CONTEXT, attrib_list);
-			if (mEglContext == null) {
-				Log.w(TAG, "Unable to create egl context with this configuration, try the next one.");
-				configToTest++;
-				continue;
-			}
+            if (DEBUG) Log.d(TAG, "Create egl context");
+            mEglContext = mEgl.eglCreateContext(mEglDisplay, mEglConfig, EGL10.EGL_NO_CONTEXT, attrib_list);
+            if (mEglContext == null) {
+                Log.w(TAG, "Unable to create egl context with this configuration, try the next one.");
+                configToTest++;
+                continue;
+            }
 
-			Log.w(TAG, "Create egl surface");
-			if (!createSurface()) {
-				Log.w(TAG, "Unable to create egl surface with this configuration, try the next one.");
-				configToTest++;
-				continue;
-			}
+            Log.w(TAG, "Create egl surface");
+            if (!createSurface()) {
+                Log.w(TAG, "Unable to create egl surface with this configuration, try the next one.");
+                configToTest++;
+                continue;
+            }
 
-			configFound = true;
-			break;
-		}
+            configFound = true;
+            break;
+        }
 
-		if (!configFound) {
-			System.exit(0);
-			return;
-		}
+        if (!configFound) {
+            System.exit(0);
+            return;
+        }
 
-		Log.w(TAG, "Done");
-		waitForStart();
+        if (DEBUG) Log.d(TAG, "Done egl");
+        waitForStart();
 
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();
@@ -621,31 +715,24 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         nativeSetEnv("PYTHONHOME", mFilesDirectory);
         nativeSetEnv("PYTHONPATH", mArgument + ":" + mFilesDirectory + "/lib");
 
-		// XXX Using SetOpenFile make a crash in nativeSetEnv. I don't
-		// understand why, maybe because the method is static or something.
-		// Anyway, if you remove that part of the code, ensure the Laucher
-		// (ProjectChooser) is still working.
-		final android.content.Intent intent = mActivity.getIntent();
-		if (intent != null) {
-			final android.net.Uri data = intent.getData();
-			if (data != null && data.getEncodedPath() != null)
-				nativeSetEnv("PYTHON_OPENFILE", data.getEncodedPath());
-		}
+        // XXX Using SetOpenFile make a crash in nativeSetEnv. I don't
+        // understand why, maybe because the method is static or something.
+        // Anyway, if you remove that part of the code, ensure the Laucher
+        // (ProjectChooser) is still working.
+        final android.content.Intent intent = mActivity.getIntent();
+        if (intent != null) {
+            final android.net.Uri data = intent.getData();
+            if (data != null && data.getEncodedPath() != null)
+                nativeSetEnv("PYTHON_OPENFILE", data.getEncodedPath());
+        }
 
-		nativeSetMultitouchUsed();
+        nativeSetMultitouchUsed();
         nativeInit();
 
-		mPause = PAUSE_STOP_ACK;
+        mPause = PAUSE_STOP_ACK;
 
-		//Log.i(TAG, "End of native init, stop everything (exit0)");
+        //Log.i(TAG, "End of native init, stop everything (exit0)");
         System.exit(0);
-    }
-
-    private void glCheck(GL10 gl) {
-        int gle = gl.glGetError();
-        if (gle != gl.GL_NO_ERROR) {
-            throw new RuntimeException("GL Error: " + gle);
-        }
     }
 
     private void waitForStart() {
@@ -656,7 +743,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         Bitmap bitmap = null;
         try {
             bitmap = BitmapFactory.decodeStream(is);
-			bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, false);
+            bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, false);
         } finally {
             try {
                 is.close();
@@ -667,19 +754,19 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
         mTriangleVertices.put(mTriangleVerticesData).position(0);
 
-		mProgram = createProgram(mVertexShader, mFragmentShader);
-		if (mProgram == 0) {
-			synchronized (this) {
-				while (!mStarted) {
-					try {
-						this.wait(250);
-					} catch (InterruptedException e) {
-						continue;
-					}
-				}
-			}
-			return;
-		}
+        mProgram = createProgram(mVertexShader, mFragmentShader);
+        if (mProgram == 0) {
+            synchronized (this) {
+                while (!mStarted) {
+                    try {
+                        this.wait(250);
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                }
+            }
+            return;
+        }
 
         maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
@@ -708,15 +795,15 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureID);
 
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER,
-                GLES20.GL_NEAREST);
+                GLES20.GL_LINEAR);
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
                 GLES20.GL_TEXTURE_MAG_FILTER,
                 GLES20.GL_LINEAR);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_REPEAT);
+                GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_REPEAT);
+                GLES20.GL_CLAMP_TO_EDGE);
 
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
 
@@ -724,21 +811,21 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         GLES20.glViewport(0, 0, mWidth, mHeight);
 
-		if (bitmap != null) {
-			float mx = ((float)mWidth / bitmap.getWidth()) / 2.0f;
-			float my = ((float)mHeight / bitmap.getHeight()) / 2.0f;
-			Matrix.orthoM(mProjMatrix, 0, -mx, mx, my, -my, 0, 10);
-			int value = bitmap.getPixel(0, 0);
-			Color color = new Color();
-			GLES20.glClearColor(
-					(float)color.red(value) / 255.0f,
-					(float)color.green(value) / 255.0f,
-					(float)color.blue(value) / 255.0f,
-					0.0f);
-		} else {
-			Matrix.orthoM(mProjMatrix, 0, -1, 1, -1, 1, 0, 10);
-			GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		}
+        if (bitmap != null) {
+            float mx = ((float)mWidth / bitmap.getWidth()) / 2.0f;
+            float my = ((float)mHeight / bitmap.getHeight()) / 2.0f;
+            Matrix.orthoM(mProjMatrix, 0, -mx, mx, my, -my, 0, 10);
+            int value = bitmap.getPixel(0, 0);
+            Color color = new Color();
+            GLES20.glClearColor(
+                    (float)color.red(value) / 255.0f,
+                    (float)color.green(value) / 255.0f,
+                    (float)color.blue(value) / 255.0f,
+                    0.0f);
+        } else {
+            Matrix.orthoM(mProjMatrix, 0, -1, 1, -1, 1, 0, 10);
+            GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        }
 
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glUseProgram(mProgram);
@@ -765,22 +852,27 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mMVPMatrix, 0);
 
         GLES20.glUniformMatrix4fv(muMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-        checkGlError("glDrawArrays");
-		mEgl.eglSwapBuffers(mEglDisplay, mEglSurface);
+
+        // Ensure that, even with double buffer, or if we lost one buffer (like
+        // BufferQueue has been abandoned!), it will work.
+        for ( int i = 0; i < 2; i++ ) {
+            GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+            checkGlError("glDrawArrays");
+            swapBuffers();
+        }
 
         // Wait to be notified it's okay to start Python.
         synchronized (this) {
             while (!mStarted) {
                 // Draw & Flip.
-				GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-				GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-                mEgl.eglSwapBuffers(mEglDisplay, mEglSurface);
+                GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+                GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+                swapBuffers();
 
                 try {
                     this.wait(250);
                 } catch (InterruptedException e) {
-                    continue;
                 }
             }
         }
@@ -790,11 +882,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         // Delete texture.
         GLES20.glDeleteTextures(1, textures, 0);
-		if (bitmap != null)
-			bitmap.recycle();
+        if (bitmap != null)
+            bitmap.recycle();
 
-		// Delete program
-		GLES20.glDeleteProgram(mProgram);
+        // Delete program
+        GLES20.glDeleteProgram(mProgram);
     }
 
 
@@ -821,27 +913,33 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
              * there is one.
              */
             mEgl.eglMakeCurrent(mEglDisplay, EGL10.EGL_NO_SURFACE,
-                                EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
+                    EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
             mEgl.eglDestroySurface(mEglDisplay, mEglSurface);
         }
 
         // Create a new surface.
         mEglSurface = mEgl.eglCreateWindowSurface(
-            mEglDisplay, mEglConfig, getHolder(), null);
+                mEglDisplay, mEglConfig, getHolder(), null);
 
         // Make the new surface current.
         boolean rv = mEgl.eglMakeCurrent(
-            mEglDisplay, mEglSurface, mEglSurface, mEglContext);
-		if (!rv) {
-			mEglSurface = null;
-			return false;
-		}
-
-        if (mStarted) {
-            nativeResize(mWidth, mHeight);
+                mEglDisplay, mEglSurface, mEglSurface, mEglContext);
+        if (!rv) {
+            mEglSurface = null;
+            return false;
         }
 
-		return true;
+        if (mStarted) {
+            if (mInputActivated)
+                nativeResizeEvent(mWidth, mHeight);
+            else
+                nativeResize(mWidth, mHeight);
+
+            // If the size didn't change, kivy might no rerender the scene. Force it.
+            nativeExpose();
+        }
+
+        return true;
 
     }
 
@@ -864,86 +962,98 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     }
 
-	private static final int INVALID_POINTER_ID = -1;
-	private int mActivePointerId = INVALID_POINTER_ID;
+    private static final int INVALID_POINTER_ID = -1;
+    private int mActivePointerId = INVALID_POINTER_ID;
+
+    public void setInterceptTouchListener(OnInterceptTouchListener listener) {
+        this.mOnInterceptTouchListener = listener;
+    }
 
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
 
-		if (mInputActivated == false)
-			return true;
+        if (mInputActivated == false)
+            return true;
 
-		int action = event.getAction() & MotionEvent.ACTION_MASK;
-		int sdlAction = -1;
-		int pointerId = -1;
-		int pointerIndex = -1;
+        if (mOnInterceptTouchListener != null)
+            if (mOnInterceptTouchListener.onTouch(event))
+                return false;
 
-		switch ( action ) {
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_POINTER_DOWN:
-				sdlAction = 0;
-				break;
-			case MotionEvent.ACTION_MOVE:
-				sdlAction = 2;
-				break;
-			case MotionEvent.ACTION_UP:
-			case MotionEvent.ACTION_POINTER_UP:
-				sdlAction = 1;
-				break;
-		}
+        int action = event.getAction() & MotionEvent.ACTION_MASK;
+        int sdlAction = -1;
+        int pointerId = -1;
+        int pointerIndex = -1;
 
-		// http://android-developers.blogspot.com/2010/06/making-sense-of-multitouch.html
-		switch ( action  & MotionEvent.ACTION_MASK ) {
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_MOVE:
-			case MotionEvent.ACTION_UP:
-				pointerIndex = event.findPointerIndex(mActivePointerId);
-				break;
-			case MotionEvent.ACTION_POINTER_DOWN:
-			case MotionEvent.ACTION_POINTER_UP:
-				pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK)
-					>> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-				if ( action == MotionEvent.ACTION_POINTER_UP ) {
-					pointerId = event.getPointerId(pointerIndex);
-					if ( pointerId == mActivePointerId )
-						mActivePointerId = event.getPointerId(pointerIndex == 0 ? 1 : 0);
-				}
-				break;
-		}
+        switch ( action ) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_POINTER_DOWN:
+                sdlAction = 0;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                sdlAction = 2;
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                sdlAction = 1;
+                break;
+        }
 
-		if ( sdlAction >= 0 ) {
+        // http://android-developers.blogspot.com/2010/06/making-sense-of-multitouch.html
+        switch ( action  & MotionEvent.ACTION_MASK ) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_UP:
+                pointerIndex = event.findPointerIndex(mActivePointerId);
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+            case MotionEvent.ACTION_POINTER_UP:
+                pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK)
+                    >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+                if ( action == MotionEvent.ACTION_POINTER_UP ) {
+                    pointerId = event.getPointerId(pointerIndex);
+                    if ( pointerId == mActivePointerId )
+                        mActivePointerId = event.getPointerId(pointerIndex == 0 ? 1 : 0);
+                }
+                break;
+        }
 
-			for ( int i = 0; i < event.getPointerCount(); i++ ) {
+        if ( sdlAction >= 0 ) {
 
-				if ( pointerIndex == -1 || pointerIndex == i ) {
+            for ( int i = 0; i < event.getPointerCount(); i++ ) {
 
-					/**
-        			Log.i("python", String.format("mouse id=%d action=%d x=%f y=%f",
-							event.getPointerId(i),
-							sdlAction,
-							event.getX(i),
-							event.getY(i)
-					));
-					**/
-					SDLSurfaceView.nativeMouse(
-							(int)event.getX(i),
-							(int)event.getY(i),
-							sdlAction,
-							event.getPointerId(i),
-							(int)(event.getPressure(i) * 1000.0),
-							(int)(event.getSize(i) * 1000.0));
-				}
+                if ( pointerIndex == -1 || pointerIndex == i ) {
 
-			}
+                    /**
+                      Log.i("python", String.format("mouse id=%d action=%d x=%f y=%f",
+                      event.getPointerId(i),
+                      sdlAction,
+                      event.getX(i),
+                      event.getY(i)
+                      ));
+                     **/
+                    SDLSurfaceView.nativeMouse(
+                            (int)event.getX(i),
+                            (int)event.getY(i),
+                            sdlAction,
+                            event.getPointerId(i),
+                            (int)(event.getPressure(i) * 1000.0),
+                            (int)(event.getSize(i) * 1000.0));
+                }
 
-		}
+            }
+
+        }
 
         return true;
     };
 
     @Override
     public boolean onKeyDown(int keyCode, final KeyEvent event) {
-        //Log.i("python", String.format("key down %d", keyCode));
+        if (DEBUG) Log.d(TAG, String.format("onKeyDown() keyCode=%d", keyCode));
+        if (mDelLen > 0){
+            mDelLen = 0;
+            return true;
+        }
         if (mInputActivated && nativeKey(keyCode, 1, event.getUnicodeChar())) {
             return true;
         } else {
@@ -953,7 +1063,11 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     @Override
     public boolean onKeyUp(int keyCode, final KeyEvent event) {
-        //Log.i("python", String.format("key up %d", keyCode));
+        if (DEBUG) Log.d(TAG, String.format("onKeyUp() keyCode=%d", keyCode));
+        if (mDelLen > 0){
+            mDelLen = 0;
+            return true;
+        }
         if (mInputActivated && nativeKey(keyCode, 0, event.getUnicodeChar())) {
             return true;
         } else {
@@ -961,20 +1075,276 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+    @Override
+    public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
+        String keys = event.getCharacters();
+        if (DEBUG)
+            Log.d(TAG, String.format(
+                "onKeyMultiple() keyCode=%d count=%d, keys=%s", keyCode, count, keys));
+        char[] keysBuffer = new char[keys.length()];
+        if (mDelLen > 0){
+            mDelLen = 0;
+            return true;
+        }
+        if (keyCode == 0){
+            // FIXME: here is hardcoded value of "q" key
+            // on hacker's keyboard. It is passed to
+            // nativeKey function to get it worked if
+            // we get 9 and some non-ascii characters
+            // but it my cause some odd behaviour
+            keyCode = 45;
+        }
+        if (mInputActivated && event.getAction() == KeyEvent.ACTION_MULTIPLE){
+            String message = String.format("INSERTN:%s", keys);
+            dispatchCommand(message);
+            return true;
+        }else {
+            return super.onKeyMultiple(keyCode, count, event);
+        }
+    }
+
+    @Override
+    public boolean onKeyPreIme(int keyCode, final KeyEvent event){
+        if (DEBUG) Log.d(TAG, String.format("onKeyPreIme() keyCode=%d", keyCode));
+        if (mInputActivated){
+            switch (event.getAction()) {
+                case KeyEvent.ACTION_DOWN:
+                    return onKeyDown(keyCode, event);
+                case KeyEvent.ACTION_UP:
+                    return onKeyUp(keyCode, event);
+                case KeyEvent.ACTION_MULTIPLE:
+                    return onKeyMultiple(
+                            keyCode,
+                            event.getRepeatCount(),
+                            event);
+            }
+            return false;
+        }
+        return super.onKeyPreIme(keyCode, event);
+    }
+
+    public void delayed_message(String message, int delay){
+        Handler handler = new Handler();
+        final String msg = message;
+        final int d = delay;
+        handler.postDelayed(new Runnable(){
+        @Override
+            public void run(){
+                dispatchCommand(msg);
+        }
+        }, d);
+    }
+
+    public void dispatchCommand(String message){
+
+        int delay = 0;
+        while (message.length() > 50){
+            delayed_message(message.substring(0, 50), delay);
+            delay += 100;
+            message = String.format("INSERTN:%s", message.substring(50, message.length()));
+            if (message.length() <= 50){
+                delayed_message(message, delay+50);
+                return;
+            }
+        }
+
+        if (DEBUG) Log.d(TAG, String.format("dispatch :%s", message));
+        int keyCode = 45;
+        //send control sequence start
+        nativeKey(keyCode, 1, 1);
+        nativeKey(keyCode, 0, 1);
+
+        for(int i=0; i < message.length(); i++){
+            //Calls both up/down events to emulate key pressing
+            nativeKey(keyCode, 1, (int) message.charAt(i));
+            nativeKey(keyCode, 0, (int) message.charAt(i));
+        }
+
+        //send control sequence end \x02
+        nativeKey(keyCode, 1, 2);
+        nativeKey(keyCode, 0, 2);
+
+    }
+
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        outAttrs.inputType = inputType;
+        // ask IME to avoid taking full screen on landscape mode
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+
+        // add a listener for the layout chnages to the IME view
+        final android.view.View activityRootView = mActivity.getWindow().getDecorView();
+        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+        final android.view.Display default_display = mActivity.getWindowManager().getDefaultDisplay();
+        
+            @Override
+            public void onGlobalLayout() {
+                Rect rctx = new Rect();
+                activityRootView.getWindowVisibleDisplayFrame(rctx);
+                int heightDiff = default_display.getHeight() - (rctx.bottom - rctx.top);
+                if (heightDiff != kHeight){
+                    Log.i("Python:", String.format("Layout Triggered, Keyboard_height: %s", heightDiff));
+                    //send control sequence start /x04 == kayboard layout changed
+                    nativeKey(45, 1, 4);
+                    nativeKey(45, 0, 4);
+                    }
+                kHeight = heightDiff;
+                }
+            });
+        return new BaseInputConnection(this, false){
+
+            private void deleteLastText(){
+                // send back space keys
+                if (DEBUG) Log.i("Python:", String.format("delete text%s", mDelLen));
+
+                if (mDelLen == 0){
+                    return;
+                }
+
+                String message = String.format("DEL:%s", mDelLen);
+                dispatchCommand(message);
+            }
+
+            @Override
+            public boolean endBatchEdit() {
+                if (DEBUG) Log.i("Python:", "endBatchEdit");
+                return super.endBatchEdit();
+            }
+
+            @Override
+            public boolean beginBatchEdit() {
+                if (DEBUG) Log.i("Python:", "beginBatchEdit");
+                return super.beginBatchEdit();
+            }
+
+            @Override
+            public boolean commitCompletion(CompletionInfo text){
+                if (DEBUG) Log.i("Python:", String.format("Commit Completion %s", text));
+                return super.commitCompletion(text);
+            }
+
+            /*API11 only
+            @Override
+            public boolean commitCorrection(CorrectionInfo correctionInfo){
+                if (DEBUG) Log.i("Python:", String.format("Commit Correction"));
+                return super.commitCorrection(correctionInfo);
+            }*/
+
+            @Override
+            public boolean commitText(CharSequence text, int newCursorPosition) {
+                // some code which takes the input and manipulates it and calls editText.getText().replace() afterwards
+                this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("Commit Text %s", text));
+                mDelLen = 0;
+                return super.commitText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean sendKeyEvent(KeyEvent event){
+                if (DEBUG) Log.d("Python:", String.format("sendKeyEvent %s", event.getKeyCode()));
+                return super.sendKeyEvent(event);
+            }
+
+            @Override
+            public boolean setComposingRegion(int start, int end){
+                if (DEBUG) Log.d("Python:", String.format("Set Composing Region %s %s", start, end));
+                finishComposingText();
+                if (start < 0 || start > end)
+                    return true;
+                //dispatchCommand(String.format("SEL:%s,%s,%s", mTbf.length(), start, end));
+                return true;
+                //return super.setComposingRegion(start, end);
+            }
+
+            @Override
+            public boolean setComposingText(CharSequence text,
+                int newCursorPosition){
+                this.deleteLastText();
+                if (DEBUG) Log.i("Python:", String.format("set Composing Text %s", text));
+                // send text
+                String message = String.format("INSERT:%s", text);
+                dispatchCommand(message);
+                // store len to be deleted for next time
+                mDelLen = text.length();
+                return super.setComposingText(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean finishComposingText(){
+                if (DEBUG) Log.i("Python:", String.format("finish Composing Text"));
+                return super.finishComposingText();
+            }
+
+            @Override
+            public boolean deleteSurroundingText (int beforeLength, int afterLength){
+                if (DEBUG) Log.d("Python:", String.format("delete surrounding Text %s %s", beforeLength, afterLength));
+                // move cursor to place from where to start deleting
+                // send right arrow keys
+                for (int i = 0; i < afterLength; i++){
+                    nativeKey(45, 1, 39);
+                    nativeKey(45, 0, 39);
+                }
+                // remove text before cursor
+                mDelLen = beforeLength + afterLength;
+                this.deleteLastText();
+                mDelLen = 0;
+
+                return super.deleteSurroundingText(beforeLength, afterLength);
+            }
+
+            @Override
+            public ExtractedText getExtractedText (ExtractedTextRequest request, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getExtractedText %s %s", request.describeContents(), flags));
+                    return super.getExtractedText(request, flags);
+            }
+
+            @Override
+            public CharSequence getSelectedText(int flags){
+                if (DEBUG) Log.d("Python:", String.format("getSelectedText %s", flags));
+                    return super.getSelectedText(flags);
+            }
+
+            @Override
+            public CharSequence getTextBeforeCursor(int n, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getTextBeforeCursor %s %s", n, flags));
+                /*int len = mTbf.length();
+                int len_n = Math.min(len, n);
+                int start = Math.max(len - n, 0);
+                String tbf = mTbf.substring(start,  start + len_n);
+                return tbf;*/
+                return super.getTextBeforeCursor(n, flags);
+            }
+
+            @Override
+            public CharSequence getTextAfterCursor(int n, int flags){
+                if (DEBUG) Log.d("Python:", String.format("getTextAfterCursor %s %s", n, flags));
+                Log.d("Python:", String.format("TextAfterCursor %s", mTaf));
+                //return mTaf.substring(0, Math.min(mTaf.length(), n));
+                return super.getTextAfterCursor(n, flags);
+            }
+
+            @Override
+            public boolean setSelection(int start, int end){
+                if (DEBUG) Log.d("Python:", String.format("Set Selection %s %s", start, end));
+                return super.setSelection(start, end);
+            }
+        };
+    }
+
     static void activateInput() {
         mInputActivated = true;
     }
 
-	static void openUrl(String url) {
-		Log.i("python", "Opening URL: " + url);
+    static void openUrl(String url) {
+        Log.i("python", "Opening URL: " + url);
 
-		Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse(url));
-		mActivity.startActivity(i);
-	}
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        mActivity.startActivity(i);
+    }
 
-	// Taken from the "GLES20TriangleRenderer" in Android SDK
-	private int loadShader(int shaderType, String source) {
+    // Taken from the "GLES20TriangleRenderer" in Android SDK
+    private int loadShader(int shaderType, String source) {
         int shader = GLES20.glCreateShader(shaderType);
         if (shader != 0) {
             GLES20.glShaderSource(shader, source);
@@ -1025,7 +1395,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e(TAG, op + ": glError " + error);
-            throw new RuntimeException(op + ": glError " + error);
+            //throw new RuntimeException(op + ": glError " + error);
         }
     }
     private static final int FLOAT_SIZE_BYTES = 4;
@@ -1033,14 +1403,14 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
     private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
     private final float[] mTriangleVerticesData = {
-		// X, Y, Z, U, V
-		-0.5f, -0.5f, 0, 1.0f, 0.0f,
-		0.5f, -0.5f, 0, 0.0f, 0.0f,
-		0.5f, 0.5f, 0, 0.0f, 1.0f,
-		-0.5f, -0.5f, 0, 1.0f, 0.0f,
-		0.5f, 0.5f, 0, 0.0f, 1.0f,
-		-0.5f, 0.5f, 0, 1.0f, 1.0f,
-	};
+        // X, Y, Z, U, V
+        -0.5f, -0.5f, 0, 1.0f, 0.0f,
+        0.5f, -0.5f, 0, 0.0f, 0.0f,
+        0.5f, 0.5f, 0, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0, 1.0f, 0.0f,
+        0.5f, 0.5f, 0, 0.0f, 1.0f,
+        -0.5f, 0.5f, 0, 1.0f, 1.0f,
+    };
 
     private FloatBuffer mTriangleVertices;
 
@@ -1054,7 +1424,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private int maPositionHandle;
     private int maTextureHandle;
 
-	// Native part
+    // Native part
 
     public static native void nativeSetEnv(String name, String value);
     public static native void nativeInit();
@@ -1065,6 +1435,8 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     public static native void nativeSetMultitouchUsed();
 
     public native void nativeResize(int width, int height);
+    public native void nativeResizeEvent(int width, int height);
+    public native void nativeExpose();
     public native void nativeInitJavaCallbacks();
 
 }

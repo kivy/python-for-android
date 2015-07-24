@@ -55,20 +55,20 @@ jpeg_read_coefficients (j_decompress_ptr cinfo)
       int retcode;
       /* Call progress monitor hook if present */
       if (cinfo->progress != NULL)
-	(*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
+        (*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
       /* Absorb some more input */
       retcode = (*cinfo->inputctl->consume_input) (cinfo);
       if (retcode == JPEG_SUSPENDED)
-	return NULL;
+        return NULL;
       if (retcode == JPEG_REACHED_EOI)
-	break;
+        break;
       /* Advance progress counter if appropriate */
       if (cinfo->progress != NULL &&
 	  (retcode == JPEG_ROW_COMPLETED || retcode == JPEG_REACHED_SOS)) {
-	if (++cinfo->progress->pass_counter >= cinfo->progress->pass_limit) {
+        if (++cinfo->progress->pass_counter >= cinfo->progress->pass_limit) {
 	  /* startup underestimated number of scans; ratchet up one scan */
-	  cinfo->progress->pass_limit += (long) cinfo->total_iMCU_rows;
-	}
+        cinfo->progress->pass_limit += (long) cinfo->total_iMCU_rows;
+        }
       }
     }
     /* Set state so that jpeg_finish_decompress does the right thing */
@@ -87,6 +87,132 @@ jpeg_read_coefficients (j_decompress_ptr cinfo)
   return NULL;			/* keep compiler happy */
 }
 
+LOCAL(boolean)
+jpeg_build_huffman_index_progressive(j_decompress_ptr cinfo,
+        huffman_index *index)
+{
+  if (cinfo->global_state == DSTATE_READY) {
+    printf("Progressive Mode\n");
+    /* First call: initialize active modules */
+    transdecode_master_selection(cinfo);
+    cinfo->global_state = DSTATE_RDCOEFS;
+  }
+  if (cinfo->global_state == DSTATE_RDCOEFS) {
+    int mcu, i;
+    cinfo->marker->get_sos_marker_position(cinfo, index);
+
+    /* Absorb whole file into the coef buffer */
+    for (mcu = 0; mcu < cinfo->total_iMCU_rows; mcu++) {
+      int retcode = 0;
+      /* Call progress monitor hook if present */
+      if (cinfo->progress != NULL)
+        (*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
+      /* Absorb some more input */
+      jinit_phuff_decoder(cinfo);
+      for (i = 0; i < index->scan_count; i++) {
+        (*cinfo->inputctl->finish_input_pass) (cinfo);
+        jset_input_stream_position(cinfo, index->scan[i].bitstream_offset);
+        cinfo->unread_marker = 0;
+        retcode = (*cinfo->inputctl->consume_input_build_huffman_index)
+                    (cinfo, index, i);
+        if (retcode == JPEG_REACHED_EOI)
+          break;
+        cinfo->input_iMCU_row = mcu;
+        if (mcu != 0)
+          (*cinfo->entropy->configure_huffman_decoder)
+                (cinfo, index->scan[i].prev_MCU_offset);
+        cinfo->input_scan_number = i;
+        retcode = (*cinfo->inputctl->consume_input_build_huffman_index)
+                    (cinfo, index, i);
+      }
+      if (retcode == JPEG_SUSPENDED)
+        return FALSE;
+      if (retcode == JPEG_REACHED_EOI)
+        break;
+      /* Advance progress counter if appropriate */
+      if (cinfo->progress != NULL &&
+	  (retcode == JPEG_ROW_COMPLETED || retcode == JPEG_REACHED_SOS)) {
+        if (++cinfo->progress->pass_counter >= cinfo->progress->pass_limit) {
+	  /* startup underestimated number of scans; ratchet up one scan */
+          cinfo->progress->pass_limit += (long) cinfo->total_iMCU_rows;
+        }
+      }
+    }
+    cinfo->global_state = DSTATE_STOPPING;
+  }
+  /* At this point we should be in state DSTATE_STOPPING if being used
+   * standalone, or in state DSTATE_BUFIMAGE if being invoked to get access
+   * to the coefficients during a full buffered-image-mode decompression.
+   */
+  if ((cinfo->global_state == DSTATE_STOPPING ||
+       cinfo->global_state == DSTATE_BUFIMAGE) && cinfo->buffered_image) {
+    return TRUE;
+  }
+  /* Oops, improper usage */
+  ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
+  return FALSE;			/* keep compiler happy */
+}
+
+LOCAL(boolean)
+jpeg_build_huffman_index_baseline(j_decompress_ptr cinfo, huffman_index *index)
+{
+  if (cinfo->global_state == DSTATE_READY) {
+    printf("Baseline Mode\n");
+    /* First call: initialize active modules */
+    transdecode_master_selection(cinfo);
+    cinfo->global_state = DSTATE_RDCOEFS;
+  }
+  if (cinfo->global_state == DSTATE_RDCOEFS) {
+    /* Absorb whole file into the coef buffer */
+    for (;;) {
+      int retcode;
+      /* Call progress monitor hook if present */
+      if (cinfo->progress != NULL)
+        (*cinfo->progress->progress_monitor) ((j_common_ptr) cinfo);
+      /* Absorb some more input */
+      retcode = (*cinfo->inputctl->consume_input_build_huffman_index)
+                    (cinfo, index, 0);
+      if (retcode == JPEG_SUSPENDED)
+        return FALSE;
+      if (retcode == JPEG_REACHED_EOI)
+        break;
+      if (retcode == JPEG_SCAN_COMPLETED)
+        break;
+
+      /* Advance progress counter if appropriate */
+      if (cinfo->progress != NULL &&
+	  (retcode == JPEG_ROW_COMPLETED || retcode == JPEG_REACHED_SOS)) {
+        if (++cinfo->progress->pass_counter >= cinfo->progress->pass_limit) {
+	  /* startup underestimated number of scans; ratchet up one scan */
+        cinfo->progress->pass_limit += (long) cinfo->total_iMCU_rows;
+        }
+      }
+    }
+    /* Set state so that jpeg_finish_decompress does the right thing */
+    cinfo->global_state = DSTATE_STOPPING;
+  }
+  /* At this point we should be in state DSTATE_STOPPING if being used
+   * standalone, or in state DSTATE_BUFIMAGE if being invoked to get access
+   * to the coefficients during a full buffered-image-mode decompression.
+   */
+  if ((cinfo->global_state == DSTATE_STOPPING ||
+       cinfo->global_state == DSTATE_BUFIMAGE) && cinfo->buffered_image) {
+    return TRUE;
+  }
+  /* Oops, improper usage */
+  ERREXIT1(cinfo, JERR_BAD_STATE, cinfo->global_state);
+  return FALSE;			/* keep compiler happy */
+}
+
+GLOBAL(boolean)
+jpeg_build_huffman_index(j_decompress_ptr cinfo, huffman_index *index)
+{
+    cinfo->tile_decode = TRUE;
+    if (cinfo->progressive_mode)
+      return jpeg_build_huffman_index_progressive(cinfo, index);
+    else
+      return jpeg_build_huffman_index_baseline(cinfo, index);
+}
 
 /*
  * Master selection of decompression modules for transcoding.
@@ -109,8 +235,9 @@ transdecode_master_selection (j_decompress_ptr cinfo)
 #else
       ERREXIT(cinfo, JERR_NOT_COMPILED);
 #endif
-    } else
+    } else {
       jinit_huff_decoder(cinfo);
+    }
   }
 
   /* Always get a full-image coefficient buffer. */

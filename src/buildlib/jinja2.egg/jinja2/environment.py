@@ -11,16 +11,26 @@
 import os
 import sys
 from jinja2 import nodes
-from jinja2.defaults import *
+from jinja2.defaults import BLOCK_START_STRING, \
+     BLOCK_END_STRING, VARIABLE_START_STRING, VARIABLE_END_STRING, \
+     COMMENT_START_STRING, COMMENT_END_STRING, LINE_STATEMENT_PREFIX, \
+     LINE_COMMENT_PREFIX, TRIM_BLOCKS, NEWLINE_SEQUENCE, \
+     DEFAULT_FILTERS, DEFAULT_TESTS, DEFAULT_NAMESPACE, \
+     KEEP_TRAILING_NEWLINE, LSTRIP_BLOCKS
 from jinja2.lexer import get_lexer, TokenStream
 from jinja2.parser import Parser
+from jinja2.nodes import EvalContext
 from jinja2.optimizer import optimize
 from jinja2.compiler import generate
 from jinja2.runtime import Undefined, new_context
 from jinja2.exceptions import TemplateSyntaxError, TemplateNotFound, \
-     TemplatesNotFound
+     TemplatesNotFound, TemplateRuntimeError
 from jinja2.utils import import_string, LRUCache, Markup, missing, \
-     concat, consume, internalcode, _encode_filename
+     concat, consume, internalcode
+from jinja2._compat import imap, ifilter, string_types, iteritems, \
+     text_type, reraise, implements_iterator, implements_to_string, \
+     get_next, encode_filename, PY2, PYPY
+from functools import reduce
 
 
 # for direct template usage we have up to ten living environments
@@ -67,11 +77,11 @@ def copy_cache(cache):
 
 def load_extensions(environment, extensions):
     """Load the extensions from the list and bind it to the environment.
-    Returns a dict of instanciated environments.
+    Returns a dict of instantiated environments.
     """
     result = {}
     for extension in extensions:
-        if isinstance(extension, basestring):
+        if isinstance(extension, string_types):
             extension = import_string(extension)
         result[extension.identifier] = extension(environment)
     return result
@@ -134,11 +144,22 @@ class Environment(object):
             If this is set to ``True`` the first newline after a block is
             removed (block, not variable tag!).  Defaults to `False`.
 
+        `lstrip_blocks`
+            If this is set to ``True`` leading spaces and tabs are stripped
+            from the start of a line to a block.  Defaults to `False`.
+
         `newline_sequence`
             The sequence that starts a newline.  Must be one of ``'\r'``,
             ``'\n'`` or ``'\r\n'``.  The default is ``'\n'`` which is a
             useful default for Linux and OS X systems as well as web
             applications.
+
+        `keep_trailing_newline`
+            Preserve the trailing newline when rendering templates.
+            The default is ``False``, which causes a single newline,
+            if present, to be stripped from the end of the template.
+
+            .. versionadded:: 2.7
 
         `extensions`
             List of Jinja extensions to use.  This can either be import paths
@@ -196,7 +217,8 @@ class Environment(object):
 
     #: if this environment is sandboxed.  Modifying this variable won't make
     #: the environment sandboxed though.  For a real sandboxed environment
-    #: have a look at jinja2.sandbox
+    #: have a look at jinja2.sandbox.  This flag alone controls the code
+    #: generation by the compiler.
     sandboxed = False
 
     #: True if the environment is just an overlay
@@ -223,7 +245,9 @@ class Environment(object):
                  line_statement_prefix=LINE_STATEMENT_PREFIX,
                  line_comment_prefix=LINE_COMMENT_PREFIX,
                  trim_blocks=TRIM_BLOCKS,
+                 lstrip_blocks=LSTRIP_BLOCKS,
                  newline_sequence=NEWLINE_SEQUENCE,
+                 keep_trailing_newline=KEEP_TRAILING_NEWLINE,
                  extensions=(),
                  optimized=True,
                  undefined=Undefined,
@@ -238,7 +262,7 @@ class Environment(object):
         #   passed by keyword rather than position.  However it's important to
         #   not change the order of arguments because it's used at least
         #   internally in those cases:
-        #       -   spontaneus environments (i18n extension and Template)
+        #       -   spontaneous environments (i18n extension and Template)
         #       -   unittests
         #   If parameter changes are required only add parameters at the end
         #   and don't change the arguments (or the defaults!) of the arguments
@@ -254,7 +278,9 @@ class Environment(object):
         self.line_statement_prefix = line_statement_prefix
         self.line_comment_prefix = line_comment_prefix
         self.trim_blocks = trim_blocks
+        self.lstrip_blocks = lstrip_blocks
         self.newline_sequence = newline_sequence
+        self.keep_trailing_newline = keep_trailing_newline
 
         # runtime information
         self.undefined = undefined
@@ -269,7 +295,6 @@ class Environment(object):
 
         # set the loader provided
         self.loader = loader
-        self.bytecode_cache = None
         self.cache = create_cache(cache_size)
         self.bytecode_cache = bytecode_cache
         self.auto_reload = auto_reload
@@ -279,12 +304,19 @@ class Environment(object):
 
         _environment_sanity_check(self)
 
+    def add_extension(self, extension):
+        """Adds an extension after the environment was created.
+
+        .. versionadded:: 2.5
+        """
+        self.extensions.update(load_extensions(self, [extension]))
+
     def extend(self, **attributes):
         """Add the items to the instance of the environment if they do not exist
         yet.  This is used by :ref:`extensions <writing-extensions>` to register
         callbacks and configuration values without breaking inheritance.
         """
-        for key, value in attributes.iteritems():
+        for key, value in iteritems(attributes):
             if not hasattr(self, key):
                 setattr(self, key, value)
 
@@ -292,7 +324,8 @@ class Environment(object):
                 variable_start_string=missing, variable_end_string=missing,
                 comment_start_string=missing, comment_end_string=missing,
                 line_statement_prefix=missing, line_comment_prefix=missing,
-                trim_blocks=missing, extensions=missing, optimized=missing,
+                trim_blocks=missing, lstrip_blocks=missing,
+                extensions=missing, optimized=missing,
                 undefined=missing, finalize=missing, autoescape=missing,
                 loader=missing, cache_size=missing, auto_reload=missing,
                 bytecode_cache=missing):
@@ -315,7 +348,7 @@ class Environment(object):
         rv.overlayed = True
         rv.linked_to = self
 
-        for key, value in args.iteritems():
+        for key, value in iteritems(args):
             if value is not missing:
                 setattr(rv, key, value)
 
@@ -325,10 +358,10 @@ class Environment(object):
             rv.cache = copy_cache(self.cache)
 
         rv.extensions = {}
-        for key, value in self.extensions.iteritems():
+        for key, value in iteritems(self.extensions):
             rv.extensions[key] = value.bind(rv)
         if extensions is not missing:
-            rv.extensions.update(load_extensions(extensions))
+            rv.extensions.update(load_extensions(rv, extensions))
 
         return _environment_sanity_check(rv)
 
@@ -344,10 +377,10 @@ class Environment(object):
         try:
             return obj[argument]
         except (TypeError, LookupError):
-            if isinstance(argument, basestring):
+            if isinstance(argument, string_types):
                 try:
                     attr = str(argument)
-                except:
+                except Exception:
                     pass
                 else:
                     try:
@@ -369,6 +402,42 @@ class Environment(object):
         except (TypeError, LookupError, AttributeError):
             return self.undefined(obj=obj, name=attribute)
 
+    def call_filter(self, name, value, args=None, kwargs=None,
+                    context=None, eval_ctx=None):
+        """Invokes a filter on a value the same way the compiler does it.
+
+        .. versionadded:: 2.7
+        """
+        func = self.filters.get(name)
+        if func is None:
+            raise TemplateRuntimeError('no filter named %r' % name)
+        args = [value] + list(args or ())
+        if getattr(func, 'contextfilter', False):
+            if context is None:
+                raise TemplateRuntimeError('Attempted to invoke context '
+                                           'filter without context')
+            args.insert(0, context)
+        elif getattr(func, 'evalcontextfilter', False):
+            if eval_ctx is None:
+                if context is not None:
+                    eval_ctx = context.eval_ctx
+                else:
+                    eval_ctx = EvalContext(self)
+            args.insert(0, eval_ctx)
+        elif getattr(func, 'environmentfilter', False):
+            args.insert(0, self)
+        return func(*args, **(kwargs or {}))
+
+    def call_test(self, name, value, args=None, kwargs=None):
+        """Invokes a test on a value the same way the compiler does it.
+
+        .. versionadded:: 2.7
+        """
+        func = self.tests.get(name)
+        if func is None:
+            raise TemplateRuntimeError('no test named %r' % name)
+        return func(value, *(args or ()), **(kwargs or {}))
+
     @internalcode
     def parse(self, source, name=None, filename=None):
         """Parse the sourcecode and return the abstract syntax tree.  This
@@ -387,7 +456,7 @@ class Environment(object):
 
     def _parse(self, source, name, filename):
         """Internal parsing function used by `parse` and `compile`."""
-        return Parser(self, source, name, _encode_filename(filename)).parse()
+        return Parser(self, source, name, encode_filename(filename)).parse()
 
     def lex(self, source, name=None, filename=None):
         """Lex the given sourcecode and return a generator that yields
@@ -399,7 +468,7 @@ class Environment(object):
         of the extensions to be applied you have to filter source through
         the :meth:`preprocess` method.
         """
-        source = unicode(source)
+        source = text_type(source)
         try:
             return self.lexer.tokeniter(source, name, filename)
         except TemplateSyntaxError:
@@ -412,7 +481,7 @@ class Environment(object):
         because there you usually only want the actual source tokenized.
         """
         return reduce(lambda s, e: e.preprocess(s, name, filename),
-                      self.iter_extensions(), unicode(source))
+                      self.iter_extensions(), text_type(source))
 
     def _tokenize(self, source, name, filename=None, state=None):
         """Called by the parser to do the preprocessing and filtering
@@ -425,6 +494,22 @@ class Environment(object):
             if not isinstance(stream, TokenStream):
                 stream = TokenStream(stream, name, filename)
         return stream
+
+    def _generate(self, source, name, filename, defer_init=False):
+        """Internal hook that can be overridden to hook a different generate
+        method in.
+
+        .. versionadded:: 2.5
+        """
+        return generate(source, self, name, filename, defer_init=defer_init)
+
+    def _compile(self, source, filename):
+        """Internal hook that can be overridden to hook a different compile
+        method in.
+
+        .. versionadded:: 2.5
+        """
+        return compile(source, filename, 'exec')
 
     @internalcode
     def compile(self, source, name=None, filename=None, raw=False,
@@ -450,20 +535,20 @@ class Environment(object):
         """
         source_hint = None
         try:
-            if isinstance(source, basestring):
+            if isinstance(source, string_types):
                 source_hint = source
                 source = self._parse(source, name, filename)
             if self.optimized:
                 source = optimize(source, self)
-            source = generate(source, self, name, filename,
-                              defer_init=defer_init)
+            source = self._generate(source, name, filename,
+                                    defer_init=defer_init)
             if raw:
                 return source
             if filename is None:
                 filename = '<template>'
             else:
-                filename = _encode_filename(filename)
-            return compile(source, filename, 'exec')
+                filename = encode_filename(filename)
+            return self._compile(source, filename)
         except TemplateSyntaxError:
             exc_info = sys.exc_info()
         self.handle_exception(exc_info, source_hint=source)
@@ -516,7 +601,7 @@ class Environment(object):
     def compile_templates(self, target, extensions=None, filter_func=None,
                           zip='deflated', log_function=None,
                           ignore_errors=True, py_compile=False):
-        """Compiles all the templates the loader can find, compiles them
+        """Finds all the templates the loader can find, compiles them
         and stores them in `target`.  If `zip` is `None`, instead of in a
         zipfile, the templates will be will be stored in a directory.
         By default a deflate zip algorithm is used, to switch to
@@ -532,7 +617,9 @@ class Environment(object):
         to `False` and you will get an exception on syntax errors.
 
         If `py_compile` is set to `True` .pyc files will be written to the
-        target instead of standard .py files.
+        target instead of standard .py files.  This flag does not do anything
+        on pypy and Python 3 where pyc files are not picked up by itself and
+        don't give much benefit.
 
         .. versionadded:: 2.4
         """
@@ -542,14 +629,23 @@ class Environment(object):
             log_function = lambda x: None
 
         if py_compile:
-            import imp, struct, marshal
-            py_header = imp.get_magic() + \
-                u'\xff\xff\xff\xff'.encode('iso-8859-15')
+            if not PY2 or PYPY:
+                from warnings import warn
+                warn(Warning('py_compile has no effect on pypy or Python 3'))
+                py_compile = False
+            else:
+                import imp, marshal
+                py_header = imp.get_magic() + \
+                    '\xff\xff\xff\xff'.encode('iso-8859-15')
+
+                # Python 3.3 added a source filesize to the header
+                if sys.version_info >= (3, 3):
+                    py_header += '\x00\x00\x00\x00'.encode('iso-8859-15')
 
         def write_file(filename, data, mode):
             if zip:
                 info = ZipInfo(filename)
-                info.external_attr = 0755 << 16L
+                info.external_attr = 0o755 << 16
                 zip_file.writestr(info, data)
             else:
                 f = open(os.path.join(target, filename), mode)
@@ -573,7 +669,7 @@ class Environment(object):
                 source, filename, _ = self.loader.get_source(self, name)
                 try:
                     code = self.compile(source, name, filename, True, True)
-                except TemplateSyntaxError, e:
+                except TemplateSyntaxError as e:
                     if not ignore_errors:
                         raise
                     log_function('Could not compile "%s": %s' % (name, e))
@@ -582,7 +678,7 @@ class Environment(object):
                 filename = ModuleLoader.get_module_filename(name)
 
                 if py_compile:
-                    c = compile(code, _encode_filename(filename), 'exec')
+                    c = self._compile(code, encode_filename(filename))
                     write_file(filename + 'c', py_header +
                                marshal.dumps(c), 'wb')
                     log_function('Byte-compiled "%s" as %s' %
@@ -609,6 +705,8 @@ class Environment(object):
         in the result list.
 
         If the loader does not support that, a :exc:`TypeError` is raised.
+
+        .. versionadded:: 2.4
         """
         x = self.loader.list_templates()
         if extensions is not None:
@@ -618,7 +716,7 @@ class Environment(object):
             filter_func = lambda x: '.' in x and \
                                     x.rsplit('.', 1)[1] in extensions
         if filter_func is not None:
-            x = filter(filter_func, x)
+            x = ifilter(filter_func, x)
         return x
 
     def handle_exception(self, exc_info=None, rendered=False, source_hint=None):
@@ -641,7 +739,7 @@ class Environment(object):
         if self.exception_handler is not None:
             self.exception_handler(traceback)
         exc_type, exc_value, tb = traceback.standard_exc_info
-        raise exc_type, exc_value, tb
+        reraise(exc_type, exc_value, tb)
 
     def join_path(self, template, parent):
         """Join a template with the parent.  By default all the lookups are
@@ -705,8 +803,8 @@ class Environment(object):
            from the function unchanged.
         """
         if not names:
-            raise TemplatesNotFound(message=u'Tried to select from an empty list '
-                                            u'of templates.')
+            raise TemplatesNotFound(message='Tried to select from an empty list '
+                                            'of templates.')
         globals = self.make_globals(globals)
         for name in names:
             if isinstance(name, Template):
@@ -728,7 +826,7 @@ class Environment(object):
 
         .. versionadded:: 2.3
         """
-        if isinstance(template_name_or_list, basestring):
+        if isinstance(template_name_or_list, string_types):
             return self.get_template(template_name_or_list, parent, globals)
         elif isinstance(template_name_or_list, Template):
             return template_name_or_list
@@ -790,7 +888,9 @@ class Template(object):
                 line_statement_prefix=LINE_STATEMENT_PREFIX,
                 line_comment_prefix=LINE_COMMENT_PREFIX,
                 trim_blocks=TRIM_BLOCKS,
+                lstrip_blocks=LSTRIP_BLOCKS,
                 newline_sequence=NEWLINE_SEQUENCE,
+                keep_trailing_newline=KEEP_TRAILING_NEWLINE,
                 extensions=(),
                 optimized=True,
                 undefined=Undefined,
@@ -800,8 +900,9 @@ class Template(object):
             block_start_string, block_end_string, variable_start_string,
             variable_end_string, comment_start_string, comment_end_string,
             line_statement_prefix, line_comment_prefix, trim_blocks,
-            newline_sequence, frozenset(extensions), optimized, undefined,
-            finalize, autoescape, None, 0, False, None)
+            lstrip_blocks, newline_sequence, keep_trailing_newline,
+            frozenset(extensions), optimized, undefined, finalize, autoescape,
+            None, 0, False, None)
         return env.from_string(source, template_class=cls)
 
     @classmethod
@@ -813,7 +914,7 @@ class Template(object):
             'environment':  environment,
             '__file__':     code.co_filename
         }
-        exec code in namespace
+        exec(code, namespace)
         rv = cls._from_namespace(environment, namespace, globals)
         rv._uptodate = uptodate
         return rv
@@ -863,7 +964,7 @@ class Template(object):
         vars = dict(*args, **kwargs)
         try:
             return concat(self.root_render_func(self.new_context(vars)))
-        except:
+        except Exception:
             exc_info = sys.exc_info()
         return self.environment.handle_exception(exc_info, True)
 
@@ -885,7 +986,7 @@ class Template(object):
         try:
             for event in self.root_render_func(self.new_context(vars)):
                 yield event
-        except:
+        except Exception:
             exc_info = sys.exc_info()
         else:
             return
@@ -947,7 +1048,7 @@ class Template(object):
     @property
     def debug_info(self):
         """The debug info mapping."""
-        return [tuple(map(int, x.split('='))) for x in
+        return [tuple(imap(int, x.split('='))) for x in
                 self._debug_info.split('&')]
 
     def __repr__(self):
@@ -958,6 +1059,7 @@ class Template(object):
         return '<%s %s>' % (self.__class__.__name__, name)
 
 
+@implements_to_string
 class TemplateModule(object):
     """Represents an imported template.  All the exported names of the
     template are available as attributes on this object.  Additionally
@@ -973,13 +1075,6 @@ class TemplateModule(object):
         return Markup(concat(self._body_stream))
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    # unicode goes after __str__ because we configured 2to3 to rename
-    # __unicode__ to __str__.  because the 2to3 tree is not designed to
-    # remove nodes from it, we leave the above __str__ around and let
-    # it override at runtime.
-    def __unicode__(self):
         return concat(self._body_stream)
 
     def __repr__(self):
@@ -1009,6 +1104,7 @@ class TemplateExpression(object):
         return rv
 
 
+@implements_iterator
 class TemplateStream(object):
     """A template stream works pretty much like an ordinary python generator
     but it can buffer multiple items to reduce the number of total iterations.
@@ -1027,15 +1123,15 @@ class TemplateStream(object):
     def dump(self, fp, encoding=None, errors='strict'):
         """Dump the complete stream into a file or file-like object.
         Per default unicode strings are written, if you want to encode
-        before writing specifiy an `encoding`.
+        before writing specify an `encoding`.
 
         Example usage::
 
             Template('Hello {{ name }}!').stream(name='foo').dump('hello.html')
         """
         close = False
-        if isinstance(fp, basestring):
-            fp = file(fp, 'w')
+        if isinstance(fp, string_types):
+            fp = open(fp, encoding is None and 'w' or 'wb')
             close = True
         try:
             if encoding is not None:
@@ -1053,7 +1149,7 @@ class TemplateStream(object):
 
     def disable_buffering(self):
         """Disable the output buffering."""
-        self._next = self._gen.next
+        self._next = get_next(self._gen)
         self.buffered = False
 
     def enable_buffering(self, size=5):
@@ -1081,12 +1177,12 @@ class TemplateStream(object):
                 c_size = 0
 
         self.buffered = True
-        self._next = generator(self._gen.next).next
+        self._next = get_next(generator(get_next(self._gen)))
 
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return self._next()
 
 

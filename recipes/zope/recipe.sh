@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION_zope=3.8.0
+VERSION_zope=${VERSION_zope:-4.1.2}
 URL_zope=http://pypi.python.org/packages/source/z/zope.interface/zope.interface-$VERSION_zope.tar.gz
 DEPS_zope=(python)
-MD5_zope=8ab837320b4532774c9c89f030d2a389
+MD5_zope=04298faeaa70b4f3b23fa2ae8987262c
 BUILD_zope=$BUILD_PATH/zope/$(get_directory $URL_zope)
 RECIPE_zope=$RECIPES_PATH/zope
 
@@ -11,11 +11,13 @@ function prebuild_zope() {
 	true
 }
 
-function build_zope() {
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/zope/interface" ]; then
-		return
+function shouldbuild_zope() {
+	if [ -d "$SITEPACKAGES_PATH/zope/interface" ]; then
+		DO_BUILD=0
 	fi
+}
+
+function build_zope() {
 
 	cd $BUILD_zope
 

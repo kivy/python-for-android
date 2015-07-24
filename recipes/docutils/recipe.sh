@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION_docutils=
-URL_docutils=http://prdownloads.sourceforge.net/docutils/docutils-0.9.1.tar.gz
+VERSION_docutils=${VERSION_docutils:-0.9.1}
+URL_docutils=http://prdownloads.sourceforge.net/docutils/docutils-$VERSION_docutils.tar.gz
 DEPS_docutils=(pil)
 MD5_docutils=
 BUILD_docutils=$BUILD_PATH/docutils/$(get_directory $URL_docutils)
@@ -11,12 +11,13 @@ function prebuild_docutils() {
     true
 }
 
-function build_docutils() {
-    if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/docutils" ]; then
-        #return
-        true
-    fi
+function shouldbuild_docutils() {
+	if [ -d "$SITEPACKAGES_PATH/docutils" ]; then
+		DO_BUILD=0
+	fi
+}
 
+function build_docutils() {
     cd $BUILD_docutils
 
     push_arm
@@ -25,10 +26,10 @@ function build_docutils() {
     export LDSHARED="$LIBLINK"
 
     # fake try to be able to cythonize generated files
-    $BUILD_PATH/python-install/bin/python.host setup.py build_ext
-    try find . -iname '*.pyx' -exec cython {} \;
-    try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
-    try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+    $HOSTPYTHON setup.py build_ext
+    try find . -iname '*.pyx' -exec $CYTHON {} \;
+    try $HOSTPYTHON setup.py build_ext -v
+    try $HOSTPYTHON setup.py install -O2
 
     unset LDSHARED
     pop_arm

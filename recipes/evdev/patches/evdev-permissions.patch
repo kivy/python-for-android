@@ -1,0 +1,57 @@
+diff -Naur orig/evdev/util.py v0.4.7/evdev/util.py
+--- orig/evdev/util.py	2015-06-12 16:31:46.532994729 -0500
++++ v0.4.7/evdev/util.py	2015-06-12 16:32:59.489933840 -0500
+@@ -3,15 +3,53 @@
+ import os
+ import stat
+ import glob
++import subprocess
+ 
+ from evdev import ecodes
+ from evdev.events import event_factory
+ 
+ 
++su = False
++
++
++def get_su_binary():
++    global su
++    if su is not False:
++        return su
++
++    su_files = ['/sbin/su', '/system/bin/su', '/system/xbin/su', '/data/local/xbin/su',
++                '/data/local/bin/su', '/system/sd/xbin/su', '/system/bin/failsafe/su',
++                '/data/local/su']
++    su = None
++
++    for fn in su_files:
++        if os.path.exists(fn):
++            try:
++                cmd = [fn, '-c', 'id']
++                output = subprocess.check_output(cmd)
++            except Exception:
++                pass
++            else:
++                if 'uid=0' in output:
++                    su = fn
++                    break
++
++    return su
++
++
++def fix_permissions(nodes):
++    su = get_su_binary()
++    if su:
++        cmd = 'chmod 666 ' + ' '.join(nodes)
++        print cmd
++        subprocess.check_call(['su', '-c', cmd])
++
++
+ def list_devices(input_device_dir='/dev/input'):
+     '''List readable character devices in ``input_device_dir``.'''
+ 
+     fns = glob.glob('{}/event*'.format(input_device_dir))
++    fix_permissions(fns)
+     fns = list(filter(is_device, fns))
+ 
+     return fns

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_lxml=2.3.6
+VERSION_lxml=${VERSION_lxml:-2.3.6}
 URL_lxml=http://pypi.python.org/packages/source/l/lxml/lxml-$VERSION_lxml.tar.gz
 DEPS_lxml=(libxml2 libxslt python)
 MD5_lxml=d5d886088e78b1bdbfd66d328fc2d0bc
@@ -11,12 +11,14 @@ function prebuild_lxml() {
 	true
 }
 
+function shouldbuild_lxml() {
+	if [ -d "$SITEPACKAGES_PATH/lxml" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_lxml() {
 	cd $BUILD_lxml
-
-	if [ -d "$BUILD_PATH/python-install/lib/python2.7/site-packages/lxml" ]; then
-		return
-	fi
 
 	push_arm
 
@@ -27,9 +29,9 @@ function build_lxml() {
 	chmod +x $BUILD_libxslt/xslt-config
 	export PATH=$PATH:$BUILD_libxslt
 
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -I$BUILD_libxml2/include -I$BUILD_libxslt
-	try find . -iname '*.pyx' -exec cython {} \;
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -v
+	try $HOSTPYTHON setup.py build_ext -I$BUILD_libxml2/include -I$BUILD_libxslt
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
+	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
 
 	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages

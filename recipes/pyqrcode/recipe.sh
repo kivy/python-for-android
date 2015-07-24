@@ -15,16 +15,19 @@ function prebuild_pyqrcode() {
 	fi
 }
 
-function build_pyqrcode() {
-	cd $BUILD_pyqrcode
-
+function shouldbuild_pyqrcode() {
 	# if the last step have been done, avoid all
-	if [ -f .done ]; then
+	if [ -f "$BUILD_pyqrcode/.done" ]; then
 		return
 	fi
 	
+}
+
+function build_pyqrcode() {
+	cd $BUILD_pyqrcode
+
 	push_arm
-	try $BUILD_PATH/python-install/bin/python.host setup.py install -O2
+	try $HOSTPYTHON setup.py install -O2
 	touch .done
 	pop_arm
 }

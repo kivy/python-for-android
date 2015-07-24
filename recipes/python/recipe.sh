@@ -2,6 +2,7 @@
 
 VERSION_python=2.7.2
 DEPS_python=(hostpython)
+DEPS_OPTIONAL_python=(openssl sqlite3)
 URL_python=http://python.org/ftp/python/$VERSION_python/Python-$VERSION_python.tar.bz2
 MD5_python=ba7b2f11ffdbf195ee0d111b9455a5bd
 
@@ -19,6 +20,7 @@ function prebuild_python() {
 	fi
 
 	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-xcompile.patch
+	try patch -p1 < $RECIPE_python/patches/Python-$VERSION_python-ctypes-disable-wchar.patch
 	try patch -p1 < $RECIPE_python/patches/disable-modules.patch
 	try patch -p1 < $RECIPE_python/patches/fix-locale.patch
 	try patch -p1 < $RECIPE_python/patches/fix-gethostbyaddr.patch
@@ -29,6 +31,8 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/verbose-compilation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-remove-corefoundation.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
+	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
+	try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
@@ -40,19 +44,42 @@ function prebuild_python() {
 	touch .patched
 }
 
+function shouldbuild_python() {
+	cd $BUILD_python
+
+	# check if the requirements for python changed (with/without openssl or sqlite3)
+	reqfn=".req"
+	req=""
+	if [ "X$BUILD_openssl" != "X" ]; then
+		req="openssl;$req"
+	fi
+	if [ "X$BUILD_sqlite3" != "X" ]; then
+		req="sqlite3;$req"
+	fi
+
+	if [ -f libpython2.7.so ]; then
+		if [ -f "$reqfn" ]; then
+			reqc=$(cat $reqfn)
+			if [ "X$reqc" == "X$req" ]; then
+				DO_BUILD=0
+			fi
+		fi
+	fi
+
+	echo "$req" > "$reqfn"
+}
+
 function build_python() {
 	# placeholder for building
 	cd $BUILD_python
 
-	# if the last step have been done, avoid all
-	if [ -f libpython2.7.so ]; then
-		return
-	fi
-	
 	# copy same module from host python
 	try cp $RECIPE_hostpython/Setup Modules
 	try cp $BUILD_hostpython/hostpython .
 	try cp $BUILD_hostpython/hostpgen .
+
+	export BUILDARCH=$(gcc -dumpmachine)
+	export HOSTARCH=arm-eabi
 
 	push_arm
 
@@ -70,14 +97,17 @@ function build_python() {
 		export LDFLAGS="$LDFLAGS -L$SRC_PATH/obj/local/$ARCH/"
 	fi
 
-	try ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
-	echo ./configure --host=arm-eabi --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
+	# CFLAGS for python ctypes library
+	#export CFLAGS="$CFLAGS -DNO_MALLINFO"
+
+	try ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
+	echo ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo $MAKE HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	cp HOSTPYTHON=$BUILD_python/hostpython python
 
 	# FIXME, the first time, we got a error at:
 	# python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
-    # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
+	# /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
 	# because at this time, python is arm, not x86. even that, why /usr/include/netinet/in.h is used ?
 	# check if we can avoid this part.
 
@@ -88,8 +118,26 @@ function build_python() {
 	$MAKE install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	pop_arm
 
-	try cp $BUILD_hostpython/hostpython $BUILD_PATH/python-install/bin/python.host
+	system=$(uname -s)
+	if [ "X$system" == "XDarwin" ]; then
+		try cp $RECIPE_python/patches/_scproxy.py $BUILD_python/Lib/
+		try cp $RECIPE_python/patches/_scproxy.py $BUILD_PATH/python-install/lib/python2.7/
+	fi
+	try cp $BUILD_hostpython/hostpython $HOSTPYTHON
 	try cp libpython2.7.so $LIBS_PATH/
+	try cp -a build/lib.*-2.7/_ctypes*.so $LIBS_PATH
+
+	# reduce python
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/json/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/lib-tk"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/sqlite3/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/unittest/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/lib2to3/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/bsddb/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/distutils/tests"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/email/test"
+	rm -rf "$BUILD_PATH/python-install/lib/python2.7/curses"
 }
 
 

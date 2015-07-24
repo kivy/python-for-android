@@ -19,25 +19,25 @@ import java.util.zip.GZIPInputStream;
 
 import android.content.res.AssetManager;
 
-import org.xeustechnologies.jtar.*;
+import org.kamranzafar.jtar.*;
 
 class AssetExtract {
 
     private AssetManager mAssetManager = null;
     private Activity mActivity = null;
-    
+
     AssetExtract(Activity act) {
         mActivity = act;
         mAssetManager = act.getAssets();
     }
-    
+
     public boolean extractTar(String asset, String target) {
 
         byte buf[] = new byte[1024 * 1024];
-        
+
         InputStream assetStream = null;
         TarInputStream tis = null;
-        
+
         try {
             assetStream = mAssetManager.open(asset, AssetManager.ACCESS_STREAMING);
             tis = new TarInputStream(new BufferedInputStream(new GZIPInputStream(new BufferedInputStream(assetStream, 8192)), 8192));
@@ -45,7 +45,7 @@ class AssetExtract {
             Log.e("python", "opening up extract tar", e);
             return false;
         }
-        
+
         while (true) {
             TarEntry entry = null;
 
@@ -61,7 +61,7 @@ class AssetExtract {
             }
 
             Log.i("python", "extracting " + entry.getName());
-            
+
             if (entry.isDirectory()) {
 
                 try {
@@ -87,14 +87,14 @@ class AssetExtract {
             try {
                 while (true) {
                     int len = tis.read(buf);
-                    
+
                     if (len == -1) {
                         break;
                     }
-                    
+
                     out.write(buf, 0, len);
                 }
-                
+
                 out.flush();
                 out.close();
             } catch ( java.io.IOException e ) {
@@ -109,7 +109,7 @@ class AssetExtract {
         } catch (IOException e) {
             // pass
         }
-            
+
         return true;
     }
 }

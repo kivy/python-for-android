@@ -13,9 +13,15 @@
     :license: BSD, see LICENSE for more details.
 """
 import operator
-from itertools import chain, izip
+
 from collections import deque
 from jinja2.utils import Markup
+from jinja2._compat import next, izip, with_metaclass, text_type, \
+     method_type, function_type
+
+
+#: the types we support for context functions
+_context_function_types = (function_type, method_type)
 
 
 _binop_to_func = {
@@ -73,6 +79,7 @@ class EvalContext(object):
     """
 
     def __init__(self, environment, template_name=None):
+        self.environment = environment
         if callable(environment.autoescape):
             self.autoescape = environment.autoescape(template_name)
         else:
@@ -97,9 +104,9 @@ def get_eval_context(node, ctx):
     return ctx
 
 
-class Node(object):
+class Node(with_metaclass(NodeType, object)):
     """Baseclass for all Jinja2 nodes.  There are a number of nodes available
-    of different types.  There are three major types:
+    of different types.  There are four major types:
 
     -   :class:`Stmt`: statements
     -   :class:`Expr`: expressions
@@ -113,7 +120,6 @@ class Node(object):
     The `environment` attribute is set at the end of the parsing process for
     all nodes automatically.
     """
-    __metaclass__ = NodeType
     fields = ()
     attributes = ('lineno', 'environment')
     abstract = True
@@ -137,7 +143,7 @@ class Node(object):
             setattr(self, attr, attributes.pop(attr, None))
         if attributes:
             raise TypeError('unknown attribute %r' %
-                            iter(attributes).next())
+                            next(iter(attributes)))
 
     def iter_fields(self, exclude=None, only=None):
         """This method iterates over all fields that are defined and yields
@@ -225,6 +231,9 @@ class Node(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    # Restore Python 2 hashing behavior on Python 3
+    __hash__ = object.__hash__
 
     def __repr__(self):
         return '%s(%s)' % (
@@ -368,10 +377,14 @@ class BinExpr(Expr):
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
+        # intercepted operators cannot be folded at compile time
+        if self.environment.sandboxed and \
+           self.operator in self.environment.intercepted_binops:
+            raise Impossible()
         f = _binop_to_func[self.operator]
         try:
             return f(self.left.as_const(eval_ctx), self.right.as_const(eval_ctx))
-        except:
+        except Exception:
             raise Impossible()
 
 
@@ -383,10 +396,14 @@ class UnaryExpr(Expr):
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
+        # intercepted operators cannot be folded at compile time
+        if self.environment.sandboxed and \
+           self.operator in self.environment.intercepted_unops:
+            raise Impossible()
         f = _uaop_to_func[self.operator]
         try:
             return f(self.node.as_const(eval_ctx))
-        except:
+        except Exception:
             raise Impossible()
 
 
@@ -427,7 +444,7 @@ class Const(Literal):
         constant value in the generated code, otherwise it will raise
         an `Impossible` exception.
         """
-        from compiler import has_safe_repr
+        from .compiler import has_safe_repr
         if not has_safe_repr(value):
             raise Impossible()
         return cls(value, lineno=lineno, environment=environment)
@@ -438,7 +455,10 @@ class TemplateData(Literal):
     fields = ('data',)
 
     def as_const(self, eval_ctx=None):
-        if get_eval_context(self, eval_ctx).autoescape:
+        eval_ctx = get_eval_context(self, eval_ctx)
+        if eval_ctx.volatile:
+            raise Impossible()
+        if eval_ctx.autoescape:
             return Markup(self.data)
         return self.data
 
@@ -548,16 +568,16 @@ class Filter(Expr):
         if self.dyn_args is not None:
             try:
                 args.extend(self.dyn_args.as_const(eval_ctx))
-            except:
+            except Exception:
                 raise Impossible()
         if self.dyn_kwargs is not None:
             try:
                 kwargs.update(self.dyn_kwargs.as_const(eval_ctx))
-            except:
+            except Exception:
                 raise Impossible()
         try:
             return filter_(obj, *args, **kwargs)
-        except:
+        except Exception:
             raise Impossible()
 
 
@@ -585,27 +605,28 @@ class Call(Expr):
 
         # don't evaluate context functions
         args = [x.as_const(eval_ctx) for x in self.args]
-        if getattr(obj, 'contextfunction', False):
-            raise Impossible()
-        elif getattr(obj, 'evalcontextfunction', False):
-            args.insert(0, eval_ctx)
-        elif getattr(obj, 'environmentfunction', False):
-            args.insert(0, self.environment)
+        if isinstance(obj, _context_function_types):
+            if getattr(obj, 'contextfunction', False):
+                raise Impossible()
+            elif getattr(obj, 'evalcontextfunction', False):
+                args.insert(0, eval_ctx)
+            elif getattr(obj, 'environmentfunction', False):
+                args.insert(0, self.environment)
 
         kwargs = dict(x.as_const(eval_ctx) for x in self.kwargs)
         if self.dyn_args is not None:
             try:
                 args.extend(self.dyn_args.as_const(eval_ctx))
-            except:
+            except Exception:
                 raise Impossible()
         if self.dyn_kwargs is not None:
             try:
                 kwargs.update(self.dyn_kwargs.as_const(eval_ctx))
-            except:
+            except Exception:
                 raise Impossible()
         try:
             return obj(*args, **kwargs)
-        except:
+        except Exception:
             raise Impossible()
 
 
@@ -620,7 +641,7 @@ class Getitem(Expr):
         try:
             return self.environment.getitem(self.node.as_const(eval_ctx),
                                             self.arg.as_const(eval_ctx))
-        except:
+        except Exception:
             raise Impossible()
 
     def can_assign(self):
@@ -638,8 +659,9 @@ class Getattr(Expr):
             raise Impossible()
         try:
             eval_ctx = get_eval_context(self, eval_ctx)
-            return self.environment.getattr(self.node.as_const(eval_ctx), arg)
-        except:
+            return self.environment.getattr(self.node.as_const(eval_ctx),
+                                            self.attr)
+        except Exception:
             raise Impossible()
 
     def can_assign(self):
@@ -669,7 +691,7 @@ class Concat(Expr):
 
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
-        return ''.join(unicode(x.as_const(eval_ctx)) for x in self.nodes)
+        return ''.join(text_type(x.as_const(eval_ctx)) for x in self.nodes)
 
 
 class Compare(Expr):
@@ -686,7 +708,7 @@ class Compare(Expr):
                 new_value = op.expr.as_const(eval_ctx)
                 result = _cmpop_to_func[op.op](value, new_value)
                 value = new_value
-        except:
+        except Exception:
             raise Impossible()
         return result
 
@@ -821,6 +843,24 @@ class MarkSafe(Expr):
     def as_const(self, eval_ctx=None):
         eval_ctx = get_eval_context(self, eval_ctx)
         return Markup(self.expr.as_const(eval_ctx))
+
+
+class MarkSafeIfAutoescape(Expr):
+    """Mark the wrapped expression as safe (wrap it as `Markup`) but
+    only if autoescaping is active.
+
+    .. versionadded:: 2.5
+    """
+    fields = ('expr',)
+
+    def as_const(self, eval_ctx=None):
+        eval_ctx = get_eval_context(self, eval_ctx)
+        if eval_ctx.volatile:
+            raise Impossible()
+        expr = self.expr.as_const(eval_ctx)
+        if eval_ctx.autoescape:
+            return Markup(expr)
+        return expr
 
 
 class ContextReference(Expr):

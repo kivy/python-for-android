@@ -16,16 +16,12 @@ your application.
 .. toctree::
     :maxdepth: 2
 
-    introduction.rst
-    prerequisites.rst
-    usage.rst
-    helloworld.rst
-    howitworks.rst
-    customize.rst
-    recipes.rst
+    toolchain.rst
+    examples.rst
     android.rst
+    javaapi.rst
+    contribute.rst
     related.rst
-    extend.rst
     faq.rst
 
 Indices and tables

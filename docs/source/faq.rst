@@ -10,7 +10,13 @@ Android. Go to :doc:`prerequisites.rst` to see which one are working.
 _sqlite3.so not found
 ---------------------
 
-We recently fixed sqlite3 compilation. In case of, you must:
+We recently fixed sqlite3 compilation. In case of this error, you
+must:
+
+* Install development headers for sqlite3 if they are not already
+  installed. On Ubuntu:
+
+    apt-get install libsqlite3-dev
 
 * Compile the distribution with (sqlite3 must be the first argument)::
 
@@ -22,4 +28,14 @@ We recently fixed sqlite3 compilation. In case of, you must:
     sqlite3/*
     lib-dynload/_sqlite3.so
 
-And then, sqlite3 will be compiled, and included in your APK.
+Then sqlite3 will be compiled and included in your APK.
+
+Too many levels of symbolic links
+-----------------------------------------------------
+
+Python for Android does not work within a virtual enviroment. The Python for 
+Android directory must be outside of the virtual enviroment prior to running
+
+    ./distribute.sh -m "kivy"
+
+or else you may encounter OSError: [Errno 40] Too many levels of symbolic links.

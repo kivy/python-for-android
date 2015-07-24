@@ -1,5 +1,5 @@
 Customize your distribution
-===========================
+---------------------------
 
 The basic layout of a distribution is::
 

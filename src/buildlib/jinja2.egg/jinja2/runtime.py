@@ -8,30 +8,30 @@
     :copyright: (c) 2010 by the Jinja Team.
     :license: BSD.
 """
-import sys
-from itertools import chain, imap
-from jinja2.nodes import EvalContext
-from jinja2.utils import Markup, partial, soft_unicode, escape, missing, \
-     concat, MethodType, FunctionType, internalcode, next, \
-     object_type_repr
+from itertools import chain
+from jinja2.nodes import EvalContext, _context_function_types
+from jinja2.utils import Markup, soft_unicode, escape, missing, concat, \
+     internalcode, object_type_repr
 from jinja2.exceptions import UndefinedError, TemplateRuntimeError, \
      TemplateNotFound
+from jinja2._compat import next, imap, text_type, iteritems, \
+     implements_iterator, implements_to_string, string_types, PY2
 
 
 # these variables are exported to the template runtime
 __all__ = ['LoopContext', 'TemplateReference', 'Macro', 'Markup',
            'TemplateRuntimeError', 'missing', 'concat', 'escape',
-           'markup_join', 'unicode_join', 'to_string',
+           'markup_join', 'unicode_join', 'to_string', 'identity',
            'TemplateNotFound']
 
-
-#: the types we support for context functions
-_context_function_types = (FunctionType, MethodType)
-
 #: the name of the function that is used to convert something into
-#: a string.  2to3 will adopt that automatically and the generated
-#: code can take advantage of it.
-to_string = unicode
+#: a string.  We can just use the text type here.
+to_string = text_type
+
+#: the identity function.  Useful for certain things in the environment
+identity = lambda x: x
+
+_last_iteration = object()
 
 
 def markup_join(seq):
@@ -41,13 +41,13 @@ def markup_join(seq):
     for arg in iterator:
         buf.append(arg)
         if hasattr(arg, '__html__'):
-            return Markup(u'').join(chain(buf, iterator))
+            return Markup('').join(chain(buf, iterator))
     return concat(buf)
 
 
 def unicode_join(seq):
     """Simple args to unicode conversion and concatenation."""
-    return concat(imap(unicode, seq))
+    return concat(imap(text_type, seq))
 
 
 def new_context(environment, template_name, blocks, vars=None,
@@ -64,7 +64,7 @@ def new_context(environment, template_name, blocks, vars=None,
         # we don't want to modify the dict passed
         if shared:
             parent = dict(parent)
-        for key, value in locals.iteritems():
+        for key, value in iteritems(locals):
             if key[:2] == 'l_' and value is not missing:
                 parent[key[2:]] = value
     return Context(environment, parent, template_name, blocks)
@@ -78,8 +78,6 @@ class TemplateReference(object):
 
     def __getitem__(self, name):
         blocks = self.__context.blocks[name]
-        wrap = self.__context.eval_ctx.autoescape and \
-               Markup or (lambda x: x)
         return BlockReference(name, self.__context, blocks, 0)
 
     def __repr__(self):
@@ -122,7 +120,7 @@ class Context(object):
         # create the initial mapping of blocks.  Whenever template inheritance
         # takes place the runtime will update this mapping with the new blocks
         # from the template.
-        self.blocks = dict((k, [v]) for k, v in blocks.iteritems())
+        self.blocks = dict((k, [v]) for k, v in iteritems(blocks))
 
     def super(self, name, current):
         """Render a parent block."""
@@ -174,6 +172,16 @@ class Context(object):
         """
         if __debug__:
             __traceback_hide__ = True
+
+        # Allow callable classes to take a context
+        fn = __obj.__call__
+        for fn_type in ('contextfunction',
+                        'evalcontextfunction',
+                        'environmentfunction'):
+            if hasattr(fn, fn_type):
+                __obj = fn
+                break
+
         if isinstance(__obj, _context_function_types):
             if getattr(__obj, 'contextfunction', 0):
                 args = (__self,) + args
@@ -181,14 +189,20 @@ class Context(object):
                 args = (__self.eval_ctx,) + args
             elif getattr(__obj, 'environmentfunction', 0):
                 args = (__self.environment,) + args
-        return __obj(*args, **kwargs)
+        try:
+            return __obj(*args, **kwargs)
+        except StopIteration:
+            return __self.environment.undefined('value was undefined because '
+                                                'a callable raised a '
+                                                'StopIteration exception')
 
     def derived(self, locals=None):
         """Internal helper function to create a derived context."""
         context = new_context(self.environment, self.name, {},
                               self.parent, True, None, locals)
+        context.vars.update(self.vars)
         context.eval_ctx = self.eval_ctx
-        context.blocks.update((k, list(v)) for k, v in self.blocks.iteritems())
+        context.blocks.update((k, list(v)) for k, v in iteritems(self.blocks))
         return context
 
     def _all(meth):
@@ -202,7 +216,7 @@ class Context(object):
     items = _all('items')
 
     # not available on python 3
-    if hasattr(dict, 'iterkeys'):
+    if PY2:
         iterkeys = _all('iterkeys')
         itervalues = _all('itervalues')
         iteritems = _all('iteritems')
@@ -266,10 +280,12 @@ class BlockReference(object):
 class LoopContext(object):
     """A loop context for dynamic iteration."""
 
-    def __init__(self, iterable, recurse=None):
+    def __init__(self, iterable, recurse=None, depth0=0):
         self._iterator = iter(iterable)
         self._recurse = recurse
+        self._after = self._safe_next()
         self.index0 = -1
+        self.depth0 = depth0
 
         # try to get the length of the iterable early.  This must be done
         # here because there are some broken iterators around where there
@@ -287,10 +303,11 @@ class LoopContext(object):
         return args[self.index0 % len(args)]
 
     first = property(lambda x: x.index0 == 0)
-    last = property(lambda x: x.index0 + 1 == x.length)
+    last = property(lambda x: x._after is _last_iteration)
     index = property(lambda x: x.index0 + 1)
     revindex = property(lambda x: x.length - x.index0)
     revindex0 = property(lambda x: x.length - x.index)
+    depth = property(lambda x: x.depth0 + 1)
 
     def __len__(self):
         return self.length
@@ -298,12 +315,18 @@ class LoopContext(object):
     def __iter__(self):
         return LoopContextIterator(self)
 
+    def _safe_next(self):
+        try:
+            return next(self._iterator)
+        except StopIteration:
+            return _last_iteration
+
     @internalcode
     def loop(self, iterable):
         if self._recurse is None:
             raise TypeError('Tried to call non recursive loop.  Maybe you '
                             "forgot the 'recursive' modifier.")
-        return self._recurse(iterable, self._recurse)
+        return self._recurse(iterable, self._recurse, self.depth0 + 1)
 
     # a nifty trick to enhance the error message if someone tried to call
     # the the loop without or with too many arguments.
@@ -330,6 +353,7 @@ class LoopContext(object):
         )
 
 
+@implements_iterator
 class LoopContextIterator(object):
     """The iterator for a loop context."""
     __slots__ = ('context',)
@@ -340,14 +364,18 @@ class LoopContextIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         ctx = self.context
         ctx.index0 += 1
-        return next(ctx._iterator), ctx
+        if ctx._after is _last_iteration:
+            raise StopIteration()
+        next_elem = ctx._after
+        ctx._after = ctx._safe_next()
+        return next_elem, ctx
 
 
 class Macro(object):
-    """Wraps a macro."""
+    """Wraps a macro function."""
 
     def __init__(self, environment, func, name, arguments, defaults,
                  catch_kwargs, catch_varargs, caller):
@@ -363,20 +391,24 @@ class Macro(object):
 
     @internalcode
     def __call__(self, *args, **kwargs):
-        arguments = []
-        for idx, name in enumerate(self.arguments):
-            try:
-                value = args[idx]
-            except:
+        # try to consume the positional arguments
+        arguments = list(args[:self._argument_count])
+        off = len(arguments)
+
+        # if the number of arguments consumed is not the number of
+        # arguments expected we start filling in keyword arguments
+        # and defaults.
+        if off != self._argument_count:
+            for idx, name in enumerate(self.arguments[len(arguments):]):
                 try:
                     value = kwargs.pop(name)
-                except:
+                except KeyError:
                     try:
-                        value = self.defaults[idx - self._argument_count]
-                    except:
+                        value = self.defaults[idx - self._argument_count + off]
+                    except IndexError:
                         value = self._environment.undefined(
                             'parameter %r was not provided' % name, name=name)
-            arguments.append(value)
+                arguments.append(value)
 
         # it's important that the order of these arguments does not change
         # if not also changed in the compiler's `function_scoping` method.
@@ -406,6 +438,7 @@ class Macro(object):
         )
 
 
+@implements_to_string
 class Undefined(object):
     """The default undefined type.  This undefined type can be printed and
     iterated over, but every other access will raise an :exc:`UndefinedError`:
@@ -437,7 +470,7 @@ class Undefined(object):
         if self._undefined_hint is None:
             if self._undefined_obj is missing:
                 hint = '%r is undefined' % self._undefined_name
-            elif not isinstance(self._undefined_name, basestring):
+            elif not isinstance(self._undefined_name, string_types):
                 hint = '%s has no element %r' % (
                     object_type_repr(self._undefined_obj),
                     self._undefined_name
@@ -451,22 +484,30 @@ class Undefined(object):
             hint = self._undefined_hint
         raise self._undefined_exception(hint)
 
+    @internalcode
+    def __getattr__(self, name):
+        if name[:2] == '__':
+            raise AttributeError(name)
+        return self._fail_with_undefined_error()
+
     __add__ = __radd__ = __mul__ = __rmul__ = __div__ = __rdiv__ = \
     __truediv__ = __rtruediv__ = __floordiv__ = __rfloordiv__ = \
     __mod__ = __rmod__ = __pos__ = __neg__ = __call__ = \
-    __getattr__ = __getitem__ = __lt__ = __le__ = __gt__ = __ge__ = \
-    __int__ = __float__ = __complex__ = __pow__ = __rpow__ = \
+    __getitem__ = __lt__ = __le__ = __gt__ = __ge__ = __int__ = \
+    __float__ = __complex__ = __pow__ = __rpow__ = \
         _fail_with_undefined_error
 
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+    def __eq__(self, other):
+        return type(self) is type(other)
 
-    # unicode goes after __str__ because we configured 2to3 to rename
-    # __unicode__ to __str__.  because the 2to3 tree is not designed to
-    # remove nodes from it, we leave the above __str__ around and let
-    # it override at runtime.
-    def __unicode__(self):
-        return u''
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return id(type(self))
+
+    def __str__(self):
+        return ''
 
     def __len__(self):
         return 0
@@ -482,6 +523,7 @@ class Undefined(object):
         return 'Undefined'
 
 
+@implements_to_string
 class DebugUndefined(Undefined):
     """An undefined that returns the debug info when printed.
 
@@ -497,17 +539,18 @@ class DebugUndefined(Undefined):
     """
     __slots__ = ()
 
-    def __unicode__(self):
+    def __str__(self):
         if self._undefined_hint is None:
             if self._undefined_obj is missing:
-                return u'{{ %s }}' % self._undefined_name
+                return '{{ %s }}' % self._undefined_name
             return '{{ no such element: %s[%r] }}' % (
                 object_type_repr(self._undefined_obj),
                 self._undefined_name
             )
-        return u'{{ undefined value printed: %s }}' % self._undefined_hint
+        return '{{ undefined value printed: %s }}' % self._undefined_hint
 
 
+@implements_to_string
 class StrictUndefined(Undefined):
     """An undefined that barks on print and iteration as well as boolean
     tests and all kinds of comparisons.  In other words: you can do nothing
@@ -528,8 +571,9 @@ class StrictUndefined(Undefined):
     UndefinedError: 'foo' is undefined
     """
     __slots__ = ()
-    __iter__ = __unicode__ = __str__ = __len__ = __nonzero__ = __eq__ = \
-        __ne__ = Undefined._fail_with_undefined_error
+    __iter__ = __str__ = __len__ = __nonzero__ = __eq__ = \
+        __ne__ = __bool__ = __hash__ = \
+        Undefined._fail_with_undefined_error
 
 
 # remove remaining slots attributes, after the metaclass did the magic they

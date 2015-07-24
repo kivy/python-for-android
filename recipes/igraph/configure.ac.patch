@@ -1,0 +1,4 @@
+43c43
+< AC_CHECK_FUNCS([expm1 rint rintf finite log2 logbl snprintf log1p round fabsl fmin strcasecmp isnan strdup _strdup ftruncate stpcpy])
+---
+> AC_CHECK_FUNCS([expm1 rint rintf finite log2 snprintf log1p round fabsl fmin strcasecmp isnan strdup _strdup ftruncate stpcpy])

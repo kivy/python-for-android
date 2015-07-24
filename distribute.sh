@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 
 # Modules
-MODULES=$MODULES
+MODULES=
 
 # Resolve Python path
 PYTHON="$(which python2.7)"
@@ -18,20 +18,45 @@ if [ "X$PYTHON" == "X" ]; then
 	PYTHON="$(which python)"
 fi
 
+# Resolve virtualenv path
+VIRTUALENV_NAME="$(which virtualenv-2.7)"
+if [ "X$VIRTUALENV_NAME" == "X" ]; then
+	VIRTUALENV_NAME="$(which virtualenv2.7)"
+fi
+if [ "X$VIRTUALENV_NAME" == "X" ]; then
+	VIRTUALENV_NAME="$(which virtualenv2)"
+fi
+if [ "X$VIRTUALENV_NAME" == "X" ]; then
+	VIRTUALENV_NAME="$(which virtualenv)"
+fi
+
+# Resolve Cython path
+CYTHON="$(which cython2)"
+if [ "X$CYTHON" == "X" ]; then
+        CYTHON="$(which cython)"
+fi
+
 # Paths
 ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import os,sys;print(os.path.realpath(sys.argv[1]))' $0))"
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
-PACKAGES_PATH="$ROOT_PATH/.packages"
+JAVACLASS_PATH="$ROOT_PATH/build/java"
+PACKAGES_PATH="${PACKAGES_PATH:-$ROOT_PATH/.packages}"
 SRC_PATH="$ROOT_PATH/src"
 JNI_PATH="$SRC_PATH/jni"
 DIST_PATH="$ROOT_PATH/dist/default"
+SITEPACKAGES_PATH="$BUILD_PATH/python-install/lib/python2.7/site-packages/"
+HOSTPYTHON="$BUILD_PATH/python-install/bin/python.host"
+CYTHON+=" -t"
 
 # Tools
 export LIBLINK_PATH="$BUILD_PATH/objects"
 export LIBLINK="$ROOT_PATH/src/tools/liblink"
 export BIGLINK="$ROOT_PATH/src/tools/biglink"
+export VIRTUALENV=${VIRTUALENV_NAME:-virtualenv}
+
+export COPYLIBS=0
 
 MD5SUM=$(which md5sum)
 if [ "X$MD5SUM" == "X" ]; then
@@ -51,8 +76,12 @@ if [ "X$WGET" == "X" ]; then
 		echo "Error: you need at least wget or curl installed."
 		exit 1
 	else
-		WGET="$WGET -L -O"
+		WGET="$WGET -L -O -o"
 	fi
+	WHEAD="curl -L -I"
+else
+	WGET="$WGET -O"
+	WHEAD="wget --spider -q -S"
 fi
 
 case $OSTYPE in
@@ -113,7 +142,7 @@ function get_directory() {
 }
 
 function push_arm() {
-	info "Entering in ARM enviromnent"
+	info "Entering in ARM environment"
 
 	# save for pop
 	export OLD_PATH=$PATH
@@ -132,7 +161,7 @@ function push_arm() {
 	#export OFLAG="-Os"
 	#export OFLAG="-O2"
 
-	export CFLAGS="-mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM"
+	export CFLAGS="-DANDROID -mandroid $OFLAG -fomit-frame-pointer --sysroot $NDKPLATFORM"
 	if [ "X$ARCH" == "Xarmeabi-v7a" ]; then
 		CFLAGS+=" -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb"
 	fi
@@ -149,22 +178,29 @@ function push_arm() {
 		PYPLATFORM="linux"
 	fi
 
-	if [ "X$ANDROIDNDKVER" == "Xr5b" ]; then
-		export TOOLCHAIN_PREFIX=arm-eabi
-		export TOOLCHAIN_VERSION=4.4.0
-	else
-		#if [ "X${ANDROIDNDKVER:0:2}" == "Xr7" ] || [ "X$ANDROIDNDKVER" == "Xr8" ]; then
-		# assume this toolchain is the same for all the next ndk... until a new one is out.
-		export TOOLCHAIN_PREFIX=arm-linux-androideabi
-		export TOOLCHAIN_VERSION=4.4.3
-	fi
+    if [ "X$ANDROIDNDKVER" == "Xr5b" ]; then
+        export TOOLCHAIN_PREFIX=arm-eabi
+        export TOOLCHAIN_VERSION=4.4.0
+    elif [ "X${ANDROIDNDKVER:0:2}" == "Xr7" ] || [ "X${ANDROIDNDKVER:0:2}" == "Xr8" ]; then
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.4.3
+    elif  [ "X${ANDROIDNDKVER:0:2}" == "Xr9" ]; then
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.8
+    elif [ "X${ANDROIDNDKVER:0:3}" == "Xr10" ]; then
+        export TOOLCHAIN_PREFIX=arm-linux-androideabi
+        export TOOLCHAIN_VERSION=4.9
+    else
+        echo "Error: Please report issue to enable support for newer ndk."
+        exit 1
+    fi
 
-	export PATH="$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/$PYPLATFORM-x86/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
+	export PATH="$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/$PYPLATFORM-x86/bin/:$ANDROIDNDK/toolchains/$TOOLCHAIN_PREFIX-$TOOLCHAIN_VERSION/prebuilt/$PYPLATFORM-x86_64/bin/:$ANDROIDNDK:$ANDROIDSDK/tools:$PATH"
 
 	# search compiler in the path, to fail now instead of later.
 	CC=$(which $TOOLCHAIN_PREFIX-gcc)
 	if [ "X$CC" == "X" ]; then
-		error "Unable to found compiler ($TOOLCHAIN_PREFIX-gcc) !!"
+		error "Unable to find compiler ($TOOLCHAIN_PREFIX-gcc) !!"
 		error "1. Ensure that SDK/NDK paths are correct"
 		error "2. Ensure that you've the Android API $ANDROIDAPI SDK Platform (via android tool)"
 		exit 1
@@ -179,6 +215,10 @@ function push_arm() {
 	export LD="$TOOLCHAIN_PREFIX-ld"
 	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
 	export MAKE="make -j5"
+	export READELF="$TOOLCHAIN_PREFIX-readelf"
+
+	# This will need to be updated to support Python versions other than 2.7
+	export BUILDLIB_PATH="$BUILD_hostpython/build/lib.linux-`uname -m`-2.7/"
 
 	# Use ccache ?
 	which ccache &>/dev/null
@@ -189,7 +229,7 @@ function push_arm() {
 }
 
 function pop_arm() {
-	info "Leaving ARM enviromnent"
+	info "Leaving ARM environment"
 	export PATH=$OLD_PATH
 	export CFLAGS=$OLD_CFLAGS
 	export CXXFLAGS=$OLD_CXXFLAGS
@@ -205,25 +245,58 @@ function pop_arm() {
 
 function usage() {
 	echo "Python for android - distribute.sh"
-	echo "This script create a directory will all the libraries wanted"
 	echo 
-	echo "Usage:   ./distribute.sh [options] directory"
-	echo "Example: ./distribute.sh -m 'pil kivy' dist"
-	echo
-	echo "Options:"
+	echo "Usage:   ./distribute.sh [options]"
 	echo
 	echo "  -d directory           Name of the distribution directory"
 	echo "  -h                     Show this help"
 	echo "  -l                     Show a list of available modules"
 	echo "  -m 'mod1 mod2'         Modules to include"
 	echo "  -f                     Restart from scratch (remove the current build)"
-        echo "  -x                     display expanded values (execute 'set -x')"
+	echo "  -x                     display expanded values (execute 'set -x')"
+	echo
+	echo "Advanced:"
+	echo "  -C                     Copy libraries instead of using biglink"
+	echo "                         (may not work before Android 4.3)"
+	echo
+	echo "For developers:"
+	echo "  -u 'mod1 mod2'         Modules to update (if already compiled)"
 	echo
 	exit 0
 }
 
+# Check installation state of a debian package list.
+# Return all missing packages.
+function check_pkg_deb_installed() {
+    PKGS=$1
+    MISSING_PKGS=""
+    for PKG in $PKGS; do
+        CHECK=$(dpkg -s $PKG 2>&1)
+        if [ $? -eq 1 ]; then
+           MISSING_PKGS="$PKG $MISSING_PKGS"
+        fi
+    done
+	if [ "X$MISSING_PKGS" != "X" ]; then
+		error "Packages missing: $MISSING_PKGS"
+		error "It might break the compilation, except if you installed thoses packages manually."
+	fi
+}
+
+function check_build_deps() {
+    DIST=$(lsb_release -is)
+	info "Check build dependencies for $DIST"
+    case $DIST in
+		Debian|Ubuntu|LinuxMint)
+			check_pkg_deb_installed "build-essential zlib1g-dev cython"
+			;;
+		*)
+			debug "Avoid check build dependencies, unknow platform $DIST"
+			;;
+	esac
+}
+
 function run_prepare() {
-	info "Check enviromnent"
+	info "Check environment"
 	if [ "X$ANDROIDSDK" == "X" ]; then
 		error "No ANDROIDSDK environment set, abort"
 		exit -1
@@ -249,7 +322,7 @@ function run_prepare() {
 	fi
 
 	if [ "X$ANDROIDNDKVER" == "X" ]; then
-		error "No ANDROIDNDKVER enviroment set, abort"
+		error "No ANDROIDNDKVER environment set, abort"
 		error "(Must be something like 'r5b', 'r7'...)"
 		exit -1
 	fi
@@ -268,6 +341,14 @@ function run_prepare() {
 	export ARCH="armeabi"
 	#export ARCH="armeabi-v7a" # not tested yet.
 
+	info "Check NDK location"
+	if [ ! -d "$NDKPLATFORM" ]; then
+	    error "Invalid NDK platform"
+	    error "Looking in $NDKPLATFORM"
+	    error "Using ANDROIDNDK=$ANDROIDNDK and ANDROIDAPI=$ANDROIDAPI"
+	    exit -1
+	fi
+
 	info "Check mandatory tools"
 	# ensure that some tools are existing
 	for tool in tar bzip2 unzip make gcc g++; do
@@ -277,6 +358,15 @@ function run_prepare() {
 			exit -1
 		fi
 	done
+
+	if [ "$COPYLIBS" == "1" ]; then
+		info "Library files will be copied to the distribution (no biglink)"
+		error "NOTICE: This option is still beta!"
+		error "\tIf you encounter an error 'Failed to locate needed libraries!' and"
+		error "\tthe libraries listed are not supposed to be provided by your app or"
+		error "\tits dependencies, please submit a bug report at"
+		error "\thttps://github.com/kivy/python-for-android/issues"
+	fi
 
 	info "Distribution will be located at $DIST_PATH"
 	if [ -e "$DIST_PATH" ]; then
@@ -292,17 +382,27 @@ function run_prepare() {
 		try rm -rf $BUILD_PATH
 		try rm -rf $SRC_PATH/obj
 		try rm -rf $SRC_PATH/libs
+		pushd $JNI_PATH
+		push_arm
+		try ndk-build clean
+		pop_arm
+		popd
 	fi
 
 	# create build directory if not found
 	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
 	test -d $BUILD_PATH || mkdir -p $BUILD_PATH
 	test -d $LIBS_PATH || mkdir -p $LIBS_PATH
+	test -d $JAVACLASS_PATH || mkdir -p $JAVACLASS_PATH
 	test -d $LIBLINK_PATH || mkdir -p $LIBLINK_PATH
 
 	# create initial files
 	echo "target=android-$ANDROIDAPI" > $SRC_PATH/default.properties
 	echo "sdk.dir=$ANDROIDSDK" > $SRC_PATH/local.properties
+
+	# copy the initial blacklist in build
+	try cp -a $SRC_PATH/blacklist.txt $BUILD_PATH
+	try cp -a $SRC_PATH/whitelist.txt $BUILD_PATH
 
 	# check arm env
 	push_arm
@@ -324,16 +424,48 @@ function in_array() {
 }
 
 function run_source_modules() {
+	# preprocess version modules
 	needed=($MODULES)
-	declare -a processed
-	order=()
-
 	while [ ${#needed[*]} -ne 0 ]; do
 
 		# pop module from the needed list
 		module=${needed[0]}
 		unset needed[0]
 		needed=( ${needed[@]} )
+
+		# is a version is specified ?
+		items=( ${module//==/ } )
+		module=${items[0]}
+		version=${items[1]}
+		if [ ! -z "$version" ]; then
+			info "Specific version detected for $module: $version"
+			eval "VERSION_$module=$version"
+		fi
+	done
+
+
+	needed=($MODULES)
+	declare -a processed
+	declare -a pymodules
+
+	fn_deps='.deps'
+	fn_optional_deps='.optional-deps'
+
+	> $fn_deps
+	> $fn_optional_deps
+
+	while [ ${#needed[*]} -ne 0 ]; do
+
+		# pop module from the needed list
+		module=${needed[0]}
+		original_module=${needed[0]}
+		unset needed[0]
+		needed=( ${needed[@]} )
+
+		# split the version if exist
+		items=( ${module//==/ } )
+		module=${items[0]}
+		version=${items[1]}
 
 		# check if the module have already been declared
 		in_array $module "${processed[@]}"
@@ -345,51 +477,47 @@ function run_source_modules() {
 		# add this module as done
 		processed=( ${processed[@]} $module )
 
-		# append our module at the end only if we are not exist yet
-		in_array $module "${order[@]}"
-		if [ $? -eq 255 ]; then
-			order=( ${order[@]} $module )
-		fi
-
 		# read recipe
 		debug "Read $module recipe"
 		recipe=$RECIPES_PATH/$module/recipe.sh
 		if [ ! -f $recipe ]; then
-			error "Recipe $module does not exit"
-			exit -1
+			error "Recipe $module does not exist, adding the module as pure-python package"
+			pymodules+=($original_module)
+			continue;
 		fi
 		source $RECIPES_PATH/$module/recipe.sh
+
+		# if a version has been specified by the user, the md5 will not
+		# correspond at all. so deactivate it.
+		if [ ! -z "$version" ]; then
+			debug "Deactivate MD5 test for $module, due to specific version"
+			eval "MD5_$module="
+		fi
 
 		# append current module deps to the needed
 		deps=$(echo \$"{DEPS_$module[@]}")
 		eval deps=($deps)
+		optional_deps=$(echo \$"{DEPS_OPTIONAL_$module[@]}")
+		eval optional_deps=($optional_deps)
 		if [ ${#deps[*]} -gt 0 ]; then
 			debug "Module $module depend on" ${deps[@]}
 			needed=( ${needed[@]} ${deps[@]} )
-
-			# for every deps, check if it's already added to order
-			# if not, add the deps before ourself
-			debug "Dependency order is ${order[@]} (current)"
-			for dep in "${deps[@]}"; do
-				#debug "Check if $dep is in order"
-				in_array $dep "${order[@]}"
-				if [ $? -eq 255 ]; then
-					#debug "missing $dep in order"
-					# deps not found in order
-					# add it before ourself
-					in_array $module "${order[@]}"
-					index=$?
-					#debug "our $module index is $index"
-					order=(${order[@]:0:$index} $dep ${order[@]:$index})
-					#debug "new order is ${order[@]}"
-				fi
-			done
-			debug "Dependency order is ${order[@]} (computed)"
+			echo $module ${deps[@]} >> $fn_deps
+		else
+			echo $module >> $fn_deps
+		fi
+		if [ ${#optional_deps[*]} -gt 0 ]; then
+			echo $module ${optional_deps[@]} >> $fn_optional_deps
 		fi
 	done
 
-	MODULES="${order[@]}"
-	info="Modules changed to $MODULES"
+	MODULES="$($PYTHON tools/depsort.py --optional $fn_optional_deps < $fn_deps)"
+
+	info "Modules changed to $MODULES"
+
+	PYMODULES="${pymodules[@]}"
+
+	info "Pure-Python modules changed to $PYMODULES"
 }
 
 function run_get_packages() {
@@ -397,6 +525,20 @@ function run_get_packages() {
 
 	for module in $MODULES; do
 		# download dependencies for this module
+		# check if there is not an overload from environment
+		module_dir=$(eval "echo \$P4A_${module}_DIR")
+		if [ "$module_dir" ]
+		then
+			debug "\$P4A_${module}_DIR is not empty, linking $module_dir dir instead of downloading"
+			directory=$(eval "echo \$BUILD_${module}")
+			if [ -e $directory ]; then
+				try rm -rf "$directory"
+			fi
+			try mkdir -p "$directory"
+			try rmdir "$directory"
+			try ln -s "$module_dir" "$directory"
+			continue
+		fi
 		debug "Download package for $module"
 
 		url="URL_$module"
@@ -408,18 +550,27 @@ function run_get_packages() {
 			try mkdir -p $BUILD_PATH/$module
 		fi
 
+		if [ ! -d "$PACKAGES_PATH/$module" ]; then
+			try mkdir -p "$PACKAGES_PATH/$module"
+		fi
+
 		if [ "X$url" == "X" ]; then
 			debug "No package for $module"
 			continue
 		fi
 
 		filename=$(basename $url)
+		marker_filename=".mark-$filename"
 		do_download=1
 
+		cd "$PACKAGES_PATH/$module"
+
 		# check if the file is already present
-		cd $PACKAGES_PATH
 		if [ -f $filename ]; then
-			if [ -n "$md5" ]; then
+			# if the marker has not been set, it might be cause of a invalid download.
+			if [ ! -f $marker_filename ]; then
+				rm $filename
+			elif [ -n "$md5" ]; then
 				# check if the md5 is correct
 				current_md5=$($MD5SUM $filename | cut -d\  -f1)
 				if [ "X$current_md5" == "X$md5" ]; then
@@ -435,10 +586,31 @@ function run_get_packages() {
 			fi
 		fi
 
+		# check if the file HEAD in case of, only if there is no MD5 to check.
+		check_headers=0
+		if [ -z "$md5" ]; then
+			if [ "X$DO_CLEAN_BUILD" == "X1" ]; then
+				check_headers=1
+			elif [ ! -f $filename ]; then
+				check_headers=1
+			fi
+		fi
+
+		if [ "X$check_headers" == "X1" ]; then
+			debug "Checking if $url changed"
+			$WHEAD $url &> .headers-$filename
+			$PYTHON "$ROOT_PATH/tools/check_headers.py" .headers-$filename .sig-$filename
+			if [ $? -ne 0 ]; then
+				do_download=1
+			fi
+		fi
+
 		# download if needed
 		if [ $do_download -eq 1 ]; then
 			info "Downloading $url"
-			try $WGET $url
+			try rm -f $marker_filename
+			try $WGET $filename $url
+			touch $marker_filename
 		else
 			debug "Module $module already downloaded"
 		fi
@@ -461,7 +633,7 @@ function run_get_packages() {
 		fi
 
 		# decompress
-		pfilename=$PACKAGES_PATH/$filename
+		pfilename=$PACKAGES_PATH/$module/$filename
 		info "Extract $pfilename"
 		case $pfilename in
 			*.tar.gz|*.tgz )
@@ -489,23 +661,62 @@ function run_get_packages() {
 	done
 }
 
+function envfn() {
+	envsave=$(mktemp)
+	envrestore=$(mktemp)
+	set > $envsave
+	$1
+	set > $envrestore
+	eval $(grep -v -F -f$envrestore $envsave)
+	rm -f $envsave $envrestore
+}
+
 function run_prebuild() {
 	info "Run prebuild"
 	cd $BUILD_PATH
 	for module in $MODULES; do
 		fn=$(echo prebuild_$module)
 		debug "Call $fn"
-		$fn
+		envfn $fn
 	done
 }
 
 function run_build() {
 	info "Run build"
+
+	modules_update=($MODULES_UPDATE)
+
 	cd $BUILD_PATH
+
 	for module in $MODULES; do
-		fn=$(echo build_$module)
-		debug "Call $fn"
-		$fn
+		fn="build_$module"
+		shouldbuildfn="shouldbuild_$module"
+		MARKER_FN="$BUILD_PATH/.mark-$module"
+
+		# if the module should be updated, then remove the marker.
+		in_array $module "${modules_update[@]}"
+		if [ $? -ne 255 ]; then
+			debug "$module detected to be updated"
+			rm -f "$MARKER_FN"
+		fi
+
+		# if shouldbuild_$module exist, call it to see if the module want to be
+		# built again
+		DO_BUILD=1
+		if [ "$(type -t $shouldbuildfn)" == "function" ]; then
+			$shouldbuildfn
+		fi
+
+		# if the module should be build, or if the marker is not present,
+		# do the build
+		if [ "X$DO_BUILD" == "X1" ] || [ ! -f "$MARKER_FN" ]; then
+			debug "Call $fn"
+			rm -f "$MARKER_FN"
+			envfn $fn
+			touch "$MARKER_FN"
+		else
+			debug "Skipped $fn"
+		fi
 	done
 }
 
@@ -515,8 +726,43 @@ function run_postbuild() {
 	for module in $MODULES; do
 		fn=$(echo postbuild_$module)
 		debug "Call $fn"
-		$fn
+		envfn $fn
 	done
+}
+
+function run_pymodules_install() {
+	info "Run pymodules install"
+	if [ "X$PYMODULES" == "X" ]; then
+		debug "No pymodules to install"
+		return
+	fi
+
+	cd "$BUILD_PATH"
+
+	debug "We want to install: $PYMODULES"
+
+	debug "Check if $VIRTUALENV is present"
+	which $VIRTUALENV &>/dev/null
+	if [ $? -ne 0 ]; then
+		error "Tool $VIRTUALENV is missing"
+		exit -1
+	fi
+	
+	debug "Check if a virtual environment already exists"
+	if [ ! -d venv ]; then
+		debug "Installing virtualenv"
+		try $VIRTUALENV --python=python2.7 venv
+	fi
+
+	debug "Create a requirement file for pure-python modules"
+	try echo "" > requirements.txt
+	for mod in $PYMODULES; do
+		echo $mod >> requirements.txt
+	done
+
+	debug "Install pure-python modules via pip in venv"
+	try bash -c "source venv/bin/activate && env CC=/bin/false CXX=/bin/false PYTHONPATH= pip install --target '$SITEPACKAGES_PATH' --download-cache '$PACKAGES_PATH' -r requirements.txt"
+
 }
 
 function run_distribute() {
@@ -535,20 +781,31 @@ function run_distribute() {
 	try cp -a $SRC_PATH/src .
 	try cp -a $SRC_PATH/templates .
 	try cp -a $SRC_PATH/res .
-	try cp -a $SRC_PATH/blacklist.txt .
+	try cp -a $BUILD_PATH/blacklist.txt .
+	try cp -a $BUILD_PATH/whitelist.txt .
 
 	debug "Copy python distribution"
-	$BUILD_PATH/python-install/bin/python.host -OO -m compileall $BUILD_PATH/python-install
+	$HOSTPYTHON -OO -m compileall $BUILD_PATH/python-install
 	try cp -a $BUILD_PATH/python-install .
 
 	debug "Copy libs"
 	try mkdir -p libs/$ARCH
 	try cp -a $BUILD_PATH/libs/* libs/$ARCH/
 
+	debug "Copy java files from various libs"
+	cp -a $BUILD_PATH/java/* src
+
 	debug "Fill private directory"
 	try cp -a python-install/lib private/
 	try mkdir -p private/include/python2.7
-	try mv libs/$ARCH/libpymodules.so private/
+	
+	if [ "$COPYLIBS" == "1" ]; then
+		if [ -s "libs/$ARCH/copylibs" ]; then
+			try sh -c "cat libs/$ARCH/copylibs | xargs -d'\n' cp -t private/"
+		fi
+	else
+		try mv libs/$ARCH/libpymodules.so private/
+	fi
 	try cp python-install/include/python2.7/pyconfig.h private/include/python2.7/
 
 	debug "Reduce private directory from unwanted files"
@@ -558,19 +815,10 @@ function run_distribute() {
 	try find . | grep -E '*\.(py|pyc|so\.o|so\.a|so\.libs)$' | xargs rm
 
 	# we are sure that all of theses will be never used on android (well...)
-	try rm -rf test
-	try rm -rf ctypes
 	try rm -rf lib2to3
-	try rm -rf lib-tk
 	try rm -rf idlelib
-	try rm -rf unittest/test
-	try rm -rf json/tests
-	try rm -rf distutils/tests
-	try rm -rf email/test
-	try rm -rf bsddb/test
 	try rm -rf config/libpython*.a
 	try rm -rf config/python.o
-	try rm -rf curses
 	try rm -rf lib-dynload/_ctypes_test.so
 	try rm -rf lib-dynload/_testcapi.so
 
@@ -583,11 +831,16 @@ function run_distribute() {
 
 function run_biglink() {
 	push_arm
-	try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
+	if [ "$COPYLIBS" == "0" ]; then
+		try $BIGLINK $LIBS_PATH/libpymodules.so $LIBLINK_PATH
+	else
+		try $BIGLINK $LIBS_PATH/copylibs $LIBLINK_PATH
+	fi
 	pop_arm
 }
 
 function run() {
+	check_build_deps
 	run_prepare
 	run_source_modules
 	run_get_packages
@@ -595,6 +848,7 @@ function run() {
 	run_build
 	run_biglink
 	run_postbuild
+	run_pymodules_install
 	run_distribute
 	info "All done !"
 }
@@ -623,10 +877,15 @@ function arm_deduplicate() {
 
 
 # Do the build
-while getopts ":hvlfxm:d:s" opt; do
+while getopts ":hCvlfxm:u:d:s" opt; do
 	case $opt in
 		h)
 			usage
+			;;
+		C)
+			COPYLIBS=1
+			LIBLINK=${LIBLINK}-jb
+			BIGLINK=${BIGLINK}-jb
 			;;
 		l)
 			list_modules
@@ -642,15 +901,18 @@ while getopts ":hvlfxm:d:s" opt; do
 		m)
 			MODULES="$OPTARG"
 			;;
+		u)
+			MODULES_UPDATE="$OPTARG"
+			;;
 		d)
 			DIST_PATH="$ROOT_PATH/dist/$OPTARG"
 			;;
 		f)
 			DO_CLEAN_BUILD=1
 			;;
-                x)
-                        DO_SET_X=1
-                        ;;
+		x)
+			DO_SET_X=1
+			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
 			exit 1

@@ -16,6 +16,12 @@ function prebuild_android() {
 	fi
 }
 
+function shouldbuild_android() {
+	if [ -d "$SITEPACKAGES_PATH/android" ]; then
+		DO_BUILD=0
+	fi
+}
+
 function build_android() {
 	cd $BUILD_android
 
@@ -30,15 +36,9 @@ function build_android() {
 	export LDSHARED="$LIBLINK"
 
 	# cythonize
-	try cython android.pyx
-	try cython android_sound.pyx
-	try $BUILD_PATH/python-install/bin/python.host setup.py build_ext -i
-
-	# copy files
-	try cp android.so android_sound.so \
-		$BUILD_PATH/python-install/lib/python2.7/lib-dynload/
-	try cp android_mixer.py \
-		$BUILD_PATH/python-install/lib/python2.7/
+	try find . -iname '*.pyx' -exec $CYTHON {} \;
+	try $HOSTPYTHON setup.py build_ext -v
+	try $HOSTPYTHON setup.py install -O2
 
 	unset LDSHARED
 

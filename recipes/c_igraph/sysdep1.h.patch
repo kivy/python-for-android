@@ -1,0 +1,7 @@
+16a17
+> /*android doesn't like these
+18c19,20
+< #define OFF_T __off64_t
+---
+> #define OFF_T __off64_t*/
+> #define OFF_T long
