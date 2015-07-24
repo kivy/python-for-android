@@ -16,7 +16,7 @@ class Python2Recipe(Recipe):
     def prebuild_armeabi(self):
         build_dir = self.get_build_container_dir('armeabi')
         if exists(join(build_dir, '.patched')):
-            print('Python2 already patched, skipping.')
+            info('Python2 already patched, skipping.')
             return
         self.apply_patch(join('patches', 'Python-{}-xcompile.patch'.format(self.version)))
         self.apply_patch(join('patches', 'Python-{}-ctypes-disable-wchar.patch'.format(self.version)))
