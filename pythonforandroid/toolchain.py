@@ -127,7 +127,8 @@ def shprint(command, *args, **kwargs):
     need_closing_newline = False
     for line in output:
         if logger.level > logging.DEBUG:
-            string = '\r' + ' '*11 + 'working ... ' + line[:100].replace('\n', '').rstrip() + ' ...'
+            string = ''.join([Style.RESET_ALL, '\r', ' '*11, 'working ... ',
+                              line[:100].replace('\n', '').rstrip(), ' ...'])
             if len(string) < 20:
                 continue
             if len(string) < 120:
@@ -431,18 +432,18 @@ class Graph(object):
             for j in range(1, len(graphs)):
                 comparison_graph = graphs[initial_num_graphs - 1 - j]
                 if set(comparison_graph.keys()) == set(graph.keys()):
-                    graphs.pop([initial_num_graphs - 1 - i])
+                    graphs.pop(initial_num_graphs - 1 - i)
                     break
 
     def add(self, dependent, dependency):
         """Add a dependency relationship to the graph"""
         if isinstance(dependency, (tuple, list)):
-            for graph in self.graphs:
-                self._add(graph, dependent, dependency[0])
+            for graph in self.graphs[:]:
                 for dep in dependency[1:]:
                     new_graph = deepcopy(graph)
                     self._add(new_graph, dependent, dep)
                     self.graphs.append(new_graph)
+                self._add(graph, dependent, dependency[0])
         else:
             for graph in self.graphs:
                 self._add(graph, dependent, dependency)
@@ -462,9 +463,23 @@ class Graph(object):
         for i in range(len(graphs)):
             graph = graphs[len(graphs) - 1 - i]
             if conflict in graph:
-                print('conflict in graph', conflict, graph)
-                graphs.pop([len(graphs) - 1 - i])
+                graphs.pop(len(graphs) - 1 - i)
         return len(graphs) == 0
+
+    def remove_remaining_conflicts(self, ctx):
+        # It's unpleasant to have to pass ctx as an argument...
+        '''Checks all possible graphs for conflicts that have arisen during
+        the additon of alternative repice branches, as these are not checked
+        for conflicts at the time.'''
+        new_graphs = []
+        for i, graph in enumerate(self.graphs):
+            for name in graph.keys():
+                recipe = Recipe.get_recipe(name, ctx)
+                if any([c in graph for c in recipe.conflicts]):
+                    break
+            else:
+                new_graphs.append(graph)
+        self.graphs = new_graphs
 
     def add_optional(self, dependent, dependency):
         """Add an optional (ordering only) dependency relationship to the graph
@@ -907,8 +922,6 @@ class Context(object):
         '''The libs dir for a given arch.'''
         ensure_dir(join(self.libs_dir, arch))
         # AND: See warning:
-        warning('Ensuring libs dir in get_libs_dir, should fix this '
-                'to ensure elsewhere')
         return join(self.libs_dir, arch)
 
 
@@ -1261,19 +1274,14 @@ class Recipe(object):
     '''
 
     conflicts = []
-    # AND: Not currently used, needs modifications to the dependency Graph
     '''A list containing the names of any recipes that are known to be
     incompatible with this one.'''
 
-    # patches = []
-    # '''Filepaths (relative to the recipe script) for any pathches that are
-    # to be applied. By default, these are applied in prebuild_arch, so
-    # if you override this but want to use patches then don't forget to
-    # call super().
+    opt_depends = []
+    '''A list of optional dependencies, that must be built before this
+    recipe if they are built at all, but whose presence is not essential.'''
 
-    # name = None  # name for the recipe dir
-
-    archs = ['armeabi']  # will android use this?
+    archs = ['armeabi']  # Not currently implemented properly
 
 
     @property
@@ -1417,9 +1425,32 @@ class Recipe(object):
                 result.append(arch)
         return result
 
+    def check_recipe_choices(self):
+        '''Checks what recipes are being built to see which of the alternative
+        and optional dependencies are being used, and returns a list of these.'''
+        recipes = []
+        built_recipes = self.ctx.recipe_build_order
+        for recipe in self.depends:
+            if isinstance(recipe, (tuple, list)):
+                for alternative in recipe:
+                    if alternative in built_recipes:
+                        recipes.append(alternative)
+                        break
+        for recipe in self.opt_depends:
+            if recipe in built_recipes:
+                recipes.append(recipe)
+        return sorted(recipes)
+
     def get_build_container_dir(self, arch):
-        '''Given the arch name, returns the directory where it will be built.'''
-        return join(self.ctx.build_dir, 'other_builds', self.name, arch)
+        '''Given the arch name, returns the directory where it will be
+        built.
+
+        This returns a different directory depending on what
+        alternative or optional dependencies are being built.
+        '''
+        choices = self.check_recipe_choices()
+        dir_name = '-'.join([self.name] + choices)
+        return join(self.ctx.build_dir, 'other_builds', dir_name, arch)
 
     def get_build_dir(self, arch):
         '''Given the arch name, returns the directory where the
@@ -1616,7 +1647,7 @@ class Recipe(object):
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
         else:
-            print('{} has no {}, skipping'.format(self.name, prebuild))
+            info('{} has no {}, skipping'.format(self.name, prebuild))
 
     def should_build(self):
         '''Should perform any necessary test and return True only if it needs
@@ -1928,7 +1959,7 @@ def build_recipes(names, ctx):
     python_modules = []
     while recipes_to_load:
         name = recipes_to_load.pop(0)
-        if name in recipe_loaded:
+        if name in recipe_loaded or isinstance(name, (list, tuple)):
             continue
         try:
             recipe = Recipe.get_recipe(name, ctx)
@@ -1947,15 +1978,19 @@ def build_recipes(names, ctx):
             if graph.conflicts(conflict):
                 warning(
                     ('{} conflicts with {}, but both have been '
-                     'included in the requirements.'.format(recipe.name, conflict)))
+                     'included or pulled into the requirements.'.format(recipe.name, conflict)))
                 warning('Due to this conflict the build cannot continue, exiting.')
                 exit(1)
         recipe_loaded.append(name)
+    graph.remove_remaining_conflicts(ctx)
     if len(graph.graphs) > 1:
         info('Found multiple valid recipe sets:')
-        for graph in graph.graphs:
-            info('    {}'.format(graph.keys()))
+        for g in graph.graphs:
+            info('    {}'.format(g.keys()))
         info_notify('Using the first of these: {}'.format(graph.graphs[0].keys()))
+    elif len(graph.graphs) == 0:
+        warning('Didn\'t find any valid dependency graphs, exiting.')
+        exit(1)
     else:
         info('Found a single valid recipe set (this is good)')
     build_order = list(graph.find_order(0))
@@ -2354,7 +2389,7 @@ clean_dists
         bootstrap builds and distributions.'''
         parser = argparse.ArgumentParser(
                 description="Clean the build cache, downloads and dists")
-        args = parser.parse_args(args)
+        parsed_args = parser.parse_args(args)
         ctx = Context()
         self.clean_dists(args)
         self.clean_builds(args)
@@ -2570,10 +2605,13 @@ clean_dists
         ctx = Context()
         dists = Distribution.get_distributions(ctx)
 
-        info('{Style.BRIGHT}Distributions currently installed are:'
-             '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
-
-        pretty_log_dists(dists)
+        if dists:
+            info('{Style.BRIGHT}Distributions currently installed are:'
+                 '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
+            pretty_log_dists(dists)
+        else:
+            info('{Style.BRIGHT}There are no dists currently built.'
+                 '{Style.RESET_ALL}'.format(Style=Style))
 
     def delete_dist(self, args):
         dist = self._dist

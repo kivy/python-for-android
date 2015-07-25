@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint
+from pythonforandroid.toolchain import NDKRecipe, shprint, info
 from os.path import exists, join
 import sh
 
@@ -11,7 +11,7 @@ class LibSDL2Image(NDKRecipe):
         super(LibSDL2Image, self).prebuild_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
         if exists(join(build_dir, '.patched')):
-            print('SDL2_image already patched, skipping')
+            info('SDL2_image already patched, skipping')
             return
         self.apply_patch('disable_webp.patch')
         shprint(sh.touch, join(build_dir, '.patched'))
