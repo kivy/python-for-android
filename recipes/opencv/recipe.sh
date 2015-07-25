@@ -45,7 +45,7 @@ function build_opencv() {
 	  -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_ANDROID_EXAMPLES=OFF \
 	  -DPYTHON_PACKAGES_PATH=$SITEPACKAGES_PATH \
 	  $_cvsrc
-	try make -j8 opencv_python
+	try make -j$MAKE_JOBS opencv_python
 	try cmake -DCOMPONENT=python -P ./cmake_install.cmake
 	try cp -a $_cvbuild/lib/$ARCH/lib*.so $LIBS_PATH
 

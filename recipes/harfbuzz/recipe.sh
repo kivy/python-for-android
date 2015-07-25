@@ -27,7 +27,7 @@ function build_harfbuzz() {
     #try ./configure --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --enable-shared --without-freetype --without-glib
     #~ try ./autogen.sh  --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-freetype --without-glib
     try ./configure --without-icu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-freetype --without-glib
-    try make -j5
+    try make -j$MAKE_JOBS
     pop_arm
     try cp -L $BUILD_harfbuzz/src/.libs/libharfbuzz.so $LIBS_PATH
 }

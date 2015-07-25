@@ -28,8 +28,7 @@ function build_libtorrent() {
 	
 	# Build the Python bindings with Boost.Build and some dependencies recursively (libtorrent-rasterbar, Boost.*)
 	# Also link to openssl
-	# Hardcoded on -j5 because P4A does it too
-	$BOOST_ROOT/b2 -q -j5 target-os=android link=static boost-link=static boost=source threading=multi toolset=gcc-android geoip=off encryption=tommath linkflags="$BOOSTSTUFF" release
+	$BOOST_ROOT/b2 -q -j$MAKE_JOBS target-os=android link=static boost-link=static boost=source threading=multi toolset=gcc-android geoip=off encryption=tommath linkflags="$BOOSTSTUFF" release
 	
 	# Copy the module
 	try cp -L libtorrent.so $SITEPACKAGES_PATH
