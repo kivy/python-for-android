@@ -30,7 +30,7 @@ function build_libxslt() {
 	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi \
 		--without-plugins --without-debug --without-python --without-crypto \
 		--with-libxml-src=$BUILD_libxml2
-	try make
+	try make -j$MAKE_JOBS
 
 
 	pop_arm

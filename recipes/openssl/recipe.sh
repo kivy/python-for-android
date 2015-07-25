@@ -23,7 +23,7 @@ function build_openssl() {
 	push_arm
 
 	try ./Configure no-dso no-krb5 linux-armv4
-	try make build_libs
+	try make -j$MAKE_JOBS build_libs
 
 	pop_arm
 }
