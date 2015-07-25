@@ -9,8 +9,17 @@ class PyjniusRecipe(CythonRecipe):
     version  = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
-    depends = ['python2', 'sdl']
+    depends = ['python2', ('sdl2', 'sdl')]
     site_packages_name = 'jnius'
+    def prebuild_arch(self, arch):
+        super(PyjniusRecipe, self).prebuild_arch(arch)
+        if 'sdl2' in self.ctx.recipe_build_order:
+            build_dir = self.get_build_dir(arch.arch)
+            if exists(join(build_dir, '.patched')):
+                print('pyjniussdl2 already pathed, skipping')
+                return
+            self.apply_patch('sdl2_jnienv_getter.patch')
+            shprint(sh.touch, join(build_dir, '.patched'))
 
     def postbuild_arch(self, arch):
         super(PyjniusRecipe, self).postbuild_arch(arch)

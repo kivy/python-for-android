@@ -1,5 +1,4 @@
-
-from pythonforandroid.toolchain import NDKRecipe, shprint
+from pythonforandroid.toolchain import NDKRecipe, shprint, info
 from os.path import exists, join
 import sh
 
@@ -13,7 +12,7 @@ class LibSDL2Mixer(NDKRecipe):
         build_dir = self.get_build_dir(arch.arch)
 
         if exists(join(build_dir, '.patched')):
-            print('SDL2_mixer already patched, skipping')
+            info('SDL2_mixer already patched, skipping')
             return
         self.apply_patch('disable_modplug_mikmod_smpeg.patch')
         shprint(sh.touch, join(build_dir, '.patched'))
