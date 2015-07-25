@@ -25,6 +25,7 @@ import re
 import imp
 import contextlib
 import logging
+from copy import deepcopy
 from functools import wraps
 from datetime import datetime
 from distutils.spawn import find_executable
@@ -414,38 +415,75 @@ class ArchAndroid(Arch):
 
 class Graph(object):
     # Taken from the old python-for-android/depsort
+    # Modified to include alternative dependencies
     def __init__(self):
         # `graph`: dict that maps each package to a set of its dependencies.
-        self.graph = {}
+        self.graphs = [{}]
+        # self.graph = {}
+
+    def remove_redundant_graphs(self):
+        '''Removes possible graphs if they are equivalent to others.'''
+        graphs = self.graphs
+        initial_num_graphs = len(graphs)
+        # Walk the list backwards so that popping elements doesn't mess up indexing
+        for i in range(len(graphs) - 1):
+            graph = graphs[initial_num_graphs - 1 - i]
+            for j in range(1, len(graphs)):
+                comparison_graph = graphs[initial_num_graphs - 1 - j]
+                if set(comparison_graph.keys()) == set(graph.keys()):
+                    graphs.pop([initial_num_graphs - 1 - i])
+                    break
 
     def add(self, dependent, dependency):
         """Add a dependency relationship to the graph"""
-        self.graph.setdefault(dependent, set())
-        self.graph.setdefault(dependency, set())
+        if isinstance(dependency, (tuple, list)):
+            for graph in self.graphs:
+                self._add(graph, dependent, dependency[0])
+                for dep in dependency[1:]:
+                    new_graph = deepcopy(graph)
+                    self._add(new_graph, dependent, dep)
+                    self.graphs.append(new_graph)
+        else:
+            for graph in self.graphs:
+                self._add(graph, dependent, dependency)
+        self.remove_redundant_graphs()
+
+    def _add(self, graph, dependent, dependency):
+        '''Add a dependency relationship to a specific graph, where dependency
+        must be a single dependency, not a list or tuple.
+        '''
+        graph.setdefault(dependent, set())
+        graph.setdefault(dependency, set())
         if dependent != dependency:
-            self.graph[dependent].add(dependency)
+            graph[dependent].add(dependency)
 
     def conflicts(self, conflict):
-        if conflict in self.graph:
-            return True
-        return False
+        graphs = self.graphs
+        for i in range(len(graphs)):
+            graph = graphs[len(graphs) - 1 - i]
+            if conflict in graph:
+                print('conflict in graph', conflict, graph)
+                graphs.pop([len(graphs) - 1 - i])
+        return len(graphs) == 0
 
     def add_optional(self, dependent, dependency):
         """Add an optional (ordering only) dependency relationship to the graph
 
         Only call this after all mandatory requirements are added
         """
-        if dependent in self.graph and dependency in self.graph:
-            self.add(dependent, dependency)
+        for graph in self.graphs:
+            if dependent in graph and dependency in graph:
+                self._add(graph, dependent, dependency)
 
-    def find_order(self):
+    def find_order(self, index=0):
         """Do a topological sort on a dependency graph
 
         :Parameters:
             :Returns:
                 iterator, sorted items form first to last
         """
-        graph = dict((k, set(v)) for k, v in self.graph.items())
+        graph = self.graphs[index]
+        graph = dict((k, set(v)) for k, v in graph.items())
         while graph:
             # Find all items without a parent
             leftmost = [l for l, s in graph.items() if not s]
@@ -1913,7 +1951,14 @@ def build_recipes(names, ctx):
                 warning('Due to this conflict the build cannot continue, exiting.')
                 exit(1)
         recipe_loaded.append(name)
-    build_order = list(graph.find_order())
+    if len(graph.graphs) > 1:
+        info('Found multiple valid recipe sets:')
+        for graph in graph.graphs:
+            info('    {}'.format(graph.keys()))
+        info_notify('Using the first of these: {}'.format(graph.graphs[0].keys()))
+    else:
+        info('Found a single valid recipe set (this is good)')
+    build_order = list(graph.find_order(0))
     info_notify("Recipe build order is {}".format(build_order))
     if python_modules:
         info_notify(('The requirements ({}) were not found as recipes, they will be '
