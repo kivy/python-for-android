@@ -3,11 +3,10 @@ print('main.py was successfully called')
 import os
 print('imported os')
 
-print('contents of ./lib/python2.7/site-packages/kivy etc.')
+print('contents of ./lib/python2.7/site-packages/ etc.')
 print(os.listdir('./lib'))
 print(os.listdir('./lib/python2.7'))
 print(os.listdir('./lib/python2.7/site-packages'))
-print(os.listdir('./lib/python2.7/site-packages/kivy'))
 
 print('contents of this dir', os.listdir('./'))
 
