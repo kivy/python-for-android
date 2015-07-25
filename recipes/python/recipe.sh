@@ -102,7 +102,7 @@ function build_python() {
 
 	try ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
 	echo ./configure --host=$HOSTARCH --build=$BUILDARCH OPT=$OFLAG --prefix="$BUILD_PATH/python-install" --enable-shared --disable-toolbox-glue --disable-framework
-	echo $MAKE HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
+	echo $MAKE -j$MAKE_JOBS HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	cp HOSTPYTHON=$BUILD_python/hostpython python
 
 	# FIXME, the first time, we got a error at:
@@ -112,10 +112,10 @@ function build_python() {
 	# check if we can avoid this part.
 
 	debug 'First install (failing..)'
-	$MAKE install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
+	$MAKE -j$MAKE_JOBS install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	debug 'Second install.'
 	touch python.exe python
-	$MAKE install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
+	$MAKE -j$MAKE_JOBS install HOSTPYTHON=$BUILD_python/hostpython HOSTPGEN=$BUILD_python/hostpgen CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
 	pop_arm
 
 	system=$(uname -s)

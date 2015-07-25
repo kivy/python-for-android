@@ -93,6 +93,11 @@ case $OSTYPE in
 		;;
 esac
 
+if [ -f /proc/cpuinfo ]; then
+	export MAKE_JOBS=($(grep -c ^processor /proc/cpuinfo) +1 )
+else
+	export MAKE_JOBS=1
+fi
 
 # Internals
 CRED="\x1b[31;01m"
@@ -214,7 +219,7 @@ function push_arm() {
 	export RANLIB="$TOOLCHAIN_PREFIX-ranlib"
 	export LD="$TOOLCHAIN_PREFIX-ld"
 	export STRIP="$TOOLCHAIN_PREFIX-strip --strip-unneeded"
-	export MAKE="make -j5"
+	export MAKE="make"
 	export READELF="$TOOLCHAIN_PREFIX-readelf"
 
 	# This will need to be updated to support Python versions other than 2.7
