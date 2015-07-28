@@ -1,0 +1,109 @@
+diff --git a/kivy/app.py b/kivy/app.py
+index 22d8a3b..3d1d6e8 100644
+--- a/kivy/app.py
++++ b/kivy/app.py
+@@ -323,6 +323,7 @@ from kivy.resources import resource_find
+ from kivy.utils import platform as core_platform
+ from kivy.uix.widget import Widget
+ from kivy.properties import ObjectProperty, StringProperty
++from kivy.setupconfig import USE_SDL2
+ 
+ 
+ platform = core_platform
+@@ -1020,7 +1021,7 @@ class App(EventDispatcher):
+         setting_key = 282  # F1
+ 
+         # android hack, if settings key is pygame K_MENU
+-        if platform == 'android':
++        if platform == 'android' and not USE_SDL2:
+             import pygame
+             setting_key = pygame.K_MENU
+ 
+diff --git a/kivy/core/window/__init__.py b/kivy/core/window/__init__.py
+index 90e5f6d..cc5f85a 100755
+--- a/kivy/core/window/__init__.py
++++ b/kivy/core/window/__init__.py
+@@ -462,6 +462,8 @@ class WindowBase(EventDispatcher):
+         return 0
+ 
+     def _get_android_kheight(self):
++        if USE_SDL2:  # Placeholder until the SDL2 bootstrap supports this
++            return 0
+         global android
+         if not android:
+             import android
+diff --git a/kivy/core/window/window_sdl2.py b/kivy/core/window/window_sdl2.py
+index 52095b6..ad1446f 100644
+--- a/kivy/core/window/window_sdl2.py
++++ b/kivy/core/window/window_sdl2.py
+@@ -321,7 +321,7 @@ class WindowSDL(WindowBase):
+                 # We have a conflict of using either the mouse or the finger.
+                 # Right now, we have no mechanism that we could use to know
+                 # which is the preferred one for the application.
+-                if platform == "ios":
++                if platform in ('ios', 'android'):
+                     SDL2MotionEventProvider.q.appendleft(event)
+                 pass
+ 
+diff --git a/kivy/metrics.py b/kivy/metrics.py
+index 71a7003..76755ae 100644
+--- a/kivy/metrics.py
++++ b/kivy/metrics.py
+@@ -104,6 +104,7 @@ __all__ = ('Metrics', 'MetricsBase', 'pt', 'inch', 'cm', 'mm', 'dp', 'sp',
+ from os import environ
+ from kivy.utils import reify, platform
+ from kivy.properties import dpi2px
++from kivy.setupconfig import USE_SDL2
+ 
+ 
+ def pt(value):
+@@ -158,8 +159,13 @@ class MetricsBase(object):
+             return float(custom_dpi)
+ 
+         if platform == 'android':
+-            import android
+-            return android.get_dpi()
++            if USE_SDL2:
++                import jnius
++                Hardware = jnius.autoclass('org.renpy.android.Hardware')
++                return Hardware.getDPI()
++            else:
++                import android
++                return android.get_dpi()
+         elif platform == 'ios':
+             import ios
+             return ios.get_dpi()
+@@ -217,8 +223,13 @@ class MetricsBase(object):
+ 
+         if platform == 'android':
+             from jnius import autoclass
+-            PythonActivity = autoclass('org.renpy.android.PythonActivity')
+-            config = PythonActivity.mActivity.getResources().getConfiguration()
++            if USE_SDL2:
++                # This activity name is temporary, it will need to be changed later
++                PythonActivity = autoclass('org.kivy.android.PythonActivity')
++                config = PythonActivity.mActivity.getResources().getConfiguration()
++            else:
++                PythonActivity = autoclass('org.renpy.android.PythonActivity')
++                config = PythonActivity.mActivity.getResources().getConfiguration()
+             return config.fontScale
+ 
+         return 1.0
+diff --git a/setup.py b/setup.py
+index 79ba30d..1ccb931 100644
+--- a/setup.py
++++ b/setup.py
+@@ -366,10 +366,11 @@ if platform not in ('ios', 'android') and (c_options['use_gstreamer']
+             c_options['use_gstreamer'] = True
+ 
+ 
+-# detect SDL2, only on desktop and iOS
++# detect SDL2, only on desktop and iOS, or android if explicitly enabled
+ # works if we forced the options or in autodetection
+ sdl2_flags = {}
+-if platform not in ('android',) and c_options['use_sdl2'] in (None, True):
++if c_options['use_sdl2'] or (
++        platform not in ('android',) and c_options['use_sdl2'] is None):
+ 
+     if c_options['use_osx_frameworks'] and platform == 'darwin':
+         # check the existence of frameworks
