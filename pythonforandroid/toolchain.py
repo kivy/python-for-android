@@ -1147,6 +1147,12 @@ class Bootstrap(object):
     distribution = None
 
     recipe_depends = []
+
+    can_be_chosen_automatically = True
+    '''Determines whether the bootstrap can be chosen as one that
+    satisfies user requirements. If False, it will not be returned
+    from Bootstrap.get_bootstrap_from_recipes.
+    '''
     
     # Other things a Bootstrap might need to track (maybe separately):
     # ndk_main.c
@@ -1222,6 +1228,39 @@ class Bootstrap(object):
                 yield name
 
     @classmethod
+    def get_bootstrap_from_recipes(cls, recipes, ctx):
+        '''Returns a bootstrap whose recipe requirements do not conflict with
+        the given recipes.'''
+        info('Trying to find a bootstrap that matches the given recipes.')
+        bootstraps = [cls.get_bootstrap(name, ctx) for name in cls.list_bootstraps()]
+        acceptable_bootstraps = []
+        for bs in bootstraps:
+            ok = True
+            if not bs.can_be_chosen_automatically:
+                ok = False
+            for recipe in bs.recipe_depends:
+                recipe = Recipe.get_recipe(recipe, ctx)
+                if any([conflict in recipes for conflict in recipe.conflicts]):
+                    ok = False
+                    break
+            for recipe in recipes:
+                recipe = Recipe.get_recipe(recipe, ctx)
+                if any([conflict in bs.recipe_depends for conflict in recipe.conflicts]):
+                    ok = False
+                    break
+            if ok:
+                acceptable_bootstraps.append(bs)
+        info('Found {} acceptable bootstraps: {}'.format(
+            len(acceptable_bootstraps), [bs.name for bs in acceptable_bootstraps]))
+        if acceptable_bootstraps:
+            info('Using the first of these: {}'.format(acceptable_bootstraps[0].name))
+            return acceptable_bootstraps[0]
+        return None
+
+
+
+
+    @classmethod
     def get_bootstrap(cls, name, ctx):
         '''Returns an instance of a bootstrap with the given name.
 
@@ -1230,6 +1269,8 @@ class Bootstrap(object):
         '''
         # AND: This method will need to check user dirs, and access
         # bootstraps in a slightly different way
+        if name is None:
+            return None
         if not hasattr(cls, 'bootstraps'):
             cls.bootstraps = {}
         if name in cls.bootstraps:
@@ -1946,54 +1987,9 @@ class CythonRecipe(PythonRecipe):
         return env
 
 
-def build_recipes(names, ctx):
+def build_recipes(build_order, python_modules, ctx):
     # Put recipes in correct build order
-    graph = Graph()
-    recipes_to_load = set(names)
     bs = ctx.bootstrap
-    if bs is not None and bs.recipe_depends:
-        info_notify('Bootstrap requires recipes {}'.format(bs.recipe_depends))
-        recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
-    recipes_to_load = list(recipes_to_load)
-    recipe_loaded = []
-    python_modules = []
-    while recipes_to_load:
-        name = recipes_to_load.pop(0)
-        if name in recipe_loaded or isinstance(name, (list, tuple)):
-            continue
-        try:
-            recipe = Recipe.get_recipe(name, ctx)
-        except ImportError:
-            info('No recipe named {}; will attempt to install with pip'.format(name))
-            python_modules.append(name)
-            continue
-        graph.add(name, name)
-        info('Loaded recipe {} (depends on {}{})'.format(
-            name, recipe.depends,
-            ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
-        for depend in recipe.depends:
-            graph.add(name, depend)
-            recipes_to_load += recipe.depends
-        for conflict in recipe.conflicts:
-            if graph.conflicts(conflict):
-                warning(
-                    ('{} conflicts with {}, but both have been '
-                     'included or pulled into the requirements.'.format(recipe.name, conflict)))
-                warning('Due to this conflict the build cannot continue, exiting.')
-                exit(1)
-        recipe_loaded.append(name)
-    graph.remove_remaining_conflicts(ctx)
-    if len(graph.graphs) > 1:
-        info('Found multiple valid recipe sets:')
-        for g in graph.graphs:
-            info('    {}'.format(g.keys()))
-        info_notify('Using the first of these: {}'.format(graph.graphs[0].keys()))
-    elif len(graph.graphs) == 0:
-        warning('Didn\'t find any valid dependency graphs, exiting.')
-        exit(1)
-    else:
-        info('Found a single valid recipe set (this is good)')
-    build_order = list(graph.find_order(0))
     info_notify("Recipe build order is {}".format(build_order))
     if python_modules:
         info_notify(('The requirements ({}) were not found as recipes, they will be '
@@ -2192,11 +2188,15 @@ def build_dist_from_args(ctx, dist, args_list):
     parser = argparse.ArgumentParser(
         description='Create a newAndroid project')
     parser.add_argument('--bootstrap', help=('The name of the bootstrap type, \'pygame\' '
-                                             'or \'sdl2\''),
-                        default='sdl2')
+                                             'or \'sdl2\', or leave empty to let a '
+                                             'bootstrap be chosen automatically from your '
+                                             'requirements.'),
+                        default=None)
     args, unknown = parser.parse_known_args(args_list)
 
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
+    build_order, python_modules, bs = get_recipe_order_and_bootstrap(ctx, dist.recipes, bs)
+
     info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
     bs.distribution = dist
@@ -2207,8 +2207,7 @@ def build_dist_from_args(ctx, dist, args_list):
     ctx.prepare_bootstrap(bs)
     ctx.prepare_dist(ctx.dist_name)
 
-    recipes = dist.recipes
-    build_recipes(recipes, ctx)
+    build_recipes(build_order, python_modules, ctx)
 
     ctx.bootstrap.run_distribute()
 
@@ -2216,6 +2215,105 @@ def build_dist_from_args(ctx, dist, args_list):
     info('Dist can be found at (for now) {}'.format(join(ctx.dist_dir, ctx.dist_name)))
 
     return unknown
+
+def get_recipe_order_and_bootstrap(ctx, names, bs=None):
+    '''Takes a list of recipe names and (optionally) a bootstrap. Then
+    works out the dependency graph (including bootstrap recipes if
+    necessary). Finally, if no bootstrap was initially selected,
+    chooses one that supports all the recipes.
+    '''
+    graph = Graph()
+    recipes_to_load = set(names)
+    if bs is not None and bs.recipe_depends:
+        info_notify('Bootstrap requires recipes {}'.format(bs.recipe_depends))
+        recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
+    recipes_to_load = list(recipes_to_load)
+    recipe_loaded = []
+    python_modules = []
+    while recipes_to_load:
+        name = recipes_to_load.pop(0)
+        if name in recipe_loaded or isinstance(name, (list, tuple)):
+            continue
+        try:
+            recipe = Recipe.get_recipe(name, ctx)
+        except ImportError:
+            info('No recipe named {}; will attempt to install with pip'.format(name))
+            python_modules.append(name)
+            continue
+        graph.add(name, name)
+        info('Loaded recipe {} (depends on {}{})'.format(
+            name, recipe.depends,
+            ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
+        for depend in recipe.depends:
+            graph.add(name, depend)
+            recipes_to_load += recipe.depends
+        for conflict in recipe.conflicts:
+            if graph.conflicts(conflict):
+                warning(
+                    ('{} conflicts with {}, but both have been '
+                     'included or pulled into the requirements.'.format(recipe.name, conflict)))
+                warning('Due to this conflict the build cannot continue, exiting.')
+                exit(1)
+        recipe_loaded.append(name)
+    graph.remove_remaining_conflicts(ctx)
+    if len(graph.graphs) > 1:
+        info('Found multiple valid recipe sets:')
+        for g in graph.graphs:
+            info('    {}'.format(g.keys()))
+        info_notify('Using the first of these: {}'.format(graph.graphs[0].keys()))
+    elif len(graph.graphs) == 0:
+        warning('Didn\'t find any valid dependency graphs, exiting.')
+        exit(1)
+    else:
+        info('Found a single valid recipe set (this is good)')
+
+    build_order = list(graph.find_order(0))
+    if bs is None:  # It would be better to check against possible
+                    # orders other than the first one, but in practice
+                    # there will rarely be clashes, and the user can
+                    # specify more parameters if necessary to resolve
+                    # them.
+        bs = Bootstrap.get_bootstrap_from_recipes(build_order, ctx)
+        if bs is None:
+            info('Could not find a bootstrap compatible with the required recipes.')
+            info('If you think such a combination should exist, try '
+                 'specifying the bootstrap manually with --bootstrap.')
+            exit(1)
+        info('{} bootstrap appears compatible with the required recipes.'.format(bs.name))
+        info('Checking this...')
+        recipes_to_load = bs.recipe_depends
+        # This code repeats the code from earlier! Should move to a function:
+        while recipes_to_load:
+            name = recipes_to_load.pop(0)
+            if name in recipe_loaded or isinstance(name, (list, tuple)):
+                continue
+            try:
+                recipe = Recipe.get_recipe(name, ctx)
+            except ImportError:
+                info('No recipe named {}; will attempt to install with pip'.format(name))
+                python_modules.append(name)
+                continue
+            graph.add(name, name)
+            info('Loaded recipe {} (depends on {}{})'.format(
+                name, recipe.depends,
+                ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
+            for depend in recipe.depends:
+                graph.add(name, depend)
+                recipes_to_load += recipe.depends
+            for conflict in recipe.conflicts:
+                if graph.conflicts(conflict):
+                    warning(
+                        ('{} conflicts with {}, but both have been '
+                         'included or pulled into the requirements.'.format(recipe.name, conflict)))
+                    warning('Due to this conflict the build cannot continue, exiting.')
+                    exit(1)
+            recipe_loaded.append(name)
+        graph.remove_remaining_conflicts(ctx)
+        build_order = list(graph.find_order(0))
+    return build_order, python_modules, bs
+
+    # Do a final check that the new bs doesn't pull in any conflicts
+
 
 
 def split_argument_list(l):
