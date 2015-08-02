@@ -9,6 +9,8 @@ class SDL2Bootstrap(Bootstrap):
 
     recipe_depends = ['sdl2python3', 'python3']
 
+    can_be_chosen_automatically = False
+
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.name))
