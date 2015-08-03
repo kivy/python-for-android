@@ -46,6 +46,10 @@ The default PythonActivity has a observer pattern for `onActivityResult <http://
     - ``on_new_intent`` is the event associated to the onNewIntent java call
     - ``on_activity_result`` is the event associated to the onActivityResult java call
 
+    .. warning::
+
+        This method is not thread-safe. Call it in the mainthread of your app. (tips: use kivy.clock.mainthread decorator)
+
 .. function:: unbind(eventname=callback, ...)
 
     Unregister a previously registered callback with :func:`bind`.
