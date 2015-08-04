@@ -55,7 +55,7 @@ install all many of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant
     
 When installing the Android SDK and NDK, note the filepaths where they
 may be found, and the version of the NDK installed. You may need to
