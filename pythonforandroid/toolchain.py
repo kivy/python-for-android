@@ -835,7 +835,7 @@ class Context(object):
             toolchain_version = '4.4.3'
         elif self.ndk_ver[:2] == 'r9':
             toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.9'
+            toolchain_version = '4.8'
         elif self.ndk_ver[:3] == 'r10':
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
