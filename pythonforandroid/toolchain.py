@@ -2719,6 +2719,29 @@ clean_dists
         if dist.needs_build:
             info('No dist exists that matches your specifications, exiting without deleting.')
         shutil.rmtree(dist.dist_dir)
+
+    def sdk_tools(self, args):
+        '''Runs the android binary from the detected SDK directory, passing
+        all arguments straight to it. This binary is used to install
+        e.g. platform-tools for different API level targets. This is
+        intended as a convenience function if android is not in your
+        $PATH.
+        '''
+        parser = argparse.ArgumentParser(
+            description='Run a binary from the /path/to/sdk/tools directory')
+        parser.add_argument('tool', help=('The tool binary name to run'))
+        args, unknown = parser.parse_known_args(args)
+
+        ctx = self.ctx
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+                                      user_ndk_dir=self.ndk_dir,
+                                      user_android_api=self.android_api,
+                                      user_ndk_ver=self.ndk_version)
+        android = sh.Command(join(ctx.sdk_dir, 'tools', args.tool))
+        output = android(*unknown, _iter=True, _out_bufsize=1, _err_to_out=True)
+        for line in output:
+            sys.stdout.write(line)
+            sys.stdout.flush()
         
     def adb(self, args):
         '''Runs the adb binary from the detected SDK directory, passing all
