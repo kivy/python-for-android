@@ -344,7 +344,10 @@ class Arch(object):
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
-            warning('Couldn\'t find executable for CC. Exiting.')
+            warning('Couldn\'t find executable for CC. This indicates a '
+                    'problem locating the {} executable in the Android '
+                    'NDK, not that you don\'t have a normal compiler '
+                    'installed. Exiting.')
             exit(1)
 
         env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
