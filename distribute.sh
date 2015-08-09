@@ -69,6 +69,12 @@ if [ "X$MD5SUM" == "X" ]; then
 	fi
 fi
 
+SHA1SUM=$(which sha1sum)
+if [ "X$SHA1SUM" == "X" ]; then
+	echo "Error: you need sha1sum installed."
+	exit 1
+fi
+
 WGET=$(which wget)
 if [ "X$WGET" == "X" ]; then
 	WGET=$(which curl)
@@ -543,8 +549,12 @@ function run_get_packages() {
 
 		url="URL_$module"
 		url=${!url}
+
 		md5="MD5_$module"
 		md5=${!md5}
+
+		sha1="SHA1_$module"
+		sha1=${!sha1}
 
 		if [ ! -d "$BUILD_PATH/$module" ]; then
 			try mkdir -p $BUILD_PATH/$module
@@ -579,6 +589,17 @@ function run_get_packages() {
 				else
 					# invalid download, remove the file
 					error "Module $module have invalid md5, redownload."
+					rm $filename
+				fi
+			elif [ -n "$sha1" ]; then
+				# check if the sha1 is correct
+				current_sha1=$($SHA1SUM $filename | cut -d\  -f1)
+				if [ "X$current_sha1" == "X$sha1" ]; then
+					# correct, no need to download
+					do_download=0
+				else
+					# invalid download, remove the file
+					error "Module $module have invalid sha1, redownload."
 					rm $filename
 				fi
 			else
