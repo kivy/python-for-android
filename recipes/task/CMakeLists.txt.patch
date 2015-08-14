@@ -1,0 +1,13 @@
+--- a/src/CMakeLists.txt	2015-05-10 22:57:48.000000000 +0200
++++ b/src/CMakeLists.txt	2015-08-14 02:22:27.020473858 +0200
+@@ -43,8 +43,10 @@
+                text.cpp text.h
+                utf8.cpp utf8.h
+                util.cpp util.h
++               glob.c glob.h
+                wcwidth6.cpp)
+ 
++add_library (glob glob.c)
+ add_library (task STATIC ${task_SRCS})
+ add_executable (task_executable main.cpp)
+ add_executable (calc_executable calc.cpp)

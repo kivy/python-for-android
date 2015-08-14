@@ -41,6 +41,7 @@ ROOT_PATH="$(dirname $($PYTHON -c 'from __future__ import print_function; import
 RECIPES_PATH="$ROOT_PATH/recipes"
 BUILD_PATH="$ROOT_PATH/build"
 LIBS_PATH="$ROOT_PATH/build/libs"
+BIN_PATH="$ROOT_PATH/build/bin"
 JAVACLASS_PATH="$ROOT_PATH/build/java"
 PACKAGES_PATH="${PACKAGES_PATH:-$ROOT_PATH/.packages}"
 SRC_PATH="$ROOT_PATH/src"
@@ -399,6 +400,7 @@ function run_prepare() {
 	test -d $PACKAGES_PATH || mkdir -p $PACKAGES_PATH
 	test -d $BUILD_PATH || mkdir -p $BUILD_PATH
 	test -d $LIBS_PATH || mkdir -p $LIBS_PATH
+	test -d $BIN_PATH || mkdir -p $BIN_PATH
 	test -d $JAVACLASS_PATH || mkdir -p $JAVACLASS_PATH
 	test -d $LIBLINK_PATH || mkdir -p $LIBLINK_PATH
 

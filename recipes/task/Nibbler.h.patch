@@ -1,0 +1,10 @@
+--- a/src/Nibbler.h	2015-05-10 22:57:49.000000000 +0200
++++ b/src/Nibbler.h	2015-08-09 22:57:45.791057015 +0200
+@@ -36,6 +36,7 @@
+ #include <string>
+ #include <vector>
+ #include <time.h>
++#include <util.h>
+ 
+ class Nibbler
+ {
