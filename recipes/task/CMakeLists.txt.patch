@@ -15,9 +15,6 @@
  set_property (TARGET calc_executable PROPERTY OUTPUT_NAME "calc")
  set_property (TARGET lex_executable PROPERTY OUTPUT_NAME "lex")
  
-+set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fPIE)
-+set (CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} -pie)
-+
  #SET(CMAKE_BUILD_TYPE gcov)
  #SET(CMAKE_CXX_FLAGS_GCOV "--coverage")
  #SET(CMAKE_C_FLAGS_GCOV "--coverage")
