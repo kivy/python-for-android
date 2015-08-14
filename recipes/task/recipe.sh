@@ -43,7 +43,7 @@ function build_task() {
 	cmake -DCMAKE_TOOLCHAIN_FILE=android-cmake/android.toolchain.cmake \
 	      -DUUID_INCLUDE_DIR=$BUILD_libuuid/build/include \
 	      -DUUID_LIBRARY=$BUILD_libuuid/build/lib/libuuid.a \
-	      -DCMAKE_CXX_FLAGS="-fPIE" \
+	      -DCMAKE_CXX_FLAGS="-fPIC" \
 	      -DCMAKE_EXE_LINKER_FLAGS="-pie" \
 	      -DANDROID_NDK=$ANDROIDNDK \
 	      -DCMAKE_BUILD_TYPE=Release \
