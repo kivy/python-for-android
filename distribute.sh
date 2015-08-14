@@ -139,6 +139,7 @@ function get_directory() {
 		*.tgz)		directory=$(basename $1 .tgz) ;;
 		*.tar.bz2)	directory=$(basename $1 .tar.bz2) ;;
 		*.tbz2)		directory=$(basename $1 .tbz2) ;;
+		*.tar.xz)	directory=$(basename $1 .tar.xz) ;;
 		*.zip)		directory=$(basename $1 .zip) ;;
 		*)
 			error "Unknown file extension $1"
