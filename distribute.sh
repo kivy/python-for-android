@@ -660,16 +660,9 @@ function run_get_packages() {
 		pfilename=$PACKAGES_PATH/$module/$filename
 		info "Extract $pfilename"
 		case $pfilename in
-			*.tar.gz|*.tgz )
-				try tar xzf $pfilename
-				root_directory=$(basename $(try tar tzf $pfilename|head -n1))
-				if [ "X$root_directory" != "X$directory" ]; then
-					mv $root_directory $directory
-				fi
-				;;
-			*.tar.bz2|*.tbz2 )
-				try tar xjf $pfilename
-				root_directory=$(basename $(try tar tjf $pfilename|head -n1))
+			*.tar.gz|*.tgz|*.tar.bz2|*.tbz2|*.tar.xz )
+				try tar xf $pfilename
+				root_directory=$(basename $(try tar tf $pfilename|head -n1))
 				if [ "X$root_directory" != "X$directory" ]; then
 					mv $root_directory $directory
 				fi
