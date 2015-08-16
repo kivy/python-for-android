@@ -12,7 +12,6 @@ function prebuild_nettle() {
 function build_nettle() {
 	cd $BUILD_nettle
 	push_arm
-	bash
 	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi --prefix=$BUILD_nettle/build/
 	try make install
     	libtool --finish $BUILD_nettle/build/
