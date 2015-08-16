@@ -15,10 +15,10 @@ _pyroot=$(dirname `dirname $HOSTPYTHON`)
 function prebuild_task() {
 	# take the patch from the recipe
 	cd $_src
-	patch -p1 < $ROOT_PATH/recipes/task/CMakeLists.txt.patch
-	patch -p1 < $ROOT_PATH/recipes/task/Nibbler.h.patch
+	patch -p1 < $RECIPE_task/CMakeLists.txt.patch
+	patch -p1 < $RECIPE_task/Nibbler.h.patch
 
-	cp $ROOT_PATH/recipes/task/glob.* $_src/src
+	cp $RECIPE_task/glob.* $_src/src
 
 	cd $_build
 	if [ ! -d android-cmake ]
