@@ -3,7 +3,7 @@
 VERSION_task=${VERSION_task:-2.4.4}
 URL_task=http://taskwarrior.org/download/task-${VERSION_task}.tar.gz
 
-DEPS_task=(libuuid)  # gnutls
+DEPS_task=(libuuid gnutls)  # gnutls
 sha1_task=e7e1336ed099f672b3d5971d6a221b72ed804ac6
 BUILD_task=$BUILD_PATH/task/$(get_directory $URL_task)
 RECIPE_task=$RECIPES_PATH/task
