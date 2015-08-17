@@ -12,10 +12,24 @@ function prebuild_gnutls() {
 
 function build_gnutls() {
 	cd $BUILD_gnutls
-	bash
 	push_arm
-	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi --prefix=$BUILD_gnutls/build/lib
+	export PKG_CONFIG_PATH="$BUILD_nettle/build/lib/pkgconfig:$PKG_CONFIG_PATH"
+	OLD_LDFLAGS=$LDFLAGS
+	OLD_CPPFLAGS=$CPPFLAGS
+
+	#echo $SHELL
+	#PS1='\w: ' $SHELL
+
+	export CPPFLAGS="-I$BUILD_libgmp/build/include $CPPFLAGS -fexceptions -I${ANDROIDNDK}/sources/cxx-stl/stlport/stlport"
+	export LDFLAGS="-L$BUILD_libgmp/build/lib $LDFLAGS \
+			$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION/libs/$ARCH/libsupc++.a \
+			$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION/libs/$ARCH/libgnustl_static.a"
+
+	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi --prefix=$BUILD_gnutls/build/ --enable-local-libopts --disable-doc --disable-tests
 	try make install
+
+	export LDFLAGS=$OLD_LDFLAGS
+	export CPPFLAGS=$OLD_CPPFLAGS
 	pop_arm
 }
 
