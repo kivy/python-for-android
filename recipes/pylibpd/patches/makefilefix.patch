@@ -1,0 +1,11 @@
+--- Makefile	2015-08-19 10:42:49.160410592 +0200
++++ Makefile-threadfix	2015-08-19 11:08:49.458350964 +0200
+@@ -150,7 +150,7 @@
+ libpd: $(LIBPD)
+ 
+ $(LIBPD): ${PD_FILES:.c=.o} ${UTIL_FILES:.c=.o} ${EXTRA_FILES:.c=.o}
+-	$(CC) -o $(LIBPD) $^ $(LDFLAGS) -lm -lpthread 
++	$(CC) -o $(LIBPD) $^ $(LDFLAGS) -lm
+ 
+ javalib: $(JNIH_FILE) $(PDJAVA_JAR)
+ 
