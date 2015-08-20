@@ -40,18 +40,22 @@ function build_task() {
 	push_arm
 
 	export ANDROID_NDK=$ANDROIDNDK
+	export GNUTLS_LIBRARY=$BUILD_gnutls/build/lib/libgnutls.a
+	export GNUTLS_INCLUDE_DIR=$BUILD_gnutls/build/include
 	cmake -DCMAKE_TOOLCHAIN_FILE=android-cmake/android.toolchain.cmake \
 	      -DUUID_INCLUDE_DIR=$BUILD_libuuid/build/include \
 	      -DUUID_LIBRARY=$BUILD_libuuid/build/lib/libuuid.a \
 	      -DCMAKE_CXX_FLAGS=-fPIC \
-	      -DCMAKE_EXE_LINKER_FLAGS=-pie \
+	      -DGNUTLS_LIBRARY=$GNUTLS_LIBRARY \
+	      -DGNUTLS_INCLUDE_DIR=$GNUTLS_INCLUDE_DIR \
+	      -DCMAKE_EXE_LINKER_FLAGS="-pie -L$BUILD_nettle/build/lib/ -lhogweed -lz $(pkg-config --libs nettle) $BUILD_libgmp/build/lib/libgmp.a" \
 	      -DANDROID_NDK=$ANDROIDNDK \
 	      -DCMAKE_BUILD_TYPE=Release \
 	      -DANDROID_ABI="armeabi-v7a with NEON" \
 	      $_src
 	cmake --build .
 
-	try make -j1 .
+	make -j1 .
 	try cp -a $_build/src/{task,calc,lex} $LIBS_PATH
 
 	pop_arm

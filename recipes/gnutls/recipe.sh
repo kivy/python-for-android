@@ -22,11 +22,14 @@ function build_gnutls() {
 
 	export CPPFLAGS="-I$BUILD_libgmp/build/include $CPPFLAGS -fexceptions -I${ANDROIDNDK}/sources/cxx-stl/stlport/stlport"
 	export LDFLAGS="-L$BUILD_libgmp/build/lib $LDFLAGS \
+			$NDKPLATFORM/usr/lib/libz.so \
+			$BUILD_libgmp/build/lib/libgmp.a \
 			$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION/libs/$ARCH/libsupc++.a \
 			$ANDROIDNDK/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION/libs/$ARCH/libgnustl_static.a"
 
 	try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi --prefix=$BUILD_gnutls/build/ --enable-local-libopts --disable-doc --disable-tests
 	try make install
+    	libtool --finish $BUILD_gnutls/build/
 
 	export LDFLAGS=$OLD_LDFLAGS
 	export CPPFLAGS=$OLD_CPPFLAGS
