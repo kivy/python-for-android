@@ -3,7 +3,7 @@
 VERSION_task=${VERSION_task:-2.4.4}
 URL_task=http://taskwarrior.org/download/task-${VERSION_task}.tar.gz
 
-DEPS_task=(libuuid gnutls)  # gnutls
+DEPS_task=(libuuid gnutls)
 sha1_task=e7e1336ed099f672b3d5971d6a221b72ed804ac6
 BUILD_task=$BUILD_PATH/task/$(get_directory $URL_task)
 RECIPE_task=$RECIPES_PATH/task
@@ -44,11 +44,12 @@ function build_task() {
 	export GNUTLS_INCLUDE_DIR=$BUILD_gnutls/build/include
 	cmake -DCMAKE_TOOLCHAIN_FILE=android-cmake/android.toolchain.cmake \
 	      -DUUID_INCLUDE_DIR=$BUILD_libuuid/build/include \
-	      -DUUID_LIBRARY=$BUILD_libuuid/build/lib/libuuid.a \
+	      -DUUID_LIBRARY=$BUILD_libgmp/build/lib/libgmp.a \
+	      -DTASK_LIBRARIES=$BUILD_libuuid/build/lib/libuuid.a \
 	      -DCMAKE_CXX_FLAGS=-fPIC \
-	      -DGNUTLS_LIBRARY=$GNUTLS_LIBRARY \
+	      -DGNUTLS_LIBRARY="$GNUTLS_LIBRARY" \
 	      -DGNUTLS_INCLUDE_DIR=$GNUTLS_INCLUDE_DIR \
-	      -DCMAKE_EXE_LINKER_FLAGS="-pie -L$BUILD_nettle/build/lib/ -lhogweed -lz $(pkg-config --libs nettle) $BUILD_libgmp/build/lib/libgmp.a" \
+	      -DCMAKE_EXE_LINKER_FLAGS="-pie -L$BUILD_nettle/build/lib/ -lhogweed -lz $(pkg-config --libs nettle)" \
 	      -DANDROID_NDK=$ANDROIDNDK \
 	      -DCMAKE_BUILD_TYPE=Release \
 	      -DANDROID_ABI="armeabi-v7a with NEON" \
