@@ -108,6 +108,7 @@ def shprint(command, *args, **kwargs):
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
+    kwargs["_bg"] = True
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
     command_path = str(command).split('/')
