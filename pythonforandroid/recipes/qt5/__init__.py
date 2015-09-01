@@ -1,16 +1,17 @@
 from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid, info
 from os.path import exists, join, realpath
 from os import uname, environ
+import platform.processor
 import glob
 import sh
 
 class Qt5Recipe(Recipe):
     version = "5.5.0"
-    url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:3], version, version)
-    #md5sum = '828594c91ba736ce2cd3e1e8a6146452'
+    url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
+    #md5sum = '828594c91ba736ce2cd3e1e8a6146452' ## TODO: Causes an error
     name    = 'qt5'
 
-    #depends = ['libxml2', 'libxslt']  
+    #depends = ['libxml2', 'libxslt'] ## Couldn't find it currently here
 
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
@@ -20,9 +21,9 @@ class Qt5Recipe(Recipe):
             env['ANDROID_SDK_ROOT']    = env['ANDROIDSDK']
             env['ANDROID_NDK_ROOT']    = env['ANDROIDNDK']
             env['ANDROID_ARCH']        = arch.arch
-            env['ANDROID_HOST']        = "linux-x86_64"
-            env['ANDROID_TOOLCHAIN']   = "4.9"
-                        
+            env['ANDROID_HOST']        = "linux-%s" %(platform.processor())
+            env['ANDROID_TOOLCHAIN']   = "4.9"                                 # TODO: Replace this hardcoded ugly NDK dependend toolchain version
+
             configure = sh.Command('./configure')
             shprint(configure,
                     '-xplatform',                 'android-g++',
@@ -76,10 +77,6 @@ class Qt5Recipe(Recipe):
             make = sh.Command("make")
             shprint(make, '-j5', _env=env)
             shprint(make, '-j5', 'install', _env=env)
-            
-
-        # print('python2 build done, exiting for debug')
-        # exit(1)
 
 
 recipe = Qt5Recipe()
