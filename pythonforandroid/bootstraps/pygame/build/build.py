@@ -445,6 +445,7 @@ tools directory of the Android SDK.
     ap.add_argument('--sdk', dest='sdk_version', default=android_api,
                     help='Android SDK version to use. Default to 8')
     ap.add_argument('--minsdk', dest='min_sdk_version', default=android_api,
+                    type=int,
                     help='Minimum Android SDK version to use. Default to 8')
     ap.add_argument('--window', dest='window', action='store_true',
                     help='Indicate if the application will be windowed')

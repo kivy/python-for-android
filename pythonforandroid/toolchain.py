@@ -108,6 +108,7 @@ def shprint(command, *args, **kwargs):
     kwargs["_iter"] = True
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
+    kwargs["_bg"] = True
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
     command_path = str(command).split('/')
@@ -344,7 +345,10 @@ class Arch(object):
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
-            warning('Couldn\'t find executable for CC. Exiting.')
+            warning('Couldn\'t find executable for CC. This indicates a '
+                    'problem locating the {} executable in the Android '
+                    'NDK, not that you don\'t have a normal compiler '
+                    'installed. Exiting.')
             exit(1)
 
         env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
@@ -835,7 +839,7 @@ class Context(object):
             toolchain_version = '4.4.3'
         elif self.ndk_ver[:2] == 'r9':
             toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.9'
+            toolchain_version = '4.8'
         elif self.ndk_ver[:3] == 'r10':
             toolchain_prefix = 'arm-linux-androideabi'
             toolchain_version = '4.9'
@@ -856,11 +860,11 @@ class Context(object):
 
         # AND: Are these necessary? Where to check for and and ndk-build?
         # check the basic tools
-        for tool in ("pkg-config", "autoconf", "automake", "libtool",
+        for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
                      "tar", "bzip2", "unzip", "make", "gcc", "g++"):
-            if not sh.which(tool):
-                warning("Missing requirement: {} is not installed".format(
-                    tool))
+            if not sh.which(executable):
+                warning("Missing executable: {} is not installed".format(
+                    executable))
 
         if not ok:
             sys.exit(1)
@@ -2716,6 +2720,29 @@ clean_dists
         if dist.needs_build:
             info('No dist exists that matches your specifications, exiting without deleting.')
         shutil.rmtree(dist.dist_dir)
+
+    def sdk_tools(self, args):
+        '''Runs the android binary from the detected SDK directory, passing
+        all arguments straight to it. This binary is used to install
+        e.g. platform-tools for different API level targets. This is
+        intended as a convenience function if android is not in your
+        $PATH.
+        '''
+        parser = argparse.ArgumentParser(
+            description='Run a binary from the /path/to/sdk/tools directory')
+        parser.add_argument('tool', help=('The tool binary name to run'))
+        args, unknown = parser.parse_known_args(args)
+
+        ctx = self.ctx
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+                                      user_ndk_dir=self.ndk_dir,
+                                      user_android_api=self.android_api,
+                                      user_ndk_ver=self.ndk_version)
+        android = sh.Command(join(ctx.sdk_dir, 'tools', args.tool))
+        output = android(*unknown, _iter=True, _out_bufsize=1, _err_to_out=True)
+        for line in output:
+            sys.stdout.write(line)
+            sys.stdout.flush()
         
     def adb(self, args):
         '''Runs the adb binary from the detected SDK directory, passing all
