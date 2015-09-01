@@ -859,11 +859,11 @@ class Context(object):
 
         # AND: Are these necessary? Where to check for and and ndk-build?
         # check the basic tools
-        for tool in ("pkg-config", "autoconf", "automake", "libtool",
+        for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
                      "tar", "bzip2", "unzip", "make", "gcc", "g++"):
-            if not sh.which(tool):
-                warning("Missing requirement: {} is not installed".format(
-                    tool))
+            if not sh.which(executable):
+                warning("Missing executable: {} is not installed".format(
+                    executable))
 
         if not ok:
             sys.exit(1)
