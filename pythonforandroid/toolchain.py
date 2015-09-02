@@ -842,7 +842,7 @@ class Context(object):
             exit(1)
 
         toolchain_versions = []
-        toolchain_path     = self.ndk_platform = join( self.ndk_dir, 'toolchains')
+        toolchain_path     = join( self.ndk_dir, 'toolchains')
         if os.path.isdir(toolchain_path):
             toolchain_contents = os.listdir(toolchain_path)
             for toolchain_content in toolchain_contents:
