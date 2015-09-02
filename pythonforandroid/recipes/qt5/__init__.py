@@ -1,8 +1,6 @@
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid, info
-from os.path import exists, join, realpath
-from os import uname, environ
+from pythonforandroid.toolchain import Recipe, shprint, current_directory
+from os import environ
 import platform
-import glob
 import sh
 
 class Qt5Recipe(Recipe):
@@ -16,7 +14,7 @@ class Qt5Recipe(Recipe):
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             env = environ.copy()
-            
+
             env['ANDROID_API_VERSION'] = "android-%s" %(self.ctx.android_api) # Absolutly needed during build process of 5.5.0
 
             configure = sh.Command('./configure')
