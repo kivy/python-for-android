@@ -799,7 +799,7 @@ class Context(object):
         if not exists(self.ndk_platform):
             warning('ndk_platform doesn\'t exist')
             ok = False
-                
+
         virtualenv = None
         if virtualenv is None:
             virtualenv = sh.which('virtualenv2')
@@ -826,26 +826,48 @@ class Context(object):
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
-        
+
         # Modify the path so that sh finds modules appropriately
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
         if self.ndk_ver == 'r5b':
             toolchain_prefix = 'arm-eabi'
-            toolchain_version = '4.4.0'
-        elif self.ndk_ver[:2] in ('r7', 'r8'):
+        elif self.ndk_ver[:2] in ('r7', 'r8', 'r9'):
             toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.4.3'
-        elif self.ndk_ver[:2] == 'r9':
-            toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.8'
         elif self.ndk_ver[:3] == 'r10':
             toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.9'
         else:
             warning('Error: NDK not supported by these tools?')
             exit(1)
+
+        toolchain_versions = []
+        toolchain_path     = self.ndk_platform = join( self.ndk_dir, 'toolchains')
+        if os.path.isdir(toolchain_path):
+            toolchain_contents = os.listdir(toolchain_path)
+            for toolchain_content in toolchain_contents:
+                if toolchain_content.startswith(toolchain_prefix) and os.path.isdir(os.path.join(toolchain_path, toolchain_content)):
+                    toolchain_version = toolchain_content[len(toolchain_prefix)+1:]
+                    debug("Found toolchain version: %s" %(toolchain_version))
+                    toolchain_versions.append(toolchain_version)
+        else:
+            warning('Could not find toolchain subdirectory!')
+            ok = False
+        toolchain_versions.sort()
+
+        toolchain_versions_gcc = []
+        for toolchain_version in toolchain_versions:
+            if toolchain_version[0].isdigit(): # GCC toolchains begin with a number
+                toolchain_versions_gcc.append(toolchain_version)
+
+        if toolchain_versions:
+            info('Found the following toolchain versions: %s' %(repr(toolchain_versions)))
+            info('Picking the latest gcc toolchain, here %s' %(repr(toolchain_versions_gcc[-1])))
+            toolchain_version = toolchain_versions_gcc[-1]
+        else:
+            warning('Could not find any toolchain for %s!' %(toolchain_prefix))
+            ok = False
+
         self.toolchain_prefix = toolchain_prefix
         self.toolchain_version = toolchain_version
         environ['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
