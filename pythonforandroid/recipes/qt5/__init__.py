@@ -20,8 +20,8 @@ class Qt5Recipe(Recipe):
             configure = sh.Command('./configure')
             shprint(configure,
                     '-xplatform',                 'android-g++',
-                    '-prefix',                    '%s-install' %(self.get_build_dir(arch.arch)),
-                    '-hostprefix',                '%s-install' %(self.get_build_dir('host')),
+                    '-prefix',                    os.path.join(self.get_build_dir(arch.arch), "qt5-install"),
+                    '-hostprefix',                os.path.join(self.get_build_dir('host'),    "qt5-install"),
                     '-nomake',                    'tests',
                     '-nomake',                    'examples',
                     '-android-arch',              arch.arch,
