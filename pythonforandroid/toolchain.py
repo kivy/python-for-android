@@ -365,7 +365,7 @@ class Arch(object):
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(toolchain_prefix)
 
-        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
+        hostpython_recipe = Recipe.get_recipes('hostpython2', self.ctx)[0]
         
         # AND: This hardcodes python version 2.7, needs fixing
         # AND: This also hardcodes armeabi, which isn't even correct, don't forget to fix!
@@ -478,9 +478,10 @@ class Graph(object):
         new_graphs = []
         for i, graph in enumerate(self.graphs):
             for name in graph.keys():
-                recipe = Recipe.get_recipe(name, ctx)
-                if any([c in graph for c in recipe.conflicts]):
-                    break
+                recipes = Recipe.get_recipes(name, ctx)
+                for recipe in recipes:
+                    if any([c in graph for c in recipe.conflicts]):
+                        break
             else:
                 new_graphs.append(graph)
         self.graphs = new_graphs
@@ -1243,15 +1244,17 @@ class Bootstrap(object):
             if not bs.can_be_chosen_automatically:
                 ok = False
             for recipe in bs.recipe_depends:
-                recipe = Recipe.get_recipe(recipe, ctx)
-                if any([conflict in recipes for conflict in recipe.conflicts]):
-                    ok = False
-                    break
+                recipes_available = Recipe.get_recipes(recipe, ctx)
+                for recipe_available in recipes_available:
+                    if any([conflict in recipes for conflict in recipe_available.conflicts]):
+                        ok = False
+                        break
             for recipe in recipes:
-                recipe = Recipe.get_recipe(recipe, ctx)
-                if any([conflict in bs.recipe_depends for conflict in recipe.conflicts]):
-                    ok = False
-                    break
+                recipes_available = Recipe.get_recipes(recipe, ctx)
+                for recipe_available in recipes_available:
+                    if any([conflict in bs.recipe_depends for conflict in recipe_available.conflicts]):
+                        ok = False
+                        break
             if ok:
                 acceptable_bootstraps.append(bs)
         info('Found {} acceptable bootstraps: {}'.format(
@@ -1765,7 +1768,7 @@ class Recipe(object):
                 yield name
 
     @classmethod
-    def get_recipe(cls, name, ctx):
+    def get_recipes(cls, name, ctx):
         '''Returns the Recipe with the given name, if it exists.'''
         if not hasattr(cls, "recipes"):
            cls.recipes = {}
@@ -1774,10 +1777,19 @@ class Recipe(object):
         mod = importlib.import_module("pythonforandroid.recipes.{}".format(name))
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
-        recipe = mod.recipe
-        recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
-        recipe.ctx = ctx
-        return recipe
+
+        if "recipe" in dir(mod):
+            recipes = (mod.recipe, )
+        elif "recipes" in dir(mod):
+            recipes = mod.recipes
+        else:
+            raise ValueError("There is neither a recipe nor recipes in %s" %(repr(mod)))
+
+        for recipe in recipes:
+            recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
+            recipe.ctx = ctx
+
+        return recipes
 
 
 class IncludedFilesBehaviour(object):
@@ -2000,7 +2012,10 @@ def build_recipes(build_order, python_modules, ctx):
                      'installed with pip.').format(', '.join(python_modules)))
     ctx.recipe_build_order = build_order
 
-    recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
+    recipes = []
+    for recipes_available in [Recipe.get_recipes(name, ctx) for name in build_order]:
+        for recipe_available in recipes_available:
+            recipes.append(recipe_available)
 
     # download is arch independent
     info_main('# Downloading recipes ')
@@ -2080,7 +2095,7 @@ def biglink(ctx, arch):
     info('Collating object files from each recipe')
     obj_dir = join(ctx.bootstrap.build_dir, 'collated_objects')
     ensure_dir(obj_dir)
-    recipes = [Recipe.get_recipe(name, ctx) for name in ctx.recipe_build_order]
+    recipes = [Recipe.get_recipes(name, ctx) for name in ctx.recipe_build_order]
     for recipe in recipes:
         recipe_obj_dir = join(recipe.get_build_container_dir(arch.arch),
                               'objects_{}'.format(recipe.name))
@@ -2239,26 +2254,27 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
         if name in recipe_loaded or isinstance(name, (list, tuple)):
             continue
         try:
-            recipe = Recipe.get_recipe(name, ctx)
+            recipes = Recipe.get_recipes(name, ctx)
         except ImportError:
             info('No recipe named {}; will attempt to install with pip'.format(name))
             python_modules.append(name)
             continue
-        graph.add(name, name)
-        info('Loaded recipe {} (depends on {}{})'.format(
-            name, recipe.depends,
-            ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
-        for depend in recipe.depends:
-            graph.add(name, depend)
-            recipes_to_load += recipe.depends
-        for conflict in recipe.conflicts:
-            if graph.conflicts(conflict):
-                warning(
-                    ('{} conflicts with {}, but both have been '
-                     'included or pulled into the requirements.'.format(recipe.name, conflict)))
-                warning('Due to this conflict the build cannot continue, exiting.')
-                exit(1)
-        recipe_loaded.append(name)
+        for recipe in recipes:
+            graph.add(name, name)
+            info('Loaded recipe {} (depends on {}{})'.format(
+                 name, recipe.depends,
+                 ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
+            for depend in recipe.depends:
+                graph.add(name, depend)
+                recipes_to_load += recipe.depends
+            for conflict in recipe.conflicts:
+                if graph.conflicts(conflict):
+                    warning(
+                        ('{} conflicts with {}, but both have been '
+                        'included or pulled into the requirements.'.format(recipe.name, conflict)))
+                    warning('Due to this conflict the build cannot continue, exiting.')
+                    exit(1)
+            recipe_loaded.append(name)
     graph.remove_remaining_conflicts(ctx)
     if len(graph.graphs) > 1:
         info('Found multiple valid recipe sets:')
@@ -2292,26 +2308,27 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             if name in recipe_loaded or isinstance(name, (list, tuple)):
                 continue
             try:
-                recipe = Recipe.get_recipe(name, ctx)
+                recipes = Recipe.get_recipes(name, ctx)
             except ImportError:
                 info('No recipe named {}; will attempt to install with pip'.format(name))
                 python_modules.append(name)
                 continue
-            graph.add(name, name)
-            info('Loaded recipe {} (depends on {}{})'.format(
-                name, recipe.depends,
-                ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
-            for depend in recipe.depends:
-                graph.add(name, depend)
-                recipes_to_load += recipe.depends
-            for conflict in recipe.conflicts:
-                if graph.conflicts(conflict):
-                    warning(
-                        ('{} conflicts with {}, but both have been '
-                         'included or pulled into the requirements.'.format(recipe.name, conflict)))
-                    warning('Due to this conflict the build cannot continue, exiting.')
-                    exit(1)
-            recipe_loaded.append(name)
+            for recipe in recipes:
+                graph.add(name, name)
+                info('Loaded recipe {} (depends on {}{})'.format(
+                    name, recipe.depends,
+                    ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
+                for depend in recipe.depends:
+                    graph.add(name, depend)
+                    recipes_to_load += recipe.depends
+                for conflict in recipe.conflicts:
+                    if graph.conflicts(conflict):
+                        warning(
+                            ('{} conflicts with {}, but both have been '
+                            'included or pulled into the requirements.'.format(recipe.name, conflict)))
+                        warning('Due to this conflict the build cannot continue, exiting.')
+                        exit(1)
+                recipe_loaded.append(name)
         graph.remove_remaining_conflicts(ctx)
         build_order = list(graph.find_order(0))
     return build_order, python_modules, bs
@@ -2463,24 +2480,25 @@ clean_dists
         else:
             ctx = self.ctx
             for name in Recipe.list_recipes():
-                recipe = Recipe.get_recipe(name, ctx)
-                version = str(recipe.version)
-                if args.color:
-                    print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
-                          '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
-                          '{version:<8}{Style.RESET_ALL}'.format(
-                              recipe=recipe, Fore=Fore, Style=Style,
-                              version=version))
-                    print('    {Fore.GREEN}depends: {recipe.depends}'
-                          '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
-                    if recipe.conflicts:
-                        print('    {Fore.RED}conflicts: {recipe.conflicts}'
+                recipes = Recipe.get_recipes(name, ctx)
+                for recipe in recipes:
+                    version = str(recipe.version)
+                    if args.color:
+                        print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
+                              '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
+                              '{version:<8}{Style.RESET_ALL}'.format(
+                                recipe=recipe, Fore=Fore, Style=Style,
+                                version=version))
+                        print('    {Fore.GREEN}depends: {recipe.depends}'
                               '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
-                else:
-                    print("{recipe.name:<12} {recipe.version:<8}".format(
-                          recipe=recipe))
-                    print('    depends: {recipe.depends}'.format(recipe=recipe))
-                    print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
+                        if recipe.conflicts:
+                            print('    {Fore.RED}conflicts: {recipe.conflicts}'
+                                  '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                    else:
+                        print("{recipe.name:<12} {recipe.version:<8}".format(
+                            recipe=recipe))
+                        print('    depends: {recipe.depends}'.format(recipe=recipe))
+                        print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
     def bootstraps(self, args):
         '''List all the bootstraps available to build with.'''
@@ -2543,9 +2561,10 @@ clean_dists
         parser.add_argument('recipe', help='The recipe name')
         args = parser.parse_args(args)
 
-        recipe = Recipe.get_recipe(args.recipe, self.ctx)
-        info('Cleaning build for {} recipe.'.format(recipe.name))
-        recipe.clean_build()
+        recipes = Recipe.get_recipes(args.recipe, self.ctx)
+        recipe in recipes:
+            info('Cleaning build for {} recipe.'.format(recipe.name))
+            recipe.clean_build()
         
 
     def clean_download_cache(self, args):
