@@ -1,7 +1,7 @@
 from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid, info
 from os.path import exists, join, realpath
 from os import uname, environ
-import platform.processor
+import platform
 import glob
 import sh
 
@@ -17,12 +17,8 @@ class Qt5Recipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             env = environ.copy()
 
-            env['ANDROID_API_VERSION'] = "android-%s" %(env['ANDROIDAPI'])
-            env['ANDROID_SDK_ROOT']    = env['ANDROIDSDK']
-            env['ANDROID_NDK_ROOT']    = env['ANDROIDNDK']
-            env['ANDROID_ARCH']        = arch.arch
+            env['ANDROID_API_VERSION'] = "android-%s" %(self.ctx.android_api)
             env['ANDROID_HOST']        = "linux-%s" %(platform.processor())
-            env['ANDROID_TOOLCHAIN']   = "4.9"                                 # TODO: Replace this hardcoded ugly NDK dependend toolchain version
 
             configure = sh.Command('./configure')
             shprint(configure,
@@ -31,12 +27,12 @@ class Qt5Recipe(Recipe):
                     '-hostprefix',                '%s-install' %(self.get_build_dir('host')),
                     '-nomake',                    'tests',
                     '-nomake',                    'examples',
-                    '-android-arch',              env['ANDROID_ARCH'],
-                    '-android-sdk',               env['ANDROID_SDK_ROOT'],
-                    '-android-ndk',               env['ANDROID_NDK_ROOT'],
-                    '-android-ndk-platform',      'android-%s' %(env['ANDROIDAPI']),
+                    '-android-arch',              arch.arch,
+                    '-android-sdk',               self.ctx.sdk_dir,
+                    '-android-ndk',               self.ctx.ndk_dir,
+                    '-android-ndk-platform',      'android-%s' %(self.ctx.android_api),
                     '-android-ndk-host',          env['ANDROID_HOST'],
-                    '-android-toolchain-version', env['ANDROID_TOOLCHAIN'],
+                    '-android-toolchain-version', self.ctx.toolchain_version,
                     '-skip',                      'qt3d',              # Causes an install problem
                     #'-skip',                      'qtactiveqt5',
                     #'-skip',                      'qtandroidextras',
@@ -62,7 +58,7 @@ class Qt5Recipe(Recipe):
                     #'-skip',                      'qtwayland',
                     #'-skip',                      'qtwebchannel',
                     #'-skip',                      'qtwebengine',
-                    '-skip',                      'qtwebkit',
+                    #'-skip',                      'qtwebkit',
                     '-skip',                      'qtwebkit-examples',
                     #'-skip',                      'qtwebsockets',
                     #'-skip',                      'qtwinextras',
