@@ -478,13 +478,12 @@ class Graph(object):
         new_graphs = []
         for i, graph in enumerate(self.graphs):
             for name in graph.keys():
-                recipes = Recipe.get_recipes(name, ctx)
-                for recipe in recipes:
-                    if any([c in graph for c in recipe.conflicts]):
-                        new_graphs.append(graph)
-
-        if new_graphs:
-            self.graphs = new_graphs
+                recipe = Recipe.get_recipe(name, ctx)
+                if any([c in graph for c in recipe.conflicts]):
+                    break
+            else:
+                new_graphs.append(graph)
+        self.graphs = new_graphs
 
     def add_optional(self, dependent, dependency):
         """Add an optional (ordering only) dependency relationship to the graph
@@ -1768,8 +1767,21 @@ class Recipe(object):
                 yield name
 
     @classmethod
-    def get_recipes(cls, name, ctx):
+    def get_recipe(cls, name, ctx):
         '''Returns the Recipe with the given name, if it exists.'''
+        recipe = cls.get_recipes(name, ctx)
+        if len(recipe) == 1:
+            recipe = recipe[0]
+            return recipe
+        elif len(recipe) > 1:
+            warning("Got more recipes than expected!")
+            exit(1)
+        else:
+            warning("Found no recipes!")
+
+    @classmethod
+    def get_recipes(cls, name, ctx):
+        '''Returns the Recipe(s) with the given name, if it exists.'''
         if not hasattr(cls, "recipes"):
            cls.recipes = {}
         if name in cls.recipes:
@@ -2095,7 +2107,12 @@ def biglink(ctx, arch):
     info('Collating object files from each recipe')
     obj_dir = join(ctx.bootstrap.build_dir, 'collated_objects')
     ensure_dir(obj_dir)
-    recipes = [Recipe.get_recipes(name, ctx) for name in ctx.recipe_build_order]
+
+    recipes = []
+    for recipes_available in [Recipe.get_recipes(name, ctx) for name in ctx.recipe_build_order]:
+        for recipe_available in recipes_available:
+            recipes.append(recipe_available)
+
     for recipe in recipes:
         recipe_obj_dir = join(recipe.get_build_container_dir(arch.arch),
                               'objects_{}'.format(recipe.name))
