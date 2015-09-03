@@ -1779,7 +1779,7 @@ class Recipe(object):
             logger.removeHandler(logger.handlers[1])
 
         if "recipe" in dir(mod):
-            recipes = (mod.recipe, )
+            recipes = [mod.recipe, ]
         elif "recipes" in dir(mod):
             recipes = mod.recipes
         else:
@@ -2261,9 +2261,14 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             continue
         for recipe in recipes:
             graph.add(name, name)
-            info('Loaded recipe {} (depends on {}{})'.format(
-                 name, recipe.depends,
-                 ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
+            details = ()
+            if recipe.depends:
+                details = details + ('depends = {}'.format(recipe.depends),)
+            if recipe.conflicts:
+                details = details + ('conflicts = {}'.format(recipe.conflicts),)
+            info('Loaded recipe {} {}'.format(name,
+                                              ['', repr(details)][bool(details)])
+                )
             for depend in recipe.depends:
                 graph.add(name, depend)
                 recipes_to_load += recipe.depends
@@ -2315,9 +2320,14 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
                 continue
             for recipe in recipes:
                 graph.add(name, name)
-                info('Loaded recipe {} (depends on {}{})'.format(
-                    name, recipe.depends,
-                    ', conflicts {}'.format(recipe.conflicts) if recipe.conflicts else ''))
+                details = ()
+                if recipe.depends:
+                    details = details + ('depends = {}'.format(recipe.depends),)
+                if recipe.conflicts:
+                    details = details + ('conflicts = {}'.format(recipe.conflicts),)
+                info('Loaded recipe {} {}'.format(name,
+                                                  ['', repr(details)][bool(details)])
+                    )
                 for depend in recipe.depends:
                     graph.add(name, depend)
                     recipes_to_load += recipe.depends
@@ -2562,7 +2572,7 @@ clean_dists
         args = parser.parse_args(args)
 
         recipes = Recipe.get_recipes(args.recipe, self.ctx)
-        recipe in recipes:
+        for recipe in recipes:
             info('Cleaning build for {} recipe.'.format(recipe.name))
             recipe.clean_build()
         
