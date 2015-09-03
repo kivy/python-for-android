@@ -11,6 +11,11 @@ class PyjniusRecipe(CythonRecipe):
     name = 'pyjnius'
     depends = ['python2', ('sdl2', 'sdl')]
     site_packages_name = 'jnius'
+
+    def should_build(self):
+        # The last step in postbuild_arch() is to copy the java_classes - beleave the recipe has finished there
+        return not exists(join(self.ctx.javaclass_dir, 'jnius', 'src', 'org'))
+
     def prebuild_arch(self, arch):
         super(PyjniusRecipe, self).prebuild_arch(arch)
         if 'sdl2' in self.ctx.recipe_build_order:
