@@ -75,7 +75,7 @@ class Python2Recipe(Recipe):
             print('sqlite or openssl support not yet enabled in python recipe')
             exit(1)
 
-        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
+        hostpython_recipe = Recipe.get_recipes('hostpython2', self.ctx)[0]
         shprint(sh.cp, self.ctx.hostpython, self.get_build_dir('armeabi'))
         shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir('armeabi'))
         hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
@@ -84,7 +84,7 @@ class Python2Recipe(Recipe):
         with current_directory(self.get_build_dir('armeabi')):
 
 
-            hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
+            hostpython_recipe = Recipe.get_recipes('hostpython2', self.ctx)[0]
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
             env = ArchAndroid(self.ctx).get_env()
