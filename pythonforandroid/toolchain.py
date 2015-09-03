@@ -481,10 +481,10 @@ class Graph(object):
                 recipes = Recipe.get_recipes(name, ctx)
                 for recipe in recipes:
                     if any([c in graph for c in recipe.conflicts]):
-                        break
-            else:
-                new_graphs.append(graph)
-        self.graphs = new_graphs
+                        new_graphs.append(graph)
+
+        if new_graphs:
+            self.graphs = new_graphs
 
     def add_optional(self, dependent, dependency):
         """Add an optional (ordering only) dependency relationship to the graph
