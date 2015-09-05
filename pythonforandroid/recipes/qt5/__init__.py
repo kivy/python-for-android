@@ -1,6 +1,7 @@
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
 import os
 import platform
+import multiprocessing
 import sh
 
 class Qt5Recipe(Recipe):
@@ -105,9 +106,10 @@ class Qt5Recipe(Recipe):
                     *configure_arguments,
                     _env=env)
 
-            make = sh.Command("make")
-            shprint(make, '-j5', _env=env)
-            shprint(make, '-j5', 'install', _env=env)
+            make      = sh.Command("make")
+            make_jobs = "-j{}".format(multiprocessing.cpu_count()+1)
+            shprint(make, make_jobs, _env=env)
+            shprint(make, make_jobs, 'install', _env=env)
 
 
 recipe = Qt5Recipe()
