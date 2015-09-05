@@ -28,7 +28,7 @@ class Qt5Recipe(Recipe):
                     '-android-sdk',               self.ctx.sdk_dir,
                     '-android-ndk',               self.ctx.ndk_dir,
                     '-android-ndk-platform',      'android-%s' %(self.ctx.android_api),
-                    '-android-ndk-host',          "linux-%s" %(platform.processor()),
+                    '-android-ndk-host',          "linux-%s" %(platform.machine()),
                     '-android-toolchain-version', self.ctx.toolchain_version,
                     '-skip',                      'qt3d',              # Causes an install problem
                     #'-skip',                      'qtactiveqt5',
