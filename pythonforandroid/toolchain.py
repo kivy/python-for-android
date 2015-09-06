@@ -1390,8 +1390,10 @@ class Recipe(object):
             return target
         elif parsed_url.scheme in ('git',):
             if os.path.isdir(target):
-                with current_directory(self.get_build_dir(arch.arch)):
-                    shprint(sh.git, 'pull', '--all')
+                with current_directory(target):
+                    shprint(sh.git, 'pull')
+                    shprint(sh.git, 'pull', '--recurse-submodules')
+                    shprint(sh.git, 'submodule', 'update', '--recursive')
             else:
                 shprint(sh.git, 'clone', '--recursive', url, target)
             return target
@@ -1588,7 +1590,7 @@ class Recipe(object):
             do_download = True
 
             marker_filename = '.mark-{}'.format(filename)
-            if exists(filename):
+            if exists(filename) and os.path.isfile(filename):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 elif self.md5sum:
@@ -1680,7 +1682,7 @@ class Recipe(object):
                         raise Exception('Could not extract {} download, it must be .zip, '
                                         '.tar.gz or .tar.bz2')
                 elif os.path.isdir(extraction_filename):
-                    os.symlink(extraction_filename, directory_name)
+                    shutil.copytree(extraction_filename, directory_name)
                 else:
                     raise Exception('Given path is neither a file nor a directory: {}'.format(extraction_filename))
 
