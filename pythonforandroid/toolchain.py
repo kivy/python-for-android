@@ -1682,7 +1682,10 @@ class Recipe(object):
                         raise Exception('Could not extract {} download, it must be .zip, '
                                         '.tar.gz or .tar.bz2')
                 elif os.path.isdir(extraction_filename):
-                    shutil.copytree(extraction_filename, directory_name)
+                    os.mkdir(directory_name)
+                    for entry in os.listdir(extraction_filename):
+                        if entry not in ('.git',):
+                            shprint(sh.cp, '-Rv',  os.path.join(extraction_filename, entry), directory_name)
                 else:
                     raise Exception('Given path is neither a file nor a directory: {}'.format(extraction_filename))
 
