@@ -156,9 +156,13 @@ class Qt5Recipe(Recipe):
     def postbuild_arch(self, arch):
         with current_directory(os.path.join(self.get_build_dir(arch.arch), "qt5-install")):
             info('Copying Qt5 java classes...')
-            shprint(sh.cp, '-a', join('jar', '*.jar'), self.ctx.javaclass_dir)
+            for entry in os.listdir('jar'):
+                if os.path.isfile(entry) and entry.endswith('.jar'):
+                    shprint(sh.cp, '-rfv', os.path.join('jar', entry), self.ctx.javaclass_dir)
             info('Copying Qt5 libraries...')
-            shprint(sh.cp, '-a', join('lib', '*.so'), self.ctx.get_libs_dir(arch.arch))
+            for entry in os.listdir('jar'):
+                if os.path.isfile(entry) and entry.endswith('.so'):
+                    shprint(sh.cp, '-rfv', os.path.join('lib', entry),  self.ctx.get_libs_dir(arch.arch))
             #info('Copying Qt5 QML...')
             #shprint(sh.cp, '-a', join('qml'), self.ctx.qml_dir)
 
