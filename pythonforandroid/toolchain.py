@@ -33,6 +33,7 @@ try:
     from urllib.request import FancyURLopener
 except ImportError:
     from urllib import FancyURLopener
+from urlparse import urlparse
 
 import argparse
 from appdirs import user_data_dir
@@ -1360,51 +1361,74 @@ class Recipe(object):
             return None
         return self.url.format(version=self.version)
 
-    def download_file(self, url, filename, cwd=None):
+    def download_file(self, url, target, cwd=None):
         """
-        (internal) Download an ``url`` to a ``filename``.
+        (internal) Download an ``url`` to a ``target``.
         """
         if not url:
             return
-        def report_hook(index, blksize, size):
-            if size <= 0:
-                progression = '{0} bytes'.format(index * blksize)
-            else:
-                progression = '{0:.2f}%'.format(
-                        index * blksize * 100. / float(size))
-            stdout.write('- Download {}\r'.format(progression))
-            stdout.flush()
+        info('Downloading {} from {}'.format(self.name, url))
 
         if cwd:
-            filename = join(cwd, filename)
-        if exists(filename):
-            unlink(filename)
+            target = join(cwd, target)
 
-        info('Downloading {} from {}'.format(self.name, url))
-        urlretrieve(url, filename, report_hook)
-        return filename
+        parsed_url = urlparse(url)
+        if parsed_url.scheme in ('http', 'https'):
+            def report_hook(index, blksize, size):
+                if size <= 0:
+                    progression = '{0} bytes'.format(index * blksize)
+                else:
+                    progression = '{0:.2f}%'.format(
+                        index * blksize * 100. / float(size))
+                stdout.write('- Download {}\r'.format(progression))
+                stdout.flush()
 
-    def extract_file(self, filename, cwd):
+            if exists(target):
+                unlink(target)
+
+            urlretrieve(url, target, report_hook)
+            return target
+        elif parsed_url.scheme in ('git',):
+            if os.path.isdir(target):
+                with current_directory(self.get_build_dir(arch.arch)):
+                    shprint(sh.git, 'pull', '--all')
+            else:
+                shprint(sh.git, 'clone', '--recursive', url, target)
+            return target
+
+    def extract_source(self, source, cwd):
         """
-        (internal) Extract the `filename` into the directory `cwd`.
+        (internal) Extract the `source` into the directory `cwd`.
         """
-        if not filename:
+        if not source:
             return
-        info("Extract {} into {}".format(filename, cwd))
-        if filename.endswith(".tgz") or filename.endswith(".tar.gz"):
-            shprint(sh.tar, "-C", cwd, "-xvzf", filename)
+        if os.path.isfile(source):
+            info("Extract {} into {}".format(source, cwd))
 
-        elif filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
-            shprint(sh.tar, "-C", cwd, "-xvjf", filename)
+            if source.endswith(".tgz") or source.endswith(".tar.gz"):
+                shprint(sh.tar, "-C", cwd, "-xvzf", source)
 
-        elif filename.endswith(".zip"):
-            zf = zipfile.ZipFile(filename)
-            zf.extractall(path=cwd)
-            zf.close()
+            elif source.endswith(".tbz2") or source.endswith(".tar.bz2"):
+                shprint(sh.tar, "-C", cwd, "-xvjf", source)
+
+            elif source.endswith(".zip"):
+                zf = zipfile.ZipFile(source)
+                zf.extractall(path=cwd)
+                zf.close()
+
+            else:
+                warning("Error: cannot extract, unrecognized extension for {}".format(
+                    source))
+                raise Exception()
+
+        elif os.path.isdir(source):
+            info("Copying {} into {}".format(source, cwd))
+
+            shprint(sh.cp, '-a', source, cwd)
 
         else:
-            warning("Error: cannot extract, unrecognized extension for {}".format(
-                filename))
+            warning("Error: cannot extract or copy, unrecognized path {}".format(
+                source))
             raise Exception()
 
     # def get_archive_rootdir(self, filename):
@@ -1628,32 +1652,37 @@ class Recipe(object):
             # AND: Could use tito's get_archive_rootdir here
             if not exists(directory_name) or not isdir(directory_name):
                 extraction_filename = join(self.ctx.packages_path, self.name, filename)
-                if (extraction_filename.endswith('.tar.gz') or
-                    extraction_filename.endswith('.tgz')):
-                    sh.tar('xzf', extraction_filename)
-                    root_directory = shprint(
-                        sh.tar, 'tzf', extraction_filename).stdout.decode(
-                            'utf-8').split('\n')[0].strip('/')
-                    if root_directory != directory_name:
-                        shprint(sh.mv, root_directory, directory_name)
-                elif (extraction_filename.endswith('.tar.bz2') or
-                      extraction_filename.endswith('.tbz2')):
-                    info('Extracting {} at {}'.format(extraction_filename, filename))
-                    sh.tar('xjf', extraction_filename)
-                    root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
-                        'utf-8').split('\n')[0].strip('/')
-                    if root_directory != directory_name:
-                        shprint(sh.mv, root_directory, directory_name)
-                elif extraction_filename.endswith('.zip'):
-                    sh.unzip(extraction_filename)
-                    import zipfile
-                    fileh = zipfile.ZipFile(extraction_filename, 'r')
-                    root_directory = fileh.filelist[0].filename.strip('/')
-                    if root_directory != directory_name:
-                        shprint(sh.mv, root_directory, directory_name)
+                if os.path.isfile(extraction_filename):
+                    if (extraction_filename.endswith('.tar.gz') or
+                        extraction_filename.endswith('.tgz')):
+                        sh.tar('xzf', extraction_filename)
+                        root_directory = shprint(
+                            sh.tar, 'tzf', extraction_filename).stdout.decode(
+                                'utf-8').split('\n')[0].strip('/')
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
+                    elif (extraction_filename.endswith('.tar.bz2') or
+                          extraction_filename.endswith('.tbz2')):
+                        info('Extracting {} at {}'.format(extraction_filename, filename))
+                        sh.tar('xjf', extraction_filename)
+                        root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
+                                                'utf-8').split('\n')[0].strip('/')
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
+                    elif extraction_filename.endswith('.zip'):
+                        sh.unzip(extraction_filename)
+                        import zipfile
+                        fileh = zipfile.ZipFile(extraction_filename, 'r')
+                        root_directory = fileh.filelist[0].filename.strip('/')
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
+                    else:
+                        raise Exception('Could not extract {} download, it must be .zip, '
+                                        '.tar.gz or .tar.bz2')
+                elif os.path.isdir(extraction_filename):
+                    os.symlink(extraction_filename, directory_name)
                 else:
-                    raise Exception('Could not extract {} download, it must be .zip, '
-                                    '.tar.gz or .tar.bz2')
+                    raise Exception('Given path is neither a file nor a directory: {}'.format(extraction_filename))
 
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
