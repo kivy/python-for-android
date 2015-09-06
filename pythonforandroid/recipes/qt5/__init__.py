@@ -6,7 +6,8 @@ import sh
 
 class Qt5Recipe(Recipe):
     version = "5.5.0"
-    url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
+    #url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
+    url     = 'https://github.com/qtproject/qt5/archive/dev.tar.gz'
     #md5sum = '828594c91ba736ce2cd3e1e8a6146452' ## TODO: Causes an error
     name    = 'qt5'
 
@@ -92,10 +93,49 @@ class Qt5Recipe(Recipe):
                                    #'-skip',                      'qtwinextras',
                                    #'-skip',                      'qtx11extras',
                                    #'-skip',                      'qtxmlpatterns',
-                                   '-qt-pcre',
                                    '-no-warnings-are-errors',
                                    '-opensource', '-confirm-license',
                                    '-silent')
+
+            #if "zlib" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-zlib',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-zlib',)
+
+            #if "libjpeg" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-libjpeg',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-libjpeg',)
+
+            #if "libpng" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-libpng',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-libpng',)
+
+            #if "xcb" in self.ctx.recipes:
+            #configure_arguments = configure_arguments + ('-qt-xcb',) # Causes an test error when configuring
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-xcb',)
+
+            #if "xkbcommon" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-xkbcommon',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-xkbcommon',)
+
+            #if "freetype" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-freetype',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-freetype',)
+
+            #if "PCRE" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-pcre',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-pcre',)
+
+            #if "harfbuzz" in self.ctx.recipes:
+            configure_arguments = configure_arguments + ('-qt-harfbuzz',)
+            #else:
+            #    configure_arguments = configure_arguments + ('-system-harfbuzz',)
 
             if skip_incompatible_api:
                 configure_arguments = configure_arguments + skip_incompatible_api
@@ -111,5 +151,13 @@ class Qt5Recipe(Recipe):
             shprint(make, make_jobs, _env=env)
             shprint(make, make_jobs, 'install', _env=env)
 
+    def postbuild_arch(self, arch):
+        with current_directory(os.path.join(self.get_build_dir(arch.arch), "qt5-install")):
+            info('Copying Qt5 java classes...')
+            shprint(sh.cp, '-a', join('jar', '*.jar'), self.ctx.javaclass_dir)
+            info('Copying Qt5 libraries...')
+            shprint(sh.cp, '-a', join('lib', '*.so'), self.ctx.get_libs_dir(arch.arch))
+            #info('Copying Qt5 QML...')
+            #shprint(sh.cp, '-a', join('qml'), self.ctx.qml_dir)
 
 recipe = Qt5Recipe()
