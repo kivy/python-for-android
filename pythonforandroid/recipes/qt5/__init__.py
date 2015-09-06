@@ -6,8 +6,7 @@ import sh
 
 class Qt5Recipe(Recipe):
     version = "5.5.0"
-    #url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
-    url     = 'https://github.com/qtproject/qt5/archive/dev.tar.gz'
+    url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
     #md5sum = '828594c91ba736ce2cd3e1e8a6146452' ## TODO: Causes an error
     name    = 'qt5'
 
