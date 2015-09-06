@@ -6,8 +6,8 @@ import sh
 
 class Qt5Recipe(Recipe):
     version = "5.5.0"
-    url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
-    #url      = 'git://github.com/qtproject/qt5.git'
+    #url     = 'http://download.qt.io/official_releases/qt/%s/%s/single/qt-everywhere-opensource-src-%s.tar.gz' %(version[:version.rfind(".")], version, version)
+    url      = 'git://github.com/qtproject/qt5.git'
     #md5sum = '828594c91ba736ce2cd3e1e8a6146452' ## TODO: Causes an error
     name    = 'qt5'
 
@@ -19,8 +19,10 @@ class Qt5Recipe(Recipe):
 
             env['ANDROID_API_VERSION'] = "android-%s" %(self.ctx.android_api) # Absolutly needed during build process of 5.5.0
 
-            skip_bug_install = ('-skip',                      'qt3d',              # Causes an install problem
-                                '-skip',                      'qtcanvas3d',        # Causes an install problem
+            skip_bug_install = ('-skip',                      'qt3d',              # All cause an install problem
+                                '-skip',                      'qtcanvas3d',
+                                '-skip',                      'qtwebkit',
+                                '-skip',                      'qtsystems'
                                 )
             skip_for_lightweight = ('-skip',                      'qtdoc',
                                     '-skip',                      'qttools',
