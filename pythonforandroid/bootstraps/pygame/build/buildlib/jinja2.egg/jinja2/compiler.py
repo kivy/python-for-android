@@ -30,7 +30,7 @@ operators = {
 }
 
 try:
-    exec '(0 if 0 else 0)'
+    exec('(0 if 0 else 0)')
 except SyntaxError:
     have_condexpr = False
 else:

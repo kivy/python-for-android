@@ -525,7 +525,7 @@ class Lexer(object):
                     value = self._normalize_newlines(value[1:-1]) \
                         .encode('ascii', 'backslashreplace') \
                         .decode('unicode-escape')
-                except Exception, e:
+                except Exception as e:
                     msg = str(e).split(':')[-1].strip()
                     raise TemplateSyntaxError(msg, lineno, name, filename)
                 # if we can express it as bytestring (ascii only)

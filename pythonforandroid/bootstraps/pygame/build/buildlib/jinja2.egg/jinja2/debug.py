@@ -18,7 +18,7 @@ from jinja2.exceptions import TemplateSyntaxError
 
 # how does the raise helper look like?
 try:
-    exec "raise TypeError, 'foo'"
+    exec("raise TypeError, 'foo'")
 except SyntaxError:
     raise_helper = 'raise __jinja_exception__[1]'
 except TypeError:
