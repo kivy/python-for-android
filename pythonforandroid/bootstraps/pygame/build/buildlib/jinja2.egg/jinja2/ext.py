@@ -536,7 +536,7 @@ def babel_extract(fileobj, keywords, comment_tags, options):
     try:
         node = environment.parse(source)
         tokens = list(environment.lex(environment.preprocess(source)))
-    except TemplateSyntaxError, e:
+    except TemplateSyntaxError as e:
         # skip templates with syntax errors
         return
 

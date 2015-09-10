@@ -48,7 +48,7 @@ try:
         raise TypeError(_test_gen_bug)
         yield None
     _concat(_test_gen_bug())
-except TypeError, _error:
+except TypeError as _error:
     if not _error.args or _error.args[0] is not _test_gen_bug:
         def concat(gen):
             try:
@@ -370,7 +370,7 @@ class Markup(unicode):
     >>> class Foo(object):
     ...  def __html__(self):
     ...   return '<a href="#">foo</a>'
-    ... 
+    ...
     >>> Markup(Foo())
     Markup(u'<a href="#">foo</a>')
 
