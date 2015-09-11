@@ -206,8 +206,8 @@ def which(program, path_env):
                 return exe_file
 
     return None
-    
-    
+
+
 @contextlib.contextmanager
 def current_directory(new_dir):
     cur_dir = getcwd()
@@ -218,7 +218,7 @@ def current_directory(new_dir):
     logger.info(''.join((Fore.CYAN, '<- directory context ', cur_dir,
                          Fore.RESET)))
     chdir(cur_dir)
-          
+
 
 
 def cache_execution(f):
@@ -328,9 +328,9 @@ class Arch(object):
         env["CFLAGS"] = " ".join([
             "-DANDROID", "-mandroid", "-fomit-frame-pointer",
             "--sysroot", self.ctx.ndk_platform])
-                              
+
         env["CXXFLAGS"] = env["CFLAGS"]
-        
+
         env["LDFLAGS"] = " ".join(['-lm'])
 
         py_platform = sys.platform
@@ -367,7 +367,7 @@ class Arch(object):
         env['READELF'] = '{}-readelf'.format(toolchain_prefix)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
-        
+
         # AND: This hardcodes python version 2.7, needs fixing
         # AND: This also hardcodes armeabi, which isn't even correct, don't forget to fix!
         env['BUILDLIB_PATH'] = join(hostpython_recipe.get_build_dir('armeabi'),
@@ -417,7 +417,7 @@ class ArchAndroid(Arch):
 #     triple = "aarch64-apple-darwin13"
 #     version_min = "-miphoneos-version-min=7.0"
 #     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
-    
+
 
 class Graph(object):
     # Taken from the old python-for-android/depsort
@@ -665,7 +665,7 @@ class Context(object):
         if sdk_dir is None:  # This is the old P4A-specific var
             sdk_dir = environ.get('ANDROIDSDK', None)
         if sdk_dir is None:  # This seems used more conventionally
-            sdk_dir = environ.get('ANDROID_HOME', None)  
+            sdk_dir = environ.get('ANDROID_HOME', None)
         if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
                              # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
@@ -682,7 +682,7 @@ class Context(object):
             warning('Android SDK dir was not specified, exiting.')
             exit(1)
         self.sdk_dir = realpath(sdk_dir)
-        
+
         # Check what Android API we're using
         android_api = None
         if user_android_api:
@@ -913,7 +913,7 @@ class Context(object):
         self.archs = (
             ArchAndroid(self),
             )
-        
+
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
 
@@ -1013,7 +1013,7 @@ class Distribution(object):
         extra_dist_dirs : list
             Any extra directories in which to search for dists.
         require_perfect_match : bool
-            If True, will only match distributions with precisely the 
+            If True, will only match distributions with precisely the
             correct set of recipes.
         '''
 
@@ -1022,7 +1022,7 @@ class Distribution(object):
         # possibilities
 
         existing_dists = Distribution.get_distributions(ctx)
-    
+
         needs_build = True  # whether the dist needs building, will be returned
 
         possible_dists = existing_dists
@@ -1047,7 +1047,7 @@ class Distribution(object):
             pretty_log_dists(possible_dists)
         else:
             info('No existing dists meet the given requirements!')
-                
+
 
         # If any dist has perfect recipes, return it
         for dist in possible_dists:
@@ -1073,7 +1073,7 @@ class Distribution(object):
         #                               'sdl2_mixer', 'sdl2_ttf',
         #                               'python2', 'sdl2',
         #                               'pyjniussdl2', 'kivysdl2'],
-        #                  'https://github.com/inclement/sdl2-example-dist/archive/master.zip'), 
+        #                  'https://github.com/inclement/sdl2-example-dist/archive/master.zip'),
         #                  ]
         # _possible_dists = []
         # for dist_name, dist_recipes, dist_url in online_dists:
@@ -1086,7 +1086,7 @@ class Distribution(object):
         #         dist.url = dist_url
         #         _possible_dists.append(dist)
         # # if _possible_dists
-           	
+
 
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)
@@ -1180,7 +1180,7 @@ class Bootstrap(object):
     satisfies user requirements. If False, it will not be returned
     from Bootstrap.get_bootstrap_from_recipes.
     '''
-    
+
     # Other things a Bootstrap might need to track (maybe separately):
     # ndk_main.c
     # whitelist.txt
@@ -1194,7 +1194,7 @@ class Bootstrap(object):
                     'is None'.format(self, self))
             exit(1)
         return self.distribution.dist_dir
-        
+
 
     @property
     def jni_dir(self):
@@ -1221,6 +1221,9 @@ class Bootstrap(object):
                 #      'bootstrap_templates',
                 #      self.name),
                 self.build_dir)
+        with current_directory(self.build_dir):
+            with open('project.properties', 'w') as fileh:
+                fileh.write('target=android-{}'.format(self.ctx.android_api))
 
     def prepare_dist_dir(self, name):
         # self.dist_dir = self.get_dist_dir(name)
@@ -1646,7 +1649,7 @@ class Recipe(object):
             return
 
         filename = shprint(sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
-        
+
         # AND: TODO: Use tito's better unpacking method
         with current_directory(build_dir):
             directory_name = self.get_build_dir(arch)
@@ -1806,8 +1809,8 @@ class Recipe(object):
         else:
             warning(('Attempted to clean build for {} but build'
                      'did not exist').format(self.name))
-        
-        
+
+
 
     @classmethod
     def list_recipes(cls):
@@ -1885,7 +1888,7 @@ class NDKRecipe(Recipe):
     #     info_main('Unpacking {} for {}'.format(self.name, arch))
     #     info('{} is included in the bootstrap, unpacking currently '
     #          'unnecessary, so skipping'.format(self.name))
-        
+
 
 class PythonRecipe(Recipe):
     site_packages_name = None  # The name of the module in
@@ -1905,9 +1908,9 @@ class PythonRecipe(Recipe):
             return False
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
-                       
 
-    
+
+
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
@@ -1952,7 +1955,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
     def build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
-        
+
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
@@ -1960,7 +1963,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
             build_dir = glob.glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
-            
+
 
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
@@ -2006,7 +2009,7 @@ class CythonRecipe(PythonRecipe):
                     env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
             # exit(1)
-        
+
     # def cythonize_file(self, filename):
     #     if filename.startswith(self.build_dir):
     #         filename = filename[len(self.build_dir) + 1:]
@@ -2087,7 +2090,7 @@ def build_recipes(build_order, python_modules, ctx):
                 info('{} said it is already built, skipping'.format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional (could use 
+        # AND: Should make this optional (could use
         info_main('# Biglinking object files')
         biglink(ctx, arch)
 
@@ -2099,7 +2102,7 @@ def build_recipes(build_order, python_modules, ctx):
 
     info_main('# Installing pure Python modules')
     run_pymodules_install(ctx, python_modules)
-    
+
     return
 
 def run_pymodules_install(ctx, modules):
@@ -2130,7 +2133,7 @@ def run_pymodules_install(ctx, modules):
         shprint(sh.bash, '-c', (
             "source venv/bin/activate && env CC=/bin/false CXX=/bin/false"
             "PYTHONPATH= pip install --target '{}' -r requirements.txt").format(ctx.get_site_packages_dir()))
-            
+
 def biglink(ctx, arch):
     # First, collate object files from each recipe
     info('Collating object files from each recipe')
@@ -2149,7 +2152,7 @@ def biglink(ctx, arch):
         info('{} recipe has object files, copying'.format(recipe.name))
         files.append(obj_dir)
         shprint(sh.cp, '-r', *files)
-    
+
     # AND: Shouldn't hardcode ArchAndroid! In reality need separate
     # build dirs for each arch
     arch = ArchAndroid(ctx)
@@ -2207,7 +2210,7 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
         link = '-L{}'.format(dir)
         if link not in unique_args:
             unique_args.append(link)
-    
+
     # print('Biglink create %s library' % soname)
     # print('Biglink arguments:')
     # for arg in unique_args:
@@ -2450,10 +2453,10 @@ clean_dists
                                              'perfectly match those requested.'),
             type=bool, default=False)
 
-        
+
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
-        
+
         if args.debug:
             logger.setLevel(logging.DEBUG)
         self.sdk_dir = args.sdk_dir
@@ -2476,7 +2479,7 @@ clean_dists
         #     warning('Received --allow_build but this arg currently is not '
         #             'handled, exiting.')
         #     exit(1)
-            
+
         if not hasattr(self, args.command):
             print('Unrecognized command')
             parser.print_help()
@@ -2562,7 +2565,7 @@ clean_dists
         ctx = Context()
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
-        
+
     def clean_builds(self, args):
         '''Delete all build caches for each recipe, python-install, java code
         and compiled libs collection.
@@ -2602,7 +2605,7 @@ clean_dists
         recipe = Recipe.get_recipe(args.recipe, self.ctx)
         info('Cleaning build for {} recipe.'.format(recipe.name))
         recipe.clean_build()
-        
+
 
     def clean_download_cache(self, args):
 
@@ -2720,7 +2723,7 @@ clean_dists
             info('More than one built APK found...guessing you '
                  'just built {}'.format(apks[-1]))
         shprint(sh.cp, apks[-1], './')
-        
+
 
     @require_prebuilt_dist
     def create(self, args):
@@ -2799,7 +2802,7 @@ clean_dists
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
-        
+
     def adb(self, args):
         '''Runs the adb binary from the detected SDK directory, passing all
         arguments straight to it. This is intended as a convenience
