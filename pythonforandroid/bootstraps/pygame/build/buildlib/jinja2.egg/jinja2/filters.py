@@ -615,8 +615,9 @@ class _GroupTuple(tuple):
     grouper = property(itemgetter(0))
     list = property(itemgetter(1))
 
-    def __new__(cls, (key, value)):
-        return tuple.__new__(cls, (key, list(value)))
+    #def __new__(cls, (key, value)):
+    def __new__(cls, kv):
+        return tuple.__new__(cls, (kv[0], list(kv[1])))
 
 
 def do_list(value):
