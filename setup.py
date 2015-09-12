@@ -49,8 +49,8 @@ setup(name='python-for-android',
       install_requires=['appdirs', 'colorama>0.3', 'sh', 'jinja2', 'argparse'],
       entry_points={
           'console_scripts': [
-              'python-for-android = pythonforandroid.toolchain:ToolchainCL',
-              'p4a = pythonforandroid.toolchain:ToolchainCL',
+              'python-for-android = pythonforandroid.toolchain:main',
+              'p4a = pythonforandroid.toolchain:main',
               ],
           'distutils.commands': [
               'bdist_apk = pythonforandroid.bdist_apk:BdistAPK',

@@ -2743,7 +2743,7 @@ clean_dists
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
-        
+
     def adb(self, args):
         '''Runs the adb binary from the detected SDK directory, passing all
         arguments straight to it. This is intended as a convenience
@@ -2769,6 +2769,9 @@ clean_dists
         directory. All extra args are passed as arguments to logcat.'''
         self.adb(['logcat'] + args)
 
-if __name__ == "__main__":
 
+def main():
     ToolchainCL()
+
+if __name__ == "__main__":
+    main()
