@@ -2844,10 +2844,28 @@ clean_dists
         directory. All extra args are passed as arguments to logcat.'''
         self.adb(['logcat'] + args)
 
-    def status(self, args):
-        self.recipes(args)
-        self.bootstraps(args)
-        self.dists(args)
+    def build_status(self, args):
+
+        print('{Style.BRIGHT}Bootstraps whose core components are probably built:'
+              '{Style.RESET_ALL}'.format(Style=Style))
+        for filen in os.listdir(join(self.ctx.build_dir, 'bootstrap_builds')):
+            print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'.format(
+                filen=filen, Fore=Fore, Style=Style))
+
+        print('{Style.BRIGHT}Recipes that are probably already built:'
+              '{Style.RESET_ALL}'.format(Style=Style))
+        for filen in sorted(os.listdir(join(self.ctx.build_dir, 'other_builds'))):
+            name = filen.split('-')[0]
+            dependencies = filen.split('-')[1:]
+            recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
+                          '{Style.RESET_ALL}'.format(
+                              Style=Style, name=name, Fore=Fore))
+            if dependencies:
+                recipe_str += (' ({Fore.BLUE}with ' + ', '.join(dependencies) +
+                               '){Fore.RESET}').format(Fore=Fore)
+            recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
+            print(recipe_str)
+
 
 def main():
     ToolchainCL()
