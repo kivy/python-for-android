@@ -91,7 +91,7 @@ def info_main(*args):
 def info_notify(s):
     info('{}{}{}{}'.format(Style.BRIGHT, Fore.LIGHTBLUE_EX, s, Style.RESET_ALL))
 
-def pretty_log_dists(dists):
+def pretty_log_dists(dists, log_func=info):
     infos = []
     for dist in dists:
         infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
@@ -101,7 +101,7 @@ def pretty_log_dists(dists):
                          Fore=Fore, Style=Style))
 
     for line in infos:
-        info('\t' + line)
+        log_func('\t' + line)
 
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
@@ -2554,7 +2554,12 @@ clean_dists
 
     def bootstraps(self, args):
         '''List all the bootstraps available to build with.'''
-        print(list(Bootstrap.list_bootstraps()))
+        for bs in Bootstrap.list_bootstraps():
+            bs = Bootstrap.get_bootstrap(bs, self.ctx)
+            print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'.format(
+                bs=bs, Fore=Fore, Style=Style))
+            print('    {Fore.GREEN}depends: {bs.recipe_depends}{Fore.RESET}'.format(
+                bs=bs, Fore=Fore))
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
@@ -2778,12 +2783,12 @@ clean_dists
         dists = Distribution.get_distributions(ctx)
 
         if dists:
-            info('{Style.BRIGHT}Distributions currently installed are:'
-                 '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
-            pretty_log_dists(dists)
+            print('{Style.BRIGHT}Distributions currently installed are:'
+                  '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
+            pretty_log_dists(dists, print)
         else:
-            info('{Style.BRIGHT}There are no dists currently built.'
-                 '{Style.RESET_ALL}'.format(Style=Style))
+            print('{Style.BRIGHT}There are no dists currently built.'
+                  '{Style.RESET_ALL}'.format(Style=Style))
 
     def delete_dist(self, args):
         dist = self._dist
@@ -2839,6 +2844,10 @@ clean_dists
         directory. All extra args are passed as arguments to logcat.'''
         self.adb(['logcat'] + args)
 
+    def status(self, args):
+        self.recipes(args)
+        self.bootstraps(args)
+        self.dists(args)
 
 def main():
     ToolchainCL()
