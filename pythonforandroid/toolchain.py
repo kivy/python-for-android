@@ -2828,6 +2828,9 @@ clean_dists
         directory. All extra args are passed as arguments to logcat.'''
         self.adb(['logcat'] + args)
 
-if __name__ == "__main__":
 
+def main():
     ToolchainCL()
+
+if __name__ == "__main__":
+    main()
