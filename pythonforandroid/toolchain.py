@@ -1830,11 +1830,15 @@ class Recipe(object):
            cls.recipes = {}
         if name in cls.recipes:
             return cls.recipes[name]
+        recipe_dir = join(ctx.root_dir, 'recipes', name)
+        if not exists(recipe_dir):  # AND: This will need modifying
+                                    # for user-supplied recipes
+            raise IOError('Recipe folder does not exist')
         mod = importlib.import_module("pythonforandroid.recipes.{}".format(name))
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
-        recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
+        recipe.recipe_dir = recipe_dir
         recipe.ctx = ctx
         return recipe
 
@@ -2299,10 +2303,17 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             continue
         try:
             recipe = Recipe.get_recipe(name, ctx)
-        except ImportError:
+        except IOError:
             info('No recipe named {}; will attempt to install with pip'.format(name))
             python_modules.append(name)
             continue
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+           warning('Failed to import recipe named {}; the recipe exists '
+                   'but appears broken.'.format(name))
+           warning('Exception was:')
+           raise
         graph.add(name, name)
         info('Loaded recipe {} (depends on {}{})'.format(
             name, recipe.depends,
