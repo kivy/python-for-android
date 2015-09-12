@@ -843,13 +843,13 @@ class Context(object):
             exit(1)
 
         toolchain_versions = []
-        toolchain_path     = join( self.ndk_dir, 'toolchains')
+        toolchain_path = join(self.ndk_dir, 'toolchains')
         if os.path.isdir(toolchain_path):
             toolchain_contents = os.listdir(toolchain_path)
             for toolchain_content in toolchain_contents:
                 if toolchain_content.startswith(toolchain_prefix) and os.path.isdir(os.path.join(toolchain_path, toolchain_content)):
                     toolchain_version = toolchain_content[len(toolchain_prefix)+1:]
-                    debug("Found toolchain version: %s" %(toolchain_version))
+                    debug('Found toolchain version: {}'.format(toolchain_version))
                     toolchain_versions.append(toolchain_version)
         else:
             warning('Could not find toolchain subdirectory!')
@@ -862,11 +862,11 @@ class Context(object):
                 toolchain_versions_gcc.append(toolchain_version)
 
         if toolchain_versions:
-            info('Found the following toolchain versions: %s' %(repr(toolchain_versions)))
-            info('Picking the latest gcc toolchain, here %s' %(repr(toolchain_versions_gcc[-1])))
+            info('Found the following toolchain versions: {}'.format(toolchain_versions))
+            info('Picking the latest gcc toolchain, here {}'.format(toolchain_versions_gcc[-1]))
             toolchain_version = toolchain_versions_gcc[-1]
         else:
-            warning('Could not find any toolchain for %s!' %(toolchain_prefix))
+            warning('Could not find any toolchain for {}!'.format(toolchain_prefix))
             ok = False
 
         self.toolchain_prefix = toolchain_prefix
@@ -2854,17 +2854,18 @@ clean_dists
 
         print('{Style.BRIGHT}Recipes that are probably already built:'
               '{Style.RESET_ALL}'.format(Style=Style))
-        for filen in sorted(os.listdir(join(self.ctx.build_dir, 'other_builds'))):
-            name = filen.split('-')[0]
-            dependencies = filen.split('-')[1:]
-            recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
-                          '{Style.RESET_ALL}'.format(
-                              Style=Style, name=name, Fore=Fore))
-            if dependencies:
-                recipe_str += (' ({Fore.BLUE}with ' + ', '.join(dependencies) +
-                               '){Fore.RESET}').format(Fore=Fore)
-            recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
-            print(recipe_str)
+        if exists(join(self.ctx.build_dir, 'other_builds')):
+            for filen in sorted(os.listdir(join(self.ctx.build_dir, 'other_builds'))):
+                name = filen.split('-')[0]
+                dependencies = filen.split('-')[1:]
+                recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
+                              '{Style.RESET_ALL}'.format(
+                                  Style=Style, name=name, Fore=Fore))
+                if dependencies:
+                    recipe_str += (' ({Fore.BLUE}with ' + ', '.join(dependencies) +
+                                   '){Fore.RESET}').format(Fore=Fore)
+                recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
+                print(recipe_str)
 
 
 def main():
