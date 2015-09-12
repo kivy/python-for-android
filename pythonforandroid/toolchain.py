@@ -43,7 +43,7 @@ curdir = dirname(__file__)
 sys.path.insert(0, join(curdir, "tools", "external"))
 
 
-DEFAULT_ANDROID_API = 14
+DEFAULT_ANDROID_API = 15
 
 class LevelDifferentiatingFormatter(logging.Formatter):
     def format(self, record):
