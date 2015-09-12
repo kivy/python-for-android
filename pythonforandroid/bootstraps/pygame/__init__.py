@@ -27,7 +27,7 @@ class PygameBootstrap(Bootstrap):
                     shprint(sh.mkdir, dirname)
 
             info('Copying default files')
-            shprint(sh.cp, '-a', join(src_path, 'default.properties'), '.')
+            shprint(sh.cp, '-a', join(self.build_dir, 'project.properties'), '.')
             shprint(sh.cp, '-a', join(src_path, 'local.properties'), '.')
             shprint(sh.cp, '-a', join(src_path, 'build.py'), '.')
             shprint(sh.cp, '-a', join(src_path, 'buildlib'), '.')
