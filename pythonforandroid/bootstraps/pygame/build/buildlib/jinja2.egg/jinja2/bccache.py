@@ -17,9 +17,9 @@
 from os import path, listdir
 import marshal
 import tempfile
-import cPickle as pickle
+import pickle as pickle
 import fnmatch
-from cStringIO import StringIO
+from io import StringIO
 try:
     from hashlib import sha1
 except ImportError:
@@ -144,7 +144,7 @@ class BytecodeCache(object):
         """Returns the unique hash key for this template name."""
         hash = sha1(name.encode('utf-8'))
         if filename is not None:
-            if isinstance(filename, unicode):
+            if isinstance(filename, str):
                 filename = filename.encode('utf-8')
             hash.update('|' + filename)
         return hash.hexdigest()

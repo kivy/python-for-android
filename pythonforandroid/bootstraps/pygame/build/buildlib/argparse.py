@@ -104,7 +104,7 @@ except NameError:
     from sets import Set as _set
 
 try:
-    _basestring = basestring
+    _basestring = str
 except NameError:
     _basestring = str
 
@@ -164,7 +164,7 @@ class _AttributeHolder(object):
         return '%s(%s)' % (type_name, ', '.join(arg_strings))
 
     def _get_kwargs(self):
-        return _sorted(self.__dict__.items())
+        return _sorted(list(self.__dict__.items()))
 
     def _get_args(self):
         return []

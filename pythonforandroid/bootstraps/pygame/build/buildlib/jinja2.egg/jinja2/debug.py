@@ -18,7 +18,7 @@ from jinja2.exceptions import TemplateSyntaxError
 
 # how does the raise helper look like?
 try:
-    exec "raise TypeError, 'foo'"
+    exec("raise TypeError, 'foo'")
 except SyntaxError:
     raise_helper = 'raise __jinja_exception__[1]'
 except TypeError:
@@ -77,7 +77,7 @@ class ProcessedTraceback(object):
     def render_as_html(self, full=False):
         """Return a unicode string with the traceback as rendered HTML."""
         from jinja2.debugrenderer import render_traceback
-        return u'%s\n\n<!--\n%s\n-->' % (
+        return '%s\n\n<!--\n%s\n-->' % (
             render_traceback(self, full=full),
             self.render_as_text().decode('utf-8', 'replace')
         )
@@ -128,7 +128,7 @@ def translate_exception(exc_info, initial_skip=0):
     frames = []
 
     # skip some internal frames if wanted
-    for x in xrange(initial_skip):
+    for x in range(initial_skip):
         if tb is not None:
             tb = tb.tb_next
     initial_tb = tb
@@ -159,7 +159,7 @@ def translate_exception(exc_info, initial_skip=0):
     # reraise it unchanged.
     # XXX: can we backup here?  when could this happen?
     if not frames:
-        raise exc_info[0], exc_info[1], exc_info[2]
+        raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
 
     traceback = ProcessedTraceback(exc_info[0], exc_info[1], frames)
     if tb_set_next is not None:
@@ -179,7 +179,7 @@ def fake_exc_info(exc_info, filename, lineno):
             locals = ctx.get_all()
         else:
             locals = {}
-        for name, value in real_locals.iteritems():
+        for name, value in list(real_locals.items()):
             if name.startswith('l_') and value is not missing:
                 locals[name[2:]] = value
 
@@ -227,7 +227,7 @@ def fake_exc_info(exc_info, filename, lineno):
 
     # execute the code and catch the new traceback
     try:
-        exec code in globals, locals
+        exec(code, globals, locals)
     except:
         exc_info = sys.exc_info()
         new_tb = exc_info[2].tb_next

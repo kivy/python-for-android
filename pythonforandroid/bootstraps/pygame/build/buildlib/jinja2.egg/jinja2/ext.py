@@ -34,7 +34,7 @@ class ExtensionRegistry(type):
         return rv
 
 
-class Extension(object):
+class Extension(object, metaclass=ExtensionRegistry):
     """Extensions can be used to add extra functionality to the Jinja template
     system at the parser level.  Custom extensions are bound to an environment
     but may not store environment specific data on `self`.  The reason for
@@ -52,7 +52,6 @@ class Extension(object):
     is a terrible name, ``fragment_cache_prefix`` on the other hand is a good
     name as includes the name of the extension (fragment cache).
     """
-    __metaclass__ = ExtensionRegistry
 
     #: if this extension parses this is the list of tags it's listening to.
     tags = set()
@@ -168,7 +167,7 @@ class InternationalizationExtension(Extension):
             self.environment.globals.pop(key, None)
 
     def _extract(self, source, gettext_functions=GETTEXT_FUNCTIONS):
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             source = self.environment.parse(source)
         return extract_from_ast(source, gettext_functions)
 
@@ -253,7 +252,7 @@ class InternationalizationExtension(Extension):
 
         if variables:
             variables = nodes.Dict([nodes.Pair(nodes.Const(x, lineno=lineno), y)
-                                    for x, y in variables.items()])
+                                    for x, y in list(variables.items())])
         else:
             variables = None
 
@@ -422,7 +421,7 @@ def extract_from_ast(node, gettext_functions=GETTEXT_FUNCTIONS,
         strings = []
         for arg in node.args:
             if isinstance(arg, nodes.Const) and \
-               isinstance(arg.value, basestring):
+               isinstance(arg.value, str):
                 strings.append(arg.value)
             else:
                 strings.append(None)
@@ -536,7 +535,7 @@ def babel_extract(fileobj, keywords, comment_tags, options):
     try:
         node = environment.parse(source)
         tokens = list(environment.lex(environment.preprocess(source)))
-    except TemplateSyntaxError, e:
+    except TemplateSyntaxError as e:
         # skip templates with syntax errors
         return
 

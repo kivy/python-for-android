@@ -19,6 +19,7 @@ from operator import itemgetter
 from collections import deque
 from jinja2.exceptions import TemplateSyntaxError
 from jinja2.utils import LRUCache, next
+import sys
 
 
 # cache for the lexers. Exists in order to be able to have multiple
@@ -46,55 +47,55 @@ float_re = re.compile(r'(?<!\.)\d+\.\d+')
 newline_re = re.compile(r'(\r\n|\r|\n)')
 
 # internal the tokens and keep references to them
-TOKEN_ADD = intern('add')
-TOKEN_ASSIGN = intern('assign')
-TOKEN_COLON = intern('colon')
-TOKEN_COMMA = intern('comma')
-TOKEN_DIV = intern('div')
-TOKEN_DOT = intern('dot')
-TOKEN_EQ = intern('eq')
-TOKEN_FLOORDIV = intern('floordiv')
-TOKEN_GT = intern('gt')
-TOKEN_GTEQ = intern('gteq')
-TOKEN_LBRACE = intern('lbrace')
-TOKEN_LBRACKET = intern('lbracket')
-TOKEN_LPAREN = intern('lparen')
-TOKEN_LT = intern('lt')
-TOKEN_LTEQ = intern('lteq')
-TOKEN_MOD = intern('mod')
-TOKEN_MUL = intern('mul')
-TOKEN_NE = intern('ne')
-TOKEN_PIPE = intern('pipe')
-TOKEN_POW = intern('pow')
-TOKEN_RBRACE = intern('rbrace')
-TOKEN_RBRACKET = intern('rbracket')
-TOKEN_RPAREN = intern('rparen')
-TOKEN_SEMICOLON = intern('semicolon')
-TOKEN_SUB = intern('sub')
-TOKEN_TILDE = intern('tilde')
-TOKEN_WHITESPACE = intern('whitespace')
-TOKEN_FLOAT = intern('float')
-TOKEN_INTEGER = intern('integer')
-TOKEN_NAME = intern('name')
-TOKEN_STRING = intern('string')
-TOKEN_OPERATOR = intern('operator')
-TOKEN_BLOCK_BEGIN = intern('block_begin')
-TOKEN_BLOCK_END = intern('block_end')
-TOKEN_VARIABLE_BEGIN = intern('variable_begin')
-TOKEN_VARIABLE_END = intern('variable_end')
-TOKEN_RAW_BEGIN = intern('raw_begin')
-TOKEN_RAW_END = intern('raw_end')
-TOKEN_COMMENT_BEGIN = intern('comment_begin')
-TOKEN_COMMENT_END = intern('comment_end')
-TOKEN_COMMENT = intern('comment')
-TOKEN_LINESTATEMENT_BEGIN = intern('linestatement_begin')
-TOKEN_LINESTATEMENT_END = intern('linestatement_end')
-TOKEN_LINECOMMENT_BEGIN = intern('linecomment_begin')
-TOKEN_LINECOMMENT_END = intern('linecomment_end')
-TOKEN_LINECOMMENT = intern('linecomment')
-TOKEN_DATA = intern('data')
-TOKEN_INITIAL = intern('initial')
-TOKEN_EOF = intern('eof')
+TOKEN_ADD = sys.intern('add')
+TOKEN_ASSIGN = sys.intern('assign')
+TOKEN_COLON = sys.intern('colon')
+TOKEN_COMMA = sys.intern('comma')
+TOKEN_DIV = sys.intern('div')
+TOKEN_DOT = sys.intern('dot')
+TOKEN_EQ = sys.intern('eq')
+TOKEN_FLOORDIV = sys.intern('floordiv')
+TOKEN_GT = sys.intern('gt')
+TOKEN_GTEQ = sys.intern('gteq')
+TOKEN_LBRACE = sys.intern('lbrace')
+TOKEN_LBRACKET = sys.intern('lbracket')
+TOKEN_LPAREN = sys.intern('lparen')
+TOKEN_LT = sys.intern('lt')
+TOKEN_LTEQ = sys.intern('lteq')
+TOKEN_MOD = sys.intern('mod')
+TOKEN_MUL = sys.intern('mul')
+TOKEN_NE = sys.intern('ne')
+TOKEN_PIPE = sys.intern('pipe')
+TOKEN_POW = sys.intern('pow')
+TOKEN_RBRACE = sys.intern('rbrace')
+TOKEN_RBRACKET = sys.intern('rbracket')
+TOKEN_RPAREN = sys.intern('rparen')
+TOKEN_SEMICOLON = sys.intern('semicolon')
+TOKEN_SUB = sys.intern('sub')
+TOKEN_TILDE = sys.intern('tilde')
+TOKEN_WHITESPACE = sys.intern('whitespace')
+TOKEN_FLOAT = sys.intern('float')
+TOKEN_INTEGER = sys.intern('integer')
+TOKEN_NAME = sys.intern('name')
+TOKEN_STRING = sys.intern('string')
+TOKEN_OPERATOR = sys.intern('operator')
+TOKEN_BLOCK_BEGIN = sys.intern('block_begin')
+TOKEN_BLOCK_END = sys.intern('block_end')
+TOKEN_VARIABLE_BEGIN = sys.intern('variable_begin')
+TOKEN_VARIABLE_END = sys.intern('variable_end')
+TOKEN_RAW_BEGIN = sys.intern('raw_begin')
+TOKEN_RAW_END = sys.intern('raw_end')
+TOKEN_COMMENT_BEGIN = sys.intern('comment_begin')
+TOKEN_COMMENT_END = sys.intern('comment_end')
+TOKEN_COMMENT = sys.intern('comment')
+TOKEN_LINESTATEMENT_BEGIN = sys.intern('linestatement_begin')
+TOKEN_LINESTATEMENT_END = sys.intern('linestatement_end')
+TOKEN_LINECOMMENT_BEGIN = sys.intern('linecomment_begin')
+TOKEN_LINECOMMENT_END = sys.intern('linecomment_end')
+TOKEN_LINECOMMENT = sys.intern('linecomment')
+TOKEN_DATA = sys.intern('data')
+TOKEN_INITIAL = sys.intern('initial')
+TOKEN_EOF = sys.intern('eof')
 
 # bind operators to token types
 operators = {
@@ -126,7 +127,7 @@ operators = {
     ';':            TOKEN_SEMICOLON
 }
 
-reverse_operators = dict([(v, k) for k, v in operators.iteritems()])
+reverse_operators = dict([(v, k) for k, v in operators.items()])
 assert len(operators) == len(reverse_operators), 'operators dropped'
 operator_re = re.compile('(%s)' % '|'.join(re.escape(x) for x in
                          sorted(operators, key=lambda x: -len(x))))
@@ -225,7 +226,7 @@ class Token(tuple):
     lineno, type, value = (property(itemgetter(x)) for x in range(3))
 
     def __new__(cls, lineno, type, value):
-        return tuple.__new__(cls, (lineno, intern(str(type)), value))
+        return tuple.__new__(cls, (lineno, sys.intern(str(type)), value))
 
     def __str__(self):
         if self.type in reverse_operators:
@@ -273,7 +274,7 @@ class TokenStreamIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         token = self.stream.current
         if token.type is TOKEN_EOF:
             self.stream.close()
@@ -289,7 +290,7 @@ class TokenStream(object):
     """
 
     def __init__(self, generator, name, filename):
-        self._next = iter(generator).next
+        self._next = iter(generator).__next__
         self._pushed = deque()
         self.name = name
         self.filename = filename
@@ -300,7 +301,7 @@ class TokenStream(object):
     def __iter__(self):
         return TokenStreamIterator(self)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self._pushed) or self.current.type is not TOKEN_EOF
 
     eos = property(lambda x: not x, doc="Are we at the end of the stream?")
@@ -319,7 +320,7 @@ class TokenStream(object):
 
     def skip(self, n=1):
         """Got n tokens ahead."""
-        for x in xrange(n):
+        for x in range(n):
             next(self)
 
     def next_if(self, expr):
@@ -333,7 +334,7 @@ class TokenStream(object):
         """Like :meth:`next_if` but only returns `True` or `False`."""
         return self.next_if(expr) is not None
 
-    def next(self):
+    def __next__(self):
         """Go one token ahead and return the old one"""
         rv = self.current
         if self._pushed:
@@ -525,7 +526,7 @@ class Lexer(object):
                     value = self._normalize_newlines(value[1:-1]) \
                         .encode('ascii', 'backslashreplace') \
                         .decode('unicode-escape')
-                except Exception, e:
+                except Exception as e:
                     msg = str(e).split(':')[-1].strip()
                     raise TemplateSyntaxError(msg, lineno, name, filename)
                 # if we can express it as bytestring (ascii only)
@@ -548,7 +549,7 @@ class Lexer(object):
         """This method tokenizes the text and returns the tokens in a
         generator.  Use this method if you just want to tokenize a template.
         """
-        source = '\n'.join(unicode(source).splitlines())
+        source = '\n'.join(str(source).splitlines())
         pos = 0
         lineno = 1
         stack = ['root']
@@ -589,7 +590,7 @@ class Lexer(object):
                         # yield for the current token the first named
                         # group that matched
                         elif token == '#bygroup':
-                            for key, value in m.groupdict().iteritems():
+                            for key, value in m.groupdict().items():
                                 if value is not None:
                                     yield lineno, key, value
                                     lineno += value.count('\n')
@@ -646,7 +647,7 @@ class Lexer(object):
                         stack.pop()
                     # resolve the new state by group checking
                     elif new_state == '#bygroup':
-                        for key, value in m.groupdict().iteritems():
+                        for key, value in m.groupdict().items():
                             if value is not None:
                                 stack.append(key)
                                 break

@@ -9,7 +9,7 @@
     :license: BSD.
 """
 import sys
-from itertools import chain, imap
+from itertools import chain
 from jinja2.nodes import EvalContext
 from jinja2.utils import Markup, partial, soft_unicode, escape, missing, \
      concat, MethodType, FunctionType, internalcode, next, \
@@ -31,23 +31,23 @@ _context_function_types = (FunctionType, MethodType)
 #: the name of the function that is used to convert something into
 #: a string.  2to3 will adopt that automatically and the generated
 #: code can take advantage of it.
-to_string = unicode
+to_string = str
 
 
 def markup_join(seq):
     """Concatenation that escapes if necessary and converts to unicode."""
     buf = []
-    iterator = imap(soft_unicode, seq)
+    iterator = map(soft_unicode, seq)
     for arg in iterator:
         buf.append(arg)
         if hasattr(arg, '__html__'):
-            return Markup(u'').join(chain(buf, iterator))
+            return Markup('').join(chain(buf, iterator))
     return concat(buf)
 
 
 def unicode_join(seq):
     """Simple args to unicode conversion and concatenation."""
-    return concat(imap(unicode, seq))
+    return concat(map(str, seq))
 
 
 def new_context(environment, template_name, blocks, vars=None,
@@ -64,7 +64,7 @@ def new_context(environment, template_name, blocks, vars=None,
         # we don't want to modify the dict passed
         if shared:
             parent = dict(parent)
-        for key, value in locals.iteritems():
+        for key, value in locals.items():
             if key[:2] == 'l_' and value is not missing:
                 parent[key[2:]] = value
     return Context(environment, parent, template_name, blocks)
@@ -122,7 +122,7 @@ class Context(object):
         # create the initial mapping of blocks.  Whenever template inheritance
         # takes place the runtime will update this mapping with the new blocks
         # from the template.
-        self.blocks = dict((k, [v]) for k, v in blocks.iteritems())
+        self.blocks = dict((k, [v]) for k, v in blocks.items())
 
     def super(self, name, current):
         """Render a parent block."""
@@ -188,7 +188,7 @@ class Context(object):
         context = new_context(self.environment, self.name, {},
                               self.parent, True, None, locals)
         context.eval_ctx = self.eval_ctx
-        context.blocks.update((k, list(v)) for k, v in self.blocks.iteritems())
+        context.blocks.update((k, list(v)) for k, v in self.blocks.items())
         return context
 
     def _all(meth):
@@ -340,7 +340,7 @@ class LoopContextIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         ctx = self.context
         ctx.index0 += 1
         return next(ctx._iterator), ctx
@@ -437,7 +437,7 @@ class Undefined(object):
         if self._undefined_hint is None:
             if self._undefined_obj is missing:
                 hint = '%r is undefined' % self._undefined_name
-            elif not isinstance(self._undefined_name, basestring):
+            elif not isinstance(self._undefined_name, str):
                 hint = '%s has no element %r' % (
                     object_type_repr(self._undefined_obj),
                     self._undefined_name
@@ -459,14 +459,14 @@ class Undefined(object):
         _fail_with_undefined_error
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     # unicode goes after __str__ because we configured 2to3 to rename
     # __unicode__ to __str__.  because the 2to3 tree is not designed to
     # remove nodes from it, we leave the above __str__ around and let
     # it override at runtime.
     def __unicode__(self):
-        return u''
+        return ''
 
     def __len__(self):
         return 0
@@ -475,7 +475,7 @@ class Undefined(object):
         if 0:
             yield None
 
-    def __nonzero__(self):
+    def __bool__(self):
         return False
 
     def __repr__(self):
@@ -500,12 +500,12 @@ class DebugUndefined(Undefined):
     def __unicode__(self):
         if self._undefined_hint is None:
             if self._undefined_obj is missing:
-                return u'{{ %s }}' % self._undefined_name
+                return '{{ %s }}' % self._undefined_name
             return '{{ no such element: %s[%r] }}' % (
                 object_type_repr(self._undefined_obj),
                 self._undefined_name
             )
-        return u'{{ undefined value printed: %s }}' % self._undefined_hint
+        return '{{ undefined value printed: %s }}' % self._undefined_hint
 
 
 class StrictUndefined(Undefined):

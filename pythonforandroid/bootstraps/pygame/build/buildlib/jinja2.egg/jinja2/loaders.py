@@ -153,7 +153,7 @@ class FileSystemLoader(BaseLoader):
     """
 
     def __init__(self, searchpath, encoding='utf-8'):
-        if isinstance(searchpath, basestring):
+        if isinstance(searchpath, str):
             searchpath = [searchpath]
         self.searchpath = list(searchpath)
         self.encoding = encoding
@@ -307,7 +307,7 @@ class FunctionLoader(BaseLoader):
         rv = self.load_func(template)
         if rv is None:
             raise TemplateNotFound(template)
-        elif isinstance(rv, basestring):
+        elif isinstance(rv, str):
             return rv, None, None
         return rv
 
@@ -346,7 +346,7 @@ class PrefixLoader(BaseLoader):
 
     def list_templates(self):
         result = []
-        for prefix, loader in self.mapping.iteritems():
+        for prefix, loader in self.mapping.items():
             for template in loader.list_templates():
                 result.append(prefix + self.delimiter + template)
         return result
@@ -407,7 +407,7 @@ class ModuleLoader(BaseLoader):
         # create a fake module that looks for the templates in the
         # path given.
         mod = _TemplateModule(package_name)
-        if isinstance(path, basestring):
+        if isinstance(path, str):
             path = [path]
         else:
             path = list(path)

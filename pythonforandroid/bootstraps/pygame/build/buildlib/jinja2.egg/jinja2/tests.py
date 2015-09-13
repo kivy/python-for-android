@@ -70,22 +70,22 @@ def test_none(value):
 
 def test_lower(value):
     """Return true if the variable is lowercased."""
-    return unicode(value).islower()
+    return str(value).islower()
 
 
 def test_upper(value):
     """Return true if the variable is uppercased."""
-    return unicode(value).isupper()
+    return str(value).isupper()
 
 
 def test_string(value):
     """Return true if the object is a string."""
-    return isinstance(value, basestring)
+    return isinstance(value, str)
 
 
 def test_number(value):
     """Return true if the variable is a number."""
-    return isinstance(value, (int, long, float, complex))
+    return isinstance(value, (int, float, complex))
 
 
 def test_sequence(value):

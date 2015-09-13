@@ -8,7 +8,7 @@
     :copyright: (c) 2010 by the Jinja Team.
     :license: BSD, see LICENSE for more details.
 """
-from cStringIO import StringIO
+from io import StringIO
 from itertools import chain
 from copy import deepcopy
 from jinja2 import nodes
@@ -30,7 +30,7 @@ operators = {
 }
 
 try:
-    exec '(0 if 0 else 0)'
+    exec('(0 if 0 else 0)')
 except SyntaxError:
     have_condexpr = False
 else:
@@ -51,7 +51,7 @@ def unoptimize_before_dead_code():
     def f():
         if 0: dummy(x)
     return f
-unoptimize_before_dead_code = bool(unoptimize_before_dead_code().func_closure)
+unoptimize_before_dead_code = bool(unoptimize_before_dead_code().__closure__)
 
 
 def generate(node, environment, name, filename, stream=None,
@@ -69,7 +69,7 @@ def has_safe_repr(value):
     """Does the node have a safe representation?"""
     if value is None or value is NotImplemented or value is Ellipsis:
         return True
-    if isinstance(value, (bool, int, long, float, complex, basestring,
+    if isinstance(value, (bool, int, float, complex, str,
                           xrange, Markup)):
         return True
     if isinstance(value, (tuple, list, set, frozenset)):
@@ -78,7 +78,7 @@ def has_safe_repr(value):
                 return False
         return True
     elif isinstance(value, dict):
-        for key, value in value.iteritems():
+        for key, value in value.items():
             if not has_safe_repr(key):
                 return False
             if not has_safe_repr(value):
@@ -545,7 +545,7 @@ class CodeGenerator(NodeVisitor):
                 self.write(', ')
                 self.visit(kwarg, frame)
             if extra_kwargs is not None:
-                for key, value in extra_kwargs.iteritems():
+                for key, value in extra_kwargs.items():
                     self.write(', %s=%s' % (key, value))
         if node.dyn_args:
             self.write(', *')
@@ -561,7 +561,7 @@ class CodeGenerator(NodeVisitor):
                 self.visit(kwarg.value, frame)
                 self.write(', ')
             if extra_kwargs is not None:
-                for key, value in extra_kwargs.iteritems():
+                for key, value in extra_kwargs.items():
                     self.write('%r: %s, ' % (key, value))
             if node.dyn_kwargs is not None:
                 self.write('}, **')
@@ -628,7 +628,7 @@ class CodeGenerator(NodeVisitor):
 
     def pop_scope(self, aliases, frame):
         """Restore all aliases and delete unused variables."""
-        for name, alias in aliases.iteritems():
+        for name, alias in aliases.items():
             self.writeline('l_%s = %s' % (name, alias))
         to_delete = set()
         for name in frame.identifiers.declared_locally:
@@ -830,7 +830,7 @@ class CodeGenerator(NodeVisitor):
             self.outdent(2 + (not self.has_known_extends))
 
         # at this point we now have the blocks collected and can visit them too.
-        for name, block in self.blocks.iteritems():
+        for name, block in self.blocks.items():
             block_frame = Frame(eval_ctx)
             block_frame.inspect(block.body)
             block_frame.block = name
@@ -933,7 +933,7 @@ class CodeGenerator(NodeVisitor):
 
         func_name = 'get_or_select_template'
         if isinstance(node.template, nodes.Const):
-            if isinstance(node.template.value, basestring):
+            if isinstance(node.template.value, str):
                 func_name = 'get_template'
             elif isinstance(node.template.value, (tuple, list)):
                 func_name = 'select_template'
@@ -1219,9 +1219,9 @@ class CodeGenerator(NodeVisitor):
             return
 
         if self.environment.finalize:
-            finalize = lambda x: unicode(self.environment.finalize(x))
+            finalize = lambda x: str(self.environment.finalize(x))
         else:
-            finalize = unicode
+            finalize = str
 
         self.newline(node)
 

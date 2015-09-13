@@ -183,7 +183,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
-        print '%s: %s' % (tfn, fn)
+        print('%s: %s' % (tfn, fn))
         dn = dirname(afn)
         if dn not in dirs:
             # create every dirs first if not exist yet
@@ -306,8 +306,8 @@ def make_package(args):
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
                          'android-{}'.format(args.sdk_version)])
     except (OSError, IOError):
-        print 'An error occured while calling', ANDROID, 'update'
-        print 'Your PATH must include android tools.'
+        print(('An error occured while calling', ANDROID, 'update'))
+        print ('Your PATH must include android tools.')
         sys.exit(-1)
 
     # Delete the old assets.
@@ -346,7 +346,7 @@ def make_package(args):
     if args.add_jar:
         for jarname in args.add_jar:
             if not os.path.exists(jarname):
-                print 'Requested jar does not exist: {}'.format(jarname)
+                print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'libs')
 
@@ -355,8 +355,8 @@ def make_package(args):
         for arg in args.command:
             subprocess.check_call([ANT, arg])
     except (OSError, IOError):
-        print 'An error occured while calling', ANT
-        print 'Did you install ant on your system ?'
+        print('An error occured while calling', ANT)
+        print('Did you install ant on your system ?')
         sys.exit(-1)
 
 def parse_args(args=None):

@@ -47,7 +47,7 @@ _mutable_sequence_types = (list,)
 # on python 2.x we can register the user collection types
 try:
     from UserDict import UserDict, DictMixin
-    from UserList import UserList
+    from collections import UserList
     _mutable_mapping_types += (UserDict, DictMixin)
     _mutable_set_types += (UserList,)
 except ImportError:
@@ -91,7 +91,7 @@ def safe_range(*args):
     """A range that can't generate ranges with a length of more than
     MAX_RANGE items.
     """
-    rng = xrange(*args)
+    rng = range(*args)
     if len(rng) > MAX_RANGE:
         raise OverflowError('range too big, maximum size for range is %d' %
                             MAX_RANGE)
@@ -209,7 +209,7 @@ class SandboxedEnvironment(Environment):
         try:
             return obj[argument]
         except (TypeError, LookupError):
-            if isinstance(argument, basestring):
+            if isinstance(argument, str):
                 try:
                     attr = str(argument)
                 except:

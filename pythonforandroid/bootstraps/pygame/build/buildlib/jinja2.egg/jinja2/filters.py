@@ -12,7 +12,7 @@ import re
 import math
 from random import choice
 from operator import itemgetter
-from itertools import imap, groupby
+from itertools import groupby
 from jinja2.utils import Markup, escape, pformat, urlize, soft_unicode
 from jinja2.runtime import Undefined
 from jinja2.exceptions import FilterArgumentError, SecurityError
@@ -52,7 +52,7 @@ def do_forceescape(value):
     """Enforce HTML escaping.  This will probably double escape variables."""
     if hasattr(value, '__html__'):
         value = value.__html__()
-    return escape(unicode(value))
+    return escape(str(value))
 
 
 @evalcontextfilter
@@ -74,7 +74,7 @@ def do_replace(eval_ctx, s, old, new, count=None):
     if count is None:
         count = -1
     if not eval_ctx.autoescape:
-        return unicode(s).replace(unicode(old), unicode(new), count)
+        return str(s).replace(str(old), str(new), count)
     if hasattr(old, '__html__') or hasattr(new, '__html__') and \
        not hasattr(s, '__html__'):
         s = escape(s)
@@ -117,13 +117,13 @@ def do_xmlattr(_eval_ctx, d, autospace=True):
     As you can see it automatically prepends a space in front of the item
     if the filter returned something unless the second parameter is false.
     """
-    rv = u' '.join(
-        u'%s="%s"' % (escape(key), escape(value))
-        for key, value in d.iteritems()
+    rv = ' '.join(
+        '%s="%s"' % (escape(key), escape(value))
+        for key, value in d.items()
         if value is not None and not isinstance(value, Undefined)
     )
     if autospace and rv:
-        rv = u' ' + rv
+        rv = ' ' + rv
     if _eval_ctx.autoescape:
         rv = Markup(rv)
     return rv
@@ -169,11 +169,11 @@ def do_dictsort(value, case_sensitive=False, by='key'):
                                   '"key" or "value"')
     def sort_func(item):
         value = item[pos]
-        if isinstance(value, basestring) and not case_sensitive:
+        if isinstance(value, str) and not case_sensitive:
             value = value.lower()
         return value
 
-    return sorted(value.items(), key=sort_func)
+    return sorted(list(value.items()), key=sort_func)
 
 
 def do_sort(value, case_sensitive=False):
@@ -189,7 +189,7 @@ def do_sort(value, case_sensitive=False):
     """
     if not case_sensitive:
         def sort_func(item):
-            if isinstance(item, basestring):
+            if isinstance(item, str):
                 item = item.lower()
             return item
     else:
@@ -197,7 +197,7 @@ def do_sort(value, case_sensitive=False):
     return sorted(seq, key=sort_func)
 
 
-def do_default(value, default_value=u'', boolean=False):
+def do_default(value, default_value='', boolean=False):
     """If the value is undefined it will return the passed default value,
     otherwise the value of the variable:
 
@@ -220,7 +220,7 @@ def do_default(value, default_value=u'', boolean=False):
 
 
 @evalcontextfilter
-def do_join(eval_ctx, value, d=u''):
+def do_join(eval_ctx, value, d=''):
     """Return a string which is the concatenation of the strings in the
     sequence. The separator between elements is an empty string per
     default, you can define it with the optional parameter:
@@ -235,7 +235,7 @@ def do_join(eval_ctx, value, d=u''):
     """
     # no automatic escaping?  joining is a lot eaiser then
     if not eval_ctx.autoescape:
-        return unicode(d).join(imap(unicode, value))
+        return str(d).join(map(str, value))
 
     # if the delimiter doesn't have an html representation we check
     # if any of the items has.  If yes we do a coercion to Markup
@@ -246,27 +246,27 @@ def do_join(eval_ctx, value, d=u''):
             if hasattr(item, '__html__'):
                 do_escape = True
             else:
-                value[idx] = unicode(item)
+                value[idx] = str(item)
         if do_escape:
             d = escape(d)
         else:
-            d = unicode(d)
+            d = str(d)
         return d.join(value)
 
     # no html involved, to normal joining
-    return soft_unicode(d).join(imap(soft_unicode, value))
+    return soft_unicode(d).join(map(soft_unicode, value))
 
 
 def do_center(value, width=80):
     """Centers the value in a field of a given width."""
-    return unicode(value).center(width)
+    return str(value).center(width)
 
 
 @environmentfilter
 def do_first(environment, seq):
     """Return the first item of a sequence."""
     try:
-        return iter(seq).next()
+        return next(iter(seq))
     except StopIteration:
         return environment.undefined('No first item, sequence was empty.')
 
@@ -275,7 +275,7 @@ def do_first(environment, seq):
 def do_last(environment, seq):
     """Return the last item of a sequence."""
     try:
-        return iter(reversed(seq)).next()
+        return next(iter(reversed(seq)))
     except StopIteration:
         return environment.undefined('No last item, sequence was empty.')
 
@@ -346,8 +346,8 @@ def do_indent(s, width=4, indentfirst=False):
         {{ mytext|indent(2, true) }}
             indent by two spaces and indent the first line too.
     """
-    indention = u' ' * width
-    rv = (u'\n' + indention).join(s.splitlines())
+    indention = ' ' * width
+    rv = ('\n' + indention).join(s.splitlines())
     if indentfirst:
         rv = indention + rv
     return rv
@@ -381,7 +381,7 @@ def do_truncate(s, length=255, killwords=False, end='...'):
             break
         result.append(word)
     result.append(end)
-    return u' '.join(result)
+    return ' '.join(result)
 
 
 def do_wordwrap(s, width=79, break_long_words=True):
@@ -392,7 +392,7 @@ def do_wordwrap(s, width=79, break_long_words=True):
     split words apart if they are longer than `width`.
     """
     import textwrap
-    return u'\n'.join(textwrap.wrap(s, width=width, expand_tabs=False,
+    return '\n'.join(textwrap.wrap(s, width=width, expand_tabs=False,
                                    replace_whitespace=False,
                                    break_long_words=break_long_words))
 
@@ -453,7 +453,7 @@ def do_striptags(value):
     """
     if hasattr(value, '__html__'):
         value = value.__html__()
-    return Markup(unicode(value)).striptags()
+    return Markup(str(value)).striptags()
 
 
 def do_slice(value, slices, fill_with=None):
@@ -481,7 +481,7 @@ def do_slice(value, slices, fill_with=None):
     items_per_slice = length // slices
     slices_with_extra = length % slices
     offset = 0
-    for slice_number in xrange(slices):
+    for slice_number in range(slices):
         start = offset + slice_number * items_per_slice
         if slice_number < slices_with_extra:
             offset += 1
@@ -615,7 +615,8 @@ class _GroupTuple(tuple):
     grouper = property(itemgetter(0))
     list = property(itemgetter(1))
 
-    def __new__(cls, (key, value)):
+    def __new__(cls, xxx_todo_changeme):
+        (key, value) = xxx_todo_changeme
         return tuple.__new__(cls, (key, list(value)))
 
 
@@ -635,14 +636,14 @@ def do_mark_safe(value):
 
 def do_mark_unsafe(value):
     """Mark a value as unsafe.  This is the reverse operation for :func:`safe`."""
-    return unicode(value)
+    return str(value)
 
 
 def do_reverse(value):
     """Reverse the object or return an iterator the iterates over it the other
     way round.
     """
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         return value[::-1]
     try:
         return reversed(value)
