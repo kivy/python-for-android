@@ -2846,7 +2846,7 @@ clean_dists
 
     def build_status(self, args):
 
-        print('{Style.BRIGHT}Bootstraps whose core components are probably built:'
+        print('{Style.BRIGHT}Bootstraps whose core components are probably already built:'
               '{Style.RESET_ALL}'.format(Style=Style))
         for filen in os.listdir(join(self.ctx.build_dir, 'bootstrap_builds')):
             print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'.format(
@@ -2863,7 +2863,7 @@ clean_dists
                                   Style=Style, name=name, Fore=Fore))
                 if dependencies:
                     recipe_str += (' ({Fore.BLUE}with ' + ', '.join(dependencies) +
-                                   '){Fore.RESET}').format(Fore=Fore)
+                                   '{Fore.RESET})').format(Fore=Fore)
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
                 print(recipe_str)
 
