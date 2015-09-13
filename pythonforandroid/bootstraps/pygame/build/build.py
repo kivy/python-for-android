@@ -306,7 +306,7 @@ def make_package(args):
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
                          'android-{}'.format(args.sdk_version)])
     except (OSError, IOError):
-        print(('An error occured while calling', ANDROID, 'update'))
+        print('An error occured while calling', ANDROID, 'update')
         print ('Your PATH must include android tools.')
         sys.exit(-1)
 
