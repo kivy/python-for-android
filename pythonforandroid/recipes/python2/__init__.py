@@ -11,7 +11,7 @@ class Python2Recipe(Recipe):
     url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'python2'
 
-    depends = ['hostpython2']  
+    depends = ['hostpython2']
     conflicts = ['python3']
 
     def prebuild_armeabi(self):
@@ -38,6 +38,9 @@ class Python2Recipe(Recipe):
         if uname()[0] == 'Linux':
             self.apply_patch(join('patches', 'fix-configure-darwin.patch'))
             self.apply_patch(join('patches', 'fix-distutils-darwin.patch'))
+
+        if self.ctx.android_api > 19:
+            self.apply_patch(join('patches', 'fix-ftime-removal.patch'))
 
         shprint(sh.touch, join(build_dir, '.patched'))
 
@@ -125,7 +128,7 @@ class Python2Recipe(Recipe):
                         _env=env)
             except sh.ErrorReturnCode_2:
                 print('First python2 make failed. This is expected, trying again.')
-                
+
 
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')

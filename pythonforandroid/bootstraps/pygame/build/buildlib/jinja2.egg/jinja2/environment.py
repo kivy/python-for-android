@@ -550,7 +550,11 @@ class Environment(object):
         def write_file(filename, data, mode):
             if zip:
                 info = ZipInfo(filename)
+<<<<<<< HEAD
                 info.external_attr = 0o755 << 16
+=======
+                info.external_attr = 0o755 << 16L
+>>>>>>> dfc8ab3c2c2c44d38c4b9ba7ad219f6947cbd0e6
                 zip_file.writestr(info, data)
             else:
                 f = open(os.path.join(target, filename), mode)

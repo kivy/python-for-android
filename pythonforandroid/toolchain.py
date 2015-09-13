@@ -33,17 +33,19 @@ try:
     from urllib.request import FancyURLopener
 except ImportError:
     from urllib import FancyURLopener
+from urlparse import urlparse
 
 import argparse
 from appdirs import user_data_dir
 import sh
 from colorama import Style, Fore
 
-curdir = dirname(__file__)
-sys.path.insert(0, join(curdir, "tools", "external"))
+user_dir = dirname(realpath(os.path.curdir))
+toolchain_dir = dirname(__file__)
+sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
 
-DEFAULT_ANDROID_API = 14
+DEFAULT_ANDROID_API = 15
 
 class LevelDifferentiatingFormatter(logging.Formatter):
     def format(self, record):
@@ -90,7 +92,7 @@ def info_main(*args):
 def info_notify(s):
     info('{}{}{}{}'.format(Style.BRIGHT, Fore.LIGHTBLUE_EX, s, Style.RESET_ALL))
 
-def pretty_log_dists(dists):
+def pretty_log_dists(dists, log_func=info):
     infos = []
     for dist in dists:
         infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
@@ -100,7 +102,7 @@ def pretty_log_dists(dists):
                          Fore=Fore, Style=Style))
 
     for line in infos:
-        info('\t' + line)
+        log_func('\t' + line)
 
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
@@ -205,8 +207,8 @@ def which(program, path_env):
                 return exe_file
 
     return None
-    
-    
+
+
 @contextlib.contextmanager
 def current_directory(new_dir):
     cur_dir = getcwd()
@@ -217,7 +219,7 @@ def current_directory(new_dir):
     logger.info(''.join((Fore.CYAN, '<- directory context ', cur_dir,
                          Fore.RESET)))
     chdir(cur_dir)
-          
+
 
 
 def cache_execution(f):
@@ -327,9 +329,9 @@ class Arch(object):
         env["CFLAGS"] = " ".join([
             "-DANDROID", "-mandroid", "-fomit-frame-pointer",
             "--sysroot", self.ctx.ndk_platform])
-                              
+
         env["CXXFLAGS"] = env["CFLAGS"]
-        
+
         env["LDFLAGS"] = " ".join(['-lm'])
 
         py_platform = sys.platform
@@ -366,7 +368,7 @@ class Arch(object):
         env['READELF'] = '{}-readelf'.format(toolchain_prefix)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
-        
+
         # AND: This hardcodes python version 2.7, needs fixing
         # AND: This also hardcodes armeabi, which isn't even correct, don't forget to fix!
         env['BUILDLIB_PATH'] = join(hostpython_recipe.get_build_dir('armeabi'),
@@ -416,7 +418,7 @@ class ArchAndroid(Arch):
 #     triple = "aarch64-apple-darwin13"
 #     version_min = "-miphoneos-version-min=7.0"
 #     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
-    
+
 
 class Graph(object):
     # Taken from the old python-for-android/depsort
@@ -664,7 +666,7 @@ class Context(object):
         if sdk_dir is None:  # This is the old P4A-specific var
             sdk_dir = environ.get('ANDROIDSDK', None)
         if sdk_dir is None:  # This seems used more conventionally
-            sdk_dir = environ.get('ANDROID_HOME', None)  
+            sdk_dir = environ.get('ANDROID_HOME', None)
         if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
                              # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
@@ -681,7 +683,7 @@ class Context(object):
             warning('Android SDK dir was not specified, exiting.')
             exit(1)
         self.sdk_dir = realpath(sdk_dir)
-        
+
         # Check what Android API we're using
         android_api = None
         if user_android_api:
@@ -799,7 +801,7 @@ class Context(object):
         if not exists(self.ndk_platform):
             warning('ndk_platform doesn\'t exist')
             ok = False
-                
+
         virtualenv = None
         if virtualenv is None:
             virtualenv = sh.which('virtualenv2')
@@ -826,26 +828,48 @@ class Context(object):
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
-        
+
         # Modify the path so that sh finds modules appropriately
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
         if self.ndk_ver == 'r5b':
             toolchain_prefix = 'arm-eabi'
-            toolchain_version = '4.4.0'
-        elif self.ndk_ver[:2] in ('r7', 'r8'):
+        elif self.ndk_ver[:2] in ('r7', 'r8', 'r9'):
             toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.4.3'
-        elif self.ndk_ver[:2] == 'r9':
-            toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.8'
         elif self.ndk_ver[:3] == 'r10':
             toolchain_prefix = 'arm-linux-androideabi'
-            toolchain_version = '4.9'
         else:
             warning('Error: NDK not supported by these tools?')
             exit(1)
+
+        toolchain_versions = []
+        toolchain_path = join(self.ndk_dir, 'toolchains')
+        if os.path.isdir(toolchain_path):
+            toolchain_contents = os.listdir(toolchain_path)
+            for toolchain_content in toolchain_contents:
+                if toolchain_content.startswith(toolchain_prefix) and os.path.isdir(os.path.join(toolchain_path, toolchain_content)):
+                    toolchain_version = toolchain_content[len(toolchain_prefix)+1:]
+                    debug('Found toolchain version: {}'.format(toolchain_version))
+                    toolchain_versions.append(toolchain_version)
+        else:
+            warning('Could not find toolchain subdirectory!')
+            ok = False
+        toolchain_versions.sort()
+
+        toolchain_versions_gcc = []
+        for toolchain_version in toolchain_versions:
+            if toolchain_version[0].isdigit(): # GCC toolchains begin with a number
+                toolchain_versions_gcc.append(toolchain_version)
+
+        if toolchain_versions:
+            info('Found the following toolchain versions: {}'.format(toolchain_versions))
+            info('Picking the latest gcc toolchain, here {}'.format(toolchain_versions_gcc[-1]))
+            toolchain_version = toolchain_versions_gcc[-1]
+        else:
+            warning('Could not find any toolchain for {}!'.format(toolchain_prefix))
+            ok = False
+
         self.toolchain_prefix = toolchain_prefix
         self.toolchain_version = toolchain_version
         environ['PATH'] = ('{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
@@ -890,7 +914,7 @@ class Context(object):
         self.archs = (
             ArchAndroid(self),
             )
-        
+
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))  # where everything else is built
 
@@ -990,7 +1014,7 @@ class Distribution(object):
         extra_dist_dirs : list
             Any extra directories in which to search for dists.
         require_perfect_match : bool
-            If True, will only match distributions with precisely the 
+            If True, will only match distributions with precisely the
             correct set of recipes.
         '''
 
@@ -999,7 +1023,7 @@ class Distribution(object):
         # possibilities
 
         existing_dists = Distribution.get_distributions(ctx)
-    
+
         needs_build = True  # whether the dist needs building, will be returned
 
         possible_dists = existing_dists
@@ -1024,7 +1048,7 @@ class Distribution(object):
             pretty_log_dists(possible_dists)
         else:
             info('No existing dists meet the given requirements!')
-                
+
 
         # If any dist has perfect recipes, return it
         for dist in possible_dists:
@@ -1050,7 +1074,7 @@ class Distribution(object):
         #                               'sdl2_mixer', 'sdl2_ttf',
         #                               'python2', 'sdl2',
         #                               'pyjniussdl2', 'kivysdl2'],
-        #                  'https://github.com/inclement/sdl2-example-dist/archive/master.zip'), 
+        #                  'https://github.com/inclement/sdl2-example-dist/archive/master.zip'),
         #                  ]
         # _possible_dists = []
         # for dist_name, dist_recipes, dist_url in online_dists:
@@ -1063,7 +1087,7 @@ class Distribution(object):
         #         dist.url = dist_url
         #         _possible_dists.append(dist)
         # # if _possible_dists
-           	
+
 
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)
@@ -1157,7 +1181,7 @@ class Bootstrap(object):
     satisfies user requirements. If False, it will not be returned
     from Bootstrap.get_bootstrap_from_recipes.
     '''
-    
+
     # Other things a Bootstrap might need to track (maybe separately):
     # ndk_main.c
     # whitelist.txt
@@ -1171,7 +1195,7 @@ class Bootstrap(object):
                     'is None'.format(self, self))
             exit(1)
         return self.distribution.dist_dir
-        
+
 
     @property
     def jni_dir(self):
@@ -1198,6 +1222,9 @@ class Bootstrap(object):
                 #      'bootstrap_templates',
                 #      self.name),
                 self.build_dir)
+        with current_directory(self.build_dir):
+            with open('project.properties', 'w') as fileh:
+                fileh.write('target=android-{}'.format(self.ctx.android_api))
 
     def prepare_dist_dir(self, name):
         # self.dist_dir = self.get_dist_dir(name)
@@ -1338,51 +1365,76 @@ class Recipe(object):
             return None
         return self.url.format(version=self.version)
 
-    def download_file(self, url, filename, cwd=None):
+    def download_file(self, url, target, cwd=None):
         """
-        (internal) Download an ``url`` to a ``filename``.
+        (internal) Download an ``url`` to a ``target``.
         """
         if not url:
             return
-        def report_hook(index, blksize, size):
-            if size <= 0:
-                progression = '{0} bytes'.format(index * blksize)
-            else:
-                progression = '{0:.2f}%'.format(
-                        index * blksize * 100. / float(size))
-            stdout.write('- Download {}\r'.format(progression))
-            stdout.flush()
+        info('Downloading {} from {}'.format(self.name, url))
 
         if cwd:
-            filename = join(cwd, filename)
-        if exists(filename):
-            unlink(filename)
+            target = join(cwd, target)
 
-        info('Downloading {} from {}'.format(self.name, url))
-        urlretrieve(url, filename, report_hook)
-        return filename
+        parsed_url = urlparse(url)
+        if parsed_url.scheme in ('http', 'https'):
+            def report_hook(index, blksize, size):
+                if size <= 0:
+                    progression = '{0} bytes'.format(index * blksize)
+                else:
+                    progression = '{0:.2f}%'.format(
+                        index * blksize * 100. / float(size))
+                stdout.write('- Download {}\r'.format(progression))
+                stdout.flush()
 
-    def extract_file(self, filename, cwd):
+            if exists(target):
+                unlink(target)
+
+            urlretrieve(url, target, report_hook)
+            return target
+        elif parsed_url.scheme in ('git',):
+            if os.path.isdir(target):
+                with current_directory(target):
+                    shprint(sh.git, 'pull')
+                    shprint(sh.git, 'pull', '--recurse-submodules')
+                    shprint(sh.git, 'submodule', 'update', '--recursive')
+            else:
+                shprint(sh.git, 'clone', '--recursive', url, target)
+            return target
+
+    def extract_source(self, source, cwd):
         """
-        (internal) Extract the `filename` into the directory `cwd`.
+        (internal) Extract the `source` into the directory `cwd`.
         """
-        if not filename:
+        if not source:
             return
-        info("Extract {} into {}".format(filename, cwd))
-        if filename.endswith(".tgz") or filename.endswith(".tar.gz"):
-            shprint(sh.tar, "-C", cwd, "-xvzf", filename)
+        if os.path.isfile(source):
+            info("Extract {} into {}".format(source, cwd))
 
-        elif filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
-            shprint(sh.tar, "-C", cwd, "-xvjf", filename)
+            if source.endswith(".tgz") or source.endswith(".tar.gz"):
+                shprint(sh.tar, "-C", cwd, "-xvzf", source)
 
-        elif filename.endswith(".zip"):
-            zf = zipfile.ZipFile(filename)
-            zf.extractall(path=cwd)
-            zf.close()
+            elif source.endswith(".tbz2") or source.endswith(".tar.bz2"):
+                shprint(sh.tar, "-C", cwd, "-xvjf", source)
+
+            elif source.endswith(".zip"):
+                zf = zipfile.ZipFile(source)
+                zf.extractall(path=cwd)
+                zf.close()
+
+            else:
+                warning("Error: cannot extract, unrecognized extension for {}".format(
+                    source))
+                raise Exception()
+
+        elif os.path.isdir(source):
+            info("Copying {} into {}".format(source, cwd))
+
+            shprint(sh.cp, '-a', source, cwd)
 
         else:
-            warning("Error: cannot extract, unrecognized extension for {}".format(
-                filename))
+            warning("Error: cannot extract or copy, unrecognized path {}".format(
+                source))
             raise Exception()
 
     # def get_archive_rootdir(self, filename):
@@ -1542,7 +1594,7 @@ class Recipe(object):
             do_download = True
 
             marker_filename = '.mark-{}'.format(filename)
-            if exists(filename):
+            if exists(filename) and os.path.isfile(filename):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 elif self.md5sum:
@@ -1598,7 +1650,7 @@ class Recipe(object):
             return
 
         filename = shprint(sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
-        
+
         # AND: TODO: Use tito's better unpacking method
         with current_directory(build_dir):
             directory_name = self.get_build_dir(arch)
@@ -1606,32 +1658,40 @@ class Recipe(object):
             # AND: Could use tito's get_archive_rootdir here
             if not exists(directory_name) or not isdir(directory_name):
                 extraction_filename = join(self.ctx.packages_path, self.name, filename)
-                if (extraction_filename.endswith('.tar.gz') or
-                    extraction_filename.endswith('.tgz')):
-                    sh.tar('xzf', extraction_filename)
-                    root_directory = shprint(
-                        sh.tar, 'tzf', extraction_filename).stdout.decode(
-                            'utf-8').split('\n')[0].strip('/')
-                    if root_directory != directory_name:
-                        shprint(sh.mv, root_directory, directory_name)
-                elif (extraction_filename.endswith('.tar.bz2') or
-                      extraction_filename.endswith('.tbz2')):
-                    info('Extracting {} at {}'.format(extraction_filename, filename))
-                    sh.tar('xjf', extraction_filename)
-                    root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
-                        'utf-8').split('\n')[0].strip('/')
-                    if root_directory != directory_name:
-                        shprint(sh.mv, root_directory, directory_name)
-                elif extraction_filename.endswith('.zip'):
-                    sh.unzip(extraction_filename)
-                    import zipfile
-                    fileh = zipfile.ZipFile(extraction_filename, 'r')
-                    root_directory = fileh.filelist[0].filename.strip('/')
-                    if root_directory != directory_name:
-                        shprint(sh.mv, root_directory, directory_name)
+                if os.path.isfile(extraction_filename):
+                    if (extraction_filename.endswith('.tar.gz') or
+                        extraction_filename.endswith('.tgz')):
+                        sh.tar('xzf', extraction_filename)
+                        root_directory = shprint(
+                            sh.tar, 'tzf', extraction_filename).stdout.decode(
+                                'utf-8').split('\n')[0].strip('/')
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
+                    elif (extraction_filename.endswith('.tar.bz2') or
+                          extraction_filename.endswith('.tbz2')):
+                        info('Extracting {} at {}'.format(extraction_filename, filename))
+                        sh.tar('xjf', extraction_filename)
+                        root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
+                                                'utf-8').split('\n')[0].strip('/')
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
+                    elif extraction_filename.endswith('.zip'):
+                        sh.unzip(extraction_filename)
+                        import zipfile
+                        fileh = zipfile.ZipFile(extraction_filename, 'r')
+                        root_directory = fileh.filelist[0].filename.strip('/')
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
+                    else:
+                        raise Exception('Could not extract {} download, it must be .zip, '
+                                        '.tar.gz or .tar.bz2')
+                elif os.path.isdir(extraction_filename):
+                    os.mkdir(directory_name)
+                    for entry in os.listdir(extraction_filename):
+                        if entry not in ('.git',):
+                            shprint(sh.cp, '-Rv',  os.path.join(extraction_filename, entry), directory_name)
                 else:
-                    raise Exception('Could not extract {} download, it must be .zip, '
-                                    '.tar.gz or .tar.bz2')
+                    raise Exception('Given path is neither a file nor a directory: {}'.format(extraction_filename))
 
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
@@ -1750,8 +1810,8 @@ class Recipe(object):
         else:
             warning(('Attempted to clean build for {} but build'
                      'did not exist').format(self.name))
-        
-        
+
+
 
     @classmethod
     def list_recipes(cls):
@@ -1771,11 +1831,15 @@ class Recipe(object):
            cls.recipes = {}
         if name in cls.recipes:
             return cls.recipes[name]
+        recipe_dir = join(ctx.root_dir, 'recipes', name)
+        if not exists(recipe_dir):  # AND: This will need modifying
+                                    # for user-supplied recipes
+            raise IOError('Recipe folder does not exist')
         mod = importlib.import_module("pythonforandroid.recipes.{}".format(name))
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
-        recipe.recipe_dir = join(ctx.root_dir, "recipes", name)
+        recipe.recipe_dir = recipe_dir
         recipe.ctx = ctx
         return recipe
 
@@ -1829,7 +1893,7 @@ class NDKRecipe(Recipe):
     #     info_main('Unpacking {} for {}'.format(self.name, arch))
     #     info('{} is included in the bootstrap, unpacking currently '
     #          'unnecessary, so skipping'.format(self.name))
-        
+
 
 class PythonRecipe(Recipe):
     site_packages_name = None  # The name of the module in
@@ -1849,9 +1913,9 @@ class PythonRecipe(Recipe):
             return False
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
-                       
 
-    
+
+
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
@@ -1896,7 +1960,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
     def build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
-        
+
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
@@ -1904,7 +1968,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
             build_dir = glob.glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
-            
+
 
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
@@ -1950,7 +2014,7 @@ class CythonRecipe(PythonRecipe):
                     env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
             # exit(1)
-        
+
     # def cythonize_file(self, filename):
     #     if filename.startswith(self.build_dir):
     #         filename = filename[len(self.build_dir) + 1:]
@@ -2031,7 +2095,7 @@ def build_recipes(build_order, python_modules, ctx):
                 info('{} said it is already built, skipping'.format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional (could use 
+        # AND: Should make this optional (could use
         info_main('# Biglinking object files')
         biglink(ctx, arch)
 
@@ -2043,7 +2107,7 @@ def build_recipes(build_order, python_modules, ctx):
 
     info_main('# Installing pure Python modules')
     run_pymodules_install(ctx, python_modules)
-    
+
     return
 
 def run_pymodules_install(ctx, modules):
@@ -2074,7 +2138,7 @@ def run_pymodules_install(ctx, modules):
         shprint(sh.bash, '-c', (
             "source venv/bin/activate && env CC=/bin/false CXX=/bin/false"
             "PYTHONPATH= pip install --target '{}' -r requirements.txt").format(ctx.get_site_packages_dir()))
-            
+
 def biglink(ctx, arch):
     # First, collate object files from each recipe
     info('Collating object files from each recipe')
@@ -2093,7 +2157,7 @@ def biglink(ctx, arch):
         info('{} recipe has object files, copying'.format(recipe.name))
         files.append(obj_dir)
         shprint(sh.cp, '-r', *files)
-    
+
     # AND: Shouldn't hardcode ArchAndroid! In reality need separate
     # build dirs for each arch
     arch = ArchAndroid(ctx)
@@ -2151,7 +2215,7 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
         link = '-L{}'.format(dir)
         if link not in unique_args:
             unique_args.append(link)
-    
+
     # print('Biglink create %s library' % soname)
     # print('Biglink arguments:')
     # for arg in unique_args:
@@ -2240,10 +2304,17 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             continue
         try:
             recipe = Recipe.get_recipe(name, ctx)
-        except ImportError:
+        except IOError:
             info('No recipe named {}; will attempt to install with pip'.format(name))
             python_modules.append(name)
             continue
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+           warning('Failed to import recipe named {}; the recipe exists '
+                   'but appears broken.'.format(name))
+           warning('Exception was:')
+           raise
         graph.add(name, name)
         info('Loaded recipe {} (depends on {}{})'.format(
             name, recipe.depends,
@@ -2331,6 +2402,7 @@ class ToolchainCL(object):
     def __init__(self):
         self._ctx = None
 
+
         parser = argparse.ArgumentParser(
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
@@ -2394,10 +2466,10 @@ clean_dists
                                              'perfectly match those requested.'),
             type=bool, default=False)
 
-        
+
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
-        
+
         if args.debug:
             logger.setLevel(logging.DEBUG)
         self.sdk_dir = args.sdk_dir
@@ -2420,7 +2492,7 @@ clean_dists
         #     warning('Received --allow_build but this arg currently is not '
         #             'handled, exiting.')
         #     exit(1)
-            
+
         if not hasattr(self, args.command):
             print('Unrecognized command')
             parser.print_help()
@@ -2484,7 +2556,12 @@ clean_dists
 
     def bootstraps(self, args):
         '''List all the bootstraps available to build with.'''
-        print(list(Bootstrap.list_bootstraps()))
+        for bs in Bootstrap.list_bootstraps():
+            bs = Bootstrap.get_bootstrap(bs, self.ctx)
+            print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'.format(
+                bs=bs, Fore=Fore, Style=Style))
+            print('    {Fore.GREEN}depends: {bs.recipe_depends}{Fore.RESET}'.format(
+                bs=bs, Fore=Fore))
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
@@ -2506,7 +2583,7 @@ clean_dists
         ctx = Context()
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
-        
+
     def clean_builds(self, args):
         '''Delete all build caches for each recipe, python-install, java code
         and compiled libs collection.
@@ -2546,7 +2623,7 @@ clean_dists
         recipe = Recipe.get_recipe(args.recipe, self.ctx)
         info('Cleaning build for {} recipe.'.format(recipe.name))
         recipe.clean_build()
-        
+
 
     def clean_download_cache(self, args):
 
@@ -2641,21 +2718,22 @@ clean_dists
 
         ctx = self.ctx
         dist = self._dist
-        # dist = dist_from_args(ctx, self.dist_args)
-        # if dist.needs_build:
-        #     info('No dist exists that meets your requirements, so one will '
-        #          'be built.')
-        #     args = build_dist_from_args(ctx, dist, args)
+
+        # Manually fixing these arguments at the string stage is
+        # unsatisfactory and should probably be changed somehow, but
+        # we can't leave it until later as the build.py scripts assume
+        # they are in the current directory.
+        for i, arg in enumerate(args[:-1]):
+            if arg in ('--dir', '--private'):
+                args[i+1] = realpath(expanduser(args[i+1]))
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             build.parse_args(args)
-
             shprint(sh.ant, 'debug')
 
         # AND: This is very crude, needs improving. Also only works
         # for debug for now.
-
         info_main('# Copying APK to current directory')
         apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-debug.apk'))
         if len(apks) == 0:
@@ -2664,7 +2742,7 @@ clean_dists
             info('More than one built APK found...guessing you '
                  'just built {}'.format(apks[-1]))
         shprint(sh.cp, apks[-1], './')
-        
+
 
     @require_prebuilt_dist
     def create(self, args):
@@ -2708,12 +2786,12 @@ clean_dists
         dists = Distribution.get_distributions(ctx)
 
         if dists:
-            info('{Style.BRIGHT}Distributions currently installed are:'
-                 '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
-            pretty_log_dists(dists)
+            print('{Style.BRIGHT}Distributions currently installed are:'
+                  '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
+            pretty_log_dists(dists, print)
         else:
-            info('{Style.BRIGHT}There are no dists currently built.'
-                 '{Style.RESET_ALL}'.format(Style=Style))
+            print('{Style.BRIGHT}There are no dists currently built.'
+                  '{Style.RESET_ALL}'.format(Style=Style))
 
     def delete_dist(self, args):
         dist = self._dist
@@ -2743,7 +2821,7 @@ clean_dists
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
-        
+
     def adb(self, args):
         '''Runs the adb binary from the detected SDK directory, passing all
         arguments straight to it. This is intended as a convenience
@@ -2769,6 +2847,32 @@ clean_dists
         directory. All extra args are passed as arguments to logcat.'''
         self.adb(['logcat'] + args)
 
-if __name__ == "__main__":
+    def build_status(self, args):
 
+        print('{Style.BRIGHT}Bootstraps whose core components are probably already built:'
+              '{Style.RESET_ALL}'.format(Style=Style))
+        for filen in os.listdir(join(self.ctx.build_dir, 'bootstrap_builds')):
+            print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'.format(
+                filen=filen, Fore=Fore, Style=Style))
+
+        print('{Style.BRIGHT}Recipes that are probably already built:'
+              '{Style.RESET_ALL}'.format(Style=Style))
+        if exists(join(self.ctx.build_dir, 'other_builds')):
+            for filen in sorted(os.listdir(join(self.ctx.build_dir, 'other_builds'))):
+                name = filen.split('-')[0]
+                dependencies = filen.split('-')[1:]
+                recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
+                              '{Style.RESET_ALL}'.format(
+                                  Style=Style, name=name, Fore=Fore))
+                if dependencies:
+                    recipe_str += (' ({Fore.BLUE}with ' + ', '.join(dependencies) +
+                                   '{Fore.RESET})').format(Fore=Fore)
+                recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
+                print(recipe_str)
+
+
+def main():
     ToolchainCL()
+
+if __name__ == "__main__":
+    main()
