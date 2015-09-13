@@ -40,8 +40,9 @@ from appdirs import user_data_dir
 import sh
 from colorama import Style, Fore
 
-curdir = dirname(__file__)
-sys.path.insert(0, join(curdir, "tools", "external"))
+user_dir = dirname(realpath(os.path.curdir))
+toolchain_dir = dirname(__file__)
+sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
 
 DEFAULT_ANDROID_API = 15
@@ -2401,6 +2402,7 @@ class ToolchainCL(object):
     def __init__(self):
         self._ctx = None
 
+
         parser = argparse.ArgumentParser(
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
@@ -2716,21 +2718,22 @@ clean_dists
 
         ctx = self.ctx
         dist = self._dist
-        # dist = dist_from_args(ctx, self.dist_args)
-        # if dist.needs_build:
-        #     info('No dist exists that meets your requirements, so one will '
-        #          'be built.')
-        #     args = build_dist_from_args(ctx, dist, args)
+
+        # Manually fixing these arguments at the string stage is
+        # unsatisfactory and should probably be changed somehow, but
+        # we can't leave it until later as the build.py scripts assume
+        # they are in the current directory.
+        for i, arg in enumerate(args[:-1]):
+            if arg in ('--dir', '--private'):
+                args[i+1] = realpath(expanduser(args[i+1]))
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             build.parse_args(args)
-
             shprint(sh.ant, 'debug')
 
         # AND: This is very crude, needs improving. Also only works
         # for debug for now.
-
         info_main('# Copying APK to current directory')
         apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-debug.apk'))
         if len(apks) == 0:
