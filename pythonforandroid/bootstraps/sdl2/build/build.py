@@ -248,7 +248,7 @@ def make_package(args):
 
     default_icon = 'templates/kivy-icon.png'
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
-    
+
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
 
@@ -285,7 +285,7 @@ def make_package(args):
         fileh.write(re.sub(r'"private_version">[0-9\.]*<',
                            '"private_version">{}<'.format(
                                str(time.time())), lines))
-              
+
 
 def parse_args(args=None):
     import argparse
@@ -322,11 +322,16 @@ tools directory of the Android SDK.
                           '"sensor"'))
     ap.add_argument('--icon', dest='icon',
                     help='A png file to use as the icon for the application.')
+    ap.add_argument('--permission', dest='permissions', action='append',
+                    help='The permissions to give this app.')
 
     if args is None:
         args = sys.argv[1:]
     args = ap.parse_args(args)
     args.ignore_path = []
+
+    if args.permissions is None:
+        args.permissions = []
 
     make_package(args)
 
