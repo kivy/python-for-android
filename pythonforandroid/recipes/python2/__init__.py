@@ -13,6 +13,7 @@ class Python2Recipe(Recipe):
 
     depends = ['hostpython2']
     conflicts = ['python3']
+    opt_depends = ['openssl']
 
     def prebuild_armeabi(self):
         build_dir = self.get_build_container_dir('armeabi')
@@ -74,8 +75,8 @@ class Python2Recipe(Recipe):
         #     return
 
     def do_python_build(self):
-        if 'sqlite' in self.ctx.recipe_build_order or 'openssl' in self.ctx.recipe_build_order:
-            print('sqlite or openssl support not yet enabled in python recipe')
+        if 'sqlite' in self.ctx.recipe_build_order:
+            print('sqlite support not yet enabled in python recipe')
             exit(1)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
@@ -98,6 +99,15 @@ class Python2Recipe(Recipe):
             env['HOSTARCH'] = 'arm-eabi'
             env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0]
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
+
+            # TODO need to add a should_build that checks if optional
+            # dependencies have changed (possibly in a generic way)
+            if 'openssl' in self.ctx.recipe_build_order:
+                openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir('armeabi')
+                env['CFLAGS'] = ' '.join([env['CFLAGS'],
+                    '-I{}'.format(join(openssl_build_dir, 'include'))])
+                env['LDFLAGS'] = ' '.join([env['LDFLAGS'],
+                    '-L{}'.format(openssl_build_dir)])
 
             configure = sh.Command('./configure')
             # AND: OFLAG isn't actually set, should it be?
