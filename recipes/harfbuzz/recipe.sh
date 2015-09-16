@@ -20,20 +20,23 @@ function shouldbuild_harfbuzz() {
 
 function build_harfbuzz() {
     cd $BUILD_harfbuzz
-
     push_arm
-	#~ export LDFLAGS="-L$LIBS_PATH"
-	#~ export LDSHARED="$LIBLINK"
-    #try ./configure --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --enable-shared --without-freetype --without-glib
-    #~ try ./autogen.sh  --build=i686-pc-linux-gnu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-freetype --without-glib
     try ./configure --without-icu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-freetype --without-glib
-    try make -j5
+    try make -nostdinc -j5
     pop_arm
     try cp -L $BUILD_harfbuzz/src/.libs/libharfbuzz.so $LIBS_PATH
 }
 
 # function called after all the compile have been done
 function postbuild_harfbuzz() {
-    true
+    if [ -f "$BUILD_freetype/objs/.libs/libfreetype.so" ]; then
+        echo "freetype found rebuilding harfbuzz with freetype support";
+        cd $BUILD_harfbuzz
+        push_arm
+        try ./configure --without-icu --host=arm-linux-androideabi --prefix="$BUILD_PATH/python-install" --without-glib
+        try make -nostdinc -j5
+        pop_arm
+        try cp -L $BUILD_harfbuzz/src/.libs/libharfbuzz.so $LIBS_PATH
+    fi
 }
 
