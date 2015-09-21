@@ -33,6 +33,9 @@ function prebuild_python() {
 	try patch -p1 < $RECIPE_python/patches/fix-dynamic-lookup.patch
 	try patch -p1 < $RECIPE_python/patches/fix-dlfcn.patch
 	try patch -p1 < $RECIPE_python/patches/ctypes-find-library.patch
+	if [ $ANDROIDAPI -gt 19 ]; then
+	        try patch -p1 < $RECIPE_python/patches/android-21.patch
+	fi
 
 	system=$(uname -s)
 	if [ "X$system" == "XDarwin" ]; then
