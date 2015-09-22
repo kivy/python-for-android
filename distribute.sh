@@ -11,7 +11,8 @@
 cat <<EOF
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-### ERROR ###
+PYTHON-FOR-ANDROID ERROR! SEE BELOW FOR SOLUTION:
+
 You are trying to run an old version of python-for-android via
 distribute.sh. However, python-for-android has been rewritten and no
 longer supports the distribute.sh interface.
@@ -30,3 +31,5 @@ https://github.com/kivy/python-for-android/tree/old_toolchain .
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 EOF
+
+exit 1
