@@ -23,12 +23,23 @@ add more features. Testing is welcome.
 
 # TODO to make this the master branch
 
-- Add a distribute.sh that gives an appropriate error message when
+- ✓ Add a distribute.sh that gives an appropriate error message when
   called, so that old versions of buildozer will be informative about
   the problem.
-- Make buildozer download python-for-android from a new 'old' branch
-- Somehow mark/notify existing PRs that refer to the old branch (add a
-  tag?)
+- ✓ Make buildozer download python-for-android from a new 'old' branch
+
+Steps to make this the master branch will be:
+
+1. Copy p4a master to a new 'old_toolchain' branch
+2. Merge https://github.com/kivy/buildozer/pull/233 so that buildozer
+   will pull from this branch
+3. Push a new buildozer version to pypi. It is important that people
+   will be able to upgrade!
+4. Merge the revamp branch into the master branch (or just replace
+   it...since it's a total rewrite I guess it doesn't need to be a
+   merge).
+5. Note in any recent non-revamp PRs that they must be redirected to
+   the old_toolchain branch.
 
 # Documentation
 
