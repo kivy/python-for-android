@@ -21,6 +21,15 @@ features will be tackled soon.
 We are currently working to stabilise all parts of the toolchain and
 add more features. Testing is welcome.
 
+# TODO to make this the master branch
+
+- Add a distribute.sh that gives an appropriate error message when
+  called, so that old versions of buildozer will be informative about
+  the problem.
+- Make buildozer download python-for-android from a new 'old' branch
+- Somehow mark/notify existing PRs that refer to the old branch (add a
+  tag?)
+
 # Documentation
 
 This toolchain is documented (temporarily)
@@ -78,6 +87,6 @@ The tool works, testing is welcomed. Doc is available [here](http://inclem.net/f
 
 Original reference commit of p4a master was
 7c8d4ce9db384528f7ea83e0841fe2464a558db8 - possibly some things after
-this need adding to the new toolchain. One of the major later
-additons, including ctypes in the python build, has already been
+this need adding to the new toolchain. Some of the major later
+additons, including ctypes in the python build, have already been
 merged here.
