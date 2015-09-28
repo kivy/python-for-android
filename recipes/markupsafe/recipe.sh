@@ -20,7 +20,8 @@ function shouldbuild_markupsafe() {
 function build_markupsafe() {
 	cd $BUILD_markupsafe
 
-	push_arm
+	push_arm	
+	sed -i "s/setuptools/distutils.core/g" `grep -rl "setuptools" ./setup.py`
 	try $HOSTPYTHON setup.py install
 	pop_arm
 }

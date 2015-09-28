@@ -21,6 +21,7 @@ function build_click() {
 	cd $BUILD_click
 
 	push_arm
+	sed -i "s/setuptools/distutils.core/g" `grep -rl "setuptools" ./setup.py`
 	try $HOSTPYTHON setup.py install
 	pop_arm
 }
