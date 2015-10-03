@@ -1,8 +1,22 @@
-# python-for-android revamp
+# Python for Android
 
-This is an experimental Python for Android APK builder based on the
-pythonic toolchain of kivy-ios. It is intended to replace the current
-python-for-android toolchain, but to be significantly better. Broad goals include:
+Python for android is a project to create your own Python distribution
+including the modules you want, and create an apk including python,
+libs, and your application.
+
+These tools were recently rewritten to provide a new, easier to use
+and extend interface. If you are looking for the old toolchain with
+distribute.sh and build.py, it is still available at
+https://github.com/kivy/python-for-android/tree/old_toolchain, and PRs
+to this branch are still accepted.
+
+For documentation and support, see:
+
+- Website: http://python-for-android.rtfd.org/
+- Forum: https://groups.google.com/forum/?hl=fr#!forum/python-android
+- Mailing list: python-android@googlegroups.com
+
+Broad goals of the revamp project include:
 
 - ✓ Replace the old toolchain with a more extensible pythonic one
 - ✓ Support SDL2
@@ -13,13 +27,10 @@ python-for-android toolchain, but to be significantly better. Broad goals includ
 - ✓ Be a standalone Pypi module (not on pypi yet but setup.py works)
 - Support multiple architectures
 
-This is at an early (but working!) stage; the new toolchain has been
-fully written (save for clearing up bugs and non-essential features),
-and the toolchain supports both SDL2 and Pygame backends. The other
-features will be tackled soon.
-
 We are currently working to stabilise all parts of the toolchain and
-add more features. Testing is welcome.
+add more features. Support for pygame-based APKs is almost feature
+complete with the old toolchain. Testing and contributions are
+welcome.
 
 # TODO to make this the master branch
 
@@ -30,8 +41,8 @@ add more features. Testing is welcome.
 
 Steps to make this the master branch will be:
 
-1. Copy p4a master to a new 'old_toolchain' branch
-2. Merge https://github.com/kivy/buildozer/pull/233 so that buildozer
+1. ✓ Copy p4a master to a new 'old_toolchain' branch
+2. ✓ Merge https://github.com/kivy/buildozer/pull/233 so that buildozer
    will pull from this branch
 3. Push a new buildozer version to pypi. It is important that people
    will be able to upgrade!
@@ -44,7 +55,9 @@ Steps to make this the master branch will be:
 # Documentation
 
 This toolchain is documented (temporarily)
-[here](http://inclem.net/files/p4a_revamp_doc/).
+[here](http://inclem.net/files/p4a_revamp_doc/). Follow the
+[quickstart instructions](http://inclem.net/files/p4a_revamp_doc/quickstart.html#quickstart)
+to install and begin creating APK.
 
 Quick instructions to start would be:
 
@@ -92,7 +105,8 @@ the reference commit that the revamp is based on:
 
 # Current status
 
-The tool works, testing is welcomed. Doc is available [here](http://inclem.net/files/p4a_revamp_doc/).
+The tool works, testing is welcomed. Doc is available
+[here](http://inclem.net/files/p4a_revamp_doc/).
 
 # Development notes
 
