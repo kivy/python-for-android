@@ -63,3 +63,34 @@ APK. It is useful for testing recipes without building unnecessary
 components.
   
 
+Creating a new bootstrap
+========================
+
+A bootstrap class consists of just a few basic components, though one of them must do a lot of work. 
+
+For instance, the SDL2 bootstrap looks like the following::
+
+    from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, logger, info_main, which
+    from os.path import join, exists
+    from os import walk
+    import glob
+    import sh
+
+
+    class SDL2Bootstrap(Bootstrap):
+        name = 'sdl2'
+
+        recipe_depends = ['sdl2']
+
+        def run_distribute(self):
+            # much work is done here...
+
+            
+The declaration of the bootstrap name and recipe dependencies should
+be clear. However, the :code:`run_distribute` method must do all the
+work of creating a build directory, copying recipes etc into it, and
+adding or removing any extra components as necessary.
+
+If you'd like to creat a bootstrap, the best resource is to check the
+existing ones in the p4a source code. You can also :doc:`contact the
+developers <troubleshooting>` if you have problems or questions.
