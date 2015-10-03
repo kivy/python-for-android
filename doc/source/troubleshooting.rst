@@ -5,7 +5,7 @@ Troubleshooting
 Debug output
 ------------
 
-Add the ``--verbose`` option to any python-for-android command to see
+Add the ``--debug`` option to any python-for-android command to see
 full debug output including the output of all the external tools used
 in the compilation and packaging steps.
 
