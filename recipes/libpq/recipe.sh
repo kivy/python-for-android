@@ -29,7 +29,7 @@ function build_libpq() {
     push_arm
 
     try ./configure --without-readline --host=arm-linux
-    try make submake-libpq
+    try make -j$MAKE_JOBS submake-libpq
     try cp -a $BUILD_libpq/src/interfaces/libpq/libpq.a $LIBS_PATH
 
     pop_arm

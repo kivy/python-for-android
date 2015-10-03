@@ -18,7 +18,7 @@ function build_freetype() {
     push_arm
     export LDFLAGS="$LDFLAGS -L$BUILD_harfbuzz/src/.libs/"
     try ./configure --host=arm-linux-androideabi --prefix=$BUILD_freetype --without-zlib --with-png=no --enable-shared
-    try make -j5
+    try make -j$MAKE_JOBS
     pop_arm
 
     try cp $BUILD_freetype/objs/.libs/libfreetype.so $LIBS_PATH
