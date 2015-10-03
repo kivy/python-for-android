@@ -1,0 +1,11 @@
+--- a/numpy/distutils/unixccompiler.py	2015-02-01 17:38:21.000000000 +0100
++++ b/numpy/distutils/unixccompiler.py	2015-07-08 17:21:05.742468485 +0200
+@@ -82,6 +82,8 @@
+             pass
+         self.mkpath(os.path.dirname(output_filename))
+         tmp_objects = objects + self.objects
++        from os import environ
++        self.archiver[0] = 'arm-linux-androideabi-ar'
+         while tmp_objects:
+             objects = tmp_objects[:50]
+             tmp_objects = tmp_objects[50:]

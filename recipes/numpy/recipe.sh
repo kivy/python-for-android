@@ -15,6 +15,9 @@ function prebuild_numpy() {
 	fi
 
 	try patch -p1 < $RECIPE_numpy/patches/fix-numpy.patch
+	try patch -p1 < $RECIPE_numpy/patches/ar.patch
+	try patch -p1 < $RECIPE_numpy/patches/lib.patch
+	try patch -p1 < $RECIPE_numpy/patches/prevent_libs_check.patch
 	touch .patched
 }
 
@@ -29,9 +32,9 @@ function build_numpy() {
 	cd $BUILD_numpy
 
 	push_arm
-
 	try $HOSTPYTHON setup.py build_ext -v
 	try find build/lib.* -name "*.o" -exec $STRIP {} \;
+	env
 	try $HOSTPYTHON setup.py install -O2
 
 	pop_arm
