@@ -19,7 +19,7 @@ of Python project for Android.
 
 
 Current bootstraps
-==================
+------------------
 
 python-for-android includes the following bootstraps by default, which
 may be chosen by name with a build parameter, or (by default) are
@@ -33,7 +33,7 @@ background to serve a flask or django site from the phone itself.
 
 
 pygame
-------
+%%%%%%
 
 This builds APKs exactly like the old p4a toolchain, using Pygame as
 the windowing and input backend.
@@ -42,7 +42,7 @@ This bootstrap automatically includes pygame, kivy, and python. It
 could potentially be modified to work for non-Kivy projects.
 
 sdl2
-----
+%%%%
 
 This builds APKs using SDL2 as the window and input backend. It is not
 fully developed compared to the Pygame backend, but has many
@@ -56,7 +56,7 @@ pysdl2 and pyopengl. `Vispy <http://vispy.org/>`_ also runs on android
 this way.
 
 empty
------
+%%%%%
 
 This bootstrap has no dependencies and cannot actually build an
 APK. It is useful for testing recipes without building unnecessary
@@ -64,7 +64,7 @@ components.
   
 
 Creating a new bootstrap
-========================
+------------------------
 
 A bootstrap class consists of just a few basic components, though one of them must do a lot of work. 
 
