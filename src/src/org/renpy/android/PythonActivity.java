@@ -116,7 +116,7 @@ public class PythonActivity extends Activity implements Runnable {
         } else if (resourceManager.getString("public_version") != null) {
             mPath = externalStorage;
         } else {
-            mPath = getFilesDir();
+            mPath = new File(getKivyRoot());
         }
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -185,6 +185,14 @@ public class PythonActivity extends Activity implements Runnable {
     }
 
 
+    public String getKivyRoot() {
+	return getFilesDir().getAbsolutePath() + "/app";
+    }
+
+    public String getKivyPublicRoot() {
+	return externalStorage.getAbsolutePath() + "/app";
+    }
+
     /**
      * This determines if unpacking one the zip files included in
      * the .apk is necessary. If it is, the zip file is unpacked.
@@ -243,9 +251,12 @@ public class PythonActivity extends Activity implements Runnable {
     }
 
     public void run() {
+	String kivy_root = getKivyRoot();
+	File kivy_root_dir = new File(kivy_root);
+	File kivy_public_root_dir = new File(getKivyPublicRoot());
 
-        unpackData("private", getFilesDir());
-        unpackData("public", externalStorage);
+        unpackData("private", kivy_root_dir);
+        unpackData("public", kivy_public_root_dir);
 
         System.loadLibrary("sdl");
         System.loadLibrary("sdl_image");
@@ -255,19 +266,19 @@ public class PythonActivity extends Activity implements Runnable {
         System.loadLibrary("application");
         System.loadLibrary("sdl_main");
 
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+        System.load(kivy_root + "/lib/python2.7/lib-dynload/_io.so");
+        System.load(kivy_root + "/lib/python2.7/lib-dynload/unicodedata.so");
 
         try {
             System.loadLibrary("sqlite3");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_sqlite3.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_sqlite3.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
         try {
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imaging.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingft.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingmath.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_imaging.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_imagingft.so");
+            System.load(kivy_root + "/lib/python2.7/lib-dynload/_imagingmath.so");
         } catch(UnsatisfiedLinkError e) {
         }
 
@@ -354,10 +365,11 @@ public class PythonActivity extends Activity implements Runnable {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = PythonActivity.mActivity.mPath.getAbsolutePath();
+	String kivy_root = PythonActivity.mActivity.getKivyRoot();
         serviceIntent.putExtra("androidPrivate", argument);
         serviceIntent.putExtra("androidArgument", filesDirectory);
-        serviceIntent.putExtra("pythonHome", argument);
-        serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
+        serviceIntent.putExtra("pythonHome", kivy_root);
+        serviceIntent.putExtra("pythonPath", kivy_root + ":" + kivy_root + "/lib");
         serviceIntent.putExtra("serviceTitle", serviceTitle);
         serviceIntent.putExtra("serviceDescription", serviceDescription);
         serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
