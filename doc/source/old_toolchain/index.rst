@@ -1,7 +1,3 @@
-.. Python For Android documentation master file, created by
-   sphinx-quickstart on Wed Jan 11 02:31:33 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Old p4a toolchain doc
 =====================

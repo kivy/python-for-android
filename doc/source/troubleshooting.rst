@@ -11,8 +11,8 @@ in the compilation and packaging steps.
 
 If reporting a problem by email or irc, it is usually helpful to
 include this full log, via e.g. a `pastebin
-<http://paste.ubuntu.com/>` or `Github gist
-<https://gist.github.com/>`.
+<http://paste.ubuntu.com/>`_ or `Github gist
+<https://gist.github.com/>`_.
 
 Getting help
 ------------
