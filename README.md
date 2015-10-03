@@ -7,14 +7,14 @@ libs, and your application.
 These tools were recently rewritten to provide a new, easier to use
 and extend interface. If you are looking for the old toolchain with
 distribute.sh and build.py, it is still available at
-https://github.com/kivy/python-for-android/tree/old_toolchain, and PRs
-to this branch are still accepted.
+https://github.com/kivy/python-for-android/tree/old_toolchain, and
+issues and PRs relating to this branch are still accepted.
 
 For documentation and support, see:
 
 - Website: http://python-for-android.rtfd.org/
-- Forum: https://groups.google.com/forum/?hl=fr#!forum/python-android
-- Mailing list: python-android@googlegroups.com
+- Mailing list: https://groups.google.com/forum/#!forum/kivy-users or
+  https://groups.google.com/forum/#!forum/python-android.
 
 Broad goals of the revamp project include:
 
@@ -77,10 +77,8 @@ If you did this, to build an APK with SDL2 you can try e.g.
 
     p4a apk --requirements=kivysdl2 --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
-This may currently fail, the api is being sorted out. If it works, the
-apk will be returned in the current directory. The full dist will be
-built the first time (taking several minutes) but not subsequent
-times.
+For full instructions and parameter options, see the documentation
+linked above.
 
 # Known missing stuff from P4A
 
