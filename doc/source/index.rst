@@ -34,7 +34,6 @@ Contents
    apis
    troubleshooting
    old_p4a
-   related
    contribute
    old_toolchain/index.rst
 
