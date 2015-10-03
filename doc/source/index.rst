@@ -3,11 +3,11 @@ python-for-android
 
 python-for-android is an open source build tool to let you package
 Python code into standalone android APKs that can be passed around,
-installed, or uploaded to marketplaces such as the Play Store
-just like any other Androip app. This tool was originally developed
-for the Kivy cross-platform graphical framework, but now supports
-multiple bootstraps and can be easily extended to package other types
-of Python app for Android.
+installed, or uploaded to marketplaces such as the Play Store just
+like any other Androip app. This tool was originally developed for the
+`Kivy cross-platform graphical framework <http://kivy.org/#home>`_,
+but now supports multiple bootstraps and can be easily extended to
+package other types of Python app for Android.
 
 python-for-android supports two major operations; first, it can
 compile the Python interpreter, its dependencies, backend libraries
