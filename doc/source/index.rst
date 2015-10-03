@@ -39,17 +39,7 @@ Contents:
    old_p4a
    related
    contribute
-
-To include:
-
-- install guide
-- quickstart
-- doc for dist build
-- doc for dist download
-- doc for build.py use
-- doc for various commands
-- contribute
-- examples
+   old_toolchain/index.rst
 
 
 Indices and tables
