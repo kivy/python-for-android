@@ -139,6 +139,23 @@ This code also manually takes care to patch only once. You can use the
 same strategy yourself, though a more generic solution may be provided
 in the future.
 
+Installing libs
+~~~~~~~~~~~~~~~
+
+Some recipes generate .so files that must be manually copied into the
+android project. You can use code like the following to accomplish
+this, copying to the correct lib cache dir::
+
+    def build_arch(self, arch):
+        do_the_build()  # e.g. running ./configure and make
+        
+        import shutil
+        shutil.copyfile('a_generated_binary.so', 
+                        self.ctx.get_libs_dir(arch.arch))
+                        
+Any libs copied to this dir will automatically be included in the
+appropriate libs dir of the generated android project.
+
 Compiling for the Android architecture
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
