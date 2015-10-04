@@ -8,7 +8,9 @@ These tools were recently rewritten to provide a new, easier to use
 and extend interface. If you are looking for the old toolchain with
 distribute.sh and build.py, it is still available at
 https://github.com/kivy/python-for-android/tree/old_toolchain, and
-issues and PRs relating to this branch are still accepted.
+issues and PRs relating to this branch are still accepted. However,
+the new toolchain contains all the same functionality via the built in
+pygame bootstrap.
 
 For documentation and support, see:
 
@@ -44,7 +46,7 @@ Steps to make this the master branch will be:
 1. ✓ Copy p4a master to a new 'old_toolchain' branch
 2. ✓ Merge https://github.com/kivy/buildozer/pull/233 so that buildozer
    will pull from this branch
-3. Push a new buildozer version to pypi. It is important that people
+3. ✓ (thanks tito!) Push a new buildozer version to pypi. It is important that people
    will be able to upgrade!
 4. Merge the revamp branch into the master branch (or just replace
    it...since it's a total rewrite I guess it doesn't need to be a
