@@ -2169,7 +2169,7 @@ def biglink(ctx, arch):
         info('There seem to be no libraries to biglink, skipping.')
         return
     info('Biglinking')
-    info('target', join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'))
+    info('target {}'.format(join(ctx.get_libs_dir(arch.arch), 'libpymodules.so')))
     biglink_function(
         join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
         obj_dir.split(' '),
