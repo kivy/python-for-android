@@ -1672,7 +1672,7 @@ class Recipe(object):
                         info('Extracting {} at {}'.format(extraction_filename, filename))
                         sh.tar('xjf', extraction_filename)
                         root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
-                                                'utf-8').split('\n')[0].strip('/')
+                                                'utf-8').split('\n')[0].split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
                     elif extraction_filename.endswith('.zip'):
