@@ -1908,6 +1908,12 @@ class PythonRecipe(Recipe):
     the right place via arguments to setup.py. However, this may not set
     the environment correctly and so False is not the default.'''
 
+    install_in_hostpython = False
+    '''If True, additionally installs the module in the hostpython build
+    dir. This will make it available to other recipes if
+    call_hostpython_via_targetpython is False.
+    '''
+
     @property
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
@@ -1962,6 +1968,13 @@ class PythonRecipe(Recipe):
                         '--root={}'.format(self.ctx.get_python_install_dir()),
                         '--install-lib=lib/python2.7/site-packages',
                         _env=env)  # AND: Hardcoded python2.7 needs fixing
+
+            # If asked, also install in the hostpython build dir
+            if self.install_in_hostpython:
+                shprint(hostpython, 'setup.py', 'install', '-O2',
+                        '--root={}'.format(dirname(self.hostpython_location)),
+                        '--install-lib=Lib/site-packages',
+                        _env=env)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
