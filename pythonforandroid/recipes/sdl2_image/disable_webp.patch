@@ -1,0 +1,13 @@
+diff --git a/Android.mk b/Android.mk
+index c2080dd..31e2118 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -16,7 +16,7 @@ PNG_LIBRARY_PATH := external/libpng-1.6.2
+ 
+ # Enable this if you want to support loading WebP images
+ # The library path should be a relative path to this directory.
+-SUPPORT_WEBP := true
++SUPPORT_WEBP := false
+ WEBP_LIBRARY_PATH := external/libwebp-0.3.0
+ 
+ 

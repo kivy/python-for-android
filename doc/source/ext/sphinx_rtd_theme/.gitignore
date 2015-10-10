@@ -1,0 +1,13 @@
+*.pyc
+*.egg-info
+*.egg
+*build/
+.tox
+.coverage
+*.DS_Store
+*.sass-cache
+.ruby-version
+dist/
+bower_components/
+node_modules/
+npm-debug.log
