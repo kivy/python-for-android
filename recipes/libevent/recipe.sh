@@ -22,7 +22,7 @@ function build_libevent() {
 
     push_arm
     try ./configure --build=i686-pc-linux-gnu --host=arm-linux-eabi --prefix=$BUILD_libevent/build/
-    try make install
+    try make -j$MAKE_JOBS install
     pop_arm
 }
 

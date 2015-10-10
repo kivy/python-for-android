@@ -45,7 +45,7 @@ function build_ffmpeg2() {
 	FLAGS="--disable-everything"
 	FLAGS="$FLAGS --enable-parser=h264,aac"
 	FLAGS="$FLAGS --enable-decoder=h263,h264,aac"
-	FLAGS="$FLAGS --enable-filter=aresample,resample,crop"
+	FLAGS="$FLAGS --enable-filter=aresample,resample,crop,adelay"
 	FLAGS="$FLAGS --enable-protocol=file,http,https,tls_openssl"
 	FLAGS="$FLAGS --enable-demuxer=sdp --enable-pic"
 	FLAGS="$FLAGS --enable-small"

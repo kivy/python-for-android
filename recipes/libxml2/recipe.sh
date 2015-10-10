@@ -26,7 +26,7 @@ function build_libxml2() {
 		--without-modules --without-legacy --without-history --without-debug --without-docbook --without-python
 	try $SED 's/ runtest\$(EXEEXT) \\/ \\/' Makefile
 	try $SED 's/ testrecurse\$(EXEEXT)$//' Makefile
-	try make
+	try make -j$MAKE_JOBS
 
 	pop_arm
 }

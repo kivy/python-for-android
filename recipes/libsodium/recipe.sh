@@ -23,7 +23,7 @@ function build_libsodium() {
 	push_arm
 
 	try ./configure --enable-minimal --disable-soname-versions --host="arm-linux-androideabi" --enable-shared
-	try make
+	try make -j$MAKE_JOBS
 
 	try cp -L $BUILD_libsodium/src/libsodium/.libs/libsodium.so $LIBS_PATH
 
