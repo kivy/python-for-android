@@ -6,7 +6,11 @@ DEPS_nettle=(libgmp)
 BUILD_nettle=$BUILD_PATH/nettle/$(get_directory $URL_nettle)
 RECIPE_nettle=$RECIPES_PATH/nettle
 
+_src=$BUILD_nettle
+
 function prebuild_nettle() {
+	cd $_src
+	try patch -p1 < $RECIPE_nettle/configure.patch
 	true
 }
 

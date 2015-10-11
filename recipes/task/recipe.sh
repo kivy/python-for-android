@@ -8,19 +8,18 @@ sha1_task=e7e1336ed099f672b3d5971d6a221b72ed804ac6
 BUILD_task=$BUILD_PATH/task/$(get_directory $URL_task)
 RECIPE_task=$RECIPES_PATH/task
 
-_src=$BUILD_task
 _build=$BUILD_task/build_p4a
 _pyroot=$(dirname `dirname $HOSTPYTHON`)
 
 function prebuild_task() {
 	# take the patch from the recipe
-	cd $_src
+	cd $BUILD_task
 	patch -p1 < $RECIPE_task/CMakeLists.txt.patch
 	patch -p1 < $RECIPE_task/Nibbler.h.patch
 
-	cp $RECIPE_task/glob.* $_src/src
+	cp $RECIPE_task/glob.* $BUILD_task/src
 
-	cd $_build
+	cd $BUILD_task/build_p4a
 	if [ ! -d android-cmake ]
 	then
 		git clone https://github.com/taka-no-me/android-cmake.git
@@ -33,9 +32,8 @@ function prebuild_task() {
 #}
 
 function build_task() {
-
-	try mkdir -p $_build
-	cd $_build
+	try mkdir -p $BUILD_task/build_p4a
+	cd $BUILD_task/build_p4a
 
 	push_arm
 
@@ -49,15 +47,16 @@ function build_task() {
 	      -DCMAKE_CXX_FLAGS=-fPIC \
 	      -DGNUTLS_LIBRARY="$GNUTLS_LIBRARY" \
 	      -DGNUTLS_INCLUDE_DIR=$GNUTLS_INCLUDE_DIR \
-	      -DCMAKE_EXE_LINKER_FLAGS="-pie -L$BUILD_nettle/build/lib/ -lhogweed -lz $(pkg-config --libs nettle)" \
+	      -DCMAKE_EXE_LINKER_FLAGS="-pie $(pkg-config --libs nettle hogweed) -lz" \
 	      -DANDROID_NDK=$ANDROIDNDK \
 	      -DCMAKE_BUILD_TYPE=Release \
+	      -DCMAKE_VERBOSE_MAKEFILE=ON \
 	      -DANDROID_ABI="armeabi-v7a with NEON" \
-	      $_src
+	      $BUILD_task
 	cmake --build .
 
 	make -j1 .
-	try cp -a $_build/src/{task,calc,lex} $LIBS_PATH
+	try cp -a $BUILD_task/build_p4a/src/{task,calc,lex} $LIBS_PATH
 
 	pop_arm
 }
