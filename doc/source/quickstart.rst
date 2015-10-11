@@ -17,18 +17,18 @@ Installation
 
 The easiest way to install is with pip. You need to have setuptools installed, then run::
 
-  pip install git+https://github.com/kivy/python-for-android.git@revamp
+  pip install git+https://github.com/kivy/python-for-android.git
 
 This should install python-for-android (though you may need to run as root or add --user).
   
 You could also install python-for-android manually, either via git::
 
-  git clone -b revamp https://github.com/kivy/python-for-android.git
+  git clone https://github.com/kivy/python-for-android.git
   cd python-for-android
   
 Or by direct download::
 
-  wget https://github.com/kivy/python-for-android/archive/revamp.zip
+  wget https://github.com/kivy/python-for-android/archive/master.zip
   unzip revamp.zip
   cd python-for-android-revamp
   

@@ -1672,7 +1672,7 @@ class Recipe(object):
                         info('Extracting {} at {}'.format(extraction_filename, filename))
                         sh.tar('xjf', extraction_filename)
                         root_directory = sh.tar('tjf', extraction_filename).stdout.decode(
-                                                'utf-8').split('\n')[0].strip('/')
+                                                'utf-8').split('\n')[0].split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
                     elif extraction_filename.endswith('.zip'):
@@ -1896,9 +1896,31 @@ class NDKRecipe(Recipe):
 
 
 class PythonRecipe(Recipe):
-    site_packages_name = None  # The name of the module in
-                               # site_packages (i.e. as a python
-                               # module)
+    site_packages_name = None
+    '''The name of the module's folder when installed in the Python
+    site-packages (e.g. for pyjnius it is 'jnius')'''
+
+    call_hostpython_via_targetpython = True
+    '''If True, tries to install the module using the hostpython binary
+    copied to the target (normally arm) python build dir. However, this
+    will fail if the module tries to import e.g. _io.so. Set this to False
+    to call hostpython from its own build dir, installing the module in
+    the right place via arguments to setup.py. However, this may not set
+    the environment correctly and so False is not the default.'''
+
+    install_in_hostpython = False
+    '''If True, additionally installs the module in the hostpython build
+    dir. This will make it available to other recipes if
+    call_hostpython_via_targetpython is False.
+    '''
+
+    @property
+    def hostpython_location(self):
+        if not self.call_hostpython_via_targetpython:
+            return join(
+                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(
+                    'armeabi'), 'hostpython')
+        return self.ctx.hostpython
 
     def should_build(self):
         # AND: This should be different for each arch and use some
@@ -1913,8 +1935,6 @@ class PythonRecipe(Recipe):
             return False
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
-
-
 
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
@@ -1938,9 +1958,23 @@ class PythonRecipe(Recipe):
         info('Installing {} into site-packages'.format(self.name))
 
         with current_directory(self.get_build_dir(arch.arch)):
-            hostpython = sh.Command(self.ctx.hostpython)
+            # hostpython = sh.Command(self.ctx.hostpython)
+            hostpython = sh.Command(self.hostpython_location)
 
-            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+            if self.call_hostpython_via_targetpython:
+                shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+            else:
+                shprint(hostpython, 'setup.py', 'install', '-O2',
+                        '--root={}'.format(self.ctx.get_python_install_dir()),
+                        '--install-lib=lib/python2.7/site-packages',
+                        _env=env)  # AND: Hardcoded python2.7 needs fixing
+
+            # If asked, also install in the hostpython build dir
+            if self.install_in_hostpython:
+                shprint(hostpython, 'setup.py', 'install', '-O2',
+                        '--root={}'.format(dirname(self.hostpython_location)),
+                        '--install-lib=Lib/site-packages',
+                        _env=env)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
@@ -2169,7 +2203,7 @@ def biglink(ctx, arch):
         info('There seem to be no libraries to biglink, skipping.')
         return
     info('Biglinking')
-    info('target', join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'))
+    info('target {}'.format(join(ctx.get_libs_dir(arch.arch), 'libpymodules.so')))
     biglink_function(
         join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
         obj_dir.split(' '),
