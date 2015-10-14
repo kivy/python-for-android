@@ -531,6 +531,7 @@ class Context(object):
     dist_dir = None  # the Android project folder where everything ends up
     libs_dir = None  # where Android libs are cached after build but
                      # before being placed in dists
+    aars_dir = None
     javaclass_dir = None
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
@@ -563,6 +564,12 @@ class Context(object):
     def javaclass_dir(self):
         # Was previously hardcoded as self.build_dir/java
         dir = join(self.build_dir, 'javaclasses', self.bootstrap.distribution.name)
+        ensure_dir(dir)
+        return dir
+
+    @property
+    def aars_dir(self):
+        dir = join(self.build_dir, 'aars', self.bootstrap.distribution.name)
         ensure_dir(dir)
         return dir
 
