@@ -54,6 +54,7 @@ class SDL2Bootstrap(Bootstrap):
                 info("cp {} jar".format(name))
                 info("  from {}".format(jar_src))
                 info("  to {}".format(jar_tgt))
+                shprint(sh.mkdir, '-p', 'libs')
                 shprint(sh.cp, '-a',jar_src, jar_tgt)
 
                 so_src_dir = join(temp_dir, 'jni', 'armeabi')
