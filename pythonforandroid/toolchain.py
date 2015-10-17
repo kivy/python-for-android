@@ -1808,7 +1808,7 @@ class Recipe(object):
         if exists(dir):
             shutil.rmtree(dir)
         else:
-            warning(('Attempted to clean build for {} but build'
+            warning(('Attempted to clean build for {} but build '
                      'did not exist').format(self.name))
 
 
