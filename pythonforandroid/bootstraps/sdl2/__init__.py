@@ -22,6 +22,9 @@ class SDL2Bootstrap(Bootstrap):
             with open('local.properties', 'w') as fileh:
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
+        # AND: Hardcoding armeabi - naughty!
+        arch = ArchAndroid(self.ctx)
+
         with current_directory(self.dist_dir):
             info('Copying python distribution')
 
@@ -37,45 +40,9 @@ class SDL2Bootstrap(Bootstrap):
             if not exists('python-install'):
                 shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
-            info('Unpacking aars')
-            for aar in glob.glob(join(self.ctx.aars_dir, '*.aar')):
-                temp_dir = mkdtemp()
-                name = splitext(basename(aar))[0]
-                jar_name = name + '.jar'
-                info("unpack {} jar".format(name))
-                info("  from {}".format(aar))
-                info("  to {}".format(temp_dir))
-                shprint(sh.unzip, '-o', aar, '-d', temp_dir)
-
-                jar_src = join(temp_dir, 'classes.jar')
-                jar_tgt = join('libs', jar_name)
-                info("cp {} jar".format(name))
-                info("  from {}".format(jar_src))
-                info("  to {}".format(jar_tgt))
-                shprint(sh.mkdir, '-p', 'libs')
-                shprint(sh.cp, '-a',jar_src, jar_tgt)
-
-                so_src_dir = join(temp_dir, 'jni', 'armeabi')
-                so_tgt_dir = join('libs', 'armeabi')
-                info("cp {} .so".format(name))
-                info("  from {}".format(so_src_dir))
-                info("  to {}".format(so_tgt_dir))
-                shprint(sh.mkdir, '-p', so_tgt_dir)
-                so_files = glob.glob(join(so_src_dir, '*.so'))
-                for f in so_files:
-                    shprint(sh.cp, '-a', f, so_tgt_dir)
-
-                rmtree(temp_dir)
-
-            info('Copying libs')
-            # AND: Hardcoding armeabi - naughty!
-            shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
-            for lib in glob.glob(join(self.ctx.get_libs_dir('armeabi'), '*')):
-                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
-
-            info('Copying java files')
-            for filename in glob.glob(self.ctx.javaclass_dir):
-                shprint(sh.cp, '-a', filename, 'src')
+            self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
+            self.distribute_aars(arch)
+            self.distribute_javaclasses(self.ctx.javaclass_dir)
 
             info('Filling private directory')
             if not exists(join('private', 'lib')):
@@ -113,21 +80,7 @@ class SDL2Bootstrap(Bootstrap):
                 # shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
                 # shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
-
-        info('Stripping libraries')
-        env = ArchAndroid(self.ctx).get_env()
-        strip = which('arm-linux-androideabi-strip', env['PATH'])
-        if strip is None:
-            warning('Can\'t find strip in PATH...')
-        strip = sh.Command(strip)
-        filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
-                '-iname', '*.so', _env=env).stdout.decode('utf-8')
-        logger.info('Stripping libraries in private dir')
-        for filen in filens.split('\n'):
-            try:
-                strip(filen, _env=env)
-            except sh.ErrorReturnCode_1:
-                logger.debug('Failed to strip ' + 'filen')
+        self.strip_libraries(arch)
         super(SDL2Bootstrap, self).run_distribute()
 
 bootstrap = SDL2Bootstrap()

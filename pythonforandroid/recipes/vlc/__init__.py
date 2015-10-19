@@ -1,32 +1,35 @@
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
-from os.path import exists, join, expanduser, basename
+from pythonforandroid.toolchain import Recipe, shprint, current_directory, warning, info, debug 
+from os.path import exists, join
 from os import environ
 import sh
-import glob
+from colorama import Fore, Style
 
 class VlcRecipe(Recipe):
     version = '3.0.0'
     url = None
     name = 'vlc'
 
-    depends = ['pyjnius', 'android', 'kivy']
+    depends = []
 
     port_git = 'http://git.videolan.org/git/vlc-ports/android.git'
     vlc_git = 'http://git.videolan.org/git/vlc.git'
+    ENV_LIBVLC_AAR = 'LIBVLC_AAR'
 
     def prebuild_arch(self, arch):
         super(VlcRecipe, self).prebuild_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
         port_dir = join(build_dir, 'vlc-port-android')
         aar_path = join(port_dir, 'libvlc', 'build', 'outputs', 'aar')
-        aar = environ.get('LIBVLC_AAR',
+        aar = environ.get(self.ENV_LIBVLC_AAR,
                    join(aar_path, 'libvlc-{}.aar'.format(self.version)))
-        jar = join(build_dir, 'libvlc.jar')
         if not exists(aar):
-            if not environ.has_key('LIBVLC_AAR'):
-                warning("set path to ready libvlc-<ver>.aar bundle in LIBVLC_AAR environment!")
+            if environ.has_key(''):
+                warning("Error: libvlc-<ver>.aar bundle not found in {}".format(aar))
+                info("check {} environment!".format(self.ENV_LIBVLC_AAR))
+                raise Exception("vlc .aar bundle not found by path specified in {}".format(self.ENV_LIBVLC_AAR))
+            warning("set path to precompiled libvlc-<ver>.aar bundle in {} environment!".format(self.ENV_LIBVLC_AAR))
             info("libvlc-<ver>.aar for android not found!")
-            info("should build sources at {}".format(port_dir))
+            info("should build from sources at {}".format(port_dir))
             if not exists(join(port_dir, 'compile.sh')):
                 info("clone vlc port for android sources from {}".format(self.port_git))
                 shprint(sh.git, 'clone', self.port_git, port_dir)
@@ -40,9 +43,8 @@ class VlcRecipe(Recipe):
         build_dir = self.get_build_dir(arch.arch)
         port_dir = join(build_dir, 'vlc-port-android')
         aar_path = join(port_dir, 'libvlc', 'build', 'outputs', 'aar')
-        aar = environ.get('LIBVLC_AAR',
+        aar = environ.get(self.ENV_LIBVLC_AAR,
                    join(aar_path, 'libvlc-{}.aar'.format(self.version)))
-        jar = join(build_dir, 'libvlc.jar')
         if not exists(aar):
             with current_directory(port_dir):
                 env = dict(environ)
@@ -51,11 +53,24 @@ class VlcRecipe(Recipe):
                     'ANDROID_NDK': self.ctx.ndk_dir,
                     'ANDROID_SDK': self.ctx.sdk_dir,
                 })
-                info("compile vlc from sources")
-                info("environment: {}".format(env))
-                if not exists(join(port_dir, 'bin', 'VLC-debug.apk')):
-                    shprint(sh.Command('./compile.sh'), _env=env)
-                shprint(sh.Command('./compile-libvlc.sh'), _env=env)
+                info("compiling vlc from sources")
+                debug("environment: {}".format(env))
+                try:
+                    if not exists(join(port_dir, 'bin', 'VLC-debug.apk')):
+                        shprint(sh.Command('./compile.sh'), _env=env)
+                    shprint(sh.Command('./compile-libvlc.sh'), _env=env)
+                except sh.ErrorReturnCode_1, err:
+                    warning("Error: vlc compilation failed")
+                    lines = err.stdout.splitlines()
+                    N = 20
+                    if len(lines) <= N:
+                        info('STDOUT:\n{}\t{}{}'.format(Fore.YELLOW, '\t\n'.join(lines), Fore.RESET))
+                    else:
+                        info('STDOUT (last {} lines of {}):\n{}\t{}{}'.format(N, len(lines), Fore.YELLOW, '\t\n'.join(lines[-N:]), Fore.RESET))
+                    lines = err.stderr.splitlines()
+                    if len(lines):
+                        warning('STDERR:\n{}\t{}{}'.format(Fore.RED, '\t\n'.join(lines), Fore.RESET))
+                    raise Exception("vlc compilation failed")
         shprint(sh.cp, '-a', aar, self.ctx.aars_dir)
 
 recipe = VlcRecipe()
