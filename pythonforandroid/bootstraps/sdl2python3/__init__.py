@@ -1,10 +1,8 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, logger, info_main, which
+from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, info_main
 from os.path import join, exists
 from os import walk
 import glob
 import sh
-from tempfile import mkdtemp
-from shutil import rmtree
 
 class SDL2Bootstrap(Bootstrap):
     name = 'sdl2python3'
