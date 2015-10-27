@@ -31,12 +31,10 @@ public class PythonActivity extends SDLActivity {
 
     public static PythonActivity mActivity = null;
     
-    private ResourceManager resourceManager;
+    private ResourceManager resourceManager = null;
+    private Bundle mMetaData = null;
+    private PowerManager.WakeLock mWakeLock = null;
 
-    // Access to our meta-data
-    private ApplicationInfo ai;
-    private PowerManager.WakeLock wakeLock;
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
@@ -63,17 +61,18 @@ public class PythonActivity extends SDLActivity {
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
 
         try {
-            ai = act.getPackageManager().getApplicationInfo(
-                    act.getPackageName(), PackageManager.GET_META_DATA);
-            PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
-            wakeLock = null;
-            if ( (Integer)ai.metaData.get("wakelock") == 1 ) {
-                wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+            Log.v(TAG, "Access to our meta-data...");
+            this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
+                    this.mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+
+            PowerManager pm = (PowerManager) this.mActivity.getSystemService(Context.POWER_SERVICE);
+            if ( this.mMetaData.getInt("wakelock") == 1 ) {
+                this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
             }
-            if ( ai.metaData.getInt("surface.transparent") != 0 ) {
+            if ( this.mMetaData.getInt("surface.transparent") != 0 ) {
                 Log.v(TAG, "Surface will be transparent.");
-                mSurface.setZOrderOnTop(true);
-                mSurface.getHolder().setFormat(PixelFormat.TRANSPARENT);
+                getSurface().setZOrderOnTop(true);
+                getSurface().getHolder().setFormat(PixelFormat.TRANSPARENT);
             } else {
                 Log.i(TAG, "Surface will NOT be transparent");
             }
