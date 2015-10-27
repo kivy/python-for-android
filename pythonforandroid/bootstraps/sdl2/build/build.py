@@ -249,6 +249,10 @@ def make_package(args):
     default_icon = 'templates/kivy-icon.png'
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
 
+    default_presplash = 'templates/kivy-presplash.jpg'
+    shutil.copy(args.presplash or default_presplash,
+                'res/drawable/presplash.jpg')
+
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
 
@@ -324,6 +328,11 @@ tools directory of the Android SDK.
                     help='A png file to use as the icon for the application.')
     ap.add_argument('--permission', dest='permissions', action='append',
                     help='The permissions to give this app.')
+    ap.add_argument('--meta-data', dest='meta_data', action='append',
+                    help='Custom key=value to add in application metadata')
+    ap.add_argument('--presplash', dest='presplash',
+                    help=('A jpeg file to use as a screen while the '
+                          'application is loading.'))
 
     if args is None:
         args = sys.argv[1:]
@@ -332,6 +341,9 @@ tools directory of the Android SDK.
 
     if args.permissions is None:
         args.permissions = []
+
+    if args.meta_data is None:
+        args.meta_data = []
 
     make_package(args)
 
