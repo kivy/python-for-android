@@ -55,22 +55,9 @@ class VlcRecipe(Recipe):
                 })
                 info("compiling vlc from sources")
                 debug("environment: {}".format(env))
-                try:
-                    if not exists(join(port_dir, 'bin', 'VLC-debug.apk')):
-                        shprint(sh.Command('./compile.sh'), _env=env)
-                    shprint(sh.Command('./compile-libvlc.sh'), _env=env)
-                except sh.ErrorReturnCode_1, err:
-                    warning("Error: vlc compilation failed")
-                    lines = err.stdout.splitlines()
-                    N = 20
-                    if len(lines) <= N:
-                        info('STDOUT:\n{}\t{}{}'.format(Fore.YELLOW, '\t\n'.join(lines), Fore.RESET))
-                    else:
-                        info('STDOUT (last {} lines of {}):\n{}\t{}{}'.format(N, len(lines), Fore.YELLOW, '\t\n'.join(lines[-N:]), Fore.RESET))
-                    lines = err.stderr.splitlines()
-                    if len(lines):
-                        warning('STDERR:\n{}\t{}{}'.format(Fore.RED, '\t\n'.join(lines), Fore.RESET))
-                    raise Exception("vlc compilation failed")
+                if not exists(join(port_dir, 'bin', 'VLC-debug.apk')):
+                     shprint(sh.Command('./compile.sh'), _env=env, _tail=50, _critical=True)
+                shprint(sh.Command('./compile-libvlc.sh'), _env=env, _tail=50, _critical=True)
         shprint(sh.cp, '-a', aar, self.ctx.aars_dir)
 
 recipe = VlcRecipe()

@@ -127,24 +127,41 @@ def shprint(command, *args, **kwargs):
     else:
         logger.debug(string + Style.RESET_ALL)
 
-    output = command(*args, **kwargs)
-    need_closing_newline = False
-    for line in output:
-        if logger.level > logging.DEBUG:
-            string = ''.join([Style.RESET_ALL, '\r', ' '*11, 'working ... ',
-                              line[:100].replace('\n', '').rstrip(), ' ...'])
-            if len(string) < 20:
-                continue
-            if len(string) < 120:
-                string = string + ' '*(120 - len(string))
-            sys.stdout.write(string)
-            sys.stdout.flush()
-            need_closing_newline = True
+    try:
+        output = command(*args, **kwargs)
+        need_closing_newline = False
+        for line in output:
+            if logger.level > logging.DEBUG:
+                string = ''.join([Style.RESET_ALL, '\r', ' '*11, 'working ... ',
+                                  line[:100].replace('\n', '').rstrip(), ' ...'])
+                if len(string) < 20:
+                    continue
+                if len(string) < 120:
+                    string = string + ' '*(120 - len(string))
+                sys.stdout.write(string)
+                sys.stdout.flush()
+                need_closing_newline = True
+            else:
+                logger.debug(''.join(['\t', line.rstrip()]))
+        if logger.level > logging.DEBUG and need_closing_newline:
+            print()
+    except sh.ErrorReturnCode_1, err:
+        N = kwargs.get('_tail', 0)
+        if N:
+            warning("Error: {} failed".format(command))
+            lines = err.stdout.splitlines()
+            if len(lines) <= N:
+                info('STDOUT:\n{}\t{}{}'.format(Fore.YELLOW, '\t\n'.join(lines), Fore.RESET))
+            else:
+                info('STDOUT (last {} lines of {}):\n{}\t{}{}'.format(N, len(lines), Fore.YELLOW, '\t\n'.join(lines[-N:]), Fore.RESET))
+            lines = err.stderr.splitlines()
+            if len(lines):
+                warning('STDERR:\n{}\t{}{}'.format(Fore.RED, '\t\n'.join(lines), Fore.RESET))
+        if kwargs.get('_critical', False):
+            exit(1)
         else:
-            logger.debug(''.join(['\t', line.rstrip()]))
-    if logger.level > logging.DEBUG and need_closing_newline:
-        print()
-        
+            raise
+
     return output
 
 # shprint(sh.ls, '-lah')
@@ -2849,7 +2866,7 @@ clean_dists
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             build.parse_args(args)
-            shprint(sh.ant, 'debug')
+            shprint(sh.ant, 'debug', _tail=20, _critical=True)
 
         # AND: This is very crude, needs improving. Also only works
         # for debug for now.
