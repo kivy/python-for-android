@@ -112,8 +112,14 @@ def shprint(command, *args, **kwargs):
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
     kwargs["_bg"] = True
+    is_critical = kwargs.pop('_critical', False)
+    tail_n = kwargs.pop('_tail', 0)
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
+    try:
+    	columns = max(25, int(os.popen('stty size', 'r').read().split()[1]))
+    except:
+    	columns = 100
     command_path = str(command).split('/')
     command_string = command_path[-1]
     string = ' '.join(['running', command_string] + list(args))
@@ -121,43 +127,41 @@ def shprint(command, *args, **kwargs):
     # If logging is not in DEBUG mode, trim the command if necessary
     if logger.level > logging.DEBUG:
         short_string = string
-        if len(string) > 100:
-            short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
+        if len(string) > columns:
+            short_string = '{}...(and {} more)'.format(string[:(columns - 20)], len(string) - (columns - 20))
         logger.info(short_string + Style.RESET_ALL)
     else:
         logger.debug(string + Style.RESET_ALL)
 
+    need_closing_newline = False
     try:
+        msg_hdr = '           working: '
+        msg_width = columns - len(msg_hdr) - 1
         output = command(*args, **kwargs)
-        need_closing_newline = False
         for line in output:
             if logger.level > logging.DEBUG:
-                string = ''.join([Style.RESET_ALL, '\r', ' '*11, 'working ... ',
-                                  line[:100].replace('\n', '').rstrip(), ' ...'])
-                if len(string) < 20:
-                    continue
-                if len(string) < 120:
-                    string = string + ' '*(120 - len(string))
-                sys.stdout.write(string)
-                sys.stdout.flush()
-                need_closing_newline = True
+            	msg = line.replace('\n', ' ').rstrip()
+                if msg:
+#                    if len(msg) > msg_width: msg = msg[:(msg_width - 3)] + '...'
+                    sys.stdout.write('{}\r{}{:<{width}.{width}}'.format(Style.RESET_ALL, msg_hdr, msg, width=msg_width))
+                    sys.stdout.flush()
+                    need_closing_newline = True
             else:
                 logger.debug(''.join(['\t', line.rstrip()]))
-        if logger.level > logging.DEBUG and need_closing_newline:
-            print()
+        if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
     except sh.ErrorReturnCode_1, err:
-        N = kwargs.get('_tail', 0)
-        if N:
-            warning("Error: {} failed".format(command))
+        if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
+        if tail_n:
             lines = err.stdout.splitlines()
-            if len(lines) <= N:
+            if len(lines) <= tail_n:
                 info('STDOUT:\n{}\t{}{}'.format(Fore.YELLOW, '\t\n'.join(lines), Fore.RESET))
             else:
-                info('STDOUT (last {} lines of {}):\n{}\t{}{}'.format(N, len(lines), Fore.YELLOW, '\t\n'.join(lines[-N:]), Fore.RESET))
+                info('STDOUT (last {} lines of {}):\n{}\t{}{}'.format(tail_n, len(lines), Fore.YELLOW, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
             lines = err.stderr.splitlines()
             if len(lines):
                 warning('STDERR:\n{}\t{}{}'.format(Fore.RED, '\t\n'.join(lines), Fore.RESET))
-        if kwargs.get('_critical', False):
+        if is_critical:
+            warning("{}ERROR: {} failed!{}".format(Fore.RED, command, Fore.RESET))
             exit(1)
         else:
             raise
