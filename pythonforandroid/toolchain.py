@@ -105,6 +105,12 @@ def pretty_log_dists(dists, log_func=info):
     for line in infos:
         log_func('\t' + line)
 
+def shorten_string(string, width):
+    if len(string) <= width:
+        return string
+    visible = width - 20 #expected suffix len
+    return '{:<{width}}...(and {} more)'.format(string, len(string) - visible, width = visible)
+
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
     logging the output.'''
@@ -117,21 +123,18 @@ def shprint(command, *args, **kwargs):
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
     try:
-    	columns = max(25, int(os.popen('stty size', 'r').read().split()[1]))
+        columns = max(25, int(os.popen('stty size', 'r').read().split()[1]))
     except:
-    	columns = 100
+        columns = 100
     command_path = str(command).split('/')
     command_string = command_path[-1]
     string = ' '.join(['running', command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
     if logger.level > logging.DEBUG:
-        short_string = string
-        if len(string) > columns:
-            short_string = '{}...(and {} more)'.format(string[:(columns - 20)], len(string) - (columns - 20))
-        logger.info(short_string + Style.RESET_ALL)
+        logger.info('{}{}'.format(shorten_string(string, columns - 12), Style.RESET_ALL))
     else:
-        logger.debug(string + Style.RESET_ALL)
+        logger.debug('{}{}'.format(string, Style.RESET_ALL))
 
     need_closing_newline = False
     try:
@@ -140,7 +143,7 @@ def shprint(command, *args, **kwargs):
         output = command(*args, **kwargs)
         for line in output:
             if logger.level > logging.DEBUG:
-            	msg = line.replace('\n', ' ').rstrip()
+                msg = line.replace('\n', ' ').replace('\t', ' ').rstrip()
                 if msg:
 #                    if len(msg) > msg_width: msg = msg[:(msg_width - 3)] + '...'
                     sys.stdout.write('{}\r{}{:<{width}.{width}}'.format(Style.RESET_ALL, msg_hdr, msg, width=msg_width))
