@@ -30,6 +30,7 @@ from functools import wraps
 from datetime import datetime
 from distutils.spawn import find_executable
 from tempfile import mkdtemp
+from math import log10
 try:
     from urllib.request import FancyURLopener
 except ImportError:
@@ -105,11 +106,15 @@ def pretty_log_dists(dists, log_func=info):
     for line in infos:
         log_func('\t' + line)
 
-def shorten_string(string, width):
-    if len(string) <= width:
+def shorten_string(string, max_width):
+    ''' make limited length string in form:
+      "the string is very lo...(and 15 more)"
+    '''  
+    string_len = len(string)
+    if string_len <= max_width:
         return string
-    visible = width - 20 #expected suffix len
-    return '{:<{width}}...(and {} more)'.format(string, len(string) - visible, width = visible)
+    visible = max_width - 16 - int(log10(string_len)) #expected suffix len "...(and XXXXX more)"
+    return ''.join(string[:visible], '...(and ', string_len - visible, ' more)')
 
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
@@ -146,7 +151,7 @@ def shprint(command, *args, **kwargs):
                 msg = line.replace('\n', ' ').replace('\t', ' ').rstrip()
                 if msg:
 #                    if len(msg) > msg_width: msg = msg[:(msg_width - 3)] + '...'
-                    sys.stdout.write('{}\r{}{:<{width}.{width}}'.format(Style.RESET_ALL, msg_hdr, msg, width=msg_width))
+                    sys.stdout.write('{}\r{}{:<{width}}'.format(Style.RESET_ALL, msg_hdr, shorten_string(msg, msg_width), width=msg_width))
                     sys.stdout.flush()
                     need_closing_newline = True
             else:
