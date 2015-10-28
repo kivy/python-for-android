@@ -34,6 +34,7 @@ class PygameRecipe(Recipe):
                 join(self.get_build_dir('armeabi'), 'Setup'))
         self.apply_patch(join('patches', 'fix-surface-access.patch'))
         self.apply_patch(join('patches', 'fix-array-surface.patch'))
+        self.apply_patch(join('patches', 'fix-sdl-spam-log.patch'))
         shprint(sh.touch, join(self.get_build_container_dir('armeabi'), '.patched'))
         
     def build_armeabi(self):
