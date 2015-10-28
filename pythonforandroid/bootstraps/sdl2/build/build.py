@@ -333,6 +333,9 @@ tools directory of the Android SDK.
     ap.add_argument('--presplash', dest='presplash',
                     help=('A jpeg file to use as a screen while the '
                           'application is loading.'))
+    ap.add_argument('--wakelock', dest='wakelock', action='store_true',
+                    help=('Indicate if the application needs the device '
+                          'to stay on'))
 
     if args is None:
         args = sys.argv[1:]
