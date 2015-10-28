@@ -114,7 +114,7 @@ def shorten_string(string, max_width):
     if string_len <= max_width:
         return string
     visible = max_width - 16 - int(log10(string_len)) #expected suffix len "...(and XXXXX more)"
-    return ''.join(string[:visible], '...(and ', string_len - visible, ' more)')
+    return ''.join((string[:visible], '...(and ', str(string_len - visible), ' more)'))
 
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
