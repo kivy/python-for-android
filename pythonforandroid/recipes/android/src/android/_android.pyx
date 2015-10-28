@@ -190,8 +190,14 @@ if mActivity:
         @java_method('()V')
         def onGlobalLayout(self):
             rctx = Rect()
+            # print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
             mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
+            # print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
+            # print('activity height: {0}'.format(mActivity.getWindowManager().getDefaultDisplay().getHeight())) 
+            # NOTE top should always be zero
+            rctx.top = 0
             self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
+            # print('final height: {0}'.format(self.height))
 
     ll = LayoutListener()
     python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
