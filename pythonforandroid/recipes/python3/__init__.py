@@ -19,12 +19,26 @@ class Python3Recipe(Recipe):
             print('Python3 already patched, skipping.')
             return
 
+        # # self.apply_patch(join('patches_inclement',
+        # #                       'python-{version}-define_macro.patch'.format(version=self.version)))
+        # # self.apply_patch(join('patches_inclement',
+        # #                       'python-{version}-android-locale.patch'.format(version=self.version)))
+        # # self.apply_patch(join('patches_inclement',
+        # #                       'python-{version}-android-misc.patch'.format(version=self.version)))
+
+        # self.apply_patch(join('patches_inclement',
+        #                       'python-{version}-locale_and_android_misc.patch'.format(version=self.version)))
+        
+
         self.apply_patch(join('patches', 'python-{version}-android-libmpdec.patch'.format(version=self.version)))
         self.apply_patch(join('patches', 'python-{version}-android-locale.patch'.format(version=self.version)))
         self.apply_patch(join('patches', 'python-{version}-android-misc.patch'.format(version=self.version)))
         # self.apply_patch(join('patches', 'python-{version}-android-missing-getdents64-definition.patch'.format(version=self.version)))
         self.apply_patch(join('patches', 'python-{version}-cross-compile.patch'.format(version=self.version)))
         self.apply_patch(join('patches', 'python-{version}-python-misc.patch'.format(version=self.version)))
+
+        self.apply_patch(join('patches', 'python-{version}-libpymodules_loader.patch'.format(version=self.version)))
+        
 
         shprint(sh.touch, join(build_dir, '.patched'))
 

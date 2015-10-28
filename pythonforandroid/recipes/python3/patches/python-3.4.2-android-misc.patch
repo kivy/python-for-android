@@ -6,7 +6,7 @@ diff -ru Python-3.3.5/Lib/platform.py Python-3.3.5-android/Lib/platform.py
                                full_distribution_name=0)
 
 +_android_environment_vars = (
-+    'ANDROID_ROOT', 'ANDROID_ASSETS', 'ANDROID_STORAGE', 'ANDROID_DATA',
++    'ANDROID_PRIVATE', 'ANDROID_ARGUMENT', 'ANDROID_APP_PATH', 'ANDROID_DATA',
 +    'ANDROID_PROPERTY_WORKSPACE', 'ANDROID_BOOTLOGO')
 +_android_version_property = 'ro.build.version.release'
 +_android_buildstr_property = 'ro.build.version.full'
