@@ -111,8 +111,7 @@ def shorten_string(string, max_width):
       "the string is very lo...(and 15 more)"
     '''  
     string_len = len(string)
-    if string_len <= max_width:
-        return string
+    if string_len <= max_width: return string
     visible = max_width - 16 - int(log10(string_len)) #expected suffix len "...(and XXXXX more)"
     return ''.join((string[:visible], '...(and ', str(string_len - visible), ' more)'))
 
@@ -148,7 +147,7 @@ def shprint(command, *args, **kwargs):
         output = command(*args, **kwargs)
         for line in output:
             if logger.level > logging.DEBUG:
-                msg = line.replace('\n', ' ').replace('\t', ' ').rstrip()
+                msg = line.replace('\n', ' ').replace('\t', ' ').replace('\b', ' ').rstrip()
                 if msg:
 #                    if len(msg) > msg_width: msg = msg[:(msg_width - 3)] + '...'
                     sys.stdout.write('{}\r{}{:<{width}}'.format(Style.RESET_ALL, msg_hdr, shorten_string(msg, msg_width), width=msg_width))
@@ -157,7 +156,7 @@ def shprint(command, *args, **kwargs):
             else:
                 logger.debug(''.join(['\t', line.rstrip()]))
         if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
-    except sh.ErrorReturnCode_1, err:
+    except sh.ErrorReturnCode, err:
         if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
         if tail_n:
             lines = err.stdout.splitlines()
