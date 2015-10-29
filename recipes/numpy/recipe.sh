@@ -15,6 +15,9 @@ function prebuild_numpy() {
 	fi
 
 	try patch -p1 < $RECIPE_numpy/patches/fix-numpy.patch
+	try patch -p1 < $RECIPE_numpy/patches/ar.patch
+	try patch -p1 < $RECIPE_numpy/patches/lib.patch
+	try patch -p1 < $RECIPE_numpy/patches/prevent_libs_check.patch
 	touch .patched
 }
 
