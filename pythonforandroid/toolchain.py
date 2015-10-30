@@ -1564,15 +1564,30 @@ class Recipe(object):
     #         print("Unrecognized extension for {}".format(filename))
     #         raise Exception()
 
-    def apply_patch(self, filename):
+    def apply_patch(self, filename, arch='armeabi'):
         """
         Apply a patch from the current recipe directory into the current
         build directory.
         """
         info("Applying patch {}".format(filename))
         filename = join(self.recipe_dir, filename)
-        # AND: get_build_dir shouldn't need to hardcode armeabi
-        sh.patch("-t", "-d", self.get_build_dir('armeabi'), "-p1", "-i", filename)
+        shprint(sh.patch, "-t", "-d", self.get_build_dir(arch), "-p1",
+                   "-i", filename, _tail=10)
+
+    def apply_all_patches(self, wildcard=join('patches','*.patch'), arch='armeabi'):
+        patches = glob.glob(join(self.recipe_dir, wildcard))
+        if not patches:
+            warning('requested patches {} not found for {}'.format(wildcard, self.name))
+        for filename in sorted(patches):
+            name = splitext(basename(filename))[0]
+            patched_flag = join(self.get_build_container_dir(arch), name + '.patched')
+            if exists(patched_flag):
+                info('patch {} already applied to {}, skipping'.format(name, self.name))
+            else:
+                self.apply_patch(filename, arch=arch)
+                sh.touch(patched_flag)
+        return len(patches)
+
 
     def copy_file(self, filename, dest):
         info("Copy {} to {}".format(filename, dest))
