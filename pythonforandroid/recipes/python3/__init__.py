@@ -38,6 +38,7 @@ class Python3Recipe(Recipe):
         self.apply_patch(join('patches', 'python-{version}-python-misc.patch'.format(version=self.version)))
 
         self.apply_patch(join('patches', 'python-{version}-libpymodules_loader.patch'.format(version=self.version)))
+        self.apply_patch('log_failures.patch')
         
 
         shprint(sh.touch, join(build_dir, '.patched'))
@@ -67,6 +68,7 @@ class Python3Recipe(Recipe):
             # shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
             env = ArchAndroid(self.ctx).get_env()
+            env["LDFLAGS"] = env["LDFLAGS"] + ' -llog'
 
             # AND: Should probably move these to get_recipe_env for
             # neatness, but the whole recipe needs tidying along these

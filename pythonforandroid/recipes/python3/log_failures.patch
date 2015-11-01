@@ -1,0 +1,26 @@
+diff --git a/Python/pythonrun.c b/Python/pythonrun.c
+index 0327830..903cc02 100644
+--- a/Python/pythonrun.c
++++ b/Python/pythonrun.c
+@@ -39,6 +39,11 @@
+ #define PATH_MAX MAXPATHLEN
+ #endif
+ 
++/* p4a log redirect */
++#include <jni.h>
++#include "android/log.h"
++#define LOG(x) __android_log_write(ANDROID_LOG_INFO, "python", (x))
++
+ _Py_IDENTIFIER(builtins);
+ _Py_IDENTIFIER(excepthook);
+ _Py_IDENTIFIER(flush);
+@@ -2594,6 +2599,9 @@ Py_FatalError(const char *msg)
+ {
+     const int fd = fileno(stderr);
+     PyThreadState *tstate;
++    
++    LOG("Py_FatalError called!");
++    LOG(msg);
+ 
+     fprintf(stderr, "Fatal Python error: %s\n", msg);
+     fflush(stderr); /* it helps in Windows debug build */
