@@ -1,0 +1,44 @@
+--- a/numpy/linalg/setup.py	2015-07-09 14:15:59.850853336 +0200
++++ b/numpy/linalg/setup.py	2015-07-09 14:21:59.403889000 +0200
+@@ -37,7 +37,8 @@
+     config.add_extension('lapack_lite',
+                          sources = [get_lapack_lite_sources],
+                          depends = ['lapack_litemodule.c'] + lapack_lite_src,
+-                         extra_info = lapack_info
++                         extra_info = lapack_info,
++                         libraries = ['m'],
+                          )
+ 
+     # umath_linalg module
+@@ -46,7 +47,7 @@
+                          sources = [get_lapack_lite_sources],
+                          depends =  ['umath_linalg.c.src'] + lapack_lite_src,
+                          extra_info = lapack_info,
+-                         libraries = ['npymath'],
++                         libraries = ['npymath','m'],
+                          )
+ 
+     return config
+--- a/numpy/fft/setup.py	2015-07-09 14:35:22.299888028 +0200
++++ b/numpy/fft/setup.py	2015-07-09 14:33:54.858392578 +0200
+@@ -9,7 +9,8 @@
+ 
+     # Configure fftpack_lite
+     config.add_extension('fftpack_lite',
+-                         sources=['fftpack_litemodule.c', 'fftpack.c']
++                         sources=['fftpack_litemodule.c', 'fftpack.c'],
++                         libraries = ['m']
+                          )
+ 
+ 
+--- a/numpy/random/setup.orig.py	2015-07-09 14:44:41.105174826 +0200
++++ b/numpy/random/setup.py	2015-07-09 14:46:08.592679877 +0200
+@@ -38,7 +38,7 @@
+     if needs_mingw_ftime_workaround():
+         defs.append(("NPY_NEEDS_MINGW_TIME_WORKAROUND", None))
+ 
+-    libs = []
++    libs = ['m']
+     # Configure mtrand
+     config.add_extension('mtrand',
+                          sources=[join('mtrand', x) for x in
