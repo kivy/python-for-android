@@ -1,27 +1,25 @@
 diff --git a/jnius/jnius_jvm_android.pxi b/jnius/jnius_jvm_android.pxi
-index ac89fec..3ca9e0f 100644
+index ac89fec..71daa43 100644
 --- a/jnius/jnius_jvm_android.pxi
 +++ b/jnius/jnius_jvm_android.pxi
-@@ -1,5 +1,7 @@
+@@ -1,5 +1,5 @@
  # on android, rely on SDL to get the JNI env
 -cdef extern JNIEnv *SDL_ANDROID_GetJNIEnv()
-+# cdef extern JNIEnv *SDL_ANDROID_GetJNIEnv()
 +cdef extern JNIEnv *SDL_AndroidGetJNIEnv()
  
  cdef JNIEnv *get_platform_jnienv():
 -    return SDL_ANDROID_GetJNIEnv()
 +    return <JNIEnv*>SDL_AndroidGetJNIEnv()
-+    # return SDL_ANDROID_GetJNIEnv()
 diff --git a/setup.py b/setup.py
-index c6beedd..3cc7c4e 100644
+index 740510f..0c8e55f 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -41,7 +41,7 @@ except ImportError:
+@@ -53,7 +53,7 @@ except ImportError:
  
  if platform == 'android':
      # for android, we use SDL...
 -    libraries = ['sdl', 'log']
 +    libraries = ['SDL2', 'log']
-     library_dirs = ['libs/' + environ['ARCH']]
+     library_dirs = ['libs/' + getenv('ARCH')]
  elif platform == 'darwin':
      import subprocess
