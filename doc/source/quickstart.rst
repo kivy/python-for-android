@@ -43,15 +43,17 @@ via your package manager or otherwise. These include:
 - git
 - ant
 - python2
+- cython (can be installed via pip)
 - the Android `SDK <https://developer.android.com/sdk/index.html#Other>`_ and `NDK <https://developer.android.com/ndk/downloads/index.html>`_ (see below)
 - a Java JDK (e.g. openjdk-7)
 - zlib (including 32 bit)
 - libncurses (including 32 bit)
 - unzip
+- virtualenv (can be installed via pip)
 - ccache (optional)
 
 On recent versions of Ubuntu and its derivatives you may be able to
-install all many of these with::
+install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
