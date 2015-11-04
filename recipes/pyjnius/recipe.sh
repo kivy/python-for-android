@@ -2,7 +2,7 @@
 
 VERSION_pyjnius=${VERSION_pyjnius:-master}
 URL_pyjnius=https://github.com/kivy/pyjnius/archive/$VERSION_pyjnius.zip
-DEPS_pyjnius=(python sdl)
+DEPS_pyjnius=(python sdl six)
 MD5_pyjnius=
 BUILD_pyjnius=$BUILD_PATH/pyjnius/$(get_directory $URL_pyjnius)
 RECIPE_pyjnius=$RECIPES_PATH/pyjnius
