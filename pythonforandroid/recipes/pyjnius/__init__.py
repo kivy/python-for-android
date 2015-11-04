@@ -9,7 +9,7 @@ class PyjniusRecipe(CythonRecipe):
     version  = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
-    depends = ['python2', ('sdl2', 'sdl')]
+    depends = ['python2', ('sdl2', 'sdl'), 'six']
     site_packages_name = 'jnius'
     def prebuild_arch(self, arch):
         super(PyjniusRecipe, self).prebuild_arch(arch)
