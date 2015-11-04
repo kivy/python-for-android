@@ -2168,7 +2168,8 @@ class CythonRecipe(PythonRecipe):
                     self.ctx.cython, '{}', ';', _env=env)
             info('ran cython')
 
-            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
+            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
+                    _tail=20, _critical=True)
 
             print('stripping')
             build_lib = glob.glob('./build/lib*')
