@@ -812,8 +812,37 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         GLES20.glViewport(0, 0, mWidth, mHeight);
 
         if (bitmap != null) {
-            float mx = ((float)mWidth / bitmap.getWidth()) / 2.0f;
-            float my = ((float)mHeight / bitmap.getHeight()) / 2.0f;
+            String fit = (String) ai.metaData.get("presplash-fit");
+
+            Log.i("python","presplash-fit is "+fit);
+            // WARNING: The presplash-fit api is unstable and may be changed
+
+            int bitmapWidth = bitmap.getWidth();
+            int bitmapHeight = bitmap.getHeight();
+
+            float mx;
+            float my;
+
+            if (fit != null && fit.equals("fit")) {
+                float bitmapMultiplier = (float) Math.sqrt(2f * mWidth * mHeight / bitmapWidth / bitmapHeight);
+                mx = (float) mWidth / bitmapWidth / bitmapMultiplier;
+                my = (float) mHeight / bitmapHeight / bitmapMultiplier;
+            } else if (fit != null && fit.equals("width")) {
+                float bitmapMultiplier = ((float) mWidth) / bitmapWidth;
+                mx = (float) mWidth / bitmapWidth / 2.0f /bitmapMultiplier;
+                my = (float) mHeight / bitmapHeight / 2.0f /bitmapMultiplier;
+            } else if (fit != null && fit.equals("height")) {
+                float bitmapMultiplier = ((float) mHeight) / bitmapHeight;
+                mx = (float) mWidth / bitmapWidth / 2.0f / bitmapMultiplier;
+                my = (float) mHeight / bitmapHeight / 2.0f / bitmapMultiplier;
+            } else {
+                // default
+                mx = ((float) mWidth / bitmapWidth) / 2.0f;
+                my = ((float) mHeight / bitmapWidth) / 2.0f;
+            }
+
+            Log.i("python", String.format("presplash (fit=%s) mx=%f,my=%f", fit,mx, my));
+
             Matrix.orthoM(mProjMatrix, 0, -mx, mx, my, -my, 0, 10);
             int value = bitmap.getPixel(0, 0);
             Color color = new Color();
