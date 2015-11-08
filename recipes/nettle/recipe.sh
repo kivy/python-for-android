@@ -10,8 +10,12 @@ _src=$BUILD_nettle
 
 function prebuild_nettle() {
 	cd $_src
-	try patch -p1 < $RECIPE_nettle/configure.patch
-	true
+	if [ ! -e $RECIPE_nettle/patched ]; then
+	do
+		try patch -p1 < $RECIPE_nettle/configure.patch
+		touch $RECIPE_nettle/patched
+	done
+	fi
 }
 
 function shouldbuild_nettle() {

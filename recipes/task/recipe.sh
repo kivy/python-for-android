@@ -14,8 +14,13 @@ _pyroot=$(dirname `dirname $HOSTPYTHON`)
 function prebuild_task() {
 	# take the patch from the recipe
 	cd $BUILD_task
-	patch -p1 < $RECIPE_task/CMakeLists.txt.patch
-	patch -p1 < $RECIPE_task/Nibbler.h.patch
+	if [ ! -e $RECIPE_task/patched ]; then
+	do
+		patch --forward -p1 < $RECIPE_task/CMakeLists.txt.patch
+		patch --forward -p1 < $RECIPE_task/Nibbler.h.patch
+		touch $RECIPE_task/patched
+	done
+	fi
 
 	cp $RECIPE_task/glob.* $BUILD_task/src
 
