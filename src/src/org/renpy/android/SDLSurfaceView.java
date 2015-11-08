@@ -815,6 +815,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             String fit = (String) ai.metaData.get("presplash-fit");
 
             Log.i("python","presplash-fit is "+fit);
+            // WARNING: The presplash-fit api is unstable and may be changed
 
             int bitmapWidth = bitmap.getWidth();
             int bitmapHeight = bitmap.getHeight();
