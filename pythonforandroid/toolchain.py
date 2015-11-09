@@ -159,14 +159,14 @@ def shprint(command, *args, **kwargs):
     except sh.ErrorReturnCode, err:
         if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
         if tail_n:
-            lines = err.stdout.splitlines()
-            if len(lines) <= tail_n:
-                info('STDOUT:\n{}\t{}{}'.format(Fore.YELLOW, '\t\n'.join(lines), Fore.RESET))
-            else:
-                info('STDOUT (last {} lines of {}):\n{}\t{}{}'.format(tail_n, len(lines), Fore.YELLOW, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
-            lines = err.stderr.splitlines()
-            if len(lines):
-                warning('STDERR:\n{}\t{}{}'.format(Fore.RED, '\t\n'.join(lines), Fore.RESET))
+            def printtail(name, forecolor, tail_n, out):
+                lines = out.splitlines()
+                if tail_n == 0 or len(lines) <= tail_n:
+                    info('{}:\n{}\t{}{}'.format(name, forecolor, '\t\n'.join(lines), Fore.RESET))
+                else:
+                    info('{} (last {} lines of {}):\n{}\t{}{}'.format(name, tail_n, len(lines), forecolor, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
+            printtail('STDOUT', Fore.YELLOW, tail_n, err.stdout)
+            printtail('STDERR', Fore.RED, 0, err.stderr)
         if is_critical:
             warning("{}ERROR: {} failed!{}".format(Fore.RED, command, Fore.RESET))
             exit(1)

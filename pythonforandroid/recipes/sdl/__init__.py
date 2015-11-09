@@ -18,7 +18,7 @@ class LibSDLRecipe(NDKRecipe):
         env = ArchAndroid(self.ctx).get_env()
 
         with current_directory(self.get_jni_dir()):
-            shprint(sh.ndk_build, 'V=1', _env=env)
+            shprint(sh.ndk_build, 'V=1', _env=env, _tail=20, _critical=True)
 
         libs_dir = join(self.ctx.bootstrap.build_dir, 'libs', 'armeabi')
         import os

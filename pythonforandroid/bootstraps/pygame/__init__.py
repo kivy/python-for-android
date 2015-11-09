@@ -43,7 +43,8 @@ class PygameBootstrap(Bootstrap):
             info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)
             # AND: This *doesn't* need to be in arm env?
-            shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir())
+            shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir(),
+                    _tail=10, _critical=True)
             if not exists('python-install'):
                 shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 

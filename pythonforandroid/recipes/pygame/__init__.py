@@ -60,7 +60,8 @@ class PygameRecipe(Recipe):
         with current_directory(self.get_build_dir('armeabi')):
             info('hostpython is ' + self.ctx.hostpython)
             hostpython = sh.Command(self.ctx.hostpython)
-            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
+                    _tail=10, _critical=True)
 
             info('strip is ' + env['STRIP'])
             build_lib = glob.glob('./build/lib*')
