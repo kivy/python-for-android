@@ -4,8 +4,8 @@ VERSION_ffpyplayer_tito=${VERSION_ffpyplayer_tito:-master}
 URL_ffpyplayer_tito=http://github.com/tito/ffpyplayer/archive/$VERSION_ffpyplayer_tito.zip
 DEPS_ffpyplayer_tito=(python ffmpeg2)
 MD5_ffpyplayer_tito=
-BUILD_ffpyplayer_tito=$BUILD_PATH/ffpyplayer/$(get_directory $URL_ffpyplayer_tito)
-RECIPE_ffpyplayer_tito=$RECIPES_PATH/ffpyplayer
+BUILD_ffpyplayer_tito=$BUILD_PATH/ffpyplayer_tito/$(get_directory $URL_ffpyplayer_tito)
+RECIPE_ffpyplayer_tito=$RECIPES_PATH/ffpyplayer_tito
 
 function prebuild_ffpyplayer_tito() {
 	true
