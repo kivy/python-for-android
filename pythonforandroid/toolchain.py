@@ -33,7 +33,10 @@ try:
     from urllib.request import FancyURLopener
 except ImportError:
     from urllib import FancyURLopener
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 import argparse
 from appdirs import user_data_dir
