@@ -127,6 +127,8 @@ def shprint(command, *args, **kwargs):
     kwargs["_bg"] = True
     is_critical = kwargs.pop('_critical', False)
     tail_n = kwargs.pop('_tail', 0)
+    filter_in = kwargs.pop('_filter', None)
+    filter_out = kwargs.pop('_filterout', None)
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
     try:
@@ -161,16 +163,24 @@ def shprint(command, *args, **kwargs):
         if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
     except sh.ErrorReturnCode, err:
         if need_closing_newline: sys.stdout.write('{}\r{:>{width}}\r'.format(Style.RESET_ALL, ' ', width=(columns - 1)))
-        if tail_n:
-            def printtail(name, forecolor, tail_n, out):
+        if tail_n or filter_in or filter_out:
+            def printtail(out, name, forecolor, tail_n = 0, re_filter_in = None, re_filter_out = None):
                 lines = out.splitlines()
+                if re_filter_in is not None: lines = [l for l in lines if re_filter_in.search(l)]
+                if re_filter_out is not None: lines = [l for l in lines if not re_filter_out.search(l)]
                 if tail_n == 0 or len(lines) <= tail_n:
                     info('{}:\n{}\t{}{}'.format(name, forecolor, '\t\n'.join(lines), Fore.RESET))
                 else:
                     info('{} (last {} lines of {}):\n{}\t{}{}'.format(name, tail_n, len(lines), forecolor, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
-            printtail('STDOUT', Fore.YELLOW, tail_n, err.stdout)
-            printtail('STDERR', Fore.RED, 0, err.stderr)
+            printtail(err.stdout, 'STDOUT', Fore.YELLOW, tail_n,
+                      re.compile(filter_in) if filter_in else None,
+                      re.compile(filter_out) if filter_out else None)
+            printtail(err.stderr, 'STDERR', Fore.RED)
         if is_critical:
+            env = kwargs.get("env")
+            if env is not None:
+                info("{}ENV:{}\n{}\n".format(Fore.YELLOW, Fore.RESET, "\n".join("set {}={}".format(n,v) for n,v in env.items())))
+            info("{}COMMAND:{}\ncd {} && {} {}\n".format(Fore.YELLOW, Fore.RESET, getcwd(), command, ' '.join(args)))
             warning("{}ERROR: {} failed!{}".format(Fore.RED, command, Fore.RESET))
             exit(1)
         else:
