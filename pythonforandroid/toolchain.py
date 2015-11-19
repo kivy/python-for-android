@@ -78,7 +78,7 @@ if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
                                     # handler and reset the level
     logger.setLevel(logging.INFO)
     logger.touched = True
-    ch = logging.StreamHandler(stdout)
+    ch = logging.StreamHandler(stdout) if sys.stdout.isatty() else logging.NullHandler()
     formatter = LevelDifferentiatingFormatter('%(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
