@@ -41,7 +41,16 @@ except ImportError:
 import argparse
 from appdirs import user_data_dir
 import sh
-from colorama import Style, Fore
+if sys.stdout.isatty():
+    from colorama import Style, Fore
+else:
+    from collections import defaultdict
+    class colorama_shim(object):
+        def __init__(self):
+            self._dict = defaultdict(str)
+        def __getattr__(self, key):
+            return self._dict[key]
+    Style = Fore = colorama_shim()
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
