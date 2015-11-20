@@ -9,7 +9,7 @@ This tool intend to replace all the previous tools/ in shell script.
 from __future__ import print_function
 
 import sys
-from sys import stdout, platform
+from sys import stdout, stderr, platform
 from os.path import (join, dirname, realpath, exists, isdir, basename,
                      expanduser)
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
@@ -42,16 +42,29 @@ except ImportError:
 import argparse
 from appdirs import user_data_dir
 import sh
-if sys.stdout.isatty():
-    from colorama import Style, Fore
+
+from colorama import Style as Colo_Style, Fore as Colo_Fore
+from collections import defaultdict
+class colorama_shim(object):
+    def __init__(self):
+        self._dict = defaultdict(str)
+    def __getattr__(self, key):
+        return self._dict[key]
+Null_Style = Null_Fore = colorama_shim()
+
+if stdout.isatty():
+    Out_Style = Colo_Style
+    Out_Fore = Colo_Fore
 else:
-    from collections import defaultdict
-    class colorama_shim(object):
-        def __init__(self):
-            self._dict = defaultdict(str)
-        def __getattr__(self, key):
-            return self._dict[key]
-    Style = Fore = colorama_shim()
+    Out_Style = Null_Style
+    Out_Fore = Null_Fore
+
+if stderr.isatty():
+    Err_Style = Colo_Style
+    Err_Fore = Colo_Fore
+else:
+    Err_Style = Null_Style
+    Err_Fore = Null_Fore
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -64,13 +77,13 @@ class LevelDifferentiatingFormatter(logging.Formatter):
     def format(self, record):
         if record.levelno > 20:
             record.msg = '{}{}[WARNING]{}{}: '.format(
-                Style.BRIGHT, Fore.RED, Fore.RESET, Style.RESET_ALL) + record.msg
+                Err_Style.BRIGHT, Err_Fore.RED, Err_Fore.RESET, Err_Style.RESET_ALL) + record.msg
         elif record.levelno > 10:
             record.msg = '{}[INFO]{}:    '.format(
-                Style.BRIGHT, Style.RESET_ALL) + record.msg
+                Err_Style.BRIGHT, Err_Style.RESET_ALL) + record.msg
         else:
             record.msg = '{}{}[DEBUG]{}{}:   '.format(
-                Style.BRIGHT, Fore.LIGHTBLACK_EX, Fore.RESET, Style.RESET_ALL) + record.msg
+                Err_Style.BRIGHT, Err_Fore.LIGHTBLACK_EX, Err_Fore.RESET, Err_Style.RESET_ALL) + record.msg
         return super(LevelDifferentiatingFormatter, self).format(record)
 
 logger = logging.getLogger('p4a')
@@ -79,7 +92,7 @@ if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
                                     # handler and reset the level
     logger.setLevel(logging.INFO)
     logger.touched = True
-    ch = logging.StreamHandler(stdout) if sys.stdout.isatty() else logging.NullHandler()
+    ch = logging.StreamHandler(stderr)
     formatter = LevelDifferentiatingFormatter('%(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
@@ -90,20 +103,20 @@ warning = logger.warning
 
 IS_PY3 = sys.version_info[0] >= 3
 
-info(''.join([Style.BRIGHT, Fore.RED,
+info(''.join([Err_Style.BRIGHT, Err_Fore.RED,
               'This python-for-android revamp is an experimental alpha release!',
-              Style.RESET_ALL]))
-info(''.join([Fore.RED,
+              Err_Style.RESET_ALL]))
+info(''.join([Err_Fore.RED,
               ('It should work (mostly), but you may experience '
                'missing features or bugs.'),
-              Style.RESET_ALL]))
+              Err_Style.RESET_ALL]))
 
 def info_main(*args):
-    logger.info(''.join([Style.BRIGHT, Fore.GREEN] + list(args) +
-                        [Style.RESET_ALL, Fore.RESET]))
+    logger.info(''.join([Err_Style.BRIGHT, Err_Fore.GREEN] + list(args) +
+                        [Err_Style.RESET_ALL, Err_Fore.RESET]))
 
 def info_notify(s):
-    info('{}{}{}{}'.format(Style.BRIGHT, Fore.LIGHTBLUE_EX, s, Style.RESET_ALL))
+    info('{}{}{}{}'.format(Err_Style.BRIGHT, Err_Fore.LIGHTBLUE_EX, s, Err_Style.RESET_ALL))
 
 def pretty_log_dists(dists, log_func=info):
     infos = []
@@ -112,7 +125,7 @@ def pretty_log_dists(dists, log_func=info):
                      'includes recipes ({Fore.GREEN}{recipes}'
                      '{Style.RESET_ALL})'.format(
                          name=dist.name, recipes=', '.join(dist.recipes),
-                         Fore=Fore, Style=Style))
+                         Fore=Err_Fore, Style=Err_Style))
 
     for line in infos:
         log_func('\t' + line)
@@ -135,15 +148,15 @@ def shprint(command, *args, **kwargs):
         short_string = string
         if len(string) > 100:
             short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
-        logger.info(short_string + Style.RESET_ALL)
+        logger.info(short_string + Err_Style.RESET_ALL)
     else:
-        logger.debug(string + Style.RESET_ALL)
+        logger.debug(string + Err_Style.RESET_ALL)
 
     output = command(*args, **kwargs)
     need_closing_newline = False
     for line in output:
         if logger.level > logging.DEBUG:
-            string = ''.join([Style.RESET_ALL, '\r', ' '*11, 'working ... ',
+            string = ''.join([Err_Style.RESET_ALL, '\r', ' '*11, 'working ... ',
                               line[:100].replace('\n', '').rstrip(), ' ...'])
             if len(string) < 20:
                 continue
@@ -225,12 +238,12 @@ def which(program, path_env):
 @contextlib.contextmanager
 def current_directory(new_dir):
     cur_dir = getcwd()
-    logger.info(''.join((Fore.CYAN, '-> directory context ', new_dir,
-                         Fore.RESET)))
+    logger.info(''.join((Err_Fore.CYAN, '-> directory context ', new_dir,
+                         Err_Fore.RESET)))
     chdir(new_dir)
     yield
-    logger.info(''.join((Fore.CYAN, '<- directory context ', cur_dir,
-                         Fore.RESET)))
+    logger.info(''.join((Err_Fore.CYAN, '<- directory context ', cur_dir,
+                         Err_Fore.RESET)))
     chdir(cur_dir)
 
 
@@ -2606,13 +2619,13 @@ build_dist
                     print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
                           '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
                           '{version:<8}{Style.RESET_ALL}'.format(
-                              recipe=recipe, Fore=Fore, Style=Style,
+                              recipe=recipe, Fore=Out_Fore, Style=Out_Style,
                               version=version))
                     print('    {Fore.GREEN}depends: {recipe.depends}'
-                          '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                          '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
                     if recipe.conflicts:
                         print('    {Fore.RED}conflicts: {recipe.conflicts}'
-                              '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                              '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
                 else:
                     print("{recipe.name:<12} {recipe.version:<8}".format(
                           recipe=recipe))
@@ -2624,9 +2637,9 @@ build_dist
         for bs in Bootstrap.list_bootstraps():
             bs = Bootstrap.get_bootstrap(bs, self.ctx)
             print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'.format(
-                bs=bs, Fore=Fore, Style=Style))
+                bs=bs, Fore=Out_Fore, Style=Out_Style))
             print('    {Fore.GREEN}depends: {bs.recipe_depends}{Fore.RESET}'.format(
-                bs=bs, Fore=Fore))
+                bs=bs, Fore=Out_Fore))
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
@@ -2852,11 +2865,11 @@ build_dist
 
         if dists:
             print('{Style.BRIGHT}Distributions currently installed are:'
-                  '{Style.RESET_ALL}'.format(Style=Style, Fore=Fore))
+                  '{Style.RESET_ALL}'.format(Style=Out_Style, Fore=Out_Fore))
             pretty_log_dists(dists, print)
         else:
             print('{Style.BRIGHT}There are no dists currently built.'
-                  '{Style.RESET_ALL}'.format(Style=Style))
+                  '{Style.RESET_ALL}'.format(Style=Out_Style))
 
     def delete_dist(self, args):
         dist = self._dist
@@ -2915,24 +2928,24 @@ build_dist
     def build_status(self, args):
 
         print('{Style.BRIGHT}Bootstraps whose core components are probably already built:'
-              '{Style.RESET_ALL}'.format(Style=Style))
+              '{Style.RESET_ALL}'.format(Style=Out_Style))
         for filen in os.listdir(join(self.ctx.build_dir, 'bootstrap_builds')):
             print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'.format(
-                filen=filen, Fore=Fore, Style=Style))
+                filen=filen, Fore=Out_Fore, Style=Out_Style))
 
         print('{Style.BRIGHT}Recipes that are probably already built:'
-              '{Style.RESET_ALL}'.format(Style=Style))
+              '{Style.RESET_ALL}'.format(Style=Out_Style))
         if exists(join(self.ctx.build_dir, 'other_builds')):
             for filen in sorted(os.listdir(join(self.ctx.build_dir, 'other_builds'))):
                 name = filen.split('-')[0]
                 dependencies = filen.split('-')[1:]
                 recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
                               '{Style.RESET_ALL}'.format(
-                                  Style=Style, name=name, Fore=Fore))
+                                  Style=Out_Style, name=name, Fore=Out_Fore))
                 if dependencies:
                     recipe_str += (' ({Fore.BLUE}with ' + ', '.join(dependencies) +
-                                   '{Fore.RESET})').format(Fore=Fore)
-                recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
+                                   '{Fore.RESET})').format(Fore=Out_Fore)
+                recipe_str += '{Style.RESET_ALL}'.format(Style=Out_Style)
                 print(recipe_str)
 
 
