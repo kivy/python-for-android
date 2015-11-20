@@ -25,6 +25,7 @@ import re
 import imp
 import contextlib
 import logging
+import shlex
 from copy import deepcopy
 from functools import wraps
 from datetime import datetime
@@ -2517,6 +2518,8 @@ build_dist
             type=bool, default=False)
 
 
+        self._read_configuration()
+
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
 
@@ -2562,6 +2565,18 @@ build_dist
     #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
     #     #     print("Architectures restricted to: {}".format(archs))
     #     build_recipes(args.recipe, ctx)
+
+    def _read_configuration(self):
+        # search for a .p4a configuration file in the current directory
+        if not exists(".p4a"):
+            return
+        info("Reading .p4a configuration")
+        with open(".p4a") as fd:
+            lines = fd.readlines()
+        lines = [shlex.split(line) for line in lines if not line.startswith("#")]
+        for line in lines:
+            for arg in line:
+                sys.argv.append(arg)
 
     @property
     def ctx(self):
