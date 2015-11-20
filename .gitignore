@@ -12,3 +12,6 @@
 
 *.pyc
 *.pyo
+.packages
+python_for_android.egg-info
+src
