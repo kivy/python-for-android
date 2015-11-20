@@ -2584,7 +2584,7 @@ build_dist
             print(" ".join(list(Recipe.list_recipes())))
         else:
             ctx = self.ctx
-            for name in Recipe.list_recipes():
+            for name in sorted(Recipe.list_recipes()):
                 recipe = Recipe.get_recipe(name, ctx)
                 version = str(recipe.version)
                 if args.color:
