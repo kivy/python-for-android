@@ -2453,23 +2453,27 @@ class ToolchainCL(object):
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
 
-Currently available commands:
-create    Build an android project with all recipes
-
 Available commands:
-Not yet confirmed
+adb           Runs adb binary from the detected SDK dir
+apk           Create an APK using the given distribution
+bootstraps    List all the bootstraps available to build with.
+build_status  Informations about the current build
+create        Build an android project with all recipes
+clean_all     Delete all build components
+clean_builds  Delete all build caches
+clean_dists   Delete all compiled distributions
+clean_download_cache Delete any downloaded recipe packages
+clean_recipe_build   Delete the build files of a recipe
+distributions List all distributions
+export_dist   Copies a created dist to an output directory
+logcat        Runs logcat from the detected SDK dir
+print_context_info   Prints debug informations
+recipes       List all the available recipes
+sdk_tools     Runs android binary from the detected SDK dir
+symlink_dist  Symlinks a created dist to an output directory
 
 Planned commands:
-recipes
-distributions
 build_dist
-symlink_dist
-copy_dist
-clean_all
-status
-clean_builds
-clean_download_cache
-clean_dists
 """)
         parser.add_argument("command", help="Command to run")
 
