@@ -1927,6 +1927,10 @@ class PythonRecipe(Recipe):
     call_hostpython_via_targetpython is False.
     '''
 
+    install_in_targetpython = True
+    '''If True (default), install the module in the target python build.
+    '''
+
     @property
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
@@ -1974,13 +1978,14 @@ class PythonRecipe(Recipe):
             # hostpython = sh.Command(self.ctx.hostpython)
             hostpython = sh.Command(self.hostpython_location)
 
-            if self.call_hostpython_via_targetpython:
-                shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
-            else:
-                shprint(hostpython, 'setup.py', 'install', '-O2',
-                        '--root={}'.format(self.ctx.get_python_install_dir()),
-                        '--install-lib=lib/python2.7/site-packages',
-                        _env=env)  # AND: Hardcoded python2.7 needs fixing
+            if self.install_in_targetpython:
+                if self.call_hostpython_via_targetpython:
+                    shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+                else:
+                    shprint(hostpython, 'setup.py', 'install', '-O2',
+                            '--root={}'.format(self.ctx.get_python_install_dir()),
+                            '--install-lib=lib/python2.7/site-packages',
+                            _env=env)  # AND: Hardcoded python2.7 needs fixing
 
             # If asked, also install in the hostpython build dir
             if self.install_in_hostpython:
@@ -2935,6 +2940,36 @@ build_dist
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Style)
                 print(recipe_str)
 
+    def hostpython(self, args):
+        '''Get an hostpython shell for the default arch
+        '''
+        ctx = self.ctx
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+                                      user_ndk_dir=self.ndk_dir,
+                                      user_android_api=self.android_api,
+                                      user_ndk_ver=self.ndk_version)
+
+        recipe = Recipe.get_recipe('hostpython2', self.ctx)
+        hostpython = join(recipe.get_build_dir('armeabi'), 'hostpython')
+        env = recipe.get_recipe_env()
+        env["PYTHONPATH"] = ":".join([
+            join(recipe.get_build_dir('armeabi'), 'Lib', 'site-packages')
+            ])
+        env["CFLAGS"] = "-I/home/tito/.local/share/python-for-android/build/other_builds/numpy/armeabi/numpy/numpy/core/include {}".format(env["CFLAGS"])
+        env["CFLAGS"] = "-I/home/tito/.local/share/python-for-android/build/other_builds/numpy/armeabi/numpy/build/src.linux-x86_64-2.7/numpy/core/include/numpy {}".format(env["CFLAGS"])
+        env["CFLAGS"] = "-I/home/tito/.local/share/python-for-android/build/other_builds/python2/armeabi/python2/Include {}".format(env["CFLAGS"])
+        env["CFLAGS"] = "-I/home/tito/.local/share/python-for-android/build/other_builds/python2/armeabi/python2 {}".format(env["CFLAGS"])
+        # env["LDFLAGS"] = "-lpython2.7 -lc"
+        env["LDFLAGS"] = "-lpython2.7"
+        env["LDFLAGS"] = "-L/home/tito/.local/share/python-for-android/build/other_builds/python2/armeabi/python2 {}".format(env["LDFLAGS"])
+        # env["LDSHARED"] = "{} -shared".format(env["LD"])
+        env["LDSHARED"] = "{} -shared".format(env["CC"])
+        env["CFLAGS"] = env["CFLAGS"].replace("-DANDROID", "")
+        env["CXXFLAGS"] = env["CXXFLAGS"].replace("-DANDROID", "")
+        from pprint import pprint
+        pprint(env)
+        pprint(ctx.include_dirs)
+        os.execve(hostpython, [hostpython] + args, env)
 
 def main():
     ToolchainCL()
