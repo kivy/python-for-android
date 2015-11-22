@@ -2971,6 +2971,29 @@ build_dist
         pprint(ctx.include_dirs)
         os.execve(hostpython, [hostpython] + args, env)
 
+    def build(self, args):
+        '''Build a recipe
+        '''
+        parser = argparse.ArgumentParser(
+            description='Build a specific recipe')
+        parser.add_argument('recipe', help=('The recipe to build'))
+        args, unknown = parser.parse_known_args(args)
+        self.dist_args.requirements += ',{}'.format(args.recipe)
+        dist = self._dist
+        ctx = self.ctx
+
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+                                      user_ndk_dir=self.ndk_dir,
+                                      user_android_api=self.android_api,
+                                      user_ndk_ver=self.ndk_version)
+        recipe = Recipe.get_recipe(args.recipe, self.ctx)
+        recipe.clean_build()
+        # TODO potentially, cleaning require compilation from all recipes
+        # that depends on the current one. (think about hostpython, sdl2
+        # for example)
+        build_dist_from_args(self.ctx, dist, "")
+
+
 def main():
     ToolchainCL()
 
