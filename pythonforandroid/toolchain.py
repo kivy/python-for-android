@@ -1788,6 +1788,13 @@ class Recipe(object):
         if hasattr(self, build):
             getattr(self, build)()
 
+    def install_arch(self, arch):
+        '''Install the build previously build with `build_arch`
+        '''
+        install = "install_{}".format(arch.arch)
+        if hasattr(self, install):
+            getattr(self, install)()
+
     def postbuild_arch(self, arch):
         '''Run any post-build tasks for the Recipe. By default, this checks if
         any postbuild_archname methods exist for the archname of the
@@ -1957,15 +1964,10 @@ class PythonRecipe(Recipe):
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
 
-    def build_arch(self, arch):
-        '''Install the Python module by calling setup.py install with
-        the target Python dir.'''
-        super(PythonRecipe, self).build_arch(arch)
+    def install_arch(self, arch):
+        super(PythonRecipe, self).install_arch(arch)
         self.install_python_package()
-    # @cache_execution
-    # def install(self):
-    #     self.install_python_package()
-    #     self.reduce_python_package()
+        self.reduce_python_package()
 
     def install_python_package(self, name=None, env=None, is_dir=True):
         '''Automate the installation of a Python package (or a cython
@@ -1998,21 +2000,17 @@ class PythonRecipe(Recipe):
                         '--install-lib=Lib/site-packages',
                         _env=env)
 
+    def reduce_python_package(self):
+        '''Feel free to remove things you don't want in the final site-packages
+        '''
+        pass
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
     pre_build_ext = False
-    def build_arch(self, arch):
-        '''Build any cython components, then install the Python module by
-        calling setup.py install with the target Python dir.
-        '''
-        Recipe.build_arch(self, arch)  # AND: Having to directly call the
-                                 # method like this is nasty...could
-                                 # use tito's method of having an
-                                 # install method that always runs
-                                 # after everything else but isn't
-                                 # used by a normal recipe.
+
+    def install_arch(self, arch):
         self.build_compiled_components(arch)
-        self.install_python_package()
+        super(CompiledComponentsPythonRecipe, self).install_arch(arch)
 
     def build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
@@ -2021,7 +2019,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, 'setup.py', 'build_ext', '-v')
-            build_dir = glob.glob('build/lib.*')[0]
+            build_dir = glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
 
@@ -2030,18 +2028,9 @@ class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
 
-    def build_arch(self, arch):
-        '''Build any cython components, then install the Python module by
-        calling setup.py install with the target Python dir.
-        '''
-        Recipe.build_arch(self, arch)  # AND: Having to directly call the
-                                 # method like this is nasty...could
-                                 # use tito's method of having an
-                                 # install method that always runs
-                                 # after everything else but isn't
-                                 # used by a normal recipe.
+    def install_arch(self, arch):
         self.build_cython_components(arch)
-        self.install_python_package()
+        super(CythonRecipe, self).install_arch(arch)
 
     @cache_execution
     def build_cython_components(self, arch):
@@ -2156,7 +2145,13 @@ def build_recipes(build_order, python_modules, ctx):
         info_main('# Biglinking object files')
         biglink(ctx, arch)
 
-        # 5) postbuild packages
+        # 5) install
+        info_main('# Install recipes')
+        for recipe in recipes:
+            info_main('Install {} for {}'.format(recipe.name, arch.arch))
+            recipe.install_arch(arch)
+
+        # 6) postbuild packages
         info_main('# Postbuilding recipes')
         for recipe in recipes:
             info_main('Postbuilding {} for {}'.format(recipe.name, arch.arch))
