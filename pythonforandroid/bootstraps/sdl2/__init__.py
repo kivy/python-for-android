@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, logger, info_main, which
-from os.path import join, exists
+from os.path import join, exists, getsize
 from os import walk
 import glob
 import sh
@@ -27,7 +27,7 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.mkdir, 'private')
             if not exists('assets'):
                 shprint(sh.mkdir, 'assets')
-            
+
             hostpython = sh.Command(self.ctx.hostpython)
             # AND: This *doesn't* need to be in arm env?
             shprint(hostpython, '-OO', '-m', 'compileall',
@@ -50,7 +50,7 @@ class SDL2Bootstrap(Bootstrap):
                 info('private/lib does not exist, making')
                 shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
-            
+
             # AND: Copylibs stuff should go here
             if exists(join('libs', 'armeabi', 'libpymodules.so')):
                 shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
@@ -93,9 +93,10 @@ class SDL2Bootstrap(Bootstrap):
         logger.info('Stripping libraries in private dir')
         for filen in filens.split('\n'):
             try:
-                strip(filen, _env=env)
+                if exists(filen) and getsize(filen):
+                    strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
-                logger.debug('Failed to strip ' + 'filen')
+                logger.debug('Failed to strip ' + filen)
         super(SDL2Bootstrap, self).run_distribute()
 
 bootstrap = SDL2Bootstrap()
