@@ -1819,6 +1819,7 @@ class Recipe(object):
         strange results. Rebuild everything if this seems to happen.
 
         '''
+        self.ctx.state.remove_all(self.name)
         if arch is None:
             dir = join(self.ctx.build_dir, 'other_builds', self.name)
         else:
@@ -2042,6 +2043,7 @@ class CythonRecipe(PythonRecipe):
         self.build_cython_components(arch)
         self.install_python_package()
 
+    @cache_execution
     def build_cython_components(self, arch):
         # AND: Should we use tito's cythonize methods? How do they work?
         info('Cythonizing anything necessary in {}'.format(self.name))
