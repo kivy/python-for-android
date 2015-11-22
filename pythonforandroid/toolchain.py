@@ -26,6 +26,7 @@ import imp
 import contextlib
 import logging
 import shlex
+from glob import glob
 from copy import deepcopy
 from functools import wraps
 from datetime import datetime
@@ -682,7 +683,7 @@ class Context(object):
             sdk_dir = environ.get('ANDROID_HOME', None)
         if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
                              # for debug tests of p4a
-            possible_dirs = glob.glob(expanduser(join(
+            possible_dirs = glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
             if possible_dirs:
                 info('Found possible SDK dirs in buildozer dir: {}'.format(
@@ -754,7 +755,7 @@ class Context(object):
                 info('Found NDK dir in $ANDROID_NDK_HOME')
         if ndk_dir is None:  # Checks in the buildozer NDK dir, useful
                              # for debug tests of p4a
-            possible_dirs = glob.glob(expanduser(join(
+            possible_dirs = glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-ndk-r*')))
             if possible_dirs:
                 info('Found possible NDK dirs in buildozer dir: {}'.format(
@@ -1127,9 +1128,9 @@ class Distribution(object):
             warning('extra_dist_dirs argument to get_distributions is not yet implemented')
             exit(1)
         dist_dir = ctx.dist_dir
-        folders = glob.glob(join(dist_dir, '*'))
+        folders = glob(join(dist_dir, '*'))
         for dir in extra_dist_dirs:
-            folders.extend(glob.glob(join(dir, '*')))
+            folders.extend(glob(join(dir, '*')))
 
         dists = []
         for folder in folders:
@@ -1828,11 +1829,9 @@ class Recipe(object):
 
     @classmethod
     def list_recipes(cls):
-        forbidden_dirs = ('__pycache__', )
-        recipes_dir = join(dirname(__file__), "recipes")
-        for name in listdir(recipes_dir):
-            if name in forbidden_dirs:
-                continue
+        recipes_dir = join(toolchain_dir, "recipes")
+        for name in glob(recipes_dir, "*", "__init__.py"):
+            name = name.rsplit("/", 2)[-2]
             fn = join(recipes_dir, name)
             if isdir(fn):
                 yield name
@@ -2061,7 +2060,7 @@ class CythonRecipe(PythonRecipe):
             shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
 
             print('stripping')
-            build_lib = glob.glob('./build/lib*')
+            build_lib = glob('./build/lib*')
             shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
@@ -2203,7 +2202,7 @@ def biglink(ctx, arch):
         if not exists(recipe_obj_dir):
             info('{} recipe has no biglinkable files dir, skipping'.format(recipe.name))
             continue
-        files = glob.glob(join(recipe_obj_dir, '*'))
+        files = glob(join(recipe_obj_dir, '*'))
         if not len(files):
             info('{} recipe has no biglinkable files, skipping'.format(recipe.name))
         info('{} recipe has object files, copying'.format(recipe.name))
@@ -2217,7 +2216,7 @@ def biglink(ctx, arch):
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
         join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi'))
 
-    if not len(glob.glob(join(obj_dir, '*'))):
+    if not len(glob(join(obj_dir, '*'))):
         info('There seem to be no libraries to biglink, skipping.')
         return
     info('Biglinking')
@@ -2805,7 +2804,7 @@ build_dist
         # AND: This is very crude, needs improving. Also only works
         # for debug for now.
         info_main('# Copying APK to current directory')
-        apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-debug.apk'))
+        apks = glob(join(dist.dist_dir, 'bin', '*-*-debug.apk'))
         if len(apks) == 0:
             raise ValueError('Couldn\'t find the built APK')
         if len(apks) > 1:
