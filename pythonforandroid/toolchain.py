@@ -374,6 +374,10 @@ class Arch(object):
             toolchain_prefix=toolchain_prefix,
             cxxflags=env['CXXFLAGS'])
 
+        if self.ctx.ccache:
+            env["CC"] = "{} {}".format(self.ctx.ccache, env["CC"])
+            env["CXX"] = "{} {}".format(self.ctx.ccache, env["CXX"])
+
         env['AR'] = '{}-ar'.format(toolchain_prefix)
         env['RANLIB'] = '{}-ranlib'.format(toolchain_prefix)
         env['LD'] = '{}-ld'.format(toolchain_prefix)
