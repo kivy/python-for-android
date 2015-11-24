@@ -10,7 +10,7 @@ options available.
 .. warning:: These instructions are quite preliminary. The
              installation and use process will become more standard in
              the near future.
-             
+
 
 Installation
 ------------
@@ -20,18 +20,18 @@ The easiest way to install is with pip. You need to have setuptools installed, t
   pip install git+https://github.com/kivy/python-for-android.git
 
 This should install python-for-android (though you may need to run as root or add --user).
-  
+
 You could also install python-for-android manually, either via git::
 
   git clone https://github.com/kivy/python-for-android.git
   cd python-for-android
-  
+
 Or by direct download::
 
   wget https://github.com/kivy/python-for-android/archive/master.zip
   unzip revamp.zip
   cd python-for-android-revamp
-  
+
 Then in both cases run ``python setup.py install``.
 
 Dependencies
@@ -58,13 +58,13 @@ install most of these with::
     sudo dpkg --add-architecture i386
     sudo apt-get update
     sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant
-    
+
 When installing the Android SDK and NDK, note the filepaths where they
 may be found, and the version of the NDK installed. You may need to
 set environment variables pointing to these later.
 
 .. _basic_use:
-  
+
 Basic use
 ---------
 
@@ -84,7 +84,7 @@ Android SDK and NDK, then:
 - Set the ``ANDROIDSDK`` env var to the ``/path/to/the/sdk``
 - Set the ``ANDROIDNDK`` env var to the ``/path/to/the/ndk``
 - Set the ``ANDROIDAPI`` to the targeted API version (or leave it
-  unset to use the default of ``14``). 
+  unset to use the default of ``14``).
 - Set the ``ANDROIDNDKVER`` env var to the version of the NDK
   downloaded, e.g. the current NDK is ``r10e`` (or leave it unset to
   use the default of ``r9``.
@@ -97,7 +97,7 @@ To create a basic distribution, run .e.g::
 
      python-for-android create --dist_name=testproject --bootstrap=pygame \
          --requirements=sdl,python2
-     
+
 This will compile the distribution, which will take a few minutes, but
 will keep you informed about its progress. The arguments relate to the
 properties of the created distribution; the dist_name is an (optional)
@@ -105,18 +105,18 @@ unique identifier, and the requirements is a list of any pure Python
 pypi modules, or dependencies with recipes available, that your app
 depends on. The full list of builtin internal recipes can be seen with
 ``python-for-android recipes``.
-     
+
 .. note:: Compiled dists are not located in the same place as with old
           python-for-android, but instead in an OS-dependent
           location. The build process will print this location when it
           finishes, but you no longer need to navigate there manually
           (see below).
-         
+
 To build an APK, use the ``apk`` command::
 
     python-for-android apk --private /path/to/your/app --package=org.example.packagename \
         --name="Your app name" --version=0.1
-    
+
 The arguments to ``apk`` can be anything accepted by the old
 python-for-android build.py; the above is a minimal set to create a
 basic app. You can see the list with ``python-for-android apk help``.
@@ -124,14 +124,14 @@ basic app. You can see the list with ``python-for-android apk help``.
 A new feature of python-for-android is that you can do all of this with just one command::
 
     python-for-android apk --private /path/to/your/app \
-        --package=org.example.packagename --name="Your app name" --version=0.5 
+        --package=org.example.packagename --name="Your app name" --version=0.5
         --bootstrap=pygame --requirements=sdl,python2 --dist_name=testproject
-  
+
 This combines the previous ``apk`` command with the arguments to
 ``create``, and works in exactly the same way; if no internal
 distribution exists with these requirements then one is first built,
 before being used to package the APK. When the command is run again,
-the build step is skipped and the previous dist re-used. 
+the build step is skipped and the previous dist re-used.
 
 Using this method you don't have to worry about whether a dist exists,
 though it is recommended to use a different ``dist_name`` for each
@@ -183,9 +183,9 @@ order; setting any of these variables overrides all the later ones:
   python-for-android automatically checks the default buildozer
   download directory. This is intended to make testing
   python-for-android easy.
-  
+
 If none of these is set, python-for-android will raise an error and exit.
-  
+
 The Android API to target
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -209,7 +209,7 @@ several ways. Each choice overrides all the later ones:
 - The ``--android_api`` argument to any python-for-android command.
 - The ``ANDROIDAPI`` environment variables.
 - If neither of the above, the default target is used (currently 14).
-  
+
 python-for-android checks if the target you select is available, and
 gives an error if not, so it's easy to test if you passed this
 variable correctly.
@@ -250,3 +250,15 @@ and means that you probably do *not* have to manually set this.
 If ``RELEASE.TXT`` exists but you manually set a different version,
 python-for-android will warn you about it, but will assume you are
 correct and try to continue the build.
+
+Configuration file
+~~~~~~~~~~~~~~~~~~
+
+python-for-android look on the current directory if there is a `.p4a`
+configuration file. If it found it, it adds all the lines as options
+to the command line. For example, you can put the options you would
+always write such as:
+
+    --dist_name my_example
+    --android_api 19
+    --requirements kivy,openssl

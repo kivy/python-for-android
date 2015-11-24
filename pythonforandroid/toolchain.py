@@ -25,6 +25,7 @@ import re
 import imp
 import contextlib
 import logging
+import shlex
 from copy import deepcopy
 from functools import wraps
 from datetime import datetime
@@ -43,7 +44,16 @@ except ImportError:
 import argparse
 from appdirs import user_data_dir
 import sh
-from colorama import Style, Fore
+if sys.stdout.isatty():
+    from colorama import Style, Fore
+else:
+    from collections import defaultdict
+    class colorama_shim(object):
+        def __init__(self):
+            self._dict = defaultdict(str)
+        def __getattr__(self, key):
+            return self._dict[key]
+    Style = Fore = colorama_shim()
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -71,7 +81,7 @@ if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
                                     # handler and reset the level
     logger.setLevel(logging.INFO)
     logger.touched = True
-    ch = logging.StreamHandler(stdout)
+    ch = logging.StreamHandler(stdout) if sys.stdout.isatty() else logging.NullHandler()
     formatter = LevelDifferentiatingFormatter('%(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
@@ -2583,23 +2593,27 @@ class ToolchainCL(object):
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
 
-Currently available commands:
-create    Build an android project with all recipes
-
 Available commands:
-Not yet confirmed
+adb           Runs adb binary from the detected SDK dir
+apk           Create an APK using the given distribution
+bootstraps    List all the bootstraps available to build with.
+build_status  Informations about the current build
+create        Build an android project with all recipes
+clean_all     Delete all build components
+clean_builds  Delete all build caches
+clean_dists   Delete all compiled distributions
+clean_download_cache Delete any downloaded recipe packages
+clean_recipe_build   Delete the build files of a recipe
+distributions List all distributions
+export_dist   Copies a created dist to an output directory
+logcat        Runs logcat from the detected SDK dir
+print_context_info   Prints debug informations
+recipes       List all the available recipes
+sdk_tools     Runs android binary from the detected SDK dir
+symlink_dist  Symlinks a created dist to an output directory
 
 Planned commands:
-recipes
-distributions
 build_dist
-symlink_dist
-copy_dist
-clean_all
-status
-clean_builds
-clean_download_cache
-clean_dists
 """)
         parser.add_argument("command", help="Command to run")
 
@@ -2642,6 +2656,8 @@ clean_dists
                                              'perfectly match those requested.'),
             type=bool, default=False)
 
+
+        self._read_configuration()
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
@@ -2689,6 +2705,18 @@ clean_dists
     #     #     print("Architectures restricted to: {}".format(archs))
     #     build_recipes(args.recipe, ctx)
 
+    def _read_configuration(self):
+        # search for a .p4a configuration file in the current directory
+        if not exists(".p4a"):
+            return
+        info("Reading .p4a configuration")
+        with open(".p4a") as fd:
+            lines = fd.readlines()
+        lines = [shlex.split(line) for line in lines if not line.startswith("#")]
+        for line in lines:
+            for arg in line:
+                sys.argv.append(arg)
+
     @property
     def ctx(self):
         if self._ctx is None:
@@ -2710,7 +2738,7 @@ clean_dists
             print(" ".join(list(Recipe.list_recipes())))
         else:
             ctx = self.ctx
-            for name in Recipe.list_recipes():
+            for name in sorted(Recipe.list_recipes()):
                 recipe = Recipe.get_recipe(name, ctx)
                 version = str(recipe.version)
                 if args.color:
