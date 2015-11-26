@@ -1342,6 +1342,11 @@ class Bootstrap(object):
 
 
 class Recipe(object):
+    info = None
+    '''Some information on the recipe, as a string.  This is not
+    essential and may always be omitted.
+    '''
+
     url = None
     '''The address from which the recipe may be downloaded. This is not
     essential, it may be omitted if the source is available some other
@@ -2621,6 +2626,9 @@ build_dist
                           '{version:<8}{Style.RESET_ALL}'.format(
                               recipe=recipe, Fore=Out_Fore, Style=Out_Style,
                               version=version))
+                    if recipe.info:
+                        print('    {Fore.GREEN}info: {recipe.info!r}{Fore.RESET}'.format(
+                            recipe=recipe, Fore=Out_Fore))
                     print('    {Fore.GREEN}depends: {recipe.depends}'
                           '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
                     if recipe.conflicts:
@@ -2629,6 +2637,8 @@ build_dist
                 else:
                     print("{recipe.name:<12} {recipe.version:<8}".format(
                           recipe=recipe))
+                    if recipe.info:
+                        print('    info: {recipe.info!r}'.format(recipe=recipe))
                     print('    depends: {recipe.depends}'.format(recipe=recipe))
                     print('    conflicts: {recipe.conflicts}'.format(recipe=recipe))
 
