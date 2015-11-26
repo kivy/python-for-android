@@ -175,6 +175,31 @@ def shprint(command, *args, **kwargs):
 # exit(1)
 
 
+def add_boolean_option(parser, names, no_names=None,
+                       default=True, dest=None, description=None):
+    group = parser.add_argument_group(description=description)
+    if not isinstance(names, (list,tuple)):
+        names = [names]
+    if dest is None:
+        dest = names[0].strip("-").replace("-","_")
+    def add_dashes(x):
+        return x if x.startswith("-") else "--"+x
+    opts = [add_dashes(x) for x in names]
+    group.add_argument(
+        *opts, help=("(this is the default)" if default else None),
+        dest=dest, action='store_true')
+    if no_names is None:
+        def add_no(x):
+            x = x.lstrip("-")
+            return ("no_"+x) if "_" in x else ("no-"+x)
+        no_names = [add_no(x) for x in names]
+    opts = [add_dashes(x) for x in no_names]
+    group.add_argument(
+        *opts, help=(None if default else "(this is the default)"),
+        dest=dest, action='store_false')
+    parser.set_defaults(**{dest:default})
+
+
 def require_prebuilt_dist(func):
     '''Decorator for ToolchainCL methods. If present, the method will
     automatically make sure a dist has been built before continuing
@@ -2513,23 +2538,32 @@ build_dist
             '--requirements',
             help='Dependencies of your app, should be recipe names or Python modules',
             default='')
-        parser.add_argument(
-            '--allow_download', help='Allow binary dist download.',
-            default=False, type=bool)
-        parser.add_argument(
-            '--allow_build', help='Allow compilation of a new distribution.',
-            default=True, type=bool)
-        parser.add_argument(
-            '--force_build', help='Force compilation of a new distribution.',
-            default=False, type=bool)
-        parser.add_argument(
-            '--extra_dist_dirs', help='Directories in which to look for distributions',
-            default='')
-        parser.add_argument(
-            '--require_perfect_match', help=('Whether the dist recipes must '
-                                             'perfectly match those requested.'),
-            type=bool, default=False)
 
+        add_boolean_option(
+            parser, ["allow-download", "allow_download"],
+            default=False,
+            description='Whether to allow binary dist download:')
+
+        add_boolean_option(
+            parser, ["allow-build", "allow_build"],
+            default=True,
+            description='Whether to allow compilation of a new distribution:')
+
+        add_boolean_option(
+            parser, ["force-build", "force_build"],
+            default=False,
+            description='Whether to force compilation of a new distribution:')
+
+        parser.add_argument(
+            '--extra-dist-dirs', '--extra_dist_dirs',
+            dest='extra_dist_dirs', default='',
+            help='Directories in which to look for distributions')
+
+        add_boolean_option(
+            parser, ["require-perfect-match", "require_perfect_match"],
+            default=False,
+            description=('Whether the dist recipes must perfectly match '
+                         'those requested'))
 
         self._read_configuration()
 
@@ -2601,11 +2635,14 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="List all the available recipes")
         parser.add_argument(
-                "--compact", action="store_true",
+                "--compact", action="store_true", default=False,
                 help="Produce a compact list suitable for scripting")
-        parser.add_argument(
-            '--color', type=bool, default=True,
-            help='Whether the output should be coloured')
+
+        add_boolean_option(
+            parser, ["color"],
+            default=True,
+            description='Whether the output should be colored:')
+        
         args = parser.parse_args(args)
 
         if args.compact:
