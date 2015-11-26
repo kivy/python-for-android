@@ -2540,17 +2540,17 @@ build_dist
             default='')
 
         add_boolean_option(
-            parser, ["allow-download", "allow_download"],
+            parser, ["allow-download"],
             default=False,
             description='Whether to allow binary dist download:')
 
         add_boolean_option(
-            parser, ["allow-build", "allow_build"],
+            parser, ["allow-build"],
             default=True,
             description='Whether to allow compilation of a new distribution:')
 
         add_boolean_option(
-            parser, ["force-build", "force_build"],
+            parser, ["force-build"],
             default=False,
             description='Whether to force compilation of a new distribution:')
 
@@ -2560,7 +2560,7 @@ build_dist
             help='Directories in which to look for distributions')
 
         add_boolean_option(
-            parser, ["require-perfect-match", "require_perfect_match"],
+            parser, ["require-perfect-match"],
             default=False,
             description=('Whether the dist recipes must perfectly match '
                          'those requested'))
