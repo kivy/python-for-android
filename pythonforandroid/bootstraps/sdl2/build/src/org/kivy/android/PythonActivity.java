@@ -7,23 +7,34 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 
+import android.view.ViewGroup;
+import android.view.SurfaceView;
 import android.app.Activity;
 import android.util.Log;
 import android.widget.Toast;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.graphics.PixelFormat;
+import android.view.SurfaceHolder;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.pm.ApplicationInfo;
 
 import org.libsdl.app.SDLActivity;
 
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
 
+
 public class PythonActivity extends SDLActivity {
     private static final String TAG = "PythonActivity";
 
     public static PythonActivity mActivity = null;
     
-    private ResourceManager resourceManager;
-    
+    private ResourceManager resourceManager = null;
+    private Bundle mMetaData = null;
+    private PowerManager.WakeLock mWakeLock = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
@@ -48,6 +59,25 @@ public class PythonActivity extends SDLActivity {
 
         
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
+
+        try {
+            Log.v(TAG, "Access to our meta-data...");
+            this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
+                    this.mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+
+            PowerManager pm = (PowerManager) this.mActivity.getSystemService(Context.POWER_SERVICE);
+            if ( this.mMetaData.getInt("wakelock") == 1 ) {
+                this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+            }
+            if ( this.mMetaData.getInt("surface.transparent") != 0 ) {
+                Log.v(TAG, "Surface will be transparent.");
+                getSurface().setZOrderOnTop(true);
+                getSurface().getHolder().setFormat(PixelFormat.TRANSPARENT);
+            } else {
+                Log.i(TAG, "Surface will NOT be transparent");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+        }
     }
     
     // This is just overrides the normal SDLActivity, which just loads
@@ -169,6 +199,13 @@ public class PythonActivity extends SDLActivity {
                 Log.w("python", e);
             }
         }
+    }
+    
+    public static ViewGroup getLayout() {
+        return   mLayout;
+    }
 
+    public static SurfaceView getSurface() {
+        return   mSurface;
     }
 }

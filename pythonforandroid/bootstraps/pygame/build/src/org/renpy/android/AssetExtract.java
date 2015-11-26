@@ -60,7 +60,7 @@ class AssetExtract {
                 break;
             }
 
-            Log.i("python", "extracting " + entry.getName());
+            Log.v("python", "extracting " + entry.getName());
 
             if (entry.isDirectory()) {
 

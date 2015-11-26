@@ -14,7 +14,7 @@ class PygameJNIComponentsRecipe(NDKRecipe):
         info('Unpacking pygame bootstrap JNI dir components')
         with current_directory(self.get_build_container_dir(arch)):
             if exists('sdl'):
-                info('sdl dir exists, so it looks like the JNI components',
+                info('sdl dir exists, so it looks like the JNI components' +
                      'are already unpacked. Skipping.')
                 return
             for dirn in glob.glob(join(self.get_build_dir(arch),

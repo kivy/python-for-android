@@ -11,7 +11,7 @@ from __future__ import print_function
 import sys
 from sys import stdout, stderr, platform
 from os.path import (join, dirname, realpath, exists, isdir, basename,
-                     expanduser)
+                     expanduser, splitext)
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
 import os
 import zipfile
@@ -30,6 +30,8 @@ from copy import deepcopy
 from functools import wraps
 from datetime import datetime
 from distutils.spawn import find_executable
+from tempfile import mkdtemp
+from math import log10
 try:
     from urllib.request import FancyURLopener
 except ImportError:
@@ -50,6 +52,7 @@ class colorama_shim(object):
         self._dict = defaultdict(str)
     def __getattr__(self, key):
         return self._dict[key]
+Style = Fore = colorama_shim()
 Null_Style = Null_Fore = colorama_shim()
 
 if stdout.isatty():
@@ -130,6 +133,15 @@ def pretty_log_dists(dists, log_func=info):
     for line in infos:
         log_func('\t' + line)
 
+def shorten_string(string, max_width):
+    ''' make limited length string in form:
+      "the string is very lo...(and 15 more)"
+    '''  
+    string_len = len(string)
+    if string_len <= max_width: return string
+    visible = max_width - 16 - int(log10(string_len)) #expected suffix len "...(and XXXXX more)"
+    return ''.join((string[:visible], '...(and ', str(string_len - visible), ' more)'))
+
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
     logging the output.'''
@@ -137,38 +149,86 @@ def shprint(command, *args, **kwargs):
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
     kwargs["_bg"] = True
+    is_critical = kwargs.pop('_critical', False)
+    tail_n = kwargs.pop('_tail', 0)
+    filter_in = kwargs.pop('_filter', None)
+    filter_out = kwargs.pop('_filterout', None)
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
+    try:
+        columns = max(25, int(os.popen('stty size', 'r').read().split()[1]))
+    except:
+        columns = 100
     command_path = str(command).split('/')
     command_string = command_path[-1]
     string = ' '.join(['running', command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
     if logger.level > logging.DEBUG:
-        short_string = string
-        if len(string) > 100:
-            short_string = string[:100] + '... (and {} more)'.format(len(string) - 100)
-        logger.info(short_string + Err_Style.RESET_ALL)
+        logger.info('{}{}'.format(shorten_string(string, columns - 12),
+                                  Err_Style.RESET_ALL))
     else:
-        logger.debug(string + Err_Style.RESET_ALL)
+        logger.debug('{}{}'.format(string, Err_Style.RESET_ALL))
 
-    output = command(*args, **kwargs)
     need_closing_newline = False
-    for line in output:
-        if logger.level > logging.DEBUG:
-            string = ''.join([Err_Style.RESET_ALL, '\r', ' '*11, 'working ... ',
-                              line[:100].replace('\n', '').rstrip(), ' ...'])
-            if len(string) < 20:
-                continue
-            if len(string) < 120:
-                string = string + ' '*(120 - len(string))
-            sys.stdout.write(string)
-            sys.stdout.flush()
-            need_closing_newline = True
+    try:
+        msg_hdr = '           working: '
+        msg_width = columns - len(msg_hdr) - 1
+        output = command(*args, **kwargs)
+        for line in output:
+            if logger.level > logging.DEBUG:
+                msg = line.replace(
+                    '\n', ' ').replace(
+                        '\t', ' ').replace(
+                            '\b', ' ').rstrip()
+                if msg:
+                    sys.stdout.write('{}\r{}{:<{width}}'.format(
+                        Err_Style.RESET_ALL, msg_hdr,
+                        shorten_string(msg, msg_width), width=msg_width))
+                    sys.stdout.flush()
+                    need_closing_newline = True
+            else:
+                logger.debug(''.join(['\t', line.rstrip()]))
+        if need_closing_newline:
+            sys.stdout.write('{}\r{:>{width}}\r'.format(
+                Style.RESET_ALL, ' ', width=(columns - 1)))
+    except sh.ErrorReturnCode as err:
+        if need_closing_newline:
+            sys.stdout.write('{}\r{:>{width}}\r'.format(
+                Style.RESET_ALL, ' ', width=(columns - 1)))
+        if tail_n or filter_in or filter_out:
+            def printtail(out, name, forecolor, tail_n=0,
+                          re_filter_in=None, re_filter_out=None):
+                lines = out.splitlines()
+                if re_filter_in is not None:
+                    lines = [l for l in lines if re_filter_in.search(l)]
+                if re_filter_out is not None:
+                    lines = [l for l in lines if not re_filter_out.search(l)]
+                if tail_n == 0 or len(lines) <= tail_n:
+                    info('{}:\n{}\t{}{}'.format(
+                        name, forecolor, '\t\n'.join(lines), Fore.RESET))
+                else:
+                    info('{} (last {} lines of {}):\n{}\t{}{}'.format(
+                        name, tail_n, len(lines),
+                        forecolor, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
+            printtail(err.stdout, 'STDOUT', Fore.YELLOW, tail_n,
+                      re.compile(filter_in) if filter_in else None,
+                      re.compile(filter_out) if filter_out else None)
+            printtail(err.stderr, 'STDERR', Fore.RED)
+        if is_critical:
+            env = kwargs.get("env")
+            if env is not None:
+                info("{}ENV:{}\n{}\n".format(
+                    Fore.YELLOW, Fore.RESET, "\n".join(
+                        "set {}={}".format(n, v) for n, v in env.items())))
+            info("{}COMMAND:{}\ncd {} && {} {}\n".format(
+                Fore.YELLOW, Fore.RESET, getcwd(), command, ' '.join(args)))
+            warning("{}ERROR: {} failed!{}".format(
+                Fore.RED, command, Fore.RESET))
+            exit(1)
         else:
-            logger.debug(''.join(['\t', line.rstrip()]))
-    if logger.level > logging.DEBUG and need_closing_newline:
-        print()
+            raise
+
     return output
 
 # shprint(sh.ls, '-lah')
@@ -246,6 +306,17 @@ def current_directory(new_dir):
                          Err_Fore.RESET)))
     chdir(cur_dir)
 
+@contextlib.contextmanager
+def temp_directory():
+    temp_dir = mkdtemp()
+    try:
+        logger.debug(''.join((Err_Fore.CYAN, ' + temp directory used ', temp_dir,
+                             Err_Fore.RESET)))
+        yield temp_dir
+    finally:
+        shutil.rmtree(temp_dir)
+        logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ', temp_dir,
+                             Err_Fore.RESET)))
 
 
 def cache_execution(f):
@@ -557,6 +628,7 @@ class Context(object):
     dist_dir = None  # the Android project folder where everything ends up
     libs_dir = None  # where Android libs are cached after build but
                      # before being placed in dists
+    aars_dir = None
     javaclass_dir = None
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
@@ -589,6 +661,12 @@ class Context(object):
     def javaclass_dir(self):
         # Was previously hardcoded as self.build_dir/java
         dir = join(self.build_dir, 'javaclasses', self.bootstrap.distribution.name)
+        ensure_dir(dir)
+        return dir
+
+    @property
+    def aars_dir(self):
+        dir = join(self.build_dir, 'aars', self.bootstrap.distribution.name)
         ensure_dir(dir)
         return dir
 
@@ -1340,6 +1418,72 @@ class Bootstrap(object):
         bootstrap.ctx = ctx
         return bootstrap
 
+    def distribute_libs(self, arch, src_dirs, wildcard='*'):
+        '''Copy existing arch libs from build dirs to current dist dir.'''
+        info('Copying libs')
+        tgt_dir = join('libs', arch.arch)
+        ensure_dir(tgt_dir)
+        for src_dir in src_dirs:
+            for lib in glob.glob(join(src_dir, wildcard)):
+                shprint(sh.cp, '-a', lib, tgt_dir)
+
+    def distribute_javaclasses(self, javaclass_dir):
+        '''Copy existing javaclasses from build dir to current dist dir.'''
+        info('Copying java files')
+        for filename in glob.glob(javaclass_dir):
+            shprint(sh.cp, '-a', filename, 'src')
+
+    def distribute_aars(self, arch):
+        '''Process existing .aar bundles and copy to current dist dir.'''
+        info('Unpacking aars')
+        for aar in glob.glob(join(self.ctx.aars_dir, '*.aar')):
+            self._unpack_aar(aar, arch)
+
+    def _unpack_aar(self, aar, arch):
+        '''Unpack content of .aar bundle and copy to current dist dir.'''
+        with temp_directory() as temp_dir:
+            name = splitext(basename(aar))[0]
+            jar_name = name + '.jar'
+            info("unpack {} aar".format(name))
+            debug("  from {}".format(aar))
+            debug("  to {}".format(temp_dir))
+            shprint(sh.unzip, '-o', aar, '-d', temp_dir)
+
+            jar_src = join(temp_dir, 'classes.jar')
+            jar_tgt = join('libs', jar_name)
+            debug("copy {} jar".format(name))
+            debug("  from {}".format(jar_src))
+            debug("  to {}".format(jar_tgt))
+            ensure_dir('libs')
+            shprint(sh.cp, '-a', jar_src, jar_tgt)
+
+            so_src_dir = join(temp_dir, 'jni', arch.arch)
+            so_tgt_dir = join('libs', arch.arch)
+            debug("copy {} .so".format(name))
+            debug("  from {}".format(so_src_dir))
+            debug("  to {}".format(so_tgt_dir))
+            ensure_dir(so_tgt_dir)
+            so_files = glob.glob(join(so_src_dir, '*.so'))
+            for f in so_files:
+                shprint(sh.cp, '-a', f, so_tgt_dir)
+
+    def strip_libraries(self, arch):
+        info('Stripping libraries')
+        env = arch.get_env()
+        strip = which('arm-linux-androideabi-strip', env['PATH'])
+        if strip is None:
+            warning('Can\'t find strip in PATH...')
+            return
+        strip = sh.Command(strip)
+        filens = shprint(sh.find, join(self.dist_dir, 'private'),
+                         join(self.dist_dir, 'libs'),
+                         '-iname', '*.so', _env=env).stdout.decode('utf-8')
+        logger.info('Stripping libraries in private dir')
+        for filen in filens.split('\n'):
+            try:
+                strip(filen, _env=env)
+            except sh.ErrorReturnCode_1:
+                logger.debug('Failed to strip ' + filen)
 
 class Recipe(object):
     url = None
@@ -1477,15 +1621,15 @@ class Recipe(object):
     #         print("Unrecognized extension for {}".format(filename))
     #         raise Exception()
 
-    def apply_patch(self, filename):
+    def apply_patch(self, filename, arch='armeabi'):
         """
         Apply a patch from the current recipe directory into the current
         build directory.
         """
         info("Applying patch {}".format(filename))
         filename = join(self.recipe_dir, filename)
-        # AND: get_build_dir shouldn't need to hardcode armeabi
-        sh.patch("-t", "-d", self.get_build_dir('armeabi'), "-p1", "-i", filename)
+        shprint(sh.patch, "-t", "-d", self.get_build_dir(arch), "-p1",
+                   "-i", filename, _tail=10)
 
     def copy_file(self, filename, dest):
         info("Copy {} to {}".format(filename, dest))
@@ -2066,7 +2210,8 @@ class CythonRecipe(PythonRecipe):
                     self.ctx.cython, '{}', ';', _env=env)
             info('ran cython')
 
-            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env)
+            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
+                    _tail=20, _critical=True)
 
             print('stripping')
             build_lib = glob.glob('./build/lib*')
@@ -2808,7 +2953,7 @@ build_dist
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             build.parse_args(args)
-            shprint(sh.ant, 'debug')
+            shprint(sh.ant, 'debug', _tail=20, _critical=True)
 
         # AND: This is very crude, needs improving. Also only works
         # for debug for now.
