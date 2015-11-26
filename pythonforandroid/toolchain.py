@@ -220,7 +220,7 @@ def shprint(command, *args, **kwargs):
             if env is not None:
                 info("{}ENV:{}\n{}\n".format(
                     Fore.YELLOW, Fore.RESET, "\n".join(
-                        "set {}={}".format(n,v) for n,v in env.items())))
+                        "set {}={}".format(n, v) for n, v in env.items())))
             info("{}COMMAND:{}\ncd {} && {} {}\n".format(
                 Fore.YELLOW, Fore.RESET, getcwd(), command, ' '.join(args)))
             warning("{}ERROR: {} failed!{}".format(
@@ -1448,7 +1448,7 @@ class Bootstrap(object):
             debug("  from {}".format(aar))
             debug("  to {}".format(temp_dir))
             shprint(sh.unzip, '-o', aar, '-d', temp_dir)
-    
+
             jar_src = join(temp_dir, 'classes.jar')
             jar_tgt = join('libs', jar_name)
             debug("copy {} jar".format(name))
@@ -1456,7 +1456,7 @@ class Bootstrap(object):
             debug("  to {}".format(jar_tgt))
             ensure_dir('libs')
             shprint(sh.cp, '-a', jar_src, jar_tgt)
-    
+
             so_src_dir = join(temp_dir, 'jni', arch.arch)
             so_tgt_dir = join('libs', arch.arch)
             debug("copy {} .so".format(name))
@@ -1475,8 +1475,9 @@ class Bootstrap(object):
             warning('Can\'t find strip in PATH...')
             return
         strip = sh.Command(strip)
-        filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
-                '-iname', '*.so', _env=env).stdout.decode('utf-8')
+        filens = shprint(sh.find, join(self.dist_dir, 'private'),
+                         join(self.dist_dir, 'libs'),
+                         '-iname', '*.so', _env=env).stdout.decode('utf-8')
         logger.info('Stripping libraries in private dir')
         for filen in filens.split('\n'):
             try:
