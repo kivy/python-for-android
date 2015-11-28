@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, ArchAndroid, current_directory, debug, info, ensure_dir
+from pythonforandroid.toolchain import Recipe, shprint, ArchAndroidARM, current_directory, debug, info, ensure_dir
 from os.path import exists, join
 import sh
 import glob
@@ -40,7 +40,7 @@ class PygameRecipe(Recipe):
     def build_armeabi(self):
         # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now
         
-        arch = ArchAndroid(self.ctx)
+        arch = ArchAndroidARM(self.ctx)
         env = self.get_recipe_env(arch)
         
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(

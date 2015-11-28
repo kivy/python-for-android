@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, info_main
+from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroidARM, info_main
 from os.path import join, exists
 from os import walk
 import glob
@@ -20,7 +20,7 @@ class PygameBootstrap(Bootstrap):
         src_path = join(self.bootstrap_dir, 'build')
 
         # AND: Hardcoding armeabi - naughty!
-        arch = ArchAndroid(self.ctx)
+        arch = ArchAndroidARM(self.ctx)
 
         with current_directory(self.dist_dir):
 

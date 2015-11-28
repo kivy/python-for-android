@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchAndroid
+from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchAndroidARM
 from os.path import exists, join
 import sh
 import glob
@@ -35,7 +35,7 @@ class KivySDL2Recipe(CythonRecipe):
         return env
         
     # def build_armeabi(self):
-    #     env = ArchAndroid(self.ctx).get_env()
+    #     env = ArchAndroidARM(self.ctx).get_env()
 
     #     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(self.ctx.libs_dir)
     #     env['LDSHARED'] = env['LIBLINK']

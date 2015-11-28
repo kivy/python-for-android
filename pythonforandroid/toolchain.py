@@ -457,6 +457,13 @@ class Arch(object):
             for d in self.ctx.include_dirs]
 
     def get_env(self):
+        raise ValueError('Tried to get_env of Arch, this needs '
+                         'a specific Arch subclass')
+
+class ArchAndroidARM(Arch):
+    arch = "armeabi"
+
+    def get_env(self):
         include_dirs = [
             "-I{}/{}".format(
                 self.ctx.include_dir,
@@ -526,9 +533,13 @@ class Arch(object):
 
         return env
 
+class ArchAndroidARMv7_a(ArchAndroidARM):
+    arch = 'armeabi-v7'
 
-class ArchAndroid(Arch):
-    arch = "armeabi"
+    def get_env(self):
+        env = super(ArchAndroidARMv7_a, self).get_env()
+        env['CFLAGS'] = env['CFLAGS'] + ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb'
+        env['CXXFLAGS'] = env['CFLAGS']
 
 # class ArchSimulator(Arch):
 #     sdk = "iphonesimulator"
@@ -1072,7 +1083,7 @@ class Context(object):
 
         # AND: Currently only the Android architecture is supported
         self.archs = (
-            ArchAndroid(self),
+            ArchAndroidARM(self),
             )
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
@@ -2446,8 +2457,8 @@ def biglink(ctx, arch):
 
     # AND: Shouldn't hardcode ArchAndroid! In reality need separate
     # build dirs for each arch
-    arch = ArchAndroid(ctx)
-    env = ArchAndroid(ctx).get_env()
+    arch = ArchAndroidARM(ctx)
+    env = ArchAndroidARM(ctx).get_env()
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
         join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi'))
 
