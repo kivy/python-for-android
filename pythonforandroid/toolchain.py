@@ -182,7 +182,7 @@ def shprint(command, *args, **kwargs):
                         '\t', ' ').replace(
                             '\b', ' ').rstrip()
                 if msg:
-                    sys.stdout.write('{}\r{}{:<{width}}'.format(
+                    sys.stdout.write(u'{}\r{}{:<{width}}'.format(
                         Err_Style.RESET_ALL, msg_hdr,
                         shorten_string(msg, msg_width), width=msg_width))
                     sys.stdout.flush()
