@@ -460,13 +460,6 @@ class Arch(object):
             for d in self.ctx.include_dirs]
 
     def get_env(self):
-        raise ValueError('Tried to get_env of Arch, this needs '
-                         'a specific Arch subclass')
-
-class ArchARM(Arch):
-    arch = "armeabi"
-
-    def get_env(self):
         include_dirs = [
             "-I{}/{}".format(
                 self.ctx.include_dir,
@@ -536,6 +529,9 @@ class ArchARM(Arch):
 
         return env
 
+class ArchARM(Arch):
+    arch = "armeabi"
+
 class ArchARMv7_a(ArchARM):
     arch = 'armeabi-v7'
 
@@ -548,7 +544,19 @@ class Archx86(Arch):
     arch = 'x86'
 
     def get_env(self):
-        raise ValueError('Archx86 not supported yet!')
+        env = super(ArchARMv7_a, self).get_env()
+        env['CFLAGS'] = env['CFLAGS'] + ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32'
+        env['CXXFLAGS'] = env['CFLAGS']
+        return env
+
+class Archx86_64(Arch):
+    arch = 'x86_64'
+
+    def get_env(self):
+        env = super(ArchARMv7_a, self).get_env()
+        env['CFLAGS'] = env['CFLAGS'] + ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
+        env['CXXFLAGS'] = env['CFLAGS']
+        return env
 
 # class ArchSimulator(Arch):
 #     sdk = "iphonesimulator"
