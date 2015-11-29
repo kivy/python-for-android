@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroidARM, info
+from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchARM, info
 from os.path import exists, join, realpath
 from os import uname
 import glob
@@ -92,7 +92,7 @@ class Python2Recipe(Recipe):
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
-            env = ArchAndroidARM(self.ctx).get_env()
+            env = ArchARM(self.ctx).get_env()
 
             # AND: Should probably move these to get_recipe_env for
             # neatness, but the whole recipe needs tidying along these

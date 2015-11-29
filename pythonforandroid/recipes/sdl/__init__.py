@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint, ArchAndroidARM, current_directory, info
+from pythonforandroid.toolchain import NDKRecipe, shprint, ArchARM, current_directory, info
 from os.path import exists, join
 import sh
 
@@ -15,7 +15,7 @@ class LibSDLRecipe(NDKRecipe):
             info('libsdl.so already exists, skipping sdl build.')
             return
         
-        env = ArchAndroidARM(self.ctx).get_env()
+        env = ArchARM(self.ctx).get_env()
 
         with current_directory(self.get_jni_dir()):
             shprint(sh.ndk_build, 'V=1', _env=env, _tail=20, _critical=True)

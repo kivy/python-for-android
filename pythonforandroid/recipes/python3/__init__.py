@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroidARM
+from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchARM
 from os.path import exists, join
 from os import uname
 import glob
@@ -67,7 +67,7 @@ class Python3Recipe(Recipe):
             hostpython_recipe = Recipe.get_recipe('hostpython3', self.ctx)
             # shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
-            env = ArchAndroidARM(self.ctx).get_env()
+            env = ArchARM(self.ctx).get_env()
             env["LDFLAGS"] = env["LDFLAGS"] + ' -llog'
 
             # AND: Should probably move these to get_recipe_env for

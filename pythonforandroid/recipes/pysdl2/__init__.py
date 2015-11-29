@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import PythonRecipe, shprint, current_directory, ArchAndroidARM
+from pythonforandroid.toolchain import PythonRecipe, shprint, current_directory, ArchARM
 from os.path import exists, join
 import sh
 import glob
