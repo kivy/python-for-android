@@ -204,7 +204,7 @@ def shprint(command, *args, **kwargs):
                 logger.debug(''.join(['\t', line.rstrip()]))
         if need_closing_newline:
             sys.stdout.write('{}\r{:>{width}}\r'.format(
-                Style.RESET_ALL, ' ', width=(columns - 1)))
+                Colo_Style.RESET_ALL, ' ', width=(columns - 1)))
     except sh.ErrorReturnCode as err:
         if need_closing_newline:
             sys.stdout.write('{}\r{:>{width}}\r'.format(
