@@ -290,6 +290,7 @@ def require_prebuilt_dist(func):
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
                                       user_ndk_ver=self.ndk_version)
+        ctx.set_archs(self.archs)
         dist = self._dist
         if dist.needs_build:
             info_notify('No dist exists that meets your requirements, '
@@ -1087,9 +1088,11 @@ class Context(object):
         # root of the toolchain
         self.setup_dirs()
 
-        # AND: Currently only the Android architecture is supported
+        # this list should contain all Archs, it is pruned later
         self.archs = (
             ArchARM(self),
+            ArchARMv7_a(self),
+            Archx86(self)
             )
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
@@ -1103,6 +1106,22 @@ class Context(object):
 
         # set the state
         self.state = JsonStore(join(self.dist_dir, "state.db"))
+
+    def set_archs(self, arch_names):
+        all_archs = self.archs
+        new_archs = set()
+        for name in arch_names:
+            matching = [arch for arch in all_archs if arch.arch == name]
+            for match in matching:
+                new_archs.add(match)
+        self.archs = list(new_archs)
+        if not self.archs:
+            warning('Asked to compile for no Archs, so failing.')
+            exit(1)
+        info('Will compile for the following archs: {}'.format(
+            ', '.join([arch.arch for arch in self.archs])))
+        exit(1)
+
 
     def prepare_bootstrap(self, bs):
         bs.ctx = self
@@ -2771,6 +2790,14 @@ build_dist
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
 
+
+        # AND: This option doesn't really fit in the other categories, the
+        # arg structure needs a rethink
+        parser.add_argument(
+            '--arch',
+            help='The archs to build for, separated by commas.',
+            default='armeabi')
+
         # Options for specifying the Distribution
         parser.add_argument(
             '--dist_name',
@@ -2808,6 +2835,7 @@ build_dist
             description=('Whether the dist recipes must perfectly match '
                          'those requested'))
 
+
         self._read_configuration()
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
@@ -2820,8 +2848,8 @@ build_dist
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
 
-        # import ipdb
-        # ipdb.set_trace()
+        self.archs = split_argument_list(args.arch)
+
         # AND: Fail nicely if the args aren't handled yet
         if args.extra_dist_dirs:
             warning('Received --extra_dist_dirs but this arg currently is not '
