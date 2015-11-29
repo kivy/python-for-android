@@ -18,7 +18,7 @@ class PyjniusRecipe(CythonRecipe):
             if exists(join(build_dir, '.patched')):
                 print('pyjniussdl2 already pathed, skipping')
                 return
-            self.apply_patch('sdl2_jnienv_getter.patch')
+            self.apply_patch('sdl2_jnienv_getter.patch', arch.arch)
             shprint(sh.touch, join(build_dir, '.patched'))
 
     def postbuild_arch(self, arch):

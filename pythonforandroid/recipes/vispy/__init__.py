@@ -22,13 +22,13 @@ class VispyRecipe(PythonRecipe):
         if exists(join(build_dir, '.patched')):
             print('vispy already patched, skipping')
             return
-        self.apply_patch('disable_freetype.patch')
-        self.apply_patch('disable_font_triage.patch')
-        self.apply_patch('use_es2.patch')
-        self.apply_patch('remove_ati_check.patch')
+        self.apply_patch('disable_freetype.patch', arch.arch)
+        self.apply_patch('disable_font_triage.patch', arch.arch)
+        self.apply_patch('use_es2.patch', arch.arch)
+        self.apply_patch('remove_ati_check.patch', arch.arch)
 
-        self.apply_patch('make_shader_es2_compliant.patch')
-        self.apply_patch('detect_finger_events.patch')
+        self.apply_patch('make_shader_es2_compliant.patch', arch.arch)
+        self.apply_patch('detect_finger_events.patch', arch.arch)
 
         shprint(sh.touch, join(build_dir, '.patched'))
 

@@ -1716,7 +1716,7 @@ class Recipe(object):
     #         print("Unrecognized extension for {}".format(filename))
     #         raise Exception()
 
-    def apply_patch(self, filename, arch='armeabi'):
+    def apply_patch(self, filename, arch):
         """
         Apply a patch from the current recipe directory into the current
         build directory.

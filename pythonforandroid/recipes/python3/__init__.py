@@ -13,8 +13,8 @@ class Python3Recipe(Recipe):
     depends = ['hostpython3']  
     conflicts = ['python2']
 
-    def prebuild_armeabi(self):
-        build_dir = self.get_build_container_dir('armeabi')
+    def prebuild_arch(self, arch):
+        build_dir = self.get_build_container_dir(arch.arch)
         if exists(join(build_dir, '.patched')):
             print('Python3 already patched, skipping.')
             return
@@ -30,38 +30,39 @@ class Python3Recipe(Recipe):
         #                       'python-{version}-locale_and_android_misc.patch'.format(version=self.version)))
         
 
-        self.apply_patch(join('patches', 'python-{version}-android-libmpdec.patch'.format(version=self.version)))
-        self.apply_patch(join('patches', 'python-{version}-android-locale.patch'.format(version=self.version)))
-        self.apply_patch(join('patches', 'python-{version}-android-misc.patch'.format(version=self.version)))
-        # self.apply_patch(join('patches', 'python-{version}-android-missing-getdents64-definition.patch'.format(version=self.version)))
-        self.apply_patch(join('patches', 'python-{version}-cross-compile.patch'.format(version=self.version)))
-        self.apply_patch(join('patches', 'python-{version}-python-misc.patch'.format(version=self.version)))
+        self.apply_patch(join('patches', 'python-{version}-android-libmpdec.patch'.format(version=self.version)),
+                         arch.arch)
+        self.apply_patch(join('patches', 'python-{version}-android-locale.patch'.format(version=self.version)), arch.arch)
+        self.apply_patch(join('patches', 'python-{version}-android-misc.patch'.format(version=self.version)), arch.arch)
+        # self.apply_patch(join('patches', 'python-{version}-android-missing-getdents64-definition.patch'.format(version=self.version)), arch.arch)
+        self.apply_patch(join('patches', 'python-{version}-cross-compile.patch'.format(version=self.version)), arch.arch)
+        self.apply_patch(join('patches', 'python-{version}-python-misc.patch'.format(version=self.version)), arch.arch)
 
-        self.apply_patch(join('patches', 'python-{version}-libpymodules_loader.patch'.format(version=self.version)))
-        self.apply_patch('log_failures.patch')
+        self.apply_patch(join('patches', 'python-{version}-libpymodules_loader.patch'.format(version=self.version)), arch.arch)
+        self.apply_patch('log_failures.patch', arch.arch)
         
 
         shprint(sh.touch, join(build_dir, '.patched'))
 
-    def build_armeabi(self):
+    def build_arch(self, arch):
         if 'sqlite' in self.ctx.recipe_build_order or 'openssl' in self.ctx.recipe_build_order:
             print('sqlite or openssl support not yet enabled in python recipe')
             exit(1)
 
         hostpython_recipe = Recipe.get_recipe('hostpython3', self.ctx)
-        shprint(sh.cp, self.ctx.hostpython, self.get_build_dir('armeabi'))
-        shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir('armeabi'))
-        hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
-        hostpgen = join(self.get_build_dir('armeabi'), 'hostpython')
+        shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
+        shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir(arch.arch))
+        hostpython = join(self.get_build_dir(arch.arch), 'hostpython')
+        hostpgen = join(self.get_build_dir(arch.arch), 'hostpython')
 
-        if exists(join(self.get_build_dir('armeabi'), 'libpython3.4m.so')):
+        if exists(join(self.get_build_dir(arch.arch), 'libpython3.4m.so')):
             print('libpython3.4m.so already exists, skipping python build.')
             self.ctx.hostpython = join(self.ctx.build_dir, 'python-install',
                                        'bin', 'python.host')
 
             return
 
-        with current_directory(self.get_build_dir('armeabi')):
+        with current_directory(self.get_build_dir(arch.arch)):
 
 
             hostpython_recipe = Recipe.get_recipe('hostpython3', self.ctx)
