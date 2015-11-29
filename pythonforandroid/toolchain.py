@@ -78,7 +78,7 @@ toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
 
-DEFAULT_ANDROID_API = 15
+DEFAULT_ANDROID_API = 16
 
 
 class LevelDifferentiatingFormatter(logging.Formatter):
@@ -208,7 +208,7 @@ def shprint(command, *args, **kwargs):
     except sh.ErrorReturnCode as err:
         if need_closing_newline:
             sys.stdout.write('{}\r{:>{width}}\r'.format(
-                Style.RESET_ALL, ' ', width=(columns - 1)))
+                Err_Style.RESET_ALL, ' ', width=(columns - 1)))
         if tail_n or filter_in or filter_out:
             def printtail(out, name, forecolor, tail_n=0,
                           re_filter_in=None, re_filter_out=None):
@@ -219,25 +219,25 @@ def shprint(command, *args, **kwargs):
                     lines = [l for l in lines if not re_filter_out.search(l)]
                 if tail_n == 0 or len(lines) <= tail_n:
                     info('{}:\n{}\t{}{}'.format(
-                        name, forecolor, '\t\n'.join(lines), Fore.RESET))
+                        name, forecolor, '\t\n'.join(lines), Colo_Fore.RESET))
                 else:
                     info('{} (last {} lines of {}):\n{}\t{}{}'.format(
                         name, tail_n, len(lines),
-                        forecolor, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
-            printtail(err.stdout, 'STDOUT', Fore.YELLOW, tail_n,
+                        forecolor, '\t\n'.join(lines[-tail_n:]), Colo_Fore.RESET))
+            printtail(err.stdout, 'STDOUT', Colo_Fore.YELLOW, tail_n,
                       re.compile(filter_in) if filter_in else None,
                       re.compile(filter_out) if filter_out else None)
-            printtail(err.stderr, 'STDERR', Fore.RED)
+            printtail(err.stderr, 'STDERR', Colo_Fore.RED)
         if is_critical:
             env = kwargs.get("env")
             if env is not None:
                 info("{}ENV:{}\n{}\n".format(
-                    Fore.YELLOW, Fore.RESET, "\n".join(
+                    Colo_Fore.YELLOW, Colo_Fore.RESET, "\n".join(
                         "set {}={}".format(n, v) for n, v in env.items())))
             info("{}COMMAND:{}\ncd {} && {} {}\n".format(
-                Fore.YELLOW, Fore.RESET, getcwd(), command, ' '.join(args)))
+                Colo_Fore.YELLOW, Colo_Fore.RESET, getcwd(), command, ' '.join(args)))
             warning("{}ERROR: {} failed!{}".format(
-                Fore.RED, command, Fore.RESET))
+                Colo_Fore.RED, command, Colo_Fore.RESET))
             exit(1)
         else:
             raise
@@ -1994,7 +1994,7 @@ class Recipe(object):
         else:
             info('{} has no {}, skipping'.format(self.name, prebuild))
 
-    def should_build(self):
+    def should_build(self,arch):
         '''Should perform any necessary test and return True only if it needs
         building again.
 
@@ -2072,6 +2072,7 @@ class Recipe(object):
         recipe_dir = join(ctx.root_dir, 'recipes', name)
         if not exists(recipe_dir):  # AND: This will need modifying
                                     # for user-supplied recipes
+            print(recipe_dir)                        
             raise IOError('Recipe folder does not exist')
         mod = importlib.import_module(
             "pythonforandroid.recipes.{}".format(name))
@@ -2163,7 +2164,7 @@ class PythonRecipe(Recipe):
                     'armeabi'), 'hostpython')
         return self.ctx.hostpython
 
-    def should_build(self):
+    def should_build(self,arch):
         # AND: This should be different for each arch and use some
         # kind of data store to know what has been built in a given
         # python env
@@ -2369,7 +2370,7 @@ def build_recipes(build_order, python_modules, ctx):
         info_main('# Building recipes')
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
-            if recipe.should_build():
+            if recipe.should_build(arch):
                 recipe.build_arch(arch)
             else:
                 info('{} said it is already built, skipping'
@@ -2881,16 +2882,16 @@ build_dist
                 recipe = Recipe.get_recipe(name, ctx)
                 version = str(recipe.version)
                 if args.color:
-                    print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
-                          '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
+                    print('{Colo_Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
+                          '{Style.RESET_ALL}{Colo_Fore.LIGHTBLUE_EX}'
                           '{version:<8}{Style.RESET_ALL}'.format(
                               recipe=recipe, Fore=Out_Fore, Style=Out_Style,
                               version=version))
-                    print('    {Fore.GREEN}depends: {recipe.depends}'
-                          '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
+                    print('    {Colo_Fore.GREEN}depends: {recipe.depends}'
+                          '{Colo_Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
                     if recipe.conflicts:
-                        print('    {Fore.RED}conflicts: {recipe.conflicts}'
-                              '{Fore.RESET}'
+                        print('    {Colo_Fore.RED}conflicts: {recipe.conflicts}'
+                              '{Colo_Fore.RESET}'
                               .format(recipe=recipe, Fore=Out_Fore))
                 else:
                     print("{recipe.name:<12} {recipe.version:<8}"
@@ -2904,9 +2905,9 @@ build_dist
         '''List all the bootstraps available to build with.'''
         for bs in Bootstrap.list_bootstraps():
             bs = Bootstrap.get_bootstrap(bs, self.ctx)
-            print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'
+            print('{Colo_Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'
                   .format(bs=bs, Fore=Out_Fore, Style=Out_Style))
-            print('    {Fore.GREEN}depends: {bs.recipe_depends}{Fore.RESET}'
+            print('    {Colo_Fore.GREEN}depends: {bs.recipe_depends}{Colo_Fore.RESET}'
                   .format(bs=bs, Fore=Out_Fore))
 
     def clean_all(self, args):
@@ -3198,7 +3199,7 @@ build_dist
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
               'already built:{Style.RESET_ALL}'.format(Style=Out_Style))
         for filen in os.listdir(join(self.ctx.build_dir, 'bootstrap_builds')):
-            print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'
+            print('    {Colo_Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'
                   .format(filen=filen, Fore=Out_Fore, Style=Out_Style))
 
         print('{Style.BRIGHT}Recipes that are probably already built:'
@@ -3208,13 +3209,13 @@ build_dist
                     os.listdir(join(self.ctx.build_dir, 'other_builds'))):
                 name = filen.split('-')[0]
                 dependencies = filen.split('-')[1:]
-                recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
+                recipe_str = ('    {Style.BRIGHT}{Colo_Fore.GREEN}{name}'
                               '{Style.RESET_ALL}'.format(
                                   Style=Out_Style, name=name, Fore=Out_Fore))
                 if dependencies:
                     recipe_str += (
-                        ' ({Fore.BLUE}with ' + ', '.join(dependencies) +
-                        '{Fore.RESET})').format(Fore=Out_Fore)
+                        ' ({Colo_Fore.BLUE}with ' + ', '.join(dependencies) +
+                        '{Colo_Fore.RESET})').format(Fore=Out_Fore)
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Out_Style)
                 print(recipe_str)
 
