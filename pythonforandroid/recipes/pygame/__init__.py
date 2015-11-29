@@ -34,6 +34,7 @@ class PygameRecipe(Recipe):
                 join(self.get_build_dir('armeabi'), 'Setup'))
         self.apply_patch(join('patches', 'fix-surface-access.patch'))
         self.apply_patch(join('patches', 'fix-array-surface.patch'))
+        self.apply_patch(join('patches', 'fix-sdl-spam-log.patch'))
         shprint(sh.touch, join(self.get_build_container_dir('armeabi'), '.patched'))
         
     def build_armeabi(self):
@@ -59,7 +60,8 @@ class PygameRecipe(Recipe):
         with current_directory(self.get_build_dir('armeabi')):
             info('hostpython is ' + self.ctx.hostpython)
             hostpython = sh.Command(self.ctx.hostpython)
-            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+            shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
+                    _tail=10, _critical=True)
 
             info('strip is ' + env['STRIP'])
             build_lib = glob.glob('./build/lib*')

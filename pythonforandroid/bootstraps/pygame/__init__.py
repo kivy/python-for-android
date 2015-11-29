@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, logger, info_main, which
+from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, info_main
 from os.path import join, exists
 from os import walk
 import glob
@@ -18,6 +18,9 @@ class PygameBootstrap(Bootstrap):
         # src_path = join(self.ctx.root_dir, 'bootstrap_templates',
         #                 self.name)
         src_path = join(self.bootstrap_dir, 'build')
+
+        # AND: Hardcoding armeabi - naughty!
+        arch = ArchAndroid(self.ctx)
 
         with current_directory(self.dist_dir):
 
@@ -40,21 +43,14 @@ class PygameBootstrap(Bootstrap):
             info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)
             # AND: This *doesn't* need to be in arm env?
-            shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir())
+            shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir(),
+                    _tail=10, _filterout="^Listing", _critical=True)
             if not exists('python-install'):
                 shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
-            info('Copying libs')
-            # AND: Hardcoding armeabi - naughty!
-            shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
-            for lib in glob.glob(join(self.build_dir, 'libs', 'armeabi', '*')):
-                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
-            for lib in glob.glob(join(self.ctx.get_libs_dir('armeabi'), '*')):
-                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
-
-            info('Copying java files')
-            for filename in glob.glob(self.ctx.javaclass_dir):
-                shprint(sh.cp, '-a', filename, 'src')
+            self.distribute_libs(arch, [join(self.build_dir, 'libs', arch.arch), self.ctx.get_libs_dir(arch.arch)]);
+            self.distribute_aars(arch)
+            self.distribute_javaclasses(self.ctx.javaclass_dir)
 
             info('Filling private directory')
             if not exists(join('private', 'lib')):
@@ -91,21 +87,7 @@ class PygameBootstrap(Bootstrap):
                 shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
 
-        info('Stripping libraries')
-        env = ArchAndroid(self.ctx).get_env()
-        strip = which('arm-linux-androideabi-strip', env['PATH'])
-        if strip is None:
-            warning('Can\'t find strip in PATH...')
-        strip = sh.Command(strip)
-        filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
-                '-iname', '*.so', _env=env).stdout.decode('utf-8')
-        logger.info('Stripping libraries in private dir')
-        for filen in filens.split('\n'):
-            try:
-                strip(filen, _env=env)
-            except sh.ErrorReturnCode_1:
-                logger.debug('Failed to strip ' + 'filen')
-
+        self.strip_libraries(arch)
         super(PygameBootstrap, self).run_distribute()
 
 bootstrap = PygameBootstrap()

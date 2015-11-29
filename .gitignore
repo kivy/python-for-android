@@ -15,3 +15,5 @@
 .packages
 python_for_android.egg-info
 src
+/build/
+__pycache__/
