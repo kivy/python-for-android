@@ -72,6 +72,8 @@ if stderr.isatty():
 else:
     Err_Style = Null_Style
     Err_Fore = Null_Fore
+Fore = Colo_Fore
+Style = Colo_Style
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -1120,8 +1122,6 @@ class Context(object):
             exit(1)
         info('Will compile for the following archs: {}'.format(
             ', '.join([arch.arch for arch in self.archs])))
-        exit(1)
-
 
     def prepare_bootstrap(self, bs):
         bs.ctx = self
