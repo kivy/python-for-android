@@ -2485,9 +2485,7 @@ def biglink(ctx, arch):
 
     # AND: Shouldn't hardcode Arch! In reality need separate
     # build dirs for each arch
-    raise ValueError('hardcoded Arch to fix!')
-    arch = ArchARM(ctx)
-    env = ArchARM(ctx).get_env()
+    env = arch.get_env()
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
         join(ctx.bootstrap.build_dir, 'obj', 'local', arch.arch))
 

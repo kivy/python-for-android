@@ -21,7 +21,10 @@ class SDL2Bootstrap(Bootstrap):
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
         # AND: Hardcoding armeabi - naughty!
-        arch = ArchARM(self.ctx)
+        arch = self.ctx.archs[0]
+        if len(self.ctx.archs) > 1:
+            raise ValueError('built for more than one arch, but bootstrap cannot handle that yet')
+        info('Bootstrap running with arch {}'.format(arch))
 
         with current_directory(self.dist_dir):
             info('Copying python distribution')
@@ -32,7 +35,6 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.mkdir, 'assets')
             
             hostpython = sh.Command(self.ctx.hostpython)
-            # AND: This *doesn't* need to be in arm env?
             shprint(hostpython, '-OO', '-m', 'compileall',
                     self.ctx.get_python_install_dir(),
                     _tail=10, _filterout="^Listing", _critical=True)
@@ -50,8 +52,8 @@ class SDL2Bootstrap(Bootstrap):
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
             
             # AND: Copylibs stuff should go here
-            if exists(join('libs', 'armeabi', 'libpymodules.so')):
-                shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
+            if exists(join('libs', arch.arch, 'libpymodules.so')):
+                shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
             shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
             info('Removing some unwanted files')
