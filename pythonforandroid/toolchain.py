@@ -515,7 +515,7 @@ class Arch(object):
         # AND: This also hardcodes armeabi, which isn't even correct,
         #      don't forget to fix!
         env['BUILDLIB_PATH'] = join(
-            hostpython_recipe.get_build_dir('armeabi'),
+            hostpython_recipe.get_build_dir(self.arch),
             'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
 
         env['PATH'] = environ['PATH']
@@ -1839,12 +1839,6 @@ class Recipe(object):
 
     # Public Recipe API to be subclassed if needed
 
-    def ensure_build_container_dir(self):
-        info_main('Preparing build dir for {}'.format(self.name))
-
-        build_dir = self.get_build_container_dir('armeabi')
-        ensure_dir(build_dir)
-
     def download_if_necessary(self):
         info_main('Downloading {}'.format(self.name))
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
@@ -2204,8 +2198,8 @@ class PythonRecipe(Recipe):
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
             return join(
-                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(
-                    'armeabi'), 'hostpython')
+                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
+                'hostpython')
         return self.ctx.hostpython
 
     def should_build(self):
@@ -2495,7 +2489,7 @@ def biglink(ctx, arch):
     arch = ArchARM(ctx)
     env = ArchARM(ctx).get_env()
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
-        join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi'))
+        join(ctx.bootstrap.build_dir, 'obj', 'local', arch.arch))
 
     if not len(glob.glob(join(obj_dir, '*'))):
         info('There seem to be no libraries to biglink, skipping.')
@@ -2507,7 +2501,7 @@ def biglink(ctx, arch):
         join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
         obj_dir.split(' '),
         extra_link_dirs=[join(ctx.bootstrap.build_dir,
-                              'obj', 'local', 'armeabi')],
+                              'obj', 'local', arch.arch)],
         env=env)
 
 
