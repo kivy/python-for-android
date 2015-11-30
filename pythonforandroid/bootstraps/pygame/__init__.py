@@ -19,8 +19,10 @@ class PygameBootstrap(Bootstrap):
         #                 self.name)
         src_path = join(self.bootstrap_dir, 'build')
 
-        # AND: Hardcoding armeabi - naughty!
-        arch = ArchARM(self.ctx)
+        arch = self.ctx.archs[0]
+        if len(self.ctx.archs) > 1:
+            raise ValueError('built for more than one arch, but bootstrap cannot handle that yet')
+        info('Bootstrap running with arch {}'.format(arch))
 
         with current_directory(self.dist_dir):
 
@@ -58,7 +60,7 @@ class PygameBootstrap(Bootstrap):
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
             
             # AND: Copylibs stuff should go here
-            shprint(sh.mv, join('libs', 'armeabi', 'libpymodules.so'), 'private/')
+            shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
             shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
             info('Removing some unwanted files')
