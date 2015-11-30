@@ -545,7 +545,7 @@ class Archx86(Arch):
     arch = 'x86'
 
     def get_env(self):
-        env = super(ArchARMv7_a, self).get_env()
+        env = super(Archx86, self).get_env()
         env['CFLAGS'] = env['CFLAGS'] + ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32'
         env['CXXFLAGS'] = env['CFLAGS']
         return env
@@ -554,7 +554,7 @@ class Archx86_64(Arch):
     arch = 'x86_64'
 
     def get_env(self):
-        env = super(ArchARMv7_a, self).get_env()
+        env = super(Archx86_64, self).get_env()
         env['CFLAGS'] = env['CFLAGS'] + ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
         env['CXXFLAGS'] = env['CFLAGS']
         return env
