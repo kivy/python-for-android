@@ -533,12 +533,13 @@ class ArchARM(Arch):
     arch = "armeabi"
 
 class ArchARMv7_a(ArchARM):
-    arch = 'armeabi-v7'
+    arch = 'armeabi-v7a'
 
     def get_env(self):
         env = super(ArchARMv7_a, self).get_env()
         env['CFLAGS'] = env['CFLAGS'] + ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb'
         env['CXXFLAGS'] = env['CFLAGS']
+        return env
 
 class Archx86(Arch):
     arch = 'x86'
@@ -1918,7 +1919,7 @@ class Recipe(object):
             ensure_dir(build_dir)
             # shprint(sh.ln, '-s', user_dir,
             #         join(build_dir, get_directory(self.versioned_url)))
-            shprint(sh.git, 'clone', user_dir, self.get_build_dir('armeabi'))
+            shprint(sh.git, 'clone', user_dir, self.get_build_dir(arch))
             return
 
         if self.url is None:
@@ -2225,16 +2226,16 @@ class PythonRecipe(Recipe):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
         super(PythonRecipe, self).build_arch(arch)
-        self.install_python_package()
+        self.install_python_package(arch)
     # @cache_execution
     # def install(self):
     #     self.install_python_package()
     #     self.reduce_python_package()
 
-    def install_python_package(self, name=None, env=None, is_dir=True):
+    def install_python_package(self, arch, name=None, env=None, is_dir=True):
         '''Automate the installation of a Python package (or a cython
         package where the cython components are pre-built).'''
-        arch = self.filtered_archs[0]
+        # arch = self.filtered_archs[0]  # old kivy-ios way
         if name is None:
             name = self.name
         if env is None:
@@ -2276,7 +2277,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         #                              # after everything else but isn't
         #                              # used by a normal recipe.
         self.build_compiled_components(arch)
-        self.install_python_package()
+        self.install_python_package(arch)
 
     def build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
@@ -2305,7 +2306,7 @@ class CythonRecipe(PythonRecipe):
         #                              # after everything else but isn't
         #                              # used by a normal recipe.
         self.build_cython_components(arch)
-        self.install_python_package()
+        self.install_python_package(arch)
 
     def build_cython_components(self, arch):
         # AND: Should we use tito's cythonize methods? How do they work?
@@ -2322,7 +2323,7 @@ class CythonRecipe(PythonRecipe):
                 info('{} first build failed (as expected)'.format(self.name))
 
             info('Running cython where appropriate')
-            shprint(sh.find, self.get_build_dir('armeabi'), '-iname', '*.pyx',
+            shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
                     '-exec', self.ctx.cython, '{}', ';', _env=env)
             info('ran cython')
 
@@ -2490,6 +2491,7 @@ def biglink(ctx, arch):
 
     # AND: Shouldn't hardcode Arch! In reality need separate
     # build dirs for each arch
+    raise ValueError('hardcoded Arch to fix!')
     arch = ArchARM(ctx)
     env = ArchARM(ctx).get_env()
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(

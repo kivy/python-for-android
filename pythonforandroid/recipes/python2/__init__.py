@@ -51,7 +51,7 @@ class Python2Recipe(Recipe):
     def build_arch(self, arch):
 
         if not exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
-            self.do_python_build()
+            self.do_python_build(arch)
 
         if not exists(self.ctx.get_python_install_dir()):
             shprint(sh.cp, '-a', join(self.get_build_dir(arch.arch), 'python-install'),
@@ -77,7 +77,7 @@ class Python2Recipe(Recipe):
 
         #     return
 
-    def do_python_build(self):
+    def do_python_build(self, arch):
         if 'sqlite' in self.ctx.recipe_build_order:
             print('sqlite support not yet enabled in python recipe')
             exit(1)
