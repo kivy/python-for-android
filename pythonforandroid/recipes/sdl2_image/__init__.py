@@ -14,7 +14,8 @@ class LibSDL2Image(NDKRecipe):
             info('SDL2_image already patched, skipping')
             return
         self.apply_patch('disable_webp.patch', arch.arch)
-        self.apply_patch('disable_jpg.patch', arch.arch)
+        if arch.arch == 'x86':
+            self.apply_patch('disable_jpg.patch', arch.arch)
         shprint(sh.touch, join(build_dir, '.patched'))
 
 recipe = LibSDL2Image()
