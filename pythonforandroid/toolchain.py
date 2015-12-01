@@ -78,7 +78,7 @@ toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
 
-DEFAULT_ANDROID_API = 16
+DEFAULT_ANDROID_API = 15
 
 
 class LevelDifferentiatingFormatter(logging.Formatter):
