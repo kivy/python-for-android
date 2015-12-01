@@ -204,11 +204,13 @@ def shprint(command, *args, **kwargs):
                 logger.debug(''.join(['\t', line.rstrip()]))
         if need_closing_newline:
             sys.stdout.write('{}\r{:>{width}}\r'.format(
-                Style.RESET_ALL, ' ', width=(columns - 1)))
+                Err_Style.RESET_ALL, ' ', width=(columns - 1)))
+            sys.stdout.flush()
     except sh.ErrorReturnCode as err:
         if need_closing_newline:
             sys.stdout.write('{}\r{:>{width}}\r'.format(
-                Style.RESET_ALL, ' ', width=(columns - 1)))
+                Err_Style.RESET_ALL, ' ', width=(columns - 1)))
+            sys.stdout.flush()
         if tail_n or filter_in or filter_out:
             def printtail(out, name, forecolor, tail_n=0,
                           re_filter_in=None, re_filter_out=None):
