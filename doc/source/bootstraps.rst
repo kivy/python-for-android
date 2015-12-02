@@ -2,7 +2,7 @@
 Bootstraps
 ==========
 
-python-for-android (p4a) supports multiple *bootstraps*. These fulfil a
+python-for-android (p4a) supports multiple *bootstraps*. These fulfill a
 similar role to recipes, but instead of describing how to compile a
 specific module they describe how a full Android project may be put
 together from a combination of individual recipes and other
@@ -91,6 +91,6 @@ be clear. However, the :code:`run_distribute` method must do all the
 work of creating a build directory, copying recipes etc into it, and
 adding or removing any extra components as necessary.
 
-If you'd like to creat a bootstrap, the best resource is to check the
+If you'd like to create a bootstrap, the best resource is to check the
 existing ones in the p4a source code. You can also :doc:`contact the
 developers <troubleshooting>` if you have problems or questions.

@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, logger, info_main, which
+from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, info_main
 from os.path import join, exists
 from os import walk
 import glob
@@ -22,6 +22,9 @@ class SDL2Bootstrap(Bootstrap):
             with open('local.properties', 'w') as fileh:
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
+        # AND: Hardcoding armeabi - naughty!
+        arch = ArchAndroid(self.ctx)
+
         with current_directory(self.dist_dir):
             info('Copying python distribution')
 
@@ -37,15 +40,9 @@ class SDL2Bootstrap(Bootstrap):
             if not exists('python-install'):
                 shprint(sh.cp, '-a', join(self.ctx.build_dir, 'python-install'), '.')
 
-            info('Copying libs')
-            # AND: Hardcoding armeabi - naughty!
-            shprint(sh.mkdir, '-p', join('libs', 'armeabi'))
-            for lib in glob.glob(join(self.ctx.libs_dir, '*')):
-                shprint(sh.cp, '-a', lib, join('libs', 'armeabi'))
-
-            info('Copying java files')
-            for filename in glob.glob(join(self.ctx.build_dir, 'java', '*')):
-                shprint(sh.cp, '-a', filename, 'src')
+            self.distribute_libs(arch, [self.ctx.libs_dir])
+            self.distribute_aars(arch)
+            self.distribute_javaclasses(join(self.ctx.build_dir, 'java'))
 
             info('Filling private directory')
             if not exists(join('private', 'lib')):
@@ -85,20 +82,7 @@ class SDL2Bootstrap(Bootstrap):
                 # shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
 
-        info('Stripping libraries')
-        env = ArchAndroid(self.ctx).get_env()
-        strip = which('arm-linux-androideabi-strip', env['PATH'])
-        if strip is None:
-            warning('Can\'t find strip in PATH...')
-        strip = sh.Command(strip)
-        filens = shprint(sh.find, join(self.dist_dir, 'private'), join(self.dist_dir, 'libs'),
-                '-iname', '*.so', _env=env).stdout.decode('utf-8')
-        logger.info('Stripping libraries in private dir')
-        for filen in filens.split('\n'):
-            try:
-                strip(filen, _env=env)
-            except sh.ErrorReturnCode_1:
-                logger.debug('Failed to strip ' + 'filen')
+        self.strip_libraries(arch)
         super(SDL2Bootstrap, self).run_distribute()
 
 bootstrap = SDL2Bootstrap()
