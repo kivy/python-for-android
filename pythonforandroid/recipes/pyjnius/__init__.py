@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import CythonRecipe, shprint, ArchAndroid, current_directory, info
+from pythonforandroid.toolchain import CythonRecipe, shprint, ArchARM, current_directory, info
 import sh
 import glob
 from os.path import join, exists
@@ -18,7 +18,7 @@ class PyjniusRecipe(CythonRecipe):
             if exists(join(build_dir, '.patched')):
                 print('pyjniussdl2 already pathed, skipping')
                 return
-            self.apply_patch('sdl2_jnienv_getter.patch')
+            self.apply_patch('sdl2_jnienv_getter.patch', arch.arch)
             shprint(sh.touch, join(build_dir, '.patched'))
 
     def postbuild_arch(self, arch):

@@ -1,0 +1,13 @@
+diff --git a/Android.mk b/Android.mk
+index 31e2118..8cd2cb9 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -6,7 +6,7 @@ LOCAL_MODULE := SDL2_image
+ 
+ # Enable this if you want to support loading JPEG images
+ # The library path should be a relative path to this directory.
+-SUPPORT_JPG := true
++SUPPORT_JPG := false
+ JPG_LIBRARY_PATH := external/jpeg-9
+ 
+ # Enable this if you want to support loading PNG images
