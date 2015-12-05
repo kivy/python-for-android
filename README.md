@@ -27,7 +27,7 @@ Broad goals of the revamp project include:
 - (WIP) Support python3 (recipe exists but crashes on android)
 - (WIP) Support some kind of binary distribution, including on windows (semi-implemented, just needs finishing)
 - ✓ Be a standalone Pypi module (not on pypi yet but setup.py works)
-- Support multiple architectures
+- ✓ Support multiple architectures (full multiarch builds not complete, but arm and x86 with different config both work now)
 
 We are currently working to stabilise all parts of the toolchain and
 add more features. Support for pygame-based APKs is almost feature
