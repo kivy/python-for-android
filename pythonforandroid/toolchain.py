@@ -293,7 +293,7 @@ def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
-        ctx.set_archs(self.archs)
+        ctx.set_archs(self._archs)
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
@@ -2727,7 +2727,7 @@ build_dist
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
 
-        self.archs = split_argument_list(args.arch)
+        self._archs = split_argument_list(args.arch)
 
         # AND: Fail nicely if the args aren't handled yet
         if args.extra_dist_dirs:
@@ -3015,6 +3015,13 @@ build_dist
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir',
                           'ndk_platform', 'ndk_ver', 'android_api'):
             print('{} is {}'.format(attribute, getattr(ctx, attribute)))
+
+    def archs(self, args):
+        '''List the target architectures available to be built for.'''
+        print('{Style.BRIGHT}Available target architectures are:'
+              '{Style.RESET_ALL}'.format(Style=Out_Style))
+        for arch in self.ctx.archs:
+            print('    {}'.format(arch.arch))
 
     def dists(self, args):
         '''The same as :meth:`distributions`.'''
