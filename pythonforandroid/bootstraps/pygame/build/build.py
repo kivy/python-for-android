@@ -283,11 +283,6 @@ def make_package(args):
         )
 
     render(
-        'Configuration.tmpl.java',
-        'src/org/renpy/android/Configuration.java',
-        args=args)
-
-    render(
         build_tpl,
         'build.xml',
         args=args,
