@@ -12,7 +12,7 @@ import sys
 from sys import stdout, stderr, platform
 from os.path import (join, dirname, realpath, exists, isdir, basename,
                      expanduser, splitext, split)
-from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
+from os import listdir, unlink, makedirs, environ, chdir, getcwd, uname
 import os
 import zipfile
 import tarfile
@@ -56,7 +56,7 @@ class colorama_shim(object):
 
     def __getattr__(self, key):
         return self._dict[key]
-    
+
 Null_Style = Null_Fore = colorama_shim()
 
 if stdout.isatty():
@@ -148,14 +148,19 @@ def pretty_log_dists(dists, log_func=info):
     for line in infos:
         log_func('\t' + line)
 
+
 def shorten_string(string, max_width):
     ''' make limited length string in form:
       "the string is very lo...(and 15 more)"
-    '''  
+    '''
     string_len = len(string)
-    if string_len <= max_width: return string
-    visible = max_width - 16 - int(log10(string_len)) #expected suffix len "...(and XXXXX more)"
-    return ''.join((string[:visible], '...(and ', str(string_len - visible), ' more)'))
+    if string_len <= max_width:
+        return string
+    visible = max_width - 16 - int(log10(string_len))
+    # expected suffix len "...(and XXXXX more)"
+    return ''.join((string[:visible], '...(and ', str(string_len - visible),
+                    ' more)'))
+
 
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
@@ -351,17 +356,19 @@ def current_directory(new_dir):
                          Err_Fore.RESET)))
     chdir(cur_dir)
 
+
 @contextlib.contextmanager
 def temp_directory():
     temp_dir = mkdtemp()
     try:
-        logger.debug(''.join((Err_Fore.CYAN, ' + temp directory used ', temp_dir,
-                             Err_Fore.RESET)))
+        logger.debug(''.join((Err_Fore.CYAN, ' + temp directory used ',
+                              temp_dir, Err_Fore.RESET)))
         yield temp_dir
     finally:
         shutil.rmtree(temp_dir)
-        logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ', temp_dir,
-                             Err_Fore.RESET)))
+        logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ',
+                              temp_dir, Err_Fore.RESET)))
+
 
 def cache_execution(f):
     def _cache_execution(self, *args, **kwargs):
@@ -532,20 +539,24 @@ class Arch(object):
 
         return env
 
+
 class ArchARM(Arch):
     arch = "armeabi"
     toolchain_prefix = 'arm-linux-androideabi'
     command_prefix = 'arm-linux-androideabi'
     platform_dir = 'arch-arm'
 
+
 class ArchARMv7_a(ArchARM):
     arch = 'armeabi-v7a'
 
     def get_env(self):
         env = super(ArchARMv7_a, self).get_env()
-        env['CFLAGS'] = env['CFLAGS'] + ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb'
+        env['CFLAGS'] = (env['CFLAGS'] +
+                         ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb')
         env['CXXFLAGS'] = env['CFLAGS']
         return env
+
 
 class Archx86(Arch):
     arch = 'x86'
@@ -555,9 +566,11 @@ class Archx86(Arch):
 
     def get_env(self):
         env = super(Archx86, self).get_env()
-        env['CFLAGS'] = env['CFLAGS'] + ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32'
+        env['CFLAGS'] = (env['CFLAGS'] +
+                         ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32')
         env['CXXFLAGS'] = env['CFLAGS']
         return env
+
 
 class Archx86_64(Arch):
     arch = 'x86_64'
@@ -567,7 +580,8 @@ class Archx86_64(Arch):
 
     def get_env(self):
         env = super(Archx86_64, self).get_env()
-        env['CFLAGS'] = env['CFLAGS'] + ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
+        env['CFLAGS'] = (env['CFLAGS'] +
+                         ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel')
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 
