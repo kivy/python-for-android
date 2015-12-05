@@ -70,6 +70,11 @@ supply those that you need.
 ``--force_build BOOL``
   Whether the distribution must be compiled from scratch.
 
+``--arch``
+  The architecture to build for. Currently only one architecture can be 
+  targeted at a time, and a given distribution can only include one architecture.
+
+
 .. note:: These options are preliminary. Others will include toggles
           for allowing downloads, and setting additional directories
           from which to load user dists.
