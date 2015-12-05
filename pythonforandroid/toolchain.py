@@ -288,11 +288,11 @@ def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
+        ctx.set_archs(self.archs)
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
                                       user_ndk_ver=self.ndk_version)
-        ctx.set_archs(self.archs)
         dist = self._dist
         if dist.needs_build:
             info_notify('No dist exists that meets your requirements, '
@@ -973,6 +973,15 @@ class Context(object):
             warning('Android NDK version could not be found, exiting.')
         self.ndk_ver = ndk_ver
 
+        # AND: need to change if supporting multiple archs at once
+        arch = self.archs[0]
+        if arch.arch[:3] == 'arm':
+            compiler_dir = 'arch-arm'
+        elif arch.arch == 'x86':
+            compiler_dir = 'arch-x86'
+        else:
+            warning('Don\'t know what NDK compiler dir to look in. Exiting.')
+            exit(1)
         self.ndk_platform = join(
             self.ndk_dir,
             'platforms',
