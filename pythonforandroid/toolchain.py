@@ -486,6 +486,9 @@ class Arch(object):
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
+        if toolchain_prefix == 'x86':
+            toolchain_prefix = 'i686-linux-android'
+        print('path is', environ['PATH'])
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
@@ -986,7 +989,7 @@ class Context(object):
             self.ndk_dir,
             'platforms',
             'android-{}'.format(self.android_api),
-            'arch-arm')
+            compiler_dir)
         if not exists(self.ndk_platform):
             warning('ndk_platform doesn\'t exist')
             ok = False
@@ -1022,15 +1025,18 @@ class Context(object):
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
-        if self.ndk_ver == 'r5b':
-            toolchain_prefix = 'arm-eabi'
-        elif self.ndk_ver[:2] in ('r7', 'r8', 'r9'):
-            toolchain_prefix = 'arm-linux-androideabi'
-        elif self.ndk_ver[:3] == 'r10':
-            toolchain_prefix = 'arm-linux-androideabi'
+        if arch.arch[:3] == 'arm':
+            if self.ndk_ver == 'r5b':
+                toolchain_prefix = 'arm-eabi'
+            elif self.ndk_ver[:2] in ('r7', 'r8', 'r9'):
+                toolchain_prefix = 'arm-linux-androideabi'
+            elif self.ndk_ver[:3] == 'r10':
+                toolchain_prefix = 'arm-linux-androideabi'
+            else:
+                warning('Error: NDK not supported by these tools?')
+                exit(1)
         else:
-            warning('Error: NDK not supported by these tools?')
-            exit(1)
+            toolchain_prefix = 'x86'
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
@@ -1042,9 +1048,11 @@ class Context(object):
                        os.path.join(toolchain_path, toolchain_content)):
                     toolchain_version = toolchain_content[
                         len(toolchain_prefix)+1:]
-                    debug('Found toolchain version: {}'.format(
-                        toolchain_version))
-                    toolchain_versions.append(toolchain_version)
+                    # AND: This is terrible!
+                    if toolchain_version[0] in map(str, range(10)) and 'clang' not in toolchain_version and toolchain_version[:2] != '64':
+                        debug('Found toolchain version: {}'.format(
+                            toolchain_version))
+                        toolchain_versions.append(toolchain_version)
         else:
             warning('Could not find toolchain subdirectory!')
             ok = False
