@@ -571,37 +571,6 @@ class Archx86_64(Arch):
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 
-# class ArchSimulator(Arch):
-#     sdk = "iphonesimulator"
-#     arch = "i386"
-#     triple = "i386-apple-darwin11"
-#     version_min = "-miphoneos-version-min=6.0.0"
-#     sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
-
-
-# class Arch64Simulator(Arch):
-#     sdk = "iphonesimulator"
-#     arch = "x86_64"
-#     triple = "x86_64-apple-darwin13"
-#     version_min = "-miphoneos-version-min=7.0"
-#     sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
-
-
-# class ArchIOS(Arch):
-#     sdk = "iphoneos"
-#     arch = "armv7"
-#     triple = "arm-apple-darwin11"
-#     version_min = "-miphoneos-version-min=6.0.0"
-#     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
-
-
-# class Arch64IOS(Arch):
-#     sdk = "iphoneos"
-#     arch = "arm64"
-#     triple = "aarch64-apple-darwin13"
-#     version_min = "-miphoneos-version-min=7.0"
-#     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
-
 
 class Graph(object):
     # Taken from the old python-for-android/depsort
@@ -2107,20 +2076,6 @@ class NDKRecipe(Recipe):
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
-    # def download_if_necessary(self):
-    #     info_main('Downloading {}'.format(self.name))
-    #     info('{} is an NDK recipe, it is alread included in the '
-    #           'bootstrap (for now), so skipping'.format(self.name))
-    #     # Do nothing; in the future an NDKRecipe can copy its
-    #     # contents to the bootstrap build dir, but for now each
-    #     # bootstrap already includes available recipes (as was
-    #     # already the case in p4a)
-
-    # def prepare_build_dir(self, arch):
-    #     info_main('Unpacking {} for {}'.format(self.name, arch))
-    #     info('{} is included in the bootstrap, unpacking currently '
-    #          'unnecessary, so skipping'.format(self.name))
-
 
 class PythonRecipe(Recipe):
     site_packages_name = None
@@ -2165,10 +2120,6 @@ class PythonRecipe(Recipe):
         the target Python dir.'''
         super(PythonRecipe, self).build_arch(arch)
         self.install_python_package(arch)
-    # @cache_execution
-    # def install(self):
-    #     self.install_python_package()
-    #     self.reduce_python_package()
 
     def install_python_package(self, arch, name=None, env=None, is_dir=True):
         '''Automate the installation of a Python package (or a cython
@@ -2278,15 +2229,6 @@ class CythonRecipe(PythonRecipe):
     #     for root, dirnames, filenames in walk(root_dir):
     #         for filename in fnmatch.filter(filenames, "*.pyx"):
     #             self.cythonize_file(join(root, filename))
-
-    # def biglink(self):
-    #     dirs = []
-    #     for root, dirnames, filenames in walk(self.build_dir):
-    #         if fnmatch.filter(filenames, "*.so.libs"):
-    #             dirs.append(root)
-    #     cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
-    #     shprint(cmd, join(self.build_dir, "lib{}.a".format(self.name)),
-    #             *dirs)
 
     def get_recipe_env(self, arch):
         env = super(CythonRecipe, self).get_recipe_env(arch)
@@ -2474,21 +2416,11 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
         if link not in unique_args:
             unique_args.append(link)
 
-    # print('Biglink create %s library' % soname)
-    # print('Biglink arguments:')
-    # for arg in unique_args:
-    #     print(' %s' % arg)
-
     cc_name = env['CC']
     cc = sh.Command(cc_name.split()[0])
     cc = cc.bake(*cc_name.split()[1:])
 
     shprint(cc, '-shared', '-O3', '-o', soname, *unique_args, _env=env)
-    # args = os.environ['CC'].split() + \
-    #     ['-shared', '-O3', '-o', soname] + \
-    #     unique_args
-
-    # sys.exit(subprocess.call(args))
 
 
 def ensure_dir(filename):
@@ -2802,21 +2734,6 @@ build_dist
             parser.print_help()
             exit(1)
         getattr(self, args.command)(unknown)
-
-    # def build(self):
-    #     parser = argparse.ArgumentParser(
-    #             description="Build the toolchain")
-    #     parser.add_argument("recipe", nargs="+", help="Recipe to compile")
-    #     parser.add_argument("--arch",
-    #                         help="Restrict compilation to this arch")
-    #     args = parser.parse_args(sys.argv[2:])
-
-    #     ctx = Context()
-    #     # if args.arch:
-    #     #     archs = args.arch.split()
-    #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
-    #     #     print("Architectures restricted to: {}".format(archs))
-    #     build_recipes(args.recipe, ctx)
 
     def _read_configuration(self):
         # search for a .p4a configuration file in the current directory
