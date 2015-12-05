@@ -11,7 +11,7 @@ from __future__ import print_function
 import sys
 from sys import stdout, stderr, platform
 from os.path import (join, dirname, realpath, exists, isdir, basename,
-                     expanduser, splitext)
+                     expanduser, splitext, split)
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
 import os
 import zipfile
@@ -444,6 +444,13 @@ class JsonStore(object):
 
 
 class Arch(object):
+
+    toolchain_prefix = None
+    '''The prefix for the toolchain dir in the NDK.'''
+
+    command_prefix = None
+    '''The prefix for NDK commands such as gcc.'''
+
     def __init__(self, ctx):
         super(Arch, self).__init__()
         self.ctx = ctx
@@ -534,6 +541,9 @@ class Arch(object):
 
 class ArchARM(Arch):
     arch = "armeabi"
+    toolchain_prefix = 'arm-linux-androideabi'
+    command_prefix = 'arm-linux-androideabi'
+    platform_dir = 'arch-arm'
 
 class ArchARMv7_a(ArchARM):
     arch = 'armeabi-v7a'
@@ -546,6 +556,9 @@ class ArchARMv7_a(ArchARM):
 
 class Archx86(Arch):
     arch = 'x86'
+    toolchain_prefix = 'x86'
+    command_prefix = 'i686-linux-android'
+    platform_dir = 'arch-x86'
 
     def get_env(self):
         env = super(Archx86, self).get_env()
@@ -555,6 +568,9 @@ class Archx86(Arch):
 
 class Archx86_64(Arch):
     arch = 'x86_64'
+    toolchain_prefix = 'x86'
+    command_prefix = 'x86_64-linux-android'
+    platform_dir = 'arch-x86'
 
     def get_env(self):
         env = super(Archx86_64, self).get_env()
@@ -976,24 +992,6 @@ class Context(object):
             warning('Android NDK version could not be found, exiting.')
         self.ndk_ver = ndk_ver
 
-        # AND: need to change if supporting multiple archs at once
-        arch = self.archs[0]
-        if arch.arch[:3] == 'arm':
-            compiler_dir = 'arch-arm'
-        elif arch.arch == 'x86':
-            compiler_dir = 'arch-x86'
-        else:
-            warning('Don\'t know what NDK compiler dir to look in. Exiting.')
-            exit(1)
-        self.ndk_platform = join(
-            self.ndk_dir,
-            'platforms',
-            'android-{}'.format(self.android_api),
-            compiler_dir)
-        if not exists(self.ndk_platform):
-            warning('ndk_platform doesn\'t exist')
-            ok = False
-
         virtualenv = None
         if virtualenv is None:
             virtualenv = sh.which('virtualenv2')
@@ -1021,38 +1019,31 @@ class Context(object):
             ok = False
             warning("Missing requirement: cython is not installed")
 
-        # Modify the path so that sh finds modules appropriately
+        # AND: need to change if supporting multiple archs at once
+        arch = self.archs[0]
+        platform_dir = arch.platform_dir
+        toolchain_prefix = arch.toolchain_prefix
+        command_prefix = arch.command_prefix
+        self.ndk_platform = join(
+            self.ndk_dir,
+            'platforms',
+            'android-{}'.format(self.android_api),
+            platform_dir)
+        if not exists(self.ndk_platform):
+            warning('ndk_platform doesn\'t exist')
+            ok = False
+
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
-        if arch.arch[:3] == 'arm':
-            if self.ndk_ver == 'r5b':
-                toolchain_prefix = 'arm-eabi'
-            elif self.ndk_ver[:2] in ('r7', 'r8', 'r9'):
-                toolchain_prefix = 'arm-linux-androideabi'
-            elif self.ndk_ver[:3] == 'r10':
-                toolchain_prefix = 'arm-linux-androideabi'
-            else:
-                warning('Error: NDK not supported by these tools?')
-                exit(1)
-        else:
-            toolchain_prefix = 'x86'
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
         if os.path.isdir(toolchain_path):
-            toolchain_contents = os.listdir(toolchain_path)
-            for toolchain_content in toolchain_contents:
-                if toolchain_content.startswith(toolchain_prefix) and \
-                   os.path.isdir(
-                       os.path.join(toolchain_path, toolchain_content)):
-                    toolchain_version = toolchain_content[
-                        len(toolchain_prefix)+1:]
-                    # AND: This is terrible!
-                    if toolchain_version[0] in map(str, range(10)) and 'clang' not in toolchain_version and toolchain_version[:2] != '64':
-                        debug('Found toolchain version: {}'.format(
-                            toolchain_version))
-                        toolchain_versions.append(toolchain_version)
+            toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
+                                                            toolchain_prefix))
+            toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
+                                  for path in toolchain_contents]
         else:
             warning('Could not find toolchain subdirectory!')
             ok = False
@@ -1077,6 +1068,7 @@ class Context(object):
 
         self.toolchain_prefix = toolchain_prefix
         self.toolchain_version = toolchain_version
+        # Modify the path so that sh finds modules appropriately
         environ['PATH'] = (
             '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
             'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
