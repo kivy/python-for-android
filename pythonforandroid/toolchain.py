@@ -141,8 +141,10 @@ def pretty_log_dists(dists, log_func=info):
     for dist in dists:
         infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
                      'includes recipes ({Fore.GREEN}{recipes}'
-                     '{Style.RESET_ALL})'.format(
+                     '{Style.RESET_ALL}), built for archs ({Fore.BLUE}'
+                     '{archs}{Style.RESET_ALL})'.format(
                          name=dist.name, recipes=', '.join(dist.recipes),
+                         archs=', '.join(dist.archs) if dist.archs else 'UNKNOWN',
                          Fore=Err_Fore, Style=Err_Style))
 
     for line in infos:
@@ -1155,6 +1157,9 @@ class Distribution(object):
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
 
+    archs = []
+    '''The arch targets that the dist is built for.'''
+
     recipes = []
 
     description = ''  # A long description
@@ -1316,6 +1321,8 @@ class Distribution(object):
                 dist.dist_dir = folder
                 dist.needs_build = False
                 dist.recipes = dist_info['recipes']
+                if 'archs' in dist_info:
+                    dist.archs = dist_info['archs']
                 dists.append(dist)
         return dists
 
@@ -1327,6 +1334,7 @@ class Distribution(object):
             info('Saving distribution info')
             with open('dist_info.json', 'w') as fileh:
                 json.dump({'dist_name': self.name,
+                           'archs': [arch.arch for arch in self.ctx.archs],
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
 
