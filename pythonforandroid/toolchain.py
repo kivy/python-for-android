@@ -1429,6 +1429,7 @@ class Bootstrap(object):
             with open('dist_info.json', 'w') as fileh:
                 json.dump({'dist_name': self.ctx.dist_name,
                            'bootstrap': self.ctx.bootstrap.name,
+                           'archs': [arch.arch for arch in self.ctx.archs],
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
 
