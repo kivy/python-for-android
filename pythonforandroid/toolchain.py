@@ -522,20 +522,13 @@ class Arch(object):
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
 
         # AND: This hardcodes python version 2.7, needs fixing
-        # AND: This also hardcodes armeabi, which isn't even correct,
-        #      don't forget to fix!
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
             'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
 
         env['PATH'] = environ['PATH']
 
-        # AND: This stuff is set elsewhere in distribute.sh. Does that matter?
         env['ARCH'] = self.arch
-
-        # env['LIBLINK_PATH'] = join(
-        #     self.ctx.build_dir, 'other_builds', 'objects')
-        # ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
 
         return env
 
@@ -917,8 +910,6 @@ class Context(object):
                      'it with the SDK android tool.').format(android_api))
             warning('Exiting.')
             exit(1)
-        # AND: If the android api target doesn't exist, we should
-        # offer to install it here
 
         # Find the Android NDK
         # Could also use ANDROID_NDK, but doesn't look like many tools use this
@@ -1080,8 +1071,6 @@ class Context(object):
                 toolchain_version=toolchain_version,
                 py_platform=py_platform, path=environ.get('PATH'))
 
-        # AND: Are these necessary? Where to check for and and ndk-build?
-        # check the basic tools
         for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
                            "tar", "bzip2", "unzip", "make", "gcc", "g++"):
             if not sh.which(executable):
@@ -1165,7 +1154,6 @@ class Context(object):
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
         ensure_dir(join(self.libs_dir, arch))
-        # AND: See warning:
         return join(self.libs_dir, arch)
 
 
@@ -1341,10 +1329,7 @@ class Distribution(object):
                 with open(join(folder, 'dist_info.json')) as fileh:
                     dist_info = json.load(fileh)
                 dist = cls(ctx)
-                dist.name = folder.split('/')[-1]  # AND: also equal to
-                #                                  # dist_info['dist_name']
-                #                                  # ... Which one should we
-                #                                  # use?
+                dist.name = folder.split('/')[-1]
                 dist.dist_dir = folder
                 dist.needs_build = False
                 dist.recipes = dist_info['recipes']
@@ -1455,11 +1440,6 @@ class Bootstrap(object):
                            'bootstrap': self.ctx.bootstrap.name,
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
-
-    # AND: This method must be replaced by manual dir setting, in
-    # order to allow for user dirs
-    # def get_bootstrap_dir(self):
-    #     return(dirname(__file__))
 
     @classmethod
     def list_bootstraps(cls):
@@ -1932,7 +1912,6 @@ class Recipe(object):
         filename = shprint(
             sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
 
-        # AND: TODO: Use tito's better unpacking method
         with current_directory(build_dir):
             directory_name = self.get_build_dir(arch)
 
@@ -1992,46 +1971,6 @@ class Recipe(object):
             arch = self.filtered_archs[0]
         return arch.get_env()
 
-    # @property
-    # def archive_root(self):
-    #     key = "{}.archive_root".format(self.name)
-    #     value = self.ctx.state.get(key)
-    #     if not key:
-    #         value = self.get_archive_rootdir(self.archive_fn)
-    #         self.ctx.state[key] = value
-    #     return value
-
-    # def execute(self):
-    #     if self.custom_dir:
-    #         self.ctx.state.remove_all(self.name)
-    #     self.download()
-    #     self.extract()
-    #     self.build_all()
-
-    # AND: Will need to change how this works
-    # @property
-    # def custom_dir(self):
-    #     """Check if there is a variable name to specify a custom version /
-    #     directory to use instead of the current url.
-    #     """
-    #     d = environ.get("P4A_{}_DIR".format(self.name.lower()))
-    #     if not d:
-    #         return
-    #     if not exists(d):
-    #         return
-    #     return d
-
-    # def prebuild(self):
-    #     self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
-    #                                            # this to support
-    #                                            # multiple archs
-
-    # def build(self):
-    #     self.build_arch(self.ctx.archs[0])  # Same here!
-
-    # def postbuild(self):
-    #     self.postbuild_arch(self.ctx.archs[0])
-
     def prebuild_arch(self, arch):
         '''Run any pre-build tasks for the Recipe. By default, this checks if
         any prebuild_archname methods exist for the archname of the current
@@ -2047,7 +1986,6 @@ class Recipe(object):
         building again.
 
         '''
-        # AND: This should take arch as an argument!
         return True
 
     def build_arch(self, arch):
@@ -2212,9 +2150,6 @@ class PythonRecipe(Recipe):
         return self.ctx.hostpython
 
     def should_build(self, arch):
-        # AND: This should be different for each arch and use some
-        # kind of data store to know what has been built in a given
-        # python env
         print('name is', self.site_packages_name, type(self))
         name = self.site_packages_name
         if name is None:
@@ -2273,12 +2208,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
         '''
-        Recipe.build_arch(self, arch)  # AND: Having to directly call the
-        #                              # method like this is nasty...could
-        #                              # use tito's method of having an
-        #                              # install method that always runs
-        #                              # after everything else but isn't
-        #                              # used by a normal recipe.
+        Recipe.build_arch(self, arch)
         self.build_compiled_components(arch)
         self.install_python_package(arch)
 
@@ -2302,17 +2232,11 @@ class CythonRecipe(PythonRecipe):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
         '''
-        Recipe.build_arch(self, arch)  # AND: Having to directly call the
-        #                              # method like this is nasty...could
-        #                              # use tito's method of having an
-        #                              # install method that always runs
-        #                              # after everything else but isn't
-        #                              # used by a normal recipe.
+        Recipe.build_arch(self, arch)
         self.build_cython_components(arch)
         self.install_python_package(arch)
 
     def build_cython_components(self, arch):
-        # AND: Should we use tito's cythonize methods? How do they work?
         info('Cythonizing anything necessary in {}'.format(self.name))
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
@@ -2424,7 +2348,7 @@ def build_recipes(build_order, python_modules, ctx):
                      .format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional (could use
+        # AND: Should make this optional 
         info_main('# Biglinking object files')
         biglink(ctx, arch)
 
@@ -2492,8 +2416,6 @@ def biglink(ctx, arch):
         files.append(obj_dir)
         shprint(sh.cp, '-r', *files)
 
-    # AND: Shouldn't hardcode Arch! In reality need separate
-    # build dirs for each arch
     env = arch.get_env()
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
         join(ctx.bootstrap.build_dir, 'obj', 'local', arch.arch))
@@ -3038,18 +2960,6 @@ build_dist
         ctx = Context()
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
-
-    # def status(self, args):
-    #     parser = argparse.ArgumentParser(
-    #             description="Give a status of the build")
-    #     args = parser.parse_args(args)
-    #     ctx = Context()
-    #     # AND: TODO
-
-    #     print('This isn\'t implemented yet, but should list all '
-    #           'currently existing distributions, the modules they '
-    #           'include, and all the build caches.')
-    #     exit(1)
 
     @require_prebuilt_dist
     def export_dist(self, args):
