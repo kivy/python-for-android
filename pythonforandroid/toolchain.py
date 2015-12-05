@@ -221,25 +221,25 @@ def shprint(command, *args, **kwargs):
                     lines = [l for l in lines if not re_filter_out.search(l)]
                 if tail_n == 0 or len(lines) <= tail_n:
                     info('{}:\n{}\t{}{}'.format(
-                        name, forecolor, '\t\n'.join(lines), Fore.RESET))
+                        name, forecolor, '\t\n'.join(lines), Out_Fore.RESET))
                 else:
                     info('{} (last {} lines of {}):\n{}\t{}{}'.format(
                         name, tail_n, len(lines),
-                        forecolor, '\t\n'.join(lines[-tail_n:]), Fore.RESET))
-            printtail(err.stdout, 'STDOUT', Fore.YELLOW, tail_n,
+                        forecolor, '\t\n'.join(lines[-tail_n:]), Out_Fore.RESET))
+            printtail(err.stdout, 'STDOUT', Out_Fore.YELLOW, tail_n,
                       re.compile(filter_in) if filter_in else None,
                       re.compile(filter_out) if filter_out else None)
-            printtail(err.stderr, 'STDERR', Fore.RED)
+            printtail(err.stderr, 'STDERR', Err_Fore.RED)
         if is_critical:
             env = kwargs.get("env")
             if env is not None:
                 info("{}ENV:{}\n{}\n".format(
-                    Fore.YELLOW, Fore.RESET, "\n".join(
+                    Err_Fore.YELLOW, Err_Fore.RESET, "\n".join(
                         "set {}={}".format(n, v) for n, v in env.items())))
             info("{}COMMAND:{}\ncd {} && {} {}\n".format(
-                Fore.YELLOW, Fore.RESET, getcwd(), command, ' '.join(args)))
+                Err_Fore.YELLOW, Err_Fore.RESET, getcwd(), command, ' '.join(args)))
             warning("{}ERROR: {} failed!{}".format(
-                Fore.RED, command, Fore.RESET))
+                Err_Fore.RED, command, Err_Fore.RESET))
             exit(1)
         else:
             raise
