@@ -14,7 +14,8 @@ class LibSDL2Mixer(NDKRecipe):
         if exists(join(build_dir, '.patched')):
             info('SDL2_mixer already patched, skipping')
             return
-        self.apply_patch('disable_modplug_mikmod_smpeg.patch')
+        self.apply_patch('disable_modplug_mikmod_smpeg.patch',
+                         arch.arch)
         shprint(sh.touch, join(build_dir, '.patched'))
 
 recipe = LibSDL2Mixer()

@@ -20,10 +20,10 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
             print('numpy already patched, skipping')
             return
 
-        self.apply_patch('patches/fix-numpy.patch')
-        self.apply_patch('patches/prevent_libs_check.patch')
-        self.apply_patch('patches/ar.patch')
-        self.apply_patch('patches/lib.patch')
+        self.apply_patch('patches/fix-numpy.patch', arch.arch)
+        self.apply_patch('patches/prevent_libs_check.patch', arch.arch)
+        self.apply_patch('patches/ar.patch', arch.arch)
+        self.apply_patch('patches/lib.patch', arch.arch)
 
         # AND: Fix this warning!
         warning('Numpy is built assuming the archiver name is '

@@ -8,8 +8,8 @@ class OpenSSLRecipe(Recipe):
     version = '1.0.2e'
     url = 'https://www.openssl.org/source/openssl-{version}.tar.gz'
 
-    def should_build(self):
-        return not exists(join(self.get_build_dir('armeabi'), 'libssl.a'))
+    def should_build(self, arch):
+        return not exists(join(self.get_build_dir(arch.arch), 'libssl.a'))
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)

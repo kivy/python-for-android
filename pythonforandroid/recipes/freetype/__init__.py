@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid
+from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchARM
 from os.path import exists, join, realpath
 from os import uname
 import glob
@@ -12,8 +12,8 @@ class FreetypeRecipe(Recipe):
 
     depends = ['harfbuzz']
 
-    def should_build(self):
-        if exists(join(self.get_build_dir('armeabi'), 'objs', '.libs', 'libfreetype.so')):
+    def should_build(self, arch):
+        if exists(join(self.get_build_dir(arch.arch), 'objs', '.libs', 'libfreetype.so')):
             return False
         return True
 

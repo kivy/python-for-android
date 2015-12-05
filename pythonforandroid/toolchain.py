@@ -11,8 +11,8 @@ from __future__ import print_function
 import sys
 from sys import stdout, stderr, platform
 from os.path import (join, dirname, realpath, exists, isdir, basename,
-                     expanduser, splitext)
-from os import listdir, unlink, makedirs, environ, chdir, getcwd, walk, uname
+                     expanduser, splitext, split)
+from os import listdir, unlink, makedirs, environ, chdir, getcwd, uname
 import os
 import zipfile
 import tarfile
@@ -56,7 +56,7 @@ class colorama_shim(object):
 
     def __getattr__(self, key):
         return self._dict[key]
-    
+
 Null_Style = Null_Fore = colorama_shim()
 
 if stdout.isatty():
@@ -72,6 +72,8 @@ if stderr.isatty():
 else:
     Err_Style = Null_Style
     Err_Fore = Null_Fore
+Fore = Colo_Fore
+Style = Colo_Style
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -139,21 +141,28 @@ def pretty_log_dists(dists, log_func=info):
     for dist in dists:
         infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
                      'includes recipes ({Fore.GREEN}{recipes}'
-                     '{Style.RESET_ALL})'.format(
+                     '{Style.RESET_ALL}), built for archs ({Fore.BLUE}'
+                     '{archs}{Style.RESET_ALL})'.format(
                          name=dist.name, recipes=', '.join(dist.recipes),
+                         archs=', '.join(dist.archs) if dist.archs else 'UNKNOWN',
                          Fore=Err_Fore, Style=Err_Style))
 
     for line in infos:
         log_func('\t' + line)
 
+
 def shorten_string(string, max_width):
     ''' make limited length string in form:
       "the string is very lo...(and 15 more)"
-    '''  
+    '''
     string_len = len(string)
-    if string_len <= max_width: return string
-    visible = max_width - 16 - int(log10(string_len)) #expected suffix len "...(and XXXXX more)"
-    return ''.join((string[:visible], '...(and ', str(string_len - visible), ' more)'))
+    if string_len <= max_width:
+        return string
+    visible = max_width - 16 - int(log10(string_len))
+    # expected suffix len "...(and XXXXX more)"
+    return ''.join((string[:visible], '...(and ', str(string_len - visible),
+                    ' more)'))
+
 
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
@@ -288,6 +297,7 @@ def require_prebuilt_dist(func):
     @wraps(func)
     def wrapper_func(self, args):
         ctx = self.ctx
+        ctx.set_archs(self._archs)
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
@@ -350,17 +360,19 @@ def current_directory(new_dir):
                          Err_Fore.RESET)))
     chdir(cur_dir)
 
+
 @contextlib.contextmanager
 def temp_directory():
     temp_dir = mkdtemp()
     try:
-        logger.debug(''.join((Err_Fore.CYAN, ' + temp directory used ', temp_dir,
-                             Err_Fore.RESET)))
+        logger.debug(''.join((Err_Fore.CYAN, ' + temp directory used ',
+                              temp_dir, Err_Fore.RESET)))
         yield temp_dir
     finally:
         shutil.rmtree(temp_dir)
-        logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ', temp_dir,
-                             Err_Fore.RESET)))
+        logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ',
+                              temp_dir, Err_Fore.RESET)))
+
 
 def cache_execution(f):
     def _cache_execution(self, *args, **kwargs):
@@ -443,6 +455,13 @@ class JsonStore(object):
 
 
 class Arch(object):
+
+    toolchain_prefix = None
+    '''The prefix for the toolchain dir in the NDK.'''
+
+    command_prefix = None
+    '''The prefix for NDK commands such as gcc.'''
+
     def __init__(self, ctx):
         super(Arch, self).__init__()
         self.ctx = ctx
@@ -485,6 +504,9 @@ class Arch(object):
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
+        if toolchain_prefix == 'x86':
+            toolchain_prefix = 'i686-linux-android'
+        print('path is', environ['PATH'])
         cc = find_executable('{toolchain_prefix}-gcc'.format(
             toolchain_prefix=toolchain_prefix), path=environ['PATH'])
         if cc is None:
@@ -511,57 +533,61 @@ class Arch(object):
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
 
         # AND: This hardcodes python version 2.7, needs fixing
-        # AND: This also hardcodes armeabi, which isn't even correct,
-        #      don't forget to fix!
         env['BUILDLIB_PATH'] = join(
-            hostpython_recipe.get_build_dir('armeabi'),
+            hostpython_recipe.get_build_dir(self.arch),
             'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
 
         env['PATH'] = environ['PATH']
 
-        # AND: This stuff is set elsewhere in distribute.sh. Does that matter?
         env['ARCH'] = self.arch
-
-        # env['LIBLINK_PATH'] = join(
-        #     self.ctx.build_dir, 'other_builds', 'objects')
-        # ensure_dir(env['LIBLINK_PATH'])  # AND: This should be elsewhere
 
         return env
 
 
-class ArchAndroid(Arch):
+class ArchARM(Arch):
     arch = "armeabi"
-
-# class ArchSimulator(Arch):
-#     sdk = "iphonesimulator"
-#     arch = "i386"
-#     triple = "i386-apple-darwin11"
-#     version_min = "-miphoneos-version-min=6.0.0"
-#     sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
+    toolchain_prefix = 'arm-linux-androideabi'
+    command_prefix = 'arm-linux-androideabi'
+    platform_dir = 'arch-arm'
 
 
-# class Arch64Simulator(Arch):
-#     sdk = "iphonesimulator"
-#     arch = "x86_64"
-#     triple = "x86_64-apple-darwin13"
-#     version_min = "-miphoneos-version-min=7.0"
-#     sysroot = sh.xcrun("--sdk", "iphonesimulator", "--show-sdk-path").strip()
+class ArchARMv7_a(ArchARM):
+    arch = 'armeabi-v7a'
+
+    def get_env(self):
+        env = super(ArchARMv7_a, self).get_env()
+        env['CFLAGS'] = (env['CFLAGS'] +
+                         ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb')
+        env['CXXFLAGS'] = env['CFLAGS']
+        return env
 
 
-# class ArchIOS(Arch):
-#     sdk = "iphoneos"
-#     arch = "armv7"
-#     triple = "arm-apple-darwin11"
-#     version_min = "-miphoneos-version-min=6.0.0"
-#     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
+class Archx86(Arch):
+    arch = 'x86'
+    toolchain_prefix = 'x86'
+    command_prefix = 'i686-linux-android'
+    platform_dir = 'arch-x86'
+
+    def get_env(self):
+        env = super(Archx86, self).get_env()
+        env['CFLAGS'] = (env['CFLAGS'] +
+                         ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32')
+        env['CXXFLAGS'] = env['CFLAGS']
+        return env
 
 
-# class Arch64IOS(Arch):
-#     sdk = "iphoneos"
-#     arch = "arm64"
-#     triple = "aarch64-apple-darwin13"
-#     version_min = "-miphoneos-version-min=7.0"
-#     sysroot = sh.xcrun("--sdk", "iphoneos", "--show-sdk-path").strip()
+class Archx86_64(Arch):
+    arch = 'x86_64'
+    toolchain_prefix = 'x86'
+    command_prefix = 'x86_64-linux-android'
+    platform_dir = 'arch-x86'
+
+    def get_env(self):
+        env = super(Archx86_64, self).get_env()
+        env['CFLAGS'] = (env['CFLAGS'] +
+                         ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel')
+        env['CXXFLAGS'] = env['CFLAGS']
+        return env
 
 
 class Graph(object):
@@ -871,8 +897,6 @@ class Context(object):
                      'it with the SDK android tool.').format(android_api))
             warning('Exiting.')
             exit(1)
-        # AND: If the android api target doesn't exist, we should
-        # offer to install it here
 
         # Find the Android NDK
         # Could also use ANDROID_NDK, but doesn't look like many tools use this
@@ -946,15 +970,6 @@ class Context(object):
             warning('Android NDK version could not be found, exiting.')
         self.ndk_ver = ndk_ver
 
-        self.ndk_platform = join(
-            self.ndk_dir,
-            'platforms',
-            'android-{}'.format(self.android_api),
-            'arch-arm')
-        if not exists(self.ndk_platform):
-            warning('ndk_platform doesn\'t exist')
-            ok = False
-
         virtualenv = None
         if virtualenv is None:
             virtualenv = sh.which('virtualenv2')
@@ -982,33 +997,31 @@ class Context(object):
             ok = False
             warning("Missing requirement: cython is not installed")
 
-        # Modify the path so that sh finds modules appropriately
+        # AND: need to change if supporting multiple archs at once
+        arch = self.archs[0]
+        platform_dir = arch.platform_dir
+        toolchain_prefix = arch.toolchain_prefix
+        command_prefix = arch.command_prefix
+        self.ndk_platform = join(
+            self.ndk_dir,
+            'platforms',
+            'android-{}'.format(self.android_api),
+            platform_dir)
+        if not exists(self.ndk_platform):
+            warning('ndk_platform doesn\'t exist')
+            ok = False
+
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
-        if self.ndk_ver == 'r5b':
-            toolchain_prefix = 'arm-eabi'
-        elif self.ndk_ver[:2] in ('r7', 'r8', 'r9'):
-            toolchain_prefix = 'arm-linux-androideabi'
-        elif self.ndk_ver[:3] == 'r10':
-            toolchain_prefix = 'arm-linux-androideabi'
-        else:
-            warning('Error: NDK not supported by these tools?')
-            exit(1)
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
         if os.path.isdir(toolchain_path):
-            toolchain_contents = os.listdir(toolchain_path)
-            for toolchain_content in toolchain_contents:
-                if toolchain_content.startswith(toolchain_prefix) and \
-                   os.path.isdir(
-                       os.path.join(toolchain_path, toolchain_content)):
-                    toolchain_version = toolchain_content[
-                        len(toolchain_prefix)+1:]
-                    debug('Found toolchain version: {}'.format(
-                        toolchain_version))
-                    toolchain_versions.append(toolchain_version)
+            toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
+                                                            toolchain_prefix))
+            toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
+                                  for path in toolchain_contents]
         else:
             warning('Could not find toolchain subdirectory!')
             ok = False
@@ -1033,6 +1046,7 @@ class Context(object):
 
         self.toolchain_prefix = toolchain_prefix
         self.toolchain_version = toolchain_version
+        # Modify the path so that sh finds modules appropriately
         environ['PATH'] = (
             '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
             'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
@@ -1044,8 +1058,6 @@ class Context(object):
                 toolchain_version=toolchain_version,
                 py_platform=py_platform, path=environ.get('PATH'))
 
-        # AND: Are these necessary? Where to check for and and ndk-build?
-        # check the basic tools
         for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
                            "tar", "bzip2", "unzip", "make", "gcc", "g++"):
             if not sh.which(executable):
@@ -1072,9 +1084,11 @@ class Context(object):
         # root of the toolchain
         self.setup_dirs()
 
-        # AND: Currently only the Android architecture is supported
+        # this list should contain all Archs, it is pruned later
         self.archs = (
-            ArchAndroid(self),
+            ArchARM(self),
+            ArchARMv7_a(self),
+            Archx86(self)
             )
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
@@ -1088,6 +1102,20 @@ class Context(object):
 
         # set the state
         self.state = JsonStore(join(self.dist_dir, "state.db"))
+
+    def set_archs(self, arch_names):
+        all_archs = self.archs
+        new_archs = set()
+        for name in arch_names:
+            matching = [arch for arch in all_archs if arch.arch == name]
+            for match in matching:
+                new_archs.add(match)
+        self.archs = list(new_archs)
+        if not self.archs:
+            warning('Asked to compile for no Archs, so failing.')
+            exit(1)
+        info('Will compile for the following archs: {}'.format(
+            ', '.join([arch.arch for arch in self.archs])))
 
     def prepare_bootstrap(self, bs):
         bs.ctx = self
@@ -1113,7 +1141,6 @@ class Context(object):
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
         ensure_dir(join(self.libs_dir, arch))
-        # AND: See warning:
         return join(self.libs_dir, arch)
 
 
@@ -1131,6 +1158,9 @@ class Distribution(object):
     needs_build = False  # Whether the dist needs compiling
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
+
+    archs = []
+    '''The arch targets that the dist is built for.'''
 
     recipes = []
 
@@ -1289,13 +1319,12 @@ class Distribution(object):
                 with open(join(folder, 'dist_info.json')) as fileh:
                     dist_info = json.load(fileh)
                 dist = cls(ctx)
-                dist.name = folder.split('/')[-1]  # AND: also equal to
-                #                                  # dist_info['dist_name']
-                #                                  # ... Which one should we
-                #                                  # use?
+                dist.name = folder.split('/')[-1]
                 dist.dist_dir = folder
                 dist.needs_build = False
                 dist.recipes = dist_info['recipes']
+                if 'archs' in dist_info:
+                    dist.archs = dist_info['archs']
                 dists.append(dist)
         return dists
 
@@ -1307,6 +1336,7 @@ class Distribution(object):
             info('Saving distribution info')
             with open('dist_info.json', 'w') as fileh:
                 json.dump({'dist_name': self.name,
+                           'archs': [arch.arch for arch in self.ctx.archs],
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
 
@@ -1401,13 +1431,9 @@ class Bootstrap(object):
             with open('dist_info.json', 'w') as fileh:
                 json.dump({'dist_name': self.ctx.dist_name,
                            'bootstrap': self.ctx.bootstrap.name,
+                           'archs': [arch.arch for arch in self.ctx.archs],
                            'recipes': self.ctx.recipe_build_order},
                           fileh)
-
-    # AND: This method must be replaced by manual dir setting, in
-    # order to allow for user dirs
-    # def get_bootstrap_dir(self):
-    #     return(dirname(__file__))
 
     @classmethod
     def list_bootstraps(cls):
@@ -1682,7 +1708,7 @@ class Recipe(object):
     #         print("Unrecognized extension for {}".format(filename))
     #         raise Exception()
 
-    def apply_patch(self, filename, arch='armeabi'):
+    def apply_patch(self, filename, arch):
         """
         Apply a patch from the current recipe directory into the current
         build directory.
@@ -1796,12 +1822,6 @@ class Recipe(object):
 
     # Public Recipe API to be subclassed if needed
 
-    def ensure_build_container_dir(self):
-        info_main('Preparing build dir for {}'.format(self.name))
-
-        build_dir = self.get_build_container_dir('armeabi')
-        ensure_dir(build_dir)
-
     def download_if_necessary(self):
         info_main('Downloading {}'.format(self.name))
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
@@ -1876,7 +1896,7 @@ class Recipe(object):
             ensure_dir(build_dir)
             # shprint(sh.ln, '-s', user_dir,
             #         join(build_dir, get_directory(self.versioned_url)))
-            shprint(sh.git, 'clone', user_dir, self.get_build_dir('armeabi'))
+            shprint(sh.git, 'clone', user_dir, self.get_build_dir(arch))
             return
 
         if self.url is None:
@@ -1886,7 +1906,6 @@ class Recipe(object):
         filename = shprint(
             sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
 
-        # AND: TODO: Use tito's better unpacking method
         with current_directory(build_dir):
             directory_name = self.get_build_dir(arch)
 
@@ -1946,46 +1965,6 @@ class Recipe(object):
             arch = self.filtered_archs[0]
         return arch.get_env()
 
-    # @property
-    # def archive_root(self):
-    #     key = "{}.archive_root".format(self.name)
-    #     value = self.ctx.state.get(key)
-    #     if not key:
-    #         value = self.get_archive_rootdir(self.archive_fn)
-    #         self.ctx.state[key] = value
-    #     return value
-
-    # def execute(self):
-    #     if self.custom_dir:
-    #         self.ctx.state.remove_all(self.name)
-    #     self.download()
-    #     self.extract()
-    #     self.build_all()
-
-    # AND: Will need to change how this works
-    # @property
-    # def custom_dir(self):
-    #     """Check if there is a variable name to specify a custom version /
-    #     directory to use instead of the current url.
-    #     """
-    #     d = environ.get("P4A_{}_DIR".format(self.name.lower()))
-    #     if not d:
-    #         return
-    #     if not exists(d):
-    #         return
-    #     return d
-
-    # def prebuild(self):
-    #     self.prebuild_arch(self.ctx.archs[0])  # AND: Need to change
-    #                                            # this to support
-    #                                            # multiple archs
-
-    # def build(self):
-    #     self.build_arch(self.ctx.archs[0])  # Same here!
-
-    # def postbuild(self):
-    #     self.postbuild_arch(self.ctx.archs[0])
-
     def prebuild_arch(self, arch):
         '''Run any pre-build tasks for the Recipe. By default, this checks if
         any prebuild_archname methods exist for the archname of the current
@@ -1996,12 +1975,11 @@ class Recipe(object):
         else:
             info('{} has no {}, skipping'.format(self.name, prebuild))
 
-    def should_build(self):
+    def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
         building again.
 
         '''
-        # AND: This should take arch as an argument!
         return True
 
     def build_arch(self, arch):
@@ -2123,20 +2101,6 @@ class NDKRecipe(Recipe):
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
-    # def download_if_necessary(self):
-    #     info_main('Downloading {}'.format(self.name))
-    #     info('{} is an NDK recipe, it is alread included in the '
-    #           'bootstrap (for now), so skipping'.format(self.name))
-    #     # Do nothing; in the future an NDKRecipe can copy its
-    #     # contents to the bootstrap build dir, but for now each
-    #     # bootstrap already includes available recipes (as was
-    #     # already the case in p4a)
-
-    # def prepare_build_dir(self, arch):
-    #     info_main('Unpacking {} for {}'.format(self.name, arch))
-    #     info('{} is included in the bootstrap, unpacking currently '
-    #          'unnecessary, so skipping'.format(self.name))
-
 
 class PythonRecipe(Recipe):
     site_packages_name = None
@@ -2161,14 +2125,11 @@ class PythonRecipe(Recipe):
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
             return join(
-                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(
-                    'armeabi'), 'hostpython')
+                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
+                'hostpython')
         return self.ctx.hostpython
 
-    def should_build(self):
-        # AND: This should be different for each arch and use some
-        # kind of data store to know what has been built in a given
-        # python env
+    def should_build(self, arch):
         print('name is', self.site_packages_name, type(self))
         name = self.site_packages_name
         if name is None:
@@ -2183,16 +2144,12 @@ class PythonRecipe(Recipe):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
         super(PythonRecipe, self).build_arch(arch)
-        self.install_python_package()
-    # @cache_execution
-    # def install(self):
-    #     self.install_python_package()
-    #     self.reduce_python_package()
+        self.install_python_package(arch)
 
-    def install_python_package(self, name=None, env=None, is_dir=True):
+    def install_python_package(self, arch, name=None, env=None, is_dir=True):
         '''Automate the installation of a Python package (or a cython
         package where the cython components are pre-built).'''
-        arch = self.filtered_archs[0]
+        # arch = self.filtered_archs[0]  # old kivy-ios way
         if name is None:
             name = self.name
         if env is None:
@@ -2227,14 +2184,9 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
         '''
-        Recipe.build_arch(self, arch)  # AND: Having to directly call the
-        #                              # method like this is nasty...could
-        #                              # use tito's method of having an
-        #                              # install method that always runs
-        #                              # after everything else but isn't
-        #                              # used by a normal recipe.
+        Recipe.build_arch(self, arch)
         self.build_compiled_components(arch)
-        self.install_python_package()
+        self.install_python_package(arch)
 
     def build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
@@ -2256,17 +2208,11 @@ class CythonRecipe(PythonRecipe):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
         '''
-        Recipe.build_arch(self, arch)  # AND: Having to directly call the
-        #                              # method like this is nasty...could
-        #                              # use tito's method of having an
-        #                              # install method that always runs
-        #                              # after everything else but isn't
-        #                              # used by a normal recipe.
+        Recipe.build_arch(self, arch)
         self.build_cython_components(arch)
-        self.install_python_package()
+        self.install_python_package(arch)
 
     def build_cython_components(self, arch):
-        # AND: Should we use tito's cythonize methods? How do they work?
         info('Cythonizing anything necessary in {}'.format(self.name))
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
@@ -2280,7 +2226,7 @@ class CythonRecipe(PythonRecipe):
                 info('{} first build failed (as expected)'.format(self.name))
 
             info('Running cython where appropriate')
-            shprint(sh.find, self.get_build_dir('armeabi'), '-iname', '*.pyx',
+            shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
                     '-exec', self.ctx.cython, '{}', ';', _env=env)
             info('ran cython')
 
@@ -2308,15 +2254,6 @@ class CythonRecipe(PythonRecipe):
     #     for root, dirnames, filenames in walk(root_dir):
     #         for filename in fnmatch.filter(filenames, "*.pyx"):
     #             self.cythonize_file(join(root, filename))
-
-    # def biglink(self):
-    #     dirs = []
-    #     for root, dirnames, filenames in walk(self.build_dir):
-    #         if fnmatch.filter(filenames, "*.so.libs"):
-    #             dirs.append(root)
-    #     cmd = sh.Command(join(self.ctx.root_dir, "tools", "biglink"))
-    #     shprint(cmd, join(self.build_dir, "lib{}.a".format(self.name)),
-    #             *dirs)
 
     def get_recipe_env(self, arch):
         env = super(CythonRecipe, self).get_recipe_env(arch)
@@ -2371,14 +2308,14 @@ def build_recipes(build_order, python_modules, ctx):
         info_main('# Building recipes')
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
-            if recipe.should_build():
+            if recipe.should_build(arch):
                 recipe.build_arch(arch)
             else:
                 info('{} said it is already built, skipping'
                      .format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional (could use
+        # AND: Should make this optional 
         info_main('# Biglinking object files')
         biglink(ctx, arch)
 
@@ -2446,12 +2383,9 @@ def biglink(ctx, arch):
         files.append(obj_dir)
         shprint(sh.cp, '-r', *files)
 
-    # AND: Shouldn't hardcode ArchAndroid! In reality need separate
-    # build dirs for each arch
-    arch = ArchAndroid(ctx)
-    env = ArchAndroid(ctx).get_env()
+    env = arch.get_env()
     env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
-        join(ctx.bootstrap.build_dir, 'obj', 'local', 'armeabi'))
+        join(ctx.bootstrap.build_dir, 'obj', 'local', arch.arch))
 
     if not len(glob.glob(join(obj_dir, '*'))):
         info('There seem to be no libraries to biglink, skipping.')
@@ -2463,7 +2397,7 @@ def biglink(ctx, arch):
         join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
         obj_dir.split(' '),
         extra_link_dirs=[join(ctx.bootstrap.build_dir,
-                              'obj', 'local', 'armeabi')],
+                              'obj', 'local', arch.arch)],
         env=env)
 
 
@@ -2507,21 +2441,11 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
         if link not in unique_args:
             unique_args.append(link)
 
-    # print('Biglink create %s library' % soname)
-    # print('Biglink arguments:')
-    # for arg in unique_args:
-    #     print(' %s' % arg)
-
     cc_name = env['CC']
     cc = sh.Command(cc_name.split()[0])
     cc = cc.bake(*cc_name.split()[1:])
 
     shprint(cc, '-shared', '-O3', '-o', soname, *unique_args, _env=env)
-    # args = os.environ['CC'].split() + \
-    #     ['-shared', '-O3', '-o', soname] + \
-    #     unique_args
-
-    # sys.exit(subprocess.call(args))
 
 
 def ensure_dir(filename):
@@ -2756,6 +2680,14 @@ build_dist
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
 
+
+        # AND: This option doesn't really fit in the other categories, the
+        # arg structure needs a rethink
+        parser.add_argument(
+            '--arch',
+            help='The archs to build for, separated by commas.',
+            default='armeabi')
+
         # Options for specifying the Distribution
         parser.add_argument(
             '--dist_name',
@@ -2793,6 +2725,7 @@ build_dist
             description=('Whether the dist recipes must perfectly match '
                          'those requested'))
 
+
         self._read_configuration()
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
@@ -2805,8 +2738,8 @@ build_dist
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
 
-        # import ipdb
-        # ipdb.set_trace()
+        self._archs = split_argument_list(args.arch)
+
         # AND: Fail nicely if the args aren't handled yet
         if args.extra_dist_dirs:
             warning('Received --extra_dist_dirs but this arg currently is not '
@@ -2826,21 +2759,6 @@ build_dist
             parser.print_help()
             exit(1)
         getattr(self, args.command)(unknown)
-
-    # def build(self):
-    #     parser = argparse.ArgumentParser(
-    #             description="Build the toolchain")
-    #     parser.add_argument("recipe", nargs="+", help="Recipe to compile")
-    #     parser.add_argument("--arch",
-    #                         help="Restrict compilation to this arch")
-    #     args = parser.parse_args(sys.argv[2:])
-
-    #     ctx = Context()
-    #     # if args.arch:
-    #     #     archs = args.arch.split()
-    #     #     ctx.archs = [arch for arch in ctx.archs if arch.arch in archs]
-    #     #     print("Architectures restricted to: {}".format(archs))
-    #     build_recipes(args.recipe, ctx)
 
     def _read_configuration(self):
         # search for a .p4a configuration file in the current directory
@@ -2985,18 +2903,6 @@ build_dist
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
 
-    # def status(self, args):
-    #     parser = argparse.ArgumentParser(
-    #             description="Give a status of the build")
-    #     args = parser.parse_args(args)
-    #     ctx = Context()
-    #     # AND: TODO
-
-    #     print('This isn\'t implemented yet, but should list all '
-    #           'currently existing distributions, the modules they '
-    #           'include, and all the build caches.')
-    #     exit(1)
-
     @require_prebuilt_dist
     def export_dist(self, args):
         '''Copies a created dist to an output dir.
@@ -3120,6 +3026,13 @@ build_dist
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir',
                           'ndk_platform', 'ndk_ver', 'android_api'):
             print('{} is {}'.format(attribute, getattr(ctx, attribute)))
+
+    def archs(self, args):
+        '''List the target architectures available to be built for.'''
+        print('{Style.BRIGHT}Available target architectures are:'
+              '{Style.RESET_ALL}'.format(Style=Out_Style))
+        for arch in self.ctx.archs:
+            print('    {}'.format(arch.arch))
 
     def dists(self, args):
         '''The same as :meth:`distributions`.'''

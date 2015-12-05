@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchAndroid, info_main
+from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
 from os.path import join, exists
 from os import walk
 import glob
@@ -23,7 +23,7 @@ class SDL2Bootstrap(Bootstrap):
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
         # AND: Hardcoding armeabi - naughty!
-        arch = ArchAndroid(self.ctx)
+        arch = ArchARM(self.ctx)
 
         with current_directory(self.dist_dir):
             info('Copying python distribution')

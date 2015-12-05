@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, ArchAndroid, current_directory, debug, info, ensure_dir
+from pythonforandroid.toolchain import Recipe, shprint, ArchARM, current_directory, debug, info, ensure_dir
 from os.path import exists, join
 import sh
 import glob
@@ -26,21 +26,20 @@ class PygameRecipe(Recipe):
         ensure_dir(liblink_path)
         return env
 
-    def prebuild_armeabi(self):
-        if exists(join(self.get_build_container_dir('armeabi'), '.patched')):
+    def prebuild_arch(self, arch):
+        if exists(join(self.get_build_container_dir(arch.arch), '.patched')):
             info('Pygame already patched, skipping.')
             return
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
-                join(self.get_build_dir('armeabi'), 'Setup'))
-        self.apply_patch(join('patches', 'fix-surface-access.patch'))
-        self.apply_patch(join('patches', 'fix-array-surface.patch'))
-        self.apply_patch(join('patches', 'fix-sdl-spam-log.patch'))
-        shprint(sh.touch, join(self.get_build_container_dir('armeabi'), '.patched'))
+                join(self.get_build_dir(arch.arch), 'Setup'))
+        self.apply_patch(join('patches', 'fix-surface-access.patch'), arch.arch)
+        self.apply_patch(join('patches', 'fix-array-surface.patch'), arch.arch)
+        self.apply_patch(join('patches', 'fix-sdl-spam-log.patch'), arch.arch)
+        shprint(sh.touch, join(self.get_build_container_dir(arch.arch), '.patched'))
         
-    def build_armeabi(self):
+    def build_arch(self, arch):
         # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now
         
-        arch = ArchAndroid(self.ctx)
         env = self.get_recipe_env(arch)
         
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(
@@ -57,7 +56,7 @@ class PygameRecipe(Recipe):
 
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
 
-        with current_directory(self.get_build_dir('armeabi')):
+        with current_directory(self.get_build_dir(arch.arch)):
             info('hostpython is ' + self.ctx.hostpython)
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
