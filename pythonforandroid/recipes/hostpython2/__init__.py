@@ -23,14 +23,9 @@ class Hostpython2Recipe(Recipe):
     def prebuild_arch(self, arch):
         # Override hostpython Setup?
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
-                join(self.get_build_dir('armeabi'), 'Modules', 'Setup'))
+                join(self.get_build_dir(), 'Modules', 'Setup'))
 
     def build_arch(self, arch):
-        # AND: Should use an i386 recipe system
-        warning('Running hostpython build. Arch is armeabi! '
-                'This is naughty, need to fix the Arch system!')
-
-        # AND: Fix armeabi again
         with current_directory(self.get_build_dir()):
 
             if exists('hostpython'):

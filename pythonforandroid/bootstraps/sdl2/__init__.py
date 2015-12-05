@@ -20,7 +20,6 @@ class SDL2Bootstrap(Bootstrap):
             with open('local.properties', 'w') as fileh:
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
-        # AND: Hardcoding armeabi - naughty!
         arch = self.ctx.archs[0]
         if len(self.ctx.archs) > 1:
             raise ValueError('built for more than one arch, but bootstrap cannot handle that yet')

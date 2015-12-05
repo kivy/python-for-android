@@ -2042,7 +2042,7 @@ class Recipe(object):
         else:
             info('{} has no {}, skipping'.format(self.name, prebuild))
 
-    def should_build(self):
+    def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
         building again.
 
@@ -2211,7 +2211,7 @@ class PythonRecipe(Recipe):
                 'hostpython')
         return self.ctx.hostpython
 
-    def should_build(self):
+    def should_build(self, arch):
         # AND: This should be different for each arch and use some
         # kind of data store to know what has been built in a given
         # python env
@@ -2417,7 +2417,7 @@ def build_recipes(build_order, python_modules, ctx):
         info_main('# Building recipes')
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
-            if recipe.should_build():
+            if recipe.should_build(arch):
                 recipe.build_arch(arch)
             else:
                 info('{} said it is already built, skipping'
