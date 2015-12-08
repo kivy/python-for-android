@@ -22,7 +22,7 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
         if exists(join(build_dir, '.patched')):
             print('pycrypto already patched, skipping')
             return
-        self.apply_patch('add_length.patch')
+        self.apply_patch('add_length.patch', arch.arch)
         shprint(sh.touch, join(build_dir, '.patched'))
 
     def get_recipe_env(self, arch):
