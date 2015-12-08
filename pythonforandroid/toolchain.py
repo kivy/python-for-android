@@ -1008,7 +1008,7 @@ class Context(object):
             'android-{}'.format(self.android_api),
             platform_dir)
         if not exists(self.ndk_platform):
-            warning('ndk_platform doesn\'t exist')
+            warning('ndk_platform doesn\'t exist: {}'.format(self.ndk_platform))
             ok = False
 
         py_platform = sys.platform
