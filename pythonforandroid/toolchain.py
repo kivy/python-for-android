@@ -49,6 +49,10 @@ from colorama import Style as Colo_Style, Fore as Colo_Fore
 from collections import defaultdict
 
 
+# monkey patch to show full output
+sh.ErrorReturnCode.truncate_cap = 999999
+
+
 class colorama_shim(object):
 
     def __init__(self):
