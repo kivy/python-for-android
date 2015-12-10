@@ -12,7 +12,7 @@ class PyjniusRecipe(CythonRecipe):
     depends = ['python2', ('sdl2', 'sdl'), 'six']
     site_packages_name = 'jnius'
 
-    patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')]
+    patches = [('sdl2_jnienv_getter.patch', will_build('sdl2'))]
 
     def postbuild_arch(self, arch):
         super(PyjniusRecipe, self).postbuild_arch(arch)
