@@ -1619,7 +1619,7 @@ class Recipe(object):
     '''A list of patches to apply to the source. Values can be either a string
     referring to the patch file relative to the recipe dir, or a tuple of the
     string patch file and a callable, which will receive the kwargs `arch` and
-    `version`, which should return True if the patch should be applied.'''
+    `recipe`, which should return True if the patch should be applied.'''
 
     archs = ['armeabi']  # Not currently implemented properly
 
@@ -1987,26 +1987,31 @@ class Recipe(object):
         else:
             info('{} has no {}, skipping'.format(self.name, prebuild))
 
+    def is_patched(self, arch):
+        build_dir = self.get_build_dir(arch.arch)
+        return exists(join(build_dir, '.patched'))
+
     def apply_patches(self, arch):
         '''Apply any patches for the Recipe.'''
         if self.patches:
             info_main('Applying patches for {}[{}]'
                       .format(self.name, arch.arch))
 
-            build_dir = self.get_build_dir(arch.arch)
-            if exists(join(build_dir, '.patched')):
+            if self.is_patched(arch):
                 info_main('{} already patched, skipping'.format(self.name))
                 return
 
             for patch in self.patches:
                 if isinstance(patch, (tuple, list)):
                     patch, patch_check = patch
-                    if not patch_check(arch=arch, version=self.version):
+                    if not patch_check(arch=arch, recipe=self):
                         continue
 
-                self.apply_patch(patch, arch.arch)
+                self.apply_patch(
+                        patch.format(version=self.version, arch=arch.arch),
+                        arch.arch)
 
-            shprint(sh.touch, join(build_dir, '.patched'))
+            shprint(sh.touch, join(self.get_build_dir(arch.arch), '.patched'))
 
     def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs

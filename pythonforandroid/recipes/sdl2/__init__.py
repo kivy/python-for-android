@@ -12,14 +12,7 @@ class LibSDL2Recipe(NDKRecipe):
     depends = ['python2', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
     conflicts = ['sdl', 'pygame', 'pygame_bootstrap_components']
 
-    def prebuild_arch(self, arch):
-        super(LibSDL2Recipe, self).prebuild_arch(arch)
-        build_dir = self.get_build_dir(arch.arch)
-        if exists(join(build_dir, '.patched')):
-            info('SDL2 already patched, skipping')
-            return
-        self.apply_patch('add_nativeSetEnv.patch', arch.arch)
-        shprint(sh.touch, join(build_dir, '.patched'))
+    patches = ['add_nativeSetEnv.patch']
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
