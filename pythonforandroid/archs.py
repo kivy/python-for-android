@@ -31,12 +31,6 @@ class Arch(object):
             for d in self.ctx.include_dirs]
 
     def get_env(self):
-        include_dirs = [
-            "-I{}/{}".format(
-                self.ctx.include_dir,
-                d.format(arch=self))
-            for d in self.ctx.include_dirs]
-
         env = {}
 
         env["CFLAGS"] = " ".join([
