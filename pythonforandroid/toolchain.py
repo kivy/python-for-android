@@ -1619,6 +1619,12 @@ class Recipe(object):
     '''A list of optional dependencies, that must be built before this
     recipe if they are built at all, but whose presence is not essential.'''
 
+    patches = []
+    '''A list of patches to apply to the source. Values can be either a string
+    referring to the patch file relative to the recipe dir, or a tuple of the
+    string patch file and a callable, which will receive the kwargs `arch` and
+    `recipe`, which should return True if the patch should be applied.'''
+
     archs = ['armeabi']  # Not currently implemented properly
 
     @property
@@ -1989,6 +1995,32 @@ class Recipe(object):
         else:
             info('{} has no {}, skipping'.format(self.name, prebuild))
 
+    def is_patched(self, arch):
+        build_dir = self.get_build_dir(arch.arch)
+        return exists(join(build_dir, '.patched'))
+
+    def apply_patches(self, arch):
+        '''Apply any patches for the Recipe.'''
+        if self.patches:
+            info_main('Applying patches for {}[{}]'
+                      .format(self.name, arch.arch))
+
+            if self.is_patched(arch):
+                info_main('{} already patched, skipping'.format(self.name))
+                return
+
+            for patch in self.patches:
+                if isinstance(patch, (tuple, list)):
+                    patch, patch_check = patch
+                    if not patch_check(arch=arch, recipe=self):
+                        continue
+
+                self.apply_patch(
+                        patch.format(version=self.version, arch=arch.arch),
+                        arch.arch)
+
+            shprint(sh.touch, join(self.get_build_dir(arch.arch), '.patched'))
+
     def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
         building again.
@@ -2317,6 +2349,7 @@ def build_recipes(build_order, python_modules, ctx):
         for recipe in recipes:
             info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
             recipe.prebuild_arch(arch)
+            recipe.apply_patches(arch)
 
         # 3) build packages
         info_main('# Building recipes')

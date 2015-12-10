@@ -1,8 +1,7 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchARM, info
+from pythonforandroid.toolchain import Recipe, shprint, current_directory, info
+from pythonforandroid.patching import is_linux, is_darwin, is_api_gt
 from os.path import exists, join, realpath
-from os import uname
-import glob
 import sh
 
 
@@ -14,39 +13,25 @@ class Python2Recipe(Recipe):
     depends = ['hostpython2']
     conflicts = ['python3']
     opt_depends = ['openssl']
-
-    def prebuild_arch(self, arch):
-        build_dir = self.get_build_container_dir(arch.arch)
-        if exists(join(build_dir, '.patched')):
-            info('Python2 already patched, skipping.')
-            return
-        self.apply_patch(join('patches', 'Python-{}-xcompile.patch'.format(self.version)),
-                         arch.arch)
-        self.apply_patch(join('patches', 'Python-{}-ctypes-disable-wchar.patch'.format(self.version)),
-                         arch.arch)
-        self.apply_patch(join('patches', 'disable-modules.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-locale.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-gethostbyaddr.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-setup-flags.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-filesystemdefaultencoding.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-termios.patch'), arch.arch)
-        self.apply_patch(join('patches', 'custom-loader.patch'), arch.arch)
-        self.apply_patch(join('patches', 'verbose-compilation.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-remove-corefoundation.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-dynamic-lookup.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-dlfcn.patch'), arch.arch)
-        self.apply_patch(join('patches', 'parsetuple.patch'), arch.arch)
-        # self.apply_patch(join('patches', 'ctypes-find-library.patch'), arch.arch)
-        self.apply_patch(join('patches', 'ctypes-find-library-updated.patch'), arch.arch)
-
-        if uname()[0] == 'Linux':
-            self.apply_patch(join('patches', 'fix-configure-darwin.patch'), arch.arch)
-            self.apply_patch(join('patches', 'fix-distutils-darwin.patch'), arch.arch)
-
-        if self.ctx.android_api > 19:
-            self.apply_patch(join('patches', 'fix-ftime-removal.patch'), arch.arch)
-
-        shprint(sh.touch, join(build_dir, '.patched'))
+    
+    patches = ['patches/Python-{version}-xcompile.patch',
+               'patches/Python-{version}-ctypes-disable-wchar.patch',
+               'patches/disable-modules.patch',
+               'patches/fix-locale.patch',
+               'patches/fix-gethostbyaddr.patch',
+               'patches/fix-setup-flags.patch',
+               'patches/fix-filesystemdefaultencoding.patch',
+               'patches/fix-termios.patch',
+               'patches/custom-loader.patch',
+               'patches/verbose-compilation.patch',
+               'patches/fix-remove-corefoundation.patch',
+               'patches/fix-dynamic-lookup.patch',
+               'patches/fix-dlfcn.patch',
+               'patches/parsetuple.patch',
+               'patches/ctypes-find-library-updated.patch',
+               ('patches/fix-configure-darwin.patch', is_linux),
+               ('patches/fix-distutils-darwin.patch', is_linux),
+               ('patches/fix-ftime-removal.patch', is_api_gt(19))]
 
     def build_arch(self, arch):
 
@@ -151,7 +136,7 @@ class Python2Recipe(Recipe):
                     'INSTSONAME=libpython2.7.so',
                     _env=env)
 
-            if uname()[0] == 'Darwin':
+            if is_darwin():
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
                         join('python-install', 'Lib'))
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),

@@ -12,7 +12,11 @@ class PygameRecipe(Recipe):
     depends = ['python2', 'sdl']
     conflicts = ['sdl2']
 
-    def get_recipe_env(self, arch):
+    patches = ['fix-surface-access.patch',
+               'fix-array-surface.patch',
+               'fix-sdl-spam-log.patch']
+
+    def get_recipe_env(self, arch=None):
         env = super(PygameRecipe, self).get_recipe_env(arch)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
             self.ctx.get_libs_dir(arch.arch))
@@ -27,15 +31,10 @@ class PygameRecipe(Recipe):
         return env
 
     def prebuild_arch(self, arch):
-        if exists(join(self.get_build_container_dir(arch.arch), '.patched')):
-            info('Pygame already patched, skipping.')
+        if self.is_patched(arch):
             return
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
                 join(self.get_build_dir(arch.arch), 'Setup'))
-        self.apply_patch(join('patches', 'fix-surface-access.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-array-surface.patch'), arch.arch)
-        self.apply_patch(join('patches', 'fix-sdl-spam-log.patch'), arch.arch)
-        shprint(sh.touch, join(self.get_build_container_dir(arch.arch), '.patched'))
         
     def build_arch(self, arch):
         # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now

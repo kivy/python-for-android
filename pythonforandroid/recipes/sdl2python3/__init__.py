@@ -1,7 +1,5 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint, current_directory, info_main
-from os.path import exists, join
+from pythonforandroid.toolchain import NDKRecipe, shprint, current_directory
 import sh
-
 
 
 class LibSDL2Recipe(NDKRecipe):
@@ -11,14 +9,7 @@ class LibSDL2Recipe(NDKRecipe):
     # depends = ['python2']
     dir_name = 'SDL'
 
-    def prebuild_arch(self, arch):
-        super(LibSDL2Recipe, self).prebuild_arch(arch)
-        build_dir = self.get_build_dir(arch.arch)
-        if exists(join(build_dir, '.patched')):
-            print('SDL2 already patched, skipping')
-            return
-        self.apply_patch('add_nativeSetEnv.patch', arch.arch)
-        shprint(sh.touch, join(build_dir, '.patched'))
+    patches = ['add_nativeSetEnv.patch']
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
