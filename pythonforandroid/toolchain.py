@@ -28,7 +28,6 @@ from copy import deepcopy
 from functools import wraps
 from datetime import datetime
 from distutils.spawn import find_executable
-from tempfile import mkdtemp
 from math import log10
 
 import argparse
@@ -43,7 +42,7 @@ from pythonforandroid.recipebases import (Recipe, NDKRecipe, IncludedFilesBehavi
 from pythonforandroid.logger import (logger, info, debug, warning, error,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
                                      info_notify, info_main, shprint)
-from pythonforandroid.util import ensure_dir, current_directory, temp_directory
+from pythonforandroid.util import (ensure_dir, current_directory, temp_directory)
 
 # monkey patch to show full output
 sh.ErrorReturnCode.truncate_cap = 999999
@@ -56,7 +55,6 @@ sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
 DEFAULT_ANDROID_API = 15
 
-IS_PY3 = sys.version_info[0] >= 3
 
 info(''.join(
     [Err_Style.BRIGHT, Err_Fore.RED,
@@ -200,57 +198,6 @@ def cache_execution(f):
     return _cache_execution
 
 
-
-class JsonStore(object):
-    """Replacement of shelve using json, needed for support python 2 and 3.
-    """
-
-    def __init__(self, filename):
-        super(JsonStore, self).__init__()
-        self.filename = filename
-        self.data = {}
-        if exists(filename):
-            try:
-                with io.open(filename, encoding='utf-8') as fd:
-                    self.data = json.load(fd)
-            except ValueError:
-                print("Unable to read the state.db, content will be replaced.")
-
-    def __getitem__(self, key):
-        return self.data[key]
-
-    def __setitem__(self, key, value):
-        self.data[key] = value
-        self.sync()
-
-    def __delitem__(self, key):
-        del self.data[key]
-        self.sync()
-
-    def __contains__(self, item):
-        return item in self.data
-
-    def get(self, item, default=None):
-        return self.data.get(item, default)
-
-    def keys(self):
-        return self.data.keys()
-
-    def remove_all(self, prefix):
-        for key in self.data.keys()[:]:
-            if not key.startswith(prefix):
-                continue
-            del self.data[key]
-        self.sync()
-
-    def sync(self):
-        # http://stackoverflow.com/questions/12309269/write-json-data-to-file-in-python/14870531#14870531
-        if IS_PY3:
-            with open(self.filename, 'w') as fd:
-                json.dump(self.data, fd, ensure_ascii=False)
-        else:
-            with io.open(self.filename, 'w', encoding='utf-8') as fd:
-                fd.write(unicode(json.dumps(self.data, ensure_ascii=False)))
 
 
 class Graph(object):
@@ -770,9 +717,6 @@ class Context(object):
         self.env.pop("LDFLAGS", None)
         self.env.pop("ARCHFLAGS", None)
         self.env.pop("CFLAGS", None)
-
-        # set the state
-        self.state = JsonStore(join(self.dist_dir, "state.db"))
 
     def set_archs(self, arch_names):
         all_archs = self.archs
