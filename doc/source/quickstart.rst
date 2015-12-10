@@ -254,10 +254,10 @@ correct and try to continue the build.
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
-python-for-android look on the current directory if there is a `.p4a`
-configuration file. If it found it, it adds all the lines as options
-to the command line. For example, you can put the options you would
-always write such as:
+python-for-android checks in the current directory for a configuration
+file named ``.p4a``. If found, it adds all the lines as options to the
+command line. For example, you can add the options you would always
+include such as:
 
     --dist_name my_example
     --android_api 19

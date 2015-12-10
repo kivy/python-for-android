@@ -18,8 +18,14 @@ class LibSDL2Recipe(NDKRecipe):
         if exists(join(build_dir, '.patched')):
             info('SDL2 already patched, skipping')
             return
-        self.apply_patch('add_nativeSetEnv.patch')
+        self.apply_patch('add_nativeSetEnv.patch', arch.arch)
         shprint(sh.touch, join(build_dir, '.patched'))
+
+    def get_recipe_env(self, arch=None):
+        env = super(LibSDL2Recipe, self).get_recipe_env(arch)
+        py2 = self.get_recipe('python2', arch.ctx)
+        env['PYTHON2_NAME'] = py2.get_dir_name()
+        return env
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
