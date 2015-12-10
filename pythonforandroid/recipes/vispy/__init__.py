@@ -16,9 +16,7 @@ class VispyRecipe(PythonRecipe):
     patches = ['disable_freetype.patch',
                'disable_font_triage.patch',
                'use_es2.patch',
-               'remove_ati_check.patch',
-               'make_shader_es2_compliant.patch',
-               'detect_finger_events.patch']
+               'remove_ati_check.patch']
 
 
 recipe = VispyRecipe()
