@@ -14,7 +14,6 @@ from os.path import (join, dirname, realpath, exists, isdir, basename,
                      expanduser, splitext, split)
 from os import listdir, unlink, makedirs, environ, chdir, getcwd, uname
 import os
-import zipfile
 import tarfile
 import importlib
 import io
@@ -32,14 +31,6 @@ from datetime import datetime
 from distutils.spawn import find_executable
 from tempfile import mkdtemp
 from math import log10
-try:
-    from urllib.request import FancyURLopener
-except ImportError:
-    from urllib import FancyURLopener
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
 
 import argparse
 from appdirs import user_data_dir
@@ -51,7 +42,9 @@ from pythonforandroid.recipebases import (Recipe, NDKRecipe, IncludedFilesBehavi
                          PythonRecipe, CythonRecipe,
                          CompiledComponentsPythonRecipe)
 from pythonforandroid.logger import (logger, info, debug, warning, error,
-                                     Out_Style, Out_Fore, Err_Style, Err_Fore)
+                                     Out_Style, Out_Fore, Err_Style, Err_Fore,
+                                     info_notify, info_main, shprint)
+from pythonforandroid.util import ensure_dir, current_directory, temp_directory
 
 # monkey patch to show full output
 sh.ErrorReturnCode.truncate_cap = 999999
@@ -75,16 +68,6 @@ info(''.join(
      ('It should work (mostly), but you may experience '
       'missing features or bugs.'),
      Err_Style.RESET_ALL]))
-
-
-def info_main(*args):
-    logger.info(''.join([Err_Style.BRIGHT, Err_Fore.GREEN] + list(args) +
-                        [Err_Style.RESET_ALL, Err_Fore.RESET]))
-
-
-def info_notify(s):
-    info('{}{}{}{}'.format(Err_Style.BRIGHT, Err_Fore.LIGHTBLUE_EX, s,
-                           Err_Style.RESET_ALL))
 
 
 def pretty_log_dists(dists, log_func=info):
@@ -115,96 +98,6 @@ def shorten_string(string, max_width):
                     ' more)'))
 
 
-def shprint(command, *args, **kwargs):
-    '''Runs the command (which should be an sh.Command instance), while
-    logging the output.'''
-    kwargs["_iter"] = True
-    kwargs["_out_bufsize"] = 1
-    kwargs["_err_to_out"] = True
-    kwargs["_bg"] = True
-    is_critical = kwargs.pop('_critical', False)
-    tail_n = kwargs.pop('_tail', 0)
-    filter_in = kwargs.pop('_filter', None)
-    filter_out = kwargs.pop('_filterout', None)
-    if len(logger.handlers) > 1:
-        logger.removeHandler(logger.handlers[1])
-    try:
-        columns = max(25, int(os.popen('stty size', 'r').read().split()[1]))
-    except:
-        columns = 100
-    command_path = str(command).split('/')
-    command_string = command_path[-1]
-    string = ' '.join(['running', command_string] + list(args))
-
-    # If logging is not in DEBUG mode, trim the command if necessary
-    if logger.level > logging.DEBUG:
-        logger.info('{}{}'.format(shorten_string(string, columns - 12),
-                                  Err_Style.RESET_ALL))
-    else:
-        logger.debug('{}{}'.format(string, Err_Style.RESET_ALL))
-
-    need_closing_newline = False
-    try:
-        msg_hdr = '           working: '
-        msg_width = columns - len(msg_hdr) - 1
-        output = command(*args, **kwargs)
-        for line in output:
-            if logger.level > logging.DEBUG:
-                msg = line.replace(
-                    '\n', ' ').replace(
-                        '\t', ' ').replace(
-                            '\b', ' ').rstrip()
-                if msg:
-                    sys.stdout.write(u'{}\r{}{:<{width}}'.format(
-                        Err_Style.RESET_ALL, msg_hdr,
-                        shorten_string(msg, msg_width), width=msg_width))
-                    sys.stdout.flush()
-                    need_closing_newline = True
-            else:
-                logger.debug(''.join(['\t', line.rstrip()]))
-        if need_closing_newline:
-            sys.stdout.write('{}\r{:>{width}}\r'.format(
-                Err_Style.RESET_ALL, ' ', width=(columns - 1)))
-            sys.stdout.flush()
-    except sh.ErrorReturnCode as err:
-        if need_closing_newline:
-            sys.stdout.write('{}\r{:>{width}}\r'.format(
-                Err_Style.RESET_ALL, ' ', width=(columns - 1)))
-            sys.stdout.flush()
-        if tail_n or filter_in or filter_out:
-            def printtail(out, name, forecolor, tail_n=0,
-                          re_filter_in=None, re_filter_out=None):
-                lines = out.splitlines()
-                if re_filter_in is not None:
-                    lines = [l for l in lines if re_filter_in.search(l)]
-                if re_filter_out is not None:
-                    lines = [l for l in lines if not re_filter_out.search(l)]
-                if tail_n == 0 or len(lines) <= tail_n:
-                    info('{}:\n{}\t{}{}'.format(
-                        name, forecolor, '\t\n'.join(lines), Out_Fore.RESET))
-                else:
-                    info('{} (last {} lines of {}):\n{}\t{}{}'.format(
-                        name, tail_n, len(lines),
-                        forecolor, '\t\n'.join(lines[-tail_n:]), Out_Fore.RESET))
-            printtail(err.stdout, 'STDOUT', Out_Fore.YELLOW, tail_n,
-                      re.compile(filter_in) if filter_in else None,
-                      re.compile(filter_out) if filter_out else None)
-            printtail(err.stderr, 'STDERR', Err_Fore.RED)
-        if is_critical:
-            env = kwargs.get("env")
-            if env is not None:
-                info("{}ENV:{}\n{}\n".format(
-                    Err_Fore.YELLOW, Err_Fore.RESET, "\n".join(
-                        "set {}={}".format(n, v) for n, v in env.items())))
-            info("{}COMMAND:{}\ncd {} && {} {}\n".format(
-                Err_Fore.YELLOW, Err_Fore.RESET, getcwd(), command, ' '.join(args)))
-            warning("{}ERROR: {} failed!{}".format(
-                Err_Fore.RED, command, Err_Fore.RESET))
-            exit(1)
-        else:
-            raise
-
-    return output
 
 # shprint(sh.ls, '-lah')
 # exit(1)
@@ -300,30 +193,6 @@ def which(program, path_env):
     return None
 
 
-@contextlib.contextmanager
-def current_directory(new_dir):
-    cur_dir = getcwd()
-    logger.info(''.join((Err_Fore.CYAN, '-> directory context ', new_dir,
-                         Err_Fore.RESET)))
-    chdir(new_dir)
-    yield
-    logger.info(''.join((Err_Fore.CYAN, '<- directory context ', cur_dir,
-                         Err_Fore.RESET)))
-    chdir(cur_dir)
-
-
-@contextlib.contextmanager
-def temp_directory():
-    temp_dir = mkdtemp()
-    try:
-        logger.debug(''.join((Err_Fore.CYAN, ' + temp directory used ',
-                              temp_dir, Err_Fore.RESET)))
-        yield temp_dir
-    finally:
-        shutil.rmtree(temp_dir)
-        logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ',
-                              temp_dir, Err_Fore.RESET)))
-
 
 def cache_execution(f):
     def _cache_execution(self, *args, **kwargs):
@@ -344,13 +213,6 @@ def cache_execution(f):
         state[key_time] = str(datetime.utcnow())
     return _cache_execution
 
-
-class ChromeDownloader(FancyURLopener):
-    version = (
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-        '(KHTML, like Gecko) Chrome/28.0.1500.71 Safari/537.36')
-
-urlretrieve = ChromeDownloader().retrieve
 
 
 class JsonStore(object):
@@ -1570,11 +1432,6 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
     cc = cc.bake(*cc_name.split()[1:])
 
     shprint(cc, '-shared', '-O3', '-o', soname, *unique_args, _env=env)
-
-
-def ensure_dir(filename):
-    if not exists(filename):
-        makedirs(filename)
 
 
 def dist_from_args(ctx, dist_args):

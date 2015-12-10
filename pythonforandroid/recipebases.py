@@ -1,7 +1,18 @@
-from os.path import join, dirname, isdir, exists
+from os.path import join, dirname, isdir, exists, isfile
 import importlib
-from os import listdir
-from logger import (logger, info, debug, warning, error)
+import zipfile
+import glob
+import sh
+import shutil
+from os import listdir, unlink, environ, mkdir
+from sys import stdout
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
+from pythonforandroid.logger import (logger, info, warning, shprint, info_main)
+from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
+
 
 class Recipe(object):
     url = None
@@ -85,7 +96,7 @@ class Recipe(object):
             urlretrieve(url, target, report_hook)
             return target
         elif parsed_url.scheme in ('git',):
-            if os.path.isdir(target):
+            if isdir(target):
                 with current_directory(target):
                     shprint(sh.git, 'pull')
                     shprint(sh.git, 'pull', '--recurse-submodules')
@@ -100,7 +111,7 @@ class Recipe(object):
         """
         if not source:
             return
-        if os.path.isfile(source):
+        if isfile(source):
             info("Extract {} into {}".format(source, cwd))
 
             if source.endswith(".tgz") or source.endswith(".tar.gz"):
@@ -120,7 +131,7 @@ class Recipe(object):
                     .format(source))
                 raise Exception()
 
-        elif os.path.isdir(source):
+        elif isdir(source):
             info("Copying {} into {}".format(source, cwd))
 
             shprint(sh.cp, '-a', source, cwd)
@@ -153,7 +164,7 @@ class Recipe(object):
         info("Applying patch {}".format(filename))
         filename = join(self.recipe_dir, filename)
         shprint(sh.patch, "-t", "-d", self.get_build_dir(arch), "-p1",
-                   "-i", filename, _tail=10)
+                "-i", filename, _tail=10)
 
     def copy_file(self, filename, dest):
         info("Copy {} to {}".format(filename, dest))
@@ -287,7 +298,7 @@ class Recipe(object):
             do_download = True
 
             marker_filename = '.mark-{}'.format(filename)
-            if exists(filename) and os.path.isfile(filename):
+            if exists(filename) and isfile(filename):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 elif self.md5sum:
@@ -354,7 +365,7 @@ class Recipe(object):
             if not exists(directory_name) or not isdir(directory_name):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
-                if os.path.isfile(extraction_filename):
+                if isfile(extraction_filename):
                     if extraction_filename.endswith('.tar.gz') or \
                        extraction_filename.endswith('.tgz'):
                         sh.tar('xzf', extraction_filename)
@@ -384,12 +395,12 @@ class Recipe(object):
                         raise Exception(
                             'Could not extract {} download, it must be .zip, '
                             '.tar.gz or .tar.bz2')
-                elif os.path.isdir(extraction_filename):
-                    os.mkdir(directory_name)
-                    for entry in os.listdir(extraction_filename):
+                elif isdir(extraction_filename):
+                    mkdir(directory_name)
+                    for entry in listdir(extraction_filename):
                         if entry not in ('.git',):
                             shprint(sh.cp, '-Rv',
-                                    os.path.join(extraction_filename, entry),
+                                    join(extraction_filename, entry),
                                     directory_name)
                 else:
                     raise Exception(
