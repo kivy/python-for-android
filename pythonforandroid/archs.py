@@ -47,15 +47,14 @@ class Arch(object):
 
         toolchain_prefix = self.ctx.toolchain_prefix
         toolchain_version = self.ctx.toolchain_version
+        command_prefix = self.command_prefix
 
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
-        if toolchain_prefix == 'x86':
-            toolchain_prefix = 'i686-linux-android'
         print('path is', environ['PATH'])
-        cc = find_executable('{toolchain_prefix}-gcc'.format(
-            toolchain_prefix=toolchain_prefix), path=environ['PATH'])
+        cc = find_executable('{command_prefix}-gcc'.format(
+            command_prefix=command_prefix), path=environ['PATH'])
         if cc is None:
             warning('Couldn\'t find executable for CC. This indicates a '
                     'problem locating the {} executable in the Android '
@@ -63,19 +62,19 @@ class Arch(object):
                     'installed. Exiting.')
             exit(1)
 
-        env['CC'] = '{toolchain_prefix}-gcc {cflags}'.format(
-            toolchain_prefix=toolchain_prefix,
+        env['CC'] = '{command_prefix}-gcc {cflags}'.format(
+            command_prefix=command_prefix,
             cflags=env['CFLAGS'])
-        env['CXX'] = '{toolchain_prefix}-g++ {cxxflags}'.format(
-            toolchain_prefix=toolchain_prefix,
+        env['CXX'] = '{command_prefix}-g++ {cxxflags}'.format(
+            command_prefix=command_prefix,
             cxxflags=env['CXXFLAGS'])
 
-        env['AR'] = '{}-ar'.format(toolchain_prefix)
-        env['RANLIB'] = '{}-ranlib'.format(toolchain_prefix)
-        env['LD'] = '{}-ld'.format(toolchain_prefix)
-        env['STRIP'] = '{}-strip --strip-unneeded'.format(toolchain_prefix)
+        env['AR'] = '{}-ar'.format(command_prefix)
+        env['RANLIB'] = '{}-ranlib'.format(command_prefix)
+        env['LD'] = '{}-ld'.format(command_prefix)
+        env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
-        env['READELF'] = '{}-readelf'.format(toolchain_prefix)
+        env['READELF'] = '{}-readelf'.format(command_prefix)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
 
