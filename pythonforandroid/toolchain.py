@@ -2167,6 +2167,9 @@ class PythonRecipe(Recipe):
     call_hostpython_via_targetpython is False.
     '''
 
+    setup_extra_args = []
+    '''List of extra arguments to pass to setup.py.'''
+
     @property
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
@@ -2208,12 +2211,20 @@ class PythonRecipe(Recipe):
             hostpython = sh.Command(self.hostpython_location)
 
             if self.call_hostpython_via_targetpython:
-                shprint(hostpython, 'setup.py', 'install', '-O2', _env=env)
+                shprint(hostpython, 'setup.py', 'install', '-O2', _env=env, *self.setup_extra_args)
             else:
+                hppath = join(dirname(self.hostpython_location), 'Lib',
+                              'site-packages')
+                hpenv = env.copy()
+                if 'PYTHONPATH' in hpenv:
+                    hpenv['PYTHONPATH'] = ':'.join(
+                            [hppath] + hpenv['PYTHONPATH'].split(':'))
+                else:
+                    hpenv['PYTHONPATH'] = hppath
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
                         '--install-lib=lib/python2.7/site-packages',
-                        _env=env)  # AND: Hardcoded python2.7 needs fixing
+                        _env=hpenv, *self.setup_extra_args)  # AND: Hardcoded python2.7 needs fixing
 
             # If asked, also install in the hostpython build dir
             if self.install_in_hostpython:
@@ -2239,8 +2250,15 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            hostpython = sh.Command(self.ctx.hostpython)
-            shprint(hostpython, 'setup.py', 'build_ext', '-v')
+            hostpython = sh.Command(self.hostpython_location)
+            if self.call_hostpython_via_targetpython:
+                shprint(hostpython, 'setup.py', 'build_ext', '-v', *self.setup_extra_args)
+            else:
+                hppath = join(dirname(self.hostpython_location), 'Lib',
+                              'site-packages')
+                hpenv = {'PYTHONPATH': hppath}
+                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=hpenv, *self.setup_extra_args)
+
             build_dir = glob.glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
