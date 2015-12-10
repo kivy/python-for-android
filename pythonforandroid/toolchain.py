@@ -610,15 +610,22 @@ class Graph(object):
     def remove_redundant_graphs(self):
         '''Removes possible graphs if they are equivalent to others.'''
         graphs = self.graphs
-        initial_num_graphs = len(graphs)
         # Walk the list backwards so that popping elements doesn't
-        # mess up indexing
-        for i in range(len(graphs) - 1):
-            graph = graphs[initial_num_graphs - 1 - i]
-            for j in range(1, len(graphs)):
-                comparison_graph = graphs[initial_num_graphs - 1 - j]
+        # mess up indexing.
+
+        # n.b. no need to test graph 0 as it will have been tested against
+        # all others by the time we get to it
+        for i in range(len(graphs) - 1, 0, -1):   
+            graph = graphs[i]
+
+            #test graph i against all graphs 0 to i-1
+            for j in range(0, i):
+                comparison_graph = graphs[j]
+                
                 if set(comparison_graph.keys()) == set(graph.keys()):
-                    graphs.pop(initial_num_graphs - 1 - i)
+                    #graph[i] == graph[j]
+                    #so remove graph[i] and continue on to testing graph[i-1]
+                    graphs.pop(i)
                     break
 
     def add(self, dependent, dependency):
