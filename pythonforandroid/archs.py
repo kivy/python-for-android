@@ -1,4 +1,11 @@
 from os.path import (join)
+from os import environ, uname
+import sys
+from distutils.spawn import find_executable
+from recipebases import Recipe
+
+from pythonforandroid.logger import warning
+
 
 class Arch(object):
 
@@ -103,7 +110,8 @@ class ArchARMv7_a(ArchARM):
     def get_env(self):
         env = super(ArchARMv7_a, self).get_env()
         env['CFLAGS'] = (env['CFLAGS'] +
-                         ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb')
+                         (' -march=armv7-a -mfloat-abi=softfp '
+                          '-mfpu=vfp -mthumb'))
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 

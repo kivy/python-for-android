@@ -27,7 +27,6 @@ import shlex
 from copy import deepcopy
 from functools import wraps
 from datetime import datetime
-from distutils.spawn import find_executable
 from math import log10
 
 import argparse
