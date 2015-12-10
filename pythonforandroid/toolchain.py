@@ -544,7 +544,9 @@ class ArchARMv7_a(ArchARM):
 
     def get_env(self):
         env = super(ArchARMv7_a, self).get_env()
-        env['CFLAGS'] = env['CFLAGS'] + ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfp -mthumb'
+        # env['CFLAGS'] += ' -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16'
+        env['CFLAGS'] += ' -march=armv7-a -mfloat-abi=softfp -mfpu=neon -mthumb'
+        env['LDFLAGS'] += ' -march=armv7-a'
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 
@@ -1535,19 +1537,19 @@ class Bootstrap(object):
         tgt_dir = join('libs', arch.arch)
         ensure_dir(tgt_dir)
         for src_dir in src_dirs:
-            for lib in glob.glob(join(src_dir, wildcard)):
+            for lib in glob(join(src_dir, wildcard)):
                 shprint(sh.cp, '-a', lib, tgt_dir)
 
     def distribute_javaclasses(self, javaclass_dir):
         '''Copy existing javaclasses from build dir to current dist dir.'''
         info('Copying java files')
-        for filename in glob.glob(javaclass_dir):
+        for filename in glob(javaclass_dir):
             shprint(sh.cp, '-a', filename, 'src')
 
     def distribute_aars(self, arch):
         '''Process existing .aar bundles and copy to current dist dir.'''
         info('Unpacking aars')
-        for aar in glob.glob(join(self.ctx.aars_dir, '*.aar')):
+        for aar in glob(join(self.ctx.aars_dir, '*.aar')):
             self._unpack_aar(aar, arch)
 
     def _unpack_aar(self, aar, arch):
@@ -1574,7 +1576,7 @@ class Bootstrap(object):
             debug("  from {}".format(so_src_dir))
             debug("  to {}".format(so_tgt_dir))
             ensure_dir(so_tgt_dir)
-            so_files = glob.glob(join(so_src_dir, '*.so'))
+            so_files = glob(join(so_src_dir, '*.so'))
             for f in so_files:
                 shprint(sh.cp, '-a', f, so_tgt_dir)
 
@@ -2278,9 +2280,9 @@ class PythonRecipe(Recipe):
 class CompiledComponentsPythonRecipe(PythonRecipe):
     pre_build_ext = False
 
-    def install_arch(self, arch):
+    def build_arch(self, arch):
+        super(CompiledComponentsPythonRecipe, self).build_arch(arch)
         self.build_compiled_components(arch)
-        super(CompiledComponentsPythonRecipe, self).install_arch(arch)
 
     def build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
@@ -2288,7 +2290,8 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
-            shprint(hostpython, 'setup.py', 'build_ext', '-v')
+            shprint(hostpython, 'setup.py', 'build_ext', '-v',
+                    _env=env)
             build_dir = glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
