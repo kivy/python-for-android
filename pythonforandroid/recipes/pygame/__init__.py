@@ -12,9 +12,9 @@ class PygameRecipe(Recipe):
     depends = ['python2', 'sdl']
     conflicts = ['sdl2']
 
-    patches = ['fix-surface-access.patch',
-               'fix-array-surface.patch',
-               'fix-sdl-spam-log.patch']
+    patches = ['patches/fix-surface-access.patch',
+               'patches/fix-array-surface.patch',
+               'patches/fix-sdl-spam-log.patch']
 
     def get_recipe_env(self, arch=None):
         env = super(PygameRecipe, self).get_recipe_env(arch)
