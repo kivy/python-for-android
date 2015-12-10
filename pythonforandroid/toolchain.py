@@ -9,14 +9,11 @@ This tool intend to replace all the previous tools/ in shell script.
 from __future__ import print_function
 
 import sys
-from sys import stdout, stderr, platform
-from os.path import (join, dirname, realpath, exists, isdir, basename,
-                     expanduser, splitext, split)
-from os import listdir, unlink, makedirs, environ, chdir, getcwd, uname
+from sys import platform
+from os.path import (join, dirname, realpath, exists, basename,
+                     expanduser, split)
+from os import environ
 import os
-import tarfile
-import io
-import json
 import glob
 import shutil
 import re
@@ -26,7 +23,6 @@ import shlex
 from copy import deepcopy
 from functools import wraps
 from datetime import datetime
-from math import log10
 
 import argparse
 from appdirs import user_data_dir
@@ -39,8 +35,9 @@ from pythonforandroid.recipe import (Recipe, NDKRecipe, IncludedFilesBehaviour,
                                      CompiledComponentsPythonRecipe)
 from pythonforandroid.logger import (logger, info, debug, warning, error,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
-                                     info_notify, info_main, shprint)
-from pythonforandroid.util import (ensure_dir, current_directory, temp_directory,
+                                     info_notify, info_main, shprint,
+                                     Null_Fore, Null_Style)
+from pythonforandroid.util import (ensure_dir, current_directory,
                                    which)
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
@@ -66,11 +63,6 @@ info(''.join(
      ('It should work (mostly), but you may experience '
       'missing features or bugs.'),
      Err_Style.RESET_ALL]))
-
-
-
-# shprint(sh.ls, '-lah')
-# exit(1)
 
 
 def add_boolean_option(parser, names, no_names=None,
@@ -162,8 +154,6 @@ def cache_execution(f):
     return _cache_execution
 
 
-
-
 class Graph(object):
     # Taken from the old python-for-android/depsort
     # Modified to include alternative dependencies
@@ -180,16 +170,16 @@ class Graph(object):
 
         # n.b. no need to test graph 0 as it will have been tested against
         # all others by the time we get to it
-        for i in range(len(graphs) - 1, 0, -1):   
+        for i in range(len(graphs) - 1, 0, -1):
             graph = graphs[i]
 
-            #test graph i against all graphs 0 to i-1
+            # test graph i against all graphs 0 to i-1
             for j in range(0, i):
                 comparison_graph = graphs[j]
-                
+
                 if set(comparison_graph.keys()) == set(graph.keys()):
-                    #graph[i] == graph[j]
-                    #so remove graph[i] and continue on to testing graph[i-1]
+                    # graph[i] == graph[j]
+                    # so remove graph[i] and continue on to testing graph[i-1]
                     graphs.pop(i)
                     break
 
@@ -280,7 +270,8 @@ class Context(object):
     root_dir = None     # the filepath of toolchain.py
     storage_dir = None  # the root dir where builds and dists will be stored
 
-    build_dir = None  # in which bootstraps are copied for building and recipes are built
+    build_dir = None  # in which bootstraps are copied for building
+                      # and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
     libs_dir = None  # where Android libs are cached after build but
                      # before being placed in dists
@@ -646,7 +637,8 @@ class Context(object):
                     executable))
 
         if not ok:
-            error('{}python-for-android cannot continue; aborting{}'.format(Err_Fore.RED, Err_Fore.RESET))
+            error('{}python-for-android cannot continue; aborting{}'.format(
+                Err_Fore.RED, Err_Fore.RESET))
             sys.exit(1)
 
     def __init__(self):
@@ -766,7 +758,7 @@ def build_recipes(build_order, python_modules, ctx):
                      .format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional 
+        # AND: Should make this optional
         info_main('# Biglinking object files')
         biglink(ctx, arch)
 
@@ -1126,7 +1118,6 @@ build_dist
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
 
-
         # AND: This option doesn't really fit in the other categories, the
         # arg structure needs a rethink
         parser.add_argument(
@@ -1170,7 +1161,6 @@ build_dist
             default=False,
             description=('Whether the dist recipes must perfectly match '
                          'those requested'))
-
 
         self._read_configuration()
 
@@ -1283,7 +1273,6 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Clean the build cache, downloads and dists")
         parsed_args = parser.parse_args(args)
-        ctx = Context()
         self.clean_dists(args)
         self.clean_builds(args)
         self.clean_download_cache(args)
