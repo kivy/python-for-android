@@ -34,9 +34,9 @@ import sh
 
 
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64
-from pythonforandroid.recipebases import (Recipe, NDKRecipe, IncludedFilesBehaviour,
-                         PythonRecipe, CythonRecipe,
-                         CompiledComponentsPythonRecipe)
+from pythonforandroid.recipe import (Recipe, NDKRecipe, IncludedFilesBehaviour,
+                                     PythonRecipe, CythonRecipe,
+                                     CompiledComponentsPythonRecipe)
 from pythonforandroid.logger import (logger, info, debug, warning, error,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
                                      info_notify, info_main, shprint)
