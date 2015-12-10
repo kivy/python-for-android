@@ -2840,6 +2840,12 @@ build_dist
 
         args = parser.parse_args(args)
 
+        Fore = Out_Fore
+        Style = Out_Style
+        if not args.color:
+            Fore = Null_Fore
+            Style = Null_Style
+
         if args.compact:
             print(" ".join(list(Recipe.list_recipes())))
         else:
@@ -2847,25 +2853,21 @@ build_dist
             for name in sorted(Recipe.list_recipes()):
                 recipe = Recipe.get_recipe(name, ctx)
                 version = str(recipe.version)
-                if args.color:
-                    print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
-                          '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
-                          '{version:<8}{Style.RESET_ALL}'.format(
-                              recipe=recipe, Fore=Out_Fore, Style=Out_Style,
-                              version=version))
-                    print('    {Fore.GREEN}depends: {recipe.depends}'
-                          '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
-                    if recipe.conflicts:
-                        print('    {Fore.RED}conflicts: {recipe.conflicts}'
-                              '{Fore.RESET}'
-                              .format(recipe=recipe, Fore=Out_Fore))
-                else:
-                    print("{recipe.name:<12} {recipe.version:<8}"
-                          .format(recipe=recipe))
-                    print('    depends: {recipe.depends}'
-                          .format(recipe=recipe))
-                    print('    conflicts: {recipe.conflicts}'
-                          .format(recipe=recipe))
+                print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
+                      '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
+                      '{version:<8}{Style.RESET_ALL}'.format(
+                          recipe=recipe, Fore=Fore, Style=Style,
+                          version=version))
+                print('    {Fore.GREEN}depends: {recipe.depends}'
+                      '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                if recipe.conflicts:
+                    print('    {Fore.RED}conflicts: {recipe.conflicts}'
+                          '{Fore.RESET}'
+                          .format(recipe=recipe, Fore=Fore))
+                if recipe.opt_depends:
+                    print('    {Fore.YELLOW}optional depends: '
+                          '{recipe.opt_depends}{Fore.RESET}'
+                          .format(recipe=recipe, Fore=Fore))
 
     def bootstraps(self, args):
         '''List all the bootstraps available to build with.'''
