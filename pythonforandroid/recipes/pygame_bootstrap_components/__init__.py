@@ -5,7 +5,7 @@ import glob
 
 class PygameJNIComponentsRecipe(NDKRecipe):
     version = 'master'
-    url = 'https://github.com/inclement/p4a-pygame-bootstrap-components/archive/{version}.zip'
+    url = 'https://github.com/kivy/p4a-pygame-bootstrap-components/archive/{version}.zip'
     dir_name = 'bootstrap_components'
 
     def prebuild_arch(self, arch):
