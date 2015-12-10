@@ -22,7 +22,6 @@ import glob
 import shutil
 import re
 import imp
-import contextlib
 import logging
 import shlex
 from copy import deepcopy
@@ -83,19 +82,6 @@ def pretty_log_dists(dists, log_func=info):
 
     for line in infos:
         log_func('\t' + line)
-
-
-def shorten_string(string, max_width):
-    ''' make limited length string in form:
-      "the string is very lo...(and 15 more)"
-    '''
-    string_len = len(string)
-    if string_len <= max_width:
-        return string
-    visible = max_width - 16 - int(log10(string_len))
-    # expected suffix len "...(and XXXXX more)"
-    return ''.join((string[:visible], '...(and ', str(string_len - visible),
-                    ' more)'))
 
 
 

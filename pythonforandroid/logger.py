@@ -1,8 +1,13 @@
 
 import logging
-from sys import stdout, stderr, platform
+import os
+import re
+import sh
+from sys import stdout, stderr
+from math import log10
 from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
+
 
 class LevelDifferentiatingFormatter(logging.Formatter):
     def format(self, record):
@@ -74,6 +79,19 @@ def info_notify(s):
                            Err_Style.RESET_ALL))
 
 
+def shorten_string(string, max_width):
+    ''' make limited length string in form:
+      "the string is very lo...(and 15 more)"
+    '''
+    string_len = len(string)
+    if string_len <= max_width:
+        return string
+    visible = max_width - 16 - int(log10(string_len))
+    # expected suffix len "...(and XXXXX more)"
+    return ''.join((string[:visible], '...(and ', str(string_len - visible),
+                    ' more)'))
+
+
 def shprint(command, *args, **kwargs):
     '''Runs the command (which should be an sh.Command instance), while
     logging the output.'''
@@ -114,22 +132,22 @@ def shprint(command, *args, **kwargs):
                         '\t', ' ').replace(
                             '\b', ' ').rstrip()
                 if msg:
-                    sys.stdout.write(u'{}\r{}{:<{width}}'.format(
+                    stdout.write(u'{}\r{}{:<{width}}'.format(
                         Err_Style.RESET_ALL, msg_hdr,
                         shorten_string(msg, msg_width), width=msg_width))
-                    sys.stdout.flush()
+                    stdout.flush()
                     need_closing_newline = True
             else:
                 logger.debug(''.join(['\t', line.rstrip()]))
         if need_closing_newline:
-            sys.stdout.write('{}\r{:>{width}}\r'.format(
+            stdout.write('{}\r{:>{width}}\r'.format(
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))
-            sys.stdout.flush()
+            stdout.flush()
     except sh.ErrorReturnCode as err:
         if need_closing_newline:
-            sys.stdout.write('{}\r{:>{width}}\r'.format(
+            stdout.write('{}\r{:>{width}}\r'.format(
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))
-            sys.stdout.flush()
+            stdout.flush()
         if tail_n or filter_in or filter_out:
             def printtail(out, name, forecolor, tail_n=0,
                           re_filter_in=None, re_filter_out=None):
@@ -144,7 +162,8 @@ def shprint(command, *args, **kwargs):
                 else:
                     info('{} (last {} lines of {}):\n{}\t{}{}'.format(
                         name, tail_n, len(lines),
-                        forecolor, '\t\n'.join(lines[-tail_n:]), Out_Fore.RESET))
+                        forecolor, '\t\n'.join(lines[-tail_n:]),
+                        Out_Fore.RESET))
             printtail(err.stdout, 'STDOUT', Out_Fore.YELLOW, tail_n,
                       re.compile(filter_in) if filter_in else None,
                       re.compile(filter_out) if filter_out else None)
@@ -156,7 +175,8 @@ def shprint(command, *args, **kwargs):
                     Err_Fore.YELLOW, Err_Fore.RESET, "\n".join(
                         "set {}={}".format(n, v) for n, v in env.items())))
             info("{}COMMAND:{}\ncd {} && {} {}\n".format(
-                Err_Fore.YELLOW, Err_Fore.RESET, getcwd(), command, ' '.join(args)))
+                Err_Fore.YELLOW, Err_Fore.RESET, os.getcwd(), command,
+                ' '.join(args)))
             warning("{}ERROR: {} failed!{}".format(
                 Err_Fore.RED, command, Err_Fore.RESET))
             exit(1)
