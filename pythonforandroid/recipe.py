@@ -263,9 +263,6 @@ class Recipe(object):
         '''Given the arch name, returns the directory where the
         downloaded/copied package will be built.'''
 
-        # if self.url is not None:
-        #     return join(self.get_build_container_dir(arch),
-        #                 get_directory(self.versioned_url))
         return join(self.get_build_container_dir(arch), self.name)
 
     def get_recipe_dir(self):
@@ -346,8 +343,6 @@ class Recipe(object):
             shprint(sh.mkdir, '-p', build_dir)
             shprint(sh.rmdir, build_dir)
             ensure_dir(build_dir)
-            # shprint(sh.ln, '-s', user_dir,
-            #         join(build_dir, get_directory(self.versioned_url)))
             shprint(sh.git, 'clone', user_dir, self.get_build_dir(arch))
             return
 

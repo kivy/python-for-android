@@ -9,6 +9,10 @@ from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
 
 
+# monkey patch to show full output
+sh.ErrorReturnCode.truncate_cap = 999999
+
+
 class LevelDifferentiatingFormatter(logging.Formatter):
     def format(self, record):
         if record.levelno > 30:
