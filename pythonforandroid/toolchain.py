@@ -28,11 +28,11 @@ from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
                                      NDKRecipe)
 from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
-from pythonforandroid.logger import (logger, info, warning,
+from pythonforandroid.logger import (logger, info, warning, debug,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
                                      info_notify, info_main, shprint,
                                      Null_Fore, Null_Style)
-from pythonforandroid.util import current_directory
+from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
