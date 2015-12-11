@@ -2,9 +2,9 @@ from os.path import (join)
 from os import environ, uname
 import sys
 from distutils.spawn import find_executable
-from recipebases import Recipe
 
 from pythonforandroid.logger import warning
+from pythonforandroid.recipe import Recipe
 
 
 class Arch(object):

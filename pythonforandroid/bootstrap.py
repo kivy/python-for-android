@@ -9,7 +9,7 @@ from pythonforandroid.logger import (warning, shprint, info, logger,
                                      debug)
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    temp_directory, which)
-from pythonforandroid.recipebases import Recipe
+from pythonforandroid.recipe import Recipe
 
 
 class Bootstrap(object):
