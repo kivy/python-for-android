@@ -10,9 +10,7 @@ from __future__ import print_function
 
 import sys
 from sys import platform
-from os.path import (join, dirname, realpath, exists, basename,
-                     expanduser, split)
-from os import environ
+from os.path import (join, dirname, realpath, exists, expanduser)
 import os
 import glob
 import shutil
@@ -21,21 +19,20 @@ import imp
 import logging
 import shlex
 from functools import wraps
-from datetime import datetime
 
 import argparse
 import sh
 
 
-from pythonforandroid.recipe import (Recipe, NDKRecipe, IncludedFilesBehaviour,
-                                     PythonRecipe, CythonRecipe,
-                                     CompiledComponentsPythonRecipe)
-from pythonforandroid.logger import (logger, info, debug, warning, error,
+from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
+                                     CompiledComponentsPythonRecipe,
+                                     NDKRecipe)
+from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
+from pythonforandroid.logger import (logger, info, warning,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
                                      info_notify, info_main, shprint,
                                      Null_Fore, Null_Style)
-from pythonforandroid.util import (ensure_dir, current_directory,
-                                   which)
+from pythonforandroid.util import current_directory
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
