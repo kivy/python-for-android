@@ -27,7 +27,6 @@ import argparse
 import sh
 
 
-from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64
 from pythonforandroid.recipe import (Recipe, NDKRecipe, IncludedFilesBehaviour,
                                      PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe)
