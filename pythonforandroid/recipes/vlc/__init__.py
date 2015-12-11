@@ -1,4 +1,5 @@
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, warning, info, debug 
+from pythonforandroid.toolchain import Recipe, current_directory
+from pythonforandroid.logger import info, debug, shprint, warning
 from os.path import exists, join
 from os import environ
 import sh

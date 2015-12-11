@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import CythonRecipe, shprint, ensure_dir, current_directory, ArchARM, IncludedFilesBehaviour
+from pythonforandroid.recipe import CythonRecipe, IncludedFilesBehaviour
 import sh
 from os.path import exists, join
 

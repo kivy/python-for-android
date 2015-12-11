@@ -1,5 +1,7 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, ArchARM, current_directory, debug, info, ensure_dir
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.logger import debug, shprint, info
 from os.path import exists, join
 import sh
 import glob
