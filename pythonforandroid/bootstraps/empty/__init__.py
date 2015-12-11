@@ -1,8 +1,9 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, logger, info_main, which
+from pythonforandroid.toolchain import Bootstrap
 from os.path import join, exists
 from os import walk
 import glob
 import sh
+
 
 class EmptyBootstrap(Bootstrap):
     name = 'empty'
