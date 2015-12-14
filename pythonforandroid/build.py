@@ -411,6 +411,8 @@ class Context(object):
         self.toolchain_prefix = None
         self.toolchain_version = None
 
+        self.local_recipes = None
+
         # root of the toolchain
         self.setup_dirs()
 
