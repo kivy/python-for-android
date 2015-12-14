@@ -576,6 +576,7 @@ class Recipe(object):
         recipe = mod.recipe
         recipe.recipe_dir = dirname(recipe_file)
         recipe.ctx = ctx
+        cls.recipes[name] = recipe
         return recipe
 
 
