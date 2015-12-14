@@ -470,6 +470,17 @@ class Context(object):
         ensure_dir(join(self.libs_dir, arch))
         return join(self.libs_dir, arch)
 
+    def has_package(self, name, arch=None):
+        site_packages_dir = self.get_site_packages_dir(arch)
+        return (exists(join(site_packages_dir, name)) or
+                exists(join(site_packages_dir, name + '.py')) or
+                exists(join(site_packages_dir, name + '.pyc')) or
+                exists(join(site_packages_dir, name + '.pyo')) or
+                exists(join(site_packages_dir, name + '.so')))
+
+    def not_has_package(self, name, arch=None):
+        return not self.has_package(name, arch)
+
 
 def build_recipes(build_order, python_modules, ctx):
     # Put recipes in correct build order
@@ -531,9 +542,12 @@ def build_recipes(build_order, python_modules, ctx):
 
 
 def run_pymodules_install(ctx, modules):
+    modules = filter(ctx.not_has_package, modules)
+
     if not modules:
         info('There are no Python modules to install, skipping')
         return
+
     info('The requirements ({}) don\'t have recipes, attempting to install '
          'them with pip'.format(', '.join(modules)))
     info('If this fails, it may mean that the module has compiled '
@@ -556,8 +570,8 @@ def run_pymodules_install(ctx, modules):
         # This bash method is what old-p4a used
         # It works but should be replaced with something better
         shprint(sh.bash, '-c', (
-            "source venv/bin/activate && env CC=/bin/false CXX=/bin/false"
-            "PYTHONPATH= pip install --target '{}' -r requirements.txt"
+            "source venv/bin/activate && env CC=/bin/false CXX=/bin/false "
+            "PYTHONPATH={0} pip install --target '{0}' -r requirements.txt"
         ).format(ctx.get_site_packages_dir()))
 
 
