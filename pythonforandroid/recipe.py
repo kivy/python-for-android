@@ -643,7 +643,7 @@ class PythonRecipe(Recipe):
         name = self.site_packages_name
         if name is None:
             name = self.name
-        if exists(join(self.ctx.get_site_packages_dir(), name)):
+        if self.ctx.has_package(name):
             info('Python package already exists in site-packages')
             return False
         info('{} apparently isn\'t already in site-packages'.format(name))
