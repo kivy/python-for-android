@@ -15,6 +15,7 @@ except ImportError:
 from pythonforandroid.logger import (logger, info, warning, shprint, info_main)
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
+# this import is necessary to keep imp.load_source from complaining :)
 import pythonforandroid.recipes
 
 
