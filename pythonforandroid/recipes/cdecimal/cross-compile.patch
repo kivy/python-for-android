@@ -1,0 +1,12 @@
+diff -Naur cdecimal/setup.py b/setup.py
+--- cdecimal/setup.py	2015-12-14 13:48:23.085997956 -0600
++++ b/setup.py	2015-12-14 13:48:11.413805121 -0600
+@@ -229,7 +229,7 @@
+ def configure(machine, cc, py_size_t):
+     os.chmod("./configure", 0x1ed) # pip removes execute permissions.
+     if machine: # string has been validated.
+-        os.system("./configure MACHINE=%s" % machine)
++        os.system("./configure --host=%s MACHINE=%s" % (os.environ['TOOLCHAIN_PREFIX'], machine))
+     elif 'sunos' in SYSTEM and py_size_t == 8:
+         # cc is from sysconfig.
+         os.system("./configure CC='%s -m64'" % cc)

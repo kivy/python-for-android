@@ -10,7 +10,8 @@ class CdecimalRecipe(CompiledComponentsPythonRecipe):
 
     depends = ['python2']
 
-    patches = ['locale.patch']
+    patches = ['locale.patch',
+               'cross-compile.patch']
 
     def prebuild_arch(self, arch):
         super(CdecimalRecipe, self).prebuild_arch(arch)
