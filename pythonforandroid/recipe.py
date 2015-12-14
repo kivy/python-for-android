@@ -549,15 +549,13 @@ class IncludedFilesBehaviour(object):
                 self.get_build_dir(arch))
 
 
-class NDKRecipe(Recipe):
+class BootstrapNDKRecipe(Recipe):
     '''A recipe class for recipes built in an Android project jni dir with
     an Android.mk. These are not cached separatly, but built in the
     bootstrap's own building directory.
 
-    In the future they should probably also copy their contents from a
-    standalone set of ndk recipes, but for now the bootstraps include
-    all their recipe code.
-
+    To build an NDK project which is not part of the bootstrap, see
+    :class:`~pythonforandroid.recipe.NDKRecipe`.
     '''
 
     dir_name = None  # The name of the recipe build folder in the jni dir
@@ -573,6 +571,34 @@ class NDKRecipe(Recipe):
 
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
+
+
+class NDKRecipe(Recipe):
+    '''A recipe class for any NDK project not included in the bootstrap.'''
+
+    generated_libraries = []
+
+    def should_build(self, arch):
+        lib_dir = self.get_lib_dir(arch)
+
+        for lib in self.generated_libraries:
+            if not exists(join(lib_dir, lib)):
+                return True
+
+        return False
+
+    def get_lib_dir(self, arch):
+        return join(self.get_build_dir(arch.arch), 'obj', 'local', arch.arch)
+
+    def get_jni_dir(self, arch):
+        return join(self.get_build_dir(arch.arch), 'jni')
+
+    def build_arch(self, arch, *extra_args):
+        super(NDKRecipe, self).build_arch(arch)
+
+        env = self.get_recipe_env(arch)
+        with current_directory(self.get_build_dir(arch.arch)):
+            shprint(sh.ndk_build, 'V=1', 'APP_ABI=' + arch.arch, *extra_args, _env=env)
 
 
 class PythonRecipe(Recipe):

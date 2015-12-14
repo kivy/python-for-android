@@ -26,7 +26,7 @@ import sh
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
-                                     NDKRecipe)
+                                     BootstrapNDKRecipe, NDKRecipe)
 from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
 from pythonforandroid.logger import (logger, info, warning, debug,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
