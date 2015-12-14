@@ -1,9 +1,9 @@
-from pythonforandroid.toolchain import NDKRecipe, current_directory, shprint, info
+from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory, shprint, info
 from os.path import exists, join
 import sh
 import glob
 
-class PygameJNIComponentsRecipe(NDKRecipe):
+class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
     version = 'master'
     url = 'https://github.com/kivy/p4a-pygame-bootstrap-components/archive/{version}.zip'
     dir_name = 'bootstrap_components'

@@ -1,9 +1,9 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint, current_directory, info
+from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, current_directory, info
 from os.path import exists, join
 import sh
 
 
-class LibSDL2Recipe(NDKRecipe):
+class LibSDL2Recipe(BootstrapNDKRecipe):
     version = "2.0.3"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
 
