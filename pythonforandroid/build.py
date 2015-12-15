@@ -471,6 +471,13 @@ class Context(object):
         return join(self.libs_dir, arch)
 
     def has_package(self, name, arch=None):
+        try:
+            recipe = Recipe.get_recipe(name, self)
+        except IOError:
+            pass
+        else:
+            name = getattr(recipe, 'site_packages_name', None) or name
+        name = name.replace('.', '/')
         site_packages_dir = self.get_site_packages_dir(arch)
         return (exists(join(site_packages_dir, name)) or
                 exists(join(site_packages_dir, name + '.py')) or

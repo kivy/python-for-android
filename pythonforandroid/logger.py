@@ -92,8 +92,27 @@ def shorten_string(string, max_width):
         return string
     visible = max_width - 16 - int(log10(string_len))
     # expected suffix len "...(and XXXXX more)"
-    return ''.join((string[:visible], '...(and ', str(string_len - visible),
-                    ' more)'))
+    return u''.join((string[:visible], u'...(and ', str(string_len - visible),
+                    u' more)'))
+
+
+def get_console_width():
+    try:
+        cols = int(os.environ['COLUMNS'])
+    except (KeyError, ValueError):
+        pass
+    else:
+        if cols >= 25:
+            return cols
+
+    try:
+        cols = max(25, int(os.popen('stty size', 'r').read().split()[1]))
+    except Exception:
+        pass
+    else:
+        return cols
+
+    return 100
 
 
 def shprint(command, *args, **kwargs):
@@ -109,10 +128,7 @@ def shprint(command, *args, **kwargs):
     filter_out = kwargs.pop('_filterout', None)
     if len(logger.handlers) > 1:
         logger.removeHandler(logger.handlers[1])
-    try:
-        columns = max(25, int(os.popen('stty size', 'r').read().split()[1]))
-    except:
-        columns = 100
+    columns = get_console_width()
     command_path = str(command).split('/')
     command_string = command_path[-1]
     string = ' '.join(['running', command_string] + list(args))
