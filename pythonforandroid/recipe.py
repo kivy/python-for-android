@@ -95,7 +95,7 @@ class Recipe(object):
 
             urlretrieve(url, target, report_hook)
             return target
-        elif parsed_url.scheme in ('git',):
+        elif parsed_url.scheme in ('git', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
                 with current_directory(target):
                     shprint(sh.git, 'fetch', '--tags')
@@ -105,6 +105,8 @@ class Recipe(object):
                     shprint(sh.git, 'pull', '--recurse-submodules')
                     shprint(sh.git, 'submodule', 'update', '--recursive')
             else:
+                if url.startswith('git+'):
+                    url = url[4:]
                 shprint(sh.git, 'clone', '--recursive', url, target)
                 if self.version:
                     with current_directory(target):
