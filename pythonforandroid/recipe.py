@@ -2,6 +2,8 @@ from os.path import join, dirname, isdir, exists, isfile
 import importlib
 import zipfile
 import glob
+from six import PY2
+
 import sh
 import shutil
 from os import listdir, unlink, environ, mkdir
@@ -12,6 +14,27 @@ except ImportError:
     from urllib.parse import urlparse
 from pythonforandroid.logger import (logger, info, warning, shprint, info_main)
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
+
+# this import is necessary to keep imp.load_source from complaining :)
+import pythonforandroid.recipes
+
+
+if PY2:
+    import imp
+    import_recipe = imp.load_source
+else:
+    import importlib.util
+    if hasattr(importlib.util, 'module_from_spec'):
+        def import_recipe(module, filename):
+            spec = importlib.util.spec_from_file_location(module, filename)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
+    else:
+        from importlib.machinery import SourceFileLoader
+
+        def import_recipe(module, filename):
+            return SourceFileLoader(module, filename).load_module()
 
 
 class Recipe(object):
@@ -514,15 +537,22 @@ class Recipe(object):
                      'did not exist').format(self.name))
 
     @classmethod
-    def list_recipes(cls):
+    def recipe_dirs(cls, ctx):
+        return [ctx.local_recipes,
+                join(ctx.storage_dir, 'recipes'),
+                join(ctx.root_dir, "recipes")]
+
+    @classmethod
+    def list_recipes(cls, ctx):
         forbidden_dirs = ('__pycache__', )
-        recipes_dir = join(dirname(__file__), "recipes")
-        for name in listdir(recipes_dir):
-            if name in forbidden_dirs:
-                continue
-            fn = join(recipes_dir, name)
-            if isdir(fn):
-                yield name
+        for recipes_dir in cls.recipe_dirs(ctx):
+            if recipes_dir and exists(recipes_dir):
+                for name in listdir(recipes_dir):
+                    if name in forbidden_dirs:
+                        continue
+                    fn = join(recipes_dir, name)
+                    if isdir(fn):
+                        yield name
 
     @classmethod
     def get_recipe(cls, name, ctx):
@@ -531,17 +561,24 @@ class Recipe(object):
             cls.recipes = {}
         if name in cls.recipes:
             return cls.recipes[name]
-        recipe_dir = join(ctx.root_dir, 'recipes', name)
-        if not exists(recipe_dir):  # AND: This will need modifying
-                                    # for user-supplied recipes
+
+        recipe_file = None
+        for recipes_dir in cls.recipe_dirs(ctx):
+            recipe_file = join(recipes_dir, name, '__init__.py')
+            if exists(recipe_file):
+                break
+            recipe_file = None
+
+        if not recipe_file:
             raise IOError('Recipe folder does not exist')
-        mod = importlib.import_module(
-            "pythonforandroid.recipes.{}".format(name))
+
+        mod = import_recipe('pythonforandroid.recipes.{}'.format(name), recipe_file)
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
-        recipe.recipe_dir = recipe_dir
+        recipe.recipe_dir = dirname(recipe_file)
         recipe.ctx = ctx
+        cls.recipes[name] = recipe
         return recipe
 
 
