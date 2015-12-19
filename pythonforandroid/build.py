@@ -127,6 +127,10 @@ class Context(object):
         self._ndk_ver = value
 
     @property
+    def ndk_is_crystax(self):
+        return True if self.ndk_ver[:7] == 'crystax' else False
+
+    @property
     def sdk_dir(self):
         '''The path to the Android SDK.'''
         if self._sdk_dir is None:

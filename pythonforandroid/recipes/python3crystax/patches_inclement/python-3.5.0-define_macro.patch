@@ -1,0 +1,13 @@
+diff --git a/Include/Python.h b/Include/Python.h
+index 858dbd1..453bd25 100644
+--- a/Include/Python.h
++++ b/Include/Python.h
+@@ -2,6 +2,8 @@
+ #define Py_PYTHON_H
+ /* Since this is a "meta-include" file, no #ifdef __cplusplus / extern "C" { */
+ 
++#define __ANDROID__ 1
++
+ /* Include nearly all Python header files */
+ 
+ #include "patchlevel.h"

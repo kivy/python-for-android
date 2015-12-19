@@ -5,7 +5,7 @@ import sh
 class LibSDL2Recipe(BootstrapNDKRecipe):
     version = "2.0.3"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
-    depends = ['python3', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
+    depends = [('python3', 'crystaxpython3'), 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
     # depends = ['python2']
     dir_name = 'SDL'
 
