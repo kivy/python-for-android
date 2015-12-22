@@ -9,6 +9,20 @@ print('sys.path is', sys.path)
 for i in range(45, 50):
     print(i, sqrt(i))
 
+print('trying to import six')
+try:
+    import six
+except ImportError:
+    print('import failed')
+
+
+print('trying to import six again')
+try:
+    import six
+except ImportError:
+    print('import failed (again?)')
+print('import six worked!')
+
 print('Just printing stuff apparently worked, trying pyjnius')
 
 import jnius
