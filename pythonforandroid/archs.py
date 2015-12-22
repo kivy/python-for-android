@@ -84,6 +84,8 @@ class Arch(object):
         env['AR'] = '{}-ar'.format(command_prefix)
         env['RANLIB'] = '{}-ranlib'.format(command_prefix)
         env['LD'] = '{}-ld'.format(command_prefix)
+        # env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink-jb')
+        env['LDSHARED'] = env['LD']
         env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(command_prefix)

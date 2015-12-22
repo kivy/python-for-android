@@ -18,6 +18,9 @@ class Python3Recipe(Recipe):
         super(Python3Recipe, self).__init__(**kwargs)
         self.crystax = lambda *args: True if self.ctx.ndk_is_crystax else False
 
+    def prebuild_arch(self, arch):
+        self.ctx.ensure_crystax_python_install_dir()
+
     def build_arch(self, arch):
         info('doing nothing, the crystax python3 is included in the ndk!')
 

@@ -1,4 +1,4 @@
-from os.path import join, dirname, isdir, exists, isfile
+from os.path import join, dirname, isdir, exists, isfile, split, realpath
 import importlib
 import zipfile
 import glob
@@ -6,7 +6,7 @@ from six import PY2
 
 import sh
 import shutil
-from os import listdir, unlink, environ, mkdir
+from os import listdir, unlink, environ, mkdir, curdir
 from sys import stdout
 try:
     from urlparse import urlparse
@@ -715,8 +715,30 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             # hostpython = sh.Command(self.ctx.hostpython)
             hostpython = sh.Command(self.hostpython_location)
+            hostpython = sh.Command('python3.5')
 
-            if self.call_hostpython_via_targetpython:
+
+            if self.ctx.ndk_is_crystax:
+                hppath = join(dirname(self.hostpython_location), 'Lib',
+                              'site-packages')
+                hpenv = env.copy()
+                if 'PYTHONPATH' in hpenv:
+                    hpenv['PYTHONPATH'] = ':'.join([hppath] +
+                                                   hpenv['PYTHONPATH'].split(':'))
+                else:
+                    hpenv['PYTHONPATH'] = hppath
+                # hpenv['PYTHONHOME'] = self.ctx.get_python_install_dir()
+                # shprint(hostpython, 'setup.py', 'build',
+                #         _env=hpenv, *self.setup_extra_args)
+                shprint(hostpython, 'setup.py', 'install', '-O2',
+                        '--root={}'.format(self.ctx.get_python_install_dir()),
+                        '--install-lib=lib/python3.5/site-packages',
+                        _env=hpenv, *self.setup_extra_args)
+                site_packages_dir = self.ctx.get_site_packages_dir()
+                built_files = glob.glob(join('build', 'lib*', '*'))
+                for filen in built_files:
+                    shprint(sh.cp, '-r', filen, join(site_packages_dir, split(filen)[-1]))
+            elif self.call_hostpython_via_targetpython:
                 shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
                         *self.setup_extra_args)
             else:
@@ -793,8 +815,13 @@ class CythonRecipe(PythonRecipe):
     def build_cython_components(self, arch):
         info('Cythonizing anything necessary in {}'.format(self.name))
         env = self.get_recipe_env(arch)
+        # env['PYTHONHOME'] = self.ctx.get_python_install_dir()
+        env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
         with current_directory(self.get_build_dir(arch.arch)):
-            hostpython = sh.Command(self.ctx.hostpython)
+            # hostpython = sh.Command(self.ctx.hostpython)
+            hostpython = sh.Command('python3.5')
+            shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
+            print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
                  'expected to fail'.format(self.name))
             try:
@@ -805,17 +832,19 @@ class CythonRecipe(PythonRecipe):
                 info('{} first build failed (as expected)'.format(self.name))
 
             info('Running cython where appropriate')
+            # shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
+            #         '-exec', self.ctx.cython, '{}', ';', _env=env)
             shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-                    '-exec', self.ctx.cython, '{}', ';', _env=env)
+                    '-exec', self.ctx.cython, '{}', ';')
             info('ran cython')
 
             shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
                     _tail=20, _critical=True, *self.setup_extra_args)
 
-            print('stripping')
-            build_lib = glob.glob('./build/lib*')
-            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
-                    env['STRIP'], '{}', ';', _env=env)
+            # print('stripping')
+            # build_lib = glob.glob('./build/lib*')
+            # shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
+            #         env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
             # exit(1)
 
@@ -836,10 +865,12 @@ class CythonRecipe(PythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(CythonRecipe, self).get_recipe_env(arch)
-        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
-            '-L{}'.format(self.ctx.libs_dir))
-        env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+            ' -L{} '.format(self.ctx.libs_dir)) + ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2python3crystax/libs/armeabi '
+        # env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink-jb')
+        env['LDSHARED'] = env['CC'] + ' -shared'
+        shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
@@ -849,4 +880,7 @@ class CythonRecipe(PythonRecipe):
                             'objects_{}'.format(self.name))
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
+
+        env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/include/python ' + env['CFLAGS']
+        
         return env

@@ -60,7 +60,7 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
         SDLActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
         SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
-        SDLActivity.nativeSetEnv("", mFilesDirectory + ":" + mFilesDirectory + "/lib");
+        SDLActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
 
 
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());

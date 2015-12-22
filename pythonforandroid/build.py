@@ -130,6 +130,14 @@ class Context(object):
     def ndk_is_crystax(self):
         return True if self.ndk_ver[:7] == 'crystax' else False
 
+    def ensure_crystax_python_install_dir(self):
+        dirn = self.get_python_install_dir()
+        ensure_dir(dirn)
+        ensure_dir(join(dirn, 'lib'))
+        sh.cp('-r', '/home/asandy/kivytest/crystax_stdlib', join(dirn, 'lib', 'python3.5'))
+        sh.cp('-r', '/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/libs/armeabi/modules', join(dirn, 'lib', 'python3.5', 'lib-dynload'))
+        ensure_dir(join(dirn, 'lib', 'site-packages'))
+
     @property
     def sdk_dir(self):
         '''The path to the Android SDK.'''
@@ -332,6 +340,7 @@ class Context(object):
             if cython:
                 self.cython = cython
                 break
+        self.cython = 'cython'
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
@@ -476,6 +485,8 @@ class Context(object):
         # AND: This *must* be replaced with something more general in
         # order to support multiple python versions and/or multiple
         # archs.
+        if self.ndk_is_crystax:
+            return self.get_python_install_dir()
         return join(self.get_python_install_dir(),
                     'lib', 'python2.7', 'site-packages')
 
@@ -549,7 +560,10 @@ def build_recipes(build_order, python_modules, ctx):
         # 4) biglink everything
         # AND: Should make this optional
         info_main('# Biglinking object files')
-        biglink(ctx, arch)
+        if not ctx.ndk_is_crystax:
+            biglink(ctx, arch)
+        else:
+            info('NDK is crystax, skipping biglink (will this work?)')
 
         # 5) postbuild packages
         info_main('# Postbuilding recipes')
