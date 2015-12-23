@@ -175,7 +175,7 @@ Path to the Android SDK
 python-for-android searches in the following places for this path, in
 order; setting any of these variables overrides all the later ones:
 
-- The ``--sdk_path`` argument to any python-for-android command.
+- The ``--sdk_dir`` argument to any python-for-android command.
 - The ``ANDROIDSDK`` environment variable.
 - The ``ANDROID_HOME`` environment variable (this may be used or set
   by other tools).
@@ -220,7 +220,7 @@ Path to the Android NDK
 python-for-android searches in the following places for this path, in
 order; setting any of these variables overrides all the later ones:
 
-- The ``--ndk_path`` argument to any python-for-android command.
+- The ``--ndk_dir`` argument to any python-for-android command.
 - The ``ANDROIDNDK`` environment variable.
 - The ``NDK_HOME`` environment variable (this may be used or set
   by other tools).
