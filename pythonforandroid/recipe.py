@@ -719,25 +719,26 @@ class PythonRecipe(Recipe):
 
 
             if self.ctx.ndk_is_crystax:
-                hppath = join(dirname(self.hostpython_location), 'Lib',
-                              'site-packages')
+                # hppath = join(dirname(self.hostpython_location), 'Lib',
+                #               'site-packages')
                 hpenv = env.copy()
-                if 'PYTHONPATH' in hpenv:
-                    hpenv['PYTHONPATH'] = ':'.join([hppath] +
-                                                   hpenv['PYTHONPATH'].split(':'))
-                else:
-                    hpenv['PYTHONPATH'] = hppath
+                # if 'PYTHONPATH' in hpenv:
+                #     hpenv['PYTHONPATH'] = ':'.join([hppath] +
+                #                                    hpenv['PYTHONPATH'].split(':'))
+                # else:
+                #     hpenv['PYTHONPATH'] = hppath
                 # hpenv['PYTHONHOME'] = self.ctx.get_python_install_dir()
                 # shprint(hostpython, 'setup.py', 'build',
                 #         _env=hpenv, *self.setup_extra_args)
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
-                        '--install-lib=lib/python3.5/site-packages',
+                        '--install-lib=.',
+                        # AND: will need to unhardcode the 3.5 when adding 2.7 (and other crystax supported versions)
                         _env=hpenv, *self.setup_extra_args)
-                site_packages_dir = self.ctx.get_site_packages_dir()
-                built_files = glob.glob(join('build', 'lib*', '*'))
-                for filen in built_files:
-                    shprint(sh.cp, '-r', filen, join(site_packages_dir, split(filen)[-1]))
+                # site_packages_dir = self.ctx.get_site_packages_dir()
+                # built_files = glob.glob(join('build', 'lib*', '*'))
+                # for filen in built_files:
+                #     shprint(sh.cp, '-r', filen, join(site_packages_dir, split(filen)[-1]))
             elif self.call_hostpython_via_targetpython:
                 shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
                         *self.setup_extra_args)

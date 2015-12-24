@@ -130,13 +130,6 @@ class Context(object):
     def ndk_is_crystax(self):
         return True if self.ndk_ver[:7] == 'crystax' else False
 
-    def ensure_crystax_python_install_dir(self):
-        dirn = self.get_python_install_dir()
-        ensure_dir(dirn)
-        ensure_dir(join(dirn, 'lib'))
-        sh.cp('-r', '/home/asandy/kivytest/crystax_stdlib', join(dirn, 'lib', 'python3.5'))
-        sh.cp('-r', '/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/libs/armeabi/modules', join(dirn, 'lib', 'python3.5', 'lib-dynload'))
-        ensure_dir(join(dirn, 'lib', 'site-packages'))
 
     @property
     def sdk_dir(self):
