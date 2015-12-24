@@ -847,7 +847,8 @@ class CythonRecipe(PythonRecipe):
                 info('Running cython where appropriate')
                 if self.ctx.ndk_is_crystax:
                     shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-                            '-exec', self.ctx.cython, '{}', ';')
+                            '-exec', 'cython', '{}', ';')
+                    # AND: Need to choose cython version more carefully
                 else:
                     shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
                             '-exec', self.ctx.cython, '{}', ';', _env=env)
