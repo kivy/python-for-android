@@ -815,9 +815,17 @@ class CythonRecipe(PythonRecipe):
 
     def build_cython_components(self, arch):
         info('Cythonizing anything necessary in {}'.format(self.name))
+
         env = self.get_recipe_env(arch)
-        # env['PYTHONHOME'] = self.ctx.get_python_install_dir()
-        env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
+
+        if self.ctx.ndk_is_crystax:
+            site_packages_dirs = sh.Command('python3.5')('-c', 'import site; print("\\n".join(site.getsitepackages()))').stdout.split('\n')
+            # env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
+            if 'PYTHONPATH' in env:
+                env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))
+            else:
+                env['PYTHONPATH'] = ':'.join(site_packages_dirs)
+
         with current_directory(self.get_build_dir(arch.arch)):
             # hostpython = sh.Command(self.ctx.hostpython)
             hostpython = sh.Command('python3.5')
@@ -825,27 +833,36 @@ class CythonRecipe(PythonRecipe):
             print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
                  'expected to fail'.format(self.name))
+
+            manually_cythonise = False
             try:
-                shprint(hostpython, 'setup.py', 'build_ext', _env=env,
+                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
                         *self.setup_extra_args)
             except sh.ErrorReturnCode_1:
                 print()
                 info('{} first build failed (as expected)'.format(self.name))
+                manually_cythonise = True
 
-            info('Running cython where appropriate')
-            # shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-            #         '-exec', self.ctx.cython, '{}', ';', _env=env)
-            shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-                    '-exec', self.ctx.cython, '{}', ';')
-            info('ran cython')
+            if manually_cythonise:
+                info('Running cython where appropriate')
+                if self.ctx.ndk_is_crystax:
+                    shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
+                            '-exec', self.ctx.cython, '{}', ';')
+                else:
+                    shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
+                            '-exec', self.ctx.cython, '{}', ';', _env=env)
+                info('ran cython')
 
-            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
-                    _tail=20, _critical=True, *self.setup_extra_args)
+                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
+                        _tail=20, _critical=True, *self.setup_extra_args)
+            else:
+                info('First build appeared to complete correctly, skipping manual'
+                     'cythonising.')
 
-            # print('stripping')
-            # build_lib = glob.glob('./build/lib*')
-            # shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
-            #         env['STRIP'], '{}', ';', _env=env)
+            print('stripping')
+            build_lib = glob.glob('./build/lib*')
+            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
+                    env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
             # exit(1)
 

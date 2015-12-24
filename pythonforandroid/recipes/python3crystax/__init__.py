@@ -28,8 +28,6 @@ class Python3Recipe(Recipe):
 
     def build_arch(self, arch):
         info('Extracting CrystaX python3 from NDK package')
-        # This is necessary (I think?) in order for the
-        # cross-compilation to work
 
         dirn = self.ctx.get_python_install_dir()
         ensure_dir(dirn)
