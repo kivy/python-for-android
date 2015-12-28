@@ -52,6 +52,13 @@ class Arch(object):
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
+        ccache = ''
+        if self.ctx.ccache and bool(int(environ.get('USE_CCACHE', '1'))):
+            print('ccache found, will optimize builds')
+            ccache = self.ctx.ccache + ' '
+            env['USE_CCACHE'] = '1'
+            env['NDK_CCACHE'] = self.ctx.ccache
+
         print('path is', environ['PATH'])
         cc = find_executable('{command_prefix}-gcc'.format(
             command_prefix=command_prefix), path=environ['PATH'])
@@ -62,11 +69,13 @@ class Arch(object):
                     'installed. Exiting.')
             exit(1)
 
-        env['CC'] = '{command_prefix}-gcc {cflags}'.format(
+        env['CC'] = '{ccache}{command_prefix}-gcc {cflags}'.format(
             command_prefix=command_prefix,
+            ccache=ccache,
             cflags=env['CFLAGS'])
-        env['CXX'] = '{command_prefix}-g++ {cxxflags}'.format(
+        env['CXX'] = '{ccache}{command_prefix}-g++ {cxxflags}'.format(
             command_prefix=command_prefix,
+            ccache=ccache,
             cxxflags=env['CXXFLAGS'])
 
         env['AR'] = '{}-ar'.format(command_prefix)
