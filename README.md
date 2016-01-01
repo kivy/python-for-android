@@ -79,7 +79,6 @@ Relating to SDL2 only:
 - App loading screen
 - Public dir installation
 - Keyboard height getter
-- Billing support
 - Kivy Launcher build (can now be implemented as a bootstrap...maybe?)
 - Several build options for build.py
 - Probably some other stuff

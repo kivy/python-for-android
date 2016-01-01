@@ -80,73 +80,6 @@ Example::
         # ...
 
 
-Billing (``android.billing``)
------------------------------
-
-.. module:: android.billing
-
-This billing module gives an access to the `In-App Billing <http://developer.android.com/guide/google/play/billing/billing_overview.html>`_:
-
-#. `Setup a test account <http://developer.android.com/guide/google/play/billing/billing_admin.html#billing-testing-setup>`_, and get your Public Key
-#. Export your public key::
-
-    export BILLING_PUBKEY="Your public key here"
-
-#. `Setup some In-App product <http://developer.android.com/guide/google/play/billing/billing_admin.html>`_ to buy. Let's say you've created a product with the id "org.kivy.gopremium"
-
-#. In your application, you can use the ``billing`` module like this::
-
-
-    from android.billing import BillingService
-    from kivy.clock import Clock
-
-    class MyBillingService(object):
-
-        def __init__(self):
-            super(MyBillingService, self).__init__()
-
-            # Start the billing service, and attach our callback
-            self.service = BillingService(billing_callback)
-
-            # Start a clock to check billing service message every second
-            Clock.schedule_interval(self.service.check, 1)
-
-        def billing_callback(self, action, *largs):
-            '''Callback that will receive all the events from the Billing service
-            '''
-            if action == BillingService.BILLING_ACTION_ITEMSCHANGED:
-                items = largs[0]
-                if 'org.kivy.gopremium' in items:
-                    print "Congratulations, you have a premium acess"
-                else:
-                    print "Unfortunately, you don't have premium access"
-
-        def buy(self, sku):
-            # Method to buy something.
-            self.service.buy(sku)
-
-        def get_purchased_items(self):
-            # Return all the items purchased
-            return self.service.get_purchased_items()
-
-#. To initiate an in-app purchase, just call the ``buy()`` method::
-
-    # Note: start the service at the start, and never twice!
-    bs = MyBillingService()
-    bs.buy('org.kivy.gopremium')
-
-    # Later, when you get the notification that items have been changed, you
-    # can still check all the items you bought:
-    print bs.get_purchased_items()
-    {'org.kivy.gopremium': {'qt: 1}}
-
-#. You'll receive all the notifications about the billing process in the callback.
-
-#. Last step, create your application with ``--with-billing $BILLING_PUBKEY``::
-
-    ./build.py ... --with-billing $BILLING_PUBKEY
-
-
 Broadcast (``android.broadcast``)
 ---------------------------------
 
@@ -366,4 +299,3 @@ Application service part example, ``service/main.py``:
        # this will print 'Hello From Service' continually, even when the application is switched
        print arg
        time.sleep(1)
-
