@@ -28,8 +28,10 @@ class SDL2Bootstrap(Bootstrap):
         with current_directory(self.dist_dir):
             info('Copying python distribution')
 
-            if not exists('private'):
+            if not exists('private') and not self.ctx.ndk_is_crystax:
                 shprint(sh.mkdir, 'private')
+            if not exists('crystax_python') and self.ctx..ndk_is_crystax:
+                shprint(sh.mkdir, 'crytax_python')
             if not exists('assets'):
                 shprint(sh.mkdir, 'assets')
             

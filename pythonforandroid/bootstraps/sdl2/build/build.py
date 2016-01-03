@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from os.path import dirname, join, isfile, realpath, relpath, split
+from os.path import dirname, join, isfile, realpath, relpath, split, exists
 import os
 import tarfile
 import time
@@ -107,6 +107,12 @@ def make_python_zip():
     # http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
     site-packages, config and lib-dynload will be not included.
     '''
+
+    if not exists('private'):
+        print('No compiled python is present to zip, skipping.')
+        print('this should only be the case if you are using the CrystaX python')
+        return
+    
     global python_files
     d = realpath(join('private', 'lib', 'python2.7'))
 
@@ -215,13 +221,18 @@ def make_package(args):
         os.unlink('assets/private.mp3')
 
     # In order to speedup import and initial depack,
-    # construct a python27.zip
+    # construct a python27.zip if not using CrystaX's pre-zipped package
     make_python_zip()
 
     # Package up the private and public data.
     # AND: Just private for now
+    tar_dirs = [args.private]
+    if exists('private'):
+        tar_dirs.append('private')
+    if exists('crystax_python'):
+        tar_dirs.append('crystax_python')
     if args.private:
-        make_tar('assets/private.mp3', ['private', args.private], args.ignore_path)
+        make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
     # else:
     #     make_tar('assets/private.mp3', ['private'])
 
