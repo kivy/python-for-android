@@ -887,8 +887,10 @@ class CythonRecipe(PythonRecipe):
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
             ' -L{} '.format(self.ctx.libs_dir)) + ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2python3crystax/libs/armeabi '
-        # env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink-jb')
-        env['LDSHARED'] = env['CC'] + ' -shared'
+        if self.ctx.ndk_is_crystax:
+            env['LDSHARED'] = env['CC'] + ' -shared'
+        else:
+            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink-jb')
         shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform

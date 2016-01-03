@@ -9,7 +9,7 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
     dir_name = 'SDL'
 
-    depends = ['python2', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
+    depends = [('python2', 'python3crystax'), 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
     conflicts = ['sdl', 'pygame', 'pygame_bootstrap_components']
 
     patches = ['add_nativeSetEnv.patch']
