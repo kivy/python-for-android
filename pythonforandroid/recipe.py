@@ -886,7 +886,9 @@ class CythonRecipe(PythonRecipe):
         env = super(CythonRecipe, self).get_recipe_env(arch)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
-            ' -L{} '.format(self.ctx.libs_dir)) + ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2python3crystax/libs/armeabi '
+            ' -L{} '.format(self.ctx.libs_dir))
+        if self.ctx.ndk_is_crystax:
+            env['LDFLAGS'] = env['LDFLAGS'] + ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
         if self.ctx.ndk_is_crystax:
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
@@ -902,6 +904,7 @@ class CythonRecipe(PythonRecipe):
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
 
-        env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/include/python ' + env['CFLAGS']
+        if self.ctx.ndk_is_crystax:
+            env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/include/python ' + env['CFLAGS']
         
         return env

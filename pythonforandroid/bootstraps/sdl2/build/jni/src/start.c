@@ -39,8 +39,32 @@ static PyMethodDef AndroidEmbedMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+static struct PyModuleDef androidembed =
+  {
+    PyModuleDef_HEAD_INIT,
+    "androidembed",
+    "",
+    -1,
+    AndroidEmbedMethods
+  };
+
 PyMODINIT_FUNC initandroidembed(void) {
-    (void) Py_InitModule("androidembed", AndroidEmbedMethods);
+  return PyModule_Create(&androidembed);
+    /* (void) Py_InitModule("androidembed", AndroidEmbedMethods); */
+}
+
+int dir_exists(char* filename)
+  /* Function from http://stackoverflow.com/questions/12510874/how-can-i-check-if-a-directory-exists-on-linux-in-c# */
+{
+  if (0 != access("filename", F_OK)) {
+    if (ENOENT == errno) {
+      return 0;
+    }
+    if (ENOTDIR == errno) {
+      return 0;
+    }
+    return 1;
+  }
 }
 
 int file_exists(const char * filename)
@@ -78,38 +102,71 @@ int main(int argc, char *argv[]) {
     /* LOG(argv[0]); */
     /* LOG("AND: That was argv 0"); */
 	//setenv("PYTHONVERBOSE", "2", 1);
-    Py_SetProgramName(argv[0]);
-    Py_Initialize();
-    PySys_SetArgv(argc, argv);
-    
-    LOG("AND: Set program name");
-
-    /* ensure threads will work.
-     */
-    PyEval_InitThreads();
-
-    LOG("AND: Init threads");
+    Py_SetProgramName(L"android_python");
 
     /* our logging module for android
      */
-    initandroidembed();
+    PyImport_AppendInittab("androidembed", initandroidembed);
+    
+    if (dir_exists("crystax_python/")) {
+        char paths[256];
+        snprintf(paths, 256, "%s/crystax_python/stdlib.zip:%s/crystax_python/modules", env_argument, env_argument);
+        /* snprintf(paths, 256, "%s/stdlib.zip:%s/modules", env_argument, env_argument); */
+        LOG("calculated paths to be...");
+        LOG(paths);
+        
+        wchar_t* wchar_paths = Py_DecodeLocale(paths, NULL);
+        Py_SetPath(wchar_paths);
+        LOG("set wchar paths...");
+    }
 
-    LOG("AND: Init embed");
+    Py_Initialize();
+    
+    if (dir_exists("private/")) {
+        PySys_SetArgv(argc, argv);
+      }
+    
+    LOG("Initialized python");
+
+    /* ensure threads will work.
+     */
+    LOG("AND: Init threads");
+    PyEval_InitThreads();
+    
+
+    PyRun_SimpleString("import androidembed\nandroidembed.log('testing python print redirection')");
+    LOG("tried to run simple androidembed test");
     
     /* inject our bootstrap code to redirect python stdin/stdout
      * replace sys.path with our path
      */
+    PyRun_SimpleString("import sys, posix\n");
+    if (dir_exists("private/")) {
+        /* If we built our own python, set up the paths correctly */
+        PyRun_SimpleString(
+            "private = posix.environ['ANDROID_PRIVATE']\n" \
+            "argument = posix.environ['ANDROID_ARGUMENT']\n" \
+            "sys.path[:] = [ \n" \
+            "    private + '/lib/python27.zip', \n" \
+            "    private + '/lib/python2.7/', \n" \
+            "    private + '/lib/python2.7/lib-dynload/', \n" \
+            "    private + '/lib/python2.7/site-packages/', \n" \
+            "    argument ]\n");
+          } else {
+      
+      char add_site_packages_dir[256];
+      snprintf(add_site_packages_dir, 256, "sys.path.append('%s/crystax_python/site-packages')", 
+               env_argument);
+      
+      PyRun_SimpleString(
+          "import sys\n" \
+          "sys.argv = ['notaninterpreterreally']\n" \
+          "from os.path import realpath, join, dirname");
+      PyRun_SimpleString(add_site_packages_dir);
+          /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
+    }
+    
     PyRun_SimpleString(
-        "import sys, posix\n" \
-        "private = posix.environ['ANDROID_PRIVATE']\n" \
-        "argument = posix.environ['ANDROID_ARGUMENT']\n" \
-        "sys.path[:] = [ \n" \
-		"    private + '/lib/python27.zip', \n" \
-		"    private + '/lib/python2.7/', \n" \
-		"    private + '/lib/python2.7/lib-dynload/', \n" \
-		"    private + '/lib/python2.7/site-packages/', \n" \
-		"    argument ]\n" \
-        "import androidembed\n" \
         "class LogFile(object):\n" \
         "    def __init__(self):\n" \
         "        self.buffer = ''\n" \
@@ -122,9 +179,37 @@ int main(int argc, char *argv[]) {
         "    def flush(self):\n" \
         "        return\n" \
         "sys.stdout = sys.stderr = LogFile()\n" \
-		"import site; print site.getsitepackages()\n"\
-		"print 'Android path', sys.path\n" \
-        "print 'Android kivy bootstrap done. __name__ is', __name__");
+		"print('Android path', sys.path)\n" \
+        "import os\n" \
+        "print('os.environ is', os.environ)\n" \
+        "print('Android kivy bootstrap done. __name__ is', __name__)");
+
+    /* PyRun_SimpleString( */
+    /*     "import sys, posix\n" \ */
+    /*     "private = posix.environ['ANDROID_PRIVATE']\n" \ */
+    /*     "argument = posix.environ['ANDROID_ARGUMENT']\n" \ */
+    /*     "sys.path[:] = [ \n" \ */
+	/* 	"    private + '/lib/python27.zip', \n" \ */
+	/* 	"    private + '/lib/python2.7/', \n" \ */
+	/* 	"    private + '/lib/python2.7/lib-dynload/', \n" \ */
+	/* 	"    private + '/lib/python2.7/site-packages/', \n" \ */
+	/* 	"    argument ]\n" \ */
+    /*     "import androidembed\n" \ */
+    /*     "class LogFile(object):\n" \ */
+    /*     "    def __init__(self):\n" \ */
+    /*     "        self.buffer = ''\n" \ */
+    /*     "    def write(self, s):\n" \ */
+    /*     "        s = self.buffer + s\n" \ */
+    /*     "        lines = s.split(\"\\n\")\n" \ */
+    /*     "        for l in lines[:-1]:\n" \ */
+    /*     "            androidembed.log(l)\n" \ */
+    /*     "        self.buffer = lines[-1]\n" \ */
+    /*     "    def flush(self):\n" \ */
+    /*     "        return\n" \ */
+    /*     "sys.stdout = sys.stderr = LogFile()\n" \ */
+	/* 	"import site; print site.getsitepackages()\n"\ */
+	/* 	"print 'Android path', sys.path\n" \ */
+    /*     "print 'Android kivy bootstrap done. __name__ is', __name__"); */
 
     LOG("AND: Ran string");
     /* run it !
@@ -160,8 +245,9 @@ int main(int argc, char *argv[]) {
     if (PyErr_Occurred() != NULL) {
         ret = 1;
         PyErr_Print(); /* This exits with the right code if SystemExit. */
-        if (Py_FlushLine())
-			PyErr_Clear();
+        PyObject *f = PySys_GetObject("stdout");
+        if (PyFile_WriteString("\n", f))  /* python2 used Py_FlushLine, but this no longer exists */
+          PyErr_Clear();
     }
 
     /* close everything

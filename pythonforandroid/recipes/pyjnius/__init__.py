@@ -1,6 +1,6 @@
 
 from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, info
-from pythonforandroid.patching import will_build
+from pythonforandroid.patching import will_build, check_any
 import sh
 from os.path import join
 
@@ -12,7 +12,7 @@ class PyjniusRecipe(CythonRecipe):
     depends = [('python2', 'python3crystax'), ('sdl2', 'sdl', 'sdl2python3crystax'), 'six']
     site_packages_name = 'jnius'
 
-    patches = [('sdl2_jnienv_getter.patch', will_build('sdl2python3crystax')),
+    patches = [('sdl2_jnienv_getter.patch', check_any(will_build('sdl2python3crystax'), will_build('sdl2'))),
                'getenv.patch']
 
     def postbuild_arch(self, arch):
