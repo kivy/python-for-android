@@ -138,7 +138,9 @@ def shprint(command, *args, **kwargs):
     columns = get_console_width()
     command_path = str(command).split('/')
     command_string = command_path[-1]
-    string = ' '.join(['running', command_string] + list(args))
+    string = ' '.join(['{}->{} running'.format(Out_Fore.LIGHTBLACK_EX,
+                                               Out_Style.RESET_ALL),
+                       command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
     if logger.level > logging.DEBUG:
