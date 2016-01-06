@@ -32,6 +32,7 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.mkdir, 'private')
             if not exists('crystax_python') and self.ctx.ndk_is_crystax:
                 shprint(sh.mkdir, 'crystax_python')
+                shprint(sh.mkdir, 'crystax_python/crystax_python')
             if not exists('assets'):
                 shprint(sh.mkdir, 'assets')
             
@@ -89,10 +90,19 @@ class SDL2Bootstrap(Bootstrap):
                 python_dir = join(ndk_dir, 'sources', 'python', '3.5',
                                   'libs', arch.arch)
                 
-                shprint(sh.cp, '-r', join(python_dir, 'stdlib.zip'), 'crystax_python/')
-                shprint(sh.cp, '-r', join(python_dir, 'modules'), 'crystax_python/')
-                shprint(sh.cp, '-r', self.ctx.get_python_install_dir(), 'crystax_python/site-packages')
-                        
+                shprint(sh.cp, '-r', join(python_dir, 'stdlib.zip'), 'crystax_python/crystax_python')
+                shprint(sh.cp, '-r', join(python_dir, 'modules'), 'crystax_python/crystax_python')
+                shprint(sh.cp, '-r', self.ctx.get_python_install_dir(), 'crystax_python/crystax_python/site-packages')
+
+                info('Renaming .so files to reflect cross-compile')
+                site_packages_dir = 'crystax_python/crystax_python/site-packages'
+                filens = shprint(sh.find, site_packages_dir, '-iname', '*.so').stdout.split('\n')[:-1]
+                for filen in filens:
+                    parts = filen.split('.')
+                    if len(parts) <= 2:
+                        continue
+                    shprint(sh.mv, filen, filen.split('.')[0] + '.so')
+
 
         self.strip_libraries(arch)
         super(SDL2Bootstrap, self).run_distribute()

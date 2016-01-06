@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <jni.h>
 
 #include "SDL.h"
@@ -53,18 +54,27 @@ PyMODINIT_FUNC initandroidembed(void) {
     /* (void) Py_InitModule("androidembed", AndroidEmbedMethods); */
 }
 
-int dir_exists(char* filename)
-  /* Function from http://stackoverflow.com/questions/12510874/how-can-i-check-if-a-directory-exists-on-linux-in-c# */
-{
-  if (0 != access("filename", F_OK)) {
-    if (ENOENT == errno) {
-      return 0;
-    }
-    if (ENOTDIR == errno) {
-      return 0;
-    }
+/* int dir_exists(char* filename) */
+/*   /\* Function from http://stackoverflow.com/questions/12510874/how-can-i-check-if-a-directory-exists-on-linux-in-c# *\/ */
+/* { */
+/*   if (0 != access(filename, F_OK)) { */
+/*     if (ENOENT == errno) { */
+/*       return 0; */
+/*     } */
+/*     if (ENOTDIR == errno) { */
+/*       return 0; */
+/*     } */
+/*     return 1; */
+/*   } */
+/* } */
+
+int dir_exists(char* filename) {
+  DIR *dip;
+  if (dip = opendir(filename)) {
+    closedir(filename);
     return 1;
   }
+  return 0;
 }
 
 int file_exists(const char * filename)
@@ -108,7 +118,21 @@ int main(int argc, char *argv[]) {
      */
     PyImport_AppendInittab("androidembed", initandroidembed);
     
+    LOG("Preparing to initialize python");
+    
+    if (dir_exists("../libs")) {
+      LOG("libs exists");
+    } else {
+      LOG("libs does not exist");
+    }
+
+    if (dir_exists("crystax_python")) {
+      LOG("exists without slash");
+    }
+    
     if (dir_exists("crystax_python/")) {
+    /* if (1) { */
+      LOG("crystax_python exists");
         char paths[256];
         snprintf(paths, 256, "%s/crystax_python/stdlib.zip:%s/crystax_python/modules", env_argument, env_argument);
         /* snprintf(paths, 256, "%s/stdlib.zip:%s/modules", env_argument, env_argument); */
@@ -118,7 +142,7 @@ int main(int argc, char *argv[]) {
         wchar_t* wchar_paths = Py_DecodeLocale(paths, NULL);
         Py_SetPath(wchar_paths);
         LOG("set wchar paths...");
-    }
+    } else { LOG("crystax_python does not exist");}
 
     Py_Initialize();
     
@@ -152,18 +176,19 @@ int main(int argc, char *argv[]) {
             "    private + '/lib/python2.7/lib-dynload/', \n" \
             "    private + '/lib/python2.7/site-packages/', \n" \
             "    argument ]\n");
-          } else {
+    } else {
       
       char add_site_packages_dir[256];
       snprintf(add_site_packages_dir, 256, "sys.path.append('%s/crystax_python/site-packages')", 
                env_argument);
       
       PyRun_SimpleString(
-          "import sys\n" \
-          "sys.argv = ['notaninterpreterreally']\n" \
+          "import sys\n"             \
+          "sys.argv = ['notaninterpreterreally']\n"  \
           "from os.path import realpath, join, dirname");
       PyRun_SimpleString(add_site_packages_dir);
-          /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
+      /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
+      PyRun_SimpleString("sys.path = ['.'] + sys.path");
     }
     
     PyRun_SimpleString(
