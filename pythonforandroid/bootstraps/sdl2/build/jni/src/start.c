@@ -10,6 +10,10 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <jni.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include <errno.h>
 
 #include "SDL.h"
 
@@ -68,14 +72,25 @@ PyMODINIT_FUNC initandroidembed(void) {
 /*   } */
 /* } */
 
-int dir_exists(char* filename) {
-  DIR *dip;
-  if (dip = opendir(filename)) {
-    closedir(filename);
-    return 1;
+/* int dir_exists(char* filename) { */
+/*   DIR *dip; */
+/*   if (dip = opendir(filename)) { */
+/*     closedir(filename); */
+/*     return 1; */
+/*   } */
+/*   return 0; */
+/* } */
+
+ 
+int dir_exists(char *filename) {
+  struct stat st;
+  if (stat(filename, &st) == 0) {
+    if (S_ISDIR(st.st_mode))
+      return 1;
   }
   return 0;
 }
+
 
 int file_exists(const char * filename)
 {
@@ -112,6 +127,12 @@ int main(int argc, char *argv[]) {
     /* LOG(argv[0]); */
     /* LOG("AND: That was argv 0"); */
 	//setenv("PYTHONVERBOSE", "2", 1);
+    
+    LOG("Changing directory to the one provided by ANDROID_ARGUMENT");
+    LOG(env_argument);
+    chdir(env_argument);
+
+
     Py_SetProgramName(L"android_python");
 
     /* our logging module for android
@@ -120,14 +141,31 @@ int main(int argc, char *argv[]) {
     
     LOG("Preparing to initialize python");
     
+    char errstr[256];
+    snprintf(errstr, 256, "errno before is %d", 
+             errno);
+    LOG(errstr);
+
+    if (dir_exists("crystax_python")) {
+      LOG("exists without slash");
+    }
+
+    snprintf(errstr, 256, "errno after is %d", 
+             errno);
+    LOG(errstr);
+
     if (dir_exists("../libs")) {
       LOG("libs exists");
     } else {
       LOG("libs does not exist");
     }
+    
+    if (file_exists("main.py")) {
+      LOG("The main.py does exist");
+    }
 
-    if (dir_exists("crystax_python")) {
-      LOG("exists without slash");
+    if (file_exists("main.py") == 1) {
+      LOG("The main.py does exist2");
     }
     
     if (dir_exists("crystax_python/")) {
@@ -240,7 +278,6 @@ int main(int argc, char *argv[]) {
     /* run it !
      */
     LOG("Run user program, change dir and execute main.py");
-    chdir(env_argument);
 
 	/* search the initial main.py
 	 */
