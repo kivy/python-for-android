@@ -15,6 +15,11 @@ from pythonforandroid.logger import (logger, Err_Fore)
 
 IS_PY3 = sys.version_info[0] >= 3
 
+if IS_PY3:
+    unistr = str
+else:
+    unistr = unicode
+
 
 class ChromeDownloader(FancyURLopener):
     version = (
