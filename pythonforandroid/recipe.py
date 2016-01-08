@@ -80,6 +80,12 @@ class Recipe(object):
     string patch file and a callable, which will receive the kwargs `arch` and
     `recipe`, which should return True if the patch should be applied.'''
 
+    python_depends = []
+    '''A list of pure-Python packages that this package requires. These
+    packages will NOT be available at build time, but will be added to the
+    list of pure-Python packages to install via pip. If you need these packages
+    at build time, you must create a recipe.'''
+
     archs = ['armeabi']  # Not currently implemented properly
 
     @property
