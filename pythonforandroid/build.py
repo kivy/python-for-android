@@ -1,6 +1,8 @@
+from __future__ import print_function
+
 from os.path import (join, realpath, dirname, expanduser, exists,
-                     split)
-from os import environ
+                     split, isdir)
+from os import environ, listdir
 import os
 import glob
 import sys
@@ -421,6 +423,7 @@ class Context(object):
         self.toolchain_version = None
 
         self.local_recipes = None
+        self.copy_libs = False
 
         # root of the toolchain
         self.setup_dirs()
@@ -484,6 +487,9 @@ class Context(object):
         '''The libs dir for a given arch.'''
         ensure_dir(join(self.libs_dir, arch))
         return join(self.libs_dir, arch)
+
+    def has_lib(self, arch, lib):
+        return exists(join(self.get_libs_dir(arch), lib))
 
     def has_package(self, name, arch=None):
         try:
@@ -617,6 +623,7 @@ def biglink(ctx, arch):
         if not len(files):
             info('{} recipe has no biglinkable files, skipping'
                  .format(recipe.name))
+            continue
         info('{} recipe has object files, copying'.format(recipe.name))
         files.append(obj_dir)
         shprint(sh.cp, '-r', *files)
@@ -631,7 +638,8 @@ def biglink(ctx, arch):
     info('Biglinking')
     info('target {}'.format(join(ctx.get_libs_dir(arch.arch),
                                  'libpymodules.so')))
-    biglink_function(
+    do_biglink = copylibs_function if ctx.copy_libs else biglink_function
+    do_biglink(
         join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
         obj_dir.split(' '),
         extra_link_dirs=[join(ctx.bootstrap.build_dir,
@@ -684,3 +692,137 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
     cc = cc.bake(*cc_name.split()[1:])
 
     shprint(cc, '-shared', '-O3', '-o', soname, *unique_args, _env=env)
+
+
+def copylibs_function(soname, objs_paths, extra_link_dirs=[], env=None):
+    print('objs_paths are', objs_paths)
+
+    re_needso = re.compile(r'^.*\(NEEDED\)\s+Shared library: \[lib(.*)\.so\]\s*$')
+    blacklist_libs = (
+        'c',
+        'stdc++',
+        'dl',
+        'python2.7',
+        'sdl',
+        'sdl_image',
+        'sdl_ttf',
+        'z',
+        'm',
+        'GLESv2',
+        'jpeg',
+        'png',
+        'log',
+
+        # bootstrap takes care of sdl2 libs (if applicable)
+        'SDL2',
+        'SDL2_ttf',
+        'SDL2_image',
+        'SDL2_mixer',
+    )
+    found_libs = []
+    sofiles = []
+    if env and 'READELF' in env:
+        readelf = env['READELF']
+    elif 'READELF' in os.environ:
+        readelf = os.environ['READELF']
+    else:
+        readelf = sh.which('readelf').strip()
+    readelf = sh.Command(readelf).bake('-d')
+
+    dest = dirname(soname)
+
+    for directory in objs_paths:
+        for fn in os.listdir(directory):
+            fn = join(directory, fn)
+
+            if not fn.endswith('.libs'):
+                continue
+
+            dirfn = fn[:-1] + 'dirs'
+            if not exists(dirfn):
+                continue
+
+            with open(fn) as f:
+                libs = f.read().strip().split(' ')
+                needed_libs = [lib for lib in libs
+                               if lib and
+                               lib not in blacklist_libs and
+                               lib not in found_libs]
+
+            while needed_libs:
+                print('need libs:\n\t' + '\n\t'.join(needed_libs))
+
+                start_needed_libs = needed_libs[:]
+                found_sofiles = []
+
+                with open(dirfn) as f:
+                    libdirs = f.read().split()
+                    for libdir in libdirs:
+                        if not needed_libs:
+                            break
+
+                        if libdir == dest:
+                            # don't need to copy from dest to dest!
+                            continue
+
+                        libdir = libdir.strip()
+                        print('scanning', libdir)
+                        for lib in needed_libs[:]:
+                            if lib in found_libs:
+                                continue
+
+                            if lib.endswith('.a'):
+                                needed_libs.remove(lib)
+                                found_libs.append(lib)
+                                continue
+
+                            lib_a = 'lib' + lib + '.a'
+                            libpath_a = join(libdir, lib_a)
+                            lib_so = 'lib' + lib + '.so'
+                            libpath_so = join(libdir, lib_so)
+                            plain_so = lib + '.so'
+                            plainpath_so = join(libdir, plain_so)
+
+                            sopath = None
+                            if exists(libpath_so):
+                                sopath = libpath_so
+                            elif exists(plainpath_so):
+                                sopath = plainpath_so
+
+                            if sopath:
+                                print('found', lib, 'in', libdir)
+                                found_sofiles.append(sopath)
+                                needed_libs.remove(lib)
+                                found_libs.append(lib)
+                                continue
+
+                            if exists(libpath_a):
+                                print('found', lib, '(static) in', libdir)
+                                needed_libs.remove(lib)
+                                found_libs.append(lib)
+                                continue
+
+                for sofile in found_sofiles:
+                    print('scanning dependencies for', sofile)
+                    out = readelf(sofile)
+                    for line in out.splitlines():
+                        needso = re_needso.match(line)
+                        if needso:
+                            lib = needso.group(1)
+                            if (lib not in needed_libs
+                                and lib not in found_libs
+                                and lib not in blacklist_libs):
+                                needed_libs.append(needso.group(1))
+
+                sofiles += found_sofiles
+
+                if needed_libs == start_needed_libs:
+                    raise RuntimeError(
+                            'Failed to locate needed libraries!\n\t' +
+                            '\n\t'.join(needed_libs))
+
+    print('Copying libraries')
+    cp = sh.cp.bake('-t', dest)
+    for lib in sofiles:
+        shprint(cp, lib)
+

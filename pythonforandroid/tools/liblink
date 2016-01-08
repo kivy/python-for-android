@@ -10,6 +10,7 @@ libs = [ ]
 objects = [ ]
 output = None
 
+copylibs = environ.get('COPYLIBS', '0') == '1'
 
 i = 1
 while i < len(sys.argv):
@@ -62,19 +63,35 @@ while i < len(sys.argv):
     objects.append(opt)
 
 
-f = open(output, "w")
-f.close()
-
 print('liblink path is', str(environ.get('LIBLINK_PATH')))
-output = join(environ.get('LIBLINK_PATH'), basename(output))
+abs_output = join(environ.get('LIBLINK_PATH'), basename(output))
 
-f = open(output + ".libs", "w")
-f.write(" ".join(libs))
-f.close()
+if not copylibs:
+    f = open(output, "w")
+    f.close()
+    
+    output = abs_output
+    
+    f = open(output + ".libs", "w")
+    f.write(" ".join(libs))
+    f.close()
+    
+    sys.exit(subprocess.call([
+        environ.get('LD'), '-r',
+        '-o', output + '.o'
+        #, '-arch', environ.get('ARCH')
+        ] + objects))
+else:
+    with open(abs_output + '.libs', 'w') as f_libs:
+        with open(abs_output + '.libdirs', 'w') as f_libdirs:
+            for l in libs:
+                if l[1] == 'l':
+                    f_libs.write(l[2:])
+                    f_libs.write(' ')
+                else:
+                    f_libdirs.write(l[2:])
+                    f_libdirs.write(' ')
 
-sys.exit(subprocess.call([
-    environ.get('LD'), '-r',
-    '-o', output + '.o'
-    #, '-arch', environ.get('ARCH')
-    ] + objects))
-
+    libargs = ' '.join(["'%s'" % arg for arg in sys.argv[1:]])
+    cmd = '%s -shared %s %s' % (environ['CC'], environ['LDFLAGS'], libargs)
+    sys.exit(subprocess.call(cmd, shell=True))
