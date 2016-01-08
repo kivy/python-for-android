@@ -485,7 +485,8 @@ class Context(object):
                 exists(join(site_packages_dir, name + '.py')) or
                 exists(join(site_packages_dir, name + '.pyc')) or
                 exists(join(site_packages_dir, name + '.pyo')) or
-                exists(join(site_packages_dir, name + '.so')))
+                exists(join(site_packages_dir, name + '.so')) or
+                glob.glob(join(site_packages_dir, name + '-*.egg')))
 
     def not_has_package(self, name, arch=None):
         return not self.has_package(name, arch)
