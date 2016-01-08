@@ -63,3 +63,9 @@ def will_build(recipe_name):
         return recipe_name in recipe.ctx.recipe_build_order
     return will
 
+
+def is_ndk(ndk):
+    def is_x(recipe, **kwargs):
+        return recipe.ctx.ndk == ndk
+    return is_x
+

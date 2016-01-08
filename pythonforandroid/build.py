@@ -274,12 +274,17 @@ class Context(object):
             if ndk_dir is not None:
                 info('Got NDK version from $ANDROIDNDKVER')
 
+        self.ndk = 'google'
+
         try:
             with open(join(ndk_dir, 'RELEASE.TXT')) as fileh:
-                reported_ndk_ver = fileh.read().split(' ')[0]
+                reported_ndk_ver = fileh.read().split(' ')[0].strip()
         except IOError:
             pass
         else:
+            if reported_ndk_ver.startswith('crystax-ndk-'):
+                reported_ndk_ver = reported_ndk_ver[12:]
+                self.ndk = 'crystax'
             if ndk_ver is None:
                 ndk_ver = reported_ndk_ver
                 info(('Got Android NDK version from the NDK dir: '
@@ -297,6 +302,8 @@ class Context(object):
         if ndk_ver is None:
             warning('Android NDK version could not be found, exiting.')
         self.ndk_ver = ndk_ver
+
+        info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
 
         virtualenv = None
         if virtualenv is None:
@@ -407,6 +414,7 @@ class Context(object):
         self._ndk_dir = None
         self._android_api = None
         self._ndk_ver = None
+        self.ndk = None
 
         self.toolchain_prefix = None
         self.toolchain_version = None
