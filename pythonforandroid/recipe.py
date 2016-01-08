@@ -591,6 +591,7 @@ class IncludedFilesBehaviour(object):
         if self.src_filename is None:
             print('IncludedFilesBehaviour failed: no src_filename specified')
             exit(1)
+        shprint(sh.rm, '-rf', self.get_build_dir(arch))
         shprint(sh.cp, '-a', join(self.get_recipe_dir(), self.src_filename),
                 self.get_build_dir(arch))
 
