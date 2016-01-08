@@ -163,6 +163,7 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
                 warning(
                     'Due to this conflict the build cannot continue, exiting.')
                 exit(1)
+        python_modules += recipe.python_depends
         recipe_loaded.append(name)
     graph.remove_remaining_conflicts(ctx)
     if len(graph.graphs) > 1:
