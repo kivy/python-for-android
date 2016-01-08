@@ -2,11 +2,13 @@
 # Broadcast receiver bridge
 
 from jnius import autoclass, PythonJavaClass, java_method
+from android.config import JAVA_NAMESPACE, JNI_NAMESPACE
+
 
 class BroadcastReceiver(object):
 
     class Callback(PythonJavaClass):
-        __javainterfaces__ = ['org/renpy/android/GenericBroadcastReceiverCallback']
+        __javainterfaces__ = [JNI_NAMESPACE + '/GenericBroadcastReceiverCallback']
         __javacontext__ = 'app'
 
         def __init__(self, callback, *args, **kwargs):
@@ -39,7 +41,7 @@ class BroadcastReceiver(object):
         resolved_categories = [_expand_partial_name(x) for x in categories or []]
 
         # resolve android API
-        GenericBroadcastReceiver = autoclass('org.renpy.android.GenericBroadcastReceiver')
+        GenericBroadcastReceiver = autoclass(JAVA_NAMESPACE + '.GenericBroadcastReceiver')
         IntentFilter = autoclass('android.content.IntentFilter')
         HandlerThread = autoclass('android.os.HandlerThread')
 
@@ -70,8 +72,8 @@ class BroadcastReceiver(object):
     def context(self):
         from os import environ
         if 'PYTHON_SERVICE_ARGUMENT' in environ:
-            PythonService = autoclass('org.renpy.android.PythonService')
+            PythonService = autoclass(JAVA_NAMESPACE + '.PythonService')
             return PythonService.mService
-        PythonActivity = autoclass('org.renpy.android.PythonActivity')
+        PythonActivity = autoclass(JAVA_NAMESPACE + '.PythonActivity')
         return PythonActivity.mActivity
 
