@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-JNIEnv *SDL_ANDROID_GetJNIEnv(void);
+#include "config.h"
 
 #define aassert(x) { if (!x) { __android_log_print(ANDROID_LOG_ERROR, "android_jni", "Assertion failed. %s:%d", __FILE__, __LINE__); abort(); }}
 #define PUSH_FRAME { (*env)->PushLocalFrame(env, 16); }
@@ -18,7 +18,7 @@ void android_billing_service_start() {
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "billingServiceStart", "()V");
         aassert(mid);
@@ -37,7 +37,7 @@ void android_billing_service_stop() {
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "billingServiceStop", "()V");
         aassert(mid);
@@ -56,7 +56,7 @@ void android_billing_buy(char *sku) {
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "billingBuy", "(Ljava/lang/String;)V");
         aassert(mid);
@@ -81,7 +81,7 @@ char *android_billing_get_purchased_items() {
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "billingGetPurchasedItems", "()Ljava/lang/String;");
         aassert(mid);
@@ -104,7 +104,7 @@ char *android_billing_get_pending_message() {
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "billingGetPendingMessage", "()Ljava/lang/String;");
         aassert(mid);
