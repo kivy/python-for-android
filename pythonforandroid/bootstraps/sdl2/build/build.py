@@ -292,6 +292,7 @@ def make_package(args):
 
 
 def parse_args(args=None):
+    global BLACKLIST_PATTERNS, WHITELIST_PATTERNS
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -336,6 +337,14 @@ tools directory of the Android SDK.
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
+    ap.add_argument('--blacklist', dest='blacklist',
+                    default=join(curdir, 'blacklist.txt'),
+                    help=('Use a blacklist file to match unwanted file in '
+                          'the final APK'))
+    ap.add_argument('--whitelist', dest='whitelist',
+                    default=join(curdir, 'whitelist.txt'),
+                    help=('Use a whitelist file to prevent blacklisting of '
+                          'file in the final APK'))
 
     if args is None:
         args = sys.argv[1:]
@@ -347,6 +356,18 @@ tools directory of the Android SDK.
 
     if args.meta_data is None:
         args.meta_data = []
+
+    if args.blacklist:
+        with open(args.blacklist) as fd:
+            patterns = [x.strip() for x in fd.read().splitlines()
+                        if x.strip() and not x.strip().startswith('#')]
+        BLACKLIST_PATTERNS += patterns
+
+    if args.whitelist:
+        with open(args.whitelist) as fd:
+            patterns = [x.strip() for x in fd.read().splitlines()
+                        if x.strip() and not x.strip().startswith('#')]
+        WHITELIST_PATTERNS += patterns
 
     make_package(args)
 
