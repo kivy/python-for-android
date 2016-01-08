@@ -580,7 +580,7 @@ def run_pymodules_install(ctx, modules):
         # It works but should be replaced with something better
         shprint(sh.bash, '-c', (
             "source venv/bin/activate && env CC=/bin/false CXX=/bin/false "
-            "PYTHONPATH={0} pip install --target '{0}' -r requirements.txt"
+            "PYTHONPATH={0} pip install --target '{0}' --no-deps -r requirements.txt"
         ).format(ctx.get_site_packages_dir()))
 
 
