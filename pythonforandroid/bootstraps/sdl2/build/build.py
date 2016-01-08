@@ -264,19 +264,19 @@ def make_package(args):
         args.numeric_version = str(version_code)
 
     render(
-        'AndroidManifest.xml.tmpl',
+        'AndroidManifest.tmpl.xml',
         'AndroidManifest.xml',
         args=args,
         )
 
     render(
-        'build.xml.tmpl',
+        'build.tmpl.xml',
         'build.xml',
         args=args,
         versioned_name=versioned_name)
 
     render(
-        'strings.xml.tmpl',
+        'strings.tmpl.xml',
         'res/values/strings.xml',
         args=args)
 
