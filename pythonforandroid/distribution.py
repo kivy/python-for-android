@@ -40,6 +40,12 @@ class Distribution(object):
     def __repr__(self):
         return str(self)
 
+    @property
+    def recipe_names(self):
+        '''Return the list of recipes without any version informations
+        '''
+        return [x.split("==", 1)[0] for x in self.recipes]
+
     @classmethod
     def get_distribution(cls, ctx, name=None, recipes=[], allow_download=True,
                          force_build=False,
@@ -84,6 +90,7 @@ class Distribution(object):
         needs_build = True  # whether the dist needs building, will be returned
 
         possible_dists = existing_dists
+        recipe_names = [recipe.split("==", 1)[0] for recipe in recipes]
 
         # 0) Check if a dist with that name already exists
         if name is not None and name:
@@ -92,8 +99,8 @@ class Distribution(object):
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
         for dist in possible_dists:
-            for recipe in recipes:
-                if recipe not in dist.recipes:
+            for recipe_name in recipe_names:
+                if recipe_name not in dist.recipe_names:
                     break
             else:
                 _possible_dists.append(dist)
@@ -110,8 +117,8 @@ class Distribution(object):
         for dist in possible_dists:
             if force_build:
                 continue
-            if (set(dist.recipes) == set(recipes) or
-                (set(recipes).issubset(set(dist.recipes)) and
+            if (set(dist.recipe_names) == set(recipe_names) or
+                (set(recipe_names).issubset(set(dist.recipe_names)) and
                  not require_perfect_match)):
                 info_notify('{} has compatible recipes, using this one'
                             .format(dist.name))

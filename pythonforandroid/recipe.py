@@ -557,10 +557,18 @@ class Recipe(object):
     @classmethod
     def get_recipe(cls, name, ctx):
         '''Returns the Recipe with the given name, if it exists.'''
+        version = None
+        if "==" in name:
+            name, version = name.split("==", 1)
+
         if not hasattr(cls, "recipes"):
             cls.recipes = {}
         if name in cls.recipes:
-            return cls.recipes[name]
+            # if a version exists, force it.
+            recipe = cls.recipes[name]
+            if version is not None:
+                recipe.version = version
+            return recipe
 
         recipe_file = None
         for recipes_dir in cls.recipe_dirs(ctx):
@@ -578,6 +586,8 @@ class Recipe(object):
         recipe = mod.recipe
         recipe.recipe_dir = dirname(recipe_file)
         recipe.ctx = ctx
+        if version is not None:
+            recipe.version = version
         cls.recipes[name] = recipe
         return recipe
 
