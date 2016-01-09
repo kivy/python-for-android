@@ -53,8 +53,27 @@ class Bootstrap(object):
     def jni_dir(self):
         return self.name + self.jni_subdir
 
+    def check_recipe_choices(self):
+        '''Checks what recipes are being built to see which of the alternative
+        and optional dependencies are being used,
+        and returns a list of these.'''
+        recipes = []
+        built_recipes = self.ctx.recipe_build_order
+        for recipe in self.recipe_depends:
+            if isinstance(recipe, (tuple, list)):
+                for alternative in recipe:
+                    if alternative in built_recipes:
+                        recipes.append(alternative)
+                        break
+        return sorted(recipes)
+
+    def get_build_dir_name(self):
+        choices = self.check_recipe_choices()
+        dir_name = '-'.join([self.name] + choices)
+        return dir_name
+
     def get_build_dir(self):
-        return join(self.ctx.build_dir, 'bootstrap_builds', self.name)
+        return join(self.ctx.build_dir, 'bootstrap_builds', self.get_build_dir_name())
 
     def get_dist_dir(self, name):
         return join(self.ctx.dist_dir, name)

@@ -518,7 +518,6 @@ def build_recipes(build_order, python_modules, ctx):
         info_notify(
             ('The requirements ({}) were not found as recipes, they will be '
              'installed with pip.').format(', '.join(python_modules)))
-    ctx.recipe_build_order = build_order
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
