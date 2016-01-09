@@ -7,7 +7,7 @@ import sh
 class SDL2Bootstrap(Bootstrap):
     name = 'sdl2'
 
-    recipe_depends = ['sdl2']
+    recipe_depends = ['sdl2', ('python2', 'python3crystax')]
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
