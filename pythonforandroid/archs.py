@@ -102,8 +102,8 @@ class Arch(object):
 
         env['ARCH'] = self.arch
 
-        if self.ctx.ndk_is_crystax:  # AND: should use the right python version from the python recipe
-            env['CRYSTAX_PYTHON_VERSION'] = '3.5'
+        if self.ctx.python_recipe.from_crystax:
+            env['CRYSTAX_PYTHON_VERSION'] = self.ctx.python_recipe.version
 
         return env
 
