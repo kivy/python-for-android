@@ -18,6 +18,8 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env = super(LibSDL2Recipe, self).get_recipe_env(arch)
         py2 = self.get_recipe('python2', arch.ctx)
         env['PYTHON2_NAME'] = py2.get_dir_name()
+        if 'python2' in self.ctx.recipe_build_order:
+            env['EXTRA_LDLIBS'] = ' -lpython2.7'
         return env
 
     def build_arch(self, arch):

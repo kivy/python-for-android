@@ -1,5 +1,6 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
+from pythonforandroid.recipe import TargetPythonRecipe
+from pythonforandroid.toolchain import shprint, current_directory, ArchARM
 from pythonforandroid.logger import info
 from pythonforandroid.util import ensure_dir
 from os.path import exists, join
@@ -7,13 +8,15 @@ from os import uname
 import glob
 import sh
 
-class Python3Recipe(Recipe):
+class Python3Recipe(TargetPythonRecipe):
     version = '3.5'
     url = ''
     name = 'python3crystax'
 
     depends = ['hostpython3crystax']  
     conflicts = ['python2', 'python3']
+
+    from_crystax = True
 
     def get_dir_name(self):
         name = super(Python3Recipe, self).get_dir_name()
@@ -31,6 +34,8 @@ class Python3Recipe(Recipe):
 
         dirn = self.ctx.get_python_install_dir()
         ensure_dir(dirn)
+
+        self.ctx.hostpython = 'python{}'.format(self.version)
         # ensure_dir(join(dirn, 'lib'))
         # ensure_dir(join(dirn, 'lib', 'python{}'.format(self.version),
         #                 'site-packages'))

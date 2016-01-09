@@ -25,7 +25,7 @@ class SDL2Bootstrap(Bootstrap):
         # AND: Hardcoding armeabi - naughty!
         arch = ArchARM(self.ctx)
 
-        with current_directory(self.dist_dir):
+        with current_directory(self.dist_dir)crystax_python/:
             info('Copying python distribution')
 
             if not exists('private'):

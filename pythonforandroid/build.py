@@ -446,6 +446,8 @@ class Context(object):
         self.env.pop("ARCHFLAGS", None)
         self.env.pop("CFLAGS", None)
 
+        self.python_recipe = None  # Set by TargetPythonRecipe
+
     def set_archs(self, arch_names):
         all_archs = self.archs
         new_archs = set()

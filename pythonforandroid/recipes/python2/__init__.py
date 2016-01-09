@@ -1,11 +1,12 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, info
+from pythonforandroid.recipe import TargetPythonRecipe, Recipe
+from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import is_linux, is_darwin, is_api_gt
 from os.path import exists, join, realpath
 import sh
 
 
-class Python2Recipe(Recipe):
+class Python2Recipe(TargetPythonRecipe):
     version = "2.7.2"
     url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'python2'
@@ -32,6 +33,8 @@ class Python2Recipe(Recipe):
                ('patches/fix-configure-darwin.patch', is_linux),
                ('patches/fix-distutils-darwin.patch', is_linux),
                ('patches/fix-ftime-removal.patch', is_api_gt(19))]
+
+    from_crystax = False
 
     def build_arch(self, arch):
 

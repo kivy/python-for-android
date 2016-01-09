@@ -44,19 +44,26 @@ static PyMethodDef AndroidEmbedMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef androidembed =
-  {
-    PyModuleDef_HEAD_INIT,
-    "androidembed",
-    "",
-    -1,
-    AndroidEmbedMethods
-  };
 
-PyMODINIT_FUNC initandroidembed(void) {
-  return PyModule_Create(&androidembed);
-    /* (void) Py_InitModule("androidembed", AndroidEmbedMethods); */
-}
+#if PY_MAJOR_VERSION >= 3
+    static struct PyModuleDef androidembed =
+      {
+        PyModuleDef_HEAD_INIT,
+        "androidembed",
+        "",
+        -1,
+        AndroidEmbedMethods
+      };
+
+    PyMODINIT_FUNC initandroidembed(void) {
+      return PyModule_Create(&androidembed);
+        /* (void) Py_InitModule("androidembed", AndroidEmbedMethods); */
+    }
+#else
+    PyMODINIT_FUNC initandroidembed(void) {
+      (void) Py_InitModule("androidembed", AndroidEmbedMethods);
+    }
+#endif
 
 /* int dir_exists(char* filename) */
 /*   /\* Function from http://stackoverflow.com/questions/12510874/how-can-i-check-if-a-directory-exists-on-linux-in-c# *\/ */
@@ -132,44 +139,17 @@ int main(int argc, char *argv[]) {
     LOG(env_argument);
     chdir(env_argument);
 
-
     Py_SetProgramName(L"android_python");
 
+#if PY_MAJOR_VERSION >= 3
     /* our logging module for android
      */
     PyImport_AppendInittab("androidembed", initandroidembed);
+#endif
     
     LOG("Preparing to initialize python");
     
-    char errstr[256];
-    snprintf(errstr, 256, "errno before is %d", 
-             errno);
-    LOG(errstr);
-
-    if (dir_exists("crystax_python")) {
-      LOG("exists without slash");
-    }
-
-    snprintf(errstr, 256, "errno after is %d", 
-             errno);
-    LOG(errstr);
-
-    if (dir_exists("../libs")) {
-      LOG("libs exists");
-    } else {
-      LOG("libs does not exist");
-    }
-    
-    if (file_exists("main.py")) {
-      LOG("The main.py does exist");
-    }
-
-    if (file_exists("main.py") == 1) {
-      LOG("The main.py does exist2");
-    }
-    
     if (dir_exists("crystax_python/")) {
-    /* if (1) { */
       LOG("crystax_python exists");
         char paths[256];
         snprintf(paths, 256, "%s/crystax_python/stdlib.zip:%s/crystax_python/modules", env_argument, env_argument);
@@ -177,8 +157,15 @@ int main(int argc, char *argv[]) {
         LOG("calculated paths to be...");
         LOG(paths);
         
+#if PY_MAJOR_VERSION >= 3
         wchar_t* wchar_paths = Py_DecodeLocale(paths, NULL);
         Py_SetPath(wchar_paths);
+#else
+        char* wchar_paths = paths;
+        LOG("Can't Py_SetPath in python2, so crystax python2 doesn't work yet");
+        exit(1);
+#endif
+     
         LOG("set wchar paths...");
     } else { LOG("crystax_python does not exist");}
 
@@ -196,8 +183,11 @@ int main(int argc, char *argv[]) {
     PyEval_InitThreads();
     
 
+#if PY_MAJOR_VERSION < 3
+    initandroidembed();
+#endif
+
     PyRun_SimpleString("import androidembed\nandroidembed.log('testing python print redirection')");
-    LOG("tried to run simple androidembed test");
     
     /* inject our bootstrap code to redirect python stdin/stdout
      * replace sys.path with our path
@@ -215,7 +205,6 @@ int main(int argc, char *argv[]) {
             "    private + '/lib/python2.7/site-packages/', \n" \
             "    argument ]\n");
     } else {
-      
       char add_site_packages_dir[256];
       snprintf(add_site_packages_dir, 256, "sys.path.append('%s/crystax_python/site-packages')", 
                env_argument);
@@ -275,6 +264,7 @@ int main(int argc, char *argv[]) {
     /*     "print 'Android kivy bootstrap done. __name__ is', __name__"); */
 
     LOG("AND: Ran string");
+
     /* run it !
      */
     LOG("Run user program, change dir and execute main.py");

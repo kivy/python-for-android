@@ -679,9 +679,13 @@ class PythonRecipe(Recipe):
     @property
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
-            return join(
-                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
-                'hostpython')
+            if 'hostpython2' in self.ctx.build_order:
+                return join(
+                    Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
+                    'hostpython')
+            else:
+                python_recipe = self.ctx.python_recipe
+                return 'python{}'.format(python_recipe.version)
         return self.ctx.hostpython
 
     def should_build(self, arch):
@@ -715,7 +719,7 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             # hostpython = sh.Command(self.ctx.hostpython)
             hostpython = sh.Command(self.hostpython_location)
-            hostpython = sh.Command('python3.5')
+            # hostpython = sh.Command('python3.5')
 
 
             if self.ctx.ndk_is_crystax:
@@ -827,8 +831,8 @@ class CythonRecipe(PythonRecipe):
                 env['PYTHONPATH'] = ':'.join(site_packages_dirs)
 
         with current_directory(self.get_build_dir(arch.arch)):
-            # hostpython = sh.Command(self.ctx.hostpython)
-            hostpython = sh.Command('python3.5')
+            hostpython = sh.Command(self.ctx.hostpython)
+            # hostpython = sh.Command('python3.5')
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
             print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
@@ -892,7 +896,7 @@ class CythonRecipe(PythonRecipe):
         if self.ctx.ndk_is_crystax:
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
-            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink-jb')
+            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
@@ -908,3 +912,25 @@ class CythonRecipe(PythonRecipe):
             env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/include/python ' + env['CFLAGS']
         
         return env
+
+
+class TargetPythonRecipe(Recipe):
+    '''Class for target python recipes. Sets ctx.python_recipe to point to
+    itself, so as to know later what kind of Python was built or used.'''
+
+    from_crystax = False
+    '''True if the python is used from CrystaX, False otherwise (i.e. if
+    it is built by p4a).'''
+
+    def __init__(self, *args, **kwargs):
+        self._ctx = None
+        super(TargetPythonRecipe, self).__init__(*args, **kwargs)
+
+    @property
+    def ctx(self):
+        return self._ctx
+    
+    @ctx.setter
+    def ctx(self, ctx):
+        self._ctx = ctx
+        ctx.python_recipe = self
