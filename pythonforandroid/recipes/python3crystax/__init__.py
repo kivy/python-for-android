@@ -23,12 +23,6 @@ class Python3Recipe(TargetPythonRecipe):
         name += '-version{}'.format(self.version)
         return name
 
-    def prebuild_arch(self, arch):
-        if not self.ctx.ndk_is_crystax:
-            error('The python3crystax recipe can only be built when '
-                  'using the CrystaX NDK. Exiting.')
-            exit(1)
-
     def build_arch(self, arch):
         info('Extracting CrystaX python3 from NDK package')
 

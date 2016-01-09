@@ -898,13 +898,15 @@ class CythonRecipe(PythonRecipe):
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
             ' -L{} '.format(self.ctx.libs_dir))
-        if self.ctx.ndk_is_crystax:
-            env['LDFLAGS'] = env['LDFLAGS'] + ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
-        if self.ctx.ndk_is_crystax:
+        if self.ctx.python_recipe.from_crystax:
+            env['LDFLAGS'] = (env['LDFLAGS'] +
+                              ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
+            # ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
+        if self.ctx.python_recipe.from_crystax:
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
             env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
-        shprint(sh.whereis, env['LDSHARED'], _env=env)
+        # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
@@ -915,8 +917,8 @@ class CythonRecipe(PythonRecipe):
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
 
-        if self.ctx.ndk_is_crystax:
-            env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/include/python ' + env['CFLAGS']
+        if self.ctx.python_recipe.from_crystax:
+            env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/{}/include/python '.format(self.ctx.python_recipe.version) + env['CFLAGS']
         
         return env
 
@@ -933,11 +935,19 @@ class TargetPythonRecipe(Recipe):
         self._ctx = None
         super(TargetPythonRecipe, self).__init__(*args, **kwargs)
 
-    @property
-    def ctx(self):
-        return self._ctx
+    def prebuild_arch(self, arch):
+        super(TargetPythonRecipe, self).prebuild_arch(arch)
+        if self.from_crystax and not self.ctx.ndk_is_crystax:
+            error('The {} recipe can only be built when '
+                  'using the CrystaX NDK. Exiting.'.format(self.name))
+            exit(1)
+        self.ctx.python_recipe = self
+
+    # @property
+    # def ctx(self):
+    #     return self._ctx
     
-    @ctx.setter
-    def ctx(self, ctx):
-        self._ctx = ctx
-        ctx.python_recipe = self
+    # @ctx.setter
+    # def ctx(self, ctx):
+    #     self._ctx = ctx
+    #     ctx.python_recipe = self
