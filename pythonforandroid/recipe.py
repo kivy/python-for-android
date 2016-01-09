@@ -809,6 +809,13 @@ class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
 
+    def __init__(self, *args, **kwargs):
+        super(CythonRecipe, self).__init__(*args, **kwargs)
+        depends = self.depends
+        depends.append(('python2', 'python3crystax'))
+        depends = list(set(depends))
+        self.depends = depends
+
     def build_arch(self, arch):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
