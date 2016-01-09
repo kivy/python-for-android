@@ -171,9 +171,9 @@ int main(int argc, char *argv[]) {
 
     Py_Initialize();
     
-    if (dir_exists("private/")) {
-        PySys_SetArgv(argc, argv);
-      }
+#if PY_MAJOR_VERSION < 3
+    PySys_SetArgv(argc, argv);
+#endif
     
     LOG("Initialized python");
 
@@ -193,8 +193,9 @@ int main(int argc, char *argv[]) {
      * replace sys.path with our path
      */
     PyRun_SimpleString("import sys, posix\n");
-    if (dir_exists("private/")) {
+    if (dir_exists("lib")) {
         /* If we built our own python, set up the paths correctly */
+      LOG("Setting up python from ANDROID_PRIVATE");
         PyRun_SimpleString(
             "private = posix.environ['ANDROID_PRIVATE']\n" \
             "argument = posix.environ['ANDROID_ARGUMENT']\n" \
@@ -204,7 +205,9 @@ int main(int argc, char *argv[]) {
             "    private + '/lib/python2.7/lib-dynload/', \n" \
             "    private + '/lib/python2.7/site-packages/', \n" \
             "    argument ]\n");
-    } else {
+    } 
+
+    if (dir_exists("crystax_python")) {
       char add_site_packages_dir[256];
       snprintf(add_site_packages_dir, 256, "sys.path.append('%s/crystax_python/site-packages')", 
                env_argument);
