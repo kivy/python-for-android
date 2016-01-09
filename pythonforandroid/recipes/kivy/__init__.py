@@ -11,13 +11,13 @@ class KivyRecipe(CythonRecipe):
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
-    depends = [('sdl2', 'pygame', 'sdl2python3crystax'), 'pyjnius']
+    depends = [('sdl2', 'pygame'), 'pyjnius']
 
     # patches = ['setargv.patch']
 
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)
-        if ('sdl2' in self.ctx.recipe_build_order or 'sdl2python3crystax' in self.ctx.recipe_build_order):
+        if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
             env['KIVY_SDL2_PATH'] = ':'.join([
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),

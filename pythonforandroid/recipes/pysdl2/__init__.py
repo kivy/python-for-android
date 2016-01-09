@@ -8,7 +8,7 @@ class PySDL2Recipe(PythonRecipe):
     version = '0.9.3'
     url = 'https://bitbucket.org/marcusva/py-sdl2/downloads/PySDL2-{version}.tar.gz'
 
-    depends = [('sdl2', 'sdl2python3crystax')]
+    depends = ['sdl2']
 
 
 recipe = PySDL2Recipe()

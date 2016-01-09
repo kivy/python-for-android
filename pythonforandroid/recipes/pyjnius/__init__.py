@@ -9,10 +9,10 @@ class PyjniusRecipe(CythonRecipe):
     version = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
-    depends = [('python2', 'python3crystax'), ('sdl2', 'sdl', 'sdl2python3crystax'), 'six']
+    depends = [('python2', 'python3crystax'), ('sdl2', 'sdl'), 'six']
     site_packages_name = 'jnius'
 
-    patches = [('sdl2_jnienv_getter.patch', check_any(will_build('sdl2python3crystax'), will_build('sdl2'))),
+    patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')),
                'getenv.patch']
 
     def postbuild_arch(self, arch):
