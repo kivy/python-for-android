@@ -27,6 +27,7 @@ Contents
    :maxdepth: 2
 
    quickstart
+   buildoptions
    installation
    commands
    recipes
