@@ -6,10 +6,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 import android.view.ViewGroup;
 import android.view.SurfaceView;
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 import android.os.Bundle;
@@ -30,7 +35,7 @@ public class PythonActivity extends SDLActivity {
     private static final String TAG = "PythonActivity";
 
     public static PythonActivity mActivity = null;
-    
+
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
@@ -46,9 +51,9 @@ public class PythonActivity extends SDLActivity {
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
         Log.v(TAG, "Did super onCreate");
-        
+
         this.mActivity = this;
-        
+
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
@@ -57,7 +62,7 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         SDLActivity.nativeSetEnv("", mFilesDirectory + ":" + mFilesDirectory + "/lib");
 
-        
+
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
 
         try {
@@ -79,7 +84,7 @@ public class PythonActivity extends SDLActivity {
         } catch (PackageManager.NameNotFoundException e) {
         }
     }
-    
+
     // This is just overrides the normal SDLActivity, which just loads
     // SDL2 and main
     protected String[] getLibraries() {
@@ -92,16 +97,16 @@ public class PythonActivity extends SDLActivity {
             "main"
         };
     }
-    
+
     public void loadLibraries() {
         // AND: This should probably be replaced by a call to super
         for (String lib : getLibraries()) {
             System.loadLibrary(lib);
         }
-        
+
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
-        
+
         try {
             // System.loadLibrary("ctypes");
             System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_ctypes.so");
@@ -111,7 +116,7 @@ public class PythonActivity extends SDLActivity {
 
         Log.v(TAG, "Loaded everything!");
     }
-    
+
     public void recursiveDelete(File f) {
         if (f.isDirectory()) {
             for (File r : f.listFiles()) {
@@ -143,15 +148,15 @@ public class PythonActivity extends SDLActivity {
             }
         }
     }
-    
+
     public void unpackData(final String resource, File target) {
-        
+
         Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
-        
+
         // The version of data in memory and on disk.
         String data_version = resourceManager.getString(resource + "_version");
         String disk_version = null;
-        
+
         Log.v(TAG, "Data version is " + data_version);
 
         // If no version, no unpacking is necessary.
@@ -200,7 +205,7 @@ public class PythonActivity extends SDLActivity {
             }
         }
     }
-    
+
     public static ViewGroup getLayout() {
         return   mLayout;
     }
@@ -208,4 +213,74 @@ public class PythonActivity extends SDLActivity {
     public static SurfaceView getSurface() {
         return   mSurface;
     }
+
+    //----------------------------------------------------------------------------
+    // Listener interface for onNewIntent
+    //
+
+    public interface NewIntentListener {
+        void onNewIntent(Intent intent);
+    }
+
+    private List<NewIntentListener> newIntentListeners = null;
+
+    public void registerNewIntentListener(NewIntentListener listener) {
+        if ( this.newIntentListeners == null )
+            this.newIntentListeners = Collections.synchronizedList(new ArrayList<NewIntentListener>());
+        this.newIntentListeners.add(listener);
+    }
+
+    public void unregisterNewIntentListener(NewIntentListener listener) {
+        if ( this.newIntentListeners == null )
+            return;
+        this.newIntentListeners.remove(listener);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if ( this.newIntentListeners == null )
+            return;
+        this.onResume();
+        synchronized ( this.newIntentListeners ) {
+            Iterator<NewIntentListener> iterator = this.newIntentListeners.iterator();
+            while ( iterator.hasNext() ) {
+                (iterator.next()).onNewIntent(intent);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    // Listener interface for onActivityResult
+    //
+
+    public interface ActivityResultListener {
+        void onActivityResult(int requestCode, int resultCode, Intent data);
+    }
+
+    private List<ActivityResultListener> activityResultListeners = null;
+
+    public void registerActivityResultListener(ActivityResultListener listener) {
+        if ( this.activityResultListeners == null )
+            this.activityResultListeners = Collections.synchronizedList(new ArrayList<ActivityResultListener>());
+        this.activityResultListeners.add(listener);
+    }
+
+    public void unregisterActivityResultListener(ActivityResultListener listener) {
+        if ( this.activityResultListeners == null )
+            return;
+        this.activityResultListeners.remove(listener);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if ( this.activityResultListeners == null )
+            return;
+        this.onResume();
+        synchronized ( this.activityResultListeners ) {
+            Iterator<ActivityResultListener> iterator = this.activityResultListeners.iterator();
+            while ( iterator.hasNext() )
+                (iterator.next()).onActivityResult(requestCode, resultCode, intent);
+        }
+    }
+
 }
