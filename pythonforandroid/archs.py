@@ -39,7 +39,10 @@ class Arch(object):
 
         env["CXXFLAGS"] = env["CFLAGS"]
 
-        env["LDFLAGS"] = " ".join(['-lm'])
+        env["LDFLAGS"] = " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
+
+        if self.ctx.ndk == 'crystax':
+            env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
 
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
@@ -84,6 +87,7 @@ class Arch(object):
         env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(command_prefix)
+        env['NM'] = '{}-nm'.format(command_prefix)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
 
