@@ -80,6 +80,12 @@ class Recipe(object):
     string patch file and a callable, which will receive the kwargs `arch` and
     `recipe`, which should return True if the patch should be applied.'''
 
+    python_depends = []
+    '''A list of pure-Python packages that this package requires. These
+    packages will NOT be available at build time, but will be added to the
+    list of pure-Python packages to install via pip. If you need these packages
+    at build time, you must create a recipe.'''
+
     archs = ['armeabi']  # Not currently implemented properly
 
     @property
@@ -448,7 +454,7 @@ class Recipe(object):
         '''Run any pre-build tasks for the Recipe. By default, this checks if
         any prebuild_archname methods exist for the archname of the current
         architecture, and runs them if so.'''
-        prebuild = "prebuild_{}".format(arch.arch)
+        prebuild = "prebuild_{}".format(arch.arch.replace('-', '_'))
         if hasattr(self, prebuild):
             getattr(self, prebuild)()
         else:
@@ -578,7 +584,7 @@ class Recipe(object):
             recipe_file = None
 
         if not recipe_file:
-            raise IOError('Recipe folder does not exist')
+            raise IOError('Recipe does not exist: {}'.format(name))
 
         mod = import_recipe('pythonforandroid.recipes.{}'.format(name), recipe_file)
         if len(logger.handlers) > 1:
@@ -601,6 +607,7 @@ class IncludedFilesBehaviour(object):
         if self.src_filename is None:
             print('IncludedFilesBehaviour failed: no src_filename specified')
             exit(1)
+        shprint(sh.rm, '-rf', self.get_build_dir(arch))
         shprint(sh.cp, '-a', join(self.get_recipe_dir(), self.src_filename),
                 self.get_build_dir(arch))
 

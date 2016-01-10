@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-JNIEnv *SDL_ANDROID_GetJNIEnv(void);
+#include "config.h"
 
 #define aassert(x) { if (!x) { __android_log_print(ANDROID_LOG_ERROR, "android_jni", "Assertion failed. %s:%d", __FILE__, __LINE__); abort(); }}
 #define PUSH_FRAME { (*env)->PushLocalFrame(env, 16); }
@@ -201,6 +201,7 @@ void android_get_buildinfo() {
     }
 }
 
+#if IS_PYGAME
 void android_activate_input(void) {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;
@@ -310,6 +311,7 @@ void android_open_url(char *url) {
 
     POP_FRAME;
 }
+#endif // IS_PYGAME
 
 void android_start_service(char *title, char *description, char *arg) {
     static JNIEnv *env = NULL;
@@ -319,7 +321,7 @@ void android_start_service(char *title, char *description, char *arg) {
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
         aassert(env);
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "start_service",
                                        "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
@@ -346,7 +348,7 @@ void android_stop_service() {
 
     if (env == NULL) {
         env = SDL_ANDROID_GetJNIEnv();
-        cls = (*env)->FindClass(env, "org/renpy/android/PythonActivity");
+        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
         aassert(cls);
         mid = (*env)->GetStaticMethodID(env, cls, "stop_service", "()V");
         aassert(mid);
