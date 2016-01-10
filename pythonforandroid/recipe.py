@@ -921,7 +921,10 @@ class CythonRecipe(PythonRecipe):
         ensure_dir(liblink_path)
 
         if self.ctx.python_recipe.from_crystax:
-            env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/{}/include/python '.format(self.ctx.python_recipe.version) + env['CFLAGS']
+            env['CFLAGS'] = '-I{} '.format(
+                join(self.ctx.ndk_dir, 'sources', 'python',
+                     self.ctx.python_recipe.version, 'include',
+                     'python')) + env['CFLAGS']
         
         return env
 
