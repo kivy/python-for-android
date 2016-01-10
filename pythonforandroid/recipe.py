@@ -722,7 +722,7 @@ class PythonRecipe(Recipe):
             # hostpython = sh.Command('python3.5')
 
 
-            if self.ctx.ndk_is_crystax:
+            if self.ctx.python_recipe.from_crystax:
                 # hppath = join(dirname(self.hostpython_location), 'Lib',
                 #               'site-packages')
                 hpenv = env.copy()
@@ -856,7 +856,7 @@ class CythonRecipe(PythonRecipe):
 
             if manually_cythonise:
                 info('Running cython where appropriate')
-                if self.ctx.ndk_is_crystax:
+                if self.ctx.python_recipe.from_crystax:
                     shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
                             '-exec', 'cython', '{}', ';')
                     # AND: Need to choose cython version more carefully

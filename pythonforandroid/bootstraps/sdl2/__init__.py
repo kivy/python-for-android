@@ -28,16 +28,16 @@ class SDL2Bootstrap(Bootstrap):
         with current_directory(self.dist_dir):
             info('Copying python distribution')
 
-            if not exists('private') and not self.ctx.ndk_is_crystax:
+            if not exists('private') and not self.ctx.python_recipe.from_crystax:
                 shprint(sh.mkdir, 'private')
-            if not exists('crystax_python') and self.ctx.ndk_is_crystax:
+            if not exists('crystax_python') and self.ctx.python_recipe.from_crystax:
                 shprint(sh.mkdir, 'crystax_python')
                 shprint(sh.mkdir, 'crystax_python/crystax_python')
             if not exists('assets'):
                 shprint(sh.mkdir, 'assets')
             
             hostpython = sh.Command(self.ctx.hostpython)
-            if not self.ctx.ndk_is_crystax:
+            if not self.ctx.python_recipe.from_crystax:
                 shprint(hostpython, '-OO', '-m', 'compileall',
                         self.ctx.get_python_install_dir(),
                         _tail=10, _filterout="^Listing", _critical=True)
@@ -48,7 +48,7 @@ class SDL2Bootstrap(Bootstrap):
             self.distribute_aars(arch)
             self.distribute_javaclasses(self.ctx.javaclass_dir)
 
-            if not self.ctx.ndk_is_crystax:
+            if not self.ctx.python_recipe.from_crystax:
                 info('Filling private directory')
                 if not exists(join('private', 'lib')):
                     info('private/lib does not exist, making')
@@ -85,9 +85,10 @@ class SDL2Bootstrap(Bootstrap):
                     # shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
                     # shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
-            else:  # NDK *is* crystax
+            else:  # Python *is* loaded from crystax
                 ndk_dir = self.ctx.ndk_dir
-                python_dir = join(ndk_dir, 'sources', 'python', '3.5',
+                py_recipe = self.ctx.python_recipe
+                python_dir = join(ndk_dir, 'sources', 'python', py_recipe.version,
                                   'libs', arch.arch)
                 
                 shprint(sh.cp, '-r', join(python_dir, 'stdlib.zip'), 'crystax_python/crystax_python')

@@ -235,8 +235,8 @@ class Bootstrap(object):
 
     def strip_libraries(self, arch):
         info('Stripping libraries')
-        if self.ctx.ndk_is_crystax:
-            info('NDK is CrystaX, skipping')
+        if self.ctx.python_recipe.from_crystax:
+            info('Python was loaded from CrystaX, skipping strip')
             return
         env = arch.get_env()
         strip = which('arm-linux-androideabi-strip', env['PATH'])

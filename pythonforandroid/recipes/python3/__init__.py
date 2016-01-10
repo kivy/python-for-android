@@ -15,7 +15,6 @@ class Python3Recipe(Recipe):
 
     def __init__(self, **kwargs):
         super(Python3Recipe, self).__init__(**kwargs)
-        self.crystax = lambda *args: True if self.ctx.ndk_is_crystax else False
 
     def prebuild_arch(self, arch):
         build_dir = self.get_build_container_dir(arch.arch)
