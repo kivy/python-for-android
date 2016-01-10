@@ -198,11 +198,6 @@ def compile_dir(dfn):
 
 
 def make_package(args):
-    url_scheme = 'kivy'
-
-    # Figure out versions of the private and public data.
-    private_version = str(time.time())
-
     # # Update the project to a recent version.
     # try:
     #     subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
@@ -253,6 +248,14 @@ def make_package(args):
     shutil.copy(args.presplash or default_presplash,
                 'res/drawable/presplash.jpg')
 
+    # If extra Java jars were requested, copy them into the libs directory
+    if args.add_jar:
+        for jarname in args.add_jar:
+            if not os.path.exists(jarname):
+                print('Requested jar does not exist: {}'.format(jarname))
+                sys.exit(-1)
+            shutil.copy(jarname, 'libs')
+
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
 
@@ -262,6 +265,10 @@ def make_package(args):
             version_code *= 100
             version_code += int(i)
         args.numeric_version = str(version_code)
+
+    if args.intent_filters:
+        with open(args.intent_filters) as fd:
+            args.intent_filters = fd.read()
 
     render(
         'AndroidManifest.tmpl.xml',
@@ -345,6 +352,16 @@ tools directory of the Android SDK.
                     default=join(curdir, 'whitelist.txt'),
                     help=('Use a whitelist file to prevent blacklisting of '
                           'file in the final APK'))
+    ap.add_argument('--add-jar', dest='add_jar', action='append',
+                    help=('Add a Java .jar to the libs, so you can access its '
+                          'classes with pyjnius. You can specify this '
+                          'argument more than once to include multiple jars'))
+    ap.add_argument('--intent-filters', dest='intent_filters',
+                    help=('Add intent-filters xml rules to the '
+                          'AndroidManifest.xml file. The argument is a '
+                          'filename containing xml. The filename should be '
+                          'located relative to the python-for-android '
+                          'directory'))
 
     if args is None:
         args = sys.argv[1:]
