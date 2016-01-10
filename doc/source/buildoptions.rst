@@ -56,6 +56,8 @@ the build is not fully optimised so APKs are probably a little larger
 and slower than they need to be. This is currently being addressed,
 though it's not clear how the final result will compare to python2.
 
+.. _bootstrap_build_options:
+
 Bootstrap
 ---------
 
