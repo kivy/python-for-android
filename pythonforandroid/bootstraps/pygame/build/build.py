@@ -68,7 +68,7 @@ def render(template, dest, **kwargs):
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
-    f = file(dest, 'wb')
+    f = open(dest, 'wb')
     f.write(text.encode('utf-8'))
     f.close()
 
@@ -224,9 +224,9 @@ def make_package(args):
 
         args.numeric_version = str(version_code)
 
-    args.name = args.name.decode('utf-8')
-    if args.icon_name:
-        args.icon_name = args.icon_name.decode('utf-8')
+    # args.name = args.name.decode('utf-8')
+    # if args.icon_name:
+    #     args.icon_name = args.icon_name.decode('utf-8')
 
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
@@ -306,8 +306,8 @@ def make_package(args):
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
                          'android-{}'.format(args.sdk_version)])
     except (OSError, IOError):
-        print 'An error occured while calling', ANDROID, 'update'
-        print 'Your PATH must include android tools.'
+        print('An error occured while calling', ANDROID, 'update')
+        print('Your PATH must include android tools.')
         sys.exit(-1)
 
     # Delete the old assets.
@@ -346,7 +346,7 @@ def make_package(args):
     if args.add_jar:
         for jarname in args.add_jar:
             if not os.path.exists(jarname):
-                print 'Requested jar does not exist: {}'.format(jarname)
+                print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'libs')
 
@@ -355,8 +355,8 @@ def make_package(args):
         for arg in args.command:
             subprocess.check_call([ANT, arg])
     except (OSError, IOError):
-        print 'An error occured while calling', ANT
-        print 'Did you install ant on your system ?'
+        print('An error occured while calling', ANT)
+        print('Did you install ant on your system ?')
         sys.exit(-1)
 
 def parse_args(args=None):

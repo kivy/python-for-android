@@ -8,9 +8,10 @@ from math import log10
 from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
 
-import codecs
-stdout = codecs.getwriter('utf8')(stdout)
-stderr = codecs.getwriter('utf8')(stderr)
+# This codecs change fixes a bug with log output, but crashes under python3
+# import codecs
+# stdout = codecs.getwriter('utf8')(stdout)
+# stderr = codecs.getwriter('utf8')(stderr)
 
 # monkey patch to show full output
 sh.ErrorReturnCode.truncate_cap = 999999
@@ -138,7 +139,9 @@ def shprint(command, *args, **kwargs):
     columns = get_console_width()
     command_path = str(command).split('/')
     command_string = command_path[-1]
-    string = ' '.join(['running', command_string] + list(args))
+    string = ' '.join(['{}->{} running'.format(Out_Fore.LIGHTBLACK_EX,
+                                               Out_Style.RESET_ALL),
+                       command_string] + list(args))
 
     # If logging is not in DEBUG mode, trim the command if necessary
     if logger.level > logging.DEBUG:

@@ -13,6 +13,8 @@ class KivyRecipe(CythonRecipe):
 
     depends = [('sdl2', 'pygame'), 'pyjnius']
 
+    # patches = ['setargv.patch']
+
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)
         if 'sdl2' in self.ctx.recipe_build_order:

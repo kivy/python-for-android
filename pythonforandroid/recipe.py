@@ -1,4 +1,4 @@
-from os.path import join, dirname, isdir, exists, isfile
+from os.path import join, dirname, isdir, exists, isfile, split, realpath
 import importlib
 import zipfile
 import glob
@@ -6,7 +6,7 @@ from six import PY2
 
 import sh
 import shutil
-from os import listdir, unlink, environ, mkdir
+from os import listdir, unlink, environ, mkdir, curdir
 from sys import stdout
 try:
     from urlparse import urlparse
@@ -679,9 +679,13 @@ class PythonRecipe(Recipe):
     @property
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
-            return join(
-                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
-                'hostpython')
+            if 'hostpython2' in self.ctx.build_order:
+                return join(
+                    Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
+                    'hostpython')
+            else:
+                python_recipe = self.ctx.python_recipe
+                return 'python{}'.format(python_recipe.version)
         return self.ctx.hostpython
 
     def should_build(self, arch):
@@ -715,8 +719,31 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             # hostpython = sh.Command(self.ctx.hostpython)
             hostpython = sh.Command(self.hostpython_location)
+            # hostpython = sh.Command('python3.5')
 
-            if self.call_hostpython_via_targetpython:
+
+            if self.ctx.python_recipe.from_crystax:
+                # hppath = join(dirname(self.hostpython_location), 'Lib',
+                #               'site-packages')
+                hpenv = env.copy()
+                # if 'PYTHONPATH' in hpenv:
+                #     hpenv['PYTHONPATH'] = ':'.join([hppath] +
+                #                                    hpenv['PYTHONPATH'].split(':'))
+                # else:
+                #     hpenv['PYTHONPATH'] = hppath
+                # hpenv['PYTHONHOME'] = self.ctx.get_python_install_dir()
+                # shprint(hostpython, 'setup.py', 'build',
+                #         _env=hpenv, *self.setup_extra_args)
+                shprint(hostpython, 'setup.py', 'install', '-O2',
+                        '--root={}'.format(self.ctx.get_python_install_dir()),
+                        '--install-lib=.',
+                        # AND: will need to unhardcode the 3.5 when adding 2.7 (and other crystax supported versions)
+                        _env=hpenv, *self.setup_extra_args)
+                # site_packages_dir = self.ctx.get_site_packages_dir()
+                # built_files = glob.glob(join('build', 'lib*', '*'))
+                # for filen in built_files:
+                #     shprint(sh.cp, '-r', filen, join(site_packages_dir, split(filen)[-1]))
+            elif self.call_hostpython_via_targetpython:
                 shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
                         *self.setup_extra_args)
             else:
@@ -782,6 +809,13 @@ class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
 
+    def __init__(self, *args, **kwargs):
+        super(CythonRecipe, self).__init__(*args, **kwargs)
+        depends = self.depends
+        depends.append(('python2', 'python3crystax'))
+        depends = list(set(depends))
+        self.depends = depends
+
     def build_arch(self, arch):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
@@ -792,25 +826,53 @@ class CythonRecipe(PythonRecipe):
 
     def build_cython_components(self, arch):
         info('Cythonizing anything necessary in {}'.format(self.name))
+
         env = self.get_recipe_env(arch)
+
+        if self.ctx.python_recipe.from_crystax:
+            command = sh.Command('python{}'.format(self.ctx.python_recipe.version))
+            site_packages_dirs = command(
+                '-c', 'import site; print("\\n".join(site.getsitepackages()))')
+            site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
+            # env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
+            if 'PYTHONPATH' in env:
+                env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))
+            else:
+                env['PYTHONPATH'] = ':'.join(site_packages_dirs)
+
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
+            # hostpython = sh.Command('python3.5')
+            shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
+            print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
                  'expected to fail'.format(self.name))
+
+            manually_cythonise = False
             try:
-                shprint(hostpython, 'setup.py', 'build_ext', _env=env,
+                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
                         *self.setup_extra_args)
             except sh.ErrorReturnCode_1:
                 print()
                 info('{} first build failed (as expected)'.format(self.name))
+                manually_cythonise = True
 
-            info('Running cython where appropriate')
-            shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-                    '-exec', self.ctx.cython, '{}', ';', _env=env)
-            info('ran cython')
+            if manually_cythonise:
+                info('Running cython where appropriate')
+                if self.ctx.python_recipe.from_crystax:
+                    shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
+                            '-exec', 'cython', '{}', ';')
+                    # AND: Need to choose cython version more carefully
+                else:
+                    shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
+                            '-exec', self.ctx.cython, '{}', ';', _env=env)
+                info('ran cython')
 
-            shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
-                    _tail=20, _critical=True, *self.setup_extra_args)
+                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
+                        _tail=20, _critical=True, *self.setup_extra_args)
+            else:
+                info('First build appeared to complete correctly, skipping manual'
+                     'cythonising.')
 
             print('stripping')
             build_lib = glob.glob('./build/lib*')
@@ -836,10 +898,18 @@ class CythonRecipe(PythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(CythonRecipe, self).get_recipe_env(arch)
-        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
-            '-L{}'.format(self.ctx.libs_dir))
-        env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+            ' -L{} '.format(self.ctx.libs_dir))
+        if self.ctx.python_recipe.from_crystax:
+            env['LDFLAGS'] = (env['LDFLAGS'] +
+                              ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
+            # ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
+        if self.ctx.python_recipe.from_crystax:
+            env['LDSHARED'] = env['CC'] + ' -shared'
+        else:
+            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+        # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
@@ -849,4 +919,38 @@ class CythonRecipe(PythonRecipe):
                             'objects_{}'.format(self.name))
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
+
+        if self.ctx.python_recipe.from_crystax:
+            env['CFLAGS'] = '-I/home/asandy/android/crystax-ndk-10.3.0/sources/python/{}/include/python '.format(self.ctx.python_recipe.version) + env['CFLAGS']
+        
         return env
+
+
+class TargetPythonRecipe(Recipe):
+    '''Class for target python recipes. Sets ctx.python_recipe to point to
+    itself, so as to know later what kind of Python was built or used.'''
+
+    from_crystax = False
+    '''True if the python is used from CrystaX, False otherwise (i.e. if
+    it is built by p4a).'''
+
+    def __init__(self, *args, **kwargs):
+        self._ctx = None
+        super(TargetPythonRecipe, self).__init__(*args, **kwargs)
+
+    def prebuild_arch(self, arch):
+        super(TargetPythonRecipe, self).prebuild_arch(arch)
+        if self.from_crystax and self.ctx.ndk != 'crystax':
+            error('The {} recipe can only be built when '
+                  'using the CrystaX NDK. Exiting.'.format(self.name))
+            exit(1)
+        self.ctx.python_recipe = self
+
+    # @property
+    # def ctx(self):
+    #     return self._ctx
+    
+    # @ctx.setter
+    # def ctx(self, ctx):
+    #     self._ctx = ctx
+    #     ctx.python_recipe = self

@@ -27,13 +27,13 @@ Contents
    :maxdepth: 2
 
    quickstart
+   buildoptions
    installation
    commands
    recipes
    bootstraps
    apis
    troubleshooting
-   old_p4a
    contribute
    old_toolchain/index.rst
 

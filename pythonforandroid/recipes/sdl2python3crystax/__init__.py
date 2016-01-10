@@ -9,8 +9,8 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
     dir_name = 'SDL'
 
-    depends = [('python2', 'python3crystax'), 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
-    conflicts = ['sdl', 'pygame', 'pygame_bootstrap_components']
+    depends = ['python3crystax', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
+    conflicts = ['sdl', 'sdl2', 'pygame', 'pygame_bootstrap_components']
 
     patches = ['add_nativeSetEnv.patch']
 
@@ -18,8 +18,6 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env = super(LibSDL2Recipe, self).get_recipe_env(arch)
         py2 = self.get_recipe('python2', arch.ctx)
         env['PYTHON2_NAME'] = py2.get_dir_name()
-        if 'python2' in self.ctx.recipe_build_order:
-            env['EXTRA_LDLIBS'] = ' -lpython2.7'
         return env
 
     def build_arch(self, arch):

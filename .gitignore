@@ -12,7 +12,9 @@
 
 *.pyc
 *.pyo
+*.apk
 .packages
 python_for_android.egg-info
 /build/
+doc/build
 __pycache__/

@@ -84,6 +84,8 @@ class Arch(object):
         env['AR'] = '{}-ar'.format(command_prefix)
         env['RANLIB'] = '{}-ranlib'.format(command_prefix)
         env['LD'] = '{}-ld'.format(command_prefix)
+        # env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+        # env['LDSHARED'] = env['LD']
         env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(command_prefix)
@@ -99,6 +101,9 @@ class Arch(object):
         env['PATH'] = environ['PATH']
 
         env['ARCH'] = self.arch
+
+        if self.ctx.python_recipe.from_crystax:
+            env['CRYSTAX_PYTHON_VERSION'] = self.ctx.python_recipe.version
 
         return env
 

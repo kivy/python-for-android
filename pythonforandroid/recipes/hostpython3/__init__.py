@@ -6,8 +6,9 @@ import sh
 
 
 class Hostpython3Recipe(Recipe):
-    version = '3.4.2'
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'
+    version = '3.5'
+    # url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'
+    url = 'https://github.com/crystax/android-vendor-python-3-5/archive/master.zip'
     name = 'hostpython3'
 
     conflicts = ['hostpython2']
@@ -17,13 +18,13 @@ class Hostpython3Recipe(Recipe):
     #     shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
     #             join(self.get_build_dir('armeabi'), 'Modules', 'Setup'))
 
-    def build_armeabi(self):
+    def build_arch(self, arch):
         # AND: Should use an i386 recipe system
         warning('Running hostpython build. Arch is armeabi! '
                 'This is naughty, need to fix the Arch system!')
 
         # AND: Fix armeabi again
-        with current_directory(self.get_build_dir('armeabi')):
+        with current_directory(self.get_build_dir(arch.arch)):
 
             if exists('hostpython'):
                 info('hostpython already exists, skipping build')
@@ -53,8 +54,8 @@ class Hostpython3Recipe(Recipe):
                         'hostpython build! Exiting.')
                 exit(1)
 
-        self.ctx.hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
-        self.ctx.hostpgen = join(self.get_build_dir('armeabi'), 'hostpgen')
+        self.ctx.hostpython = join(self.get_build_dir(arch.arch), 'hostpython')
+        self.ctx.hostpgen = join(self.get_build_dir(arch.arch), 'hostpgen')
 
 
 recipe = Hostpython3Recipe()

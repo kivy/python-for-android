@@ -211,7 +211,7 @@ class Context(object):
         self.android_api = android_api
 
         android = sh.Command(join(sdk_dir, 'tools', 'android'))
-        targets = android('list').stdout.split('\n')
+        targets = android('list').stdout.decode('utf-8').split('\n')
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
         apis = [re.findall(r'[0-9]+', s) for s in apis]
         apis = [int(s[0]) for s in apis if s]
@@ -328,6 +328,7 @@ class Context(object):
             if cython:
                 self.cython = cython
                 break
+        self.cython = 'cython'
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
@@ -440,6 +441,8 @@ class Context(object):
         self.env.pop("ARCHFLAGS", None)
         self.env.pop("CFLAGS", None)
 
+        self.python_recipe = None  # Set by TargetPythonRecipe
+
     def set_archs(self, arch_names):
         all_archs = self.archs
         new_archs = set()
@@ -472,6 +475,8 @@ class Context(object):
         # AND: This *must* be replaced with something more general in
         # order to support multiple python versions and/or multiple
         # archs.
+        if self.python_recipe.from_crystax:
+            return self.get_python_install_dir()
         return join(self.get_python_install_dir(),
                     'lib', 'python2.7', 'site-packages')
 
@@ -508,7 +513,6 @@ def build_recipes(build_order, python_modules, ctx):
         info_notify(
             ('The requirements ({}) were not found as recipes, they will be '
              'installed with pip.').format(', '.join(python_modules)))
-    ctx.recipe_build_order = build_order
 
     recipes = [Recipe.get_recipe(name, ctx) for name in build_order]
 
@@ -545,7 +549,10 @@ def build_recipes(build_order, python_modules, ctx):
         # 4) biglink everything
         # AND: Should make this optional
         info_main('# Biglinking object files')
-        biglink(ctx, arch)
+        if not ctx.python_recipe.from_crystax:
+            biglink(ctx, arch)
+        else:
+            info('NDK is crystax, skipping biglink (will this work?)')
 
         # 5) postbuild packages
         info_main('# Postbuilding recipes')
