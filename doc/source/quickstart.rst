@@ -144,8 +144,9 @@ You can build an SDL2 APK similarly, creating a dist as follows::
 You can then make an APK in the same way, but this is more
 experimental and doesn't support as much customisation yet.
 
-There is also experimental support for building APKs with Vispy, which
-do not include Kivy. The basic command for this would be e.g.::
+Your APKs are not limited to Kivy, for instance you can create apps
+using Vispy, or using PySDL2 directly. The basic command for this
+would be e.g.::
 
     python-for-android create --dist_name=testvispy --bootstrap=sdl2 --requirements=vispy
 
