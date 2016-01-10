@@ -473,12 +473,11 @@ The above documentation has included a number of snippets
 demonstrating different behaviour. Together, these cover most of what
 is ever necessary to make a recipe work.
 
-The following short sections further demonstrate a few full recipes from p4a's
-internal recipes folder. Unless your own module has some unusual
-complication, following these templates should be all you need to make
-your own recipes work. 
+python-for-android includes many recipes for popular modules, which
+are an excellent resource to find out how to add your own. You can
+find these in the `python-for-android Github page
+<https://github.com/kivy/python-for-android/tree/master/pythonforandroid/recipes>`__.
 
-TODO
 
 .. _recipe_class:
 
