@@ -38,6 +38,8 @@ The basic declaration of a recipe is as follows::
       url = 'http://example.com/example-{version}.tar.gz'
       version = '2.0.3'
       md5sum = '4f3dc9a9d857734a488bcbefd9cd64ed'
+      
+      patches = ['some_fix.patch']  # Paths relative to the recipe dir
 
       depends = ['kivy', 'sdl2']  # These are just examples
       conflicts = ['pygame'] 
@@ -118,26 +120,35 @@ Methods and tools to help with compilation
 Patching modules before installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can easily apply patches to your recipes with the ``apply_patch``
-method. For instance, you could do this in your prebuild method::
+You can easily apply patches to your recipes by adding them to the
+``patches`` declaration, e.g.::
 
-  import sh
-  def prebuild_arch(self, arch):
-       super(YourRecipe, self).prebuild_arch(arch)
-       build_dir = self.get_build_dir(arch.arch)
-       if exists(join(build_dir, '.patched')):
-           print('Your recipe is already patched, skipping')
-           return
-       self.apply_patch('some_patch.patch')
-       shprint(sh.touch, join(build_dir, '.patched'))
+      patches = ['some_fix.patch',
+                 'another_fix.patch']  
+      
+The paths should be relative to the recipe file. Patches are
+automatically applied just once (i.e. not reapplied the second time
+python-for-android is run).
 
-The path to the patch should be in relation to your recipe code.
-In this case, ``some_path.patch`` must be in the same directory as the
-recipe.
+You can also use the helper functions in ``pythonforandroid.patching``
+to apply patches depending on certain conditions, e.g.::
 
-This code also manually takes care to patch only once. You can use the
-same strategy yourself, though a more generic solution may be provided
-in the future.
+  from pythonforandroid.patching import will_build, is_arch
+
+  ...
+
+  class YourRecipe(Recipe):
+      
+      patches = [('x86_patch.patch', is_arch('x86')),
+                 ('sdl2_compatibility.patch', will_build('sdl2'))]
+
+      ...
+      
+You can include your own conditions by passing any function as the
+second entry of the tuple. It will receive the ``arch`` (e.g. x86,
+armeabi) and ``recipe`` (i.e. the Recipe object) as kwargs. The patch
+will be applied only if the function returns True.
+
 
 Installing libs
 ~~~~~~~~~~~~~~~
