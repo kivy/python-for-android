@@ -33,7 +33,6 @@ Contents
    bootstraps
    apis
    troubleshooting
-   old_p4a
    contribute
    old_toolchain/index.rst
 
