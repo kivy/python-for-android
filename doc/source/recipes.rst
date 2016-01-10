@@ -221,26 +221,25 @@ The should_build method
 ~~~~~~~~~~~~~~~~~~~~~~~
     
 The Recipe class has a ``should_build`` method, which returns a
-boolean. This is called before running ``build_arch``, and if it
-returns False then the build is skipped. This is useful to avoid
-building a recipe more than once for different dists.
+boolean. This is called for each architecture before running
+``build_arch``, and if it returns False then the build is
+skipped. This is useful to avoid building a recipe more than once for
+different dists.
 
 By default, should_build returns True, but you can override it however
 you like. For instance, PythonRecipe and its subclasses all replace it
 with a check for whether the recipe is already installed in the Python
 distribution::
 
-    def should_build(self):
+    def should_build(self, arch):
         name = self.site_packages_name
         if name is None:
             name = self.name
-        if exists(join(self.ctx.get_site_packages_dir(), name)):
+        if self.ctx.has_package(name):
             info('Python package already exists in site-packages')
             return False
-        print('site packages', self.ctx.get_site_packages_dir())
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
-
 
 
 
