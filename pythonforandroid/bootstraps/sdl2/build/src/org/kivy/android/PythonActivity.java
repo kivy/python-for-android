@@ -93,7 +93,6 @@ public class PythonActivity extends SDLActivity {
             "SDL2_image",
             "SDL2_mixer",
             "SDL2_ttf",
-            "python2.7",
             "main"
         };
     }
@@ -104,9 +103,25 @@ public class PythonActivity extends SDLActivity {
             System.loadLibrary(lib);
         }
 
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
-        System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
-
+        try {
+            System.loadLibrary("python2.7");
+        } catch(UnsatisfiedLinkError e) {
+            Log.v(TAG, "Failed to load libpython2.7");
+        }
+        
+        try {
+            System.loadLibrary("python3.5m");
+        } catch(UnsatisfiedLinkError e) {
+            Log.v(TAG, "Failed to load libpython3.5m");
+        }
+        
+        try {
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
+            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
+        } catch(UnsatisfiedLinkError e) {
+            Log.v(TAG, "Failed to load _io.so or unicodedata.so...but that's okay.");
+        }
+        
         try {
             // System.loadLibrary("ctypes");
             System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_ctypes.so");
