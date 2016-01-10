@@ -1210,6 +1210,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             public void onGlobalLayout() {
                 Rect rctx = new Rect();
                 activityRootView.getWindowVisibleDisplayFrame(rctx);
+                rctx.top = 0;
                 int heightDiff = default_display.getHeight() - (rctx.bottom - rctx.top);
                 if (heightDiff != kHeight){
                     Log.i("Python:", String.format("Layout Triggered, Keyboard_height: %s", heightDiff));
