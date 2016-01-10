@@ -211,7 +211,7 @@ class Context(object):
         self.android_api = android_api
 
         android = sh.Command(join(sdk_dir, 'tools', 'android'))
-        targets = android('list').stdout.split('\n')
+        targets = android('list').stdout.decode('utf-8').split('\n')
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
         apis = [re.findall(r'[0-9]+', s) for s in apis]
         apis = [int(s[0]) for s in apis if s]

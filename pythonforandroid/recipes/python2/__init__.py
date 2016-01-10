@@ -88,7 +88,7 @@ class Python2Recipe(TargetPythonRecipe):
             # neatness, but the whole recipe needs tidying along these
             # lines
             env['HOSTARCH'] = 'arm-eabi'
-            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0]
+            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
 
             # TODO need to add a should_build that checks if optional

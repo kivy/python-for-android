@@ -97,7 +97,8 @@ class SDL2Bootstrap(Bootstrap):
 
                 info('Renaming .so files to reflect cross-compile')
                 site_packages_dir = 'crystax_python/crystax_python/site-packages'
-                filens = shprint(sh.find, site_packages_dir, '-iname', '*.so').stdout.split('\n')[:-1]
+                filens = shprint(sh.find, site_packages_dir, '-iname', '*.so').stdout.decode(
+                    'utf-8').split('\n')[:-1]
                 for filen in filens:
                     parts = filen.split('.')
                     if len(parts) <= 2:

@@ -830,7 +830,10 @@ class CythonRecipe(PythonRecipe):
         env = self.get_recipe_env(arch)
 
         if self.ctx.python_recipe.from_crystax:
-            site_packages_dirs = sh.Command('python{}'.format(self.ctx.python_recipe.version))('-c', 'import site; print("\\n".join(site.getsitepackages()))').stdout.split('\n')
+            command = sh.Command('python{}'.format(self.ctx.python_recipe.version))
+            site_packages_dirs = command(
+                '-c', 'import site; print("\\n".join(site.getsitepackages()))')
+            site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
             # env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
             if 'PYTHONPATH' in env:
                 env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))

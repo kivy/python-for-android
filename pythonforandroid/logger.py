@@ -8,9 +8,10 @@ from math import log10
 from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
 
-import codecs
-stdout = codecs.getwriter('utf8')(stdout)
-stderr = codecs.getwriter('utf8')(stderr)
+# This codecs change fixes a bug with log output, but crashes under python3
+# import codecs
+# stdout = codecs.getwriter('utf8')(stdout)
+# stderr = codecs.getwriter('utf8')(stderr)
 
 # monkey patch to show full output
 sh.ErrorReturnCode.truncate_cap = 999999
