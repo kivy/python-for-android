@@ -6,10 +6,7 @@ import json
 import shutil
 import sys
 from tempfile import mkdtemp
-try:
-    from urllib.request import FancyURLopener
-except ImportError:
-    from urllib import FancyURLopener
+import wget
 
 from pythonforandroid.logger import (logger, Err_Fore)
 
@@ -21,12 +18,7 @@ else:
     unistr = unicode
 
 
-class ChromeDownloader(FancyURLopener):
-    version = (
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-        '(KHTML, like Gecko) Chrome/28.0.1500.71 Safari/537.36')
-
-urlretrieve = ChromeDownloader().retrieve
+urlretrieve = wget.download
 
 
 @contextlib.contextmanager
