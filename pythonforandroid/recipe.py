@@ -12,7 +12,7 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from pythonforandroid.logger import (logger, info, warning, shprint, info_main)
+from pythonforandroid.logger import (logger, info, warning, error, shprint, info_main)
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
 # this import is necessary to keep imp.load_source from complaining :)
@@ -904,14 +904,14 @@ class CythonRecipe(PythonRecipe):
             if manually_cythonise:
                 info('Running cython where appropriate')
                 cyenv = env.copy()
-            if 'CYTHONPATH' in cyenv:
-                cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
-            elif 'PYTHONPATH' in cyenv:
-                del cyenv['PYTHONPATH']
-            cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
-            cython_cmd = 'find "{}" -iname *.pyx | xargs "{}"'.format(
-                    self.get_build_dir(arch.arch), cython)
-            shprint(sh.sh, '-c', cython_cmd, _env=cyenv)
+                if 'CYTHONPATH' in cyenv:
+                    cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
+                elif 'PYTHONPATH' in cyenv:
+                    del cyenv['PYTHONPATH']
+                cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
+                cython_cmd = 'find "{}" -iname *.pyx | xargs "{}"'.format(
+                        self.get_build_dir(arch.arch), cython)
+                shprint(sh.sh, '-c', cython_cmd, _env=cyenv)
                 info('ran cython')
 
                 shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
