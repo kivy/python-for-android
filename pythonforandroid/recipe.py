@@ -421,7 +421,7 @@ class Recipe(object):
                         sh.unzip(extraction_filename)
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
-                        root_directory = fileh.filelist[0].filename.strip('/')
+                        root_directory = fileh.filelist[0].filename.split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
                     else:
