@@ -1,0 +1,20 @@
+--- openssl/Makefile	2015-12-28 16:48:49.159522273 -0600
++++ b/Makefile	2015-12-29 10:31:54.358438402 -0600
+@@ -343,7 +343,7 @@
+ link-shared:
+ 	@ set -e; for i in $(SHLIBDIRS); do \
+ 		$(MAKE) -f $(HERE)/Makefile.shared -e $(BUILDENV) \
+-			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
++			LIBNAME=$$i LIBVERSION= \
+ 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
+ 			symlink.$(SHLIB_TARGET); \
+ 		libs="$$libs -l$$i"; \
+@@ -357,7 +357,7 @@
+ 			libs="$(LIBKRB5) $$libs"; \
+ 		fi; \
+ 		$(CLEARENV) && $(MAKE) -f Makefile.shared -e $(BUILDENV) \
+-			LIBNAME=$$i LIBVERSION=$(SHLIB_MAJOR).$(SHLIB_MINOR) \
++			LIBNAME=$$i LIBVERSION= \
+ 			LIBCOMPATVERSIONS=";$(SHLIB_VERSION_HISTORY)" \
+ 			LIBDEPS="$$libs $(EX_LIBS)" \
+ 			link_a.$(SHLIB_TARGET); \

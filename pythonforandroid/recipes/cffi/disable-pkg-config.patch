@@ -1,0 +1,29 @@
+diff -Naur cffi-1.4.2/setup.py b/setup.py
+--- cffi-1.4.2/setup.py	2015-12-21 12:09:47.000000000 -0600
++++ b/setup.py	2015-12-23 10:20:40.590622524 -0600
+@@ -5,8 +5,7 @@
+ 
+ sources = ['c/_cffi_backend.c']
+ libraries = ['ffi']
+-include_dirs = ['/usr/include/ffi',
+-                '/usr/include/libffi']    # may be changed by pkg-config
++include_dirs = []
+ define_macros = []
+ library_dirs = []
+ extra_compile_args = []
+@@ -67,14 +66,7 @@
+         sys.stderr.write("The above error message can be safely ignored\n")
+ 
+ def use_pkg_config():
+-    if sys.platform == 'darwin' and os.path.exists('/usr/local/bin/brew'):
+-        use_homebrew_for_libffi()
+-
+-    _ask_pkg_config(include_dirs,       '--cflags-only-I', '-I', sysroot=True)
+-    _ask_pkg_config(extra_compile_args, '--cflags-only-other')
+-    _ask_pkg_config(library_dirs,       '--libs-only-L', '-L', sysroot=True)
+-    _ask_pkg_config(extra_link_args,    '--libs-only-other')
+-    _ask_pkg_config(libraries,          '--libs-only-l', '-l')
++    pass
+ 
+ def use_homebrew_for_libffi():
+     # We can build by setting:

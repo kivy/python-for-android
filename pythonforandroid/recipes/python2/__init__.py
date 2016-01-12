@@ -1,7 +1,8 @@
 
 from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory, info
-from pythonforandroid.patching import is_linux, is_darwin, is_api_gt
+from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
+                                       check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
 import sh
 
@@ -32,7 +33,8 @@ class Python2Recipe(TargetPythonRecipe):
                'patches/ctypes-find-library-updated.patch',
                ('patches/fix-configure-darwin.patch', is_linux),
                ('patches/fix-distutils-darwin.patch', is_linux),
-               ('patches/fix-ftime-removal.patch', is_api_gt(19))]
+               ('patches/fix-ftime-removal.patch', is_api_gt(19)),
+               ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))]
 
     from_crystax = False
 
@@ -95,10 +97,9 @@ class Python2Recipe(TargetPythonRecipe):
             # dependencies have changed (possibly in a generic way)
             if 'openssl' in self.ctx.recipe_build_order:
                 openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-                env['CFLAGS'] = ' '.join([env['CFLAGS'],
-                    '-I{}'.format(join(openssl_build_dir, 'include'))])
-                env['LDFLAGS'] = ' '.join([env['LDFLAGS'],
-                    '-L{}'.format(openssl_build_dir)])
+                setuplocal = join('Modules', 'Setup.local')
+                shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
+                shprint(sh.sed, '-i', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
 
             configure = sh.Command('./configure')
             # AND: OFLAG isn't actually set, should it be?
