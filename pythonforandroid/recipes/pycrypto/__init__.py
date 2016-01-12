@@ -14,6 +14,7 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
     version = '2.6.1'
     url = 'https://pypi.python.org/packages/source/p/pycrypto/pycrypto-{version}.tar.gz'
     depends = ['openssl', 'python2']
+    site_packages_name = 'Crypto'
 
     patches = ['add_length.patch']
 
