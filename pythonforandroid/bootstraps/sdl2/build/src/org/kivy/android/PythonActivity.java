@@ -24,8 +24,11 @@ import android.view.SurfaceHolder;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
+import android.content.Intent;
 
 import org.libsdl.app.SDLActivity;
+
+import org.kivy.android.PythonUtil;
 
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
@@ -35,7 +38,7 @@ public class PythonActivity extends SDLActivity {
     private static final String TAG = "PythonActivity";
 
     public static PythonActivity mActivity = null;
-
+    
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
@@ -51,9 +54,9 @@ public class PythonActivity extends SDLActivity {
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
         Log.v(TAG, "Did super onCreate");
-
+        
         this.mActivity = this;
-
+        
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
@@ -62,7 +65,7 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         SDLActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
 
-
+        
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
 
         try {
@@ -84,54 +87,11 @@ public class PythonActivity extends SDLActivity {
         } catch (PackageManager.NameNotFoundException e) {
         }
     }
-
-    // This is just overrides the normal SDLActivity, which just loads
-    // SDL2 and main
-    protected String[] getLibraries() {
-        return new String[] {
-            "SDL2",
-            "SDL2_image",
-            "SDL2_mixer",
-            "SDL2_ttf",
-            "main"
-        };
-    }
-
+    
     public void loadLibraries() {
-        // AND: This should probably be replaced by a call to super
-        for (String lib : getLibraries()) {
-            System.loadLibrary(lib);
-        }
-
-        try {
-            System.loadLibrary("python2.7");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load libpython2.7");
-        }
-        
-        try {
-            System.loadLibrary("python3.5m");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load libpython3.5m");
-        }
-        
-        try {
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load _io.so or unicodedata.so...but that's okay.");
-        }
-        
-        try {
-            // System.loadLibrary("ctypes");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_ctypes.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Unsatisfied linker when loading ctypes");
-        }
-
-        Log.v(TAG, "Loaded everything!");
+        PythonUtil.loadLibraries(getFilesDir());
     }
-
+    
     public void recursiveDelete(File f) {
         if (f.isDirectory()) {
             for (File r : f.listFiles()) {
@@ -163,15 +123,15 @@ public class PythonActivity extends SDLActivity {
             }
         }
     }
-
+    
     public void unpackData(final String resource, File target) {
-
+        
         Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
-
+        
         // The version of data in memory and on disk.
         String data_version = resourceManager.getString(resource + "_version");
         String disk_version = null;
-
+        
         Log.v(TAG, "Data version is " + data_version);
 
         // If no version, no unpacking is necessary.
@@ -220,7 +180,7 @@ public class PythonActivity extends SDLActivity {
             }
         }
     }
-
+    
     public static ViewGroup getLayout() {
         return   mLayout;
     }
@@ -298,4 +258,23 @@ public class PythonActivity extends SDLActivity {
         }
     }
 
+	public static void start_service(String serviceTitle, String serviceDescription,
+                String pythonServiceArgument) {
+        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
+        String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
+        String filesDirectory = argument;
+        serviceIntent.putExtra("androidPrivate", argument);
+        serviceIntent.putExtra("androidArgument", filesDirectory);
+        serviceIntent.putExtra("pythonHome", argument);
+        serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
+        serviceIntent.putExtra("serviceTitle", serviceTitle);
+        serviceIntent.putExtra("serviceDescription", serviceDescription);
+        serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
+        PythonActivity.mActivity.startService(serviceIntent);
+    }
+
+    public static void stop_service() {
+        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
+        PythonActivity.mActivity.stopService(serviceIntent);
+    }
 }

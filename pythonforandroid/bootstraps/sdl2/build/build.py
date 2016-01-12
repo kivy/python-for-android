@@ -221,7 +221,7 @@ def make_package(args):
         os.unlink('assets/private.mp3')
 
     # In order to speedup import and initial depack,
-    # construct a python27.zip if not using CrystaX's pre-zipped package
+    # construct a python27.zip
     make_python_zip()
 
     # Package up the private and public data.
@@ -281,10 +281,16 @@ def make_package(args):
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
+    service = False
+    service_main = join(realpath(args.private), 'service', 'main.py')
+    if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
+        service = True
+
     render(
         'AndroidManifest.tmpl.xml',
         'AndroidManifest.xml',
         args=args,
+        service=service,
         )
 
     render(
@@ -311,6 +317,7 @@ def make_package(args):
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS
+    default_android_api = 12
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -367,17 +374,34 @@ tools directory of the Android SDK.
                     help=('Add a Java .jar to the libs, so you can access its '
                           'classes with pyjnius. You can specify this '
                           'argument more than once to include multiple jars'))
+    ap.add_argument('--sdk', dest='sdk_version', default=-1,
+                    type=int, help=('Android SDK version to use. Default to '
+                                    'the value of minsdk'))
+    ap.add_argument('--minsdk', dest='min_sdk_version',
+                    default=default_android_api, type=int,
+                    help=('Minimum Android SDK version to use. Default to '
+                          'the value of ANDROIDAPI, or {} if not set'
+                          .format(default_android_api)))
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
+    ap.add_argument('--with-billing', dest='billing_pubkey',
+                    help='If set, the billing service will be added (not implemented)')
 
     if args is None:
         args = sys.argv[1:]
     args = ap.parse_args(args)
     args.ignore_path = []
+
+    if args.billing_pubkey:
+        print('Billing not yet supported in sdl2 bootstrap!')
+        exit(1)
+
+    if args.sdk_version == -1:
+        args.sdk_version = args.min_sdk_version
 
     if args.permissions is None:
         args.permissions = []
