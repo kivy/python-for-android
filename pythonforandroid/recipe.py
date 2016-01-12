@@ -131,19 +131,9 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         parsed_url = urlparse(url)
         if parsed_url.scheme in ('http', 'https'):
-            def report_hook(index, blksize, size):
-                if size <= 0:
-                    progression = '{0} bytes'.format(index * blksize)
-                else:
-                    progression = '{0:.2f}%'.format(
-                        index * blksize * 100. / float(size))
-                stdout.write('- Download {}\r'.format(progression))
-                stdout.flush()
-
             if exists(target):
                 unlink(target)
-
-            urlretrieve(url, target, report_hook)
+            urlretrieve(url, target)
             return target
         elif parsed_url.scheme in ('git', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
