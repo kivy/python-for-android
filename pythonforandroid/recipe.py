@@ -2,7 +2,7 @@ from os.path import join, dirname, isdir, exists, isfile, split, realpath
 import importlib
 import zipfile
 import glob
-from six import PY2
+from six import PY2, with_metaclass
 
 import sh
 import shutil
@@ -37,8 +37,19 @@ else:
             return SourceFileLoader(module, filename).load_module()
 
 
-class Recipe(object):
-    url = None
+class RecipeMeta(type):
+    def __new__(cls, name, bases, dct):
+        if name != 'Recipe':
+            if 'url' in dct:
+                dct['_url'] = dct.pop('url')
+            if 'version' in dct:
+                dct['_version'] = dct.pop('version')
+
+        return super(RecipeMeta, cls).__new__(cls, name, bases, dct)
+
+
+class Recipe(with_metaclass(RecipeMeta)):
+    _url = None
     '''The address from which the recipe may be downloaded. This is not
     essential, it may be omitted if the source is available some other
     way, such as via the :class:`IncludedFilesBehaviour` mixin.
@@ -52,7 +63,7 @@ class Recipe(object):
               if you want.
     '''
 
-    version = None
+    _version = None
     '''A string giving the version of the software the recipe describes,
     e.g. ``2.0.3`` or ``master``.'''
 
@@ -87,6 +98,16 @@ class Recipe(object):
     at build time, you must create a recipe.'''
 
     archs = ['armeabi']  # Not currently implemented properly
+
+    @property
+    def version(self):
+        key = 'VERSION_' + self.name
+        return environ.get(key, self._version)
+
+    @property
+    def url(self):
+        key = 'URL_' + self.name
+        return environ.get(key, self._url)
 
     @property
     def versioned_url(self):
