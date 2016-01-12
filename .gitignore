@@ -18,3 +18,6 @@ python_for_android.egg-info
 /build/
 doc/build
 __pycache__/
+
+#idea/pycharm
+.idea/
