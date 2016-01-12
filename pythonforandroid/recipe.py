@@ -542,6 +542,13 @@ class Recipe(object):
             warning(('Attempted to clean build for {} but build '
                      'did not exist').format(self.name))
 
+    def install_libs(self, arch, lib, *libs):
+        libs_dir = self.ctx.get_libs_dir(arch.arch)
+        shprint(sh.cp, '-t', libs_dir, lib, *libs)
+
+    def has_libs(self, arch, *libs):
+        return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
+
     @classmethod
     def recipe_dirs(cls, ctx):
         return [ctx.local_recipes,
@@ -673,20 +680,43 @@ class PythonRecipe(Recipe):
     call_hostpython_via_targetpython is False.
     '''
 
+    install_in_targetpython = True
+    '''If True, installs the module in the targetpython installation dir.
+    This is almost always what you want to do.'''
+
     setup_extra_args = []
     '''List of extra arugments to pass to setup.py'''
 
     @property
+    def real_hostpython_location(self):
+        if 'hostpython2' in self.ctx.build_order:
+            return join(
+                Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
+                'hostpython')
+        else:
+            python_recipe = self.ctx.python_recipe
+            return 'python{}'.format(python_recipe.version)
+
+    @property
     def hostpython_location(self):
         if not self.call_hostpython_via_targetpython:
-            if 'hostpython2' in self.ctx.build_order:
-                return join(
-                    Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
-                    'hostpython')
-            else:
-                python_recipe = self.ctx.python_recipe
-                return 'python{}'.format(python_recipe.version)
+            return self.real_hostpython_location
         return self.ctx.hostpython
+
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+        env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        if not self.call_hostpython_via_targetpython:
+            hppath = []
+            hppath.append(join(dirname(self.hostpython_location), 'Lib'))
+            hppath.append(join(hppath[0], 'site-packages'))
+            builddir = join(dirname(self.hostpython_location), 'build')
+            hppath += [join(builddir, d) for d in listdir(builddir)
+                       if isdir(join(builddir, d))]
+            if 'PYTHONPATH' in env:
+                env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
+            else:
+                env['PYTHONPATH'] = ':'.join(hppath)
+        return env
 
     def should_build(self, arch):
         print('name is', self.site_packages_name, type(self))
@@ -717,7 +747,6 @@ class PythonRecipe(Recipe):
         info('Installing {} into site-packages'.format(self.name))
 
         with current_directory(self.get_build_dir(arch.arch)):
-            # hostpython = sh.Command(self.ctx.hostpython)
             hostpython = sh.Command(self.hostpython_location)
             # hostpython = sh.Command('python3.5')
 
@@ -763,10 +792,20 @@ class PythonRecipe(Recipe):
 
             # If asked, also install in the hostpython build dir
             if self.install_in_hostpython:
-                shprint(hostpython, 'setup.py', 'install', '-O2',
-                        '--root={}'.format(dirname(self.hostpython_location)),
-                        '--install-lib=Lib/site-packages',
-                        _env=env, *self.setup_extra_args)
+                self.install_hostpython_package(arch)
+
+    def get_hostrecipe_env(self, arch):
+        env = environ.copy()
+        env['PYTHONPATH'] = join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
+        return env
+
+    def install_hostpython_package(self, arch):
+        env = self.get_hostrecipe_env(arch)
+        real_hostpython = sh.Command(self.real_hostpython_location)
+        shprint(real_hostpython, 'setup.py', 'install', '-O2',
+                '--root={}'.format(dirname(self.real_hostpython_location)),
+                '--install-lib=Lib/site-packages',
+                _env=env, *self.setup_extra_args)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
@@ -788,21 +827,26 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
-            if self.call_hostpython_via_targetpython:
-                shprint(hostpython, 'setup.py', self.build_cmd, '-v',
-                        _env=env, *self.setup_extra_args)
-            else:
-                hppath = join(dirname(self.hostpython_location), 'Lib',
-                              'site-packages')
-                if 'PYTHONPATH' in env:
-                    env['PYTHONPATH'] = hppath + ':' + env['PYTHONPATH']
-                else:
-                    env['PYTHONPATH'] = hppath
-                shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
-                        *self.setup_extra_args)
+            if self.install_in_hostpython:
+                shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
+            shprint(hostpython, 'setup.py', self.build_cmd, '-v',
+                    _env=env, *self.setup_extra_args)
             build_dir = glob.glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
+
+    def install_hostpython_package(self, arch):
+        env = self.get_hostrecipe_env(arch)
+        self.rebuild_compiled_components(arch, env)
+        super(CompiledComponentsPythonRecipe, self).install_hostpython_package(arch)
+
+    def rebuild_compiled_components(self, arch, env):
+        info('Rebuilding compiled components in {}'.format(self.name))
+
+        hostpython = sh.Command(self.real_hostpython_location)
+        shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
+        shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
+                *self.setup_extra_args)
 
 
 class CythonRecipe(PythonRecipe):
@@ -859,13 +903,15 @@ class CythonRecipe(PythonRecipe):
 
             if manually_cythonise:
                 info('Running cython where appropriate')
-                if self.ctx.python_recipe.from_crystax:
-                    shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-                            '-exec', 'cython', '{}', ';')
-                    # AND: Need to choose cython version more carefully
-                else:
-                    shprint(sh.find, self.get_build_dir(arch.arch), '-iname', '*.pyx',
-                            '-exec', self.ctx.cython, '{}', ';', _env=env)
+                cyenv = env.copy()
+            if 'CYTHONPATH' in cyenv:
+                cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
+            elif 'PYTHONPATH' in cyenv:
+                del cyenv['PYTHONPATH']
+            cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
+            cython_cmd = 'find "{}" -iname *.pyx | xargs "{}"'.format(
+                    self.get_build_dir(arch.arch), cython)
+            shprint(sh.sh, '-c', cython_cmd, _env=cyenv)
                 info('ran cython')
 
                 shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
@@ -879,7 +925,6 @@ class CythonRecipe(PythonRecipe):
             shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
-            # exit(1)
 
     # def cythonize_file(self, filename):
     #     if filename.startswith(self.build_dir):
