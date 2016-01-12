@@ -1,0 +1,14 @@
+diff -Naur cryptography/setup.py b/setup.py
+--- cryptography/setup.py	2015-12-10 13:53:28.000000000 -0600
++++ b/setup.py	2015-12-23 12:12:22.830287138 -0600
+@@ -18,6 +18,10 @@
+ from setuptools.command.install import install
+ from setuptools.command.test import test
+ 
++import sys
++for d in sys.path[:]:
++    if 'python-installs' in d:
++        sys.path.remove(d)
+ 
+ base_dir = os.path.dirname(__file__)
+ src_dir = os.path.join(base_dir, "src")

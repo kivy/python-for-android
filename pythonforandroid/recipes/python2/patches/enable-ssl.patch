@@ -1,0 +1,17 @@
+--- python2/Modules/Setup.dist	2011-06-11 10:46:26.000000000 -0500
++++ b/Modules/Setup.dist	2015-12-28 16:18:13.329648940 -0600
+@@ -211,10 +211,10 @@
+ 
+ # Socket module helper for SSL support; you must comment out the other
+ # socket line above, and possibly edit the SSL variable:
+-#SSL=/usr/local/ssl
+-#_ssl _ssl.c \
+-#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+-#	-L$(SSL)/lib -lssl -lcrypto
++SSL=/p4a/path/to/openssl
++_ssl _ssl.c \
++	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
++	-L$(SSL) -lssl -lcrypto
+ 
+ # The crypt module is now disabled by default because it breaks builds
+ # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
