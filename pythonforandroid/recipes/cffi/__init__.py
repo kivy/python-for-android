@@ -6,7 +6,7 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
 	version = '1.4.2'
 	url = 'https://pypi.python.org/packages/source/c/cffi/cffi-{version}.tar.gz'
 
-	depends = [('python2', 'python3'), 'setuptools', 'pycparser', 'libffi']
+	depends = [('python2', 'python3crystax'), 'setuptools', 'pycparser', 'libffi']
 
 	patches = ['disable-pkg-config.patch']
 

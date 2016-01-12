@@ -13,7 +13,7 @@ class Python2Recipe(TargetPythonRecipe):
     name = 'python2'
 
     depends = ['hostpython2']
-    conflicts = ['python3']
+    conflicts = ['python3crystax', 'python3']
     opt_depends = ['openssl']
     
     patches = ['patches/Python-{version}-xcompile.patch',

@@ -8,7 +8,7 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
 	version = '1.1.2'
 	url = 'https://pypi.python.org/packages/source/c/cryptography/cryptography-{version}.tar.gz'
 
-	depends = [('python2', 'python3'), 'cffi', 'enum34', 'openssl', 'ipaddress', 'idna']
+	depends = [('python2', 'python3crystax'), 'cffi', 'enum34', 'openssl', 'ipaddress', 'idna']
 
 	patches = ['fix-cffi-path.patch',
 	           'link-static.patch']
