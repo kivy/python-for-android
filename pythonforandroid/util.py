@@ -21,10 +21,10 @@ else:
     unistr = unicode
 
 
-class ChromeDownloader(FancyURLopener):
+class WgetDownloader(FancyURLopener):
     version = ('Wget/1.17.1')
 
-urlretrieve = ChromeDownloader().retrieve
+urlretrieve = WgetDownloader().retrieve
 
 
 @contextlib.contextmanager
