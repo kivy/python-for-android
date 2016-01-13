@@ -710,7 +710,7 @@ class PythonRecipe(Recipe):
 
     @property
     def real_hostpython_location(self):
-        if 'hostpython2' in self.ctx.build_order:
+        if 'hostpython2' in self.ctx.recipe_build_order:
             return join(
                 Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
                 'hostpython')
