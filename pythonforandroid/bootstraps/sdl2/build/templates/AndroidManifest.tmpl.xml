@@ -8,8 +8,18 @@
       android:versionName="{{ args.version }}"
       android:installLocation="auto">
 
+    <supports-screens
+            android:smallScreens="true"
+            android:normalScreens="true"
+            android:largeScreens="true"
+            android:anyDensity="true"
+            {% if args.min_sdk_version >= 9 %}
+            android:xlargeScreens="true"
+            {% endif %}
+    />
+
     <!-- Android 2.3.3 -->
-    <uses-sdk android:minSdkVersion="12" android:targetSdkVersion="12" />
+    <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}" />
 
     <!-- OpenGL ES 2.0 -->
     <uses-feature android:glEsVersion="0x00020000" />
@@ -24,6 +34,14 @@
     {% endif %}
     {% endfor %}
 
+    {% if args.wakelock %}
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    {% endif %}
+    
+    {% if args.billing_pubkey %}
+    <uses-permission android:name="com.android.vending.BILLING" />
+    {% endif %}
+    
     <!-- Create a Java class extending SDLActivity and place it in a
          directory under src matching the package, e.g.
          	src/com/gamemaker/game/MyGame.java
@@ -56,6 +74,24 @@
             {{- args.intent_filters -}}
             {%- endif -%}
         </activity>
+        
+        {% if service %}
+        <service android:name="org.kivy.android.PythonService"
+                 android:process=":pythonservice" />
+        {% endif %}
+        
+        {% if args.billing_pubkey %}
+        <service android:name="org.kivy.android.billing.BillingReceiver"
+                 android:process=":pythonbilling" />
+        <receiver android:name="org.kivy.android.billing.BillingReceiver"
+                  android:process=":pythonbillingreceiver">
+            <intent-filter>
+                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
+                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
+                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        {% endif %}
     </application>
 
-</manifest>
+</manifest> 
