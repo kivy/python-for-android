@@ -30,14 +30,14 @@ def recursively_include(results, directory, patterns):
             results[directory].append(join(*filename.split(sep)[1:]))
 
 recursively_include(package_data, 'pythonforandroid/recipes',
-                    ['*.patch', 'Setup', '*.pyx', '*.py', '*.c', '*.h', ])
+                    ['*.patch', 'Setup*', '*.pyx', '*.py', '*.c', '*.h', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
                      '*.mk', '*.c', '*.h', '*.py', '*.sh', '*.jpg', '*.aidl', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['sdl-config', ])
 recursively_include(package_data, 'pythonforandroid',
-                    ['liblink', 'biglink'])
+                    ['liblink', 'biglink', 'liblink.sh'])
 
 setup(name='python-for-android',
       version='0.3',
