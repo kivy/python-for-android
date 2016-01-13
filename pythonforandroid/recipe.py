@@ -974,10 +974,12 @@ class CythonRecipe(PythonRecipe):
         if self.ctx.python_recipe.from_crystax:
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
-            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink.sh')
         # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
+        if self.ctx.copy_libs:
+            env['COPYLIBS'] = '1'
 
         # Every recipe uses its own liblink path, object files are
         # collected and biglinked later

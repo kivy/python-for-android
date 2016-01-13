@@ -268,6 +268,11 @@ build_dist
             dest='local_recipes', default='./p4a-recipes',
             help='Directory to look for local recipes')
 
+        add_boolean_option(
+            parser, ['copy-libs'],
+            default=False,
+            description='Copy libraries instead of using biglink (Android 4.3+)')
+
         self._read_configuration()
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
@@ -302,6 +307,7 @@ build_dist
             exit(1)
 
         self.ctx.local_recipes = args.local_recipes
+        self.ctx.copy_libs = args.copy_libs
 
         getattr(self, args.command)(unknown)
 
