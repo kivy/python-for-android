@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
     LOG("Initialize Python for Android");
     /* env_argument = "/data/data/org.kivy.android/files"; */
     env_argument = getenv("ANDROID_ARGUMENT");
-    /* setenv("ANDROID_APP_PATH", env_argument, 1); */
+    setenv("ANDROID_APP_PATH", env_argument, 1);
     
     /* setenv("ANDROID_ARGUMENT", env_argument, 1); */
     /* setenv("ANDROID_PRIVATE", env_argument, 1); */
@@ -314,32 +314,32 @@ int main(int argc, char *argv[]) {
     return ret;
 }
 
-/* JNIEXPORT void JNICALL JAVA_EXPORT_NAME(PythonService_nativeStart) ( JNIEnv*  env, jobject thiz, */
-/*                                                                      jstring j_android_private, */
-/*                                                                      jstring j_android_argument, */
-/*                                                                      jstring j_python_home, */
-/*                                                                      jstring j_python_path, */
-/*                                                                      jstring j_arg ) */
-/* { */
-/*     jboolean iscopy; */
-/*     const char *android_private = (*env)->GetStringUTFChars(env, j_android_private, &iscopy); */
-/*     const char *android_argument = (*env)->GetStringUTFChars(env, j_android_argument, &iscopy); */
-/*     const char *python_home = (*env)->GetStringUTFChars(env, j_python_home, &iscopy); */
-/*     const char *python_path = (*env)->GetStringUTFChars(env, j_python_path, &iscopy); */
-/*     const char *arg = (*env)->GetStringUTFChars(env, j_arg, &iscopy); */
+JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart ( JNIEnv*  env, jobject thiz, 
+                                                                         jstring j_android_private, 
+                                                                         jstring j_android_argument, 
+                                                                         jstring j_python_home, 
+                                                                         jstring j_python_path, 
+                                                                         jstring j_arg ) 
+{
+    jboolean iscopy; 
+    const char *android_private = (*env)->GetStringUTFChars(env, j_android_private, &iscopy); 
+    const char *android_argument = (*env)->GetStringUTFChars(env, j_android_argument, &iscopy); 
+    const char *python_home = (*env)->GetStringUTFChars(env, j_python_home, &iscopy); 
+    const char *python_path = (*env)->GetStringUTFChars(env, j_python_path, &iscopy); 
+    const char *arg = (*env)->GetStringUTFChars(env, j_arg, &iscopy); 
 
-/*     setenv("ANDROID_PRIVATE", android_private, 1); */
-/*     setenv("ANDROID_ARGUMENT", android_argument, 1); */
-/*     setenv("PYTHONOPTIMIZE", "2", 1); */
-/*     setenv("PYTHONHOME", python_home, 1); */
-/*     setenv("PYTHONPATH", python_path, 1); */
-/*     setenv("PYTHON_SERVICE_ARGUMENT", arg, 1); */
+    setenv("ANDROID_PRIVATE", android_private, 1); 
+    setenv("ANDROID_ARGUMENT", android_argument, 1); 
+    setenv("PYTHONOPTIMIZE", "2", 1); 
+    setenv("PYTHONHOME", python_home, 1); 
+    setenv("PYTHONPATH", python_path, 1); 
+    setenv("PYTHON_SERVICE_ARGUMENT", arg, 1); 
 
-/*     char *argv[] = { "service" }; */
-/*     /\* ANDROID_ARGUMENT points to service subdir, */
-/*      * so main() will run main.py from this dir */
-/*      *\/ */
-/*     main(1, argv); */
-/* } */
+    char *argv[] = { "service" }; 
+    /* ANDROID_ARGUMENT points to service subdir, 
+     * so main() will run main.py from this dir 
+     */
+    main(1, argv); 
+}
 
 #endif

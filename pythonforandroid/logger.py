@@ -192,7 +192,7 @@ def shprint(command, *args, **kwargs):
                 else:
                     info('{} (last {} lines of {}):\n{}\t{}{}'.format(
                         name, tail_n, len(lines),
-                        forecolor, '\t\n'.join(lines[-tail_n:]),
+                        forecolor, '\t\n'.join([s.decode('utf-8') for s in lines[-tail_n:]]),
                         Out_Fore.RESET))
             printtail(err.stdout, 'STDOUT', Out_Fore.YELLOW, tail_n,
                       re.compile(filter_in) if filter_in else None,
