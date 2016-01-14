@@ -966,7 +966,9 @@ class CythonRecipe(PythonRecipe):
         env = super(CythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
-            ' -L{} '.format(self.ctx.libs_dir))
+            ' -L{} '.format(self.ctx.libs_dir) +
+            ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
+                                arch.arch)))
         if self.ctx.python_recipe.from_crystax:
             env['LDFLAGS'] = (env['LDFLAGS'] +
                               ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
