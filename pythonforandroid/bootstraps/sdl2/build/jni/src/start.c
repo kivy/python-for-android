@@ -234,11 +234,14 @@ int main(int argc, char *argv[]) {
         "    def flush(self):\n" \
         "        return\n" \
         "sys.stdout = sys.stderr = LogFile()\n" \
-        "import site; print(site.getsitepackages())\n"
 		"print('Android path', sys.path)\n" \
         "import os\n" \
         "print('os.environ is', os.environ)\n" \
         "print('Android kivy bootstrap done. __name__ is', __name__)");
+
+#if PY_MAJOR_VERSION < 3
+    PyRun_SimpleString("import site; print site.getsitepackages()\n");
+#endif
 
     /* PyRun_SimpleString( */
     /*     "import sys, posix\n" \ */
