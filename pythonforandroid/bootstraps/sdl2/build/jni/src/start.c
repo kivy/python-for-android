@@ -234,6 +234,7 @@ int main(int argc, char *argv[]) {
         "    def flush(self):\n" \
         "        return\n" \
         "sys.stdout = sys.stderr = LogFile()\n" \
+        "import site; print(site.getsitepackages())\n"
 		"print('Android path', sys.path)\n" \
         "import os\n" \
         "print('os.environ is', os.environ)\n" \
