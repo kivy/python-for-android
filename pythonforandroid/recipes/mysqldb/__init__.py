@@ -15,6 +15,19 @@ class MysqldbRecipe(CompiledComponentsPythonRecipe):
 
 	# call_hostpython_via_targetpython = False
 
+	def convert_newlines(self, filename):
+		print('converting newlines in {}'.format(filename))
+		with open(filename, 'rb') as f:
+			data = f.read()
+		with open(filename, 'wb') as f:
+			f.write(data.replace(b'\r\n', b'\n').replace(b'\r', b'\n'))
+
+	def prebuild_arch(self, arch):
+		super(MysqldbRecipe, self).prebuild_arch(arch)
+		setupbase = join(self.get_build_dir(arch.arch), 'setup')
+		self.convert_newlines(setupbase + '.py')
+		self.convert_newlines(setupbase + '_posix.py')
+
 	def get_recipe_env(self, arch=None):
 		env = super(MysqldbRecipe, self).get_recipe_env(arch)
 
