@@ -26,13 +26,24 @@ class OpenSSLRecipe(Recipe):
         env['CC'] += ' ' + env['LDFLAGS']
         return env
 
+    def select_build_arch(self, arch):
+        aname = arch.arch
+        if 'arm64' in aname:
+            return 'linux-aarch64'
+        if 'v7a' in aname:
+            return 'android-armv7'
+        if 'arm' in aname:
+            return 'android'
+        return 'linux-armv4'
+
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             # sh fails with code 255 trying to execute ./Configure
             # so instead we manually run perl passing in Configure
             perl = sh.Command('perl')
-            shprint(perl, 'Configure', 'shared', 'no-dso', 'no-krb5', 'linux-armv4', _env=env)
+            buildarch = self.select_build_arch(arch)
+            shprint(perl, 'Configure', 'shared', 'no-dso', 'no-krb5', buildarch, _env=env)
             self.apply_patch('disable-sover.patch', arch.arch)
 
             check_crypto = partial(self.check_symbol, env, 'libcrypto.so')

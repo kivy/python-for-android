@@ -36,5 +36,8 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
 		print env
 		return env
 
+	def build_arch(self, arch):
+		super(CryptographyRecipe, self).build_arch(arch)
+
 
 recipe = CryptographyRecipe()

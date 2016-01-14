@@ -64,7 +64,9 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
                 shprint(sh.rm, '-rf', join('private', 'lib', 'pkgconfig'))
 
-                with current_directory(join(self.dist_dir, 'private', 'lib', 'python2.7')):
+                libdir = join(self.dist_dir, 'private', 'lib', 'python2.7')
+                site_packages_dir = join(libdir, 'site-packages')
+                with current_directory(libdir):
                     # shprint(sh.xargs, 'rm', sh.grep('-E', '*\.(py|pyx|so\.o|so\.a|so\.libs)$', sh.find('.')))
                     removes = []
                     for dirname, something, filens in walk('.'):
@@ -107,6 +109,7 @@ class SDL2Bootstrap(Bootstrap):
 
 
         self.strip_libraries(arch)
+        self.fry_eggs(site_packages_dir)
         super(SDL2Bootstrap, self).run_distribute()
 
 bootstrap = SDL2Bootstrap()

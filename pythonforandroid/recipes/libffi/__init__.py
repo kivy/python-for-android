@@ -13,7 +13,20 @@ class LibffiRecipe(Recipe):
 
 	patches = ['remove-version-info.patch']
 
-	host = 'arm-unknown-linux-androideabi'
+	def get_host(self, arch):
+		with current_directory(self.get_build_dir(arch.arch)):
+			host = None
+			with open('Makefile') as f:
+				for line in f:
+					if line.startswith('host = '):
+						host = line.strip()[7:]
+						break
+
+			if not host or not exists(host):
+				raise RuntimeError('failed to find build output! ({})'
+				                   .format(host))
+			
+			return host
 
 	def should_build(self, arch):
 		# return not bool(glob.glob(join(self.ctx.get_libs_dir(arch.arch),
@@ -27,23 +40,11 @@ class LibffiRecipe(Recipe):
 		with current_directory(self.get_build_dir(arch.arch)):
 			if not exists('configure'):
 				shprint(sh.Command('./autogen.sh'), _env=env)
-			shprint(sh.Command('./configure'), '--host=arm-linux-androideabi',
+			shprint(sh.Command('./configure'), '--host=' + arch.toolchain_prefix,
 			        '--prefix=' + self.ctx.get_python_install_dir(),
 			        '--enable-shared', _env=env)
 			shprint(sh.make, '-j5', 'libffi.la', _env=env)
 
-			host = None
-			with open('Makefile') as f:
-				for line in f:
-					if line.startswith('host = '):
-						host = line.strip()[7:]
-						break
-
-			if not host or not exists(host):
-				raise RuntimeError('failed to find build output! ({})'
-				                   .format(host))
-
-			self.host = host
 
 			# dlname = None
 			# with open(join(host, 'libffi.la')) as f:
@@ -59,11 +60,11 @@ class LibffiRecipe(Recipe):
 			# shprint(sh.sed, '-i', 's/^dlname=.*$/dlname=\'libffi.so\'/', join(host, 'libffi.la'))
 
 			shprint(sh.cp, '-t', self.ctx.get_libs_dir(arch.arch),
-			        join(host, '.libs', 'libffi.so')) #,
+			        join(self.get_host(arch), '.libs', 'libffi.so')) #,
 			        # join(host, 'libffi.la'))
 
 	def get_include_dirs(self, arch):
-		return [join(self.get_build_dir(arch.arch), self.host, 'include')]
+		return [join(self.get_build_dir(arch.arch), self.get_host(arch), 'include')]
 
 
 recipe = LibffiRecipe()

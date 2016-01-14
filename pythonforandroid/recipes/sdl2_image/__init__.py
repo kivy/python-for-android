@@ -8,7 +8,9 @@ class LibSDL2Image(BootstrapNDKRecipe):
     dir_name = 'SDL2_image'
 
     patches = ['disable_webp.patch',
-               ('disable_jpg.patch', is_arch('x86'))]
+               ('disable_jpg.patch', is_arch('x86')),
+               'extra-cflags.patch',
+               ('disable-assembler.patch', is_arch('arm64-v8a'))]
 
 
 recipe = LibSDL2Image()

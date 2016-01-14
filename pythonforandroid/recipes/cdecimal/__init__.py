@@ -16,7 +16,11 @@ class CdecimalRecipe(CompiledComponentsPythonRecipe):
     def prebuild_arch(self, arch):
         super(CdecimalRecipe, self).prebuild_arch(arch)
         if not is_darwin():
-            self.setup_extra_args = ['--with-machine=ansi32']
+            if '64' in arch.arch:
+                machine = 'ansi64'
+            else:
+                machine = 'ansi32'
+            self.setup_extra_args = ['--with-machine=' + machine]
 
 
 recipe = CdecimalRecipe()

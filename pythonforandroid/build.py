@@ -14,7 +14,7 @@ from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
                                      Err_Fore, Err_Style, info_main,
                                      shprint)
-from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64
+from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64, ArchAarch_64
 from pythonforandroid.recipe import Recipe
 
 DEFAULT_ANDROID_API = 15
@@ -432,7 +432,8 @@ class Context(object):
         self.archs = (
             ArchARM(self),
             ArchARMv7_a(self),
-            Archx86(self)
+            Archx86(self),
+            ArchAarch_64(self),
             )
 
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))

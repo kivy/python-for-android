@@ -1,4 +1,4 @@
-from os.path import (join)
+from os.path import (join, dirname)
 from os import environ, uname
 import sys
 from distutils.spawn import find_executable
@@ -161,3 +161,22 @@ class Archx86_64(Arch):
                          ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel')
         env['CXXFLAGS'] = env['CFLAGS']
         return env
+
+
+class ArchAarch_64(Arch):
+    arch = 'arm64-v8a'
+    toolchain_prefix = 'aarch64-linux-android'
+    command_prefix = 'aarch64-linux-android'
+    platform_dir = 'arch-arm64'
+
+    def get_env(self, with_flags_in_cc=True):
+        env = super(ArchAarch_64, self).get_env(with_flags_in_cc)
+        incpath = ' -I' + join(dirname(__file__), 'includes', 'arm64-v8a')
+        env['EXTRA_CFLAGS'] = incpath
+        env['CFLAGS'] += incpath
+        env['CXXFLAGS'] += incpath
+        if with_flags_in_cc:
+            env['CC'] += incpath
+            env['CXX'] += incpath
+        return env
+
