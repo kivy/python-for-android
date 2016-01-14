@@ -239,6 +239,10 @@ int main(int argc, char *argv[]) {
         "print('os.environ is', os.environ)\n" \
         "print('Android kivy bootstrap done. __name__ is', __name__)");
 
+#if PY_MAJOR_VERSION < 3
+    PyRun_SimpleString("import site; print site.getsitepackages()\n");
+#endif
+
     /* PyRun_SimpleString( */
     /*     "import sys, posix\n" \ */
     /*     "private = posix.environ['ANDROID_PRIVATE']\n" \ */
