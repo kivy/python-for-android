@@ -1,4 +1,4 @@
-from os.path import (join, dirname, isdir, splitext, basename)
+from os.path import (join, dirname, isdir, splitext, basename, realpath)
 from os import listdir
 import sh
 import glob
@@ -253,3 +253,14 @@ class Bootstrap(object):
                 strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
                 logger.debug('Failed to strip ' + filen)
+
+    def fry_eggs(self, sitepackages):
+        info('Frying eggs in {}'.format(sitepackages))
+        for d in listdir(sitepackages):
+            rd = join(sitepackages, d)
+            if isdir(rd) and d.endswith('.egg'):
+                info('  ' + d)
+                files = [join(rd, f) for f in listdir(rd) if f != 'EGG-INFO']
+                shprint(sh.mv, '-t', sitepackages, *files)
+                shprint(sh.rm, '-rf', d)
+

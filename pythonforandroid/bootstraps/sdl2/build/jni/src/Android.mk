@@ -12,7 +12,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include
 LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 	start.c
 
-LOCAL_CFLAGS += -I$(LOCAL_PATH)/../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/include/python2.7
+LOCAL_CFLAGS += -I$(LOCAL_PATH)/../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/include/python2.7 $(EXTRA_CFLAGS)
 
 LOCAL_SHARED_LIBRARIES := SDL2 python_shared
 
