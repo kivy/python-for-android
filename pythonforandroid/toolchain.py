@@ -278,6 +278,17 @@ build_dist
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
 
+        # strip version from requirements, and put them in environ
+        requirements = []
+        for requirement in split_argument_list(args.requirements):
+            if "==" in requirement:
+                requirement, version = requirement.split(u"==", 1)
+                os.environ["VERSION_{}".format(requirement)] = version
+                info('Recipe {}: version "{}" requested'.format(
+                    requirement, version))
+            requirements.append(requirement)
+        args.requirements = u",".join(requirements)
+
         if args.debug:
             logger.setLevel(logging.DEBUG)
         self.sdk_dir = args.sdk_dir
