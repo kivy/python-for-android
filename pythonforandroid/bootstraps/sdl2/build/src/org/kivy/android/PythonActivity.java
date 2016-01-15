@@ -25,6 +25,10 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 import android.content.Intent;
+import android.widget.ImageView;
+import java.io.InputStream;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import org.libsdl.app.SDLActivity;
 
@@ -38,7 +42,7 @@ public class PythonActivity extends SDLActivity {
     private static final String TAG = "PythonActivity";
 
     public static PythonActivity mActivity = null;
-    
+
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
@@ -47,6 +51,7 @@ public class PythonActivity extends SDLActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
         resourceManager = new ResourceManager(this);
+        this.showLoadingScreen();
 
         Log.v(TAG, "Ready to unpack");
         unpackData("private", getFilesDir());
@@ -54,9 +59,10 @@ public class PythonActivity extends SDLActivity {
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
         Log.v(TAG, "Did super onCreate");
-        
+
+        this.showLoadingScreen();
         this.mActivity = this;
-        
+
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
@@ -65,7 +71,7 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         SDLActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
 
-        
+
         // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
 
         try {
@@ -87,11 +93,11 @@ public class PythonActivity extends SDLActivity {
         } catch (PackageManager.NameNotFoundException e) {
         }
     }
-    
+
     public void loadLibraries() {
         PythonUtil.loadLibraries(getFilesDir());
     }
-    
+
     public void recursiveDelete(File f) {
         if (f.isDirectory()) {
             for (File r : f.listFiles()) {
@@ -123,15 +129,15 @@ public class PythonActivity extends SDLActivity {
             }
         }
     }
-    
+
     public void unpackData(final String resource, File target) {
-        
+
         Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
-        
+
         // The version of data in memory and on disk.
         String data_version = resourceManager.getString(resource + "_version");
         String disk_version = null;
-        
+
         Log.v(TAG, "Data version is " + data_version);
 
         // If no version, no unpacking is necessary.
@@ -180,7 +186,7 @@ public class PythonActivity extends SDLActivity {
             }
         }
     }
-    
+
     public static ViewGroup getLayout() {
         return   mLayout;
     }
@@ -277,4 +283,75 @@ public class PythonActivity extends SDLActivity {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         PythonActivity.mActivity.stopService(serviceIntent);
     }
+
+    /** Loading screen implementation
+    * keepActive() is a method plugged in pollInputDevices in SDLActivity.
+    * Once it's called twice, the loading screen will be removed.
+    * The first call happen as soon as the window is created, but no image has been
+    * displayed first. My tests showed that we can wait one more. This might delay
+    * the real available of few hundred milliseconds.
+    * The real deal is to know if a rendering has already happen. The previous
+    * python-for-android and kivy was having something for that, but this new version
+    * is not compatible, and would require a new kivy version.
+    * In case of, the method PythonActivty.mActivity.removeLoadingScreen() can be called.
+    */
+    public static ImageView mImageView = null;
+    int mLoadingCount = 2;
+
+    @Override
+    public void keepActive() {
+      Log.v("python", "keepActive from PythonActivity");
+      if (this.mLoadingCount > 0) {
+        this.mLoadingCount -= 1;
+        if (this.mLoadingCount == 0) {
+          this.removeLoadingScreen();
+        }
+      }
+    }
+
+    public void removeLoadingScreen() {
+      runOnUiThread(new Runnable() {
+        public void run() {
+          if (PythonActivity.mImageView != null) {
+            ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
+            PythonActivity.mImageView);
+            PythonActivity.mImageView = null;
+          }
+        }
+      });
+    }
+
+    protected void showLoadingScreen() {
+      // load the bitmap
+      // 1. if the image is valid and we don't have layout yet, assign this bitmap
+      // as main view.
+      // 2. if we have a layout, just set it in the layout.
+      if (mImageView == null) {
+        int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
+        InputStream is = this.getResources().openRawResource(presplashId);
+        Bitmap bitmap = null;
+        try {
+          bitmap = BitmapFactory.decodeStream(is);
+        } finally {
+          try {
+            is.close();
+          } catch (IOException e) {};
+        }
+
+        mImageView = new ImageView(this);
+        mImageView.setImageBitmap(bitmap);
+        mImageView.setLayoutParams(new ViewGroup.LayoutParams(
+        ViewGroup.LayoutParams.FILL_PARENT,
+        ViewGroup.LayoutParams.FILL_PARENT));
+        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+      }
+
+      if (mLayout == null) {
+        setContentView(mImageView);
+      } else {
+        mLayout.addView(mImageView);
+      }
+    }
+
+
 }
