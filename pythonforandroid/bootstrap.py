@@ -261,6 +261,6 @@ class Bootstrap(object):
             if isdir(rd) and d.endswith('.egg'):
                 info('  ' + d)
                 files = [join(rd, f) for f in listdir(rd) if f != 'EGG-INFO']
-                shprint(sh.mv, '-t', sitepackages, *files)
+                if files:
+                    shprint(sh.mv, '-t', sitepackages, *files)
                 shprint(sh.rm, '-rf', d)
-
