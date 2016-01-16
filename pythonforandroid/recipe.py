@@ -2,6 +2,7 @@ from os.path import join, dirname, isdir, exists, isfile, split, realpath
 import importlib
 import zipfile
 import glob
+from shutil import rmtree
 from six import PY2, with_metaclass
 
 import sh
@@ -713,6 +714,21 @@ class PythonRecipe(Recipe):
 
     setup_extra_args = []
     '''List of extra arugments to pass to setup.py'''
+
+    def clean_build(self, arch=None):
+        super(PythonRecipe, self).clean_build(arch=arch)
+        name = self.site_packages_name
+        if name is None:
+            name = self.name
+        python_install_dirs = glob.glob(join(self.ctx.python_installs_dir, '*'))
+        for python_install in python_install_dirs:
+            site_packages_dir = glob.glob(join(python_install, 'lib', 'python*',
+                                               'site-packages'))
+            if site_packages_dir:
+                build_dir = join(site_packages_dir[0], name)
+                if exists(build_dir):
+                    info('Deleted {}'.format(build_dir))
+                    rmtree(build_dir)
 
     @property
     def real_hostpython_location(self):
