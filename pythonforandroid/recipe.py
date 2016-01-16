@@ -554,14 +554,20 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         '''
         if arch is None:
-            dir = join(self.ctx.build_dir, 'other_builds', self.name)
+            base_dir = join(self.ctx.build_dir, 'other_builds', self.name)
         else:
-            dir = self.get_build_container_dir(arch)
-        if exists(dir):
-            shutil.rmtree(dir)
-        else:
-            warning(('Attempted to clean build for {} but build '
-                     'did not exist').format(self.name))
+            base_dir = self.get_build_container_dir(arch)
+        dirs = glob.glob(base_dir + '-*')
+        if exists(base_dir):
+            dirs.append(base_dir)
+        if not dirs:
+             warning(('Attempted to clean build for {} but found no existing '
+                      'build dirs').format(self.name))
+
+        for directory in dirs:
+            if exists(directory):
+                info('Deleting {}'.format(directory))
+                shutil.rmtree(directory)
 
     def install_libs(self, arch, lib, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
