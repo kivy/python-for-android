@@ -396,14 +396,14 @@ class Recipe(with_metaclass(RecipeMeta)):
             info('P4A_{}_DIR exists, symlinking instead'.format(
                 self.name.lower()))
             # AND: Currently there's something wrong if I use ln, fix this
-            warning('Using git clone instead of symlink...fix this!')
+            warning('Using cp -a instead of symlink...fix this!')
             if exists(self.get_build_dir(arch)):
                 return
             shprint(sh.rm, '-rf', build_dir)
             shprint(sh.mkdir, '-p', build_dir)
             shprint(sh.rmdir, build_dir)
             ensure_dir(build_dir)
-            shprint(sh.git, 'clone', user_dir, self.get_build_dir(arch))
+            shprint(sh.cp, '-a', user_dir, self.get_build_dir(arch))
             return
 
         if self.url is None:
@@ -1017,7 +1017,7 @@ class CythonRecipe(PythonRecipe):
                 join(self.ctx.ndk_dir, 'sources', 'python',
                      self.ctx.python_recipe.version, 'include',
                      'python')) + env['CFLAGS']
-        
+
         return env
 
 
@@ -1044,7 +1044,7 @@ class TargetPythonRecipe(Recipe):
     # @property
     # def ctx(self):
     #     return self._ctx
-    
+
     # @ctx.setter
     # def ctx(self, ctx):
     #     self._ctx = ctx
