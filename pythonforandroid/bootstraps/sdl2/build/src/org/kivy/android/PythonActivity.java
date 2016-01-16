@@ -301,7 +301,6 @@ public class PythonActivity extends SDLActivity {
 
     @Override
     public void keepActive() {
-      Log.v("python", "keepActive from PythonActivity");
       if (this.mLoadingCount > 0) {
         this.mLoadingCount -= 1;
         if (this.mLoadingCount == 0) {
