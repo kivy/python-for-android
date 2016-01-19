@@ -35,12 +35,15 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.mkdir, 'crystax_python/crystax_python')
             if not exists('assets'):
                 shprint(sh.mkdir, 'assets')
-            
+
             hostpython = sh.Command(self.ctx.hostpython)
             if not self.ctx.python_recipe.from_crystax:
-                shprint(hostpython, '-OO', '-m', 'compileall',
-                        self.ctx.get_python_install_dir(),
-                        _tail=10, _filterout="^Listing", _critical=True)
+                try:
+                    shprint(hostpython, '-OO', '-m', 'compileall',
+                            self.ctx.get_python_install_dir(),
+                            _tail=10, _filterout="^Listing")
+                except sh.ErrorReturnCode:
+                    pass
                 if not exists('python-install'):
                     shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
@@ -54,7 +57,7 @@ class SDL2Bootstrap(Bootstrap):
                     info('private/lib does not exist, making')
                     shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
                 shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
-            
+
                 # AND: Copylibs stuff should go here
                 if exists(join('libs', arch.arch, 'libpymodules.so')):
                     shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
@@ -92,7 +95,7 @@ class SDL2Bootstrap(Bootstrap):
                 py_recipe = self.ctx.python_recipe
                 python_dir = join(ndk_dir, 'sources', 'python', py_recipe.version,
                                   'libs', arch.arch)
-                
+
                 shprint(sh.cp, '-r', join(python_dir, 'stdlib.zip'), 'crystax_python/crystax_python')
                 shprint(sh.cp, '-r', join(python_dir, 'modules'), 'crystax_python/crystax_python')
                 shprint(sh.cp, '-r', self.ctx.get_python_install_dir(), 'crystax_python/crystax_python/site-packages')
