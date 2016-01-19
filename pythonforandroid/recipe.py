@@ -7,7 +7,8 @@ from six import PY2, with_metaclass
 
 import sh
 import shutil
-from os import listdir, unlink, environ, mkdir, curdir
+import fnmatch
+from os import listdir, unlink, environ, mkdir, curdir, walk
 from sys import stdout
 try:
     from urlparse import urlparse
@@ -895,6 +896,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
+    cython_args = []
 
     def __init__(self, *args, **kwargs):
         super(CythonRecipe, self).__init__(*args, **kwargs)
@@ -945,18 +947,7 @@ class CythonRecipe(PythonRecipe):
                 manually_cythonise = True
 
             if manually_cythonise:
-                info('Running cython where appropriate')
-                cyenv = env.copy()
-                if 'CYTHONPATH' in cyenv:
-                    cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
-                elif 'PYTHONPATH' in cyenv:
-                    del cyenv['PYTHONPATH']
-                cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
-                cython_cmd = 'find "{}" -iname *.pyx | xargs "{}"'.format(
-                        self.get_build_dir(arch.arch), cython)
-                shprint(sh.sh, '-c', cython_cmd, _env=cyenv)
-                info('ran cython')
-
+                self.cythonize_build(env=env)
                 shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
                         _tail=20, _critical=True, *self.setup_extra_args)
             else:
@@ -969,20 +960,28 @@ class CythonRecipe(PythonRecipe):
                     env['STRIP'], '{}', ';', _env=env)
             print('stripped!?')
 
-    # def cythonize_file(self, filename):
-    #     if filename.startswith(self.build_dir):
-    #         filename = filename[len(self.build_dir) + 1:]
-    #     print("Cythonize {}".format(filename))
-    #     cmd = sh.Command(join(self.ctx.root_dir, "tools", "cythonize.py"))
-    #     shprint(cmd, filename)
+    def cythonize_file(self, env, build_dir, filename):
+        short_filename = filename
+        if filename.startswith(build_dir):
+            short_filename = filename[len(build_dir) + 1:]
+        info(u"Cythonize {}".format(short_filename))
+        cyenv = env.copy()
+        if 'CYTHONPATH' in cyenv:
+            cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
+        elif 'PYTHONPATH' in cyenv:
+            del cyenv['PYTHONPATH']
+        cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
+        cython_command = sh.Command(cython)
+        shprint(cython_command, filename, *self.cython_args, _env=cyenv)
 
-    # def cythonize_build(self):
-    #     if not self.cythonize:
-    #         return
-    #     root_dir = self.build_dir
-    #     for root, dirnames, filenames in walk(root_dir):
-    #         for filename in fnmatch.filter(filenames, "*.pyx"):
-    #             self.cythonize_file(join(root, filename))
+    def cythonize_build(self, env, build_dir="."):
+        if not self.cythonize:
+            info('Running cython cancelled per recipe setting')
+            return
+        info('Running cython where appropriate')
+        for root, dirnames, filenames in walk("."):
+            for filename in fnmatch.filter(filenames, "*.pyx"):
+                self.cythonize_file(env, build_dir, join(root, filename))
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super(CythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)

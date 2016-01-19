@@ -831,4 +831,3 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=[], env=None):
     cp = sh.cp.bake('-t', dest)
     for lib in sofiles:
         shprint(cp, lib)
-
