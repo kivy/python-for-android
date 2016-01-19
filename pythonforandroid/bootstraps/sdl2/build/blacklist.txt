@@ -1,3 +1,7 @@
+# prevent user to include invalid extensions
+*.apk
+*.pxd
+
 # eggs
 *.egg-info
 
@@ -6,23 +10,6 @@ unittest/*
 
 # python config
 config/makesetup
-
-# unused pygame files
-pygame/_camera_*
-pygame/camera.pyo
-pygame/*.html
-pygame/*.bmp
-pygame/*.svg
-pygame/cdrom.so
-pygame/pygame_icon.icns
-pygame/LGPL
-pygame/threads/Py25Queue.pyo
-pygame/*.ttf
-pygame/mac*
-pygame/_numpy*
-pygame/sndarray.pyo
-pygame/surfarray.pyo
-pygame/_arraysurfarray.pyo
 
 # unused kivy files (platform specific)
 kivy/input/providers/wm_*
@@ -33,6 +20,10 @@ kivy/input/providers/hidinput*
 kivy/core/camera/camera_videocapture*
 kivy/core/spelling/*osx*
 kivy/core/video/video_pyglet*
+kivy/tools
+kivy/tests/*
+kivy/*/*.h
+kivy/*/*.pxi
 
 # unused encodings
 lib-dynload/*codec*
@@ -80,13 +71,13 @@ lib-dynload/_lsprof.so
 lib-dynload/*audioop.so
 lib-dynload/mmap.so
 lib-dynload/_hotshot.so
-lib-dynload/_csv.so
-lib-dynload/future_builtins.so
 lib-dynload/_heapq.so
 lib-dynload/_json.so
 lib-dynload/grp.so
 lib-dynload/resource.so
 lib-dynload/pyexpat.so
+lib-dynload/_ctypes_test.so
+lib-dynload/_testcapi.so
 
 # odd files
 plat-linux3/regen
