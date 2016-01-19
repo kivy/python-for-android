@@ -52,6 +52,10 @@ while i < len(sys.argv):
     if opt.startswith("-D"):
         continue
 
+    if opt.startswith("-R"):
+        # for -rpath, not implemented yet.
+        continue
+
     if opt.startswith("-"):
         print(sys.argv)
         print("Unknown option: %s" % opt)
@@ -69,13 +73,13 @@ abs_output = join(environ.get('LIBLINK_PATH'), basename(output))
 if not copylibs:
     f = open(output, "w")
     f.close()
-    
+
     output = abs_output
-    
+
     f = open(output + ".libs", "w")
     f.write(" ".join(libs))
     f.close()
-    
+
     sys.exit(subprocess.call([
         environ.get('LD'), '-r',
         '-o', output + '.o'
