@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
-from os.path import join, exists
+from os.path import join, exists, curdir, abspath
 from os import walk
 import glob
 import sh
@@ -101,7 +101,8 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.cp, '-r', self.ctx.get_python_install_dir(), 'crystax_python/crystax_python/site-packages')
 
                 info('Renaming .so files to reflect cross-compile')
-                site_packages_dir = 'crystax_python/crystax_python/site-packages'
+                site_packages_dir = join(abspath(curdir),
+                                         'crystax_python/crystax_python/site-packages')
                 filens = shprint(sh.find, site_packages_dir, '-iname', '*.so').stdout.decode(
                     'utf-8').split('\n')[:-1]
                 for filen in filens:
