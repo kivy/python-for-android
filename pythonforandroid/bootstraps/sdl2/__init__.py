@@ -101,8 +101,7 @@ class SDL2Bootstrap(Bootstrap):
                 shprint(sh.cp, '-r', self.ctx.get_python_install_dir(), 'crystax_python/crystax_python/site-packages')
 
                 info('Renaming .so files to reflect cross-compile')
-                site_packages_dir = join(abspath(curdir),
-                                         'crystax_python/crystax_python/site-packages')
+                site_packages_dir = 'crystax_python/crystax_python/site-packages'
                 filens = shprint(sh.find, site_packages_dir, '-iname', '*.so').stdout.decode(
                     'utf-8').split('\n')[:-1]
                 for filen in filens:
@@ -110,6 +109,8 @@ class SDL2Bootstrap(Bootstrap):
                     if len(parts) <= 2:
                         continue
                     shprint(sh.mv, filen, filen.split('.')[0] + '.so')
+                site_packages_dir = join(abspath(curdir),
+                                         site_packages_dir)
 
 
         self.strip_libraries(arch)
