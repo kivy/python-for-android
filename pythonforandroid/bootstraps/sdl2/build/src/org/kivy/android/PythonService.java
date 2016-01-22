@@ -23,6 +23,7 @@ public class PythonService extends Service implements Runnable {
     // Python environment variables
     private String androidPrivate;
     private String androidArgument;
+    private String pythonName;
     private String pythonHome;
     private String pythonPath;
     private String serviceEntrypoint;
@@ -55,6 +56,7 @@ public class PythonService extends Service implements Runnable {
         androidPrivate = extras.getString("androidPrivate");
         androidArgument = extras.getString("androidArgument");
         serviceEntrypoint = extras.getString("serviceEntrypoint");
+        pythonName = extras.getString("pythonName");
         pythonHome = extras.getString("pythonHome");
         pythonPath = extras.getString("pythonPath");
         pythonServiceArgument = extras.getString("pythonServiceArgument");
@@ -93,7 +95,7 @@ public class PythonService extends Service implements Runnable {
         this.mService = this;
         nativeStart(
             androidPrivate, androidArgument,
-            serviceEntrypoint,
+            serviceEntrypoint, pythonName,
             pythonHome, pythonPath,
             pythonServiceArgument);
     }
@@ -101,7 +103,7 @@ public class PythonService extends Service implements Runnable {
     // Native part
     public static native void nativeStart(
             String androidPrivate, String androidArgument,
-            String serviceEntrypoint,
+            String serviceEntrypoint, String pythonName,
             String pythonHome, String pythonPath,
             String pythonServiceArgument);
 }

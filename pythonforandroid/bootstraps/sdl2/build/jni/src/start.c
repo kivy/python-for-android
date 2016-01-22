@@ -19,14 +19,15 @@
 #include "SDL_opengles2.h"
 
 #define ENTRYPOINT_MAXLEN 128
-#define LOG(x) __android_log_write(ANDROID_LOG_INFO, "python", (x))
+#define LOG(n, x) __android_log_write(ANDROID_LOG_INFO, (n), (x))
+#define LOGP(x) LOG("python", (x))
 
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
   char *logstr = NULL;
   if (!PyArg_ParseTuple(args, "s", &logstr)) {
     return NULL;
   }
-  LOG(logstr);
+  LOG(getenv("PYTHON_NAME"), logstr);
   Py_RETURN_NONE;
 }
 
@@ -70,6 +71,7 @@ int main(int argc, char *argv[]) {
 
   char *env_argument = NULL;
   char *env_entrypoint = NULL;
+  char *env_logname = NULL;
   char entrypoint[ENTRYPOINT_MAXLEN];
   int ret = 0;
   FILE *fd;
@@ -77,13 +79,19 @@ int main(int argc, char *argv[]) {
   /* AND: Several filepaths are hardcoded here, these must be made
      configurable */
   /* AND: P4A uses env vars...not sure what's best */
-  LOG("Initialize Python for Android");
+  LOGP("Initialize Python for Android");
   env_argument = getenv("ANDROID_ARGUMENT");
   setenv("ANDROID_APP_PATH", env_argument, 1);
   env_entrypoint = getenv("ANDROID_ENTRYPOINT");
+  env_logname = getenv("PYTHON_NAME");
+  
+  if (env_logname == NULL) {
+    env_logname = "python";
+    setenv("PYTHON_NAME", "python", 1);
+  }
 
-  LOG("Changing directory to the one provided by ANDROID_ARGUMENT");
-  LOG(env_argument);
+  LOGP("Changing directory to the one provided by ANDROID_ARGUMENT");
+  LOGP(env_argument);
   chdir(env_argument);
 
   Py_SetProgramName(L"android_python");
@@ -94,31 +102,31 @@ int main(int argc, char *argv[]) {
   PyImport_AppendInittab("androidembed", initandroidembed);
 #endif
 
-  LOG("Preparing to initialize python");
+  LOGP("Preparing to initialize python");
 
   if (dir_exists("crystax_python/")) {
-    LOG("crystax_python exists");
+    LOGP("crystax_python exists");
     char paths[256];
     snprintf(paths, 256,
              "%s/crystax_python/stdlib.zip:%s/crystax_python/modules",
              env_argument, env_argument);
     /* snprintf(paths, 256, "%s/stdlib.zip:%s/modules", env_argument,
      * env_argument); */
-    LOG("calculated paths to be...");
-    LOG(paths);
+    LOGP("calculated paths to be...");
+    LOGP(paths);
 
 #if PY_MAJOR_VERSION >= 3
     wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
     Py_SetPath(wchar_paths);
 #else
     char *wchar_paths = paths;
-    LOG("Can't Py_SetPath in python2, so crystax python2 doesn't work yet");
+    LOGP("Can't Py_SetPath in python2, so crystax python2 doesn't work yet");
     exit(1);
 #endif
 
-    LOG("set wchar paths...");
+    LOGP("set wchar paths...");
   } else {
-    LOG("crystax_python does not exist");
+    LOGP("crystax_python does not exist");
   }
 
   Py_Initialize();
@@ -127,11 +135,11 @@ int main(int argc, char *argv[]) {
   PySys_SetArgv(argc, argv);
 #endif
 
-  LOG("Initialized python");
+  LOGP("Initialized python");
 
   /* ensure threads will work.
    */
-  LOG("AND: Init threads");
+  LOGP("AND: Init threads");
   PyEval_InitThreads();
 
 #if PY_MAJOR_VERSION < 3
@@ -147,7 +155,7 @@ int main(int argc, char *argv[]) {
   PyRun_SimpleString("import sys, posix\n");
   if (dir_exists("lib")) {
     /* If we built our own python, set up the paths correctly */
-    LOG("Setting up python from ANDROID_PRIVATE");
+    LOGP("Setting up python from ANDROID_PRIVATE");
     PyRun_SimpleString("private = posix.environ['ANDROID_PRIVATE']\n"
                        "argument = posix.environ['ANDROID_ARGUMENT']\n"
                        "sys.path[:] = [ \n"
@@ -194,21 +202,21 @@ int main(int argc, char *argv[]) {
   PyRun_SimpleString("import site; print site.getsitepackages()\n");
 #endif
 
-  LOG("AND: Ran string");
+  LOGP("AND: Ran string");
 
   /* run it !
    */
-  LOG("Run user program, change dir and execute entrypoint");
+  LOGP("Run user program, change dir and execute entrypoint");
 
   /* Get the entrypoint, search the .pyo then .py
    */
   char *dot = strrchr(env_entrypoint, '.');
   if (dot <= 0) {
-    LOG("Invalid entrypoint, abort.");
+    LOGP("Invalid entrypoint, abort.");
     return -1;
   }
   if (strlen(env_entrypoint) > ENTRYPOINT_MAXLEN - 2) {
-      LOG("Entrypoint path is too long, try increasing ENTRYPOINT_MAXLEN.");
+      LOGP("Entrypoint path is too long, try increasing ENTRYPOINT_MAXLEN.");
       return -1;
   }
   if (!strcmp(dot, ".pyo")) {
@@ -216,9 +224,9 @@ int main(int argc, char *argv[]) {
       /* fallback on .py */
       strcpy(entrypoint, env_entrypoint);
       entrypoint[strlen(env_entrypoint) - 1] = '\0';
-      LOG(entrypoint);
+      LOGP(entrypoint);
       if (!file_exists(entrypoint)) {
-        LOG("Entrypoint not found (.pyo, fallback on .py), abort");
+        LOGP("Entrypoint not found (.pyo, fallback on .py), abort");
         return -1;
       }
     } else {
@@ -232,21 +240,21 @@ int main(int argc, char *argv[]) {
     if (!file_exists(entrypoint)) {
       /* fallback on pure python version */
       if (!file_exists(env_entrypoint)) {
-        LOG("Entrypoint not found (.py), abort.");
+        LOGP("Entrypoint not found (.py), abort.");
         return -1;
       }
       strcpy(entrypoint, env_entrypoint);
     }
   } else {
-    LOG("Entrypoint have an invalid extension (must be .py or .pyo), abort.");
+    LOGP("Entrypoint have an invalid extension (must be .py or .pyo), abort.");
     return -1;
   }
-  // LOG("Entrypoint is:");
-  // LOG(entrypoint);
+  // LOGP("Entrypoint is:");
+  // LOGP(entrypoint);
   fd = fopen(entrypoint, "r");
   if (fd == NULL) {
-    LOG("Open the entrypoint failed");
-    LOG(entrypoint);
+    LOGP("Open the entrypoint failed");
+    LOGP(entrypoint);
     return -1;
   }
 
@@ -268,14 +276,15 @@ int main(int argc, char *argv[]) {
   Py_Finalize();
   fclose(fd);
 
-  LOG("Python for android ended.");
+  LOGP("Python for android ended.");
   return ret;
 }
 
 JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
     JNIEnv *env, jobject thiz, jstring j_android_private,
     jstring j_android_argument, jstring j_service_entrypoint,
-    jstring j_python_home, jstring j_python_path, jstring j_arg) {
+    jstring j_python_name, jstring j_python_home, jstring j_python_path,
+    jstring j_arg) {
   jboolean iscopy;
   const char *android_private =
       (*env)->GetStringUTFChars(env, j_android_private, &iscopy);
@@ -283,6 +292,8 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
       (*env)->GetStringUTFChars(env, j_android_argument, &iscopy);
   const char *service_entrypoint =
       (*env)->GetStringUTFChars(env, j_service_entrypoint, &iscopy);
+  const char *python_name =
+      (*env)->GetStringUTFChars(env, j_python_name, &iscopy);
   const char *python_home =
       (*env)->GetStringUTFChars(env, j_python_home, &iscopy);
   const char *python_path =
@@ -293,6 +304,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   setenv("ANDROID_ARGUMENT", android_argument, 1);
   setenv("ANDROID_ENTRYPOINT", service_entrypoint, 1);
   setenv("PYTHONOPTIMIZE", "2", 1);
+  setenv("PYTHON_NAME", python_name, 1);
   setenv("PYTHONHOME", python_home, 1);
   setenv("PYTHONPATH", python_path, 1);
   setenv("PYTHON_SERVICE_ARGUMENT", arg, 1);
