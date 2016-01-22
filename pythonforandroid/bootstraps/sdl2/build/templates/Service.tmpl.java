@@ -18,6 +18,7 @@ public class Service{{ name|capitalize }} extends PythonService {
         intent.putExtra("androidPrivate", argument);
         intent.putExtra("androidArgument", argument);
         intent.putExtra("serviceEntrypoint", "{{ entrypoint }}");
+        intent.putExtra("pythonName", "{{ name }}");
         intent.putExtra("pythonHome", argument);
         intent.putExtra("pythonPath", argument + ":" + argument + "/lib");
         intent.putExtra("pythonServiceArgument", pythonServiceArgument);
