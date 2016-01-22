@@ -69,11 +69,9 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
         SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
         SDLActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
+        SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         SDLActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
-
-
-        // nativeSetEnv("ANDROID_ARGUMENT", getFilesDir());
 
         try {
             Log.v(TAG, "Access to our meta-data...");
@@ -271,7 +269,8 @@ public class PythonActivity extends SDLActivity {
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
         serviceIntent.putExtra("androidPrivate", argument);
-        serviceIntent.putExtra("androidArgument", filesDirectory);
+        serviceIntent.putExtra("androidArgument", argument);
+        serviceIntent.putExtra("serviceEntrypoint", "service/main.pyo");
         serviceIntent.putExtra("pythonHome", argument);
         serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
         serviceIntent.putExtra("serviceTitle", serviceTitle);
