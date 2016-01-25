@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 from os.path import dirname, join, isfile, realpath, relpath, split, exists
+from os import makedirs
 import os
 import tarfile
 import time
@@ -59,6 +60,10 @@ def render(template, dest, **kwargs):
     keyword arguments as template parameters.
     '''
 
+    dest_dir = dirname(dest)
+    if dest_dir and not exists(dest_dir):
+        makedirs(dest_dir)
+
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
@@ -95,7 +100,7 @@ def listfiles(d):
         if isfile(fn):
             yield fn
         else:
-            subdirlist.append(os.path.join(basedir, item))
+            subdirlist.append(join(basedir, item))
     for subdir in subdirlist:
         for fn in listfiles(subdir):
             yield fn
@@ -112,7 +117,7 @@ def make_python_zip():
         print('No compiled python is present to zip, skipping.')
         print('this should only be the case if you are using the CrystaX python')
         return
-    
+
     global python_files
     d = realpath(join('private', 'lib', 'python2.7'))
 
@@ -214,10 +219,10 @@ def make_package(args):
     #     sys.exit(-1)
 
     # Delete the old assets.
-    if os.path.exists('assets/public.mp3'):
+    if exists('assets/public.mp3'):
         os.unlink('assets/public.mp3')
 
-    if os.path.exists('assets/private.mp3'):
+    if exists('assets/private.mp3'):
         os.unlink('assets/private.mp3')
 
     # In order to speedup import and initial depack,
@@ -262,7 +267,7 @@ def make_package(args):
     # If extra Java jars were requested, copy them into the libs directory
     if args.add_jar:
         for jarname in args.add_jar:
-            if not os.path.exists(jarname):
+            if not exists(jarname):
                 print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'libs')
@@ -283,14 +288,27 @@ def make_package(args):
 
     service = False
     service_main = join(realpath(args.private), 'service', 'main.py')
-    if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
+    if exists(service_main) or exists(service_main + 'o'):
         service = True
+
+    service_names = []
+    for entrypoint in args.services:
+        name, entrypoint = entrypoint.split(":", 1)
+        service_names.append(name)
+        render(
+            'Service.tmpl.java',
+            'src/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
+            name=name,
+            entrypoint=entrypoint,
+            args=args
+        )
 
     render(
         'AndroidManifest.tmpl.xml',
         'AndroidManifest.xml',
         args=args,
         service=service,
+        service_names=service_names,
         )
 
     render(
@@ -390,6 +408,8 @@ tools directory of the Android SDK.
                           'directory'))
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
+    ap.add_argument('--service', dest='services', action='append',
+                    help='Declare a new service entrypoint: NAME:PATH_TO_PY')
 
     if args is None:
         args = sys.argv[1:]

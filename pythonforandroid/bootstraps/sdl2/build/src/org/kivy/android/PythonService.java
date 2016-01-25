@@ -23,11 +23,17 @@ public class PythonService extends Service implements Runnable {
     // Python environment variables
     private String androidPrivate;
     private String androidArgument;
+    private String pythonName;
     private String pythonHome;
     private String pythonPath;
+    private String serviceEntrypoint;
     // Argument to pass to Python code,
     private String pythonServiceArgument;
     public static Service mService = null;
+
+    public boolean canDisplayNotification() {
+        return true;
+    }
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -37,7 +43,6 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
-        //Hardware.context = this;
     }
 
     @Override
@@ -49,26 +54,30 @@ public class PythonService extends Service implements Runnable {
 
         Bundle extras = intent.getExtras();
         androidPrivate = extras.getString("androidPrivate");
-        // service code is located in service subdir
-        androidArgument = extras.getString("androidArgument") + "/service";
+        androidArgument = extras.getString("androidArgument");
+        serviceEntrypoint = extras.getString("serviceEntrypoint");
+        pythonName = extras.getString("pythonName");
         pythonHome = extras.getString("pythonHome");
         pythonPath = extras.getString("pythonPath");
         pythonServiceArgument = extras.getString("pythonServiceArgument");
-        String serviceTitle = extras.getString("serviceTitle");
-        String serviceDescription = extras.getString("serviceDescription");
 
         pythonThread = new Thread(this);
         pythonThread.start();
 
-        Context context = getApplicationContext();
-        Notification notification = new Notification(context.getApplicationInfo().icon,
-                serviceTitle,
-                System.currentTimeMillis());
-        Intent contextIntent = new Intent(context, PythonActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
-        startForeground(1, notification);
+        if (this.canDisplayNotification()) {
+            String serviceTitle = extras.getString("serviceTitle");
+            String serviceDescription = extras.getString("serviceDescription");
+
+            Context context = getApplicationContext();
+            Notification notification = new Notification(context.getApplicationInfo().icon,
+            serviceTitle,
+            System.currentTimeMillis());
+            Intent contextIntent = new Intent(context, PythonActivity.class);
+            PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
+            notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
+            startForeground(1, notification);
+        }
 
         return START_NOT_STICKY;
     }
@@ -83,15 +92,18 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void run(){
 		PythonUtil.loadLibraries(getFilesDir());
-
         this.mService = this;
-        nativeStart(androidPrivate, androidArgument, pythonHome, pythonPath,
-                pythonServiceArgument);
+        nativeStart(
+            androidPrivate, androidArgument,
+            serviceEntrypoint, pythonName,
+            pythonHome, pythonPath,
+            pythonServiceArgument);
     }
 
     // Native part
-    public static native void nativeStart(String androidPrivate, String androidArgument,
+    public static native void nativeStart(
+            String androidPrivate, String androidArgument,
+            String serviceEntrypoint, String pythonName,
             String pythonHome, String pythonPath,
             String pythonServiceArgument);
-
 }
