@@ -286,6 +286,19 @@ def make_package(args):
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
+    if args.extra_source_dirs:
+        esd = []
+        for spec in args.extra_source_dirs:
+            if ':' in spec:
+                specdir, specincludes = spec.split(':')
+            else:
+                specdir = spec
+                specincludes = '**'
+            esd.append((realpath(specdir), specincludes))
+        args.extra_source_dirs = esd
+    else:
+        args.extra_source_dirs = []
+
     service = False
     service_main = join(realpath(args.private), 'service', 'main.py')
     if exists(service_main) or exists(service_main + 'o'):
@@ -320,6 +333,11 @@ def make_package(args):
     render(
         'strings.tmpl.xml',
         'res/values/strings.xml',
+        args=args)
+
+    render(
+        'custom_rules.tmpl.xml',
+        'custom_rules.xml',
         args=args)
 
     with open(join(dirname(__file__), 'res',
@@ -410,6 +428,8 @@ tools directory of the Android SDK.
                     help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--service', dest='services', action='append',
                     help='Declare a new service entrypoint: NAME:PATH_TO_PY')
+    ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
+                    help='Include additional source dirs in Java build')
 
     if args is None:
         args = sys.argv[1:]

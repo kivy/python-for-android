@@ -539,9 +539,15 @@ build_dist
         # unsatisfactory and should probably be changed somehow, but
         # we can't leave it until later as the build.py scripts assume
         # they are in the current directory.
+        fix_args = ('--dir', '--private', '--add-jar', '--add-source')
         for i, arg in enumerate(args[:-1]):
-            if arg in ('--dir', '--private'):
-                args[i+1] = realpath(expanduser(args[i+1]))
+            argx = arg.split('=')
+            if argx[0] in fix_args:
+                if len(argx) > 1:
+                    args[i] = '='.join((argx[0],
+                                        realpath(expanduser(argx[1]))))
+                else:
+                    args[i+1] = realpath(expanduser(args[i+1]))
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
