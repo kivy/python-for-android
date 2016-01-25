@@ -539,7 +539,8 @@ build_dist
         # unsatisfactory and should probably be changed somehow, but
         # we can't leave it until later as the build.py scripts assume
         # they are in the current directory.
-        fix_args = ('--dir', '--private', '--add-jar', '--add-source')
+        fix_args = ('--dir', '--private', '--add-jar', '--add-source',
+                    '--whitelist', '--blacklist', '--presplash', '--icon')
         for i, arg in enumerate(args[:-1]):
             argx = arg.split('=')
             if argx[0] in fix_args:
