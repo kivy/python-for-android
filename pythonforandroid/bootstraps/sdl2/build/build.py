@@ -449,6 +449,9 @@ tools directory of the Android SDK.
     if args.meta_data is None:
         args.meta_data = []
 
+    if args.services is None:
+        args.services = []
+
     if args.blacklist:
         with open(args.blacklist) as fd:
             patterns = [x.strip() for x in fd.read().splitlines()
