@@ -196,7 +196,7 @@ def shprint(command, *args, **kwargs):
                         name, tail_n, len(lines),
                         forecolor, '\t\n'.join([s.decode('utf-8') for s in lines[-tail_n:]]),
                         Out_Fore.RESET))
-            printtail(err.stdout, 'STDOUT', Out_Fore.YELLOW, tail_n,
+            printtail(err.stdout.decode('utf-8'), 'STDOUT', Out_Fore.YELLOW, tail_n,
                       re.compile(filter_in) if filter_in else None,
                       re.compile(filter_out) if filter_out else None)
             printtail(err.stderr, 'STDERR', Err_Fore.RED)
