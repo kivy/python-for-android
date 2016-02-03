@@ -8,7 +8,6 @@ import glob
 import sys
 import re
 import sh
-from appdirs import user_data_dir
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
@@ -94,7 +93,7 @@ class Context(object):
         self.root_dir = realpath(dirname(__file__))
 
         # AND: TODO: Allow the user to set the build_dir
-        self.storage_dir = user_data_dir('python-for-android')
+        self.storage_dir = expanduser('~/.python-for-android')
         self.build_dir = join(self.storage_dir, 'build')
         self.dist_dir = join(self.storage_dir, 'dists')
 
