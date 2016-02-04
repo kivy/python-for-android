@@ -305,15 +305,25 @@ def make_package(args):
         service = True
 
     service_names = []
-    for entrypoint in args.services:
-        name, entrypoint = entrypoint.split(":", 1)
+    for sid, spec in enumerate(args.services):
+        spec = spec.split(':')
+        name = spec[0]
+        entrypoint = spec[1]
+        options = spec[2:]
+
+        foreground = False
+        if 'foreground' in options:
+            foreground = True
+
         service_names.append(name)
         render(
             'Service.tmpl.java',
             'src/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
             name=name,
             entrypoint=entrypoint,
-            args=args
+            args=args,
+            foreground=foreground,
+            service_id=sid + 1,
         )
 
     render(
@@ -427,7 +437,8 @@ tools directory of the Android SDK.
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--service', dest='services', action='append',
-                    help='Declare a new service entrypoint: NAME:PATH_TO_PY')
+                    help='Declare a new service entrypoint: '
+                         'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
                     help='Include additional source dirs in Java build')
 

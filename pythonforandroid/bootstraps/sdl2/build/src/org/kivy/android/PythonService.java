@@ -64,22 +64,25 @@ public class PythonService extends Service implements Runnable {
         pythonThread = new Thread(this);
         pythonThread.start();
 
-        if (this.canDisplayNotification()) {
+        doStartForeground(extras);
+
+        return START_NOT_STICKY;
+    }
+
+    protected void doStartForeground(Bundle extras) {
+        if (canDisplayNotification()) {
             String serviceTitle = extras.getString("serviceTitle");
             String serviceDescription = extras.getString("serviceDescription");
 
             Context context = getApplicationContext();
             Notification notification = new Notification(context.getApplicationInfo().icon,
-            serviceTitle,
-            System.currentTimeMillis());
+                serviceTitle, System.currentTimeMillis());
             Intent contextIntent = new Intent(context, PythonActivity.class);
             PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT);
             notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
             startForeground(1, notification);
         }
-
-        return START_NOT_STICKY;
     }
 
     @Override
@@ -91,7 +94,7 @@ public class PythonService extends Service implements Runnable {
 
     @Override
     public void run(){
-		PythonUtil.loadLibraries(getFilesDir());
+        PythonUtil.loadLibraries(getFilesDir());
         this.mService = this;
         nativeStart(
             androidPrivate, androidArgument,
