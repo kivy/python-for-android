@@ -2,14 +2,24 @@ package {{ args.package }};
 
 import android.content.Intent;
 import android.content.Context;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.os.Bundle;
 import org.kivy.android.PythonService;
 import org.kivy.android.PythonActivity;
 
 
 public class Service{{ name|capitalize }} extends PythonService {
     @Override
-    public boolean canDisplayNotification() {
-        return false;
+    protected void doStartForeground(Bundle extras) {
+        Context context = getApplicationContext();
+        Notification notification = new Notification(context.getApplicationInfo().icon,
+            "{{ args.name }}", System.currentTimeMillis());
+        Intent contextIntent = new Intent(context, PythonActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
+        notification.setLatestEventInfo(context, "{{ args.name }}", "{{ name| capitalize }}", pIntent);
+        startForeground({{ service_id }}, notification);
     }
 
     static public void start(Context ctx, String pythonServiceArgument) {
