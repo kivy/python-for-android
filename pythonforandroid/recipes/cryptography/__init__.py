@@ -33,7 +33,6 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
 			join(dirname(self.real_hostpython_location), 'Lib', 'site-packages'),
 			env['BUILDLIB_PATH'],
 		])
-		print env
 		return env
 
 	def build_arch(self, arch):
