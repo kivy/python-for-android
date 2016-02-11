@@ -330,7 +330,8 @@ class Context(object):
             if cython:
                 self.cython = cython
                 break
-        self.cython = 'cython'
+        else:
+             self.cython = 'cython'
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
