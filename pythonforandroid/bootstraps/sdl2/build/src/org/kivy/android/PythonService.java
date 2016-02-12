@@ -101,6 +101,7 @@ public class PythonService extends Service implements Runnable {
             serviceEntrypoint, pythonName,
             pythonHome, pythonPath,
             pythonServiceArgument);
+        stopSelf();
     }
 
     // Native part
