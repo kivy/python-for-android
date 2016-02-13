@@ -22,6 +22,8 @@ class Python3Recipe(Recipe):
             print('Python3 already patched, skipping.')
             return
 
+        self.ctx.cython = 'cython'  # Temporary hack
+
         # # self.apply_patch(join('patches_inclement',
         # #                       'python-{version}-define_macro.patch'.format(version=self.version)))
         # # self.apply_patch(join('patches_inclement',
