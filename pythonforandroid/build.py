@@ -331,7 +331,8 @@ class Context(object):
                 self.cython = cython
                 break
         else:
-             self.cython = 'cython'
+            error('No cython binary found. Exiting.')
+            exit(1)
         if not self.cython:
             ok = False
             warning("Missing requirement: cython is not installed")
