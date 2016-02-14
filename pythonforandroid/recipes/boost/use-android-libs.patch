@@ -1,0 +1,10 @@
+--- boost/tools/build/src/tools/python.jam	2015-10-16 20:55:36.000000000 +0200
++++ boost-patch/tools/build/src/tools/python.jam	2016-02-09 13:16:09.519261546 +0100
+@@ -646,6 +646,7 @@
+ 
+         case aix : return  <library>pthread <library>dl ;
+ 
++        case * : return ; # use Android builtin libs
+         case * : return  <library>pthread <library>dl
+             <toolset>gcc:<library>util <toolset-intel:platform>linux:<library>util ;
+     }
