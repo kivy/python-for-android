@@ -135,9 +135,8 @@ class Bootstrap(object):
                       for name in cls.list_bootstraps()]
         acceptable_bootstraps = []
         for bs in bootstraps:
-            ok = True
             if not bs.can_be_chosen_automatically:
-                ok = False
+                continue
             possible_dependency_lists = expand_dependencies(bs.recipe_depends)
             for possible_dependencies in possible_dependency_lists:
                 ok = True
