@@ -228,6 +228,8 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             recipe_loaded.append(name)
         graph.remove_remaining_conflicts(ctx)
         build_order = list(graph.find_order(0))
+        build_order, python_modules, bs = get_recipe_order_and_bootstrap(
+            ctx, build_order + python_modules, bs)
     return build_order, python_modules, bs
 
     # Do a final check that the new bs doesn't pull in any conflicts
