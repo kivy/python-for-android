@@ -60,10 +60,11 @@ class Graph(object):
 
     def conflicts(self, conflict):
         graphs = self.graphs
+        initial_num = len(graphs)
         for i in range(len(graphs)):
-            graph = graphs[len(graphs) - 1 - i]
+            graph = graphs[initial_num - 1 - i]
             if conflict in graph:
-                graphs.pop(len(graphs) - 1 - i)
+                graphs.pop(initial_num - 1 - i)
         return len(graphs) == 0
 
     def remove_remaining_conflicts(self, ctx):
