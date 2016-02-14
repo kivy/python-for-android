@@ -31,7 +31,10 @@ def test_invalid_recipe_order_and_bootstrap(names, bootstrap):
     with pytest.raises(SystemExit):
         get_recipe_order_and_bootstrap(ctx, names, bootstrap)
 
-
+def test_bootstrap_dependency_addition():
+    build_order, python_modules, bs = get_recipe_order_and_bootstrap(
+        ctx, ['kivy'], None)
+    assert (('hostpython2' in build_order) or ('hostpython3' in build_order))
 
 if __name__ == "__main__":
     get_recipe_order_and_bootstrap(ctx, ['python3'], Bootstrap.get_bootstrap('sdl2', ctx))
