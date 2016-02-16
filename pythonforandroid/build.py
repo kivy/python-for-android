@@ -212,6 +212,13 @@ class Context(object):
         android_api = int(android_api)
         self.android_api = android_api
 
+        if self.android_api >= 21 and self.archs[0].arch == 'armeabi':
+            error('Asked to build for armeabi architecture with API '
+                  '{}, but API 21 or greater does not support armeabi'.format(
+                      self.android_api))
+            error('You probably want to build with --arch=armeabi-v7a instead')
+            exit(1)
+
         android = sh.Command(join(sdk_dir, 'tools', 'android'))
         targets = android('list').stdout.decode('utf-8').split('\n')
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
