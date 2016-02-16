@@ -580,9 +580,12 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     @classmethod
     def recipe_dirs(cls, ctx):
-        return [ctx.local_recipes,
-                join(ctx.storage_dir, 'recipes'),
-                join(ctx.root_dir, "recipes")]
+        recipe_dirs = []
+        if ctx.local_recipes is not None:
+            recipe_dirs.append(ctx.local_recipes)
+        recipe_dirs.extend([join(ctx.storage_dir, 'recipes'),
+                            join(ctx.root_dir, "recipes")])
+        return recipe_dirs
 
     @classmethod
     def list_recipes(cls, ctx):

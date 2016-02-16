@@ -217,5 +217,3 @@ def shprint(command, *args, **kwargs):
 
     return output
 
-
-from pythonforandroid.util import unistr
