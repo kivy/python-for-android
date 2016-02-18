@@ -135,22 +135,24 @@ class Bootstrap(object):
                       for name in cls.list_bootstraps()]
         acceptable_bootstraps = []
         for bs in bootstraps:
-            ok = True
             if not bs.can_be_chosen_automatically:
-                ok = False
-            for recipe in bs.recipe_depends:
-                recipe = Recipe.get_recipe(recipe, ctx)
-                if any([conflict in recipes for conflict in recipe.conflicts]):
-                    ok = False
-                    break
-            for recipe in recipes:
-                recipe = Recipe.get_recipe(recipe, ctx)
-                if any([conflict in bs.recipe_depends
-                        for conflict in recipe.conflicts]):
-                    ok = False
-                    break
-            if ok:
-                acceptable_bootstraps.append(bs)
+                continue
+            possible_dependency_lists = expand_dependencies(bs.recipe_depends)
+            for possible_dependencies in possible_dependency_lists:
+                ok = True
+                for recipe in possible_dependencies:
+                    recipe = Recipe.get_recipe(recipe, ctx)
+                    if any([conflict in recipes for conflict in recipe.conflicts]):
+                        ok = False
+                        break
+                for recipe in recipes:
+                    recipe = Recipe.get_recipe(recipe, ctx)
+                    if any([conflict in possible_dependencies
+                            for conflict in recipe.conflicts]):
+                        ok = False
+                        break
+                if ok:
+                    acceptable_bootstraps.append(bs)
         info('Found {} acceptable bootstraps: {}'.format(
             len(acceptable_bootstraps),
             [bs.name for bs in acceptable_bootstraps]))
@@ -264,3 +266,20 @@ class Bootstrap(object):
                 if files:
                     shprint(sh.mv, '-t', sitepackages, *files)
                 shprint(sh.rm, '-rf', d)
+
+
+def expand_dependencies(recipes):
+    recipe_lists = [[]]
+    for recipe in recipes:
+        if isinstance(recipe, (tuple, list)):
+            new_recipe_lists = []
+            for alternative in recipe:
+                for old_list in recipe_lists:
+                    new_list = [i for i in old_list]
+                    new_list.append(alternative)
+                    new_recipe_lists.append(new_list)
+            recipe_lists = new_recipe_lists
+        else:
+            for old_list in recipe_lists:
+                old_list.append(recipe)
+    return recipe_lists
