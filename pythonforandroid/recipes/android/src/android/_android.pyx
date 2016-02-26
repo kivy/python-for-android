@@ -168,7 +168,7 @@ cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
 
-from jnius import autoclass, PythonJavaClass, java_method
+from jnius import autoclass, PythonJavaClass, java_method, cast
 
 # API versions
 api_version = autoclass('android.os.Build$VERSION').SDK_INT
@@ -318,23 +318,28 @@ IF IS_PYGAME:
     def ack_stop():
         android_ackstop()
     
-    # -------------------------------------------------------------------
-    # URL Opening.
-    cdef extern void android_open_url(char *url)
-    def open_url(url):
-        android_open_url(url)
+# -------------------------------------------------------------------
+# URL Opening.
+def open_url(url):
+    Intent = autoclass('android.content.Intent')
+    Uri = autoclass('android.net.Uri')
+    browserIntent = Intent()
+    browserIntent.setAction(Intent.ACTION_VIEW)
+    browserIntent.setData(Uri.parse(url))
+    currentActivity = cast('android.app.Activity', mActivity)
+    currentActivity.startActivity(browserIntent)
+
+# Web browser support.
+class AndroidBrowser(object):
+    def open(self, url, new=0, autoraise=True):
+        open_url(url)
+    def open_new(self, url):
+        open_url(url)
+    def open_new_tab(self, url):
+        open_url(url)
     
-    # Web browser support.
-    class AndroidBrowser(object):
-        def open(self, url, new=0, autoraise=True):
-            open_url(url)
-        def open_new(self, url):
-            open_url(url)
-        def open_new_tab(self, url):
-            open_url(url)
-    
-    import webbrowser
-    webbrowser.register('android', AndroidBrowser, None, -1)
+import webbrowser
+webbrowser.register('android', AndroidBrowser, None, -1)
 
 cdef extern void android_start_service(char *, char *, char *)
 def start_service(title=None, description=None, arg=None):
@@ -383,3 +388,5 @@ class AndroidService(object):
         '''Stop the service.
         '''
         stop_service()
+
+
