@@ -168,7 +168,7 @@ cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
 
-from jnius import autoclass, PythonJavaClass, java_method, cast
+from jnius import autoclass, PythonJavaClass, java_method
 
 # API versions
 api_version = autoclass('android.os.Build$VERSION').SDK_INT
