@@ -6,11 +6,9 @@ class PyLevelDBRecipe(PythonRecipe):
     version = '0.193'
     url = 'https://pypi.python.org/packages/source/l/leveldb/leveldb-{version}.tar.gz'
     depends = ['leveldb', 'hostpython2', 'python2', 'setuptools']
-    call_hostpython_via_targetpython = False
     patches = ['bindings-only.patch']
-
-    def should_build(self, arch):
-        return not self.ctx.has_package('leveldb', arch.arch)
+    call_hostpython_via_targetpython = False
+    site_packages_name = 'leveldb'
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
