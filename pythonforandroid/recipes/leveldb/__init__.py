@@ -39,7 +39,7 @@ class LevelDBRecipe(Recipe):
         env['CXXFLAGS'] += ' -frtti'
         env['CXXFLAGS'] += ' -fexceptions'
         env['LDFLAGS'] += ' -L' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + \
-                          ' -lgnustl_shared'   
+                          ' -lgnustl_shared'
         return env
 
 recipe = LevelDBRecipe()
