@@ -10,6 +10,20 @@ import org.kivy.android.PythonActivity;
 
 
 public class Service{{ name|capitalize }} extends PythonService {
+    {% if sticky %}
+    @Override
+    public int startType() {
+        return START_STICKY;
+    }
+    {% endif %}
+
+    {% if not foreground %}
+    @Override
+    public boolean canDisplayNotification() {
+        return false;
+    }
+    {% endif %}
+
     @Override
     protected void doStartForeground(Bundle extras) {
         Context context = getApplicationContext();

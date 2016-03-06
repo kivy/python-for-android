@@ -311,9 +311,8 @@ def make_package(args):
         entrypoint = spec[1]
         options = spec[2:]
 
-        foreground = False
-        if 'foreground' in options:
-            foreground = True
+        foreground = 'foreground' in options
+        sticky = 'sticky' in options
 
         service_names.append(name)
         render(
@@ -323,6 +322,7 @@ def make_package(args):
             entrypoint=entrypoint,
             args=args,
             foreground=foreground,
+            sticky=sticky,
             service_id=sid + 1,
         )
 

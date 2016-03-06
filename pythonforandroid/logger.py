@@ -15,6 +15,11 @@ if not six.PY3:
     stdout = codecs.getwriter('utf8')(stdout)
     stderr = codecs.getwriter('utf8')(stderr)
 
+if six.PY2:
+    unistr = unicode
+else:
+    unistr = str
+
 # monkey patch to show full output
 sh.ErrorReturnCode.truncate_cap = 999999
 
@@ -216,6 +221,3 @@ def shprint(command, *args, **kwargs):
             raise
 
     return output
-
-
-from pythonforandroid.util import unistr

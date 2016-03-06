@@ -14,6 +14,8 @@ public class PythonUtil {
             "SDL2_image",
             "SDL2_mixer",
             "SDL2_ttf",
+            "python2.7",
+            "python3.5m",
             "main"
         };
     }
@@ -21,23 +23,20 @@ public class PythonUtil {
 	public static void loadLibraries(File filesDir) {
 
         String filesDirPath = filesDir.getAbsolutePath();
+        boolean skippedPython = false;
 
 		for (String lib : getLibraries()) {
-            System.loadLibrary(lib);
+		    try {
+                System.loadLibrary(lib);
+            } catch(UnsatisfiedLinkError e) {
+                if (lib.startsWith("python") && !skippedPython) {
+                    skippedPython = true;
+                    continue;
+                }
+                throw e;
+            }
         }
 
-        try {
-            System.loadLibrary("python2.7");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load libpython2.7");
-        }
-        
-        try {
-            System.loadLibrary("python3.5m");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load libpython3.5m");
-        }
-        
         try {
             System.load(filesDirPath + "/lib/python2.7/lib-dynload/_io.so");
             System.load(filesDirPath + "/lib/python2.7/lib-dynload/unicodedata.so");
