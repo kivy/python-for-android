@@ -1,0 +1,182 @@
+diff --git Python-2.7.9/Makefile.pre.in Python-2.7.9/Makefile.pre.in
+index 9d55550..b028235 100644
+--- Python-2.7.9/Makefile.pre.in
++++ Python-2.7.9/Makefile.pre.in
+@@ -227,6 +227,7 @@ LIBFFI_INCLUDEDIR=	@LIBFFI_INCLUDEDIR@
+ ##########################################################################
+ # Parser
+ PGEN=		Parser/pgen$(EXE)
++PGEN_FOR_BUILD=Parser/hostpgen
+ 
+ PSRCS=		\
+ 		Parser/acceler.c \
+@@ -593,7 +595,7 @@ Modules/pwdmodule.o: $(srcdir)/Modules/pwdmodule.c $(srcdir)/Modules/posixmodule
+ $(GRAMMAR_H): $(GRAMMAR_INPUT) $(PGENSRCS)
+ 		@$(MKDIR_P) Include
+ 		$(MAKE) $(PGEN)
+-		$(PGEN) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
++		$(PGEN_FOR_BUILD) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
+ $(GRAMMAR_C): $(GRAMMAR_H) $(GRAMMAR_INPUT) $(PGENSRCS)
+ 		$(MAKE) $(GRAMMAR_H)
+ 		touch $(GRAMMAR_C)
+@@ -1000,12 +1002,12 @@ libinstall:	build_all $(srcdir)/Lib/$(PLATDIR) $(srcdir)/Modules/xxmodule.c
+ 		$(INSTALL_DATA) $(srcdir)/Modules/xxmodule.c \
+ 			$(DESTDIR)$(LIBDEST)/distutils/tests ; \
+ 	fi
+-	PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
++	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
+ 		$(PYTHON_FOR_BUILD) -Wi -tt $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST) -f \
+ 		-x 'bad_coding|badsyntax|site-packages|lib2to3/tests/data' \
+ 		$(DESTDIR)$(LIBDEST)
+-	PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
++	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
+ 		$(PYTHON_FOR_BUILD) -Wi -tt -O $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST) -f \
+ 		-x 'bad_coding|badsyntax|site-packages|lib2to3/tests/data' \
+@@ -1133,11 +1135,13 @@ libainstall:	all python-config
+ # Install the dynamically loadable modules
+ # This goes into $(exec_prefix)
+ sharedinstall: sharedmods
++	CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
+ 	$(RUNSHARED) $(PYTHON_FOR_BUILD) $(srcdir)/setup.py install \
++		--skip-build \
+ 	   	--prefix=$(prefix) \
+-		--install-scripts=$(BINDIR) \
+-		--install-platlib=$(DESTSHARED) \
+-		--root=$(DESTDIR)/
++		--install-scripts=$(DESTDIR)$(BINDIR) \
++		--install-platlib=$(DESTDIR)$(DESTSHARED) \
++		--root=/
+ 	-rm $(DESTDIR)$(DESTSHARED)/_sysconfigdata.py*
+ 
+ # Here are a couple of targets for MacOSX again, to install a full
+diff --git Python-2.7.9/Modules/Setup.dist Python-2.7.9/Modules/Setup.dist
+index 2ad1aa3..ede793f 100644
+--- Python-2.7.9/Modules/Setup.dist
++++ Python-2.7.9/Modules/Setup.dist
+@@ -163,7 +163,7 @@ GLHACK=-Dclear=__GLclear
+ # it, depending on your system -- see the GNU readline instructions.
+ # It's okay for this to be a shared library, too.
+ 
+-#readline readline.c -lreadline -ltermcap
++readline readline.c -lreadline -ltermcap
+ 
+ 
+ # Modules that should always be present (non UNIX dependent):
+@@ -215,10 +215,10 @@ GLHACK=-Dclear=__GLclear
+ 
+ # Socket module helper for SSL support; you must comment out the other
+ # socket line above, and possibly edit the SSL variable:
+-#SSL=/usr/local/ssl
+-#_ssl _ssl.c \
+-#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+-#	-L$(SSL)/lib -lssl -lcrypto
++SSL=/path-to-ssl-build-dir
++_ssl _ssl.c \
++	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
++	-L$(SSL) -lsslx -lcryptox
+
+ # The crypt module is now disabled by default because it breaks builds
+ # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
+@@ -464,7 +464,7 @@ GLHACK=-Dclear=__GLclear
+ # Andrew Kuchling's zlib module.
+ # This require zlib 1.1.3 (or later).
+ # See http://www.gzip.org/zlib/
+-#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
++zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
+ 
+ # Interface to the Expat XML parser
+ #
+diff --git Python-2.7.9/configure Python-2.7.9/configure
+index dc0dfd0..083ef1b 100755
+--- Python-2.7.9/configure
++++ Python-2.7.9/configure
+@@ -2849,24 +2849,11 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
+ 
+ 
+ 
++# Use latest cross-compiling patches
+ if test "$cross_compiling" = yes; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for python interpreter for cross build" >&5
+ $as_echo_n "checking for python interpreter for cross build... " >&6; }
+-    if test -z "$PYTHON_FOR_BUILD"; then
+-        for interp in python$PACKAGE_VERSION python2 python; do
+-	    which $interp >/dev/null 2>&1 || continue
+-	    if $interp -c 'import sys;sys.exit(not (sys.version_info[:2] >= (2,7) and sys.version_info[0] < 3))'; then
+-	        break
+-	    fi
+-            interp=
+-	done
+-        if test x$interp = x; then
+-	    as_fn_error $? "python$PACKAGE_VERSION interpreter not found" "$LINENO" 5
+-	fi
+-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $interp" >&5
+-$as_echo "$interp" >&6; }
+-	PYTHON_FOR_BUILD='_PYTHON_PROJECT_BASE=$(abs_builddir) _PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) PYTHONPATH=$(shell test -f pybuilddir.txt && echo $(abs_builddir)/`cat pybuilddir.txt`:)$(srcdir)/Lib:$(srcdir)/Lib/plat-$(MACHDEP) '$interp
+-    fi
++    PYTHON_FOR_BUILD='_PYTHON_PROJECT_BASE=$(abs_builddir) _PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) PYTHONPATH=$(shell test -f pybuilddir.txt && echo $(abs_builddir)/`cat pybuilddir.txt`:)$(srcdir)/Lib:$(srcdir)/Lib/plat-$(MACHDEP) $(srcdir)/host$(BUILDPYTHON)'
+ elif test "$cross_compiling" = maybe; then
+     as_fn_error $? "Cross compiling required --host=HOST-TUPLE and --build=ARCH" "$LINENO" 5
+ else
+diff --git Python-2.7.9/setup.py Python-2.7.9/setup.py
+index 716f08e..ca8b141 100644
+--- Python-2.7.9/setup.py
++++ Python-2.7.9/setup.py
+@@ -17,7 +17,7 @@ from distutils.command.install import install
+ from distutils.command.install_lib import install_lib
+ from distutils.spawn import find_executable
+ 
+-cross_compiling = "_PYTHON_HOST_PLATFORM" in os.environ
++cross_compiling = ("_PYTHON_HOST_PLATFORM" in os.environ) or ('PYTHONXCPREFIX' in os.environ)
+ 
+ def get_platform():
+     # cross build
+@@ -324,6 +324,9 @@ class PyBuildExt(build_ext):
+ 
+         # Don't try to load extensions for cross builds
+         if cross_compiling:
++            self.announce(
++                 'WARNING: skipping import check for cross-compiled: "%s"' %
++                 ext.name)
+             return
+ 
+         try:
+@@ -476,7 +480,7 @@ class PyBuildExt(build_ext):
+                     for directory in reversed(options.dirs):
+                         add_dir_to_list(dir_list, directory)
+ 
+-        if os.path.normpath(sys.prefix) != '/usr' \
++        if os.path.normpath(sys.prefix) != '/usr' and not cross_compiling \
+                 and not sysconfig.get_config_var('PYTHONFRAMEWORK'):
+             # OSX note: Don't add LIBDIR and INCLUDEDIR to building a framework
+             # (PYTHONFRAMEWORK is set) to avoid # linking problems when
+@@ -552,6 +556,11 @@ class PyBuildExt(build_ext):
+         if host_platform in ['darwin', 'beos']:
+             math_libs = []
+ 
++        # Insert libraries and headers from embedded root file system (RFS)
++        if 'RFS' in os.environ:
++            lib_dirs += [os.environ['RFS'] + '/usr/lib']
++            inc_dirs += [os.environ['RFS'] + '/usr/include']
++
+         # XXX Omitted modules: gl, pure, dl, SGI-specific modules
+ 
+         #
+@@ -1975,8 +1984,13 @@ class PyBuildExt(build_ext):
+ 
+                 # Pass empty CFLAGS because we'll just append the resulting
+                 # CFLAGS to Python's; -g or -O2 is to be avoided.
+-                cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
+-                      % (ffi_builddir, ffi_srcdir, " ".join(config_args))
++                if cross_compiling:
++                    cmd = "cd %s && env CFLAGS='' '%s/configure' --host=%s --build=%s %s" \
++                          % (ffi_builddir, ffi_srcdir, os.environ.get('HOSTARCH'),
++                             os.environ.get('BUILDARCH'), " ".join(config_args))
++                else:
++                    cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
++                          % (ffi_builddir, ffi_srcdir, " ".join(config_args))
+ 
+                 res = os.system(cmd)
+                 if res or not os.path.exists(ffi_configfile):
+
