@@ -1,7 +1,7 @@
---- cryptography/src/_cffi_src/build_openssl.py	2015-12-10 13:53:28.000000000 -0600
-+++ b/src/_cffi_src/build_openssl.py	2016-01-06 14:58:59.735728893 -0600
-@@ -10,50 +10,6 @@
- from _cffi_src.utils import build_ffi_for_binding, extra_link_args
+--- cryptography/src/_cffi_src/build_openssl.py	2016-03-07 17:20:59.771109661 -0600
++++ b/src/_cffi_src/build_openssl.py	2016-03-07 17:22:00.167111227 -0600
+@@ -12,50 +12,6 @@
+ )
  
  
 -def _get_openssl_libraries(platform):
@@ -51,14 +51,14 @@
  ffi = build_ffi_for_binding(
      module_name="_openssl",
      module_prefix="_cffi_src.openssl.",
-@@ -89,8 +45,6 @@
-         "x509_vfy",
+@@ -92,8 +48,6 @@
          "pkcs7",
+         "callbacks",
      ],
 -    pre_include=_OSX_PRE_INCLUDE,
 -    post_include=_OSX_POST_INCLUDE,
 -    libraries=_get_openssl_libraries(sys.platform),
--    extra_link_args=extra_link_args(sys.platform),
+-    extra_link_args=extra_link_args(compiler_type()),
 +    libraries=[],
 +    extra_link_args=[os.environ['LIBSSL'], os.environ['LIBCRYPTO']],
  )
