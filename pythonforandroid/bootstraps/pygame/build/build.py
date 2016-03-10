@@ -510,5 +510,8 @@ tools directory of the Android SDK.
 
     make_package(args)
 
+    return args
+
+
 if __name__ == '__main__':
     parse_args()
