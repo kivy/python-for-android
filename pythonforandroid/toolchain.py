@@ -527,10 +527,21 @@ build_dist
     def apk(self, args):
         '''Create an APK using the given distribution.'''
 
-        # AND: Need to add a parser here for any extra options
-        # parser = argparse.ArgumentParser(
-        #     description='Build an APK')
-        # args = parser.parse_args(args)
+        ap = argparse.ArgumentParser(
+            description='Build an APK')
+        ap.add_argument('--release', dest='build_mode', action='store_const',
+                        const='release', default='debug',
+                        help='Build the APK in Release mode')
+        ap.add_argument('--keystore', dest='keystore', action='store', default=None,
+                        help=('Keystore for JAR signing key, will use jarsigner '
+                              'default if not specified (release build only)'))
+        ap.add_argument('--signkey', dest='signkey', action='store', default=None,
+                        help='Key alias to sign APK with (release build only)')
+        ap.add_argument('--keystorepw', dest='keystorepw', action='store', default=None,
+                        help='Password for keystore')
+        ap.add_argument('--signkeypw', dest='signkeypw', action='store', default=None,
+                        help='Password for key alias')
+        apk_args, args = ap.parse_known_args(args)
 
         ctx = self.ctx
         dist = self._dist
@@ -550,21 +561,46 @@ build_dist
                 else:
                     args[i+1] = realpath(expanduser(args[i+1]))
 
+        env = os.environ.copy()
+        if apk_args.build_mode == 'release':
+            if apk_args.keystore:
+                env['P4A_RELEASE_KEYSTORE'] = realpath(expanduser(apk_args.keystore))
+            if apk_args.signkey:
+                env['P4A_RELEASE_KEYALIAS'] = apk_args.signkey
+            if apk_args.keystorepw:
+                env['P4A_RELEASE_KEYSTORE_PASSWD'] = apk_args.keystorepw
+            if apk_args.signkeypw:
+                env['P4A_RELEASE_KEYALIAS_PASSWD'] = apk_args.signkeypw
+            elif apk_args.keystorepw and 'P4A_RELEASE_KEYALIAS_PASSWD' not in env:
+                env['P4A_RELEASE_KEYALIAS_PASSWD'] = apk_args.keystorepw
+
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
-            build.parse_args(args)
-            shprint(sh.ant, 'debug', _tail=20, _critical=True)
+            build_args = build.parse_args(args)
+            output = shprint(sh.ant, apk_args.build_mode, _tail=20, _critical=True, _env=env)
 
-        # AND: This is very crude, needs improving. Also only works
-        # for debug for now.
         info_main('# Copying APK to current directory')
-        apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-debug.apk'))
-        if len(apks) == 0:
-            raise ValueError('Couldn\'t find the built APK')
-        if len(apks) > 1:
-            info('More than one built APK found...guessing you '
-                 'just built {}'.format(apks[-1]))
-        shprint(sh.cp, apks[-1], './')
+
+        apk_re = re.compile(r'.*Package: (.*\.apk)$')
+        apk_file = None
+        for line in reversed(output.splitlines()):
+            m = apk_re.match(line)
+            if m:
+                apk_file = m.groups()[0]
+                break
+
+        if not apk_file:
+            info_main('# APK filename not found in build output, trying to guess')
+            apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(apk_args.build_mode)))
+            if len(apks) == 0:
+                raise ValueError('Couldn\'t find the built APK')
+            if len(apks) > 1:
+                info('More than one built APK found...guessing you '
+                     'just built {}'.format(apks[-1]))
+            apk_file = apks[-1]
+
+        info_main('# Found APK file: {}'.format(apk_file))
+        shprint(sh.cp, apk_file, './')
 
     @require_prebuilt_dist
     def create(self, args):
