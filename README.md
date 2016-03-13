@@ -99,14 +99,14 @@ Support
 
 If you need assistance, you can ask for help on our mailing list:
 
-* User Group : https://groups.google.com/group/kivy-users
-* Email      : kivy-users@googlegroups.com
+* User Group: https://groups.google.com/group/kivy-users
+* Email: kivy-users@googlegroups.com
 
 We also have an IRC channel:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy
+* Server: irc.freenode.net
+* Port: 6667, 6697 (SSL only)
+* Channel: #kivy
 
 Contributing
 ------------
@@ -118,14 +118,14 @@ feel free to improve Python for Android.
 The following mailing list and IRC channel are used exclusively for
 discussions about developing the Kivy framework and its sister projects:
 
-* Dev Group : https://groups.google.com/group/kivy-dev
-* Email     : kivy-dev@googlegroups.com
+* Dev Group: https://groups.google.com/group/kivy-dev
+* Email: kivy-dev@googlegroups.com
 
 IRC channel:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy-dev
+* Server: irc.freenode.net
+* Port: 6667, 6697 (SSL only)
+* Channel: #kivy-dev
 
 License
 -------
