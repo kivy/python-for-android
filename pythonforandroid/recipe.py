@@ -422,35 +422,29 @@ class Recipe(with_metaclass(RecipeMeta)):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
-                    if extraction_filename.endswith('.tar.gz') or \
-                       extraction_filename.endswith('.tgz'):
-                        sh.tar('xzf', extraction_filename)
-                        root_directory = shprint(
-                            sh.tar, 'tzf', extraction_filename).stdout.decode(
-                                'utf-8').split('\n')[0].split('/')[0]
-                        if root_directory != directory_name:
-                            shprint(sh.mv, root_directory, directory_name)
-                    elif (extraction_filename.endswith('.tar.bz2') or
-                          extraction_filename.endswith('.tbz2')):
-                        info('Extracting {} at {}'
-                             .format(extraction_filename, filename))
-                        sh.tar('xjf', extraction_filename)
-                        root_directory = sh.tar(
-                            'tjf', extraction_filename).stdout.decode(
-                                'utf-8').split('\n')[0].split('/')[0]
-                        if root_directory != directory_name:
-                            shprint(sh.mv, root_directory, directory_name)
-                    elif extraction_filename.endswith('.zip'):
+                    if extraction_filename.endswith('.zip'):
                         sh.unzip(extraction_filename)
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
+                    elif (extraction_filename.endswith('.tar.gz') or
+                          extraction_filename.endswith('.tgz') or
+                          extraction_filename.endswith('.tar.bz2') or
+                          extraction_filename.endswith('.tbz2') or
+                          extraction_filename.endswith('.tar.xz') or
+                          extraction_filename.endswith('.txz')):
+                        sh.tar('xf', extraction_filename)
+                        root_directory = shprint(
+                            sh.tar, 'tf', extraction_filename).stdout.decode(
+                                'utf-8').split('\n')[0].split('/')[0]
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
                     else:
                         raise Exception(
                             'Could not extract {} download, it must be .zip, '
-                            '.tar.gz or .tar.bz2')
+                            '.tar.gz or .tar.bz2 or .tar.xz')
                 elif isdir(extraction_filename):
                     mkdir(directory_name)
                     for entry in listdir(extraction_filename):
