@@ -2,7 +2,6 @@ from functools import partial
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory
 import sh
-from os.path import join
 
 
 class OpenSSLRecipe(Recipe):
@@ -10,7 +9,7 @@ class OpenSSLRecipe(Recipe):
     url = 'https://www.openssl.org/source/openssl-{version}.tar.gz'
 
     def should_build(self, arch):
-        return not self.has_libs(arch, 'libsslx.so', 'libcryptox.so')
+        return not self.has_libs(arch, 'libssl.so', 'libcrypto.so')
 
     def check_symbol(self, env, sofile, symbol):
         nm = env.get('NM', 'nm')
@@ -45,9 +44,7 @@ class OpenSSLRecipe(Recipe):
             perl = sh.Command('perl')
             buildarch = self.select_build_arch(arch)
             shprint(perl, 'Configure', 'shared', 'no-dso', 'no-krb5', buildarch, _env=env)
-
             self.apply_patch('disable-sover.patch', arch.arch)
-            self.apply_patch('fix-shared-link.patch', arch.arch)
 
             check_crypto = partial(self.check_symbol, env, 'libcrypto.so')
             # check_ssl = partial(self.check_symbol, env, 'libssl.so')
@@ -57,10 +54,6 @@ class OpenSSLRecipe(Recipe):
                     break
                 shprint(sh.make, 'clean', _env=env)
 
-            # MUST BE RENAMED TO AVOID CONFLICTS WITH ANDROID'S DISTRIBUTED OPENSSL (IF INCLUDED INTO THE FINAL BUILD)
-            libs_dir = self.get_build_dir(arch.arch)
-            shprint(sh.cp, "-av", join(libs_dir, 'libcrypto.so'), join(libs_dir, 'libcryptox.so'))
-            shprint(sh.cp, "-av", join(libs_dir, 'libssl.so'), join(libs_dir, 'libsslx.so'))
-            self.install_libs(arch, 'libcryptox.so', 'libsslx.so')
+            self.install_libs(arch, 'libssl.so', 'libcrypto.so')
 
 recipe = OpenSSLRecipe()

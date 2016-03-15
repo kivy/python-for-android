@@ -163,7 +163,7 @@ class Python2Recipe(TargetPythonRecipe):
 
                 env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(openssl_inc_dir),
                                           '-I{}/openssl'.format(openssl_inc_dir)])
-                env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(openssl_libs_dir), '-lcryptox', '-lsslx'])
+                env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(openssl_libs_dir), '-lcrypto', '-lssl'])
 
             if 'sqlite3' in self.ctx.recipe_build_order:
                 info("Activate flags for sqlite3")

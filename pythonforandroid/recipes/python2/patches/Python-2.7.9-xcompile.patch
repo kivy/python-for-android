@@ -75,7 +75,7 @@ index 2ad1aa3..ede793f 100644
 +SSL=/path-to-ssl-build-dir
 +_ssl _ssl.c \
 +	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
-+	-L$(SSL) -lsslx -lcryptox
++	-L$(SSL) -lssl -lcrypto
 
  # The crypt module is now disabled by default because it breaks builds
  # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
