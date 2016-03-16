@@ -129,18 +129,10 @@ class Python2Recipe(TargetPythonRecipe):
             # shprint(sh.cp, join(hostpython_recipe.recipe_dir, 'Setup'), 'Modules/Setup')
 
             env = arch.get_env()
-            env.update({
-                'RFS': "{0}/platforms/android-{1}/arch-arm".format(self.ctx.ndk_dir, self.ctx.android_api),
-                })
-            # info('\t-> RFS:               {}'.format(env['RFS']))
-            # info('\t-> TOOLCHAIN_ROOT:    {}'.format(env['TOOLCHAIN_ROOT']))
-            # info('\t-> android_api:    {}'.format(self.ctx.android_api))
-            # info('\t-> ndk_dir:    {}'.format(self.ctx.ndk_dir))
 
-            env.update({
-                'HOSTARCH': 'arm-linux-androideabi',
-                'BUILDARCH': shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0],
-            })
+            env['RFS'] = "{0}/platforms/android-{1}/arch-arm".format(self.ctx.ndk_dir, self.ctx.android_api)
+            env['HOSTARCH'] = 'arm-linux-androideabi'
+            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0]
 
             env['CFLAGS'] = ' '.join([env['CFLAGS'],
                                       '-g0', '-Os', '-s', '-I{0}/usr/include'.format(env['RFS']),
