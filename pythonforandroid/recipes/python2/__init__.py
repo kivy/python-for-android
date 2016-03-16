@@ -5,7 +5,6 @@ from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
 import sh
-import shutil
 
 
 class Python2Recipe(TargetPythonRecipe):
@@ -52,81 +51,6 @@ class Python2Recipe(TargetPythonRecipe):
 
     def prebuild_arch(self, arch):
         super(Python2Recipe, self).prebuild_arch(arch)
-
-        # REWRITES FILES TO MATCH SSL DIRS
-        if 'openssl' in self.ctx.recipe_build_order:
-            info("\t->Updating files to support openssl".format(self.version))
-            # REWRITING PATCH TO MATCH SSL LIBS DIR
-            openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-            shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
-                    join(self.get_build_dir(arch.arch), 'Modules', 'Setup.dist'))
-        super(Python2Recipe, self).prebuild_arch(arch)
-
-        # Here we update some files to our build system
-        if not exists(join(self.get_build_dir(arch.arch), '.patched')):
-            # REWRITES FILES TO MATCH SSL DIRS
-            if 'openssl' in self.ctx.recipe_build_order:
-                info("\t->Updating files to support openssl".format(self.version))
-                # REWRITING PATCH TO MATCH SSL LIBS DIR
-                openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-                shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
-                        join(self.get_build_dir(arch.arch), 'Modules', 'Setup.dist'))
-
-            info("\t->Updating  basic-android-{0}.patch to support openssl".format(self.version))
-            shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
-                    join(self.get_build_dir(arch.arch), 'setup.py'))
-
-        # REWRITES FILES TO MATCH FFI DIRS
-        if 'libffi' in self.ctx.recipe_build_order:
-            info("\t->Updating files to support libffi...")
-            ffi_inc_dir = join(Recipe.get_recipe('libffi', self.ctx).get_build_dir(arch.arch), 'include')
-            ffi_libs_dir = self.ctx.get_libs_dir(arch.arch)
-            shprint(sh.sed, '-i', 's#/path-to-ffi-include-dir#{}#'.format(ffi_inc_dir),
-                    join(self.get_build_dir(arch.arch), 'setup.py'))
-            shprint(sh.sed, '-i', 's#/path-to-ffi-lib-dir#{}#'.format(ffi_libs_dir),
-                    join(self.get_build_dir(arch.arch), 'setup.py'))
-            # REWRITES FILES TO MATCH FFI DIRS
-            if 'libffi' in self.ctx.recipe_build_order:
-                info("\t->Updating files to support libffi...")
-                ffi_inc_dir = join(Recipe.get_recipe('libffi', self.ctx).get_build_dir(arch.arch), 'include')
-                ffi_libs_dir = self.ctx.get_libs_dir(arch.arch)
-                shprint(sh.sed, '-i', 's#/path-to-ffi-include-dir#{}#'.format(ffi_inc_dir),
-                        join(self.get_build_dir(arch.arch), 'setup.py'))
-                shprint(sh.sed, '-i', 's#/path-to-ffi-lib-dir#{}#'.format(ffi_libs_dir),
-                        join(self.get_build_dir(arch.arch), 'setup.py'))
-
-        # REWRITES FILES TO MATCH SQLITE3 DIRS
-        use_sqlite3 = True
-        if 'sqlite3' in self.ctx.recipe_build_order:
-            sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_jni_dir(arch)
-            sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
-        elif 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
-            sqlite_inc_dir = join(Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir(), 'sqlite3')
-            sqlite_libs_dir = join(self.ctx.bootstrap_build_dir, 'obj', 'local', 'armeabi')
-        else:
-            use_sqlite3 = False
-        if use_sqlite3:
-            info("\t->Updating files to support libsqlite3...")
-            shprint(sh.sed, '-i', 's#/path-to-sqlite3-include-dir#{}#'.format(sqlite_inc_dir),
-                    join(self.get_build_dir(arch.arch), 'setup.py'))
-            shprint(sh.sed, '-i', 's#/path-to-sqlite3-lib-dir#{}#'.format(sqlite_libs_dir),
-                    join(self.get_build_dir(arch.arch), 'setup.py'))
-            # REWRITES FILES TO MATCH SQLITE3 DIRS
-            use_sqlite3 = True
-            if 'sqlite3' in self.ctx.recipe_build_order:
-                sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_jni_dir(arch)
-                sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
-            elif 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
-                sqlite_inc_dir = join(Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir(), 'sqlite3')
-                sqlite_libs_dir = join(self.ctx.bootstrap_build_dir, 'obj', 'local', 'armeabi')
-            else:
-                use_sqlite3 = False
-            if use_sqlite3:
-                info("\t->Updating files to support libsqlite3...")
-                shprint(sh.sed, '-i', 's#/path-to-sqlite3-include-dir#{}#'.format(sqlite_inc_dir),
-                        join(self.get_build_dir(arch.arch), 'setup.py'))
-                shprint(sh.sed, '-i', 's#/path-to-sqlite3-lib-dir#{}#'.format(sqlite_libs_dir),
-                        join(self.get_build_dir(arch.arch), 'setup.py'))
 
     def build_arch(self, arch):
         if not exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
@@ -178,45 +102,53 @@ class Python2Recipe(TargetPythonRecipe):
                 openssl_libs_dir = openssl_build_dir
                 openssl_inc_dir = join(openssl_libs_dir, 'include')
 
-                info("\t-> Openssl Inc dir => {0}".format(openssl_inc_dir))
-                info("\t-> Openssl Libs dir => {0}".format(openssl_libs_dir))
-                info("\t-> Openssl Build dir => {0}".format(openssl_build_dir))
-
+                info("Activate flags for ssl")
                 env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(openssl_inc_dir),
                                           '-I{}/openssl'.format(openssl_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(openssl_libs_dir), '-lcrypto', '-lssl'])
 
+                info("\t->Updating files to support ssl".format(self.version))
+                shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
+                        join(self.get_build_dir(arch.arch), 'Modules', 'Setup.dist'))
+                shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
+                        join(self.get_build_dir(arch.arch), 'setup.py'))
+
+            use_sqlite3 = True
             if 'sqlite3' in self.ctx.recipe_build_order:
-                info("Activate flags for sqlite3")
-                sqlite_jni_dir = Recipe.get_recipe('sqlite3', self.ctx).get_jni_dir(arch)
                 sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
-                # info("\t-> Sqlite3 Jni dir => {0}".format(sqlite_jni_dir))
-                # info("\t-> Sqlite3 Libs dir => {0}".format(sqlite_libs_dir))
-
-                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(sqlite_jni_dir)])
-                env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(sqlite_libs_dir), '-lsqlite3'])
+                sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_jni_dir(arch)
             elif 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
-                info("Activate flags for sqlite3")
-                sqlite_jni_dir = Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir()
                 sqlite_libs_dir = join(self.ctx.bootstrap_build_dir, 'obj', 'local', 'armeabi')
-                # info("\t-> Sqlite3 Jni dir => {0}".format(sqlite_jni_dir))
-                # info("\t-> Sqlite3 Libs dir => {0}".format(sqlite_libs_dir))
-
-                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}/sqlite3'.format(sqlite_jni_dir)])
+                sqlite_inc_dir = join(Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir(), 'sqlite3')
+            else:
+                use_sqlite3 = False
+            if use_sqlite3:
+                info("Activate flags for sqlite3")
+                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(sqlite_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(sqlite_libs_dir), '-lsqlite3'])
+
+                info("\t->Updating files to support libsqlite3...")
+                shprint(sh.sed, '-i', 's#/path-to-sqlite3-include-dir#{}#'.format(sqlite_inc_dir),
+                        join(self.get_build_dir(arch.arch), 'setup.py'))
+                shprint(sh.sed, '-i', 's#/path-to-sqlite3-lib-dir#{}#'.format(sqlite_libs_dir),
+                        join(self.get_build_dir(arch.arch), 'setup.py'))
 
             if 'libffi' in self.ctx.recipe_build_order:
                 info("Activate flags for ffi")
                 ffi_inc_dir = join(Recipe.get_recipe('libffi', self.ctx).get_build_dir(arch.arch), 'include')
                 ffi_libs_dir = Recipe.get_recipe('libffi', self.ctx).get_lib_dir(arch)
-                # info("\t-> Ffi Inc dir => {0}".format(ffi_inc_dir))
-                # info("\t-> Ffi Libs dir => {0}".format(ffi_libs_dir))
 
                 env['LIBFFI_CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(ffi_inc_dir)])
                 env['LIBFFI_LIBS'] = ' '.join(['-L{}'.format(ffi_libs_dir), '-lffi'])
 
                 env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(ffi_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(ffi_libs_dir), '-lffi'])
+
+                info("\t->Updating files to support ffi...")
+                shprint(sh.sed, '-i', 's#/path-to-ffi-include-dir#{}#'.format(ffi_inc_dir),
+                        join(self.get_build_dir(arch.arch), 'setup.py'))
+                shprint(sh.sed, '-i', 's#/path-to-ffi-lib-dir#{}#'.format(ffi_libs_dir),
+                        join(self.get_build_dir(arch.arch), 'setup.py'))
 
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-Wformat'])
 
