@@ -17,14 +17,14 @@ class Python2Recipe(TargetPythonRecipe):
     conflicts = ['python3crystax', 'python3']
     opt_depends = ['openssl', 'libffi', 'sqlite3']
 
-    patches = ['patches/Python-{version}-xcompile_mod.patch',
+    patches = ['patches/Python-{version}-xcompile.patch',
                'patches/Python_{version}-ctypes-libffi-fix-configure.patch',
                'patches/ffi-config.sub-{version}.patch',
                'patches/fix-locale-{version}.patch',
                'patches/modules-locales-{version}.patch',
                'patches/fix-platform-{version}.patch',
                'patches/fix-gethostbyaddr.patch',  # OLD 2.7.2 Patch
-               'patches/basic-android-{version}_mod.patch',
+               'patches/basic-android-{version}.patch',
 
                # APPLY OLD WORKING 2.7.2 PATCHES
                'patches/fix-filesystemdefaultencoding.patch',
@@ -51,53 +51,46 @@ class Python2Recipe(TargetPythonRecipe):
     from_crystax = False
 
     def prebuild_arch(self, arch):
-        # Here we update some patches to our build system
-        if not exists(join(self.get_build_dir(arch.arch), '.patched')):
-            recipe_dir = self.get_recipe(self.name, arch.arch).recipe_dir
-
-            # Creates a copy of xcompile.patch...to be adapted to our build
-            patch_xcompile_base = join(recipe_dir, 'patches/Python-{0}-xcompile.patch'.format(self.version))
-            patch_xcompile_mod = join(recipe_dir, 'patches/Python-{0}-xcompile_mod.patch'.format(self.version))
-            shutil.copy(patch_xcompile_base, patch_xcompile_mod)
-
-            # Creates a copy of basic-android.patch...to be adapted to our build
-            patch_android_base = join(recipe_dir, 'patches/basic-android-{0}.patch'.format(self.version))
-            patch_android_mod = join(recipe_dir, 'patches/basic-android-{0}_mod.patch'.format(self.version))
-            shutil.copy(patch_android_base, patch_android_mod)
-
-            # REWRITES PATCH TO MATCH SSL DIRS
-            if 'openssl' in self.ctx.recipe_build_order:
-                info("\t->Updating Python-{0}-xcompile.patch to support openssl".format(self.version))
-                # REWRITING PATCH TO MATCH SSL LIBS DIR
-                openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-                shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir), patch_xcompile_mod)
-
-                info("\t->Updating  basic-android-{0}.patch to support openssl".format(self.version))
-                shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir), patch_android_mod)
-
-            # REWRITES PATCH TO MATCH FFI DIRS
-            if 'libffi' in self.ctx.recipe_build_order:
-                info("\t->Updating  basic-android-{0}.patch to support libffi".format(self.version))
-                ffi_inc_dir = join(Recipe.get_recipe('libffi', self.ctx).get_build_dir(arch.arch), 'include')
-                ffi_libs_dir = self.ctx.get_libs_dir(arch.arch)
-                shprint(sh.sed, '-i', 's#/path-to-ffi-include-dir#{}#'.format(ffi_inc_dir), patch_android_mod)
-                shprint(sh.sed, '-i', 's#/path-to-ffi-lib-dir#{}#'.format(ffi_libs_dir), patch_android_mod)
-
-            # REWRITES PATCH TO MATCH SQLITE3 DIRS
-            use_sqlite3 = True
-            if 'sqlite3' in self.ctx.recipe_build_order:
-                sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_jni_dir(arch)
-                sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
-            elif 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
-                sqlite_inc_dir = join(Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir(), 'sqlite3')
-                sqlite_libs_dir = join(self.ctx.bootstrap_build_dir, 'obj', 'local', 'armeabi')
-            else:
-                use_sqlite3 = False
-            if use_sqlite3:
-                info("\t->Updating  basic-android-{0}.patch to support libsqlite3".format(self.version))
-                shprint(sh.sed, '-i', 's#/path-to-sqlite3-include-dir#{}#'.format(sqlite_inc_dir), patch_android_mod)
-                shprint(sh.sed, '-i', 's#/path-to-sqlite3-lib-dir#{}#'.format(sqlite_libs_dir), patch_android_mod)
         super(Python2Recipe, self).prebuild_arch(arch)
+
+        # REWRITES FILES TO MATCH SSL DIRS
+        if 'openssl' in self.ctx.recipe_build_order:
+            info("\t->Updating files to support openssl".format(self.version))
+            # REWRITING PATCH TO MATCH SSL LIBS DIR
+            openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
+            shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
+                    join(self.get_build_dir(arch.arch), 'Modules', 'Setup.dist'))
+
+            info("\t->Updating  basic-android-{0}.patch to support openssl".format(self.version))
+            shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
+                    join(self.get_build_dir(arch.arch), 'setup.py'))
+
+        # REWRITES FILES TO MATCH FFI DIRS
+        if 'libffi' in self.ctx.recipe_build_order:
+            info("\t->Updating files to support libffi...")
+            ffi_inc_dir = join(Recipe.get_recipe('libffi', self.ctx).get_build_dir(arch.arch), 'include')
+            ffi_libs_dir = self.ctx.get_libs_dir(arch.arch)
+            shprint(sh.sed, '-i', 's#/path-to-ffi-include-dir#{}#'.format(ffi_inc_dir),
+                    join(self.get_build_dir(arch.arch), 'setup.py'))
+            shprint(sh.sed, '-i', 's#/path-to-ffi-lib-dir#{}#'.format(ffi_libs_dir),
+                    join(self.get_build_dir(arch.arch), 'setup.py'))
+
+        # REWRITES FILES TO MATCH SQLITE3 DIRS
+        use_sqlite3 = True
+        if 'sqlite3' in self.ctx.recipe_build_order:
+            sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_jni_dir(arch)
+            sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
+        elif 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
+            sqlite_inc_dir = join(Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir(), 'sqlite3')
+            sqlite_libs_dir = join(self.ctx.bootstrap_build_dir, 'obj', 'local', 'armeabi')
+        else:
+            use_sqlite3 = False
+        if use_sqlite3:
+            info("\t->Updating files to support libsqlite3...")
+            shprint(sh.sed, '-i', 's#/path-to-sqlite3-include-dir#{}#'.format(sqlite_inc_dir),
+                    join(self.get_build_dir(arch.arch), 'setup.py'))
+            shprint(sh.sed, '-i', 's#/path-to-sqlite3-lib-dir#{}#'.format(sqlite_libs_dir),
+                    join(self.get_build_dir(arch.arch), 'setup.py'))
 
     def build_arch(self, arch):
         if not exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
