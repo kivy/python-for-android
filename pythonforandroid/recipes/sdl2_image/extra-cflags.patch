@@ -1,0 +1,11 @@
+--- SDL2_image/Android.mk	2016-01-14 13:55:28.195171992 -0600
++++ b/Android.mk	2016-01-14 13:55:15.038929244 -0600
+@@ -23,7 +23,7 @@
+ LOCAL_C_INCLUDES := $(LOCAL_PATH)
+ LOCAL_CFLAGS := -DLOAD_BMP -DLOAD_GIF -DLOAD_LBM -DLOAD_PCX -DLOAD_PNM \
+                 -DLOAD_TGA -DLOAD_XCF -DLOAD_XPM -DLOAD_XV
+-LOCAL_CFLAGS += -O3 -fstrict-aliasing -fprefetch-loop-arrays
++LOCAL_CFLAGS += -O3 -fstrict-aliasing -fprefetch-loop-arrays $(EXTRA_CFLAGS)
+ 
+ LOCAL_SRC_FILES := $(notdir $(filter-out %/showimage.c, $(wildcard $(LOCAL_PATH)/*.c)))
+ 

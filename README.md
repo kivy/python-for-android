@@ -24,10 +24,10 @@ Broad goals of the revamp project include:
 - ✓ Support SDL2
 - ✓ Support multiple bootstraps (user-chosen java + NDK code, e.g. for
   multiple graphics backends or non-Kivy projects)
-- (WIP) Support python3 (recipe exists but crashes on android)
+- ✓ Support python3 (it finally works!)
 - (WIP) Support some kind of binary distribution, including on windows (semi-implemented, just needs finishing)
 - ✓ Be a standalone Pypi module (not on pypi yet but setup.py works)
-- Support multiple architectures
+- ✓ Support multiple architectures (full multiarch builds not complete, but arm and x86 with different config both work now)
 
 We are currently working to stabilise all parts of the toolchain and
 add more features. Support for pygame-based APKs is almost feature
@@ -61,7 +61,7 @@ as described in the documentation linked above.
 
 If you did this, to build an APK with SDL2 you can try e.g.
 
-    p4a apk --requirements=kivysdl2 --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
+    p4a apk --requirements=kivy --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
 For full instructions and parameter options, see the documentation
 linked above.
@@ -70,18 +70,13 @@ linked above.
 
 Relating to all bootstraps:
 - Some recipes/components aren't stripped properly of doc etc.
-- Some command line options of distribute.sh
-- Biglink is essential (the p4a disable option isn't implemented)
+- Downloaded file md5 and headers aren't checked
 
 Relating to SDL2 only:
-- Downloaded file md5 and headers aren't checked
-- Android services are not implemented at all
-- App loading screen
 - Public dir installation
 - Keyboard height getter
 - Billing support
 - Kivy Launcher build (can now be implemented as a bootstrap...maybe?)
-- Several build options for build.py
 - Probably some other stuff
 
 Here are some specific things relating to changes in p4a itself since
@@ -89,7 +84,7 @@ the reference commit that the revamp is based on:
 
 # Current status
 
-The tool works, testing is welcomed.
+python-for-android is fully ready for use. We are working towards a versioned release.
 
 # Development notes
 
@@ -104,14 +99,14 @@ Support
 
 If you need assistance, you can ask for help on our mailing list:
 
-* User Group : https://groups.google.com/group/kivy-users
-* Email      : kivy-users@googlegroups.com
+* User Group: https://groups.google.com/group/kivy-users
+* Email: kivy-users@googlegroups.com
 
 We also have an IRC channel:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy
+* Server: irc.freenode.net
+* Port: 6667, 6697 (SSL only)
+* Channel: #kivy
 
 Contributing
 ------------
@@ -123,14 +118,14 @@ feel free to improve Python for Android.
 The following mailing list and IRC channel are used exclusively for
 discussions about developing the Kivy framework and its sister projects:
 
-* Dev Group : https://groups.google.com/group/kivy-dev
-* Email     : kivy-dev@googlegroups.com
+* Dev Group: https://groups.google.com/group/kivy-dev
+* Email: kivy-dev@googlegroups.com
 
 IRC channel:
 
-* Server  : irc.freenode.net
-* Port    : 6667, 6697 (SSL only)
-* Channel : #kivy-dev
+* Server: irc.freenode.net
+* Port: 6667, 6697 (SSL only)
+* Channel: #kivy-dev
 
 License
 -------

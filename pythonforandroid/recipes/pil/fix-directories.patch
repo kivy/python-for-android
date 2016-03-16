@@ -1,0 +1,79 @@
+diff -Naur pil/setup.py b/setup.py
+--- pil/setup.py	2015-12-11 16:42:40.817701332 -0600
++++ b/setup.py	2015-12-11 17:07:34.778477132 -0600
+@@ -34,10 +34,10 @@
+ # TIFF_ROOT = libinclude("/opt/tiff")
+ 
+ TCL_ROOT = None
+-JPEG_ROOT = None
+-ZLIB_ROOT = None
++JPEG_ROOT = tuple(os.environ['JPEG_ROOT'].split('|')) if 'JPEG_ROOT' in os.environ else None
++ZLIB_ROOT = tuple(os.environ['ZLIB_ROOT'].split('|')) if 'ZLIB_ROOT' in os.environ else None
+ TIFF_ROOT = None
+-FREETYPE_ROOT = None
++FREETYPE_ROOT = tuple(os.environ['FREETYPE_ROOT'].split('|')) if 'FREETYPE_ROOT' in os.environ else None
+ LCMS_ROOT = None
+ 
+ # FIXME: add mechanism to explicitly *disable* the use of a library
+@@ -127,29 +127,6 @@
+ 
+         add_directory(include_dirs, "libImaging")
+ 
+-        #
+-        # add platform directories
+-
+-        if sys.platform == "cygwin":
+-            # pythonX.Y.dll.a is in the /usr/lib/pythonX.Y/config directory
+-            add_directory(library_dirs, os.path.join(
+-                "/usr/lib", "python%s" % sys.version[:3], "config"
+-                ))
+-
+-        elif sys.platform == "darwin":
+-            # attempt to make sure we pick freetype2 over other versions
+-            add_directory(include_dirs, "/sw/include/freetype2")
+-            add_directory(include_dirs, "/sw/lib/freetype2/include")
+-            # fink installation directories
+-            add_directory(library_dirs, "/sw/lib")
+-            add_directory(include_dirs, "/sw/include")
+-            # darwin ports installation directories
+-            add_directory(library_dirs, "/opt/local/lib")
+-            add_directory(include_dirs, "/opt/local/include")
+-
+-        add_directory(library_dirs, "/usr/local/lib")
+-        # FIXME: check /opt/stuff directories here?
+-
+         prefix = sysconfig.get_config_var("prefix")
+         if prefix:
+             add_directory(library_dirs, os.path.join(prefix, "lib"))
+@@ -199,22 +176,6 @@
+             add_directory(include_dirs, include_root)
+ 
+         #
+-        # add standard directories
+-
+-        # look for tcl specific subdirectory (e.g debian)
+-        if _tkinter:
+-            tcl_dir = "/usr/include/tcl" + TCL_VERSION
+-            if os.path.isfile(os.path.join(tcl_dir, "tk.h")):
+-                add_directory(include_dirs, tcl_dir)
+-
+-        # standard locations
+-        add_directory(library_dirs, "/usr/local/lib")
+-        add_directory(include_dirs, "/usr/local/include")
+-
+-        add_directory(library_dirs, "/usr/lib")
+-        add_directory(include_dirs, "/usr/include")
+-
+-        #
+         # insert new dirs *before* default libs, to avoid conflicts
+         # between Python PYD stub libs and real libraries
+ 
+@@ -299,8 +260,6 @@
+             defs.append(("HAVE_LIBZ", None))
+         if sys.platform == "win32":
+             libs.extend(["kernel32", "user32", "gdi32"])
+-        if struct.unpack("h", "\0\1")[0] == 1:
+-            defs.append(("WORDS_BIGENDIAN", None))
+ 
+         exts = [(Extension(
+             "_imaging", files, libraries=libs, define_macros=defs

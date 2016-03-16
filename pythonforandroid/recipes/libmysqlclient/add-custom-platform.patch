@@ -1,0 +1,8 @@
+--- libmysqlclient/libmysqlclient/libmysql/CMakeLists.txt	2013-02-27 00:25:45.000000000 -0600
++++ b/libmysqlclient/libmysql/CMakeLists.txt	2016-01-11 13:28:51.142356988 -0600
+@@ -152,3 +152,5 @@
+                 ${CMAKE_SOURCE_DIR}/libmysql/libmysqlclient_r${CMAKE_SHARED_LIBRARY_SUFFIX}
+           DESTINATION "lib")
+ ENDIF(WIN32)
++
++LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_PREFIX}")

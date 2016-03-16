@@ -1,25 +1,26 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint, current_directory, info
+from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, current_directory, info
 from os.path import exists, join
 import sh
 
 
-class LibSDL2Recipe(NDKRecipe):
+class LibSDL2Recipe(BootstrapNDKRecipe):
     version = "2.0.3"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
 
     dir_name = 'SDL'
 
-    depends = ['python2', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
+    depends = [('python2', 'python3crystax'), 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
     conflicts = ['sdl', 'pygame', 'pygame_bootstrap_components']
 
-    def prebuild_arch(self, arch):
-        super(LibSDL2Recipe, self).prebuild_arch(arch)
-        build_dir = self.get_build_dir(arch.arch)
-        if exists(join(build_dir, '.patched')):
-            info('SDL2 already patched, skipping')
-            return
-        self.apply_patch('add_nativeSetEnv.patch')
-        shprint(sh.touch, join(build_dir, '.patched'))
+    patches = ['add_nativeSetEnv.patch']
+
+    def get_recipe_env(self, arch=None):
+        env = super(LibSDL2Recipe, self).get_recipe_env(arch)
+        py2 = self.get_recipe('python2', arch.ctx)
+        env['PYTHON2_NAME'] = py2.get_dir_name()
+        if 'python2' in self.ctx.recipe_build_order:
+            env['EXTRA_LDLIBS'] = ' -lpython2.7'
+        return env
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)

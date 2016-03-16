@@ -1,0 +1,21 @@
+--- mysqldb/setup_posix.py	2014-01-02 13:52:50.000000000 -0600
++++ b/setup_posix.py	2016-01-13 15:48:18.732883429 -0600
+@@ -13,17 +13,7 @@
+     return "-%s" % f
+ 
+ def mysql_config(what):
+-    from os import popen
+-
+-    f = popen("%s --%s" % (mysql_config.path, what))
+-    data = f.read().strip().split()
+-    ret = f.close()
+-    if ret:
+-        if ret/256:
+-            data = []
+-        if ret/256 > 1:
+-            raise EnvironmentError("%s not found" % (mysql_config.path,))
+-    return data
++    return os.environ['MYSQL_' + what.replace('-', '_')].strip().split()
+ mysql_config.path = "mysql_config"
+ 
+ def get_config():

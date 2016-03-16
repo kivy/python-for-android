@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 
-from os.path import dirname, join, isfile, realpath, relpath, split
+from os.path import dirname, join, isfile, realpath, relpath, split, exists
+from os import makedirs
 import os
 import tarfile
 import time
@@ -59,6 +60,10 @@ def render(template, dest, **kwargs):
     keyword arguments as template parameters.
     '''
 
+    dest_dir = dirname(dest)
+    if dest_dir and not exists(dest_dir):
+        makedirs(dest_dir)
+
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
@@ -95,7 +100,7 @@ def listfiles(d):
         if isfile(fn):
             yield fn
         else:
-            subdirlist.append(os.path.join(basedir, item))
+            subdirlist.append(join(basedir, item))
     for subdir in subdirlist:
         for fn in listfiles(subdir):
             yield fn
@@ -107,6 +112,12 @@ def make_python_zip():
     # http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
     site-packages, config and lib-dynload will be not included.
     '''
+
+    if not exists('private'):
+        print('No compiled python is present to zip, skipping.')
+        print('this should only be the case if you are using the CrystaX python')
+        return
+
     global python_files
     d = realpath(join('private', 'lib', 'python2.7'))
 
@@ -198,11 +209,6 @@ def compile_dir(dfn):
 
 
 def make_package(args):
-    url_scheme = 'kivy'
-
-    # Figure out versions of the private and public data.
-    private_version = str(time.time())
-
     # # Update the project to a recent version.
     # try:
     #     subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
@@ -213,10 +219,10 @@ def make_package(args):
     #     sys.exit(-1)
 
     # Delete the old assets.
-    if os.path.exists('assets/public.mp3'):
+    if exists('assets/public.mp3'):
         os.unlink('assets/public.mp3')
 
-    if os.path.exists('assets/private.mp3'):
+    if exists('assets/private.mp3'):
         os.unlink('assets/private.mp3')
 
     # In order to speedup import and initial depack,
@@ -225,8 +231,13 @@ def make_package(args):
 
     # Package up the private and public data.
     # AND: Just private for now
+    tar_dirs = [args.private]
+    if exists('private'):
+        tar_dirs.append('private')
+    if exists('crystax_python'):
+        tar_dirs.append('crystax_python')
     if args.private:
-        make_tar('assets/private.mp3', ['private', args.private], args.ignore_path)
+        make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
     # else:
     #     make_tar('assets/private.mp3', ['private'])
 
@@ -253,6 +264,14 @@ def make_package(args):
     shutil.copy(args.presplash or default_presplash,
                 'res/drawable/presplash.jpg')
 
+    # If extra Java jars were requested, copy them into the libs directory
+    if args.add_jar:
+        for jarname in args.add_jar:
+            if not exists(jarname):
+                print('Requested jar does not exist: {}'.format(jarname))
+                sys.exit(-1)
+            shutil.copy(jarname, 'libs')
+
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
 
@@ -263,21 +282,72 @@ def make_package(args):
             version_code += int(i)
         args.numeric_version = str(version_code)
 
-    render(
-        'AndroidManifest.xml.tmpl',
-        'AndroidManifest.xml',
-        args=args,
+    if args.intent_filters:
+        with open(args.intent_filters) as fd:
+            args.intent_filters = fd.read()
+
+    if args.extra_source_dirs:
+        esd = []
+        for spec in args.extra_source_dirs:
+            if ':' in spec:
+                specdir, specincludes = spec.split(':')
+            else:
+                specdir = spec
+                specincludes = '**'
+            esd.append((realpath(specdir), specincludes))
+        args.extra_source_dirs = esd
+    else:
+        args.extra_source_dirs = []
+
+    service = False
+    service_main = join(realpath(args.private), 'service', 'main.py')
+    if exists(service_main) or exists(service_main + 'o'):
+        service = True
+
+    service_names = []
+    for sid, spec in enumerate(args.services):
+        spec = spec.split(':')
+        name = spec[0]
+        entrypoint = spec[1]
+        options = spec[2:]
+
+        foreground = 'foreground' in options
+        sticky = 'sticky' in options
+
+        service_names.append(name)
+        render(
+            'Service.tmpl.java',
+            'src/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
+            name=name,
+            entrypoint=entrypoint,
+            args=args,
+            foreground=foreground,
+            sticky=sticky,
+            service_id=sid + 1,
         )
 
     render(
-        'build.xml.tmpl',
+        'AndroidManifest.tmpl.xml',
+        'AndroidManifest.xml',
+        args=args,
+        service=service,
+        service_names=service_names,
+        )
+
+    render(
+        'build.tmpl.xml',
         'build.xml',
         args=args,
         versioned_name=versioned_name)
 
     render(
-        'strings.xml.tmpl',
+        'strings.tmpl.xml',
         'res/values/strings.xml',
+        args=args)
+
+    render(
+        'custom_rules.tmpl.xml',
+        'custom_rules.xml',
         args=args)
 
     with open(join(dirname(__file__), 'res',
@@ -292,6 +362,8 @@ def make_package(args):
 
 
 def parse_args(args=None):
+    global BLACKLIST_PATTERNS, WHITELIST_PATTERNS
+    default_android_api = 12
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -336,11 +408,51 @@ tools directory of the Android SDK.
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
+    ap.add_argument('--blacklist', dest='blacklist',
+                    default=join(curdir, 'blacklist.txt'),
+                    help=('Use a blacklist file to match unwanted file in '
+                          'the final APK'))
+    ap.add_argument('--whitelist', dest='whitelist',
+                    default=join(curdir, 'whitelist.txt'),
+                    help=('Use a whitelist file to prevent blacklisting of '
+                          'file in the final APK'))
+    ap.add_argument('--add-jar', dest='add_jar', action='append',
+                    help=('Add a Java .jar to the libs, so you can access its '
+                          'classes with pyjnius. You can specify this '
+                          'argument more than once to include multiple jars'))
+    ap.add_argument('--sdk', dest='sdk_version', default=-1,
+                    type=int, help=('Android SDK version to use. Default to '
+                                    'the value of minsdk'))
+    ap.add_argument('--minsdk', dest='min_sdk_version',
+                    default=default_android_api, type=int,
+                    help=('Minimum Android SDK version to use. Default to '
+                          'the value of ANDROIDAPI, or {} if not set'
+                          .format(default_android_api)))
+    ap.add_argument('--intent-filters', dest='intent_filters',
+                    help=('Add intent-filters xml rules to the '
+                          'AndroidManifest.xml file. The argument is a '
+                          'filename containing xml. The filename should be '
+                          'located relative to the python-for-android '
+                          'directory'))
+    ap.add_argument('--with-billing', dest='billing_pubkey',
+                    help='If set, the billing service will be added (not implemented)')
+    ap.add_argument('--service', dest='services', action='append',
+                    help='Declare a new service entrypoint: '
+                         'NAME:PATH_TO_PY[:foreground]')
+    ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
+                    help='Include additional source dirs in Java build')
 
     if args is None:
         args = sys.argv[1:]
     args = ap.parse_args(args)
     args.ignore_path = []
+
+    if args.billing_pubkey:
+        print('Billing not yet supported in sdl2 bootstrap!')
+        exit(1)
+
+    if args.sdk_version == -1:
+        args.sdk_version = args.min_sdk_version
 
     if args.permissions is None:
         args.permissions = []
@@ -348,7 +460,25 @@ tools directory of the Android SDK.
     if args.meta_data is None:
         args.meta_data = []
 
+    if args.services is None:
+        args.services = []
+
+    if args.blacklist:
+        with open(args.blacklist) as fd:
+            patterns = [x.strip() for x in fd.read().splitlines()
+                        if x.strip() and not x.strip().startswith('#')]
+        BLACKLIST_PATTERNS += patterns
+
+    if args.whitelist:
+        with open(args.whitelist) as fd:
+            patterns = [x.strip() for x in fd.read().splitlines()
+                        if x.strip() and not x.strip().startswith('#')]
+        WHITELIST_PATTERNS += patterns
+
     make_package(args)
+
+    return args
+
 
 if __name__ == "__main__":
 

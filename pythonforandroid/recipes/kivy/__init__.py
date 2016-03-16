@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchAndroid
+from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
 from os.path import exists, join
 import sh
 import glob
@@ -12,6 +12,8 @@ class KivyRecipe(CythonRecipe):
     name = 'kivy'
 
     depends = [('sdl2', 'pygame'), 'pyjnius']
+
+    # patches = ['setargv.patch']
 
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)

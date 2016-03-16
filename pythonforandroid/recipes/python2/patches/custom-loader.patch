@@ -12,11 +12,11 @@
      char pathbuf[260];
      int dlopenflags=0;
  
-+    static void *libpymodules = NULL;
++    static void *libpymodules = -1;
 +    void *rv = NULL;
 +
 +    /* Ensure we have access to libpymodules. */
-+    if (libpymodules == NULL) {
++    if (libpymodules == -1) {
 +        printf("ANDROID_PRIVATE = %s\n", getenv("ANDROID_PRIVATE"));
 +        PyOS_snprintf(pathbuf, sizeof(pathbuf), "%s/libpymodules.so", getenv("ANDROID_PRIVATE"));
 +        libpymodules = dlopen(pathbuf, RTLD_NOW);

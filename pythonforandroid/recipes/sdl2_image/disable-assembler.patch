@@ -1,0 +1,11 @@
+--- SDL2_image/Android.mk	2016-01-14 14:08:07.989191133 -0600
++++ b/Android.mk	2016-01-14 14:09:53.439136814 -0600
+@@ -77,7 +77,7 @@
+         $(JPG_LIBRARY_PATH)/jfdctfst.c \
+         $(JPG_LIBRARY_PATH)/jfdctint.c \
+         $(JPG_LIBRARY_PATH)/jidctflt.c \
+-        $(JPG_LIBRARY_PATH)/jidctfst.S \
++        $(JPG_LIBRARY_PATH)/jidctfst.c \
+         $(JPG_LIBRARY_PATH)/jidctint.c \
+         $(JPG_LIBRARY_PATH)/jquant1.c \
+         $(JPG_LIBRARY_PATH)/jquant2.c \

@@ -1,5 +1,5 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid
+from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
 from os.path import exists, join, realpath
 from os import uname
 import glob
@@ -10,8 +10,8 @@ class HarfbuzzRecipe(Recipe):
     version = '0.9.40'
     url = 'http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-{version}.tar.bz2'
 
-    def should_build(self):
-        if exists(join(self.get_build_dir('armeabi'), 'src', '.libs', 'libharfbuzz.so')):
+    def should_build(self, arch):
+        if exists(join(self.get_build_dir(arch.arch), 'src', '.libs', 'libharfbuzz.so')):
             return False
         return True
 

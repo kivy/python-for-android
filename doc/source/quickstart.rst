@@ -144,8 +144,9 @@ You can build an SDL2 APK similarly, creating a dist as follows::
 You can then make an APK in the same way, but this is more
 experimental and doesn't support as much customisation yet.
 
-There is also experimental support for building APKs with Vispy, which
-do not include Kivy. The basic command for this would be e.g.::
+Your APKs are not limited to Kivy, for instance you can create apps
+using Vispy, or using PySDL2 directly. The basic command for this
+would be e.g.::
 
     python-for-android create --dist_name=testvispy --bootstrap=sdl2 --requirements=vispy
 
@@ -175,7 +176,7 @@ Path to the Android SDK
 python-for-android searches in the following places for this path, in
 order; setting any of these variables overrides all the later ones:
 
-- The ``--sdk_path`` argument to any python-for-android command.
+- The ``--sdk_dir`` argument to any python-for-android command.
 - The ``ANDROIDSDK`` environment variable.
 - The ``ANDROID_HOME`` environment variable (this may be used or set
   by other tools).
@@ -220,7 +221,7 @@ Path to the Android NDK
 python-for-android searches in the following places for this path, in
 order; setting any of these variables overrides all the later ones:
 
-- The ``--ndk_path`` argument to any python-for-android command.
+- The ``--ndk_dir`` argument to any python-for-android command.
 - The ``ANDROIDNDK`` environment variable.
 - The ``NDK_HOME`` environment variable (this may be used or set
   by other tools).
@@ -254,10 +255,10 @@ correct and try to continue the build.
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
-python-for-android look on the current directory if there is a `.p4a`
-configuration file. If it found it, it adds all the lines as options
-to the command line. For example, you can put the options you would
-always write such as:
+python-for-android checks in the current directory for a configuration
+file named ``.p4a``. If found, it adds all the lines as options to the
+command line. For example, you can add the options you would always
+include such as:
 
     --dist_name my_example
     --android_api 19

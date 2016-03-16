@@ -1,0 +1,28 @@
+import os ;
+
+local ANDROIDNDK = [ os.environ ANDROIDNDK ] ;
+local ANDROIDAPI = [ os.environ ANDROIDAPI ] ;
+local TOOLCHAIN_VERSION = [ os.environ TOOLCHAIN_VERSION ] ;
+local TOOLCHAIN_PREFIX = [ os.environ TOOLCHAIN_PREFIX ] ;
+local ARCH = [ os.environ ARCH ] ;
+local PYTHON_ROOT = [ os.environ PYTHON_ROOT ] ;
+
+using gcc : $(ARCH) : $(TOOLCHAIN_PREFIX)-g++ :
+<architecture>$(ARCH)
+<archiver>$(TOOLCHAIN_PREFIX)-ar
+<compileflags>-DBOOST_SP_USE_PTHREADS
+<compileflags>-DBOOST_AC_USE_PTHREADS
+<cxxflags>-DBOOST_SP_USE_PTHREADS
+<cxxflags>-DBOOST_AC_USE_PTHREADS
+<cxxflags>-frtti
+<cxxflags>-fexceptions
+<compileflags>-I$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-$(ARCH)/usr/include
+<compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/include
+<compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)/include
+<compileflags>-I$(PYTHON_ROOT)/include/python2.7
+<linkflags>--sysroot=$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-$(ARCH)
+<linkflags>-L$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)
+<linkflags>-L$(PYTHON_ROOT)/lib
+<linkflags>-lgnustl_shared
+<linkflags>-lpython2.7
+;
