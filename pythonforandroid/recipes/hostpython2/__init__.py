@@ -12,11 +12,6 @@ class Hostpython2Recipe(Recipe):
 
     conflicts = ['hostpython3']
 
-    def get_recipe_env(self, arch):
-        env = super(Hostpython2Recipe, self).get_recipe_env(arch)
-        env['CFLAGS'] = ' '.join([env['CFLAGS'], '-Wformat'])
-        return env
-
     def get_build_container_dir(self, arch=None):
         choices = self.check_recipe_choices()
         dir_name = '-'.join([self.name] + choices)
