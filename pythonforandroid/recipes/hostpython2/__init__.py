@@ -1,13 +1,13 @@
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
 from os.path import join, exists
-from os import chdir
+from os import environ
 import sh
 
 
 class Hostpython2Recipe(Recipe):
-    version = '2.7.2'
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
+    version = '2.7.9'
+    url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'  # tar.bz2'
     name = 'hostpython2'
 
     conflicts = ['hostpython3']
@@ -20,14 +20,24 @@ class Hostpython2Recipe(Recipe):
     def get_build_dir(self, arch=None):
         return join(self.get_build_container_dir(), self.name)
 
+    def should_build(self, arch):
+        if exists(join(self.get_build_dir(), 'hostpython')):
+            info('Setting ctx hostpython2 from previous build...')
+            self.ctx.hostpython = join(self.get_build_dir(), 'hostpython')
+            self.ctx.hostpgen = join(self.get_build_dir(), 'hostpgen')
+            return False
+        else:
+            info('Must build hostpython2...')
+            return True
+
     def prebuild_arch(self, arch):
         # Override hostpython Setup?
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
                 join(self.get_build_dir(), 'Modules', 'Setup'))
 
     def build_arch(self, arch):
+        env = dict(environ)
         with current_directory(self.get_build_dir()):
-
             if exists('hostpython'):
                 info('hostpython already exists, skipping build')
                 self.ctx.hostpython = join(self.get_build_dir(),
@@ -35,11 +45,11 @@ class Hostpython2Recipe(Recipe):
                 self.ctx.hostpgen = join(self.get_build_dir(),
                                            'hostpgen')
                 return
-            
+
             configure = sh.Command('./configure')
 
-            shprint(configure)
-            shprint(sh.make, '-j5')
+            shprint(configure, _env=env)
+            shprint(sh.make, '-j5', _env=env)
 
             shprint(sh.mv, join('Parser', 'pgen'), 'hostpgen')
 

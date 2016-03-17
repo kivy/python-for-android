@@ -1,6 +1,5 @@
-diff -u -r Python-2.7.2.orig/Modules/timemodule.c Python-2.7.2/Modules/timemodule.c
---- Python-2.7.2.orig/Modules/timemodule.c	2011-06-11 15:46:27.000000000 +0000
-+++ Python-2.7.2/Modules/timemodule.c	2015-09-11 10:37:36.708661691 +0000
+--- Python-2.7.9/Modules/timemodule.c.orig	2016-03-17 11:52:46.674588000 +0100
++++ Python-2.7.9/Modules/timemodule.c	2016-03-17 11:53:34.028526305 +0100
 @@ -27,6 +27,7 @@
  #include <io.h>
  #endif

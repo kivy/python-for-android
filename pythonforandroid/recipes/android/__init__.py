@@ -10,16 +10,18 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
     # name = 'android'
     version = None
     url = None
-
     src_filename = 'src'
-
-    depends = [('pygame', 'sdl2'), ('python2', 'python3')]
-
     config_env = {}
+    depends = [('pygame', 'sdl2'), ('python2', 'python3')]
+    call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
         env = super(AndroidRecipe, self).get_recipe_env(arch)
         env.update(self.config_env)
+        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
+        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
+        env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
+                          ' -lpython2.7'
         return env
 
     def prebuild_arch(self, arch):

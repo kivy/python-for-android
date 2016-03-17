@@ -1,0 +1,163 @@
+--- Python-2.7.9/setup.py.orig	2015-05-02 19:28:23.418668000 +0200
++++ Python-2.7.9/setup.py	2015-05-02 22:02:39.127805704 +0200
+@@ -292,6 +292,14 @@ class PyBuildExt(build_ext):
+                           (ext.name, sys.exc_info()[1]))
+             self.failed.append(ext.name)
+             return
++
++        # Import check will not work when cross-compiling.
++        if os.environ.has_key('PYTHONXCPREFIX'):
++            self.announce(
++                'WARNING: skipping import check for cross-compiled: "%s"' %
++                ext.name)
++            return
++
+         # Workaround for Mac OS X: The Carbon-based modules cannot be
+         # reliably imported into a command-line Python
+         if 'Carbon' in ext.extra_link_args:
+@@ -511,6 +519,14 @@ class PyBuildExt(build_ext):
+                 '/lib', '/usr/lib',
+                 ):
+                 add_dir_to_list(lib_dirs, d)
++        else:
++            # The common install prefix of 3rd party libraries used during cross compilation
++            cflags = os.environ.get('CFLAGS')
++            if cflags:
++                inc_dirs += [x[2:] for x in cflags.split() if x.startswith('-I')]
++            ldflags = os.environ.get('LDFLAGS')
++            if ldflags:
++                lib_dirs += [x[2:] for x in ldflags.split() if x.startswith('-L')]
+         exts = []
+         missing = []
+ 
+@@ -713,7 +729,8 @@ class PyBuildExt(build_ext):
+         curses_library = ""
+         # Determine if readline is already linked against curses or tinfo.
+         if do_readline and find_executable('ldd'):
+-            fp = os.popen("ldd %s" % do_readline)
++            #fp = os.popen("ldd %s" % do_readline)
++            fp = os.popen("arm-linux-androideabi-objdump -x %s | grep NEEDED" % do_readline)
+             ldd_output = fp.readlines()
+             ret = fp.close()
+             if ret is None or ret >> 8 == 0:
+@@ -736,6 +753,10 @@ class PyBuildExt(build_ext):
+             curses_library = 'ncurses'
+         elif self.compiler.find_library_file(lib_dirs, 'curses'):
+             curses_library = 'curses'
++        print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
++        print curses_library
++        print readline_termcap_library
++        print do_readline
+ 
+         if host_platform == 'darwin':
+             os_release = int(os.uname()[2].split('.')[0])
+@@ -757,7 +778,7 @@ class PyBuildExt(build_ext):
+                 # before the (possibly broken) dynamic library in /usr/lib.
+                 readline_extra_link_args = ('-Wl,-search_paths_first',)
+             else:
+-                readline_extra_link_args = ()
++                readline_extra_link_args = ('-lncurses',)
+ 
+             readline_libs = ['readline']
+             if readline_termcap_library:
+@@ -807,13 +828,16 @@ class PyBuildExt(build_ext):
+                                      ['/usr/local/ssl/lib',
+                                       '/usr/contrib/ssl/lib/'
+                                      ] )
+-
++        ssl_incs = ['/path-to-ssl-build-dir/include', '/path-to-ssl-build-dir/include/openssl']
++        ssl_libs = ['/path-to-ssl-build-dir']
++        #ssl_incs = ['../build/openssl/openssl-1.0.2a/include']
++        #ssl_libs = ['../build/openssl/openssl-1.0.2a/']
+         if (ssl_incs is not None and
+             ssl_libs is not None):
+             exts.append( Extension('_ssl', ['_ssl.c'],
+                                    include_dirs = ssl_incs,
+                                    library_dirs = ssl_libs,
+-                                   libraries = ['ssl', 'crypto'],
++                                   libraries = ['ssl', 'crypto'],
+                                    depends = ['socketmodule.h']), )
+         else:
+             missing.append('_ssl')
+@@ -842,8 +866,8 @@ class PyBuildExt(build_ext):
+ 
+         min_openssl_ver = 0x00907000
+         have_any_openssl = ssl_incs is not None and ssl_libs is not None
+-        have_usable_openssl = (have_any_openssl and
+-                               openssl_ver >= min_openssl_ver)
++        have_usable_openssl = (have_any_openssl and True)
++        #                       openssl_ver >= min_openssl_ver)
+ 
+         if have_any_openssl:
+             if have_usable_openssl:
+@@ -852,7 +876,7 @@ class PyBuildExt(build_ext):
+                 exts.append( Extension('_hashlib', ['_hashopenssl.c'],
+                                        include_dirs = ssl_incs,
+                                        library_dirs = ssl_libs,
+-                                       libraries = ['ssl', 'crypto']) )
++                                       libraries = ['ssl', 'crypto']) )
+             else:
+                 print ("warning: openssl 0x%08x is too old for _hashlib" %
+                        openssl_ver)
+@@ -1100,15 +1124,22 @@ class PyBuildExt(build_ext):
+         # We hunt for #define SQLITE_VERSION "n.n.n"
+         # We need to find >= sqlite version 3.0.8
+         sqlite_incdir = sqlite_libdir = None
+-        sqlite_inc_paths = [ '/usr/include',
+-                             '/usr/include/sqlite',
+-                             '/usr/include/sqlite3',
+-                             '/usr/local/include',
+-                             '/usr/local/include/sqlite',
+-                             '/usr/local/include/sqlite3',
+-                           ]
+-        if cross_compiling:
+-            sqlite_inc_paths = []
++        if not cross_compiling:
++            sqlite_inc_paths = [ '/usr/include',
++                                 '/usr/include/sqlite',
++                                 '/usr/include/sqlite3',
++                                 '/usr/local/include',
++                                 '/usr/local/include/sqlite',
++                                 '/usr/local/include/sqlite3',
++                               ]
++     	else:
++            # The common install prefix of 3rd party headers used during
++            # cross compilation
++            mydir = os.environ.get('PYTHON_XCOMPILE_DEPENDENCIES_PREFIX')
++            if mydir:
++                sqlite_inc_paths = [mydir + '/include' ]
++            else:
++                sqlite_inc_paths = []
+         MIN_SQLITE_VERSION_NUMBER = (3, 0, 8)
+         MIN_SQLITE_VERSION = ".".join([str(x)
+                                     for x in MIN_SQLITE_VERSION_NUMBER])
+@@ -1154,11 +1185,28 @@ class PyBuildExt(build_ext):
+                 os.path.join(sqlite_incdir, '..', '..', 'lib64'),
+                 os.path.join(sqlite_incdir, '..', '..', 'lib'),
+             ]
++            if not cross_compiling:
++                sqlite_dirs_to_check = [
++                    os.path.join(sqlite_incdir, '..', 'lib64'),
++                    os.path.join(sqlite_incdir, '..', 'lib'),
++                    os.path.join(sqlite_incdir, '..', '..', 'lib64'),
++                    os.path.join(sqlite_incdir, '..', '..', 'lib'),
++                ]
++            else:
++                # The common install prefix of 3rd party headers used during
++                # cross compilation
++                mydir = os.environ.get('PYTHON_XCOMPILE_DEPENDENCIES_PREFIX')
++                if mydir:
++                    sqlite_dirs_to_check = [mydir + '/lib' ]
++                else:
++                    sqlite_dirs_to_check = []
++
+             sqlite_libfile = self.compiler.find_library_file(
+                                 sqlite_dirs_to_check + lib_dirs, 'sqlite3')
+             if sqlite_libfile:
+                 sqlite_libdir = [os.path.abspath(os.path.dirname(sqlite_libfile))]
+-
++        sqlite_incdir = '/path-to-sqlite3-include-dir'
++        sqlite_libdir = ['/path-to-sqlite3-lib-dir']
+         if sqlite_incdir and sqlite_libdir:
+             sqlite_srcs = ['_sqlite/cache.c',
+                 '_sqlite/connection.c',
