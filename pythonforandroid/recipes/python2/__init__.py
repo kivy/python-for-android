@@ -78,12 +78,14 @@ class Python2Recipe(TargetPythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
+            shprint(sh.cp, join(self.get_recipe_dir(), 'config.site'), '.')
             # Hack to make it work from user recipes, referenced on python-for-android issues  #613
             # shprint(sh.cp, join(hostpython_recipe.recipe_dir, 'Setup'), 'Modules/Setup')
 
             env = arch.get_env()
 
             env['RFS'] = "{0}/platforms/android-{1}/arch-arm".format(self.ctx.ndk_dir, self.ctx.android_api)
+            env['CONFIG_SITE'] = join(self.get_build_dir(arch.arch), 'config.site')
             env['HOSTARCH'] = 'arm-linux-androideabi'
             env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0]
 
@@ -165,9 +167,6 @@ class Python2Recipe(TargetPythonRecipe):
                     '--disable-ipv6',
                     # '--disable-toolbox-glue',
                     # '--disable-framework',
-                    'ac_cv_file__dev_ptmx=no',
-                    'ac_cv_file__dev_ptc=no',
-                    'ac_cv_have_long_long_format=yes',
                     'PYTHON_FOR_BUILD={}'.format(hostpython),
                     _env=env
                     )
