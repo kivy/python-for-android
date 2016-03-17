@@ -20,13 +20,13 @@
                  ):
                  add_dir_to_list(lib_dirs, d)
 +        else:
-+            # The common install prefix of 3rd party libraries used during
-+            # cross compilation
-+            mydir = os.environ.get('PYTHON_XCOMPILE_DEPENDENCIES_PREFIX')
-+            if mydir:
-+                inc_dirs += [mydir + '/include' ]
-+                inc_dirs += ['/path-to-ffi-include-dir', mydir + '/lib/libffi-3.2.1/include']
-+                lib_dirs += ['/path-to-ffi-lib-dir', mydir + '/lib' ]
++            # The common install prefix of 3rd party libraries used during cross compilation
++            cflags = os.environ.get('CFLAGS')
++            if cflags:
++                inc_dirs += [x[2:] for x in cflags.split() if x.startswith('-I')]
++            ldflags = os.environ.get('LDFLAGS')
++            if ldflags:
++                lib_dirs += [x[2:] for x in ldflags.split() if x.startswith('-L')]
          exts = []
          missing = []
  

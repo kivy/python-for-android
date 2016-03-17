@@ -33,18 +33,19 @@ class Python2Recipe(TargetPythonRecipe):
                'patches/fix-dynamic-lookup.patch',
                'patches/fix-dlfcn.patch',
                'patches/ctypes-find-library-updated.patch',
+               'patches/Python-{version}-ctypes-disable-wchar.patch',
+               'patches/disable-modules.patch',
+               'patches/verbose-compilation.patch',
 
-               # Todo: Regular Patches from 2.7.2, Not needed on 2.7.9, must be removed?
-               # 'patches/Python-{version}-ctypes-disable-wchar.patch',
-               # 'patches/disable-modules.patch',
-               # 'patches/fix-setup-flags.patch',
-               # 'patches/verbose-compilation.patch',
+               # SPECIAL PATCHES
+               ('patches/fix-configure-darwin.patch', is_darwin),
+               ('patches/fix-distutils-darwin.patch', is_darwin),
+               ('patches/fix-ftime-removal.patch', is_api_gt(19)),
+               ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))
 
-               # Todo: Untested Special Patches from 2.7.2, Will work on 2.7.9?
-               # ('patches/fix-configure-darwin.patch', is_darwin),
-               # ('patches/fix-distutils-darwin.patch', is_darwin),
-               # ('patches/fix-ftime-removal.patch', is_api_gt(19)),
-               # ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))
+               # Todo: Regular Patches from 2.7.2, Not needed on 2.7.9, must be removed
+               # 'patches/fix-setup-flags.patch',  # implemented into basic-android-{version}.patch
+
                ]
 
     from_crystax = False
@@ -60,7 +61,6 @@ class Python2Recipe(TargetPythonRecipe):
             shprint(sh.cp, '-a', join(self.get_build_dir(arch.arch), 'python-install'),
                     self.ctx.get_python_install_dir())
 
-        # This should be safe to run every time
         info('Copying hostpython binary to targetpython folder')
         shprint(sh.cp, self.ctx.hostpython,
                 join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
@@ -73,14 +73,11 @@ class Python2Recipe(TargetPythonRecipe):
         shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
         shprint(sh.cp, self.ctx.hostpgen, join(self.get_build_dir(arch.arch), 'Parser'))
         hostpython = join(self.get_build_dir(arch.arch), 'hostpython')
-        hostpgen = join(self.get_build_dir(arch.arch), 'Parser/hostpgen')
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
             shprint(sh.cp, join(self.get_recipe_dir(), 'config.site'), '.')
-            # Hack to make it work from user recipes, referenced on python-for-android issues  #613
-            # shprint(sh.cp, join(hostpython_recipe.recipe_dir, 'Setup'), 'Modules/Setup')
 
             env = arch.get_env()
 
@@ -146,12 +143,6 @@ class Python2Recipe(TargetPythonRecipe):
                 env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(ffi_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(ffi_libs_dir), '-lffi'])
 
-                info("\t->Updating files to support ffi...")
-                shprint(sh.sed, '-i', 's#/path-to-ffi-include-dir#{}#'.format(ffi_inc_dir),
-                        join(self.get_build_dir(arch.arch), 'setup.py'))
-                shprint(sh.sed, '-i', 's#/path-to-ffi-lib-dir#{}#'.format(ffi_libs_dir),
-                        join(self.get_build_dir(arch.arch), 'setup.py'))
-
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-Wformat'])
 
             configure = sh.Command('./configure')
@@ -191,7 +182,7 @@ class Python2Recipe(TargetPythonRecipe):
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
                         join('python-install', 'lib', 'python2.7'))
 
-            # reduce python
+            # REDUCE PYTHON
             for dir_name in ('test', join('json', 'tests'), 'lib-tk',
                              join('sqlite3', 'test'), join('unittest, test'),
                              join('lib2to3', 'tests'), join('bsddb', 'tests'),
