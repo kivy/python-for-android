@@ -20,27 +20,22 @@ class Hostpython2Recipe(Recipe):
     def get_build_dir(self, arch=None):
         return join(self.get_build_container_dir(), self.name)
 
+    def should_build(self, arch):
+        if exists(join(self.get_build_dir(), 'hostpython')):
+            info('Setting ctx hostpython2 from previous build...')
+            self.ctx.hostpython = join(self.get_build_dir(), 'hostpython')
+            self.ctx.hostpgen = join(self.get_build_dir(), 'hostpgen')
+            return False
+        else:
+            info('Must build hostpython2...')
+            return True
+
     def prebuild_arch(self, arch):
         # Override hostpython Setup?
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
                 join(self.get_build_dir(), 'Modules', 'Setup'))
-        # Hack to make it work from user recipes, referenced on python-for-android issues  #613
-        # recipe_dir = self.get_recipe(self.name, arch.arch).recipe_dir
-        # shprint(sh.cp, join(recipe_dir, 'Setup'), join(self.get_build_dir(), 'Modules', 'Setup'))
-
 
     def build_arch(self, arch):
-
-        with current_directory(self.get_build_dir()):
-            if exists('hostpython'):
-                info('Setting ctx hostpython from previous build...')
-                self.ctx.hostpython = join(self.get_build_dir(), 'hostpython')
-                self.ctx.hostpgen = join(self.get_build_dir(), 'hostpgen')
-            else:
-                info('Must build hostpython...')
-                self.do_build_arch(arch)
-
-    def do_build_arch(self, arch):
         env = dict(environ)
         with current_directory(self.get_build_dir()):
             if exists('hostpython'):
