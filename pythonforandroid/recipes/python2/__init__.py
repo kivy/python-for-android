@@ -8,7 +8,7 @@ import sh
 
 
 class Python2Recipe(TargetPythonRecipe):
-    version = "2.7.9"
+    version = "2.7.11"
     url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python2'
 
@@ -16,23 +16,23 @@ class Python2Recipe(TargetPythonRecipe):
     conflicts = ['python3crystax', 'python3']
     opt_depends = ['openssl', 'libffi', 'sqlite3']
 
-    patches = ['patches/Python-{version}-xcompile.patch',
+    patches = [  # APPLY NEW 2.7.11 PATCHES
+               'patches/Python-{version}-xcompile.patch',
                'patches/Python_{version}-ctypes-libffi-fix-configure.patch',
                'patches/ffi-config.sub-{version}.patch',
                'patches/fix-locale-{version}.patch',
                'patches/modules-locales-{version}.patch',
                'patches/fix-platform-{version}.patch',
-               'patches/fix-gethostbyaddr.patch',  # OLD 2.7.2 Patch
-               'patches/basic-android-{version}.patch',
 
                # APPLY OLD WORKING 2.7.2 PATCHES
+               'patches/fix-gethostbyaddr.patch',
                'patches/fix-filesystemdefaultencoding.patch',
                'patches/fix-termios.patch',
                'patches/custom-loader.patch',
                'patches/fix-remove-corefoundation.patch',
                'patches/fix-dynamic-lookup.patch',
                'patches/fix-dlfcn.patch',
-               'patches/ctypes-find-library-updated.patch',
+               'patches/ctypes-find-library.patch',
                'patches/Python-{version}-ctypes-disable-wchar.patch',
                'patches/disable-modules.patch',
                'patches/verbose-compilation.patch',
@@ -42,9 +42,6 @@ class Python2Recipe(TargetPythonRecipe):
                ('patches/fix-distutils-darwin.patch', is_darwin),
                ('patches/fix-ftime-removal.patch', is_api_gt(19)),
                ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))
-
-               # Todo: Regular Patches from 2.7.2, Not needed on 2.7.9, must be removed
-               # 'patches/fix-setup-flags.patch',  # implemented into basic-android-{version}.patch
 
                ]
 

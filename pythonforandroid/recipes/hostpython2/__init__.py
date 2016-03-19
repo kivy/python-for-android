@@ -6,7 +6,7 @@ import sh
 
 
 class Hostpython2Recipe(Recipe):
-    version = '2.7.9'
+    version = '2.7.11'
     url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'  # tar.bz2'
     name = 'hostpython2'
 
