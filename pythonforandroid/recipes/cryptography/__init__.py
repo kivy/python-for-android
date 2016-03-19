@@ -5,7 +5,7 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
 	name = 'cryptography'
-	version = '1.1.2'
+	version = '1.2.3'
 	url = 'https://pypi.python.org/packages/source/c/cryptography/cryptography-{version}.tar.gz'
 
 	depends = [('python2', 'python3crystax'), 'cffi', 'enum34', 'openssl', 'ipaddress', 'idna']
