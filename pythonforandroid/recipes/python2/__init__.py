@@ -99,8 +99,8 @@ class Python2Recipe(TargetPythonRecipe):
                 openssl_inc_dir = join(openssl_libs_dir, 'include')
 
                 info("Activate flags for ssl")
-                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(openssl_inc_dir),
-                                          '-I{}/openssl'.format(openssl_inc_dir)])
+                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-Bstatic', '-lcrypto', '-lssl',
+                                          '-I{}'.format(openssl_inc_dir), '-I{}/openssl'.format(openssl_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(openssl_libs_dir), '-lcrypto', '-lssl'])
 
                 info("\t->Updating files to support ssl".format(self.version))

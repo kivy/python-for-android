@@ -9,7 +9,7 @@ class OpenSSLRecipe(Recipe):
     url = 'https://www.openssl.org/source/openssl-{version}.tar.gz'
 
     def should_build(self, arch):
-        return not self.has_libs(arch, 'libssl.so', 'libcrypto.so')
+        return not self.has_libs(arch, 'libssl.a', 'libcrypto.a')
 
     def check_symbol(self, env, sofile, symbol):
         nm = env.get('NM', 'nm')
@@ -54,6 +54,6 @@ class OpenSSLRecipe(Recipe):
                     break
                 shprint(sh.make, 'clean', _env=env)
 
-            self.install_libs(arch, 'libssl.so', 'libcrypto.so')
+            self.install_libs(arch, 'libssl.a', 'libcrypto.a')
 
 recipe = OpenSSLRecipe()
