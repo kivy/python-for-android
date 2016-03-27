@@ -10,6 +10,8 @@ class Sqlite3Recipe(NDKRecipe):
     generated_libraries = ['sqlite3']
 
     def should_build(self, arch):
+        if 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
+            return False
         return not self.has_libs(arch, 'libsqlite3.so')
 
     def get_lib_dir(self, arch):

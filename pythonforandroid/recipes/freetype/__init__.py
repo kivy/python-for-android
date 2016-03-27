@@ -1,8 +1,6 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
+from pythonforandroid.toolchain import Recipe, shprint, current_directory
 from os.path import exists, join, realpath
-from os import uname
-import glob
 import sh
 
 class FreetypeRecipe(Recipe):
@@ -13,6 +11,8 @@ class FreetypeRecipe(Recipe):
     depends = ['harfbuzz']
 
     def should_build(self, arch):
+        if 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
+            return False
         if exists(join(self.get_build_dir(arch.arch), 'objs', '.libs', 'libfreetype.so')):
             return False
         return True

@@ -34,7 +34,7 @@ class PygameRecipe(CompiledComponentsPythonRecipe):
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
-        # PATCH FREETYPE HEADERS TO BE FOUND BY PYGAME
+        # Create link to freetype headers to be found by pygame
         freetype_inc_dir = join(self.ctx.bootstrap_build_dir, 'jni', 'freetype', 'include')
         if not exists(join(freetype_inc_dir, 'freetype')):
             shprint(sh.ln, '-s', freetype_inc_dir,

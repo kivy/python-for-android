@@ -110,12 +110,12 @@ class Python2Recipe(TargetPythonRecipe):
                         join(self.get_build_dir(arch.arch), 'setup.py'))
 
             use_sqlite3 = True
-            if 'sqlite3' in self.ctx.recipe_build_order:
-                sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
-                sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_build_dir(arch.arch)
-            elif 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
+            if 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
                 sqlite_libs_dir = join(self.ctx.bootstrap_build_dir, 'obj', 'local', 'armeabi')
                 sqlite_inc_dir = join(Recipe.get_recipe('pygame_bootstrap_components', self.ctx).get_jni_dir(), 'sqlite3')
+            elif 'sqlite3' in self.ctx.recipe_build_order:
+                sqlite_libs_dir = Recipe.get_recipe('sqlite3', self.ctx).get_lib_dir(arch)
+                sqlite_inc_dir = Recipe.get_recipe('sqlite3', self.ctx).get_build_dir(arch.arch)
             else:
                 use_sqlite3 = False
             if use_sqlite3:
