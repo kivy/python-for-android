@@ -32,6 +32,7 @@ Contents
    commands
    recipes
    bootstraps
+   services
    apis
    troubleshooting
    contribute
