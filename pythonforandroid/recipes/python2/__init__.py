@@ -23,6 +23,7 @@ class Python2Recipe(TargetPythonRecipe):
                'patches/fix-gethostbyaddr.patch',
                'patches/fix-setup-flags.patch',
                'patches/fix-filesystemdefaultencoding.patch',
+               'patches/fix-platform.patch',
                'patches/fix-termios.patch',
                'patches/custom-loader.patch',
                'patches/verbose-compilation.patch',

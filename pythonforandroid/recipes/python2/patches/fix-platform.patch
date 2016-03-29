@@ -1,0 +1,71 @@
+diff -Naur Python-2.7.2.org/Lib/platform.py Python-2.7.2/Lib/platform.py
+--- Python-2.7.2.org/Lib/platform.py	2016-03-26 18:37:49.968335997 +0800
++++ Python-2.7.2/Lib/platform.py	2016-03-26 18:40:02.708338807 +0800
+@@ -160,35 +160,39 @@
+         # here to work around problems with Cygwin not being
+         # able to open symlinks for reading
+         executable = os.path.realpath(executable)
+-    f = open(executable,'rb')
+-    binary = f.read(chunksize)
+-    pos = 0
+-    while 1:
+-        m = _libc_search.search(binary,pos)
+-        if not m:
+-            binary = f.read(chunksize)
+-            if not binary:
+-                break
+-            pos = 0
+-            continue
+-        libcinit,glibc,glibcversion,so,threads,soversion = m.groups()
+-        if libcinit and not lib:
+-            lib = 'libc'
+-        elif glibc:
+-            if lib != 'glibc':
+-                lib = 'glibc'
+-                version = glibcversion
+-            elif glibcversion > version:
+-                version = glibcversion
+-        elif so:
+-            if lib != 'glibc':
++    try:
++        f = open(executable,'rb')
++        binary = f.read(chunksize)
++        pos = 0
++        while 1:
++            m = _libc_search.search(binary,pos)
++            if not m:
++                binary = f.read(chunksize)
++                if not binary:
++                    break
++                pos = 0
++                continue
++            libcinit,glibc,glibcversion,so,threads,soversion = m.groups()
++            if libcinit and not lib:
+                 lib = 'libc'
+-                if soversion > version:
+-                    version = soversion
+-                if threads and version[-len(threads):] != threads:
+-                    version = version + threads
+-        pos = m.end()
+-    f.close()
++            elif glibc:
++                if lib != 'glibc':
++                    lib = 'glibc'
++                    version = glibcversion
++                elif glibcversion > version:
++                    version = glibcversion
++            elif so:
++                if lib != 'glibc':
++                    lib = 'libc'
++                    if soversion > version:
++                        version = soversion
++                    if threads and version[-len(threads):] != threads:
++                        version = version + threads
++            pos = m.end()
++        f.close()
++    except:
++        pass
++        
+     return lib,version
+ 
+ def _dist_try_harder(distname,version,id):
