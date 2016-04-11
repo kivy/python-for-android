@@ -1,4 +1,8 @@
 from pythonforandroid.recipe import NDKRecipe
+from pythonforandroid.logger import shprint
+from pythonforandroid.toolchain import current_directory
+from os.path import join, exists
+import sh
 
 
 class PngRecipe(NDKRecipe):
@@ -9,7 +13,7 @@ class PngRecipe(NDKRecipe):
     generated_libraries = ['libpng.a']
 
     def should_build(self, arch):
-        if 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
+        if 'pygame' in self.ctx.recipe_build_order:
             return False
         super(PngRecipe, self).should_build(arch)
 

@@ -2,7 +2,7 @@
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from pythonforandroid.util import ensure_dir
 from pythonforandroid.logger import debug, shprint
-from os.path import exists, join
+from os.path import join
 import sh
 
 class PygameRecipe(CompiledComponentsPythonRecipe):
@@ -28,27 +28,20 @@ class PygameRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
                           ' -lpython2.7'
 
-        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
-            self.ctx.get_libs_dir(arch.arch))
+        env['LDFLAGS'] += ' -L{}'.format(self.ctx.get_libs_dir(arch.arch))
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
-        # Create link to freetype headers to be found by pygame
-        freetype_inc_dir = join(self.ctx.bootstrap_build_dir, 'jni', 'freetype', 'include')
-        if not exists(join(freetype_inc_dir, 'freetype')):
-            shprint(sh.ln, '-s', freetype_inc_dir,
-                    join(freetype_inc_dir, 'freetype'))
-
-        env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg -I{jni_path}/freetype/include'.format(
+        env['CFLAGS'] += ' -I{jni_path}/png -I{jni_path}/jpeg -I{jni_path}/freetype/include'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
-        env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/sdl/include -I{jni_path}/sdl_mixer'.format(
+        env['CFLAGS'] += ' -I{jni_path}/sdl/include -I{jni_path}/sdl_mixer'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
-        env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/sdl_ttf -I{jni_path}/sdl_image'.format(
+        env['CFLAGS'] += ' -I{jni_path}/sdl_ttf -I{jni_path}/sdl_image'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
         debug('pygame cflags', env['CFLAGS'])
 
-        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{libs_path} -L{src_path}/obj/local/{arch} -lm -lz'.format(
+        env['LDFLAGS'] += ' -L{libs_path} -L{src_path}/obj/local/{arch} -lm -lz'.format(
             libs_path=self.ctx.libs_dir, src_path=self.ctx.bootstrap.build_dir, arch=env['ARCH'])
 
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')

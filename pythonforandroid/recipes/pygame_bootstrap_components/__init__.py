@@ -1,5 +1,6 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory, shprint, info
-from os.path import exists, join
+from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory
+from pythonforandroid.logger import shprint, info
+from os.path import exists, join, basename
 import sh
 import glob
 
@@ -20,15 +21,19 @@ class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
                 return
             for dirn in glob.glob(join(self.get_build_dir(arch),
                                        'pygame_bootstrap_jni', '*')):
-                shprint(sh.mv, dirn, './')
+                if basename(dirn) not in ['sqlite3']:
+                    shprint(sh.mv, dirn, './')
         info('Unpacking was successful, deleting original container dir')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
 
     def build_arch(self, arch):
-        # TO FORCE BUILD SQLITE3 BEFORE PYTHON
-        env = self.get_recipe_env(arch)
-        with current_directory(self.get_jni_dir()):
-            shprint(sh.ndk_build, "V=1", "sqlite3", _env=env)
-        
+        # TO FORCE BUILD LIBS BEFORE PIL RECIPE
+        if 'pil' in self.ctx.recipe_build_order:
+            env = self.get_recipe_env(arch)
+            with current_directory(self.get_jni_dir()):
+                shprint(sh.ndk_build, "V=1", "freetype", _env=env)
+                shprint(sh.ndk_build, "V=1", "png", _env=env)
+                shprint(sh.ndk_build, "V=1", "jpeg", _env=env)
+
 
 recipe = PygameJNIComponentsRecipe()
