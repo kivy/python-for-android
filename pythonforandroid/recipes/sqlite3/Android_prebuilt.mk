@@ -1,0 +1,9 @@
+
+LOCAL_PATH := $(call my-dir)
+
+# SQLITE3
+include $(CLEAR_VARS)
+LOCAL_MODULE := sqlite3
+LOCAL_SRC_FILES := $(LOCAL_PATH)/libsqlite3.so
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
+include $(PREBUILT_SHARED_LIBRARY)

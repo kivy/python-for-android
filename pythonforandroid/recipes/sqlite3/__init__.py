@@ -1,7 +1,8 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint, shutil, current_directory
-from os.path import join, exists
+from pythonforandroid.toolchain import NDKRecipe, shutil
+from pythonforandroid.logger import shprint
+from pythonforandroid.util import ensure_dir
+from os.path import join
 import sh
-
 
 class Sqlite3Recipe(NDKRecipe):
     version = '3.11.0'
@@ -10,11 +11,16 @@ class Sqlite3Recipe(NDKRecipe):
     generated_libraries = ['sqlite3']
 
     def should_build(self, arch):
-        if 'pygame_bootstrap_components' in self.ctx.recipe_build_order:
-            return False
         return not self.has_libs(arch, 'libsqlite3.so')
 
+    def get_jni_dir(self, arch):
+        if 'pygame' in self.ctx.recipe_build_order:
+            return join(self.ctx.bootstrap.build_dir, 'jni')
+        return join(self.get_build_dir(arch.arch), 'jni')
+
     def get_lib_dir(self, arch):
+        if 'pygame' in self.ctx.recipe_build_order:
+            return join(self.get_jni_dir(arch), 'sqlite3')
         return join(self.get_build_dir(arch.arch), 'libs', arch.arch)
 
     def prebuild_arch(self, arch):
@@ -26,8 +32,22 @@ class Sqlite3Recipe(NDKRecipe):
 
     def build_arch(self, arch, *extra_args):
         super(Sqlite3Recipe, self).build_arch(arch)
-        # Copy the shared library
-        self.install_libs(arch, join(self.get_lib_dir(arch), 'libsqlite3.so'))
+        build_dir = self.get_build_dir(arch.arch)
+        self.install_libs(arch, join(build_dir, 'libs', arch.arch, 'libsqlite3.so'))
+
+        # If building with the pygame bootstrap, we must integrate libsqlite3 and
+        # all the include files into the bootstrap directory, because depends on it...
+        if 'pygame' in self.ctx.recipe_build_order:
+            lib_dir = join(self.get_jni_dir(arch), 'sqlite3')
+            ensure_dir(lib_dir)
+            shprint(sh.cp, join(self.get_recipe_dir(), 'Android_prebuilt.mk'),
+                    join(lib_dir, 'Android.mk'))
+            shprint(sh.cp, join(build_dir, 'libs', arch.arch, 'libsqlite3.so'),
+                    join(lib_dir, 'libsqlite3.so'))
+            shprint(sh.cp, join(build_dir, 'sqlite3.h'),
+                    join(lib_dir, 'sqlite3.h'))
+            shprint(sh.cp, join(build_dir, 'sqlite3ext.h'),
+                    join(lib_dir, 'sqlite3ext.h'))
 
     def get_recipe_env(self, arch):
         env = super(Sqlite3Recipe, self).get_recipe_env(arch)
