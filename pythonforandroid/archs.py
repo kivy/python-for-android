@@ -110,7 +110,7 @@ class Arch(object):
 
         env['ARCH'] = self.arch
 
-        if self.ctx.python_recipe.from_crystax:
+        if self.ctx.python_recipe and self.ctx.python_recipe.from_crystax:
             env['CRYSTAX_PYTHON_VERSION'] = self.ctx.python_recipe.version
 
         return env
