@@ -1,79 +1,203 @@
-diff -Naur pil/setup.py b/setup.py
---- pil/setup.py	2015-12-11 16:42:40.817701332 -0600
-+++ b/setup.py	2015-12-11 17:07:34.778477132 -0600
-@@ -34,10 +34,10 @@
- # TIFF_ROOT = libinclude("/opt/tiff")
- 
+--- pil/setup.py.orig	2016-01-04 11:07:30.000000000 +0100
++++ pil/setup.py	2016-03-26 16:00:31.359658042 +0100
+@@ -92,11 +92,11 @@
+ NAME = 'Pillow'
+ PILLOW_VERSION = '3.1.0'
  TCL_ROOT = None
 -JPEG_ROOT = None
--ZLIB_ROOT = None
 +JPEG_ROOT = tuple(os.environ['JPEG_ROOT'].split('|')) if 'JPEG_ROOT' in os.environ else None
+ JPEG2K_ROOT = None
+-ZLIB_ROOT = None
 +ZLIB_ROOT = tuple(os.environ['ZLIB_ROOT'].split('|')) if 'ZLIB_ROOT' in os.environ else None
  TIFF_ROOT = None
 -FREETYPE_ROOT = None
 +FREETYPE_ROOT = tuple(os.environ['FREETYPE_ROOT'].split('|')) if 'FREETYPE_ROOT' in os.environ else None
  LCMS_ROOT = None
- 
- # FIXME: add mechanism to explicitly *disable* the use of a library
-@@ -127,29 +127,6 @@
- 
-         add_directory(include_dirs, "libImaging")
- 
+
+
+@@ -192,174 +192,8 @@
+             _add_directory(library_dirs, os.path.join(prefix, "lib"))
+             _add_directory(include_dirs, os.path.join(prefix, "include"))
+
 -        #
 -        # add platform directories
 -
 -        if sys.platform == "cygwin":
 -            # pythonX.Y.dll.a is in the /usr/lib/pythonX.Y/config directory
--            add_directory(library_dirs, os.path.join(
--                "/usr/lib", "python%s" % sys.version[:3], "config"
--                ))
+-            _add_directory(library_dirs, os.path.join(
+-                "/usr/lib", "python%s" % sys.version[:3], "config"))
 -
 -        elif sys.platform == "darwin":
 -            # attempt to make sure we pick freetype2 over other versions
--            add_directory(include_dirs, "/sw/include/freetype2")
--            add_directory(include_dirs, "/sw/lib/freetype2/include")
+-            _add_directory(include_dirs, "/sw/include/freetype2")
+-            _add_directory(include_dirs, "/sw/lib/freetype2/include")
 -            # fink installation directories
--            add_directory(library_dirs, "/sw/lib")
--            add_directory(include_dirs, "/sw/include")
+-            _add_directory(library_dirs, "/sw/lib")
+-            _add_directory(include_dirs, "/sw/include")
 -            # darwin ports installation directories
--            add_directory(library_dirs, "/opt/local/lib")
--            add_directory(include_dirs, "/opt/local/include")
+-            _add_directory(library_dirs, "/opt/local/lib")
+-            _add_directory(include_dirs, "/opt/local/include")
 -
--        add_directory(library_dirs, "/usr/local/lib")
+-            # if Homebrew is installed, use its lib and include directories
+-            import subprocess
+-            try:
+-                prefix = subprocess.check_output(
+-                    ['brew', '--prefix']
+-                ).strip().decode('latin1')
+-            except:
+-                # Homebrew not installed
+-                prefix = None
+-
+-            ft_prefix = None
+-
+-            if prefix:
+-                # add Homebrew's include and lib directories
+-                _add_directory(library_dirs, os.path.join(prefix, 'lib'))
+-                _add_directory(include_dirs, os.path.join(prefix, 'include'))
+-                ft_prefix = os.path.join(prefix, 'opt', 'freetype')
+-
+-            if ft_prefix and os.path.isdir(ft_prefix):
+-                # freetype might not be linked into Homebrew's prefix
+-                _add_directory(library_dirs, os.path.join(ft_prefix, 'lib'))
+-                _add_directory(
+-                    include_dirs, os.path.join(ft_prefix, 'include'))
+-            else:
+-                # fall back to freetype from XQuartz if
+-                # Homebrew's freetype is missing
+-                _add_directory(library_dirs, "/usr/X11/lib")
+-                _add_directory(include_dirs, "/usr/X11/include")
+-
+-        elif sys.platform.startswith("linux"):
+-            arch_tp = (plat.processor(), plat.architecture()[0])
+-            if arch_tp == ("x86_64", "32bit"):
+-                # 32-bit build on 64-bit machine.
+-                _add_directory(library_dirs, "/usr/lib/i386-linux-gnu")
+-            else:
+-                for platform_ in arch_tp:
+-
+-                    if not platform_:
+-                        continue
+-
+-                    if platform_ in ["x86_64", "64bit"]:
+-                        _add_directory(library_dirs, "/lib64")
+-                        _add_directory(library_dirs, "/usr/lib64")
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/x86_64-linux-gnu")
+-                        break
+-                    elif platform_ in ["i386", "i686", "32bit"]:
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/i386-linux-gnu")
+-                        break
+-                    elif platform_ in ["aarch64"]:
+-                        _add_directory(library_dirs, "/usr/lib64")
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/aarch64-linux-gnu")
+-                        break
+-                    elif platform_ in ["arm", "armv7l"]:
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/arm-linux-gnueabi")
+-                        break
+-                    elif platform_ in ["ppc64"]:
+-                        _add_directory(library_dirs, "/usr/lib64")
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/ppc64-linux-gnu")
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/powerpc64-linux-gnu")
+-                        break
+-                    elif platform_ in ["ppc"]:
+-                        _add_directory(library_dirs, "/usr/lib/ppc-linux-gnu")
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/powerpc-linux-gnu")
+-                        break
+-                    elif platform_ in ["s390x"]:
+-                        _add_directory(library_dirs, "/usr/lib64")
+-                        _add_directory(
+-                            library_dirs, "/usr/lib/s390x-linux-gnu")
+-                        break
+-                    elif platform_ in ["s390"]:
+-                        _add_directory(library_dirs, "/usr/lib/s390-linux-gnu")
+-                        break
+-                else:
+-                    raise ValueError(
+-                        "Unable to identify Linux platform: `%s`" % platform_)
+-
+-            # XXX Kludge. Above /\ we brute force support multiarch. Here we
+-            # try Barry's more general approach. Afterward, something should
+-            # work ;-)
+-            self.add_multiarch_paths()
+-
+-        elif sys.platform.startswith("gnu"):
+-            self.add_multiarch_paths()
+-
+-        elif sys.platform.startswith("freebsd"):
+-            _add_directory(library_dirs, "/usr/local/lib")
+-            _add_directory(include_dirs, "/usr/local/include")
+-
+-        elif sys.platform.startswith("netbsd"):
+-            _add_directory(library_dirs, "/usr/pkg/lib")
+-            _add_directory(include_dirs, "/usr/pkg/include")
+-
+-        elif sys.platform.startswith("sunos5"):
+-                    _add_directory(library_dirs, "/opt/local/lib")
+-                    _add_directory(include_dirs, "/opt/local/include")
+-
 -        # FIXME: check /opt/stuff directories here?
 -
-         prefix = sysconfig.get_config_var("prefix")
-         if prefix:
-             add_directory(library_dirs, os.path.join(prefix, "lib"))
-@@ -199,22 +176,6 @@
-             add_directory(include_dirs, include_root)
- 
-         #
+-        # locate tkinter libraries
+-
+-        if _tkinter:
+-            TCL_VERSION = _tkinter.TCL_VERSION[:3]
+-
+-        if _tkinter and not TCL_ROOT:
+-            # we have Tkinter but the TCL_ROOT variable was not set;
+-            # try to locate appropriate Tcl/Tk libraries
+-            PYVERSION = sys.version[0] + sys.version[2]
+-            TCLVERSION = TCL_VERSION[0] + TCL_VERSION[2]
+-            roots = [
+-                # common installation directories, mostly for Windows
+-                # (for Unix-style platforms, we'll check in well-known
+-                # locations later)
+-                os.path.join("/py" + PYVERSION, "Tcl"),
+-                os.path.join("/python" + PYVERSION, "Tcl"),
+-                "/Tcl", "/Tcl" + TCLVERSION, "/Tcl" + TCL_VERSION,
+-                os.path.join(os.environ.get("ProgramFiles", ""), "Tcl"), ]
+-            for TCL_ROOT in roots:
+-                TCL_ROOT = os.path.abspath(TCL_ROOT)
+-                if os.path.isfile(os.path.join(TCL_ROOT, "include", "tk.h")):
+-                    # FIXME: use distutils logging (?)
+-                    print("--- using Tcl/Tk libraries at", TCL_ROOT)
+-                    print("--- using Tcl/Tk version", TCL_VERSION)
+-                    TCL_ROOT = _lib_include(TCL_ROOT)
+-                    break
+-            else:
+-                TCL_ROOT = None
+-
 -        # add standard directories
 -
 -        # look for tcl specific subdirectory (e.g debian)
 -        if _tkinter:
 -            tcl_dir = "/usr/include/tcl" + TCL_VERSION
 -            if os.path.isfile(os.path.join(tcl_dir, "tk.h")):
--                add_directory(include_dirs, tcl_dir)
+-                _add_directory(include_dirs, tcl_dir)
 -
 -        # standard locations
--        add_directory(library_dirs, "/usr/local/lib")
--        add_directory(include_dirs, "/usr/local/include")
+-        _add_directory(library_dirs, "/usr/local/lib")
+-        _add_directory(include_dirs, "/usr/local/include")
 -
--        add_directory(library_dirs, "/usr/lib")
--        add_directory(include_dirs, "/usr/include")
+-        _add_directory(library_dirs, "/usr/lib")
+-        _add_directory(include_dirs, "/usr/include")
 -
--        #
-         # insert new dirs *before* default libs, to avoid conflicts
-         # between Python PYD stub libs and real libraries
- 
-@@ -299,8 +260,6 @@
-             defs.append(("HAVE_LIBZ", None))
++        _add_directory(library_dirs, os.environ['PYTHON_ROOT'] + "/lib")
++        _add_directory(include_dirs, os.environ['PYTHON_ROOT'] + "/include")
+         # on Windows, look for the OpenJPEG libraries in the location that
+         # the official installer puts them
+         if sys.platform == "win32":
+@@ -545,8 +379,6 @@
+             defs.append(("HAVE_LIBTIFF", None))
          if sys.platform == "win32":
              libs.extend(["kernel32", "user32", "gdi32"])
--        if struct.unpack("h", "\0\1")[0] == 1:
+-        if struct.unpack("h", "\0\1".encode('ascii'))[0] == 1:
 -            defs.append(("WORDS_BIGENDIAN", None))
- 
+
          exts = [(Extension(
-             "_imaging", files, libraries=libs, define_macros=defs
+             "PIL._imaging", files, libraries=libs, define_macros=defs))]

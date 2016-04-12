@@ -1,12 +1,11 @@
---- Imaging-1.1.7/setup.py.orig	2012-08-31 12:52:25.000000000 +0200
-+++ Imaging-1.1.7/setup.py	2012-08-31 12:53:04.000000000 +0200
-@@ -322,7 +322,7 @@
-                 "_imagingcms", ["_imagingcms.c"], libraries=["lcms"] + extra
-                 ))
- 
--        if sys.platform == "darwin":
-+        if False: #sys.platform == "darwin":
-             # locate Tcl/Tk frameworks
-             frameworks = []
-             framework_roots = [
+--- pil/setup.py.orig	2016-04-11 01:08:18.290901000 +0200
++++ pil/setup.py	2016-04-11 01:11:36.427513351 +0200
+@@ -580,7 +580,7 @@
+                 "PIL._webp", ["_webp.c"], libraries=libs, define_macros=defs))
 
+         if feature.tcl and feature.tk:
+-            if sys.platform == "darwin":
++            if False: #sys.platform == "darwin":
+                 # locate Tcl/Tk frameworks
+                 frameworks = []
+                 framework_roots = [

@@ -1,14 +1,14 @@
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.logger import info
 from os.path import join
 
 class PILRecipe(CompiledComponentsPythonRecipe):
     name = 'pil'
-    version = '1.1.7'
-    url = 'http://effbot.org/downloads/Imaging-{version}.tar.gz'
-    depends = [('python2', 'python3'), 'png', 'jpeg']
+    version = '3.1.0'
+    url = 'https://pypi.python.org/packages/source/P/Pillow/Pillow-{version}.tar.gz'
+    depends = ['setuptools', ('python2', 'python3'), 'png', 'jpeg', 'freetype']
     call_hostpython_via_targetpython = False
     site_packages_name = 'PIL'
-
     patches = ['disable-tk.patch',
                'fix-directories.patch']
 
@@ -26,10 +26,22 @@ class PILRecipe(CompiledComponentsPythonRecipe):
         png_jni_dir = png.get_jni_dir(arch)
         jpeg = self.get_recipe('jpeg', self.ctx)
         jpeg_lib_dir = jpeg.get_lib_dir(arch)
-        jpeg_jni_dir = jpeg.get_jni_dir(arch)
-        env['JPEG_ROOT'] = '{}|{}'.format(jpeg_lib_dir, jpeg_jni_dir)
+        if 'pygame' in self.ctx.recipe_build_order:
+            jpeg_jni_dir = join(jpeg.get_jni_dir(arch), 'jpeg')
+        else:
+            jpeg_jni_dir = jpeg.get_jni_dir(arch)
+        free = self.get_recipe('freetype', self.ctx)
+        free_lib_dir = free.get_lib_dir(arch)
+        free_inc_dir = join(free.get_build_dir(arch.arch), 'include')
 
-        cflags = ' -I{} -L{} -I{} -L{}'.format(png_jni_dir, png_lib_dir, jpeg_jni_dir, jpeg_lib_dir)
+        env['JPEG_ROOT'] = '{}|{}'.format(jpeg_lib_dir, jpeg_jni_dir)
+        env['FREETYPE_ROOT'] = '{}|{}'.format(free_lib_dir, free_inc_dir)
+        info('JPEG_ROOT: {}'.format(env['JPEG_ROOT']))
+        info('FREETYPE_ROOT: {}'.format(env['FREETYPE_ROOT']))
+
+        cflags = ' -I{} -L{} -I{} -L{} -I{} -L{}'.format(
+            png_jni_dir, png_lib_dir, jpeg_jni_dir,
+            jpeg_lib_dir, free_inc_dir, free_lib_dir)
         env['CFLAGS'] += cflags
         env['CXXFLAGS'] += cflags
         env['CC'] += cflags
