@@ -17,7 +17,7 @@ class ApswRecipe(PythonRecipe):
             shprint(hostpython,
                     'setup.py',
                     'build_ext',
-                    '--enable=fts4'
+                    '--enable=fts3'
             , _env=env)
         # Install python bindings
         super(ApswRecipe, self).build_arch(arch)
