@@ -14,7 +14,7 @@ class Python2Recipe(TargetPythonRecipe):
 
     depends = ['hostpython2']
     conflicts = ['python3crystax', 'python3']
-    opt_depends = ['openssl']
+    opt_depends = ['openssl','sqlite3']
     
     patches = ['patches/Python-{version}-xcompile.patch',
                'patches/Python-{version}-ctypes-disable-wchar.patch',
@@ -68,9 +68,6 @@ class Python2Recipe(TargetPythonRecipe):
         #     return
 
     def do_python_build(self, arch):
-        if 'sqlite' in self.ctx.recipe_build_order:
-            print('sqlite support not yet enabled in python recipe')
-            exit(1)
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
         shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
@@ -100,6 +97,17 @@ class Python2Recipe(TargetPythonRecipe):
                 setuplocal = join('Modules', 'Setup.local')
                 shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
                 shprint(sh.sed, '-i', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
+
+            if 'sqlite3' in self.ctx.recipe_build_order:
+                # Include sqlite3 in python2 build
+                r = Recipe.get_recipe('sqlite3', self.ctx)
+                i = ' -I' + r.get_build_dir(arch.arch)
+                l = ' -L' + r.get_lib_dir(arch) + ' -lsqlite3'
+                # Insert or append to env
+                f = 'CPPFLAGS'
+                env[f] = env[f] + i if f in env else i
+                f = 'LDFLAGS'
+                env[f] = env[f] + l if f in env else l
 
             configure = sh.Command('./configure')
             # AND: OFLAG isn't actually set, should it be?
