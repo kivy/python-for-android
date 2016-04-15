@@ -15,7 +15,7 @@ class PngRecipe(NDKRecipe):
     def should_build(self, arch):
         if 'pygame' in self.ctx.recipe_build_order:
             return False
-        super(PngRecipe, self).should_build(arch)
+        return super(PngRecipe, self).should_build(arch)
 
 
 recipe = PngRecipe()

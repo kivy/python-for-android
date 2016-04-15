@@ -10,22 +10,22 @@ class JpegRecipe(NDKRecipe):
     url = 'git://git.linaro.org/people/tomgall/libjpeg-turbo/libjpeg-turbo.git'
     patches = ['build-static.patch']
 
-    generated_libraries = ['libjpeg.a']
+    generated_libraries = ['libjpeg.a', 'libsimd.a']
 
     def should_build(self, arch):
         if 'pygame' in self.ctx.recipe_build_order:
             return False
-        super(JpegRecipe, self).should_build(arch)
+        return super(JpegRecipe, self).should_build(arch)
 
     def get_jni_dir(self, arch):
         if 'pygame' in self.ctx.recipe_build_order:
             return join(self.ctx.bootstrap.build_dir, 'jni')
-        super(JpegRecipe, self).get_jni_dir(arch)
+        return super(JpegRecipe, self).get_jni_dir(arch)
 
     def get_lib_dir(self, arch):
         if 'pygame' in self.ctx.recipe_build_order:
             return join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
-        super(JpegRecipe, self).get_lib_dir(arch)
+        return join(self.get_build_dir(arch.arch), 'obj', 'local', arch.arch)
 
     def prebuild_arch(self, arch):
         super(JpegRecipe, self).prebuild_arch(arch)
