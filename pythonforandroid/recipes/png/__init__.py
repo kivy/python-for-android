@@ -17,6 +17,21 @@ class PngRecipe(NDKRecipe):
             return False
         return super(PngRecipe, self).should_build(arch)
 
+    def get_jni_dir(self, arch):
+        if 'pygame' in self.ctx.recipe_build_order:
+            return join(self.ctx.bootstrap.build_dir, 'jni')
+        return join(self.get_build_dir(arch.arch), 'jni')
+
+    def get_lib_dir(self, arch):
+        if 'pygame' in self.ctx.recipe_build_order:
+            return join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
+        return join(self.get_build_dir(arch.arch), 'libs', arch.arch)
+
+    def get_include_dir(self, arch):
+        if 'pygame' in self.ctx.recipe_build_order:
+            return join(self.get_jni_dir(arch), 'png')
+        return self.get_jni_dir(arch)
+
 
 recipe = PngRecipe()
 

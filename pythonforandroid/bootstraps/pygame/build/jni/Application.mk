@@ -5,7 +5,7 @@ APP_PROJECT_PATH := $(call my-dir)/..
 # sdl_image depends on png and jpeg
 # sdl_ttf depends on freetype
 
-APP_MODULES := application sdl sdl_main tremor png jpeg freetype sdl_ttf sdl_image
+APP_MODULES := application sdl sdl_main tremor png sdl_ttf sdl_image
 
 APP_ABI := $(ARCH)
 # AND: I have no idea why I have to specify app_platform when distribute.sh seems to just set the sysroot cflag

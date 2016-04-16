@@ -12,21 +12,6 @@ class JpegRecipe(NDKRecipe):
 
     generated_libraries = ['libjpeg.a', 'libsimd.a']
 
-    def should_build(self, arch):
-        if 'pygame' in self.ctx.recipe_build_order:
-            return False
-        return super(JpegRecipe, self).should_build(arch)
-
-    def get_jni_dir(self, arch):
-        if 'pygame' in self.ctx.recipe_build_order:
-            return join(self.ctx.bootstrap.build_dir, 'jni')
-        return super(JpegRecipe, self).get_jni_dir(arch)
-
-    def get_lib_dir(self, arch):
-        if 'pygame' in self.ctx.recipe_build_order:
-            return join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
-        return join(self.get_build_dir(arch.arch), 'obj', 'local', arch.arch)
-
     def prebuild_arch(self, arch):
         super(JpegRecipe, self).prebuild_arch(arch)
 
@@ -37,6 +22,12 @@ class JpegRecipe(NDKRecipe):
         jni_ln = join(build_dir, 'jni')
         if not exists(jni_ln):
             shprint(sh.ln, '-s', build_dir, jni_ln)
+
+    def build_arch(self, arch, *extra_args):
+        super(JpegRecipe, self).build_arch(arch)
+        lib_dir = self.get_lib_dir(arch)
+        shprint(sh.cp, '-L', join(lib_dir, 'libjpeg.a'), self.ctx.libs_dir)
+        shprint(sh.cp, '-L', join(lib_dir, 'libsimd.a'), self.ctx.libs_dir)
 
 
 recipe = JpegRecipe()

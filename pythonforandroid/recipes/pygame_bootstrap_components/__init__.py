@@ -20,18 +20,10 @@ class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
                 return
             for dirn in glob.glob(join(self.get_build_dir(arch),
                                        'pygame_bootstrap_jni', '*')):
-                if basename(dirn) not in ['freetype', 'sqlite3']:
+                if basename(dirn) not in ['freetype', 'jpeg', 'sqlite3']:
                     shprint(sh.mv, dirn, './')
         info('Unpacking was successful, deleting original container dir')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
-
-    def build_arch(self, arch):
-        # TO FORCE BUILD LIBS BEFORE PIL RECIPE
-        if 'pil' in self.ctx.recipe_build_order:
-            env = self.get_recipe_env(arch)
-            with current_directory(self.get_jni_dir()):
-                shprint(sh.ndk_build, "V=1", "png", _env=env)
-                shprint(sh.ndk_build, "V=1", "jpeg", _env=env)
 
 
 recipe = PygameJNIComponentsRecipe()

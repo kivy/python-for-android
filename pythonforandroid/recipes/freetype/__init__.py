@@ -25,8 +25,6 @@ class FreetypeRecipe(Recipe):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
     def get_lib_dir(self, arch):
-        if 'pygame' in self.ctx.recipe_build_order:
-            return join(self.get_jni_dir(arch), 'freetype', arch.arch)
         return join(self.get_build_dir(arch.arch), 'objs', '.libs')
 
     def build_arch(self, arch, with_harfbuzz=False):
@@ -75,20 +73,6 @@ class FreetypeRecipe(Recipe):
                 # your recipes to the definitive library, located at: objs/.libs
                 ensure_dir(join(self.ctx.libs_dir, arch.arch))
                 shprint(sh.cp, 'objs/.libs/libfreetype.a', self.ctx.libs_dir)
-
-                # If building with pygame's bootstrap, we must integrate the libjpeg
-                # and all the include files into the bootstrap...cause it's a
-                # direct dependency of pygame bootstrap.
-                if 'pygame' in self.ctx.recipe_build_order:
-                    lib_dir = join(self.get_jni_dir(arch), 'freetype')
-                    inc_dir = join(self.get_build_dir(arch.arch), 'include')
-                    ensure_dir(lib_dir)
-                    shprint(sh.cp, join(self.get_recipe_dir(), 'Android_prebuilt.mk'),
-                            join(lib_dir, 'Android.mk'))
-                    shprint(sh.cp, 'objs/.libs/libfreetype.a',
-                            join(lib_dir, 'libfreetype.a'))
-                    shprint(sh.cp, "-av", "{0}".format(inc_dir),
-                            "{0}/".format(lib_dir))
 
 
 recipe = FreetypeRecipe()

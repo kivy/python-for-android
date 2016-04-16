@@ -53,19 +53,6 @@ class HarfbuzzRecipe(Recipe):
 
             shprint(sh.cp, '-L', join('src', '.libs', 'libharfbuzz.a'), self.ctx.libs_dir)
 
-            # If building with pygame's bootstrap, we must integrate the libharfbuzz
-            # into the bootstrap...cause it's a direct dependency of libjpeg and
-            # pygame's bootstrap depends on it
-            if 'pygame' in self.ctx.recipe_build_order:
-                build_dir = self.get_build_dir(arch.arch)
-                lib_dir = join(self.get_jni_dir(arch), 'harfbuzz')
-                inc_dir = join(build_dir, 'src')
-                ensure_dir(lib_dir)
-                shprint(sh.cp, join(self.get_recipe_dir(), 'Android_prebuilt.mk'),
-                        join(lib_dir, 'Android.mk'))
-                shprint(sh.cp, join('src', '.libs', 'libharfbuzz.a'),
-                        join(lib_dir, 'libharfbuzz.a'))
-
         if 'freetype' in self.ctx.recipe_build_order:
             # Rebuild freetype with harfbuzz support
             freetype.build_arch(arch, with_harfbuzz=True)

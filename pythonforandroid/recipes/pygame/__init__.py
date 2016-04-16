@@ -33,16 +33,45 @@ class PygameRecipe(CompiledComponentsPythonRecipe):
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
 
-        env['CFLAGS'] += ' -I{jni_path}/png -I{jni_path}/jpeg -I{jni_path}/freetype/include'.format(
-            jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
+        # PNG FLAGS
+        png = self.get_recipe('png', self.ctx)
+        png_lib_dir = png.get_lib_dir(arch)
+        png_inc_dir = png.get_include_dir(arch)
+        env['CFLAGS'] += ' -I{}'.format(png_inc_dir)
+        env['LDFLAGS'] += ' -L{} -lpng'.format(png_lib_dir)
+
+        # JPEG TURBO FLAGS
+        jpeg = self.get_recipe('jpeg', self.ctx)
+        jpeg_lib_dir = jpeg.get_lib_dir(arch)
+        jpeg_jni_dir = jpeg.get_jni_dir(arch)
+        env['CFLAGS'] += ' -I{} -I{} -I{}'.format(
+            jpeg_jni_dir, join(jpeg_jni_dir, 'android'),
+            join(jpeg_jni_dir, 'simd'))
+        env['LDFLAGS'] += ' -L{} -lsimd -ljpeg'.format(jpeg_lib_dir)
+
+        # FREETYPE FLAGS
+        free = self.get_recipe('freetype', self.ctx)
+        free_lib_dir = free.get_lib_dir(arch)
+        free_inc_dir = join(free.get_build_dir(arch.arch), 'include')
+        env['CFLAGS'] += ' -I{} -L{}'.format(free_inc_dir, free_lib_dir)
+        if 'harfbuzz' in self.ctx.recipe_build_order:
+            free_install = join(free.get_build_dir(arch.arch), 'install')
+            harf = self.get_recipe('harfbuzz', self.ctx)
+            harf_lib_dir = harf.get_lib_dir(arch)
+            harf_inc_dir = harf.get_build_dir(arch.arch)
+            env['CFLAGS'] += ' -I{} -I{} -I{} -L{}'.format(
+                harf_inc_dir, join(harf_inc_dir, 'src'),
+                join(free_install, 'include'), harf_lib_dir)
+            env['LDFLAGS'] += ' -L{} -lharfbuzz'.format(harf_lib_dir)
+
         env['CFLAGS'] += ' -I{jni_path}/sdl/include -I{jni_path}/sdl_mixer'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
         env['CFLAGS'] += ' -I{jni_path}/sdl_ttf -I{jni_path}/sdl_image'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
         debug('pygame cflags', env['CFLAGS'])
 
-        env['LDFLAGS'] += ' -L{libs_path} -L{src_path}/obj/local/{arch} -lm -lz'.format(
-            libs_path=self.ctx.libs_dir, src_path=self.ctx.bootstrap.build_dir, arch=env['ARCH'])
+        env['LDFLAGS'] += ' -L{src_path}/obj/local/{arch} -lm -lz'.format(
+            src_path=self.ctx.bootstrap.build_dir, arch=env['ARCH'])
 
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         # Every recipe uses its own liblink path, object files are collected and biglinked later
