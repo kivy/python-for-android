@@ -13,16 +13,6 @@ class Sqlite3Recipe(NDKRecipe):
     def should_build(self, arch):
         return not self.has_libs(arch, 'libsqlite3.so')
 
-    def get_jni_dir(self, arch):
-        if 'pygame' in self.ctx.recipe_build_order:
-            return join(self.ctx.bootstrap.build_dir, 'jni')
-        return join(self.get_build_dir(arch.arch), 'jni')
-
-    def get_lib_dir(self, arch):
-        if 'pygame' in self.ctx.recipe_build_order:
-            return join(self.get_jni_dir(arch), 'sqlite3')
-        return join(self.get_build_dir(arch.arch), 'libs', arch.arch)
-
     def prebuild_arch(self, arch):
         super(Sqlite3Recipe, self).prebuild_arch(arch)
         # Copy the Android make file
@@ -34,20 +24,6 @@ class Sqlite3Recipe(NDKRecipe):
         super(Sqlite3Recipe, self).build_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
         self.install_libs(arch, join(build_dir, 'libs', arch.arch, 'libsqlite3.so'))
-
-        # If building with the pygame bootstrap, we must integrate libsqlite3 and
-        # all the include files into the bootstrap directory, because depends on it...
-        if 'pygame' in self.ctx.recipe_build_order:
-            lib_dir = join(self.get_jni_dir(arch), 'sqlite3')
-            ensure_dir(lib_dir)
-            shprint(sh.cp, join(self.get_recipe_dir(), 'Android_prebuilt.mk'),
-                    join(lib_dir, 'Android.mk'))
-            shprint(sh.cp, join(build_dir, 'libs', arch.arch, 'libsqlite3.so'),
-                    join(lib_dir, 'libsqlite3.so'))
-            shprint(sh.cp, join(build_dir, 'sqlite3.h'),
-                    join(lib_dir, 'sqlite3.h'))
-            shprint(sh.cp, join(build_dir, 'sqlite3ext.h'),
-                    join(lib_dir, 'sqlite3ext.h'))
 
     def get_recipe_env(self, arch):
         env = super(Sqlite3Recipe, self).get_recipe_env(arch)

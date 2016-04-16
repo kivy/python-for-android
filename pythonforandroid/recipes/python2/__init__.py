@@ -109,17 +109,11 @@ class Python2Recipe(TargetPythonRecipe):
                 shprint(sh.sed, '-i', 's#/path-to-ssl-build-dir#{}#'.format(openssl_build_dir),
                         join(self.get_build_dir(arch.arch), 'setup.py'))
 
-            use_sqlite3 = True
-            sqlite3 = Recipe.get_recipe('sqlite3', self.ctx)
-            if 'pygame' in self.ctx.recipe_build_order:
-                sqlite_inc_dir = join(sqlite3.get_jni_dir(arch), 'sqlite3')
-            elif 'sqlite3' in self.ctx.recipe_build_order:
-                sqlite_inc_dir = sqlite3.get_build_dir(arch.arch)
-            else:
-                use_sqlite3 = False
-            if use_sqlite3:
-                sqlite_libs_dir = join(sqlite3.get_lib_dir(arch))
+            if 'sqlite3' in self.ctx.recipe_build_order:
                 info("Activate flags for sqlite3")
+                sqlite3 = Recipe.get_recipe('sqlite3', self.ctx)
+                sqlite_inc_dir = sqlite3.get_build_dir(arch.arch)
+                sqlite_libs_dir = join(sqlite3.get_lib_dir(arch))
                 env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(sqlite_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(sqlite_libs_dir), '-lsqlite3'])
 
