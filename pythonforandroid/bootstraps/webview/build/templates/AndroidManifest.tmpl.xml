@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Replace org.libsdl.app with the identifier of your game below, e.g.
+     com.gamemaker.game
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="{{ args.package }}"
+      android:versionCode="{{ args.numeric_version }}"
+      android:versionName="{{ args.version }}"
+      android:installLocation="auto">
+
+    <supports-screens
+            android:smallScreens="true"
+            android:normalScreens="true"
+            android:largeScreens="true"
+            android:anyDensity="true"
+            {% if args.min_sdk_version >= 9 %}
+            android:xlargeScreens="true"
+            {% endif %}
+    />
+
+    <!-- Android 2.3.3 -->
+    <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}" />
+
+    <!-- OpenGL ES 2.0 -->
+    <uses-feature android:glEsVersion="0x00020000" />
+
+    <!-- Allow writing to external storage -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    {% for perm in args.permissions %}
+    {% if '.' in perm %}
+    <uses-permission android:name="{{ perm }}" />
+    {% else %}
+    <uses-permission android:name="android.permission.{{ perm }}" />
+    {% endif %}
+    {% endfor %}
+
+    {% if args.wakelock %}
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    {% endif %}
+
+    {% if args.billing_pubkey %}
+    <uses-permission android:name="com.android.vending.BILLING" />
+    {% endif %}
+
+    <!-- Create a Java class extending SDLActivity and place it in a
+         directory under src matching the package, e.g.
+         	src/com/gamemaker/game/MyGame.java
+
+         then replace "SDLActivity" with the name of your class (e.g. "MyGame")
+         in the XML below.
+
+         An example Java class can be found in README-android.txt
+    -->
+    <application android:label="@string/app_name"
+                 android:icon="@drawable/icon"
+                 android:allowBackup="true"
+                 android:theme="@android:style/Theme.NoTitleBar{% if not args.window %}.Fullscreen{% endif %}"
+                 android:hardwareAccelerated="true" >
+
+        {% for m in args.meta_data %}
+        <meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
+        <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
+
+        <activity android:name="org.kivy.android.PythonActivity"
+                  android:label="@string/app_name"
+                  android:configChanges="keyboardHidden|orientation"
+                  android:screenOrientation="{{ args.orientation }}"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            {%- if args.intent_filters -%}
+            {{- args.intent_filters -}}
+            {%- endif -%}
+        </activity>
+
+        {% if service %}
+        <service android:name="org.kivy.android.PythonService"
+                 android:process=":pythonservice" />
+        {% endif %}
+        {% for name in service_names %}
+        <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
+                 android:process=":service_{{ name }}" />
+        {% endfor %}
+
+        {% if args.billing_pubkey %}
+        <service android:name="org.kivy.android.billing.BillingReceiver"
+                 android:process=":pythonbilling" />
+        <receiver android:name="org.kivy.android.billing.BillingReceiver"
+                  android:process=":pythonbillingreceiver">
+            <intent-filter>
+                <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
+                <action android:name="com.android.vending.billing.RESPONSE_CODE" />
+                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        {% endif %}
+    </application>
+
+</manifest>
