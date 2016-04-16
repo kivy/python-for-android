@@ -1,6 +1,6 @@
 --- pil/setup.py.orig	2016-04-11 01:08:18.290901000 +0200
 +++ pil/setup.py	2016-04-11 01:11:36.427513351 +0200
-@@ -580,7 +580,7 @@
+@@ -581,7 +581,7 @@
                  "PIL._webp", ["_webp.c"], libraries=libs, define_macros=defs))
 
          if feature.tcl and feature.tk:
