@@ -408,6 +408,8 @@ tools directory of the Android SDK.
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
+    ap.add_argument('--window', dest='window', action='store_true',
+                    help='Indicate if the application will be windowed')
     ap.add_argument('--blacklist', dest='blacklist',
                     default=join(curdir, 'blacklist.txt'),
                     help=('Use a blacklist file to match unwanted file in '

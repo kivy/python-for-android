@@ -1,29 +1,23 @@
-from pythonforandroid.toolchain import PythonRecipe, shprint, shutil, current_directory
+from pythonforandroid.toolchain import CompiledComponentsPythonRecipe, shprint, shutil, current_directory
 from os.path import join, exists
 import sh
 
-class PyLevelDBRecipe(PythonRecipe):
+class PyLevelDBRecipe(CompiledComponentsPythonRecipe):
     version = '0.193'
     url = 'https://pypi.python.org/packages/source/l/leveldb/leveldb-{version}.tar.gz'
     depends = ['leveldb', 'hostpython2', 'python2', 'setuptools']
     patches = ['bindings-only.patch']
-    call_hostpython_via_targetpython = False
+    call_hostpython_via_targetpython = False # Due to setuptools
     site_packages_name = 'leveldb'
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             # Remove source in this pypi package
-            sh.rm('-rf', './leveldb', './leveldb.egg-info', './snappy')
+            sh.rm('-rf', 'leveldb', 'leveldb.egg-info', 'snappy')
             # Use source from leveldb recipe
             sh.ln('-s', self.get_recipe('leveldb', self.ctx).get_build_dir(arch.arch), 'leveldb')
-            # Build python bindings
-            hostpython = sh.Command(self.hostpython_location)
-            shprint(hostpython,
-                    'setup.py',
-                    'build'
-            , _env=env)
-        # Install python bindings
+        # Build and install python bindings
         super(PyLevelDBRecipe, self).build_arch(arch)
 
     def get_recipe_env(self, arch):
@@ -34,8 +28,7 @@ class PyLevelDBRecipe(PythonRecipe):
         env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
         # Set linker to use the correct gcc
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                          ' -lpython2.7' + \
+        env['LDFLAGS'] += ' -lpython2.7' + \
                           ' -lleveldb'
         return env
 
