@@ -74,7 +74,12 @@ class Python2Recipe(TargetPythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
-            shprint(sh.cp, join(self.get_recipe_dir(), 'config.site'), '.')
+            with open('config.site', 'w') as config_site:
+                config_site.write('''
+    ac_cv_file__dev_ptmx=no
+    ac_cv_file__dev_ptc=no
+    ac_cv_have_long_long_format=yes
+                ''')
 
             env = arch.get_env()
 
