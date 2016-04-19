@@ -20,13 +20,13 @@ class LibxsltRecipe(Recipe):
             shprint(bash, 'configure',
                     '--build=i686-pc-linux-gnu', '--host=arm-linux-eabi',
                     '--without-plugins', '--without-debug', '--without-python', '--without-crypto',
-                    '--with-libxml-src=$BUILD_libxml2')
+                    '--with-libxml-src=../../../libxml2/armeabi/libxml2/')
             shprint(sh.make, _env=env)
             shutil.copyfile('src/libxslt/.libs/libxslt.a', join(self.ctx.get_libs_dir(arch.arch), 'libxslt.a'))
 
 
     def get_recipe_env(self, arch):
-        env = super(LibXml2Recipe, self).get_recipe_env(arch)
+        env = super(LibxsltRecipe, self).get_recipe_env(arch)
         env['CFLAGS'] += ' -Os'
         return env
 
