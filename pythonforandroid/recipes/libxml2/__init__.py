@@ -17,12 +17,10 @@ class Libxml2Recipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             # If the build is done with /bin/sh things blow up,
             # try really hard to use bash
-            bash = sh.Command('/bin/bash')
             sed = sh.Command('sed')
-            make = sh.Command('make')
-            shprint(bash, 'configure', '--build=i686-pc-linux-gnu', '--host=arm-linux-eabi',
-                    '--without-modules',  '--without-legacy', '--without-history',  '--without-debug',  '--without-docbook', '--without-python', '--without-threads')
-            shprint(make, _env=env)
+            shprint(sh.Command('./configure'), '--build=i686-pc-linux-gnu', '--host=arm-linux-eabi',
+                    '--without-modules',  '--without-legacy', '--without-history',  '--without-debug',  '--without-docbook', '--without-python', '--without-threads', '--without-iconv')
+            shprint(sh.make, _env=env)
             shutil.copyfile('.libs/libxml2.a', join(self.ctx.get_libs_dir(arch.arch), 'libxml2.a'))
 
 
