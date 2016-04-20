@@ -1,21 +1,25 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
+from pythonforandroid.toolchain import CompiledComponentsPythonRecipe
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import debug, shprint, info
 from os.path import exists, join
 import sh
 import glob
 
-class LXMLRecipe(Recipe):
+class LXMLRecipe(CompiledComponentsPythonRecipe):
     version = '3.6.0'
     url = 'https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz'
     depends = ['python2', 'libxml2', 'libxslt']
     name = 'lxml'
+
+    call_hostpython_via_targetpython = False # Due to setuptools
 
     def should_build(self, arch):
         super(LXMLRecipe, self).should_build(arch)
         return True
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'liblxml.so'))
 
+    """
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(
@@ -65,7 +69,7 @@ class LXMLRecipe(Recipe):
 
 
         super(LXMLRecipe, self).build_arch(arch)
-
+    """
     def get_recipe_env(self, arch):
         env = super(LXMLRecipe, self).get_recipe_env(arch)
         bxml = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxml2/armeabi/libxml2/"
