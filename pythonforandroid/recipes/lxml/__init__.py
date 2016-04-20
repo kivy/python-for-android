@@ -3,6 +3,7 @@ from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import debug, shprint, info
 from os.path import exists, join
 import sh
+import glob
 
 class LXMLRecipe(Recipe):
     version = '3.6.0'
@@ -41,6 +42,28 @@ class LXMLRecipe(Recipe):
                     "-I/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt",
                     _tail=10000, _critical=True, _env=env)
 
+            build_lib = glob.glob('./build/lib*')
+            assert len(build_lib) == 1
+
+            shprint(sh.find, ".", '-iname', '*.pyx', '-exec',
+                    env['CYTHON'], '{}', ';')
+
+            shprint(hostpython, 'setup.py',
+                    'build_ext', "-v",
+                    _tail=10000, _critical=True, _env=env)
+
+            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
+                    env['STRIP'], '{}', ';')
+
+            shprint(hostpython, 'setup.py',
+                    'install', "-O2",
+                    _tail=10000, _critical=True, _env=env)
+
+            #env['PYTHONPATH'] += $BUILD_hostpython/Lib/site-packages
+            #try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
+
+
+
         super(LXMLRecipe, self).build_arch(arch)
 
     def get_recipe_env(self, arch):
@@ -48,7 +71,8 @@ class LXMLRecipe(Recipe):
         bxml = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxml2/armeabi/libxml2/"
         bxsl = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt"
         env['CC'] += " -I%s/include -I%s" % (bxml, bxsl)
-        env['LDFLAGS'] = (" -L%s/libxslt/.libs -L%s/libexslt/.libs -L%s/.libs -L%s/libxslt -L%s/libexslt -L%s/ " % (bxsl, bxsl, bxml, bxsl, bxsl, bxml)) + env['LDFLAGS']
+        env['LDFLAGS'] = (" -L%s/libxslt/.libs  -L%s/.libs -L%s/libxslt -L%s/ " % (bxsl, bxsl, bxml, bxsl)) + env['LDFLAGS']
+        env['CYTHON'] = "cython"
         env['LDSHARED'] = "$LIBLINK"
         env['PATH'] += ":%s" % bxsl
         env['CFLAGS'] += ' -Os'
