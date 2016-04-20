@@ -8,7 +8,5 @@ class LevenshteinRecipe(CompiledComponentsPythonRecipe):
     depends = [('python2', 'python3'), 'setuptools']
 
     call_hostpython_via_targetpython = False
-    install_in_targetpython = False
-    install_in_hostpython = True
 
 recipe = LevenshteinRecipe()
