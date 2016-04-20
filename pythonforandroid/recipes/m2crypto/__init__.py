@@ -3,7 +3,7 @@ from os.path import join, exists
 import sh
 
 class M2CryptoRecipe(PythonRecipe):
-    version = '0.23.0'
+    version = '0.24.0'
     url = 'https://pypi.python.org/packages/source/M/M2Crypto/M2Crypto-{version}.tar.gz'
     #md5sum = '89557730e245294a6cab06de8ad4fb42'
     depends = ['openssl', 'hostpython2', 'python2', 'setuptools']
