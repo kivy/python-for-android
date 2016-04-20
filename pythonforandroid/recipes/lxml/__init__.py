@@ -9,36 +9,33 @@ class LXMLRecipe(Recipe):
 
     def should_build(self, arch):
         super(LXMLRecipe, self).should_build(arch)
+        return True
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'liblxml.so'))
 
     def build_arch(self, arch):
-        super(LXMLRecipe, self).build_arch(arch)
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            #chmod +x $BUILD_libxslt/xslt-config
-            bash = sh.Command('bash')
-            shprint(bash, 'configure', '--enable-minimal', '--disable-soname-versions', '--host=arm-linux-androideabi', '--enable-shared', _env=env)
-            shprint(sh.make, _env=env)
-            shutil.copyfile('src/liblxml/.libs/libsodium.so', join(self.ctx.get_libs_dir(arch.arch), 'libsodium.so'))
+            hostpython = sh.Command(self.ctx.hostpython)
+            shprint(hostpython,
+                    'setup.py',
+                    'build_ext',
+                    "-p%s" % arch.arch,
+                    "-I/home/zgoldberg/.local/share/python-for-android/dists/peggo-python/python-install/include/python2.7/pyconfig.h",
+                    "-I/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxml2/armeabi/libxml2/include",
+                    "-I/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt"
 
+            , _env=env)
 
-            """	try $HOSTPYTHON setup.py build_ext -I$BUILD_libxml2/include -I$BUILD_libxslt
-	try find . -iname '*.pyx' -exec $CYTHON {} \;
-	try $HOSTPYTHON setup.py build_ext -v
-	try find build/lib.* -name "*.o" -exec $STRIP {} \;
-
-	export PYTHONPATH=$BUILD_hostpython/Lib/site-packages
-	try $BUILD_hostpython/hostpython setup.py install -O2 --root=$BUILD_PATH/python-install --install-lib=lib/python2.7/site-packages
-
-	unset LDSHARED
-	pop_arm"""
+        super(LXMLRecipe, self).build_arch(arch)
 
     def get_recipe_env(self, arch):
-        env = super(LibsodiumRecipe, self).get_recipe_env(arch)
-        env['CC'] += "-I$BUILD_libxml2/include -I$BUILD_libxslt"
-        env['LDFLAGS'] = "-L$BUILD_libxslt/libxslt/.libs -L$BUILD_libxslt/libexslt/.libs -L$BUILD_libxml2/.libs -L$BUILD_libxslt/libxslt -L$BUILD_libxslt/libexslt -L$BUILD_libxml2/ " + env['LDFLAGS']
+        env = super(LXMLRecipe, self).get_recipe_env(arch)
+        bxml = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxml2/armeabi/libxml2/"
+        bxsl = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt"
+        env['CC'] += " -I%s/include -I%s" % (bxml, bxsl)
+        env['LDFLAGS'] = (" -L%s/libxslt/.libs -L%s/libexslt/.libs -L%s/.libs -L%s/libxslt -L%s/libexslt -L%s/ " % (bxsl, bxsl, bxml, bxsl, bxsl, bxml)) + env['LDFLAGS']
         env['LDSHARED'] = "$LIBLINK"
-        env['PATH'] += ":$BUILD_libxslt"
+        env['PATH'] += ":%s" % bxsl
         env['CFLAGS'] += ' -Os'
         return env
 
