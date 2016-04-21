@@ -20,12 +20,14 @@ class LibxsltRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             # If the build is done with /bin/sh things blow up,
             # try really hard to use bash
+            env['CC'] += " -I%s" % self.get_build_dir(arch.arch)
             libxml = dirname(dirname(self.get_build_container_dir(arch.arch))) + "/libxml2/%s/libxml2" % arch.arch
             shprint(sh.Command('./configure'),
                     '--build=i686-pc-linux-gnu', '--host=arm-linux-eabi',
                     '--without-plugins', '--without-debug', '--without-python', '--without-crypto',
-                    '--with-libxml-src=%s' % libxml)
-            shprint(sh.make, _env=env)
+                    '--with-libxml-src=%s' % libxml,
+                    _env=env)
+            shprint(sh.make, "V=1", _env=env)
             shutil.copyfile('libxslt/.libs/libxslt.a', join(self.ctx.get_libs_dir(arch.arch), 'libxslt.a'))
 
 
@@ -33,6 +35,8 @@ class LibxsltRecipe(Recipe):
         env = super(LibxsltRecipe, self).get_recipe_env(arch)
         env['CONFIG_SHELL'] = '/bin/bash'
         env['SHELL'] = '/bin/bash'
+        env['CC'] = '/usr/bin/ccache arm-linux-androideabi-gcc -DANDROID -mandroid -fomit-frame-pointer'
+        env['LDSHARED'] = env['CC']
         return env
 
 recipe = LibxsltRecipe()
