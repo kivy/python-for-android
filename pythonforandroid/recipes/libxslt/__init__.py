@@ -29,6 +29,7 @@ class LibxsltRecipe(Recipe):
                     _env=env)
             shprint(sh.make, "V=1", _env=env)
             shutil.copyfile('libxslt/.libs/libxslt.a', join(self.ctx.get_libs_dir(arch.arch), 'libxslt.a'))
+            shutil.copyfile('libexslt/.libs/libexslt.a', join(self.ctx.get_libs_dir(arch.arch), 'libexslt.a'))
 
 
     def get_recipe_env(self, arch):
