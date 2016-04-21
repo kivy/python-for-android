@@ -8,6 +8,8 @@ class LibxsltRecipe(Recipe):
     depends = ['libxml2']
     patches = ['fix-dlopen.patch']
 
+    call_hostpython_via_targetpython = False
+
     def should_build(self, arch):
         super(LibxsltRecipe, self).should_build(arch)
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libxslt.a'))
