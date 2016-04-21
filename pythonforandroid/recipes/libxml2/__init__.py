@@ -10,7 +10,6 @@ class Libxml2Recipe(Recipe):
 
     def should_build(self, arch):
         super(Libxml2Recipe, self).should_build(arch)
-        return True
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libxml2.a'))
 
     def build_arch(self, arch):

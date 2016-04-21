@@ -28,7 +28,7 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         #env['LDSHARED'] = ENV['CC']
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
         # WTH is liblink?
-        env['LDSHARED'] = env['LIBLINK']
+        #env['LDSHARED'] = env['LIBLINK']
         # This linking almost works.  Going to have to muck with LDSHARED to
         # include the libs_collection folder
         #zgoldberg@badass:~/.local/share/python-for-android/build/other_builds/lxml/armeabi/lxml (master)$ /usr/bin/ccache arm-linux-androideabi-ld -L/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxml2/armeabi/libxml2//include -L/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt -L/home/zgoldberg/android-sdks/ndk-bundle/platforms/android-16/arch-arm/usr/lib/ -L/home/zgoldberg/android-sdks/ndk-bundle/platforms/android-16/arch-arm/usr/lib/ -L/home/zgoldberg/.local/share/python-for-android/build/libs_collections/peggo-python/armeabi build/temp.linux-x86_64-2.7/src/lxml/lxml.objectify.o -lxslt -lxml2 -lpython2.7 -lz -lm -o build/lib.linux-x86_64-2.7/lxml/objectify.soi
