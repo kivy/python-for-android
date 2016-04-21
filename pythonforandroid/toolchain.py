@@ -22,7 +22,7 @@ from functools import wraps
 
 import argparse
 import sh
-
+from appdirs import user_data_dir
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
@@ -93,7 +93,8 @@ def require_prebuilt_dist(func):
     def wrapper_func(self, args):
         ctx = self.ctx
         ctx.set_archs(self._archs)
-        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
+        ctx.prepare_build_environment(storage_dir=self.storage_dir,
+                                      user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
                                       user_ndk_ver=self.ndk_version)
@@ -206,18 +207,23 @@ build_dist
             '--debug', dest='debug', action='store_true',
             help='Display debug output and all build info')
         parser.add_argument(
-            '--sdk_dir', dest='sdk_dir', default='',
+            '--sdk-dir', '--sdk_dir', dest='sdk_dir', default='',
             help='The filepath where the Android SDK is installed')
         parser.add_argument(
-            '--ndk_dir', dest='ndk_dir', default='',
+            '--ndk-dir', '--ndk_dir', dest='ndk_dir', default='',
             help='The filepath where the Android NDK is installed')
         parser.add_argument(
-            '--android_api', dest='android_api', default=0, type=int,
+            '--android-api', '--android_api', dest='android_api', default=0, type=int,
             help='The Android API level to build against.')
         parser.add_argument(
-            '--ndk_version', dest='ndk_version', default='',
+            '--ndk-version', '--ndk_version', dest='ndk_version', default='',
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
+        parser.add_argument(
+            '--storage-dir', dest='storage_dir',
+            default=self.default_storage_dir,
+            help=('Primary storage directory for downloads and builds '
+                  '(default: {})'.format(self.default_storage_dir)))
 
         # AND: This option doesn't really fit in the other categories, the
         # arg structure needs a rethink
@@ -228,7 +234,7 @@ build_dist
 
         # Options for specifying the Distribution
         parser.add_argument(
-            '--dist_name',
+            '--dist-name', '--dist_name',
             help='The name of the distribution to use or create',
             default='')
         parser.add_argument(
@@ -291,6 +297,7 @@ build_dist
 
         if args.debug:
             logger.setLevel(logging.DEBUG)
+        self.storage_dir = args.storage_dir
         self.sdk_dir = args.sdk_dir
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
@@ -321,6 +328,13 @@ build_dist
         self.ctx.copy_libs = args.copy_libs
 
         getattr(self, args.command)(unknown)
+
+    @property
+    def default_storage_dir(self):
+        udd = user_data_dir('python-for-android')
+        if ' ' in udd:
+            udd = '~/.python-for-android'
+        return udd
 
     def _read_configuration(self):
         # search for a .p4a configuration file in the current directory
