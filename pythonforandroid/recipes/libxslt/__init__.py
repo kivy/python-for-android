@@ -37,7 +37,7 @@ class LibxsltRecipe(Recipe):
         env['CONFIG_SHELL'] = '/bin/bash'
         env['SHELL'] = '/bin/bash'
         env['CC'] = '/usr/bin/ccache arm-linux-androideabi-gcc -DANDROID -mandroid -fomit-frame-pointer'
-        env['LDSHARED'] = env['CC']
+        env['LDSHARED'] = "%s -nostartfiles -shared -fPIC" % env['CC']
         return env
 
 recipe = LibxsltRecipe()

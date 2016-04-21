@@ -30,8 +30,8 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         bxsl = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt"
         targetpython = "%s/include/python2.7/" % dirname(dirname(self.ctx.hostpython))
         env['CC'] += " -I%s/include -I%s -I%s" % (bxml, bxsl, targetpython)
-        env['LDSHARED'] = '%s -lpython2.7 -nostartfiles' % env['CC']
-
+        env['LDSHARED'] = '%s -nostartfiles -shared -fPIC -lpython2.7' % env['CC']
+        print env['LDSHARED']
         return env
 
 recipe = LXMLRecipe()
