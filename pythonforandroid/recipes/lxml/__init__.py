@@ -31,7 +31,6 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         targetpython = "%s/include/python2.7/" % dirname(dirname(self.ctx.hostpython))
         env['CC'] += " -I%s/include -I%s -I%s" % (bxml, bxsl, targetpython)
         env['LDSHARED'] = '%s -nostartfiles -shared -fPIC -lpython2.7' % env['CC']
-        print env['LDSHARED']
         return env
 
 recipe = LXMLRecipe()
