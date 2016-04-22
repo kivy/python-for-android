@@ -171,8 +171,6 @@ def split_argument_list(l):
 class ToolchainCL(object):
 
     def __init__(self):
-        self._ctx = None
-
         parser = argparse.ArgumentParser(
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
@@ -296,6 +294,8 @@ build_dist
 
         if args.debug:
             logger.setLevel(logging.DEBUG)
+
+        self.ctx = Context()
         self.storage_dir = args.storage_dir
         self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir
@@ -348,12 +348,6 @@ build_dist
         for line in lines:
             for arg in line:
                 sys.argv.append(arg)
-
-    @property
-    def ctx(self):
-        if self._ctx is None:
-            self._ctx = Context()
-        return self._ctx
 
     def recipes(self, args):
         parser = argparse.ArgumentParser(
