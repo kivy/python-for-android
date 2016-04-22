@@ -97,6 +97,7 @@ class Context(object):
         self.build_dir = join(self.storage_dir, 'build')
         self.dist_dir = join(self.storage_dir, 'dists')
 
+    def ensure_dirs(self):
         ensure_dir(self.storage_dir)
         ensure_dir(self.build_dir)
         ensure_dir(self.dist_dir)
@@ -155,7 +156,7 @@ class Context(object):
     def ndk_dir(self, value):
         self._ndk_dir = value
 
-    def prepare_build_environment(self, storage_dir, user_sdk_dir, user_ndk_dir,
+    def prepare_build_environment(self, user_sdk_dir, user_ndk_dir,
                                   user_android_api, user_ndk_ver):
         '''Checks that build dependencies exist and sets internal variables
         for the Android SDK etc.
@@ -164,7 +165,7 @@ class Context(object):
 
         '''
 
-        self.setup_dirs(storage_dir)
+        self.ensure_dirs()
 
         if self._build_env_prepared:
             return

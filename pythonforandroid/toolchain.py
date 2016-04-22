@@ -93,8 +93,7 @@ def require_prebuilt_dist(func):
     def wrapper_func(self, args):
         ctx = self.ctx
         ctx.set_archs(self._archs)
-        ctx.prepare_build_environment(storage_dir=self.storage_dir,
-                                      user_sdk_dir=self.sdk_dir,
+        ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
                                       user_ndk_ver=self.ndk_version)
@@ -298,6 +297,7 @@ build_dist
         if args.debug:
             logger.setLevel(logging.DEBUG)
         self.storage_dir = args.storage_dir
+        self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
@@ -423,7 +423,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete any distributions that have been built.")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
 
@@ -438,7 +438,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete all build files (but not download caches)")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         # if exists(ctx.dist_dir):
         #     shutil.rmtree(ctx.dist_dir)
         if exists(ctx.build_dir):
@@ -476,7 +476,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete all download caches")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
 
@@ -641,7 +641,7 @@ build_dist
         python-for-android will internally use for package building, along
         with information about where the Android SDK and NDK will be called
         from.'''
-        ctx = Context()
+        ctx = self.ctx
         for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir',
                           'ndk_platform', 'ndk_ver', 'android_api'):
@@ -661,7 +661,7 @@ build_dist
     def distributions(self, args):
         '''Lists all distributions currently available (i.e. that have already
         been built).'''
-        ctx = Context()
+        ctx = self.ctx
         dists = Distribution.get_distributions(ctx)
 
         if dists:
