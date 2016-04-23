@@ -61,6 +61,7 @@ class Arch(object):
             ccache = self.ctx.ccache + ' '
             env['USE_CCACHE'] = '1'
             env['NDK_CCACHE'] = self.ctx.ccache
+            env.update({k: v for k, v in environ.items() if k.startswith('CCACHE_')})
 
         print('path is', environ['PATH'])
         cc = find_executable('{command_prefix}-gcc'.format(

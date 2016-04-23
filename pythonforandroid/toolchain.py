@@ -22,7 +22,7 @@ from functools import wraps
 
 import argparse
 import sh
-
+from appdirs import user_data_dir
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
@@ -171,8 +171,6 @@ def split_argument_list(l):
 class ToolchainCL(object):
 
     def __init__(self):
-        self._ctx = None
-
         parser = argparse.ArgumentParser(
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
@@ -206,18 +204,23 @@ build_dist
             '--debug', dest='debug', action='store_true',
             help='Display debug output and all build info')
         parser.add_argument(
-            '--sdk_dir', dest='sdk_dir', default='',
+            '--sdk-dir', '--sdk_dir', dest='sdk_dir', default='',
             help='The filepath where the Android SDK is installed')
         parser.add_argument(
-            '--ndk_dir', dest='ndk_dir', default='',
+            '--ndk-dir', '--ndk_dir', dest='ndk_dir', default='',
             help='The filepath where the Android NDK is installed')
         parser.add_argument(
-            '--android_api', dest='android_api', default=0, type=int,
+            '--android-api', '--android_api', dest='android_api', default=0, type=int,
             help='The Android API level to build against.')
         parser.add_argument(
-            '--ndk_version', dest='ndk_version', default='',
+            '--ndk-version', '--ndk_version', dest='ndk_version', default='',
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
+        parser.add_argument(
+            '--storage-dir', dest='storage_dir',
+            default=self.default_storage_dir,
+            help=('Primary storage directory for downloads and builds '
+                  '(default: {})'.format(self.default_storage_dir)))
 
         # AND: This option doesn't really fit in the other categories, the
         # arg structure needs a rethink
@@ -228,7 +231,7 @@ build_dist
 
         # Options for specifying the Distribution
         parser.add_argument(
-            '--dist_name',
+            '--dist-name', '--dist_name',
             help='The name of the distribution to use or create',
             default='')
         parser.add_argument(
@@ -291,6 +294,10 @@ build_dist
 
         if args.debug:
             logger.setLevel(logging.DEBUG)
+
+        self.ctx = Context()
+        self.storage_dir = args.storage_dir
+        self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
@@ -322,6 +329,13 @@ build_dist
 
         getattr(self, args.command)(unknown)
 
+    @property
+    def default_storage_dir(self):
+        udd = user_data_dir('python-for-android')
+        if ' ' in udd:
+            udd = '~/.python-for-android'
+        return udd
+
     def _read_configuration(self):
         # search for a .p4a configuration file in the current directory
         if not exists(".p4a"):
@@ -334,12 +348,6 @@ build_dist
         for line in lines:
             for arg in line:
                 sys.argv.append(arg)
-
-    @property
-    def ctx(self):
-        if self._ctx is None:
-            self._ctx = Context()
-        return self._ctx
 
     def recipes(self, args):
         parser = argparse.ArgumentParser(
@@ -409,7 +417,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete any distributions that have been built.")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
 
@@ -424,7 +432,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete all build files (but not download caches)")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         # if exists(ctx.dist_dir):
         #     shutil.rmtree(ctx.dist_dir)
         if exists(ctx.build_dir):
@@ -462,7 +470,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete all download caches")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
 
@@ -627,7 +635,7 @@ build_dist
         python-for-android will internally use for package building, along
         with information about where the Android SDK and NDK will be called
         from.'''
-        ctx = Context()
+        ctx = self.ctx
         for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir',
                           'ndk_platform', 'ndk_ver', 'android_api'):
@@ -647,7 +655,7 @@ build_dist
     def distributions(self, args):
         '''Lists all distributions currently available (i.e. that have already
         been built).'''
-        ctx = Context()
+        ctx = self.ctx
         dists = Distribution.get_distributions(ctx)
 
         if dists:
