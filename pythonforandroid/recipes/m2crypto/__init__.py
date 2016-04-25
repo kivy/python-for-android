@@ -13,8 +13,6 @@ class M2CryptoRecipe(PythonRecipe):
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            # Fix missing build dir
-            shprint(sh.mkdir, '-p', 'build/lib.' + 'linux-x86_64' + '-2.7/M2Crypto')
             # Build M2Crypto
             hostpython = sh.Command(self.hostpython_location)
             shprint(hostpython,
