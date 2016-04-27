@@ -30,7 +30,7 @@
        function queryFlask() {
 
            var request = new XMLHttpRequest();
-           request.open('GET', 'http://127.0.0.1:5000/', true);
+           request.open('HEAD', 'http://127.0.0.1:5000/', true);
            request.send();
            request.onerror = function(e) {
                console.log('error!');
@@ -43,6 +43,7 @@
                }
                if (request.readyState == 4 & request.status == 200) {
                    resultElem.innerHTML = 'worked';
+                   console.log('worked');
                } else {
                    resultElem.innerHTML = 'failed';
                    console.log(request.status);
@@ -54,7 +55,7 @@
        }
 
        /* window.setInterval(queryFlask, 500); */
-       window.setTimeout(function() {location.replace('http://127.0.0.1:5000/')}, 5000)
+       window.setTimeout(function() {location.replace('http://127.0.0.1:5000/')}, 3000)
       </script>
 
     </body>
