@@ -316,4 +316,21 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   main(1, argv);
 }
 
+void Java_org_kivy_android_PythonActivity_nativeSetEnv(
+                                    JNIEnv* env, jclass jcls,
+                                    jstring j_name, jstring j_value)
+/* JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_nativeSetEnv( */
+/*                                     JNIEnv* env, jclass jcls, */
+/*                                     jstring j_name, jstring j_value) */
+{
+    jboolean iscopy;
+    const char *name = (*env)->GetStringUTFChars(env, j_name, &iscopy);
+    const char *value = (*env)->GetStringUTFChars(env, j_value, &iscopy);
+    setenv(name, value, 1);
+    (*env)->ReleaseStringUTFChars(env, j_name, name);
+    (*env)->ReleaseStringUTFChars(env, j_value, value);
+}
+
+
+
 #endif

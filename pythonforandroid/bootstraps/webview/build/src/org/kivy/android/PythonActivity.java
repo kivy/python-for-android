@@ -67,12 +67,12 @@ public class PythonActivity extends SDLActivity {
 
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
-        SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
-        SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
-        SDLActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
+        PythonActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+        PythonActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
+        PythonActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
+        PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
+        PythonActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
+        PythonActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
 
         try {
             Log.v(TAG, "Access to our meta-data...");
@@ -353,5 +353,6 @@ public class PythonActivity extends SDLActivity {
       }
     }
 
+    public static native void nativeSetEnv(String j_name, String j_value);
 
 }
