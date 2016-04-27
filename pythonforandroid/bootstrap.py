@@ -111,7 +111,7 @@ class Bootstrap(object):
                 json.dump({'dist_name': self.ctx.dist_name,
                            'bootstrap': self.ctx.bootstrap.name,
                            'archs': [arch.arch for arch in self.ctx.archs],
-                           'recipes': self.ctx.recipe_build_order},
+                           'recipes': self.ctx.recipe_build_order + self.ctx.python_modules},
                           fileh)
 
     @classmethod
