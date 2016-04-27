@@ -128,6 +128,7 @@ def build_dist_from_args(ctx, dist, args):
     build_order, python_modules, bs \
         = get_recipe_order_and_bootstrap(ctx, dist.recipes, bs)
     ctx.recipe_build_order = build_order
+    ctx.python_modules = python_modules
 
     info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
