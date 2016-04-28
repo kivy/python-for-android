@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Replace org.libsdl.app with the identifier of your game below, e.g.
-     com.gamemaker.game
--->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="{{ args.package }}"
       android:versionCode="{{ args.numeric_version }}"
@@ -20,9 +17,6 @@
 
     <!-- Android 2.3.3 -->
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}" />
-
-    <!-- OpenGL ES 2.0 -->
-    <uses-feature android:glEsVersion="0x00020000" />
 
     <!-- Allow writing to external storage -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
