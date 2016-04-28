@@ -12,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
+import android.app.*;
+import android.content.*;
+import android.view.*;
 import android.view.ViewGroup;
 import android.view.SurfaceView;
 import android.app.Activity;
@@ -31,7 +34,11 @@ import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import org.libsdl.app.SDLActivity;
+import android.widget.AbsoluteLayout;
+import android.view.ViewGroup.LayoutParams;
+
+import android.webkit.WebViewClient;
+import android.webkit.WebView;
 
 import org.kivy.android.PythonUtil;
 
@@ -39,31 +46,105 @@ import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
 
 
-public class PythonActivity extends SDLActivity {
+public class PythonActivity extends Activity {
+    // This activity is modified from a mixture of the SDLActivity and
+    // PythonActivity in the SDL2 bootstrap, but removing all the SDL2
+    // specifics.
+
     private static final String TAG = "PythonActivity";
 
     public static PythonActivity mActivity = null;
+
+    /** If shared libraries (e.g. SDL or the native application) could not be loaded. */
+    public static boolean mBrokenLibraries;
+
+    protected static ViewGroup mLayout;
+    protected static WebView mWebView;
+
+    protected static Thread mPythonThread;
 
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
 
+    public static void initialize() {
+        // The static nature of the singleton and Android quirkyness force us to initialize everything here
+        // Otherwise, when exiting the app and returning to it, these variables *keep* their pre exit values
+        mWebView = null;
+        mLayout = null;
+        mBrokenLibraries = false;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
         resourceManager = new ResourceManager(this);
-        // this.showLoadingScreen();
-        // this.removeLoadingScreen();
 
         Log.v(TAG, "Ready to unpack");
         unpackData("private", getFilesDir());
 
-        Log.v(TAG, "About to do super onCreate");
-        super.onCreate(savedInstanceState);
-        Log.v(TAG, "Did super onCreate");
-
-        // this.showLoadingScreen();
         this.mActivity = this;
+
+        Log.v("Python", "Device: " + android.os.Build.DEVICE);
+        Log.v("Python", "Model: " + android.os.Build.MODEL);
+        super.onCreate(savedInstanceState);
+        
+        PythonActivity.initialize();
+
+        // Load shared libraries
+        String errorMsgBrokenLib = "";
+        try {
+            loadLibraries();
+        } catch(UnsatisfiedLinkError e) {
+            System.err.println(e.getMessage());
+            mBrokenLibraries = true;
+            errorMsgBrokenLib = e.getMessage();
+        } catch(Exception e) {
+            System.err.println(e.getMessage());
+            mBrokenLibraries = true;
+            errorMsgBrokenLib = e.getMessage();
+        }
+
+        if (mBrokenLibraries)
+        {
+            AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
+            dlgAlert.setMessage("An error occurred while trying to load the application libraries. Please try again and/or reinstall."
+                  + System.getProperty("line.separator")
+                  + System.getProperty("line.separator")
+                  + "Error: " + errorMsgBrokenLib);
+            dlgAlert.setTitle("Python Error");
+            dlgAlert.setPositiveButton("Exit",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog,int id) {
+                        // if this button is clicked, close current activity
+                        PythonActivity.mActivity.finish();
+                    }
+                });
+           dlgAlert.setCancelable(false);
+           dlgAlert.create().show();
+
+           return;
+        }
+
+        // Set up the webview
+        mWebView = new WebView(this);
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.loadUrl("file:///data/data/net.inclem.flasktest/files/load.html");
+
+        mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        mWebView.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    view.loadUrl(url);
+                    return false;
+                }
+            });
+
+        mLayout = new AbsoluteLayout(this);
+        mLayout.addView(mWebView);
+
+        setContentView(mLayout);
 
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
@@ -83,15 +164,13 @@ public class PythonActivity extends SDLActivity {
             if ( this.mMetaData.getInt("wakelock") == 1 ) {
                 this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
             }
-            if ( this.mMetaData.getInt("surface.transparent") != 0 ) {
-                Log.v(TAG, "Surface will be transparent.");
-                getSurface().setZOrderOnTop(true);
-                getSurface().getHolder().setFormat(PixelFormat.TRANSPARENT);
-            } else {
-                Log.i(TAG, "Surface will NOT be transparent");
-            }
         } catch (PackageManager.NameNotFoundException e) {
         }
+        
+        final Thread pythonThread = new Thread(new PythonMain(), "PythonThread");
+        PythonActivity.mPythonThread = pythonThread;
+        pythonThread.start();
+        
     }
 
     public void loadLibraries() {
@@ -191,9 +270,6 @@ public class PythonActivity extends SDLActivity {
         return   mLayout;
     }
 
-    public static SurfaceView getSurface() {
-        return   mSurface;
-    }
 
     //----------------------------------------------------------------------------
     // Listener interface for onNewIntent
@@ -285,74 +361,16 @@ public class PythonActivity extends SDLActivity {
         PythonActivity.mActivity.stopService(serviceIntent);
     }
 
-    /** Loading screen implementation
-    * keepActive() is a method plugged in pollInputDevices in SDLActivity.
-    * Once it's called twice, the loading screen will be removed.
-    * The first call happen as soon as the window is created, but no image has been
-    * displayed first. My tests showed that we can wait one more. This might delay
-    * the real available of few hundred milliseconds.
-    * The real deal is to know if a rendering has already happen. The previous
-    * python-for-android and kivy was having something for that, but this new version
-    * is not compatible, and would require a new kivy version.
-    * In case of, the method PythonActivty.mActivity.removeLoadingScreen() can be called.
-    */
-    public static ImageView mImageView = null;
-    int mLoadingCount = 2;
-
-    @Override
-    public void keepActive() {
-      if (this.mLoadingCount > 0) {
-        this.mLoadingCount -= 1;
-        if (this.mLoadingCount == 0) {
-          this.removeLoadingScreen();
-        }
-      }
-    }
-
-    public void removeLoadingScreen() {
-      runOnUiThread(new Runnable() {
-        public void run() {
-          if (PythonActivity.mImageView != null) {
-            ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
-            PythonActivity.mImageView);
-            PythonActivity.mImageView = null;
-          }
-        }
-      });
-    }
-
-    protected void showLoadingScreen() {
-      // load the bitmap
-      // 1. if the image is valid and we don't have layout yet, assign this bitmap
-      // as main view.
-      // 2. if we have a layout, just set it in the layout.
-      if (mImageView == null) {
-        int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
-        InputStream is = this.getResources().openRawResource(presplashId);
-        Bitmap bitmap = null;
-        try {
-          bitmap = BitmapFactory.decodeStream(is);
-        } finally {
-          try {
-            is.close();
-          } catch (IOException e) {};
-        }
-
-        mImageView = new ImageView(this);
-        mImageView.setImageBitmap(bitmap);
-        mImageView.setLayoutParams(new ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.FILL_PARENT,
-        ViewGroup.LayoutParams.FILL_PARENT));
-        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-      }
-
-      if (mLayout == null) {
-        setContentView(mImageView);
-      } else {
-        mLayout.addView(mImageView);
-      }
-    }
 
     public static native void nativeSetEnv(String j_name, String j_value);
+    public static native int nativeInit(Object arguments);
 
+}
+
+
+class PythonMain implements Runnable {
+    @Override
+    public void run() {
+        PythonActivity.nativeInit(new String[0]);
+    }
 }

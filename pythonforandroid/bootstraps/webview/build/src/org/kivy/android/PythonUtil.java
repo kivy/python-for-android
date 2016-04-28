@@ -10,10 +10,10 @@ public class PythonUtil {
 
 	protected static String[] getLibraries() {
         return new String[] {
-            "SDL2",
-            "SDL2_image",
-            "SDL2_mixer",
-            "SDL2_ttf",
+            // "SDL2",
+            // "SDL2_image",
+            // "SDL2_mixer",
+            // "SDL2_ttf",
             "python2.7",
             "python3.5m",
             "main"

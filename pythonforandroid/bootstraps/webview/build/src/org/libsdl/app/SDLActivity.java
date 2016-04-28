@@ -168,7 +168,7 @@ public class SDLActivity extends Activity {
         }
 
         // Set up the surface
-        mSurface = new SDLSurface(getApplication());
+        // mSurface = new SDLSurface(getApplication());
         mWebView = new WebView(this);
         mWebView.getSettings().setJavaScriptEnabled(true);
         // mWebView.loadUrl("http://localhost:5000");
@@ -192,10 +192,13 @@ public class SDLActivity extends Activity {
             });
 
         mLayout = new AbsoluteLayout(this);
-        mLayout.addView(mSurface);
+        // mLayout.addView(mSurface);
         mLayout.addView(mWebView);
 
         setContentView(mLayout);
+
+        // final Thread sdlThread = new Thread(new SDLMain(), "SDLThread");
+        // sdlThread.start();
     }
 
     // Events

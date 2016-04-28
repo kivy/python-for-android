@@ -14,9 +14,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#include "SDL.h"
 #include "android/log.h"
-#include "SDL_opengles2.h"
 
 #define ENTRYPOINT_MAXLEN 128
 #define LOG(n, x) __android_log_write(ANDROID_LOG_INFO, (n), (x))
@@ -332,5 +330,26 @@ void Java_org_kivy_android_PythonActivity_nativeSetEnv(
 }
 
 
+void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
+{
+  /* This nativeInit follows SDL2 */
+
+  /* This interface could expand with ABI negotiation, calbacks, etc. */
+  /* SDL_Android_Init(env, cls); */
+  
+  /* SDL_SetMainReady(); */
+  
+  /* Run the application code! */
+  int status;
+  char *argv[2];
+  argv[0] = "Python_app";
+  argv[1] = NULL;
+  /* status = SDL_main(1, argv); */
+  
+  main(1, argv);
+  
+  /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
+  /* exit(status); */
+}
 
 #endif
