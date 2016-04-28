@@ -130,7 +130,7 @@ public class PythonActivity extends Activity {
         // Set up the webview
         mWebView = new WebView(this);
         mWebView.getSettings().setJavaScriptEnabled(true);
-        mWebView.loadUrl("file:///data/data/net.inclem.flasktest/files/load.html");
+        mWebView.loadUrl("file:///" + mActivity.getFilesDir().getAbsolutePath() + "/load.html");
 
         mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         mWebView.setWebViewClient(new WebViewClient() {
