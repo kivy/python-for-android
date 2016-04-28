@@ -4,8 +4,8 @@ from os import walk
 import glob
 import sh
 
-class SDL2Bootstrap(Bootstrap):
-    name = 'sdl2'
+class WebViewBootstrap(Bootstrap):
+    name = 'webview'
 
     recipe_depends = ['webviewjni', ('python2', 'python3crystax')]
 
@@ -13,7 +13,6 @@ class SDL2Bootstrap(Bootstrap):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.name))
 
-        info('This currently just copies the SDL2 build stuff straight from the build dir.')
         shprint(sh.rm, '-rf', self.dist_dir)
         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
         with current_directory(self.dist_dir):
@@ -115,6 +114,6 @@ class SDL2Bootstrap(Bootstrap):
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(SDL2Bootstrap, self).run_distribute()
+        super(WebViewBootstrap, self).run_distribute()
 
-bootstrap = SDL2Bootstrap()
+bootstrap = WebViewBootstrap()
