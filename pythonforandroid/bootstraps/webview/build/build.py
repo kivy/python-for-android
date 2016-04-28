@@ -236,6 +236,7 @@ def make_package(args):
         tar_dirs.append('private')
     if exists('crystax_python'):
         tar_dirs.append('crystax_python')
+    tar_dirs.append('webview_includes')
     if args.private:
         make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
     # else:
@@ -408,7 +409,7 @@ tools directory of the Android SDK.
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
-    ap.add_argument('--window', dest='window', action='store_true',
+    ap.add_argument('--window', dest='window', action='store_false',
                     help='Indicate if the application will be windowed')
     ap.add_argument('--blacklist', dest='blacklist',
                     default=join(curdir, 'blacklist.txt'),
