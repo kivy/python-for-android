@@ -8,7 +8,7 @@ class WebViewJNIRecipe(BootstrapNDKRecipe):
     url = None
 
     depends = [('python2', 'python3crystax')]
-    conflicts = ['sdl2', 'pygame']
+    conflicts = ['sdl2', 'pygame', 'sdl']
 
     def should_build(self, arch):
         return True
