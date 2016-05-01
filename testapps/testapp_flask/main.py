@@ -33,7 +33,15 @@ from flask import (Flask, url_for, render_template, request, redirect,
 
 print('imported flask etc')
 print('importing pyjnius')
+
 from jnius import autoclass
+Context = autoclass('android.content.Context')
+PythonActivity = autoclass('org.kivy.android.PythonActivity')
+activity = PythonActivity.mActivity
+
+vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE)
+
+ActivityInfo = autoclass('android.content.pm.ActivityInfo')
 
 @app.route('/')
 def page1():
@@ -50,19 +58,24 @@ def vibrate():
         print('ERROR: asked to vibrate but without time argument')
     print('asked to vibrate', args['time'])
 
-    from jnius import autoclass
-    print('imported autoclass')
-    Context = autoclass('android.content.Context')
-    print('autoclassed context')
-    PythonActivity = autoclass('org.kivy.android.PythonActivity')
-    print('autoclassed pythonactivity')
-    activity = PythonActivity.mActivity
-    print('got activity')
-    vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE)
-    print('got vibrator')
-
     vibrator.vibrate(float(args['time']) * 1000)
     print('vibrated')
+
+@app.route('/orientation')
+def orientation():
+    args = request.args
+    if 'dir' not in args:
+        print('ERROR: asked to orient but no dir specified')
+    direction = args['dir']
+    if direction not in ('horizontal', 'vertical'):
+        print('ERROR: asked to orient to neither horizontal nor vertical')
+        
+    if direction == 'horizontal':
+        activity.setRequestedOrientation(
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+    else:
+        activity.setRequestedOrientation(
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
 
 from os import curdir

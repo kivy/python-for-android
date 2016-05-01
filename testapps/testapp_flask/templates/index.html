@@ -12,20 +12,38 @@
 </form>
 
 
-<button onClick="fvibrate()">
+<button onClick="vibrate()">
     vibrate for 1s with pyjnius
 </button>
 
 <script>
- function fvibrate() {
-     /* var inputElem = document.getElementById('gausscode_box');
-        var gaussCode = inputElem.value; */
-     console.log('vibrate called');
-     
+ function vibrate() {
      var request = new XMLHttpRequest();
      request.open('GET', 'vibrate?time=1', true);
      request.send();
      }
+</script>
+
+<button onClick="vertical()">
+    vertical orientation
+</button>
+
+<button onClick="horizontal()">
+    horizontal orientation
+</button>
+
+<script>
+ function horizontal() {
+     var request = new XMLHttpRequest();
+     request.open('GET', 'orientation?dir=horizontal', true);
+     request.send();
+ }
+
+ function vertical() {
+     var request = new XMLHttpRequest();
+     request.open('GET', 'orientation?dir=vertical', true);
+     request.send();
+ }
 </script>
 
 {% endblock %}
