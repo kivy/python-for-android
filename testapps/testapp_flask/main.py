@@ -31,6 +31,10 @@ app = Flask(__name__)
 from flask import (Flask, url_for, render_template, request, redirect,
                    flash)
 
+print('imported flask etc')
+print('importing pyjnius')
+from jnius import autoclass
+
 @app.route('/')
 def page1():
     return render_template('index.html')
@@ -38,6 +42,28 @@ def page1():
 @app.route('/page2')
 def page2():
     return render_template('page2.html')
+
+@app.route('/vibrate')
+def vibrate():
+    args = request.args
+    if 'time' not in args:
+        print('ERROR: asked to vibrate but without time argument')
+    print('asked to vibrate', args['time'])
+
+    from jnius import autoclass
+    print('imported autoclass')
+    Context = autoclass('android.content.Context')
+    print('autoclassed context')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    print('autoclassed pythonactivity')
+    activity = PythonActivity.mActivity
+    print('got activity')
+    vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE)
+    print('got vibrator')
+
+    vibrator.vibrate(float(args['time']) * 1000)
+    print('vibrated')
+
 
 from os import curdir
 from os.path import realpath

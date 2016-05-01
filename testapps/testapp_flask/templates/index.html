@@ -11,4 +11,21 @@
     <button formaction="/page2" >Second page</button>
 </form>
 
+
+<button onClick="fvibrate()">
+    vibrate for 1s with pyjnius
+</button>
+
+<script>
+ function fvibrate() {
+     /* var inputElem = document.getElementById('gausscode_box');
+        var gaussCode = inputElem.value; */
+     console.log('vibrate called');
+     
+     var request = new XMLHttpRequest();
+     request.open('GET', 'vibrate?time=1', true);
+     request.send();
+     }
+</script>
+
 {% endblock %}
