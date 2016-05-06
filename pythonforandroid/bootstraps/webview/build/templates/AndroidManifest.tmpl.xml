@@ -19,7 +19,7 @@
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}" />
 
     <!-- Allow writing to external storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
     {% for perm in args.permissions %}
     {% if '.' in perm %}
     <uses-permission android:name="{{ perm }}" />
