@@ -105,6 +105,13 @@ instance, your Python code can start a webserver with a Flask
 application, and your app will display and allow the user to navigate
 this website.
 
+This bootstrap will automatically try to load a website on port 5000
+(the default for Flask), or you can specify a different option with
+the `--port` command line option. If the webserver is not immediately
+present (e.g. during the short Python loading time when first
+started), it will instead display a loading screen until the server is
+ready.
+
 
 pygame
 ~~~~~~
