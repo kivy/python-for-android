@@ -351,6 +351,10 @@ def make_package(args):
         'custom_rules.xml',
         args=args)
 
+    render('WebViewLoader.tmpl.java',
+           'src/org/kivy/android/WebViewLoader.java',
+           args=args)
+
     with open(join(dirname(__file__), 'res',
                    'values', 'strings.xml')) as fileh:
         lines = fileh.read()
@@ -444,6 +448,8 @@ tools directory of the Android SDK.
                          'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
                     help='Include additional source dirs in Java build')
+    ap.add_argument('--port', help='The port on localhost that the WebView will access',
+                    default='5000')
 
     if args is None:
         args = sys.argv[1:]
