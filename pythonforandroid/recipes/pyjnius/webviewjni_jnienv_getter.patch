@@ -5,11 +5,11 @@ index ac89fec..71daa43 100644
 @@ -1,5 +1,5 @@
  # on android, rely on SDL to get the JNI env
 -cdef extern JNIEnv *SDL_ANDROID_GetJNIEnv()
-+cdef extern JNIEnv *SDL_AndroidGetJNIEnv()
++cdef extern JNIEnv *WebView_AndroidGetJNIEnv()
  
  cdef JNIEnv *get_platform_jnienv():
 -    return SDL_ANDROID_GetJNIEnv()
-+    return <JNIEnv*>SDL_AndroidGetJNIEnv()
++    return <JNIEnv*>WebView_AndroidGetJNIEnv()
 diff --git a/setup.py b/setup.py
 index 740510f..0c8e55f 100644
 --- a/setup.py

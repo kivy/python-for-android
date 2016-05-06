@@ -7,7 +7,7 @@
 
 #include "android/log.h"
 
-/* These JNI management functions are taken from SDL2 */
+/* These JNI management functions are taken from SDL2, but modified to refer to pyjnius */
 
 /* #define LOG(n, x) __android_log_write(ANDROID_LOG_INFO, (n), (x)) */
 /* #define LOGP(x) LOG("python", (x)) */
@@ -45,7 +45,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
      */
     if (pthread_key_create(&mThreadKey, Android_JNI_ThreadDestroyed) != 0) {
 
-        __android_log_print(ANDROID_LOG_ERROR, "SDL", "Error initializing pthread key");
+        __android_log_print(ANDROID_LOG_ERROR, "pyjniusjni", "Error initializing pthread key");
     }
     Android_JNI_SetupThread();
 
@@ -97,7 +97,7 @@ static void Android_JNI_ThreadDestroyed(void* value)
     }
 }
 
-void *SDL_AndroidGetJNIEnv()
+void *WebView_AndroidGetJNIEnv()
 {
     return Android_JNI_GetEnv();
 }
