@@ -18,14 +18,14 @@ public class WebViewLoader {
     public static void testConnection() {
         
         while (true) {
-            if (WebViewLoader.pingHost("localhost", 5000, 100)) {
-                Log.v(TAG, "Cuccessfully pinged localhost:5000");
+            if (WebViewLoader.pingHost("localhost", {{ args.port }}, 100)) {
+                Log.v(TAG, "Successfully pinged localhost:{{ args.port }}");
                 Handler mainHandler = new Handler(PythonActivity.mActivity.getMainLooper());
                 
                 Runnable myRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            PythonActivity.mActivity.mWebView.loadUrl("http://127.0.0.1:5000/");
+                            PythonActivity.mActivity.mWebView.loadUrl("http://127.0.0.1:{{ args.port }}/");
                             Log.v(TAG, "Loaded webserver in webview");
                         }
                     };
@@ -33,7 +33,7 @@ public class WebViewLoader {
                 break;
                     
             } else {
-                Log.v(TAG, "Could not ping localhost:5000");
+                Log.v(TAG, "Could not ping localhost:{{ args.port }}");
                 try {
                     Thread.sleep(100);
                 } catch(InterruptedException e) {
@@ -41,9 +41,6 @@ public class WebViewLoader {
                 }
             }
         }
-        
-        Log.v(TAG, "testConnection finished");
-        
     }
 
     public static boolean pingHost(String host, int port, int timeout) {
