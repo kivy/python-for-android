@@ -1,6 +1,11 @@
 
 package org.kivy.android;
 
+import java.net.Socket;
+import java.net.InetSocketAddress;
+
+import android.os.SystemClock;
+
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -42,9 +47,10 @@ import android.webkit.WebView;
 
 import org.kivy.android.PythonUtil;
 
+import org.kivy.android.WebViewLoader;
+
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
-
 
 public class PythonActivity extends Activity {
     // This activity is modified from a mixture of the SDLActivity and
@@ -130,7 +136,9 @@ public class PythonActivity extends Activity {
         // Set up the webview
         mWebView = new WebView(this);
         mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.loadUrl("file:///" + mActivity.getFilesDir().getAbsolutePath() + "/_load.html");
+        // mWebView.loadUrl("http://localhost:5000/");
 
         mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         mWebView.setWebViewClient(new WebViewClient() {
@@ -154,7 +162,7 @@ public class PythonActivity extends Activity {
         PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         PythonActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         PythonActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
-
+        
         try {
             Log.v(TAG, "Access to our meta-data...");
             this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
@@ -170,9 +178,12 @@ public class PythonActivity extends Activity {
         final Thread pythonThread = new Thread(new PythonMain(), "PythonThread");
         PythonActivity.mPythonThread = pythonThread;
         pythonThread.start();
-        
-    }
 
+        final Thread wvThread = new Thread(new TestMain(), "WvThread");
+        wvThread.start();
+
+    }
+    
     public void loadLibraries() {
         PythonUtil.loadLibraries(getFilesDir());
     }
@@ -372,5 +383,12 @@ class PythonMain implements Runnable {
     @Override
     public void run() {
         PythonActivity.nativeInit(new String[0]);
+    }
+}
+
+class TestMain implements Runnable {
+    @Override
+    public void run() {
+        WebViewLoader.testConnection();
     }
 }

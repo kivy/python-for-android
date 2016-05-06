@@ -19,28 +19,21 @@ public class WebViewLoader {
         
         while (true) {
             if (WebViewLoader.pingHost("localhost", 5000, 100)) {
-                Log.v(TAG, "successfully pinged localhost");
-                // PythonActivity.mWebView.loadUrl("http://localhost:5000");
-                // PythonActivity.mWebView.loadUrl("http://www.google.com");
-                
+                Log.v(TAG, "Cuccessfully pinged localhost:5000");
                 Handler mainHandler = new Handler(PythonActivity.mActivity.getMainLooper());
                 
                 Runnable myRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            // PythonActivity.mActivity.mWebView.loadUrl("http://127.0.0.1:5000/");
-                            // PythonActivity.mActivity.mWebView.loadUrl("http://www.google.com");
-                            PythonActivity.mActivity.mWebView.loadUrl("file:///" + PythonActivity.mActivity.getFilesDir().getAbsolutePath() + "/load_immediate.html");
-                            // PythonActivity.mActivity.mWebView.loadUrl("file:///" + PythonActivity.mActivity.getFilesDir().getAbsolutePath() + "/_load2.html");
-                            Log.v(TAG, "did webview load!");
+                            PythonActivity.mActivity.mWebView.loadUrl("http://127.0.0.1:5000/");
+                            Log.v(TAG, "Loaded webserver in webview");
                         }
-                        // public void run() {PythonActivity.mActivity.mWebView.loadUrl("http://127.0.0.1:5000");}
                     };
                 mainHandler.post(myRunnable);
                 break;
                     
             } else {
-                Log.v(TAG, "could not ping localhost");
+                Log.v(TAG, "Could not ping localhost:5000");
                 try {
                     Thread.sleep(100);
                 } catch(InterruptedException e) {
@@ -57,8 +50,10 @@ public class WebViewLoader {
         Socket socket = new Socket();
         try {
             socket.connect(new InetSocketAddress(host, port), timeout);
+            socket.close();
             return true;
         } catch (IOException e) {
+            try {socket.close();} catch (IOException f) {return false;}
             return false; // Either timeout or unreachable or failed DNS lookup.
         }
     }
