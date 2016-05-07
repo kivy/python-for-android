@@ -139,7 +139,11 @@ project unless they have precisely the same requirements.
 
 You can build an SDL2 APK similarly, creating a dist as follows::
 
-    python-for-android create --dist_name=testsdl2 --bootstrap=sdl2 --requirements=sdl2,python2
+    python-for-android create --dist_name=testsdl2 --bootstrap=sdl2 --requirements=sdl2,python2,kivy
+
+Note that you must now explicitly add ``kivy`` to the requirements, as
+its presence is now optional (you can alternatively use SDL2 in other
+ways, such as with PySDL2).
 
 You can then make an APK in the same way, but this is more
 experimental and doesn't support as much customisation yet.
