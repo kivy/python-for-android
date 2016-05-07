@@ -564,7 +564,7 @@ def build_recipes(build_order, python_modules, ctx):
         # 4) biglink everything
         # AND: Should make this optional
         info_main('# Biglinking object files')
-        if not ctx.python_recipe.from_crystax:
+        if not ctx.python_recipe or not ctx.python_recipe.from_crystax:
             biglink(ctx, arch)
         else:
             info('NDK is crystax, skipping biglink (will this work?)')
