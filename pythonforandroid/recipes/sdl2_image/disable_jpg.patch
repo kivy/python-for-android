@@ -1,8 +1,6 @@
-diff --git a/Android.mk b/Android.mk
-index 31e2118..8cd2cb9 100644
---- a/Android.mk
-+++ b/Android.mk
-@@ -6,7 +6,7 @@ LOCAL_MODULE := SDL2_image
+--- orig/Android.mk	2016-04-15 21:15:41.578603933 +0200
++++ patch/Android.mk	2016-04-15 21:15:29.214617537 +0200
+@@ -6,7 +6,7 @@
  
  # Enable this if you want to support loading JPEG images
  # The library path should be a relative path to this directory.
