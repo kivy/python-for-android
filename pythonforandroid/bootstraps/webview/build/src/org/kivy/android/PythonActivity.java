@@ -138,7 +138,6 @@ public class PythonActivity extends Activity {
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.loadUrl("file:///" + mActivity.getFilesDir().getAbsolutePath() + "/_load.html");
-        // mWebView.loadUrl("http://localhost:5000/");
 
         mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         mWebView.setWebViewClient(new WebViewClient() {
@@ -179,7 +178,7 @@ public class PythonActivity extends Activity {
         PythonActivity.mPythonThread = pythonThread;
         pythonThread.start();
 
-        final Thread wvThread = new Thread(new TestMain(), "WvThread");
+        final Thread wvThread = new Thread(new WebViewLoaderMain(), "WvThread");
         wvThread.start();
 
     }
@@ -386,7 +385,7 @@ class PythonMain implements Runnable {
     }
 }
 
-class TestMain implements Runnable {
+class WebViewLoaderMain implements Runnable {
     @Override
     public void run() {
         WebViewLoader.testConnection();
