@@ -1,0 +1,19 @@
+--- ffmpeg/settings.sh	2016-04-27 18:50:16.294291099 +0200
++++ ffmpeg-patch/settings.sh	2016-04-27 18:55:07.085398617 +0200
+@@ -1,13 +1,13 @@
+ #!/bin/bash
+ 
+-SUPPORTED_ARCHITECTURES=(armeabi-v7a armeabi-v7a-neon x86)
++SUPPORTED_ARCHITECTURES=(${ARCH})
+ ANDROID_NDK_ROOT_PATH=${ANDROID_NDK}
+ if [[ -z "$ANDROID_NDK_ROOT_PATH" ]]; then
+   echo "You need to set ANDROID_NDK environment variable, please check instructions"
+   exit
+ fi
+-ANDROID_API_VERSION=9
+-NDK_TOOLCHAIN_ABI_VERSION=4.8
++ANDROID_API_VERSION=${ANDROID_API}
++NDK_TOOLCHAIN_ABI_VERSION=${TOOLCHAIN_VERSION}
+ 
+ NUMBER_OF_CORES=$(nproc)
+ HOST_UNAME=$(uname -m)
