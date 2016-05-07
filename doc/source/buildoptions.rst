@@ -93,6 +93,26 @@ yet have one.
    features of the Pygame one. It is under active development to fix
    these omissions.
 
+webview
+~~~~~~~
+
+You can use this with ``--bootstrap=webview``, or simply include the
+``webviewjni`` recipe in your ``--requirements``.
+
+The webview bootstrap gui is, per the name, a WebView displaying a
+webpage, but this page is hosted on the device via a Python
+webserver. For instance, your Python code can start a Flask
+application, and your app will display and allow the user to navigate
+this website.
+
+This bootstrap will automatically try to load a website on port 5000
+(the default for Flask), or you can specify a different option with
+the `--port` command line option. If the webserver is not immediately
+present (e.g. during the short Python loading time when first
+started), it will instead display a loading screen until the server is
+ready.
+
+
 pygame
 ~~~~~~
 
