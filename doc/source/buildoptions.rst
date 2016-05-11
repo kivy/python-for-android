@@ -105,6 +105,10 @@ webserver. For instance, your Python code can start a Flask
 application, and your app will display and allow the user to navigate
 this website.
 
+.. note:: Your Flask script must start the webserver *without*
+          :code:``debug=True``. Debug mode doesn't seem to work on
+          Android due to use of a subprocess.
+
 This bootstrap will automatically try to load a website on port 5000
 (the default for Flask), or you can specify a different option with
 the `--port` command line option. If the webserver is not immediately
