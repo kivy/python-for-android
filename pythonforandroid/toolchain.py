@@ -30,7 +30,7 @@ from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
 from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
 from pythonforandroid.logger import (logger, info, warning, setup_color,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
-                                     info_notify, info_main, shprint)
+                                     info_notify, info_main, shprint, error)
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
@@ -117,6 +117,13 @@ def build_dist_from_args(ctx, dist, args):
         = get_recipe_order_and_bootstrap(ctx, dist.recipes, bs)
     ctx.recipe_build_order = build_order
     ctx.python_modules = python_modules
+
+    if python_modules and hasattr(sys, 'real_prefix'):
+        error('virtualenv is needed to install pure-Python modules, but')
+        error('virtualenv does not support nesting, and you are running')
+        error('python-for-android in one. Please run p4a outside of a')
+        error('virtualenv instead.')
+        exit(1)
 
     info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
