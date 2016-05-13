@@ -4,7 +4,7 @@ import sh
 
 
 class LibSDL2Recipe(BootstrapNDKRecipe):
-    version = "2.0.3"
+    version = "2.0.4"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
 
     dir_name = 'SDL'

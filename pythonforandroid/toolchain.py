@@ -22,16 +22,15 @@ from functools import wraps
 
 import argparse
 import sh
-
+from appdirs import user_data_dir
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
                                      BootstrapNDKRecipe, NDKRecipe)
 from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
-from pythonforandroid.logger import (logger, info, warning, debug,
+from pythonforandroid.logger import (logger, info, warning, setup_color,
                                      Out_Style, Out_Fore, Err_Style, Err_Fore,
-                                     info_notify, info_main, shprint,
-                                     Null_Fore, Null_Style)
+                                     info_notify, info_main, shprint, error)
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
@@ -41,17 +40,6 @@ from pythonforandroid.build import Context, build_recipes
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
-
-
-info(''.join(
-    [Err_Style.BRIGHT, Err_Fore.RED,
-     'This python-for-android revamp is an experimental alpha release!',
-     Err_Style.RESET_ALL]))
-info(''.join(
-    [Err_Fore.RED,
-     ('It should work (mostly), but you may experience '
-      'missing features or bugs.'),
-     Err_Style.RESET_ALL]))
 
 
 def add_boolean_option(parser, names, no_names=None,
@@ -128,6 +116,14 @@ def build_dist_from_args(ctx, dist, args):
     build_order, python_modules, bs \
         = get_recipe_order_and_bootstrap(ctx, dist.recipes, bs)
     ctx.recipe_build_order = build_order
+    ctx.python_modules = python_modules
+
+    if python_modules and hasattr(sys, 'real_prefix'):
+        error('virtualenv is needed to install pure-Python modules, but')
+        error('virtualenv does not support nesting, and you are running')
+        error('python-for-android in one. Please run p4a outside of a')
+        error('virtualenv instead.')
+        exit(1)
 
     info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
@@ -171,8 +167,6 @@ def split_argument_list(l):
 class ToolchainCL(object):
 
     def __init__(self):
-        self._ctx = None
-
         parser = argparse.ArgumentParser(
                 description="Tool for managing the Android / Python toolchain",
                 usage="""toolchain <command> [<args>]
@@ -206,18 +200,26 @@ build_dist
             '--debug', dest='debug', action='store_true',
             help='Display debug output and all build info')
         parser.add_argument(
-            '--sdk_dir', dest='sdk_dir', default='',
+            '--color', dest='color', choices=['always', 'never', 'auto'],
+            help='Enable or disable color output (default enabled on tty)')
+        parser.add_argument(
+            '--sdk-dir', '--sdk_dir', dest='sdk_dir', default='',
             help='The filepath where the Android SDK is installed')
         parser.add_argument(
-            '--ndk_dir', dest='ndk_dir', default='',
+            '--ndk-dir', '--ndk_dir', dest='ndk_dir', default='',
             help='The filepath where the Android NDK is installed')
         parser.add_argument(
-            '--android_api', dest='android_api', default=0, type=int,
+            '--android-api', '--android_api', dest='android_api', default=0, type=int,
             help='The Android API level to build against.')
         parser.add_argument(
-            '--ndk_version', dest='ndk_version', default='',
+            '--ndk-version', '--ndk_version', dest='ndk_version', default='',
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
+        parser.add_argument(
+            '--storage-dir', dest='storage_dir',
+            default=self.default_storage_dir,
+            help=('Primary storage directory for downloads and builds '
+                  '(default: {})'.format(self.default_storage_dir)))
 
         # AND: This option doesn't really fit in the other categories, the
         # arg structure needs a rethink
@@ -228,7 +230,7 @@ build_dist
 
         # Options for specifying the Distribution
         parser.add_argument(
-            '--dist_name',
+            '--dist-name', '--dist_name',
             help='The name of the distribution to use or create',
             default='')
         parser.add_argument(
@@ -278,6 +280,18 @@ build_dist
         args, unknown = parser.parse_known_args(sys.argv[1:])
         self.dist_args = args
 
+        setup_color(args.color)
+
+        info(''.join(
+            [Err_Style.BRIGHT, Err_Fore.RED,
+             'This python-for-android revamp is an experimental alpha release!',
+             Err_Style.RESET_ALL]))
+        info(''.join(
+            [Err_Fore.RED,
+             ('It should work (mostly), but you may experience '
+              'missing features or bugs.'),
+             Err_Style.RESET_ALL]))
+
         # strip version from requirements, and put them in environ
         requirements = []
         for requirement in split_argument_list(args.requirements):
@@ -291,6 +305,10 @@ build_dist
 
         if args.debug:
             logger.setLevel(logging.DEBUG)
+
+        self.ctx = Context()
+        self.storage_dir = args.storage_dir
+        self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
@@ -322,6 +340,13 @@ build_dist
 
         getattr(self, args.command)(unknown)
 
+    @property
+    def default_storage_dir(self):
+        udd = user_data_dir('python-for-android')
+        if ' ' in udd:
+            udd = '~/.python-for-android'
+        return udd
+
     def _read_configuration(self):
         # search for a .p4a configuration file in the current directory
         if not exists(".p4a"):
@@ -335,12 +360,6 @@ build_dist
             for arg in line:
                 sys.argv.append(arg)
 
-    @property
-    def ctx(self):
-        if self._ctx is None:
-            self._ctx = Context()
-        return self._ctx
-
     def recipes(self, args):
         parser = argparse.ArgumentParser(
                 description="List all the available recipes")
@@ -348,18 +367,7 @@ build_dist
                 "--compact", action="store_true", default=False,
                 help="Produce a compact list suitable for scripting")
 
-        add_boolean_option(
-                parser, ["color"],
-                default=True,
-                description='Whether the output should be colored:')
-
         args = parser.parse_args(args)
-
-        Fore = Out_Fore
-        Style = Out_Style
-        if not args.color:
-            Fore = Null_Fore
-            Style = Null_Style
 
         ctx = self.ctx
         if args.compact:
@@ -371,18 +379,18 @@ build_dist
                 print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
                       '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
                       '{version:<8}{Style.RESET_ALL}'.format(
-                        recipe=recipe, Fore=Fore, Style=Style,
+                        recipe=recipe, Fore=Out_Fore, Style=Out_Style,
                         version=version))
                 print('    {Fore.GREEN}depends: {recipe.depends}'
-                      '{Fore.RESET}'.format(recipe=recipe, Fore=Fore))
+                      '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
                 if recipe.conflicts:
                     print('    {Fore.RED}conflicts: {recipe.conflicts}'
                           '{Fore.RESET}'
-                          .format(recipe=recipe, Fore=Fore))
+                          .format(recipe=recipe, Fore=Out_Fore))
                 if recipe.opt_depends:
                     print('    {Fore.YELLOW}optional depends: '
                           '{recipe.opt_depends}{Fore.RESET}'
-                          .format(recipe=recipe, Fore=Fore))
+                          .format(recipe=recipe, Fore=Out_Fore))
 
     def bootstraps(self, args):
         '''List all the bootstraps available to build with.'''
@@ -409,7 +417,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete any distributions that have been built.")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
 
@@ -424,7 +432,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete all build files (but not download caches)")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         # if exists(ctx.dist_dir):
         #     shutil.rmtree(ctx.dist_dir)
         if exists(ctx.build_dir):
@@ -462,7 +470,7 @@ build_dist
         parser = argparse.ArgumentParser(
                 description="Delete all download caches")
         args = parser.parse_args(args)
-        ctx = Context()
+        ctx = self.ctx
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
 
@@ -627,7 +635,7 @@ build_dist
         python-for-android will internally use for package building, along
         with information about where the Android SDK and NDK will be called
         from.'''
-        ctx = Context()
+        ctx = self.ctx
         for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
                           'ccache', 'cython', 'sdk_dir', 'ndk_dir',
                           'ndk_platform', 'ndk_ver', 'android_api'):
@@ -647,7 +655,7 @@ build_dist
     def distributions(self, args):
         '''Lists all distributions currently available (i.e. that have already
         been built).'''
-        ctx = Context()
+        ctx = self.ctx
         dists = Distribution.get_distributions(ctx)
 
         if dists:

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CustomRules">
+    <target name="-pre-build">
+        <copy todir="tmp-src">
+            <fileset dir="src" includes="**" />
+            {% for dir, includes in args.extra_source_dirs %}
+            <fileset dir="{{ dir }}" includes="{{ includes }}" />
+            {% endfor %}
+        </copy>
+    </target>
+    <target name="-post-build">
+        <delete dir="tmp-src" />
+    </target>
+</project>
