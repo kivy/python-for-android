@@ -31,17 +31,20 @@ class HarfbuzzRecipe(Recipe):
     def build_arch(self, arch):
 
         env = self.get_recipe_env(arch)
-        env['LDFLAGS'] += ' -L{}'.format(
-            self.ctx.get_libs_dir(arch.arch) + '-L{}'.format(self.ctx.libs_dir))
+        env['LDFLAGS'] += ' -L{} -L{}'.format(self.ctx.get_libs_dir(arch.arch), self.ctx.libs_dir)
 
         with_freetype = 'no'
+        # FREETYPE FLAGS
         if 'freetype' in self.ctx.recipe_build_order:
-            # Link with freetype
             with_freetype = 'yes'
             freetype = self.get_recipe('freetype', self.ctx)
             freetype_install = join(freetype.get_build_dir(arch.arch), 'install')
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}/include/freetype2'.format(freetype_install),
                                       '-L{}/lib'.format(freetype_install), '-lfreetype'])
+        # HARFBUZZ FLAGS
+        env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(self.get_build_dir(arch.arch)),
+             '-I{}/src'.format(self.get_build_dir(arch.arch))])
+        env['LDFLAGS'] += ' -L{}/src/.libs'.format(self.get_build_dir(arch.arch))
 
         with current_directory(self.get_build_dir(arch.arch)):
             configure = sh.Command('./configure')

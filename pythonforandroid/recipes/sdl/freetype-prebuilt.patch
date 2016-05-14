@@ -36,7 +36,7 @@
  LOCAL_STATIC_LIBRARIES := freetype
  LOCAL_LDLIBS := -lz
  
-+LOCAL_CFLAGS := -I$(LOCAL_PATH) -I$(LOCAL_PATH)/../sdl/include -I$(LOCAL_PATH)/../freetype/include
++LOCAL_CFLAGS := -I$(LOCAL_PATH) -I$(LOCAL_PATH)/../sdl/include -I$(FREETYPE_LIBRARY_PATH)/include
 +LOCAL_CFLAGS += -DFT2_BUILD_LIBRARY
 +LOCAL_C_INCLUDES += $(FREETYPE_LIBRARY_PATH)/include \
 +    $(FREETYPE_LIBRARY_PATH)/include/config \

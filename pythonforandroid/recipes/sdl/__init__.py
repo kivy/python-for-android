@@ -8,7 +8,7 @@ class LibSDLRecipe(BootstrapNDKRecipe):
     url = None  
     name = 'sdl'
     dir_name = 'sdl'
-    depends = ['python2', 'pygame_bootstrap_components', 'jpeg', 'freetype']
+    depends = ['python2', 'pygame_bootstrap_components', 'jpeg', 'freetype', 'harfbuzz']
     conflicts = ['sdl2']
 
     def prebuild_arch(self, arch):
