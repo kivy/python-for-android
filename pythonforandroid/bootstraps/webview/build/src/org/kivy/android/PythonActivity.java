@@ -180,7 +180,15 @@ public class PythonActivity extends Activity {
 
         final Thread wvThread = new Thread(new WebViewLoaderMain(), "WvThread");
         wvThread.start();
+    }
 
+    @Override
+    public void onDestroy() {
+        Log.i("Destroy", "end of app");
+        super.onDestroy();
+        
+        // make sure all child threads (python_thread) are stopped
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     public void loadLibraries() {
@@ -297,6 +305,27 @@ public class PythonActivity extends Activity {
         return   mLayout;
     }
 
+    long lastBackClick = SystemClock.elapsedRealtime();
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Check if the key event was the Back button and if there's history
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
+            mWebView.goBack();
+            return true;
+        }
+        // If it wasn't the Back key or there's no web page history, bubble up to the default
+        // system behavior (probably exit the activity)
+        if (SystemClock.elapsedRealtime() - lastBackClick > 2000){
+            lastBackClick = SystemClock.elapsedRealtime();
+            Toast.makeText(this, "Click again to close the app",
+            Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        lastBackClick = SystemClock.elapsedRealtime();
+        return super.onKeyDown(keyCode, event);
+    }
+
 
     //----------------------------------------------------------------------------
     // Listener interface for onNewIntent
@@ -367,7 +396,7 @@ public class PythonActivity extends Activity {
         }
     }
 
-	public static void start_service(String serviceTitle, String serviceDescription,
+    public static void start_service(String serviceTitle, String serviceDescription,
                 String pythonServiceArgument) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
