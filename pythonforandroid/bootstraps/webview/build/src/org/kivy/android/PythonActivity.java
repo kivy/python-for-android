@@ -94,7 +94,7 @@ public class PythonActivity extends Activity {
         Log.v("Python", "Device: " + android.os.Build.DEVICE);
         Log.v("Python", "Model: " + android.os.Build.MODEL);
         super.onCreate(savedInstanceState);
-        
+
         PythonActivity.initialize();
 
         // Load shared libraries
@@ -161,7 +161,7 @@ public class PythonActivity extends Activity {
         PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         PythonActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         PythonActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
-        
+
         try {
             Log.v(TAG, "Access to our meta-data...");
             this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
@@ -173,7 +173,7 @@ public class PythonActivity extends Activity {
             }
         } catch (PackageManager.NameNotFoundException e) {
         }
-        
+
         final Thread pythonThread = new Thread(new PythonMain(), "PythonThread");
         PythonActivity.mPythonThread = pythonThread;
         pythonThread.start();
@@ -182,7 +182,7 @@ public class PythonActivity extends Activity {
         wvThread.start();
 
     }
-    
+
     public void loadLibraries() {
         PythonUtil.loadLibraries(getFilesDir());
     }
@@ -274,6 +274,23 @@ public class PythonActivity extends Activity {
                 Log.w("python", e);
             }
         }
+    }
+
+    public static void loadUrl(String url) {
+        class LoadUrl implements Runnable {
+            private String mUrl;
+
+            public LoadUrl(String url) {
+                mUrl = url;
+            }
+
+            public void run() {
+                mWebView.loadUrl(mUrl);
+            }
+        }
+
+        Log.i(TAG, "Opening URL: " + url);
+        mActivity.runOnUiThread(new LoadUrl(url));
     }
 
     public static ViewGroup getLayout() {
