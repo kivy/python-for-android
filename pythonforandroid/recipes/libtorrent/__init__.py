@@ -6,9 +6,9 @@ import sh
 # It depends on Boost.Build and the source of several Boost libraries present in BOOST_ROOT,
 # which is all provided by the boost recipe
 class LibtorrentRecipe(Recipe):
-    version = '1.0.8'
+    version = '1.0.9'
     # Don't forget to change the URL when changing the version
-    url = 'http://github.com/arvidn/libtorrent/archive/libtorrent-1_0_8.tar.gz'
+    url = 'https://github.com/arvidn/libtorrent/archive/libtorrent-1_0_9.tar.gz'
     depends = ['boost', 'python2']
     opt_depends = ['openssl']
     patches = ['disable-so-version.patch', 'use-soname-python.patch']

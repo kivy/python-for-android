@@ -422,35 +422,29 @@ class Recipe(with_metaclass(RecipeMeta)):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
-                    if extraction_filename.endswith('.tar.gz') or \
-                       extraction_filename.endswith('.tgz'):
-                        sh.tar('xzf', extraction_filename)
-                        root_directory = shprint(
-                            sh.tar, 'tzf', extraction_filename).stdout.decode(
-                                'utf-8').split('\n')[0].split('/')[0]
-                        if root_directory != directory_name:
-                            shprint(sh.mv, root_directory, directory_name)
-                    elif (extraction_filename.endswith('.tar.bz2') or
-                          extraction_filename.endswith('.tbz2')):
-                        info('Extracting {} at {}'
-                             .format(extraction_filename, filename))
-                        sh.tar('xjf', extraction_filename)
-                        root_directory = sh.tar(
-                            'tjf', extraction_filename).stdout.decode(
-                                'utf-8').split('\n')[0].split('/')[0]
-                        if root_directory != directory_name:
-                            shprint(sh.mv, root_directory, directory_name)
-                    elif extraction_filename.endswith('.zip'):
+                    if extraction_filename.endswith('.zip'):
                         sh.unzip(extraction_filename)
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
+                    elif (extraction_filename.endswith('.tar.gz') or
+                          extraction_filename.endswith('.tgz') or
+                          extraction_filename.endswith('.tar.bz2') or
+                          extraction_filename.endswith('.tbz2') or
+                          extraction_filename.endswith('.tar.xz') or
+                          extraction_filename.endswith('.txz')):
+                        sh.tar('xf', extraction_filename)
+                        root_directory = shprint(
+                            sh.tar, 'tf', extraction_filename).stdout.decode(
+                                'utf-8').split('\n')[0].split('/')[0]
+                        if root_directory != directory_name:
+                            shprint(sh.mv, root_directory, directory_name)
                     else:
                         raise Exception(
                             'Could not extract {} download, it must be .zip, '
-                            '.tar.gz or .tar.bz2')
+                            '.tar.gz or .tar.bz2 or .tar.xz')
                 elif isdir(extraction_filename):
                     mkdir(directory_name)
                     for entry in listdir(extraction_filename):
@@ -571,9 +565,13 @@ class Recipe(with_metaclass(RecipeMeta)):
                 info('Deleting {}'.format(directory))
                 shutil.rmtree(directory)
 
-    def install_libs(self, arch, lib, *libs):
+    def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
-        shprint(sh.cp, '-t', libs_dir, lib, *libs)
+        if not libs:
+            warning('install_libs called with no libraries to install!')
+            return
+        args = libs + (libs_dir,)
+        shprint(sh.cp, *args)
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
@@ -583,8 +581,9 @@ class Recipe(with_metaclass(RecipeMeta)):
         recipe_dirs = []
         if ctx.local_recipes is not None:
             recipe_dirs.append(ctx.local_recipes)
-        recipe_dirs.extend([join(ctx.storage_dir, 'recipes'),
-                            join(ctx.root_dir, "recipes")])
+        if ctx.storage_dir:
+            recipe_dirs.append(join(ctx.storage_dir, 'recipes'))
+        recipe_dirs.append(join(ctx.root_dir, "recipes"))
         return recipe_dirs
 
     @classmethod

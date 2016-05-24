@@ -33,7 +33,6 @@ class PygameBootstrap(Bootstrap):
 
             info('Copying default files')
             shprint(sh.cp, '-a', join(self.build_dir, 'project.properties'), '.')
-            shprint(sh.cp, '-a', join(src_path, 'local.properties'), '.')
             shprint(sh.cp, '-a', join(src_path, 'build.py'), '.')
             shprint(sh.cp, '-a', join(src_path, 'buildlib'), '.')
             shprint(sh.cp, '-a', join(src_path, 'src'), '.')
@@ -41,6 +40,9 @@ class PygameBootstrap(Bootstrap):
             shprint(sh.cp, '-a', join(src_path, 'res'), '.')
             shprint(sh.cp, '-a', join(src_path, 'blacklist.txt'), '.')
             shprint(sh.cp, '-a', join(src_path, 'whitelist.txt'), '.')
+
+            with open('local.properties', 'w') as fileh:
+                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
             info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)

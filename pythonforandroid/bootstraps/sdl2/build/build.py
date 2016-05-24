@@ -218,6 +218,14 @@ def make_package(args):
     #     print('Your PATH must include android tools.')
     #     sys.exit(-1)
 
+    if not (exists(join(realpath(args.private), 'main.py')) or
+            exists(join(realpath(args.private), 'main.pyo'))):
+        print('''BUILD FAILURE: No main.py(o) found in your app directory. This
+file must exist to act as the entry point for you app. If your app is
+started by a file with a different name, rename it to main.py or add a
+main.py that loads it.''')
+        exit(1)
+
     # Delete the old assets.
     if exists('assets/public.mp3'):
         os.unlink('assets/public.mp3')
@@ -408,6 +416,8 @@ tools directory of the Android SDK.
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
+    ap.add_argument('--window', dest='window', action='store_true',
+                    help='Indicate if the application will be windowed')
     ap.add_argument('--blacklist', dest='blacklist',
                     default=join(curdir, 'blacklist.txt'),
                     help=('Use a blacklist file to match unwanted file in '
