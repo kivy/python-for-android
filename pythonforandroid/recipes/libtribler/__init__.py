@@ -14,7 +14,7 @@ class LibTriblerRecipe(PythonRecipe):
     depends = ['apsw', 'cherrypy', 'cryptography', 'decorator', 'feedparser',
                'ffmpeg', 'libnacl', 'libsodium', 'libtorrent', 'm2crypto',
                'netifaces', 'openssl', 'pyasn1', 'pil', 'pycrypto', 'pyleveldb',
-               'python2', 'requests', 'twisted']
+               'python2', 'requests', 'six', 'twisted']
 
     site_packages_name = 'Tribler'
 
