@@ -580,7 +580,7 @@ class Recipe(with_metaclass(RecipeMeta)):
     def recipe_dirs(cls, ctx):
         recipe_dirs = []
         if ctx.local_recipes is not None:
-            recipe_dirs.append(ctx.local_recipes)
+            recipe_dirs.append(realpath(ctx.local_recipes))
         if ctx.storage_dir:
             recipe_dirs.append(join(ctx.storage_dir, 'recipes'))
         recipe_dirs.append(join(ctx.root_dir, "recipes"))
