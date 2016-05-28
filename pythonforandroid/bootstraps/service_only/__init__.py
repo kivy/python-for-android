@@ -4,20 +4,22 @@ from os import walk
 import glob
 import sh
 
-class WebViewBootstrap(Bootstrap):
-    name = 'webview'
+class ServiceOnlyBootstrap(Bootstrap):
+    name = 'service_only'
 
-    recipe_depends = ['webviewjni', ('python2', 'python3crystax')]
+    recipe_depends = [('python2', 'python3crystax')]
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.name))
 
+        info('This currently just copies the build stuff straight from the build dir.')
         shprint(sh.rm, '-rf', self.dist_dir)
         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
         with current_directory(self.dist_dir):
             with open('local.properties', 'w') as fileh:
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+                fileh.write('ndk.dir={}'.format(self.ctx.ndk_dir))
 
         arch = self.ctx.archs[0]
         if len(self.ctx.archs) > 1:
@@ -114,6 +116,6 @@ class WebViewBootstrap(Bootstrap):
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(WebViewBootstrap, self).run_distribute()
+        super(ServiceOnlyBootstrap, self).run_distribute()
 
-bootstrap = WebViewBootstrap()
+bootstrap = ServiceOnlyBootstrap()
