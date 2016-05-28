@@ -180,6 +180,7 @@ create        Build an android project with all recipes
 clean_all     Delete all build components
 clean_builds  Delete all build caches
 clean_dists   Delete all compiled distributions
+clean_bootstraps     Delete all compiled bootstraps
 clean_download_cache Delete any downloaded recipe packages
 clean_recipe_build   Delete the build files of a recipe
 distributions List all distributions
@@ -422,6 +423,14 @@ build_dist
         ctx = self.ctx
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
+
+    def clean_bootstraps(self, args):
+        '''Delete all the bootstrap builds.'''
+        for bs in Bootstrap.list_bootstraps():
+            bs = Bootstrap.get_bootstrap(bs, self.ctx)
+            if bs.build_dir and exists(bs.build_dir):
+                info('Cleaning build for {} bootstrap.'.format(bs.name))
+                shutil.rmtree(bs.build_dir)
 
     def clean_builds(self, args):
         '''Delete all build caches for each recipe, python-install, java code
