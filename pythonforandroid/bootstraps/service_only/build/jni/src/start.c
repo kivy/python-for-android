@@ -314,42 +314,4 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   main(1, argv);
 }
 
-void Java_org_kivy_android_PythonActivity_nativeSetEnv(
-                                    JNIEnv* env, jclass jcls,
-                                    jstring j_name, jstring j_value)
-/* JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_nativeSetEnv( */
-/*                                     JNIEnv* env, jclass jcls, */
-/*                                     jstring j_name, jstring j_value) */
-{
-    jboolean iscopy;
-    const char *name = (*env)->GetStringUTFChars(env, j_name, &iscopy);
-    const char *value = (*env)->GetStringUTFChars(env, j_value, &iscopy);
-    setenv(name, value, 1);
-    (*env)->ReleaseStringUTFChars(env, j_name, name);
-    (*env)->ReleaseStringUTFChars(env, j_value, value);
-}
-
-
-void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
-{
-  /* This nativeInit follows SDL2 */
-
-  /* This interface could expand with ABI negotiation, calbacks, etc. */
-  /* SDL_Android_Init(env, cls); */
-  
-  /* SDL_SetMainReady(); */
-  
-  /* Run the application code! */
-  int status;
-  char *argv[2];
-  argv[0] = "Python_app";
-  argv[1] = NULL;
-  /* status = SDL_main(1, argv); */
-  
-  main(1, argv);
-  
-  /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
-  /* exit(status); */
-}
-
 #endif

@@ -1,21 +1,22 @@
 package org.kivy.android;
 
 import android.app.Service;
-import android.os.IBinder;
-import android.os.Bundle;
 import android.content.Intent;
-import android.content.Context;
-import android.util.Log;
-import android.app.Notification;
-import android.app.PendingIntent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Process;
+import android.util.Log;
 
-import org.kivy.android.PythonUtil;
+import org.renpy.android.AssetExtract;
 
-import org.renpy.android.Hardware;
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 public class PythonService extends Service implements Runnable {
+    private static String TAG = "PythonService";
 
     // Thread for Python code
     private Thread pythonThread = null;
@@ -27,6 +28,7 @@ public class PythonService extends Service implements Runnable {
     private String pythonHome;
     private String pythonPath;
     private String serviceEntrypoint;
+
     // Argument to pass to Python code,
     private String pythonServiceArgument;
     public static PythonService mService = null;
@@ -53,17 +55,20 @@ public class PythonService extends Service implements Runnable {
 
     @Override
     public void onCreate() {
+        Log.v(TAG, "Device: " + android.os.Build.DEVICE);
+        Log.v(TAG, "Model: " + android.os.Build.MODEL);
+        unpackData("private", getFilesDir());
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (pythonThread != null) {
-            Log.v("python service", "service exists, do not start again");
+            Log.v(TAG, "Service exists, do not start again");
             return START_NOT_STICKY;
         }
 
-		startIntent = intent;
+        startIntent = intent;
         Bundle extras = intent.getExtras();
         androidPrivate = extras.getString("androidPrivate");
         androidArgument = extras.getString("androidArgument");
@@ -76,54 +81,125 @@ public class PythonService extends Service implements Runnable {
         pythonThread = new Thread(this);
         pythonThread.start();
 
-        if (canDisplayNotification()) {
-            doStartForeground(extras);
-        }
+		if (canDisplayNotification()) {
+			doStartForeground(extras);
+		}
 
         return startType();
     }
 
-    protected void doStartForeground(Bundle extras) {
-        String serviceTitle = extras.getString("serviceTitle");
-        String serviceDescription = extras.getString("serviceDescription");
+	protected void doStartForeground(Bundle extras) {
+		String serviceTitle = extras.getString("serviceTitle");
+		String serviceDescription = extras.getString("serviceDescription");
 
-        Context context = getApplicationContext();
-        Notification notification = new Notification(context.getApplicationInfo().icon,
-            serviceTitle, System.currentTimeMillis());
-        Intent contextIntent = new Intent(context, PythonActivity.class);
-        PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT);
-        notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
-        startForeground(1, notification);
-    }
+		Context context = getApplicationContext();
+		Notification notification = new Notification(
+				context.getApplicationInfo().icon, serviceTitle,
+				System.currentTimeMillis());
+		Intent contextIntent = new Intent(context, PythonActivity.class);
+		PendingIntent pIntent = PendingIntent.getActivity(context, 0,
+				contextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		notification.setLatestEventInfo(context, serviceTitle,
+				serviceDescription, pIntent);
+		startForeground(1, notification);
+	}
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         pythonThread = null;
         if (autoRestartService && startIntent != null) {
-            Log.v("python service", "service restart requested");
+            Log.v(TAG, "Service restart requested");
             startService(startIntent);
         }
         Process.killProcess(Process.myPid());
     }
 
     @Override
-    public void run(){
+    public void run() {
         PythonUtil.loadLibraries(getFilesDir());
-        this.mService = this;
-        nativeStart(
-            androidPrivate, androidArgument,
-            serviceEntrypoint, pythonName,
-            pythonHome, pythonPath,
-            pythonServiceArgument);
+        mService = this;
+        nativeStart(androidPrivate, androidArgument, serviceEntrypoint,
+                pythonName, pythonHome, pythonPath, pythonServiceArgument);
         stopSelf();
     }
 
+    public void recursiveDelete(File f) {
+        if (f.isDirectory()) {
+            for (File r : f.listFiles()) {
+                recursiveDelete(r);
+            }
+        }
+        f.delete();
+    }
+
+    public void unpackData(final String resource, File target) {
+
+        Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
+
+        // The version of data in memory and on disk.
+        String data_version = null;
+        String disk_version = null;
+
+        try {
+            PackageManager manager = this.getPackageManager();
+            PackageInfo info = manager.getPackageInfo(this.getPackageName(), 0);
+            data_version = info.versionName;
+
+            Log.v(TAG, "Data version is " + data_version);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.w(TAG, "Data version not found of " + resource + " data.");
+        }
+
+        // If no version, no unpacking is necessary.
+        if (data_version == null) {
+            return;
+        }
+
+        // Check the current disk version, if any.
+        String filesDir = target.getAbsolutePath();
+        String disk_version_fn = filesDir + "/" + resource + ".version";
+
+        try {
+            byte buf[] = new byte[64];
+            FileInputStream is = new FileInputStream(disk_version_fn);
+            int len = is.read(buf);
+            disk_version = new String(buf, 0, len);
+            is.close();
+        } catch (Exception e) {
+            disk_version = "";
+        }
+
+        // If the disk data is out of date, extract it and write the version
+        // file.
+        if (!data_version.equals(disk_version)) {
+            Log.v(TAG, "Extracting " + resource + " assets.");
+
+            recursiveDelete(target);
+            target.mkdirs();
+
+            AssetExtract ae = new AssetExtract(this);
+            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
+                Log.e(TAG, "Could not extract " + resource + " data.");
+            }
+
+            try {
+                // Write .nomedia.
+                new File(target, ".nomedia").createNewFile();
+
+                // Write version file.
+                FileOutputStream os = new FileOutputStream(disk_version_fn);
+                os.write(data_version.getBytes());
+                os.close();
+            } catch (Exception e) {
+                Log.w("python", e);
+            }
+        }
+    }
+
     // Native part
-    public static native void nativeStart(
-            String androidPrivate, String androidArgument,
-            String serviceEntrypoint, String pythonName,
-            String pythonHome, String pythonPath,
-            String pythonServiceArgument);
+    public static native void nativeStart(String androidPrivate,
+                                          String androidArgument, String serviceEntrypoint,
+                                          String pythonName, String pythonHome, String pythonPath,
+                                          String pythonServiceArgument);
 }
