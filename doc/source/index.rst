@@ -27,6 +27,7 @@ Contents
    :maxdepth: 2
 
    quickstart
+   gettingstarted
    buildoptions
    installation
    commands
@@ -44,4 +45,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
