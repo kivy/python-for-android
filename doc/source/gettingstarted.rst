@@ -23,14 +23,14 @@ Installation
 Installing P4A
 ~~~~~~~~~~~~~~
 
-P4A is not yet released on Pypi. Therefore, you can install it using pip::
+P4A is not yet released on Pypi, but you can install it using pip::
 
     pip install git+https://github.com/kivy/python-for-android.git
 
 Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-P4A has severals dependencies that must be installed:
+P4A has several dependencies that must be installed:
 
 - git
 - ant
@@ -80,60 +80,109 @@ Usage
 Build a Kivy application
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To build your application, you need to have a name, version, a package identifier, and explicitly write the bootstrap you want to use, as long as the requirements::
+To build your application, you need to have a name, version, a package
+identifier, and explicitly write the bootstrap you want to use, as
+well as the requirements::
 
     p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python2,kivy
 
 This will first build a distribution that contains `python2` and `kivy`, and using a SDL2 bootstrap. Python2 is here explicitely written as kivy can work with python2 or python3.
 
-Build a vispy application
+You can also use ``--bootstrap=pygame``, but this bootstrap is deprecated for use with Kivy and SDL2 is preferred.
+
+Build a WebView application
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To build your application, you need to have a name, version, a package identifier, and explicitly write the bootstrap you want to use, as long as the requirements::
+To build your application, you need to have a name, version, a package
+identifier, and explicitly use the webview bootstrap, as
+well as the requirements::
 
-    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My Vispy Application" --version 0.1 --bootstrap=sdl2 --requirements=vispy
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My WebView Application" --version 0.1 --bootstrap=webview --requirements=flask --port=5000
+
+You can also replace flask with another web framework.
+
+Replace ``--port=5000`` with the port your app will serve a website
+on. The default for Flask is 5000.
+
+Build an SDL2 based application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This includes `Vispy <http://vispy.org/>`__ and `PySDL2
+<https://pysdl2.readthedocs.io/en/latest/>`__.
+
+To build your application, you need to have a name, version, a package
+identifier, and explicitly write the sdl2 bootstrap, as well as the
+requirements::
+
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My SDL2 application" --version 0.1 --bootstrap=sdl2 --requirements=your_requirements
+
+Add your required modules in place of ``your_requirements``,
+e.g. ``--requirements=pysdl2`` or ``--requirements=vispy``.
+    
 
 Rebuild everything
 ~~~~~~~~~~~~~~~~~~
 
-In case you messed up somewhere, one day, or having issue, you might want to clean all the downloads, build, distributions available. This can be done with::
+If anything goes wrong and you want to clean the downloads and builds to retry everything, run::
 
     p4a clean_all
+    
+If you just want to clean the builds to avoid redownloading dependencies, run::
+
+    p4a clean_builds && p4a clean_dists
+    
+Getting help
+~~~~~~~~~~~~
+
+If something goes wrong and you don't know how to fix it, add the
+``--debug`` option and post the output log to the `kivy-users Google
+group <https://groups.google.com/forum/#!forum/kivy-users>`__ or irc
+channel #kivy at irc.freenode.net .
+
+See :ref:`Troubleshooting <troubleshooting>` for more information.
 
 
 Advanced usage
 --------------
 
-Recipes management
+Recipe management
 ~~~~~~~~~~~~~~~~~~
 
 You can see the list of the available recipes with::
 
     p4a recipes
-
-In case you are contributing to p4a, if you want to test a recipes again,
+    
+If you are contributing to p4a and want to test a recipes again,
 you need to clean the build and rebuild your distribution::
 
     p4a clean_recipe_build RECIPENAME
     p4a clean_dists
     # then rebuild your distribution
 
-You can write "private" recipes for your application, just create a `p4a-folder` into your application, and put a recipe in it (edit the `__init__.py`)::
+You can write "private" recipes for your application, just create a
+``p4a-recipes`` folder in your build directory, and place a recipe in
+it (edit the ``__init__.py``)::
 
     mkdir -p p4a-recipes/myrecipe
     touch p4a-recipes/myrecipe/__init__.py
-
+    
 
 Distributions management
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Every APK you build will create a distribution depending the requirements you put on the command line, until you specify a distribution name::
+Every time you start a new project, python-for-android will internally
+create a new distribution (an Android build project including Python
+and your other dependencies compiled for Android), according to the
+requirements you added on the command line. You can force the reuse of
+an existing distribution by adding::
 
    p4a apk --dist_name=myproject ...
 
-This will ensure your distribution will be built always in the same directory, and prevent having your disk growing everytime you adjust a requirement.
+This will ensure your distribution will always be built in the same
+directory, and avoids using more disk space every time you adjust a
+requirement.
 
-You can list the available distribution::
+You can list the available distributions::
 
     p4a distributions
 

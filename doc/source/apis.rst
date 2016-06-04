@@ -33,12 +33,9 @@ you do almost everything you can (and probably would) do in a Java
 app. Pyjnius is works by dynamically wrapping Java classes, so you
 don't have to wait for any particular feature to be pre-supported.
 
-You can include Pyjnius in your APKs by adding the `pyjnius` or
-`pyjniussdl2` recipes to your build requirements (the former works
-with Pygame/SDL1, the latter with SDL2, the need to make this choice
-will be removed later when pyjnius internally supports multiple
-Android backends). It is automatically included in any APK containing
-Kivy, in which case you don't need to specify it manually.
+You can include Pyjnius in your APKs by adding `pyjnius` to your build
+requirements. It is automatically included in any APK containing Kivy,
+in which case you don't need to specify it manually.
 
 The basic mechanism of Pyjnius is the `autoclass` command, which wraps
 a Java class. For instance, here is the code to vibrate your device::
@@ -107,7 +104,3 @@ would achieve vibration as described in the Pyjnius section above::
     vibrate(10)  # in Plyer, the argument is in seconds
 
 This is obviously *much* less verbose!
-
-.. warning:: At the time of writing, the Plyer recipe is not yet
-             ported, and Plyer doesn't support SDL2. These issues will
-             be fixed soon.

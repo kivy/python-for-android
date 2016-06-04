@@ -26,8 +26,8 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   quickstart
    gettingstarted
+   quickstart
    buildoptions
    installation
    commands
