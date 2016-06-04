@@ -50,6 +50,11 @@ class RecipeMeta(type):
 
         return super(RecipeMeta, cls).__new__(cls, name, bases, dct)
 
+def win_to_posix(p):
+    if ':' not in p:
+        return p
+    return '/' + p.replace(':', '').replace('\\', '/')
+
 
 class Recipe(with_metaclass(RecipeMeta)):
     _url = None
@@ -177,10 +182,10 @@ class Recipe(with_metaclass(RecipeMeta)):
             info("Extract {} into {}".format(source, cwd))
 
             if source.endswith(".tgz") or source.endswith(".tar.gz"):
-                shprint(sh.tar, "-C", cwd, "-xvzf", source)
+                shprint(sh.tar, "-C", win_to_posix(cwd), "-xvzf", win_to_posix(source))
 
             elif source.endswith(".tbz2") or source.endswith(".tar.bz2"):
-                shprint(sh.tar, "-C", cwd, "-xvjf", source)
+                shprint(sh.tar, "-C", win_to_posix(cwd), "-xvjf", win_to_posix(source))
 
             elif source.endswith(".zip"):
                 zf = zipfile.ZipFile(source)
@@ -451,9 +456,9 @@ class Recipe(with_metaclass(RecipeMeta)):
                           extraction_filename.endswith('.tbz2') or
                           extraction_filename.endswith('.tar.xz') or
                           extraction_filename.endswith('.txz')):
-                        sh.tar('xf', extraction_filename)
+                        sh.tar('xf', win_to_posix(extraction_filename))
                         root_directory = shprint(
-                            sh.tar, 'tf', extraction_filename).stdout.decode(
+                            sh.tar, 'tf', win_to_posix(extraction_filename)).stdout.decode(
                                 'utf-8').split('\n')[0].split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
