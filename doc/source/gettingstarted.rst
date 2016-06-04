@@ -167,7 +167,7 @@ it (edit the ``__init__.py``)::
     touch p4a-recipes/myrecipe/__init__.py
     
 
-Distributions management
+Distribution management
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Every time you start a new project, python-for-android will internally
@@ -189,14 +189,31 @@ You can list the available distributions::
 And clean all of them::
 
     p4a clean_dists
+    
+Configuration file
+~~~~~~~~~~~~~~~~~~
+
+python-for-android checks in the current directory for a configuration
+file named ``.p4a``. If found, it adds all the lines as options to the
+command line. For example, you can add the options you would always
+include such as:
+
+    --dist_name my_example
+    --android_api 19
+    --requirements kivy,openssl
+
 
 Going further
--------------
+~~~~~~~~~~~~~
 
+See the other pages of this doc for more information on specific topics:
 
-
-
-P4A is capable of a lot like:
-
-- Using a configuration file to prevent you typing all the options everytime
-- ...
+.. toctree::
+   :maxdepth: 2
+   More detailed build options<buildoptions>
+   Command line arguments<commands>
+   Creating and editing recipes<recipes>
+   Creating and editing bootstraps<bootstraps>
+   Using the Android Java APIs<apis>
+   Troubleshooting<troubleshooting>
+   Contributing<contribute>
