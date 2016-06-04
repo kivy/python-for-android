@@ -352,6 +352,7 @@ class Context(object):
         arch = self.archs[0]
         platform_dir = arch.platform_dir
         toolchain_prefix = arch.toolchain_prefix
+        toolchain_version = None
         self.ndk_platform = join(
             self.ndk_dir,
             'platforms',
