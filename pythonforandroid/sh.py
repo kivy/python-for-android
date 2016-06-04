@@ -4,6 +4,7 @@ import sys
 import traceback
 import os
 import re
+from itertools import chain
 from glob import glob as original_glob
 from types import ModuleType
 from functools import partial
@@ -70,12 +71,22 @@ def which(program):
 
     fpath, fname = os.path.split(program)
     if fpath:
-        if is_exe(program): return program
+        program = os.path.abspath(program)
+        if is_exe(program):
+            return program
+        if is_exe(program + '.exe'):
+            return program + '.exe'
+        if os.path.exists(program + '.bat'):
+            return program + '.bat'
     else:
         for path in os.environ["PATH"].split(os.pathsep):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
+            if is_exe(exe_file + '.exe'):
+                return exe_file + '.exe'
+            if os.path.exists(exe_file + '.bat'):
+                return exe_file + '.bat'
 
     return None
 
@@ -88,10 +99,7 @@ def resolve_program(program):
         # if it does
         if "_" in program:
             path = which(program.replace("_", "-"))
-
-    if not path and "." not in program:
-        path = which(program + '.exe')
-    return path or None
+    return path
 
 
 def glob(arg):
@@ -188,6 +196,9 @@ class RunningCommand(object):
 
     def __len__(self):
         return len(str(self))
+
+    def __iter__(self):
+        return chain(self.stderr.splitlines(), self.stdout.splitlines())
 
 
 class Command(object):
@@ -329,7 +340,10 @@ If you're using glob.glob(), please use sh.glob() instead." % self.path, stackle
         # aggregate any with contexts
         for prepend in self._prepend_stack: cmd.extend(prepend)
 
-        cmd.append(self._path)
+        app = resolve_program(self._path) or ''
+        if app.endswith('configure'):
+            cmd.append(resolve_program('bash'))
+        cmd.append(app)
 
 
         call_args, kwargs = self._extract_call_args(kwargs)
