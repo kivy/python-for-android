@@ -1,15 +1,15 @@
-from os.path import join, dirname, isdir, exists, isfile, split, realpath
+from os.path import join, dirname, isdir, exists, isfile, realpath
 import importlib
 import zipfile
 import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
-
 import sh
 import shutil
 import fnmatch
 from os import listdir, unlink, environ, mkdir, curdir, walk
 from sys import stdout
+
 try:
     from urlparse import urlparse
 except ImportError:
@@ -716,7 +716,32 @@ class PythonRecipe(Recipe):
     This is almost always what you want to do.'''
 
     setup_extra_args = []
-    '''List of extra arugments to pass to setup.py'''
+    '''List of extra arguments to pass to setup.py'''
+
+    use_pip = False
+
+    wheel_name = None
+
+    def download(self):
+        if self.use_pip and not self.ctx.build_wheels:
+            info('Skipping source download, will use wheel')
+            return
+
+        super(PythonRecipe, self).download()
+
+    def unpack(self, arch):
+        if self.use_pip and not self.ctx.build_wheels:
+            info('Skipping source unpack, will use wheel')
+            return
+
+        super(PythonRecipe, self).unpack(arch)
+
+    def apply_patches(self, arch):
+        if self.use_pip and not self.ctx.build_wheels:
+            info('Skipping source patch, will use wheel')
+            return
+
+        super(PythonRecipe, self).apply_patches(arch)
 
     def clean_build(self, arch=None):
         super(PythonRecipe, self).clean_build(arch=arch)
@@ -752,17 +777,16 @@ class PythonRecipe(Recipe):
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
         if not self.call_hostpython_via_targetpython:
-            hppath = []
-            hppath.append(join(dirname(self.hostpython_location), 'Lib'))
-            hppath.append(join(hppath[0], 'site-packages'))
-            builddir = join(dirname(self.hostpython_location), 'build')
-            hppath += [join(builddir, d) for d in listdir(builddir)
-                       if isdir(join(builddir, d))]
-            if 'PYTHONPATH' in env:
-                env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
-            else:
-                env['PYTHONPATH'] = ':'.join(hppath)
+            build_hostpython_path(self.hostpython_location, env)
         return env
+
+    def get_wheel_file(self, arch):
+        wheel_name = self.wheel_name or self.name
+        globber = join(self.get_build_dir(arch), wheel_name + '*.whl')
+        globbed = glob.glob(globber)
+        if globbed:
+            return realpath(globbed[0])
+        return None
 
     def should_build(self, arch):
         print('name is', self.site_packages_name, type(self))
@@ -779,45 +803,37 @@ class PythonRecipe(Recipe):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
         super(PythonRecipe, self).build_arch(arch)
+        self.build_wheel(arch)
         self.install_python_package(arch)
 
     def install_python_package(self, arch, name=None, env=None, is_dir=True):
         '''Automate the installation of a Python package (or a cython
         package where the cython components are pre-built).'''
-        # arch = self.filtered_archs[0]  # old kivy-ios way
         if name is None:
             name = self.name
         if env is None:
             env = self.get_recipe_env(arch)
 
-        info('Installing {} into site-packages'.format(self.name))
+        if self.use_pip:
+            info('Installing {} from wheel into site-packages'.format(name))
+            wheel = self.get_wheel_file(arch.arch)
+            if wheel:
+                info('Using wheel file {}'.format(wheel))
+            else:
+                wheel = name
+            run_pymodules_install(self.ctx, [wheel], True)
+            return
+
+        info('Installing {} into site-packages'.format(name))
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
-            # hostpython = sh.Command('python3.5')
-
 
             if self.ctx.python_recipe.from_crystax:
-                # hppath = join(dirname(self.hostpython_location), 'Lib',
-                #               'site-packages')
-                hpenv = env.copy()
-                # if 'PYTHONPATH' in hpenv:
-                #     hpenv['PYTHONPATH'] = ':'.join([hppath] +
-                #                                    hpenv['PYTHONPATH'].split(':'))
-                # else:
-                #     hpenv['PYTHONPATH'] = hppath
-                # hpenv['PYTHONHOME'] = self.ctx.get_python_install_dir()
-                # shprint(hostpython, 'setup.py', 'build',
-                #         _env=hpenv, *self.setup_extra_args)
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
                         '--install-lib=.',
-                        # AND: will need to unhardcode the 3.5 when adding 2.7 (and other crystax supported versions)
-                        _env=hpenv, *self.setup_extra_args)
-                # site_packages_dir = self.ctx.get_site_packages_dir()
-                # built_files = glob.glob(join('build', 'lib*', '*'))
-                # for filen in built_files:
-                #     shprint(sh.cp, '-r', filen, join(site_packages_dir, split(filen)[-1]))
+                        _env=env, *self.setup_extra_args)
             elif self.call_hostpython_via_targetpython:
                 shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
                         *self.setup_extra_args)
@@ -853,6 +869,20 @@ class PythonRecipe(Recipe):
                 '--install-lib=Lib/site-packages',
                 _env=env, *self.setup_extra_args)
 
+    def build_wheel(self, arch, env=None, hostpython=None, *args):
+        if self.use_pip and self.ctx.build_wheels:
+            if not env:
+                env = self.get_recipe_env(arch)
+            if not hostpython:
+                hostpython = sh.Command(self.hostpython_location)
+            with current_directory(self.get_build_dir(arch.arch)):
+                shprint(sh.rm, '-rf', 'dist')
+                shprint(hostpython, 'setup.py', 'bdist_wheel',
+                        '--plat-name={}'.format(arch.android_python_abi),
+                        _env=env, *args)
+                wheel = glob.glob(join('dist', self.wheel_name + '*.whl'))[0]
+                shprint(sh.mv, wheel, '.')
+
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
     pre_build_ext = False
@@ -865,9 +895,14 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         '''
         Recipe.build_arch(self, arch)
         self.build_compiled_components(arch)
+        self.build_wheel(arch)
         self.install_python_package(arch)
 
     def build_compiled_components(self, arch):
+        if self.use_pip and not self.ctx.build_wheels:
+            info('Skipping compile, will use wheel')
+            return
+
         info('Building compiled components in {}'.format(self.name))
 
         env = self.get_recipe_env(arch)
@@ -913,9 +948,14 @@ class CythonRecipe(PythonRecipe):
         '''
         Recipe.build_arch(self, arch)
         self.build_cython_components(arch)
+        self.build_wheel(arch)
         self.install_python_package(arch)
 
     def build_cython_components(self, arch):
+        if self.use_pip and not self.ctx.build_wheels:
+            info('Skipping build, will use wheel')
+            return
+
         info('Cythonizing anything necessary in {}'.format(self.name))
 
         env = self.get_recipe_env(arch)
@@ -1050,3 +1090,6 @@ class TargetPythonRecipe(Recipe):
     # def ctx(self, ctx):
     #     self._ctx = ctx
     #     ctx.python_recipe = self
+
+from pythonforandroid.build import run_pymodules_install, build_hostpython_path
+

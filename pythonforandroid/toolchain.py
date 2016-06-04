@@ -87,6 +87,7 @@ def require_prebuilt_dist(func):
                                       user_ndk_ver=self.ndk_version)
         dist = self._dist
         dist_args, args = parse_dist_args(args)
+        ctx.build_wheels = dist_args.build_wheels
         if dist.needs_build:
             info_notify('No dist exists that meets your requirements, '
                         'so one will be built.')
@@ -146,7 +147,7 @@ def build_dist_from_args(ctx, dist, args):
 
 def parse_dist_args(args_list):
     parser = argparse.ArgumentParser(
-            description='Create a newAndroid project')
+            description='Create a new Android project')
     parser.add_argument(
             '--bootstrap',
             help=('The name of the bootstrap type, \'pygame\' '
@@ -154,6 +155,12 @@ def parse_dist_args(args_list):
                   'bootstrap be chosen automatically from your '
                   'requirements.'),
             default=None)
+    parser.add_argument(
+            '--build-wheels',
+            help='Build wheels instead of downloading',
+            default=False,
+            dest='build_wheels',
+            action='store_true')
     args, unknown = parser.parse_known_args(args_list)
     return args, unknown
 

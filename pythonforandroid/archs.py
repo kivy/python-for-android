@@ -8,6 +8,8 @@ from pythonforandroid.recipe import Recipe
 
 
 class Arch(object):
+    arch = None
+    '''The architecture name.'''
 
     toolchain_prefix = None
     '''The prefix for the toolchain dir in the NDK.'''
@@ -29,6 +31,10 @@ class Arch(object):
                 self.ctx.include_dir,
                 d.format(arch=self))
             for d in self.ctx.include_dirs]
+
+    @property
+    def android_python_abi(self):
+        return 'android{}_{}'.format(self.ctx.android_api, self.arch)
 
     def get_env(self, with_flags_in_cc=True):
         env = {}

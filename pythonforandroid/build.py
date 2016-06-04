@@ -46,6 +46,9 @@ class Context(object):
 
     recipe_build_order = None  # Will hold the list of all built recipes
 
+    wheel_sources = ['http://localhost:8080/simple/']
+    build_wheels = False
+
     @property
     def packages_path(self):
         '''Where packages are downloaded before being unpacked'''
@@ -581,7 +584,20 @@ def build_recipes(build_order, python_modules, ctx):
     return
 
 
-def run_pymodules_install(ctx, modules):
+def build_hostpython_path(hostpython, env):
+    hppath = []
+    hppath.append(join(dirname(hostpython), 'Lib'))
+    hppath.append(join(hppath[0], 'site-packages'))
+    builddir = join(dirname(hostpython), 'build')
+    hppath += [join(builddir, d) for d in listdir(builddir)
+               if isdir(join(builddir, d))]
+    if 'PYTHONPATH' in env:
+        env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
+    else:
+        env['PYTHONPATH'] = ':'.join(hppath)
+
+
+def run_pymodules_install(ctx, modules, only_binary=False):
     modules = filter(ctx.not_has_package, modules)
 
     if not modules:
@@ -614,10 +630,26 @@ def run_pymodules_install(ctx, modules):
 
         # This bash method is what old-p4a used
         # It works but should be replaced with something better
+        pip = ('import pip.pep425tags as t;'
+               't.supported_tags = [('
+               '    tag[0],'
+               '    "cp27m" if tag[1].startswith("cp") else tag[1],'
+               '    tag[2])'
+               'for tag in t.supported_tags];'
+               'print(t.supported_tags);'
+               'import pip, sys;'
+               'sys.exit(pip.main());')
+        abi = ctx.archs[0].android_python_abi
+        extra_index = ' '.join('--extra-index-url {}'.format(u)
+                               for u in ctx.wheel_sources)
         shprint(sh.bash, '-c', (
             "source venv/bin/activate && env CC=/bin/false CXX=/bin/false "
-            "PYTHONPATH={0} pip install --target '{0}' --no-deps -r requirements.txt"
-        ).format(ctx.get_site_packages_dir()))
+            "PYTHONPATH={path} _PYTHON_HOST_PLATFORM={abi} python -c '{pip}' "
+            "-v --cache-dir {cache} install {index} --target '{path}' "
+            "{binary} --no-deps -r requirements.txt"
+        ).format(path=ctx.get_site_packages_dir(), abi=abi, index=extra_index,
+                 cache=realpath(join(ctx.build_dir, 'pipcache')), pip=pip,
+                 binary='--only-binary :all:' if only_binary else ''))
 
 
 def biglink(ctx, arch):
