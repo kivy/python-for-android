@@ -1,36 +1,50 @@
 Getting Started
 ===============
 
-Getting up and running on Python for android is a simple process and should only take you a couple of minutes. We'll refer to Python for android as P4A in this documentation.
+Getting up and running on python-for-android (p4a) is a simple process
+and should only take you a couple of minutes. We'll refer to Python
+for android as p4a in this documentation.
 
 Concepts
 --------
 
-- requirements: For P4A, your applications dependencies are requirements that looks like `requirements.txt`, in one difference: P4A will search a recipe first instead of installing requirements with pip.
+- requirements: For p4a, your applications dependencies are
+  requirements similar to the standard `requirements.txt`, but with
+  one difference: p4a will search for a recipe first instead of
+  installing requirements with pip.
 
-- recipe: A recipe is a file that define how to compile a requirement. Any libraries that have a Python Extension MUST have a recipe in P4A. If there is no recipe for a requirement, it will be downloaded using pip.
+- recipe: A recipe is a file that defines how to compile a
+  requirement. Any libraries that have a Python extension *must* have
+  a recipe in p4a, or compilation will fail. If there is no recipe for
+  a requirement, it will be downloaded using pip.
 
-- build: A build is referring to a compiled recipe.
+- build: A build refers to a compiled recipe.
 
-- distribution: A distribution is the final "build" of all your requirements
+- distribution: A distribution is the final "build" of all your
+  compiled requirements, as an Android project that can be turned
+  directly into an APK. p4a can contain multiple distributions with
+  different sets of requirements.
 
-- bootstrap: A bootstrap is a "base" that will "boot" your application. Your application could boot on a project that use SDL2 as a base, or pygame, or a pure python web. The bootstrap you're using might behave differently.
+- bootstrap: A bootstrap is the app backend that will start your
+  application. Your application could use SDL2 as a base, or Pygame,
+  or a web backend like Flask with a WebView bootstrap. Different
+  bootstraps can have different build options.
 
 
 Installation
 ------------
 
-Installing P4A
+Installing p4a
 ~~~~~~~~~~~~~~
 
-P4A is not yet released on Pypi, but you can install it using pip::
+p4a is not yet released on Pypi, but you can install it using pip::
 
     pip install git+https://github.com/kivy/python-for-android.git
 
 Installing Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-P4A has several dependencies that must be installed:
+p4a has several dependencies that must be installed:
 
 - git
 - ant
@@ -209,7 +223,8 @@ Going further
 See the other pages of this doc for more information on specific topics:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+
    More detailed build options<buildoptions>
    Command line arguments<commands>
    Creating and editing recipes<recipes>
