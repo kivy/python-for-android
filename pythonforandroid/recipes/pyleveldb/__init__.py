@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import CompiledComponentsPythonRecipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 class PyLevelDBRecipe(CompiledComponentsPythonRecipe):
     version = '0.193'

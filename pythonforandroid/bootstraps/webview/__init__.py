@@ -2,7 +2,7 @@ from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, in
 from os.path import join, exists, curdir, abspath
 from os import walk
 import glob
-import sh
+import pythonforandroid.sh as sh
 
 class WebViewBootstrap(Bootstrap):
     name = 'webview'

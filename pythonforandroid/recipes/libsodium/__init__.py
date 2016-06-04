@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import exists, join
-import sh
+import pythonforandroid.sh as sh
 
 class LibsodiumRecipe(Recipe):
     version = '1.0.8'

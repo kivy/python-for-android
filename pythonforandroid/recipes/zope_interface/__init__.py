@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import PythonRecipe, current_directory
-import sh
+import pythonforandroid.sh as sh
 
 
 class ZopeInterfaceRecipe(PythonRecipe):

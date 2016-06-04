@@ -2,7 +2,7 @@ from pythonforandroid.recipe import NDKRecipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 
 class JpegRecipe(NDKRecipe):

@@ -1,7 +1,7 @@
 
 from pythonforandroid.toolchain import PythonRecipe, shprint, current_directory, ArchARM
 from os.path import exists, join
-import sh
+import pythonforandroid.sh as sh
 import glob
 
 class PySDL2Recipe(PythonRecipe):

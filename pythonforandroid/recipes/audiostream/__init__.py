@@ -1,6 +1,6 @@
 
 from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, info
-import sh
+import pythonforandroid.sh as sh
 import glob
 from os.path import join, exists
 

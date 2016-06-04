@@ -2,7 +2,7 @@
 import logging
 import os
 import re
-import sh
+import pythonforandroid.sh as sh
 from sys import stdout, stderr
 from math import log10
 from collections import defaultdict

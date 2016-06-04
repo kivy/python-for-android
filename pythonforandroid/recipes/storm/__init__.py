@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import PythonRecipe, current_directory, shprint
-import sh
+import pythonforandroid.sh as sh
 
 
 class StormRecipe(PythonRecipe):

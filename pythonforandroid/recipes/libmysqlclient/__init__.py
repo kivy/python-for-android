@@ -1,7 +1,7 @@
 from pythonforandroid.logger import shprint
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory
-import sh
+import pythonforandroid.sh as sh
 from os.path import join
 
 

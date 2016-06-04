@@ -6,7 +6,7 @@ from pythonforandroid.util import ensure_dir
 from os.path import exists, join
 from os import uname
 import glob
-import sh
+import pythonforandroid.sh as sh
 
 class Python3Recipe(TargetPythonRecipe):
     version = '3.5'

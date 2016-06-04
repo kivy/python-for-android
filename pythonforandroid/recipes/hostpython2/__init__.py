@@ -2,7 +2,7 @@
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
 from os.path import join, exists
 from os import chdir
-import sh
+import pythonforandroid.sh as sh
 
 
 class Hostpython2Recipe(Recipe):

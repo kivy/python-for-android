@@ -74,7 +74,7 @@ import shlex
 from functools import wraps
 
 import argparse
-import sh
+import pythonforandroid.sh as sh
 import imp
 from appdirs import user_data_dir
 import logging

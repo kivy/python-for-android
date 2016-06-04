@@ -3,7 +3,7 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import debug, shprint, info
 from os.path import exists, join
-import sh
+import pythonforandroid.sh as sh
 import glob
 
 class PygameRecipe(Recipe):

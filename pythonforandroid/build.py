@@ -7,7 +7,7 @@ import os
 import glob
 import sys
 import re
-import sh
+import pythonforandroid.sh as sh
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,

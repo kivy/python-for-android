@@ -8,7 +8,7 @@ from pythonforandroid.toolchain import (
     shprint,
 )
 from os.path import join
-import sh
+import pythonforandroid.sh as sh
 
 
 class TwistedRecipe(CythonRecipe):
