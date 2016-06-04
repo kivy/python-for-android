@@ -4,7 +4,6 @@ from pythonforandroid.toolchain import shprint, current_directory, ArchARM
 from pythonforandroid.logger import info
 from pythonforandroid.util import ensure_dir
 from os.path import exists, join
-from os import uname
 import glob
 import pythonforandroid.sh as sh
 

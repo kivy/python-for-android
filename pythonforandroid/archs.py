@@ -1,5 +1,6 @@
 from os.path import (join, dirname)
-from os import environ, uname
+from os import environ
+import pythonforandroid.sh as sh
 import sys
 from distutils.spawn import find_executable
 
@@ -105,7 +106,7 @@ class Arch(object):
         # AND: This hardcodes python version 2.7, needs fixing
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
+            'build', 'lib.linux-{}-2.7'.format(sh.uname('-m').stdout))
 
         env['PATH'] = environ['PATH']
 
