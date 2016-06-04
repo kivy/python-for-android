@@ -2,17 +2,18 @@
 Recipes
 =======
 
-This documentation describes how python-for-android (p4a) recipes
-work. These are special scripts for installing different programs
+This page describes how python-for-android (p4a) compilation recipes
+work, and how to build your own. If you just want to build an APK,
+ignore this and jump straight to the :doc:`quickstart`.
+
+Recipes are special scripts for compiling and installing different programs
 (including Python modules) into a p4a distribution. They are necessary
 to take care of compilation for any compiled components, as these must
 be compiled for Android with the correct architecture.
 
-python-for-android comes with many recipes for popular modules, and no
-recipe is necessary at all for the use of Python modules with no
-compiled components; if you just want to build an APK, you can jump
-straight to the :doc:`quickstart` or :doc:`commands` documentation, or
-can use the :code:`recipes` command to list available recipes. 
+python-for-android comes with many recipes for popular modules. No
+recipe is necessary to use of Python modules with no
+compiled components; these are installed automaticaly via pip.
 
 If you are new to building recipes, it is recommended that you first
 read all of this page, at least up to the Recipe reference
@@ -23,8 +24,7 @@ examples of how recipes are built or overridden for specific purposes.
 Creating your own Recipe
 ------------------------
 
-This documentation jumps straight to the practicalities of creating
-your own recipe. The formal reference documentation of the Recipe
+The formal reference documentation of the Recipe
 class can be found in the `Recipe class <recipe_class_>`_ section and below.
 
 Check the `recipe template section <recipe_template_>`_ for a template
@@ -52,9 +52,8 @@ information about each parameter.
 These core options are vital for all recipes, though the url may be
 omitted if the source is somehow loaded from elsewhere.
 
-The ``recipe = YourRecipe()`` is also vital. This variable is used
-when the recipe is imported as the recipe instance to build with. If
-it is omitted, your recipe won't work.
+You must include ``recipe = YourRecipe()``. This variable is accessed
+when the recipe is imported.
 
 .. note:: The url includes the ``{version}`` tag. You should only
           access the url with the ``versioned_url`` property, which
@@ -74,9 +73,8 @@ The actual build process takes place via three core methods::
           super(YourRecipe, self).build_arch(arch)
           # Do any clearing up
 
-The prebuild of every recipe is run before the build of any recipe,
-and likewise the build of every recipe is run before the postbuild of
-any. This lets you strictly order the build process.
+These methods are always run in the listed order; prebuild, then
+build, then postbuild.
 
 If you defined an url for your recipe, you do *not* need to manually
 download it, this is handled automatically.
