@@ -193,6 +193,9 @@ And clean all of them::
 Going further
 -------------
 
+
+
+
 P4A is capable of a lot like:
 
 - Using a configuration file to prevent you typing all the options everytime
