@@ -171,7 +171,7 @@ def shprint(command, *args, **kwargs):
     try:
         msg_hdr = '           working: '
         msg_width = columns - len(msg_hdr) - 1
-        output = command(*args, **kwargs)
+        output = command(*args)
         for line in output:
             if logger.level > logging.DEBUG:
                 msg = line.replace(
