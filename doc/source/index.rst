@@ -29,7 +29,6 @@ Contents
    gettingstarted
    quickstart
    buildoptions
-   installation
    commands
    recipes
    bootstraps
