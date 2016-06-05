@@ -19,8 +19,8 @@ def register_args(*args):
     print('argv before is', sys.argv)
     if len(sys.argv) < 2:
         return
-    if sys.argv[1] == 'bdist_apk':
-        print('Detected bdist_apk build, registering args {}'.format(args))
+    if sys.argv[1] == 'apk':
+        print('Detected apk build, registering args {}'.format(args))
         sys.argv.extend(args)
 
     print('new args are', sys.argv)
