@@ -16,14 +16,12 @@ def argv_contains(t):
 
 
 def register_args(*args):
-    print('argv before is', sys.argv)
     if len(sys.argv) < 2:
         return
     if sys.argv[1] == 'apk':
         print('Detected apk build, registering args {}'.format(args))
         sys.argv.extend(args)
 
-    print('new args are', sys.argv)
     _set_user_options()
 
 
@@ -131,3 +129,4 @@ def _set_user_options():
 
     BdistAPK.user_options = user_options
         
+_set_user_options()
