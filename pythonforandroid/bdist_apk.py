@@ -44,7 +44,6 @@ class BdistAPK(Command):
         # provide them
         if not argv_contains('--name'):
             name = self.distribution.get_name()
-            print('name is', name)
             sys.argv.append('--name={}'.format(name))
             self.name = name
 
@@ -57,7 +56,6 @@ class BdistAPK(Command):
 
         if not argv_contains('--version'):
             version = self.distribution.get_version()
-            print('version is', version)
             sys.argv.append('--version={}'.format(version))
 
         if not argv_contains('--arch'):
@@ -107,7 +105,6 @@ class BdistAPK(Command):
 
         # This feels ridiculous, but how else to define the main.py dir?
         # Maybe should just fail?
-        print('main_py_dirs', main_py_dirs)
         if len(main_py_dirs) == 0:
             print('ERROR: Could not find main.py, so no app build dir defined')
             print('You should name your app entry point main.py')
@@ -118,7 +115,6 @@ class BdistAPK(Command):
 
         sys.argv.append('--private={}'.format(join(realpath(curdir), bdist_dir,
                                                    dirname(main_py_dirs[0]))))
-        print('new argv', sys.argv)
 
 
 def _set_user_options():
