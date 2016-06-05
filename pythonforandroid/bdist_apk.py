@@ -1,7 +1,12 @@
 from __future__ import print_function
 from setuptools import Command
 from pythonforandroid import toolchain
+
 import sys
+from os.path import realpath, join, exists, dirname, curdir, basename, split
+from os import makedirs
+from glob import glob
+from shutil import rmtree, copyfile
 
 def argv_contains(t):
     for arg in sys.argv:
@@ -31,6 +36,8 @@ class BdistAPK(Command):
         for option in self.user_options:
             setattr(self, option[0].strip('=').replace('-', '_'), None)
 
+        self.bdist_dir = None
+
     def finalize_options(self):
 
         # Inject some argv options from setup.py if the user did not
@@ -52,14 +59,66 @@ class BdistAPK(Command):
             version = self.distribution.get_version()
             print('version is', version)
             sys.argv.append('--version={}'.format(version))
+
+        if not argv_contains('--arch'):
+            arch = 'armeabi'
+            self.arch = arch
+            sys.argv.append('--arch={}'.format(arch))
                     
 
     def run(self):
-        print('running')
+
+        self.prepare_build_dir()
+
         from pythonforandroid.toolchain import main
         sys.argv[1] = 'apk'
         main()
 
+    def prepare_build_dir(self):
+
+        if argv_contains('--private'):
+            print('WARNING: Received --private argument when this would '
+                  'normally be generated automatically.')
+            print('         This is probably bad unless you meant to do '
+                  'that.')
+
+        bdist_dir = 'build/bdist.android-{}'.format(self.arch)
+        rmtree(bdist_dir)
+        makedirs(bdist_dir)
+
+        globs = []
+        for directory, patterns in self.distribution.package_data.items():
+            for pattern in patterns:
+                globs.append(join(directory, pattern))
+
+        filens = []
+        for pattern in globs:
+            filens.extend(glob(pattern))
+
+        main_py_dirs = []
+        for filen in filens:
+            new_dir = join(bdist_dir, dirname(filen))
+            if not exists(new_dir):
+                makedirs(new_dir)
+            print('Including {}'.format(filen))
+            copyfile(filen, join(bdist_dir, filen))
+            if basename(filen) in ('main.py', 'main.pyo'):
+                main_py_dirs.append(filen)
+
+        # This feels ridiculous, but how else to define the main.py dir?
+        # Maybe should just fail?
+        print('main_py_dirs', main_py_dirs)
+        if len(main_py_dirs) == 0:
+            print('ERROR: Could not find main.py, so no app build dir defined')
+            print('You should name your app entry point main.py')
+            exit(1)
+        if len(main_py_dirs) > 1:
+            print('WARNING: Multiple main.py dirs found, using the shortest path')
+        main_py_dirs = sorted(main_py_dirs, key=lambda j: len(split(j)))
+
+        sys.argv.append('--private={}'.format(join(realpath(curdir), bdist_dir,
+                                                   dirname(main_py_dirs[0]))))
+        print('new argv', sys.argv)
 
 
 def _set_user_options():
