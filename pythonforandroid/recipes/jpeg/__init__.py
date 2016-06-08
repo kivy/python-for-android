@@ -1,5 +1,6 @@
 from pythonforandroid.recipe import NDKRecipe
 from pythonforandroid.logger import shprint
+from pythonforandroid.util import current_directory
 from os.path import join, exists
 import sh
 
@@ -23,6 +24,12 @@ class JpegRecipe(NDKRecipe):
 		jni_ln = join(build_dir, 'jni')
 		if not exists(jni_ln):
 			shprint(sh.ln, '-s', build_dir, jni_ln)
+
+	def build_arch(self, arch):
+		super(JpegRecipe, self).build_arch(arch)
+		with current_directory(self.get_lib_dir(arch)):
+			shprint(sh.mv, 'libjpeg.a', 'libjpeg-orig.a')
+			shprint(sh.ar, '-rcT', 'libjpeg.a', 'libjpeg-orig.a', 'libsimd.a')
 
 
 recipe = JpegRecipe()
