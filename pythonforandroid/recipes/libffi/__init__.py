@@ -38,7 +38,10 @@ class LibffiRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             if not exists('configure'):
                 shprint(sh.Command('./autogen.sh'), _env=env)
-            shprint(sh.Command('autoreconf -vif'), _env=env)
+            try:
+                shprint(sh.Command('autoreconf -vif'), _env=env)
+            except sh.CommandNotFound:
+                shprint(sh.autoreconf, '-vif', _env=env)
             shprint(sh.Command('./configure'), '--host=' + arch.toolchain_prefix,
                     '--prefix=' + self.ctx.get_python_install_dir(),
                     '--enable-shared', _env=env)
