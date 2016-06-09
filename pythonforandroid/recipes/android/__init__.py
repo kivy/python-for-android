@@ -11,8 +11,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
     version = None
     url = None
     src_filename = 'src'
-    config_env = {}
-    depends = [('pygame', 'sdl2'), ('python2', 'python3')]
+    depends = [('pygame', 'sdl2', 'webviewjni'), ('python2', 'python3')]
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):

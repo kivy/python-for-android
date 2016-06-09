@@ -121,7 +121,7 @@ class Context(object):
     def ndk_ver(self):
         '''The version of the NDK being used for compilation.'''
         if self._ndk_ver is None:
-            raise ValueError('Tried to access android_api but it has not '
+            raise ValueError('Tried to access ndk_ver but it has not '
                              'been set - this should not happen, something '
                              'went wrong!')
         return self._ndk_ver
@@ -134,7 +134,7 @@ class Context(object):
     def sdk_dir(self):
         '''The path to the Android SDK.'''
         if self._sdk_dir is None:
-            raise ValueError('Tried to access android_api but it has not '
+            raise ValueError('Tried to access sdk_dir but it has not '
                              'been set - this should not happen, something '
                              'went wrong!')
         return self._sdk_dir
@@ -147,7 +147,7 @@ class Context(object):
     def ndk_dir(self):
         '''The path to the Android NDK.'''
         if self._ndk_dir is None:
-            raise ValueError('Tried to access android_api but it has not '
+            raise ValueError('Tried to access ndk_dir but it has not '
                              'been set - this should not happen, something '
                              'went wrong!')
         return self._ndk_dir
@@ -314,6 +314,7 @@ class Context(object):
                             'need to manually set the NDK ver.')
         if ndk_ver is None:
             warning('Android NDK version could not be found, exiting.')
+            exit(1)
         self.ndk_ver = ndk_ver
 
         info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
@@ -352,6 +353,7 @@ class Context(object):
         arch = self.archs[0]
         platform_dir = arch.platform_dir
         toolchain_prefix = arch.toolchain_prefix
+        toolchain_version = None
         self.ndk_platform = join(
             self.ndk_dir,
             'platforms',
