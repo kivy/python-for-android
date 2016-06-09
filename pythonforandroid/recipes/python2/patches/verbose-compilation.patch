@@ -1,13 +1,17 @@
---- Python-2.7.2/Makefile.pre.in.orig	2012-01-07 18:25:42.097075564 +0100
-+++ Python-2.7.2/Makefile.pre.in	2012-01-07 18:26:03.289074810 +0100
-@@ -410,8 +410,8 @@
- # Build the shared modules
- sharedmods: $(BUILDPYTHON)
- 	@case $$MAKEFLAGS in \
--	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' PYTHONXCPREFIX='$(DESTDIR)$(prefix)' $(HOSTPYTHON) -E $(srcdir)/setup.py -q build;; \
--	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' PYTHONXCPREFIX='$(DESTDIR)$(prefix)' $(HOSTPYTHON) -E $(srcdir)/setup.py build;; \
-+	*s*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' PYTHONXCPREFIX='$(DESTDIR)$(prefix)' $(HOSTPYTHON) -E $(srcdir)/setup.py build -v;; \
-+	*) $(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' PYTHONXCPREFIX='$(DESTDIR)$(prefix)' $(HOSTPYTHON) -E $(srcdir)/setup.py build -v;; \
- 	esac
+--- Python-2.7.9/Makefile.pre.in.orig	2016-03-17 11:14:52.005098000 +0100
++++ Python-2.7.9/Makefile.pre.in	2016-03-17 12:59:54.490618508 +0100
+@@ -470,12 +470,12 @@
+ # Under BSD make, MAKEFLAGS might be " -s -v x=y".
+ sharedmods: $(BUILDPYTHON) pybuilddir.txt
+ 	@case "$$MAKEFLAGS" in \
+-	    *\ -s*|s*) quiet="-q";; \
++	    *\ -s*|s*) quiet="";; \
+ 	    *) quiet="";; \
+ 	esac; \
+ 	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
+ 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
+-		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
++		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build -v
  
  # Build static library
+ # avoid long command lines, same as LIBRARY_OBJS
