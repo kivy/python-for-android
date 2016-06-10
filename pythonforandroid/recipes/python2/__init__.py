@@ -99,13 +99,16 @@ class Python2Recipe(TargetPythonRecipe):
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
             if 'openssl' in self.ctx.recipe_build_order:
-                openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
+                openssl_recipe = Recipe.get_recipe('openssl', self.ctx)
+                openssl_build_dir = openssl_recipe.get_build_dir(arch.arch)
                 openssl_libs_dir = openssl_build_dir
                 openssl_inc_dir = join(openssl_libs_dir, 'include')
 
                 info("Activate flags for ssl")
-                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-Bstatic', '-lcrypto', '-lssl',
-                                          '-I{}'.format(openssl_inc_dir), '-I{}/openssl'.format(openssl_inc_dir)])
+                if openssl_recipe.build_static:
+                    env['CFLAGS'] = ' '.join([env['CFLAGS'], '-Bstatic', '-lcrypto', '-lssl'])
+                env['CFLAGS'] = ' '.join([env['CFLAGS'], '-I{}'.format(openssl_inc_dir),
+                                          '-I{}/openssl'.format(openssl_inc_dir)])
                 env['LDFLAGS'] = ' '.join([env['LDFLAGS'], '-L{}'.format(openssl_libs_dir), '-lcrypto', '-lssl'])
 
                 info("\t->Updating files to support ssl".format(self.version))
