@@ -45,6 +45,22 @@ import android.content.Context;
 public class PythonActivity extends Activity implements Runnable {
     private static String TAG = "Python";
 
+    // The libraries
+	protected static String[] getLibraries() {
+        return new String[] {
+            "sdl",
+            "sdl_image",
+            "sdl_ttf",
+            "sdl_mixer",
+            "sqlite3",
+            "ffi",
+            "python2.7",
+            "application",
+            "sdl_main",
+        };
+    }
+
+
     // The audio thread for streaming audio...
     private static AudioThread mAudioThread = null;
 
@@ -247,29 +263,24 @@ public class PythonActivity extends Activity implements Runnable {
         unpackData("private", getFilesDir());
         unpackData("public", externalStorage);
 
-        System.loadLibrary("sdl");
-        System.loadLibrary("sdl_image");
-        System.loadLibrary("sdl_ttf");
-        System.loadLibrary("sdl_mixer");
-        System.loadLibrary("python2.7");
-        System.loadLibrary("application");
-        System.loadLibrary("sdl_main");
+		for (String lib : getLibraries()) {
+		    try {
+                System.loadLibrary(lib);
+            } catch(UnsatisfiedLinkError e) {
+                if (lib.startsWith("sqlite3")) {
+                    Log.i("python", "Failed to load lib" + lib + ".so, but that's okay, it's an optional library");
+                    continue;
+                }
+                if (lib.startsWith("ffi")) {
+                    Log.i("python", "Failed to load lib" + lib + ".so, but that's okay, it's an optional library");
+                    continue;
+                }
+                throw e;
+            }
+        }
 
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_io.so");
         System.load(getFilesDir() + "/lib/python2.7/lib-dynload/unicodedata.so");
-
-        try {
-            System.loadLibrary("sqlite3");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_sqlite3.so");
-        } catch(UnsatisfiedLinkError e) {
-        }
-
-        try {
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imaging.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingft.so");
-            System.load(getFilesDir() + "/lib/python2.7/lib-dynload/_imagingmath.so");
-        } catch(UnsatisfiedLinkError e) {
-        }
 
         if ( mAudioThread == null ) {
             Log.i("python", "Starting audio thread");

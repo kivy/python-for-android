@@ -1,0 +1,318 @@
+diff -Naurp Python-2.7.11.orig/configure Python-2.7.11/configure
+--- Python-2.7.11.orig/configure	2015-12-05 20:47:20.000000000 +0100
++++ Python-2.7.11/configure	2016-03-19 14:47:16.507945494 +0100
+@@ -2886,24 +2886,11 @@ case $host_os in *\ *) host_os=`echo "$h
+ # pybuilddir.txt will be created by --generate-posix-vars in the Makefile
+ rm -f pybuilddir.txt
+ 
++# Use latest cross-compiling patches
+ if test "$cross_compiling" = yes; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for python interpreter for cross build" >&5
+ $as_echo_n "checking for python interpreter for cross build... " >&6; }
+-    if test -z "$PYTHON_FOR_BUILD"; then
+-        for interp in python$PACKAGE_VERSION python2 python; do
+-	    which $interp >/dev/null 2>&1 || continue
+-	    if $interp -c 'import sys;sys.exit(not (sys.version_info[:2] >= (2,7) and sys.version_info[0] < 3))'; then
+-	        break
+-	    fi
+-            interp=
+-	done
+-        if test x$interp = x; then
+-	    as_fn_error $? "python$PACKAGE_VERSION interpreter not found" "$LINENO" 5
+-	fi
+-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $interp" >&5
+-$as_echo "$interp" >&6; }
+-	PYTHON_FOR_BUILD='_PYTHON_PROJECT_BASE=$(abs_builddir) _PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) PYTHONPATH=$(shell test -f pybuilddir.txt && echo $(abs_builddir)/`cat pybuilddir.txt`:)$(srcdir)/Lib:$(srcdir)/Lib/$(PLATDIR) '$interp
+-    fi
++    PYTHON_FOR_BUILD='_PYTHON_PROJECT_BASE=$(abs_builddir) _PYTHON_HOST_PLATFORM=$(_PYTHON_HOST_PLATFORM) PYTHONPATH=$(shell test -f pybuilddir.txt && echo $(abs_builddir)/`cat pybuilddir.txt`:)$(srcdir)/Lib:$(srcdir)/Lib/plat-$(MACHDEP) $(srcdir)/host$(BUILDPYTHON)'
+ elif test "$cross_compiling" = maybe; then
+     as_fn_error $? "Cross compiling required --host=HOST-TUPLE and --build=ARCH" "$LINENO" 5
+ else
+diff -Naurp Python-2.7.11.orig/Makefile.pre.in Python-2.7.11/Makefile.pre.in
+--- Python-2.7.11.orig/Makefile.pre.in	2015-12-05 20:47:10.000000000 +0100
++++ Python-2.7.11/Makefile.pre.in	2016-03-19 14:41:49.118418312 +0100
+@@ -238,6 +238,7 @@ LIBFFI_INCLUDEDIR=	@LIBFFI_INCLUDEDIR@
+ ##########################################################################
+ # Parser
+ PGEN=		Parser/pgen$(EXE)
++PGEN_FOR_BUILD=Parser/hostpgen
+ 
+ PSRCS=		\
+ 		Parser/acceler.c \
+@@ -636,7 +637,7 @@ Modules/pwdmodule.o: $(srcdir)/Modules/p
+ $(GRAMMAR_H): $(GRAMMAR_INPUT) $(PGENSRCS)
+ 		@$(MKDIR_P) Include
+ 		$(MAKE) $(PGEN)
+-		$(PGEN) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
++		$(PGEN_FOR_BUILD) $(GRAMMAR_INPUT) $(GRAMMAR_H) $(GRAMMAR_C)
+ $(GRAMMAR_C): $(GRAMMAR_H) $(GRAMMAR_INPUT) $(PGENSRCS)
+ 		$(MAKE) $(GRAMMAR_H)
+ 		touch $(GRAMMAR_C)
+@@ -1072,12 +1073,12 @@ libinstall:	build_all $(srcdir)/Lib/$(PL
+ 		$(INSTALL_DATA) $(srcdir)/Modules/xxmodule.c \
+ 			$(DESTDIR)$(LIBDEST)/distutils/tests ; \
+ 	fi
+-	PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
++	-PYTHONPATH=$(DESTDIR)$(LIBDEST)  $(RUNSHARED) \
+ 		$(PYTHON_FOR_BUILD) -Wi -tt $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST) -f \
+ 		-x 'bad_coding|badsyntax|site-packages|lib2to3/tests/data' \
+ 		$(DESTDIR)$(LIBDEST)
+-	PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
++	-PYTHONPATH=$(DESTDIR)$(LIBDEST) $(RUNSHARED) \
+ 		$(PYTHON_FOR_BUILD) -Wi -tt -O $(DESTDIR)$(LIBDEST)/compileall.py \
+ 		-d $(LIBDEST) -f \
+ 		-x 'bad_coding|badsyntax|site-packages|lib2to3/tests/data' \
+@@ -1205,11 +1206,13 @@ libainstall:	all python-config
+ # Install the dynamically loadable modules
+ # This goes into $(exec_prefix)
+ sharedinstall: sharedmods
++	CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
+ 	$(RUNSHARED) $(PYTHON_FOR_BUILD) $(srcdir)/setup.py install \
++		--skip-build \
+ 	   	--prefix=$(prefix) \
+-		--install-scripts=$(BINDIR) \
+-		--install-platlib=$(DESTSHARED) \
+-		--root=$(DESTDIR)/
++		--install-scripts=$(DESTDIR)$(BINDIR) \
++		--install-platlib=$(DESTDIR)$(DESTSHARED) \
++		--root=/
+ 	-rm $(DESTDIR)$(DESTSHARED)/_sysconfigdata.py*
+ 
+ # Here are a couple of targets for MacOSX again, to install a full
+diff -Naurp Python-2.7.11.orig/Modules/Setup.dist Python-2.7.11/Modules/Setup.dist
+--- Python-2.7.11.orig/Modules/Setup.dist	2015-12-05 20:47:11.000000000 +0100
++++ Python-2.7.11/Modules/Setup.dist	2016-03-19 14:44:01.231217400 +0100
+@@ -163,7 +163,7 @@ GLHACK=-Dclear=__GLclear
+ # it, depending on your system -- see the GNU readline instructions.
+ # It's okay for this to be a shared library, too.
+ 
+-#readline readline.c -lreadline -ltermcap
++readline readline.c -lreadline -ltermcap
+ 
+ 
+ # Modules that should always be present (non UNIX dependent):
+@@ -215,10 +215,10 @@ GLHACK=-Dclear=__GLclear
+ 
+ # Socket module helper for SSL support; you must comment out the other
+ # socket line above, and possibly edit the SSL variable:
+-#SSL=/usr/local/ssl
+-#_ssl _ssl.c \
+-#	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
+-#	-L$(SSL)/lib -lssl -lcrypto
++SSL=/path-to-ssl-build-dir
++_ssl _ssl.c \
++	-DUSE_SSL -I$(SSL)/include -I$(SSL)/include/openssl \
++	-L$(SSL) -lssl -lcrypto
+ 
+ # The crypt module is now disabled by default because it breaks builds
+ # on many systems (where -lcrypt is needed), e.g. Linux (I believe).
+@@ -464,7 +464,7 @@ GLHACK=-Dclear=__GLclear
+ # Andrew Kuchling's zlib module.
+ # This require zlib 1.1.3 (or later).
+ # See http://www.gzip.org/zlib/
+-#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
++zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
+ 
+ # Interface to the Expat XML parser
+ #
+diff -Naurp Python-2.7.11.orig/setup.py Python-2.7.11/setup.py
+--- Python-2.7.11.orig/setup.py	2015-12-05 20:47:20.000000000 +0100
++++ Python-2.7.11/setup.py	2016-03-19 14:16:57.558920459 +0100
+@@ -17,7 +17,7 @@ from distutils.command.install import in
+ from distutils.command.install_lib import install_lib
+ from distutils.spawn import find_executable
+ 
+-cross_compiling = "_PYTHON_HOST_PLATFORM" in os.environ
++cross_compiling = ("_PYTHON_HOST_PLATFORM" in os.environ) or ('PYTHONXCPREFIX' in os.environ)
+ 
+ def get_platform():
+     # cross build
+@@ -294,6 +294,14 @@ class PyBuildExt(build_ext):
+                           (ext.name, sys.exc_info()[1]))
+             self.failed.append(ext.name)
+             return
++
++        # Import check will not work when cross-compiling.
++        if os.environ.has_key('PYTHONXCPREFIX'):
++            self.announce(
++                'WARNING: skipping import check for cross-compiled: "%s"' %
++                ext.name)
++            return
++
+         # Workaround for Mac OS X: The Carbon-based modules cannot be
+         # reliably imported into a command-line Python
+         if 'Carbon' in ext.extra_link_args:
+@@ -326,6 +334,9 @@ class PyBuildExt(build_ext):
+ 
+         # Don't try to load extensions for cross builds
+         if cross_compiling:
++            self.announce(
++                 'WARNING: skipping import check for cross-compiled: "%s"' %
++                 ext.name)
+             return
+ 
+         try:
+@@ -480,7 +491,7 @@ class PyBuildExt(build_ext):
+                     for directory in reversed(options.dirs):
+                         add_dir_to_list(dir_list, directory)
+ 
+-        if os.path.normpath(sys.prefix) != '/usr' \
++        if os.path.normpath(sys.prefix) != '/usr' and not cross_compiling \
+                 and not sysconfig.get_config_var('PYTHONFRAMEWORK'):
+             # OSX note: Don't add LIBDIR and INCLUDEDIR to building a framework
+             # (PYTHONFRAMEWORK is set) to avoid # linking problems when
+@@ -511,6 +522,14 @@ class PyBuildExt(build_ext):
+                 '/lib', '/usr/lib',
+                 ):
+                 add_dir_to_list(lib_dirs, d)
++        else:
++            # The common install prefix of 3rd party libraries used during cross compilation
++            cflags = os.environ.get('CFLAGS')
++            if cflags:
++                inc_dirs += [x[2:] for x in cflags.split() if x.startswith('-I')]
++            ldflags = os.environ.get('LDFLAGS')
++            if ldflags:
++                lib_dirs += [x[2:] for x in ldflags.split() if x.startswith('-L')]
+         exts = []
+         missing = []
+ 
+@@ -556,6 +575,11 @@ class PyBuildExt(build_ext):
+         if host_platform in ['darwin', 'beos']:
+             math_libs = []
+ 
++        # Insert libraries and headers from embedded root file system (RFS)
++        if 'RFS' in os.environ:
++            lib_dirs += [os.environ['RFS'] + '/usr/lib']
++            inc_dirs += [os.environ['RFS'] + '/usr/include']
++
+         # XXX Omitted modules: gl, pure, dl, SGI-specific modules
+ 
+         #
+@@ -708,7 +732,8 @@ class PyBuildExt(build_ext):
+         curses_library = ""
+         # Determine if readline is already linked against curses or tinfo.
+         if do_readline and find_executable('ldd'):
+-            fp = os.popen("ldd %s" % do_readline)
++            # fp = os.popen("ldd %s" % do_readline)
++            fp = os.popen("arm-linux-androideabi-objdump -x %s | grep NEEDED" % do_readline)
+             ldd_output = fp.readlines()
+             ret = fp.close()
+             if ret is None or ret >> 8 == 0:
+@@ -731,6 +756,10 @@ class PyBuildExt(build_ext):
+             curses_library = 'ncurses'
+         elif self.compiler.find_library_file(lib_dirs, 'curses'):
+             curses_library = 'curses'
++        print 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
++        print curses_library
++        print readline_termcap_library
++        print do_readline
+ 
+         if host_platform == 'darwin':
+             os_release = int(os.uname()[2].split('.')[0])
+@@ -754,7 +783,7 @@ class PyBuildExt(build_ext):
+                 # before the (possibly broken) dynamic library in /usr/lib.
+                 readline_extra_link_args = ('-Wl,-search_paths_first',)
+             else:
+-                readline_extra_link_args = ()
++                readline_extra_link_args = ('-lncurses',)
+ 
+             readline_libs = ['readline']
+             if readline_termcap_library:
+@@ -804,7 +833,8 @@ class PyBuildExt(build_ext):
+                                      ['/usr/local/ssl/lib',
+                                       '/usr/contrib/ssl/lib/'
+                                      ] )
+-
++        ssl_incs = ['/path-to-ssl-build-dir/include', '/path-to-ssl-build-dir/include/openssl']
++        ssl_libs = ['/path-to-ssl-build-dir']
+         if (ssl_incs is not None and
+             ssl_libs is not None):
+             exts.append( Extension('_ssl', ['_ssl.c'],
+@@ -839,8 +869,8 @@ class PyBuildExt(build_ext):
+ 
+         min_openssl_ver = 0x00907000
+         have_any_openssl = ssl_incs is not None and ssl_libs is not None
+-        have_usable_openssl = (have_any_openssl and
+-                               openssl_ver >= min_openssl_ver)
++        have_usable_openssl = (have_any_openssl and True)
++        #                       openssl_ver >= min_openssl_ver)
+ 
+         if have_any_openssl:
+             if have_usable_openssl:
+@@ -1097,15 +1127,22 @@ class PyBuildExt(build_ext):
+         # We hunt for #define SQLITE_VERSION "n.n.n"
+         # We need to find >= sqlite version 3.0.8
+         sqlite_incdir = sqlite_libdir = None
+-        sqlite_inc_paths = [ '/usr/include',
+-                             '/usr/include/sqlite',
+-                             '/usr/include/sqlite3',
+-                             '/usr/local/include',
+-                             '/usr/local/include/sqlite',
+-                             '/usr/local/include/sqlite3',
+-                           ]
+-        if cross_compiling:
+-            sqlite_inc_paths = []
++        if not cross_compiling:
++            sqlite_inc_paths = [ '/usr/include',
++                                 '/usr/include/sqlite',
++                                 '/usr/include/sqlite3',
++                                 '/usr/local/include',
++                                 '/usr/local/include/sqlite',
++                                 '/usr/local/include/sqlite3',
++                               ]
++     	else:
++            # The common install prefix of 3rd party headers used during
++            # cross compilation
++            mydir = os.environ.get('PYTHON_XCOMPILE_DEPENDENCIES_PREFIX')
++            if mydir:
++                sqlite_inc_paths = [mydir + '/include' ]
++            else:
++                sqlite_inc_paths = []
+         MIN_SQLITE_VERSION_NUMBER = (3, 0, 8)
+         MIN_SQLITE_VERSION = ".".join([str(x)
+                                     for x in MIN_SQLITE_VERSION_NUMBER])
+@@ -1151,11 +1188,28 @@ class PyBuildExt(build_ext):
+                 os.path.join(sqlite_incdir, '..', '..', 'lib64'),
+                 os.path.join(sqlite_incdir, '..', '..', 'lib'),
+             ]
++            if not cross_compiling:
++                sqlite_dirs_to_check = [
++                    os.path.join(sqlite_incdir, '..', 'lib64'),
++                    os.path.join(sqlite_incdir, '..', 'lib'),
++                    os.path.join(sqlite_incdir, '..', '..', 'lib64'),
++                    os.path.join(sqlite_incdir, '..', '..', 'lib'),
++                ]
++            else:
++                # The common install prefix of 3rd party headers used during
++                # cross compilation
++                mydir = os.environ.get('PYTHON_XCOMPILE_DEPENDENCIES_PREFIX')
++                if mydir:
++                    sqlite_dirs_to_check = [mydir + '/lib' ]
++                else:
++                    sqlite_dirs_to_check = []
++
+             sqlite_libfile = self.compiler.find_library_file(
+                                 sqlite_dirs_to_check + lib_dirs, 'sqlite3')
+             if sqlite_libfile:
+                 sqlite_libdir = [os.path.abspath(os.path.dirname(sqlite_libfile))]
+-
++        sqlite_incdir = '/path-to-sqlite3-include-dir'
++        sqlite_libdir = ['/path-to-sqlite3-lib-dir']
+         if sqlite_incdir and sqlite_libdir:
+             sqlite_srcs = ['_sqlite/cache.c',
+                 '_sqlite/connection.c',
+@@ -2030,6 +2084,13 @@ class PyBuildExt(build_ext):
+                 # CFLAGS to Python's; -g or -O2 is to be avoided.
+                 cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
+                       % (ffi_builddir, ffi_srcdir, " ".join(config_args))
++                if cross_compiling:
++                    cmd = "cd %s && env CFLAGS='' '%s/configure' --host=%s --build=%s %s" \
++                          % (ffi_builddir, ffi_srcdir, os.environ.get('HOSTARCH'),
++                             os.environ.get('BUILDARCH'), " ".join(config_args))
++                else:
++                    cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
++                          % (ffi_builddir, ffi_srcdir, " ".join(config_args))
+ 
+                 res = os.system(cmd)
+                 if res or not os.path.exists(ffi_configfile):
