@@ -1,5 +1,6 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory, shprint, info
-from os.path import exists, join
+from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory
+from pythonforandroid.logger import shprint, info
+from os.path import exists, join, basename
 import sh
 import glob
 
@@ -19,9 +20,10 @@ class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
                 return
             for dirn in glob.glob(join(self.get_build_dir(arch),
                                        'pygame_bootstrap_jni', '*')):
-                shprint(sh.mv, dirn, './')
+                if basename(dirn) not in ['freetype', 'jpeg', 'sqlite3']:
+                    shprint(sh.mv, dirn, './')
         info('Unpacking was successful, deleting original container dir')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
-        
+
 
 recipe = PygameJNIComponentsRecipe()
