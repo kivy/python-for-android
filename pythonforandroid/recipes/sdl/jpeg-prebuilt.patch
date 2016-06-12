@@ -1,0 +1,45 @@
+--- sdl_image/Android.mk.orig	2015-06-21 15:14:54.000000000 +0200
++++ sdl_image/Android.mk	2016-06-12 02:41:47.071707950 +0200
+@@ -2,10 +2,32 @@
+ 
+ include $(CLEAR_VARS)
+ 
++JPG_LIBRARY_PATH := $(LOCAL_PATH)/../../../../other_builds/jpeg/$(ARCH)/jpeg
++PNG_LIBRARY_PATH := $(LOCAL_PATH)/../png
++
++# JPEG
++LOCAL_MODULE    := jpeg
++LOCAL_SRC_FILES := $(JPG_LIBRARY_PATH)/obj/local/$(ARCH)/libjpeg.a
++include $(PREBUILT_STATIC_LIBRARY)
++include $(CLEAR_VARS)
++
++# SDL_IMAGE
+ LOCAL_MODULE := sdl_image
+ 
+-LOCAL_CFLAGS := -I$(LOCAL_PATH) -I$(LOCAL_PATH)/../jpeg -I$(LOCAL_PATH)/../png -I$(LOCAL_PATH)/../sdl/include \
+-				-DLOAD_PNG -DLOAD_JPG -DLOAD_GIF -DLOAD_BMP
++LOCAL_CFLAGS := -I$(LOCAL_PATH) -I$(LOCAL_PATH)/../sdl/include
++
++# JPEG/PNG FLAGS
++LOCAL_CFLAGS += -I$(JPG_LIBRARY_PATH) \
++    -I$(JPG_LIBRARY_PATH)/android \
++    -I$(JPG_LIBRARY_PATH)/simd \
++    -I$(JPG_LIBRARY_PATH) \
++    -I$(PNG_LIBRARY_PATH) \
++    -DLOAD_PNG -DLOAD_JPG -DLOAD_GIF -DLOAD_BMP -DAVOID_TABLES
++
++LOCAL_C_INCLUDES += $(JPG_LIBRARY_PATH) \
++    $(JPG_LIBRARY_PATH)/android \
++    $(JPG_LIBRARY_PATH)/simd \
++    $(PNG_LIBRARY_PATH)
+ 
+ LOCAL_CPP_EXTENSION := .cpp
+ 
+@@ -17,5 +39,7 @@
+ 
+ LOCAL_LDLIBS := -lz
+ 
++LOCAL_EXPORT_C_INCLUDES += $(LOCAL_C_INCLUDES)
++
+ include $(BUILD_SHARED_LIBRARY)
+ 
