@@ -9,9 +9,10 @@ class JpegRecipe(NDKRecipe):
     name = 'jpeg'
     version = 'linaro-android'
     url = 'git://git.linaro.org/people/tomgall/libjpeg-turbo/libjpeg-turbo.git'
+
     patches = ['build-static.patch']
 
-    generated_libraries = ['libjpeg.a', 'libsimd.a']
+    generated_libraries = ['libjpeg.a']
 
     def prebuild_arch(self, arch):
         super(JpegRecipe, self).prebuild_arch(arch)
@@ -24,17 +25,12 @@ class JpegRecipe(NDKRecipe):
         if not exists(jni_ln):
             shprint(sh.ln, '-s', build_dir, jni_ln)
 
-    def build_arch(self, arch, *extra_args):
+    def build_arch(self, arch):
         super(JpegRecipe, self).build_arch(arch)
-        lib_dir = self.get_lib_dir(arch)
-        shprint(sh.cp, '-L', join(lib_dir, 'libjpeg.a'), self.ctx.libs_dir)
-        shprint(sh.cp, '-L', join(lib_dir, 'libsimd.a'), self.ctx.libs_dir)
-
-	def build_arch(self, arch):
-		super(JpegRecipe, self).build_arch(arch)
-		with current_directory(self.get_lib_dir(arch)):
-			shprint(sh.mv, 'libjpeg.a', 'libjpeg-orig.a')
-			shprint(sh.ar, '-rcT', 'libjpeg.a', 'libjpeg-orig.a', 'libsimd.a')
+        with current_directory(self.get_lib_dir(arch)):
+            shprint(sh.mv, 'libjpeg.a', 'libjpeg-orig.a')
+            shprint(sh.ar, '-rcT', 'libjpeg.a', 'libjpeg-orig.a', 'libsimd.a')
+            shprint(sh.cp, '-L', 'libjpeg.a', self.ctx.libs_dir)
 
 
 recipe = JpegRecipe()

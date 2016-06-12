@@ -47,7 +47,7 @@ class PygameRecipe(CompiledComponentsPythonRecipe):
         env['CFLAGS'] += ' -I{} -I{} -I{}'.format(
             jpeg_jni_dir, join(jpeg_jni_dir, 'android'),
             join(jpeg_jni_dir, 'simd'))
-        env['LDFLAGS'] += ' -L{} -lsimd -ljpeg'.format(jpeg_lib_dir)
+        env['LDFLAGS'] += ' -L{} -ljpeg'.format(jpeg_lib_dir)
 
         # FREETYPE FLAGS
         free = self.get_recipe('freetype', self.ctx)

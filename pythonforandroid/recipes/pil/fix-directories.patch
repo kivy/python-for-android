@@ -208,15 +208,6 @@
  
          feature.openjpeg_version = None
          if feature.want('jpeg2000'):
-@@ -532,6 +375,8 @@
-         if feature.jpeg:
-             libs.append(feature.jpeg)
-             defs.append(("HAVE_LIBJPEG", None))
-+            if feature.simd:
-+                libs.append(feature.simd)
-         if feature.jpeg2000:
-             libs.append(feature.jpeg2000)
-             defs.append(("HAVE_OPENJPEG", None))
 @@ -545,8 +390,6 @@
              defs.append(("HAVE_LIBTIFF", None))
          if sys.platform == "win32":
