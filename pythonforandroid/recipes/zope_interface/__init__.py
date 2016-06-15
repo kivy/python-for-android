@@ -10,6 +10,7 @@ class ZopeInterfaceRecipe(PythonRecipe):
     site_packages_name = 'zope.interface'
 
     depends = ['python2']
+    patches = ['no_tests.patch']
 
     def prebuild_arch(self, arch):
         super(ZopeInterfaceRecipe, self).prebuild_arch(arch)
