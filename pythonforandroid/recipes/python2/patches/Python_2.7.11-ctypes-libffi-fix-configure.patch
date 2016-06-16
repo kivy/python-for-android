@@ -1,0 +1,33 @@
+diff -pruN Python-2.7.9.orig//Modules/_ctypes/libffi/configure.ac Python-2.7.9/Modules/_ctypes/libffi/configure.ac
+--- Python-2.7.9.orig//Modules/_ctypes/libffi/configure.ac      2009-04-28 22:01:18.000000000 +0200
++++ Python-2.7.9/Modules/_ctypes/libffi/configure.ac    2010-04-20 22:46:02.000000000 +0200
+@@ -409,7 +409,7 @@
+ 
+ AC_CONFIG_LINKS(include/ffitarget.h:src/$TARGETDIR/ffitarget.h)
+ 
+-AC_CONFIG_FILES(include/Makefile include/ffi.h Makefile testsuite/Makefile man/Makefile libffi.pc)
++AC_CONFIG_FILES(include/Makefile include/ffi.h Makefile )
+ 
+ AC_CONFIG_LINKS(include/ffi_common.h:include/ffi_common.h)
+ 
+diff -pruN Python-2.7.9.orig//Modules/_ctypes/libffi/Makefile.am Python-2.7.9/Modules/_ctypes/libffi/Makefile.am
+--- Python-2.7.9.orig//Modules/_ctypes/libffi/Makefile.am       2008-03-04 21:09:11.000000000 +0100
++++ Python-2.7.9/Modules/_ctypes/libffi/Makefile.am     2010-04-20 22:54:03.000000000 +0200
+@@ -2,7 +2,7 @@
+ 
+ AUTOMAKE_OPTIONS = foreign subdir-objects
+ 
+-SUBDIRS = include testsuite man
++SUBDIRS = include
+ 
+ EXTRA_DIST = LICENSE ChangeLog.v1 ChangeLog.libgcj configure.host \
+ 	src/alpha/ffi.c src/alpha/osf.S src/alpha/ffitarget.h \
+@@ -34,8 +34,6 @@
+ 	libtool-version ChangeLog.libffi m4/libtool.m4 \
+ 	m4/lt~obsolete.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4
+ 
+-info_TEXINFOS = doc/libffi.texi
+-
+ ## ################################################################
+ 
+ ##

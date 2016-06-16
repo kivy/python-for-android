@@ -29,10 +29,8 @@ class M2CryptoRecipe(PythonRecipe):
     def get_recipe_env(self, arch):
         env = super(M2CryptoRecipe, self).get_recipe_env(arch)
         env['OPENSSL_BUILD_PATH'] = self.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-        env['CFLAGS'] += ' -I' + join(self.ctx.get_python_install_dir(), 'include/python2.7')
         # Set linker to use the correct gcc
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['LDFLAGS'] += ' -lpython2.7'
         return env
 
 recipe = M2CryptoRecipe()

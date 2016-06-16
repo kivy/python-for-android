@@ -1,5 +1,5 @@
---- Python-2.7.2.orig/Python/dynload_shlib.c	2010-05-09 16:46:46.000000000 +0200
-+++ Python-2.7.2/Python/dynload_shlib.c	2011-04-20 17:52:12.000000000 +0200
+--- Python-2.7.9.orig/Python/dynload_shlib.c	2010-05-09 16:46:46.000000000 +0200
++++ Python-2.7.9/Python/dynload_shlib.c	2011-04-20 17:52:12.000000000 +0200
 @@ -6,6 +6,7 @@
  
  #include <sys/types.h>
@@ -12,11 +12,11 @@
      char pathbuf[260];
      int dlopenflags=0;
  
-+    static void *libpymodules = -1;
++    static void *libpymodules = NULL;
 +    void *rv = NULL;
 +
 +    /* Ensure we have access to libpymodules. */
-+    if (libpymodules == -1) {
++    if (libpymodules == NULL) {
 +        printf("ANDROID_PRIVATE = %s\n", getenv("ANDROID_PRIVATE"));
 +        PyOS_snprintf(pathbuf, sizeof(pathbuf), "%s/libpymodules.so", getenv("ANDROID_PRIVATE"));
 +        libpymodules = dlopen(pathbuf, RTLD_NOW);

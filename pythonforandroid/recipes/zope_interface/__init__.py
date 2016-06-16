@@ -1,16 +1,12 @@
-
-from pythonforandroid.toolchain import PythonRecipe, shprint, current_directory
-from os.path import join
-import sh
-
+from pythonforandroid.toolchain import PythonRecipe
 
 class ZopeInterfaceRecipe(PythonRecipe):
     name = 'zope_interface'
     version = '4.1.2'
     url = 'https://pypi.python.org/packages/source/z/zope.interface/zope.interface-{version}.tar.gz'
-    site_packages_name = 'zope.interface'
-
     depends = ['python2']
+    call_hostpython_via_targetpython = False
+    site_packages_name = 'zope.interface'
 
     def build_arch(self, arch):
         super(ZopeInterfaceRecipe, self).build_arch(arch)
