@@ -15,8 +15,8 @@ class LibTriblerRecipe(PythonRecipe):
                'netifaces', 'openssl', 'pil', 'pycrypto', 'pyleveldb', 'python2', 'twisted',
               ]
 
-    python_depends = ['chardet', 'cherrypy', 'configobject', 'decorator', 'feedparser',
-                      'libnacl', 'pyasn1', 'requests', 'setuptools', 'six',
+    python_depends = ['chardet', 'cherrypy', 'configobj', 'decorator', 'feedparser',
+                      'libnacl', 'pyasn1', 'requests', 'six',
                      ]
 
     site_packages_name = 'Tribler'
