@@ -21,12 +21,8 @@ class PygameRecipe(CompiledComponentsPythonRecipe):
     def get_recipe_env(self, arch=None):
         env = super(PygameRecipe, self).get_recipe_env(arch)
 
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
         # SET LINKER TO USE THE CORRECT GCC
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                          ' -lpython2.7'
 
         env['LDFLAGS'] += ' -L{}'.format(self.ctx.get_libs_dir(arch.arch))
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
