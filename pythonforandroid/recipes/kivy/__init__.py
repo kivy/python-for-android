@@ -13,10 +13,6 @@ class KivyRecipe(CythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
-        env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                          ' -lpython2.7'
         if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
             env['KIVY_SDL2_PATH'] = ':'.join([
