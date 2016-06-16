@@ -762,6 +762,11 @@ class PythonRecipe(Recipe):
                 env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
             else:
                 env['PYTHONPATH'] = ':'.join(hppath)
+            if 'python2' in self.ctx.recipe_build_order:
+                env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
+                env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
+                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
+                                  ' -lpython2.7'
         return env
 
     def should_build(self, arch):
