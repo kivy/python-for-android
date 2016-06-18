@@ -423,7 +423,13 @@ class Recipe(with_metaclass(RecipeMeta)):
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
                     if extraction_filename.endswith('.zip'):
-                        sh.unzip(extraction_filename)
+                        try:
+                            sh.unzip(extraction_filename)
+                        except sh.ErrorReturnCode_1:
+                            pass  # return code 1 means unzipping had
+                                  # warnings but did complete,
+                                  # apparently happens sometimes with
+                                  # github zips
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
