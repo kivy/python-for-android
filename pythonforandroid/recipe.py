@@ -425,7 +425,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                     if extraction_filename.endswith('.zip'):
                         try:
                             sh.unzip(extraction_filename)
-                        except sh.ErrorReturnCode_1:
+                        except (sh.ErrorReturnCode_1, sh.ErrorReturnCode_2):
                             pass  # return code 1 means unzipping had
                                   # warnings but did complete,
                                   # apparently happens sometimes with
