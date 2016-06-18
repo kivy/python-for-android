@@ -16,22 +16,21 @@ public class WebViewLoader {
 	private static final String TAG = "WebViewLoader";
 
     public static void testConnection() {
-        
+
         while (true) {
             if (WebViewLoader.pingHost("localhost", {{ args.port }}, 100)) {
                 Log.v(TAG, "Successfully pinged localhost:{{ args.port }}");
                 Handler mainHandler = new Handler(PythonActivity.mActivity.getMainLooper());
-                
                 Runnable myRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            PythonActivity.mActivity.mWebView.loadUrl("http://127.0.0.1:{{ args.port }}/");
+                            PythonActivity.mActivity.loadUrl("http://127.0.0.1:{{ args.port }}/");
                             Log.v(TAG, "Loaded webserver in webview");
                         }
                     };
                 mainHandler.post(myRunnable);
                 break;
-                    
+
             } else {
                 Log.v(TAG, "Could not ping localhost:{{ args.port }}");
                 try {
@@ -55,5 +54,3 @@ public class WebViewLoader {
         }
     }
 }
-        
-
