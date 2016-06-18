@@ -43,9 +43,13 @@ branch.
 
 Follow the
 [quickstart instructions](https://python-for-android.readthedocs.org/en/latest/quickstart/)
-to install and begin creating APK.
+to install and begin creating APKs.
 
-Quick instructions to start would be:
+Quick instructions to start would be::
+
+    pip install python-for-android
+
+or to test the master branch::
 
     pip install git+https://github.com/kivy/python-for-android.git
 
