@@ -2,13 +2,12 @@ Services
 ========
 
 python-for-android supports the use of Android Services, background
-tasks running in separate processes, in this case each running their
-own Python interpreter instance. These are the closest Android
+tasks running in separate processes. These are the closest Android
 equivalent to multiprocessing on e.g. desktop platforms, and it is not
 possible to use normal multiprocessing on Android. Services are also
 the only way to run code when your app is not currently opened by the user.
 
-Services must be declared when python-for-android is run. Each one
+Services must be declared when building your APK. Each one
 will have its own main.py file with the Python script to be run. You
 can communicate with the service process from your app using e.g. `osc
 <https://pypi.python.org/pypi/python-osc>`__ or (a heavier option)
