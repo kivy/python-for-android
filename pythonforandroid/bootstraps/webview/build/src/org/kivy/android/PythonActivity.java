@@ -94,7 +94,7 @@ public class PythonActivity extends Activity {
         Log.v("Python", "Device: " + android.os.Build.DEVICE);
         Log.v("Python", "Model: " + android.os.Build.MODEL);
         super.onCreate(savedInstanceState);
-        
+
         PythonActivity.initialize();
 
         // Load shared libraries
@@ -161,7 +161,7 @@ public class PythonActivity extends Activity {
         PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         PythonActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         PythonActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
-        
+
         try {
             Log.v(TAG, "Access to our meta-data...");
             this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
@@ -173,16 +173,24 @@ public class PythonActivity extends Activity {
             }
         } catch (PackageManager.NameNotFoundException e) {
         }
-        
+
         final Thread pythonThread = new Thread(new PythonMain(), "PythonThread");
         PythonActivity.mPythonThread = pythonThread;
         pythonThread.start();
 
         final Thread wvThread = new Thread(new WebViewLoaderMain(), "WvThread");
         wvThread.start();
-
     }
-    
+
+    @Override
+    public void onDestroy() {
+        Log.i("Destroy", "end of app");
+        super.onDestroy();
+        
+        // make sure all child threads (python_thread) are stopped
+        android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
     public void loadLibraries() {
         PythonUtil.loadLibraries(getFilesDir());
     }
@@ -276,8 +284,46 @@ public class PythonActivity extends Activity {
         }
     }
 
+    public static void loadUrl(String url) {
+        class LoadUrl implements Runnable {
+            private String mUrl;
+
+            public LoadUrl(String url) {
+                mUrl = url;
+            }
+
+            public void run() {
+                mWebView.loadUrl(mUrl);
+            }
+        }
+
+        Log.i(TAG, "Opening URL: " + url);
+        mActivity.runOnUiThread(new LoadUrl(url));
+    }
+
     public static ViewGroup getLayout() {
         return   mLayout;
+    }
+
+    long lastBackClick = SystemClock.elapsedRealtime();
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Check if the key event was the Back button and if there's history
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
+            mWebView.goBack();
+            return true;
+        }
+        // If it wasn't the Back key or there's no web page history, bubble up to the default
+        // system behavior (probably exit the activity)
+        if (SystemClock.elapsedRealtime() - lastBackClick > 2000){
+            lastBackClick = SystemClock.elapsedRealtime();
+            Toast.makeText(this, "Click again to close the app",
+            Toast.LENGTH_LONG).show();
+            return true;
+        }
+
+        lastBackClick = SystemClock.elapsedRealtime();
+        return super.onKeyDown(keyCode, event);
     }
 
 
@@ -350,7 +396,7 @@ public class PythonActivity extends Activity {
         }
     }
 
-	public static void start_service(String serviceTitle, String serviceDescription,
+    public static void start_service(String serviceTitle, String serviceDescription,
                 String pythonServiceArgument) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();

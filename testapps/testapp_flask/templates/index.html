@@ -24,6 +24,20 @@
      }
 </script>
 
+<button onClick="loadUrl()">
+    open url
+</button>
+<input type="text" value="http://www.google.com" id="url_field"/>
+
+<script>
+ function loadUrl() {
+     var request = new XMLHttpRequest();
+     var url = document.getElementById("url_field").value
+     request.open('GET', 'loadUrl?url=' + url, true);
+     request.send();
+     }
+</script>
+
 <button onClick="vertical()">
     vertical orientation
 </button>
