@@ -1,10 +1,14 @@
 package org.kivy.android;
 
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Process;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 public class PythonService extends Service implements Runnable {
@@ -31,6 +35,14 @@ public class PythonService extends Service implements Runnable {
 
     public void setAutoRestartService(boolean restart) {
         autoRestartService = restart;
+    }
+
+    public boolean canDisplayNotification() {
+        return true;
+    }
+
+    public int startType() {
+        return START_NOT_STICKY;
     }
 
     /**
@@ -76,30 +88,35 @@ public class PythonService extends Service implements Runnable {
         pythonThread = new Thread(this);
         pythonThread.start();
 
-		if (canDisplayNotification()) {
-			doStartForeground(extras);
-		}
+        if (canDisplayNotification()) {
+            doStartForeground(extras);
+        }
 
         return startType();
     }
 
-	protected void doStartForeground(Bundle extras) {
-		String serviceTitle = extras.getString("serviceTitle");
-		String serviceDescription = extras.getString("serviceDescription");
+    protected void doStartForeground(Bundle extras) {
+        String serviceTitle = extras.getString("serviceTitle");
+        String serviceDescription = extras.getString("serviceDescription");
 
-		Context context = getApplicationContext();
-		Notification notification = new Notification(
-				context.getApplicationInfo().icon, serviceTitle,
-				System.currentTimeMillis());
-		Intent contextIntent = new Intent(context, PythonActivity.class);
-		PendingIntent pIntent = PendingIntent.getActivity(context, 0,
-				contextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		notification.setLatestEventInfo(context, serviceTitle,
-				serviceDescription, pIntent);
-		startForeground(1, notification);
-	}
+        Context context = getApplicationContext();
 
-	/**
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(context.getApplicationInfo().icon)
+                        .setContentTitle(serviceTitle)
+                        .setContentText(serviceDescription);
+
+        int NOTIFICATION_ID = 1;
+
+        Intent targetIntent = new Intent(this, Activity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(contentIntent);
+
+        startForeground(NOTIFICATION_ID, builder.build());
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
