@@ -2,23 +2,20 @@ package org.kivy.android;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Process;
 import android.util.Log;
 
-import org.renpy.android.AssetExtract;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-
 public class PythonService extends Service implements Runnable {
-    private static String TAG = "PythonService";
+    private static String TAG = PythonService.class.getSimpleName();
 
-    // Thread for Python code
+    public static PythonService mService = null;
+    /**
+     * Intent that started the service
+     */
+    private Intent startIntent = null;
+
     private Thread pythonThread = null;
 
     // Python environment variables
@@ -28,11 +25,7 @@ public class PythonService extends Service implements Runnable {
     private String pythonHome;
     private String pythonPath;
     private String serviceEntrypoint;
-
-    // Argument to pass to Python code,
     private String pythonServiceArgument;
-    public static PythonService mService = null;
-    private Intent startIntent = null;
 
     private boolean autoRestartService = false;
 
@@ -40,35 +33,36 @@ public class PythonService extends Service implements Runnable {
         autoRestartService = restart;
     }
 
-    public boolean canDisplayNotification() {
-        return true;
-    }
-
-    public int startType() {
-        return START_NOT_STICKY;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public IBinder onBind(Intent arg0) {
+    public IBinder onBind(Intent intent) {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onCreate() {
         Log.v(TAG, "Device: " + android.os.Build.DEVICE);
         Log.v(TAG, "Model: " + android.os.Build.MODEL);
-        unpackData("private", getFilesDir());
+        AssetExtract.extractAsset(getApplicationContext(), "private.mp3", getFilesDir());
         super.onCreate();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (pythonThread != null) {
             Log.v(TAG, "Service exists, do not start again");
             return START_NOT_STICKY;
         }
-
         startIntent = intent;
+
         Bundle extras = intent.getExtras();
         androidPrivate = extras.getString("androidPrivate");
         androidArgument = extras.getString("androidArgument");
@@ -78,6 +72,7 @@ public class PythonService extends Service implements Runnable {
         pythonPath = extras.getString("pythonPath");
         pythonServiceArgument = extras.getString("pythonServiceArgument");
 
+        Log.v(TAG, "Starting Python thread");
         pythonThread = new Thread(this);
         pythonThread.start();
 
@@ -104,6 +99,9 @@ public class PythonService extends Service implements Runnable {
 		startForeground(1, notification);
 	}
 
+	/**
+     * {@inheritDoc}
+     */
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -115,6 +113,9 @@ public class PythonService extends Service implements Runnable {
         Process.killProcess(Process.myPid());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void run() {
         PythonUtil.loadLibraries(getFilesDir());
@@ -124,80 +125,15 @@ public class PythonService extends Service implements Runnable {
         stopSelf();
     }
 
-    public void recursiveDelete(File f) {
-        if (f.isDirectory()) {
-            for (File r : f.listFiles()) {
-                recursiveDelete(r);
-            }
-        }
-        f.delete();
-    }
-
-    public void unpackData(final String resource, File target) {
-
-        Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
-
-        // The version of data in memory and on disk.
-        String data_version = null;
-        String disk_version = null;
-
-        try {
-            PackageManager manager = this.getPackageManager();
-            PackageInfo info = manager.getPackageInfo(this.getPackageName(), 0);
-            data_version = info.versionName;
-
-            Log.v(TAG, "Data version is " + data_version);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.w(TAG, "Data version not found of " + resource + " data.");
-        }
-
-        // If no version, no unpacking is necessary.
-        if (data_version == null) {
-            return;
-        }
-
-        // Check the current disk version, if any.
-        String filesDir = target.getAbsolutePath();
-        String disk_version_fn = filesDir + "/" + resource + ".version";
-
-        try {
-            byte buf[] = new byte[64];
-            FileInputStream is = new FileInputStream(disk_version_fn);
-            int len = is.read(buf);
-            disk_version = new String(buf, 0, len);
-            is.close();
-        } catch (Exception e) {
-            disk_version = "";
-        }
-
-        // If the disk data is out of date, extract it and write the version
-        // file.
-        if (!data_version.equals(disk_version)) {
-            Log.v(TAG, "Extracting " + resource + " assets.");
-
-            recursiveDelete(target);
-            target.mkdirs();
-
-            AssetExtract ae = new AssetExtract(this);
-            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
-                Log.e(TAG, "Could not extract " + resource + " data.");
-            }
-
-            try {
-                // Write .nomedia.
-                new File(target, ".nomedia").createNewFile();
-
-                // Write version file.
-                FileOutputStream os = new FileOutputStream(disk_version_fn);
-                os.write(data_version.getBytes());
-                os.close();
-            } catch (Exception e) {
-                Log.w("python", e);
-            }
-        }
-    }
-
-    // Native part
+    /**
+     * @param androidPrivate        Directory for private files
+     * @param androidArgument       Android path
+     * @param serviceEntrypoint     Python file to execute first
+     * @param pythonName            Python name
+     * @param pythonHome            Python home
+     * @param pythonPath            Python path
+     * @param pythonServiceArgument Argument to pass to Python code
+     */
     public static native void nativeStart(String androidPrivate,
                                           String androidArgument, String serviceEntrypoint,
                                           String pythonName, String pythonHome, String pythonPath,

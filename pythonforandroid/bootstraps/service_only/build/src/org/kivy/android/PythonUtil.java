@@ -1,48 +1,34 @@
 package org.kivy.android;
 
-import java.io.File;
-
 import android.util.Log;
 
+import java.io.File;
+
 public class PythonUtil {
+    private static String TAG = PythonUtil.class.getSimpleName();
 
-	protected static String[] getLibraries() {
-		return new String[] { "python2.7", "python3.5m", "main" };
-	}
+    protected static String[] getLibraries() {
+        return new String[]{
+                "python2.7",
+                "main",
+                "/lib/python2.7/lib-dynload/_io.so",
+                "/lib/python2.7/lib-dynload/unicodedata.so",
+                "/lib/python2.7/lib-dynload/_ctypes.so",
+        };
+    }
 
-	public static void loadLibraries(File filesDir) {
+    public static void loadLibraries(File filesDir) {
+        String filesDirPath = filesDir.getAbsolutePath();
+        Log.v(TAG, "Loading libraries from " + filesDirPath);
 
-		String filesDirPath = filesDir.getAbsolutePath();
-		boolean skippedPython = false;
+        for (String lib : getLibraries()) {
+            if (lib.startsWith("/")) {
+                System.load(filesDirPath + lib);
+            } else {
+                System.loadLibrary(lib);
+            }
+        }
 
-		for (String lib : getLibraries()) {
-			try {
-				System.loadLibrary(lib);
-			} catch (UnsatisfiedLinkError e) {
-				if (lib.startsWith("python") && !skippedPython) {
-					skippedPython = true;
-					continue;
-				}
-				throw e;
-			}
-		}
-
-		try {
-			System.load(filesDirPath + "/lib/python2.7/lib-dynload/_io.so");
-			System.load(filesDirPath
-					+ "/lib/python2.7/lib-dynload/unicodedata.so");
-		} catch (UnsatisfiedLinkError e) {
-			Log.v("PythonUtil",
-					"Failed to load _io.so or unicodedata.so...but that's okay.");
-		}
-
-		try {
-			// System.loadLibrary("ctypes");
-			System.load(filesDirPath + "/lib/python2.7/lib-dynload/_ctypes.so");
-		} catch (UnsatisfiedLinkError e) {
-			Log.v("PythonUtil", "Unsatisfied linker when loading ctypes");
-		}
-
-		Log.v("PythonUtil", "Loaded everything!");
-	}
+        Log.v(TAG, "Loaded everything!");
+    }
 }
