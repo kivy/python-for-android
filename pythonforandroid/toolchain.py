@@ -774,6 +774,9 @@ build_dist
 
         import_binary_dist(path, ctx)
 
+    def fetch_binary_dists(self, args):
+        from pythonforandroid.distribution import fetch_online_dists
+        fetch_online_dists(self.ctx)
 
 def main():
     ToolchainCL()

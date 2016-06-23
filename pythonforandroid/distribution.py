@@ -5,10 +5,11 @@ import os
 import glob
 import json
 import sh
+from sys import stdout
 
 from pythonforandroid.logger import (info, info_notify, warning, error,
                                      Err_Style, Err_Fore, shprint)
-from pythonforandroid.util import current_directory
+from pythonforandroid.util import current_directory, urlretrieve
 
 
 class Distribution(object):
@@ -316,3 +317,58 @@ def import_binary_dist(path, ctx):
         info('Dist was imported successfully')
         info('Run `p4a dists` to see information about the new dist.')
     
+
+def fetch_online_dists(ctx):
+    dists_info = ('https://raw.githubusercontent.com/inclement/'
+                  'p4a-binary-distribution/master/dists.json')
+
+    if exists(join(ctx.storage_dir, 'binary_dists')):
+        shutil.rmtree(join(ctx.storage_dir, 'binary_dists'))
+    os.makedirs(join(ctx.storage_dir, 'binary_dists'))
+
+    print('build dir is', ctx.storage_dir)
+
+    dists_info_filen = join(ctx.storage_dir, 'binary_dists', 'dists.json')
+
+    if exists(dists_info_filen):
+        os.unlink(dists_info_filen)
+
+    def report_hook(index, blksize, size):
+        if size <= 0:
+            progression = '{0} bytes'.format(index * blksize)
+        else:
+            progression = '{0:.2f}%'.format(
+                index * blksize * 100. / float(size))
+        stdout.write('- Download {}\r'.format(progression))
+        stdout.flush()
+
+    urlretrieve(dists_info, dists_info_filen, report_hook)
+
+    with open(dists_info_filen, 'r') as fileh:
+        data = json.load(fileh)
+
+    info('Retrieved binary dists index')
+
+    info('Found dists for download:')
+    for name, url in data:
+        info('    - {}'.format(name))
+
+    dists_to_import = []
+    for name, url in data:
+        if exists(join(ctx.dist_dir, name)):
+            info('A dist with the name {} already exists, skipping.'.format(
+                name))
+            continue
+
+        info('{} dist not yet present, downloading'.format(name))
+        download_name = basename(url)
+        urlretrieve(url, join(ctx.storage_dir, 'binary_dists', download_name),
+                    report_hook)
+
+        dists_to_import.append((name, url, join(ctx.storage_dir, 'binary_dists',
+                                                download_name)))
+
+    for name, url, path in dists_to_import:
+        import_binary_dist(path, ctx)
+
+    shutil.rmtree(join(ctx.storage_dir, 'binary_dists'))
