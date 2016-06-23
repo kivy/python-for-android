@@ -10,8 +10,7 @@ from __future__ import print_function
 
 import sys
 from sys import platform
-from os.path import (join, dirname, realpath, exists, expanduser,
-                     isdir, isfile, basename, splitext)
+from os.path import (join, dirname, realpath, exists, expanduser)
 import os
 import glob
 import shutil
@@ -35,7 +34,7 @@ from pythonforandroid.logger import (logger, info, warning, setup_color,
                                      info_notify, info_main, shprint, error)
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.bootstrap import Bootstrap
-from pythonforandroid.distribution import Distribution, pretty_log_dists
+from pythonforandroid.distribution import Distribution, pretty_log_dists, import_binary_dist
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
 from pythonforandroid.build import Context, build_recipes
 
@@ -774,89 +773,6 @@ build_dist
         ctx = self.ctx
 
         import_binary_dist(path, ctx)
-
-def import_binary_dist(path, ctx):
-        print('build dir is', ctx.build_dir)
-        print('dist dir is', ctx.dist_dir)
-
-        path = realpath(path)
-
-        filename, extension = splitext(basename(path))
-
-        temp_dir = join(ctx.dist_dir, basename(filename))
-
-        if not exists(path):
-            error('No file or folder with the given name exists')
-            exit(1)
-
-        if exists(temp_dir):
-            error('Cannot extract dist, a dist with the default temporary '
-                  'name already exists')
-            info('To fix this, rename the dist file or delete the existing '
-                 'dist')
-            exit(1)
-
-        print('path is', path)
-        if isdir(path):
-            info('Dist path is a directory, copying')
-            shprint(sh.cp, '-a', path, temp_dir)
-        elif isfile(path):
-            info("Extracting {} into {}".format(path, temp_dir))
-
-            if path.endswith(".tgz") or path.endswith(".tar.gz"):
-                shprint(sh.tar, "-C", temp_dir, "-xvzf", path)
-
-            elif path.endswith(".tbz2") or path.endswith(".tar.bz2"):
-                shprint(sh.tar, "-C", temp_dir, "-xvjf", path)
-
-            elif path.endswith(".zip"):
-                import zipfile
-                zf = zipfile.ZipFile(path)
-                zf.extractall(path=temp_dir)
-                zf.close()
-
-        else:
-            error(
-                "Error: cannot extract, unrecognized filetype for {}"
-                .format(path))
-            exit(1)
-
-        # Allow zipped dir or zipped contents
-        files = os.listdir(temp_dir)
-        print('files are', files)
-        if len(files) == 1:
-            os.rename(temp_dir, temp_dir + '__old')
-            os.rename(join(temp_dir + '__old', files[0]), temp_dir)
-            shutil.rmtree(temp_dir + '__old')
-
-        if not exists(join(temp_dir, 'dist_info.json')):
-            error('Dist does not include a dist_info.json, cannot install')
-            shutil.rmtree(temp_dir)
-            exit(1)
-
-        with open(join(temp_dir, 'dist_info.json'), 'r') as fileh:
-            data = json.load(fileh)
-
-        if 'dist_name' not in data:
-            error('Dist does not have dist_name declared in its dist_info.json')
-            shutil.rmtree(temp_dir)
-            exit(1)
-
-        dist_name = data['dist_name']
-        info('Imported dist has name {}'.format(dist_name))
-
-        dist_dir = join(ctx.dist_dir, dist_name)
-        if dist_dir != temp_dir:
-            if exists(dist_dir):
-                error('A dist with this name already exists, exiting.')
-                shutil.rmtree(temp_dir)
-                exit(1)
-
-            os.rename(temp_dir, dist_dir)
-            
-        info('Dist was installed successfully')
-        info('Run `p4a dists` to see information about the new dist.')
-    
 
 
 def main():
