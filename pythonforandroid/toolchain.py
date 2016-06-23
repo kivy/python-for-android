@@ -10,10 +10,12 @@ from __future__ import print_function
 
 import sys
 from sys import platform
-from os.path import (join, dirname, realpath, exists, expanduser)
+from os.path import (join, dirname, realpath, exists, expanduser,
+                     isdir, isfile, basename, splitext)
 import os
 import glob
 import shutil
+import json
 import re
 import imp
 import logging
@@ -757,6 +759,95 @@ build_dist
                         '{Fore.RESET})').format(Fore=Out_Fore)
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Out_Style)
                 print(recipe_str)
+
+    def import_dist(self, args):
+
+        ap = argparse.ArgumentParser(
+            description='Unpack a binary dist and place it in the dist dir')
+        ap.add_argument('path', help='The path to the dist to install')
+
+        args, other = ap.parse_known_args(args)
+
+        path = args.path
+        print('path is', path)
+
+        ctx = self.ctx
+
+        import_binary_dist(path, ctx)
+
+def import_binary_dist(path, ctx):
+        print('build dir is', ctx.build_dir)
+        print('dist dir is', ctx.dist_dir)
+
+        path = realpath(path)
+
+        filename, extension = splitext(basename(path))
+
+        temp_dir = join(ctx.dist_dir, basename(filename))
+
+        if not exists(path):
+            error('No file or folder with the given name exists')
+            exit(1)
+
+        if exists(temp_dir):
+            error('Cannot extract dist, a dist with the default temporary '
+                  'name already exists')
+            info('To fix this, rename the dist file or delete the existing '
+                 'dist')
+            exit(1)
+
+        print('path is', path)
+        if isdir(path):
+            info('Dist path is a directory, copying')
+            shprint(sh.cp, '-a', path, temp_dir)
+        elif isfile(path):
+            info("Extracting {} into {}".format(path, temp_dir))
+
+            if path.endswith(".tgz") or path.endswith(".tar.gz"):
+                shprint(sh.tar, "-C", temp_dir, "-xvzf", path)
+
+            elif path.endswith(".tbz2") or path.endswith(".tar.bz2"):
+                shprint(sh.tar, "-C", temp_dir, "-xvjf", path)
+
+            elif path.endswith(".zip"):
+                import zipfile
+                zf = zipfile.ZipFile(path)
+                zf.extractall(path=temp_dir)
+                zf.close()
+
+        else:
+            warning(
+                "Error: cannot extract, unrecognized filetype for {}"
+                .format(path))
+            raise Exception()
+
+        if not exists(join(temp_dir, 'dist_info.json')):
+            error('Dist does not include a dist_info.json, cannot install')
+            shutil.rmtree(temp_dir)
+            exit(1)
+
+        with open(join(temp_dir, 'dist_info.json'), 'r') as fileh:
+            data = json.load(fileh)
+
+        if 'dist_name' not in data:
+            error('Dist does not have dist_name declared in its dist_info.json')
+            shutil.rmtree(temp_dir)
+            exit(1)
+
+        dist_name = data['dist_name']
+        info('Imported dist has name {}'.format(dist_name))
+
+        dist_dir = join(ctx.dist_dir, dist_name)
+        if exists(dist_dir):
+            error('A dist with this name already exists, exiting.')
+            shutil.rmtree(temp_dir)
+            exit(1)
+
+        os.rename(temp_dir, dist_dir)
+            
+        info('Dist was installed successfully')
+        info('Run `p4a dists` to see information about the new dist.')
+    
 
 
 def main():
