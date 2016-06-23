@@ -236,9 +236,6 @@ def pretty_log_dists(dists, log_func=info):
 
 
 def import_binary_dist(path, ctx):
-        print('build dir is', ctx.build_dir)
-        print('dist dir is', ctx.dist_dir)
-
         path = realpath(path)
 
         filename, extension = splitext(basename(path))
@@ -256,7 +253,6 @@ def import_binary_dist(path, ctx):
                  'dist')
             exit(1)
 
-        print('path is', path)
         if isdir(path):
             info('Dist path is a directory, copying')
             shutil.copytree(path, temp_dir)
@@ -283,7 +279,6 @@ def import_binary_dist(path, ctx):
 
         # Allow zipped dir or zipped contents
         files = os.listdir(temp_dir)
-        print('files are', files)
         if len(files) == 1:
             os.rename(temp_dir, temp_dir + '__old')
             os.rename(join(temp_dir + '__old', files[0]), temp_dir)
@@ -325,8 +320,6 @@ def fetch_online_dists(ctx):
     if exists(join(ctx.storage_dir, 'binary_dists')):
         shutil.rmtree(join(ctx.storage_dir, 'binary_dists'))
     os.makedirs(join(ctx.storage_dir, 'binary_dists'))
-
-    print('build dir is', ctx.storage_dir)
 
     dists_info_filen = join(ctx.storage_dir, 'binary_dists', 'dists.json')
 
