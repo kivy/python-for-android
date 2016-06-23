@@ -816,10 +816,18 @@ def import_binary_dist(path, ctx):
                 zf.close()
 
         else:
-            warning(
+            error(
                 "Error: cannot extract, unrecognized filetype for {}"
                 .format(path))
-            raise Exception()
+            exit(1)
+
+        # Allow zipped dir or zipped contents
+        files = os.listdir(temp_dir)
+        print('files are', files)
+        if len(files) == 1:
+            os.rename(temp_dir, temp_dir + '__old')
+            os.rename(join(temp_dir + '__old', files[0]), temp_dir)
+            shutil.rmtree(temp_dir + '__old')
 
         if not exists(join(temp_dir, 'dist_info.json')):
             error('Dist does not include a dist_info.json, cannot install')
@@ -838,12 +846,13 @@ def import_binary_dist(path, ctx):
         info('Imported dist has name {}'.format(dist_name))
 
         dist_dir = join(ctx.dist_dir, dist_name)
-        if exists(dist_dir):
-            error('A dist with this name already exists, exiting.')
-            shutil.rmtree(temp_dir)
-            exit(1)
+        if dist_dir != temp_dir:
+            if exists(dist_dir):
+                error('A dist with this name already exists, exiting.')
+                shutil.rmtree(temp_dir)
+                exit(1)
 
-        os.rename(temp_dir, dist_dir)
+            os.rename(temp_dir, dist_dir)
             
         info('Dist was installed successfully')
         info('Run `p4a dists` to see information about the new dist.')
