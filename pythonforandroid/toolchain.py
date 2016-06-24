@@ -161,7 +161,7 @@ def parse_dist_args(args_list):
 def split_argument_list(l):
     if not len(l):
         return []
-    return re.split(r'[ ,]*', l)
+    return re.split(r'[ ,]+', l)
 
 
 class ToolchainCL(object):
