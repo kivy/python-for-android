@@ -917,9 +917,11 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
                         " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
                         " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" \
                         " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys)
-          
+        env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
         env['LDFLAGS'] += " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" \
+                " -lpython2.7" \
                 " -lgnustl_shared".format(**keys)
+                
          
         return env
     
@@ -928,10 +930,9 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
         
         # Copy libgnustl_shared.so
         with current_directory(self.get_build_dir(arch.arch)):
-            lib_dir = join(self.ctx.get_python_install_dir(), "lib")
             sh.cp(
-                sh.glob("{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/*.so".format(ctx=self.ctx,arch=arch)),
-                lib_dir
+                "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx,arch=arch),
+                self.ctx.get_libs_dir(arch.arch)
             )
         
         
