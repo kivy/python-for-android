@@ -901,6 +901,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
                 *self.setup_extra_args)
 
 class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
+    """ Extensions that require the cxx-stl """
     call_hostpython_via_targetpython = False
  
     def get_recipe_env(self, arch):
@@ -921,6 +922,19 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
                 " -lgnustl_shared".format(**keys)
          
         return env
+    
+    def build_compiled_components(self,arch):
+        super(CppCompiledComponentsPythonRecipe, self).build_compiled_components(arch)
+        
+        # Copy libgnustl_shared.so
+        with current_directory(self.get_build_dir(arch.arch)):
+            lib_dir = join(self.ctx.get_python_install_dir(), "lib")
+            sh.cp(
+                sh.glob("{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/*.so".format(ctx=self.ctx,arch=arch)),
+                lib_dir
+            )
+        
+        
 
 
 class CythonRecipe(PythonRecipe):
