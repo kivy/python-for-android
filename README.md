@@ -26,7 +26,7 @@ Broad goals of the revamp project include:
   multiple graphics backends or non-Kivy projects)
 - ✓ Support python3 (it finally works!)
 - (WIP) Support some kind of binary distribution, including on windows (semi-implemented, just needs finishing)
-- ✓ Be a standalone Pypi module (not on pypi yet but setup.py works)
+- ✓ Be a standalone PyPI module (now available on PyPI!)
 - ✓ Support multiple architectures (full multiarch builds not complete, but arm and x86 with different config both work now)
 
 We are currently working to stabilise all parts of the toolchain and
@@ -43,9 +43,13 @@ branch.
 
 Follow the
 [quickstart instructions](https://python-for-android.readthedocs.org/en/latest/quickstart/)
-to install and begin creating APK.
+to install and begin creating APKs.
 
-Quick instructions to start would be:
+Quick instructions to start would be::
+
+    pip install python-for-android
+
+or to test the master branch::
 
     pip install git+https://github.com/kivy/python-for-android.git
 

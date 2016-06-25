@@ -161,7 +161,7 @@ def parse_dist_args(args_list):
 def split_argument_list(l):
     if not len(l):
         return []
-    return re.split(r'[ ,]*', l)
+    return re.split(r'[ ,]+', l)
 
 
 class ToolchainCL(object):
@@ -180,6 +180,7 @@ create        Build an android project with all recipes
 clean_all     Delete all build components
 clean_builds  Delete all build caches
 clean_dists   Delete all compiled distributions
+clean_bootstrap_builds     Delete all compiled bootstraps
 clean_download_cache Delete any downloaded recipe packages
 clean_recipe_build   Delete the build files of a recipe
 distributions List all distributions
@@ -330,7 +331,9 @@ build_dist
         #             'handled, exiting.')
         #     exit(1)
 
-        if not hasattr(self, args.command):
+        command_method_name = args.command.replace('-', '_')
+
+        if not hasattr(self, command_method_name):
             print('Unrecognized command')
             parser.print_help()
             exit(1)
@@ -338,7 +341,7 @@ build_dist
         self.ctx.local_recipes = args.local_recipes
         self.ctx.copy_libs = args.copy_libs
 
-        getattr(self, args.command)(unknown)
+        getattr(self, command_method_name)(unknown)
 
     @property
     def default_storage_dir(self):
@@ -420,6 +423,14 @@ build_dist
         ctx = self.ctx
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
+
+    def clean_bootstrap_builds(self, args):
+        '''Delete all the bootstrap builds.'''
+        for bs in Bootstrap.list_bootstraps():
+            bs = Bootstrap.get_bootstrap(bs, self.ctx)
+            if bs.build_dir and exists(bs.build_dir):
+                info('Cleaning build for {} bootstrap.'.format(bs.name))
+                shutil.rmtree(bs.build_dir)
 
     def clean_builds(self, args):
         '''Delete all build caches for each recipe, python-install, java code

@@ -13,7 +13,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     src_filename = 'src'
 
-    depends = [('pygame', 'sdl2'), ('python2', 'python3')]
+    depends = [('pygame', 'sdl2', 'genericndkbuild'), ('python2', 'python3')]
 
     config_env = {}
 
@@ -29,16 +29,17 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         th = '#define {} {}\n'
         tpy = '{} = {}\n'
 
-        bootstrap_name = self.ctx.bootstrap.name
+        bootstrap = bootstrap_name = self.ctx.bootstrap.name
         is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3')
         is_pygame = bootstrap_name in ('pygame',)
+        is_webview = bootstrap_name in ('webview',)
 
-        if is_sdl2:
-            bootstrap = 'sdl2'
+        if is_sdl2 or is_webview:
+            if is_sdl2:
+                bootstrap = 'sdl2'
             java_ns = 'org.kivy.android'
             jni_ns = 'org/kivy/android'
         elif is_pygame:
-            bootstrap = 'pygame'
             java_ns = 'org.renpy.android'
             jni_ns = 'org/renpy/android'
         else:
@@ -64,7 +65,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
                             fh.write(th.format(key, value if isinstance(value, int)
                                                     else '"{}"'.format(value)))
                             self.config_env[key] = str(value)
-    
+
                         if is_sdl2:
                             fh.write('JNIEnv *SDL_AndroidGetJNIEnv(void);\n')
                             fh.write('#define SDL_ANDROID_GetJNIEnv SDL_AndroidGetJNIEnv\n')

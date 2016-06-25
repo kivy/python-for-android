@@ -1,50 +1,60 @@
 
-Quickstart
-==========
+Getting Started
+===============
 
-These simple steps run through the most simple procedure to create an
-APK with some simple default parameters. See the :doc:`commands
-documentation <commands>` for all the different commands and build
-options available.
+Getting up and running on python-for-android (p4a) is a simple process
+and should only take you a couple of minutes. We'll refer to Python
+for android as p4a in this documentation.
 
-.. warning:: These instructions are quite preliminary. The
-             installation and use process will become more standard in
-             the near future.
+Concepts
+--------
+
+- requirements: For p4a, your applications dependencies are
+  requirements similar to the standard `requirements.txt`, but with
+  one difference: p4a will search for a recipe first instead of
+  installing requirements with pip.
+
+- recipe: A recipe is a file that defines how to compile a
+  requirement. Any libraries that have a Python extension *must* have
+  a recipe in p4a, or compilation will fail. If there is no recipe for
+  a requirement, it will be downloaded using pip.
+
+- build: A build refers to a compiled recipe.
+
+- distribution: A distribution is the final "build" of all your
+  compiled requirements, as an Android project that can be turned
+  directly into an APK. p4a can contain multiple distributions with
+  different sets of requirements.
+
+- bootstrap: A bootstrap is the app backend that will start your
+  application. Your application could use SDL2 as a base, or Pygame,
+  or a web backend like Flask with a WebView bootstrap. Different
+  bootstraps can have different build options.
 
 
 Installation
 ------------
 
-The easiest way to install is with pip. You need to have setuptools installed, then run::
+Installing p4a
+~~~~~~~~~~~~~~
 
-  pip install git+https://github.com/kivy/python-for-android.git
+p4a is now available on on Pypi, so you can install it using pip::
 
-This should install python-for-android (though you may need to run as root or add --user).
+    pip install python-for-android
 
-You could also install python-for-android manually, either via git::
+You can also test the master branch from Github using::
 
-  git clone https://github.com/kivy/python-for-android.git
-  cd python-for-android
+    pip install git+https://github.com/kivy/python-for-android.git
 
-Or by direct download::
+Installing Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~
 
-  wget https://github.com/kivy/python-for-android/archive/master.zip
-  unzip revamp.zip
-  cd python-for-android-revamp
-
-Then in both cases run ``python setup.py install``.
-
-Dependencies
-------------
-
-python-for-android has several dependencies that must be installed,
-via your package manager or otherwise. These include:
+p4a has several dependencies that must be installed:
 
 - git
 - ant
 - python2
 - cython (can be installed via pip)
-- the Android `SDK <https://developer.android.com/sdk/index.html#Other>`_ and `NDK <https://developer.android.com/ndk/downloads/index.html>`_ (see below)
 - a Java JDK (e.g. openjdk-7)
 - zlib (including 32 bit)
 - libncurses (including 32 bit)
@@ -57,205 +67,148 @@ install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant ccache
 
-When installing the Android SDK and NDK, note the filepaths where they
-may be found, and the version of the NDK installed. You may need to
-set environment variables pointing to these later.
+Installing Android SDK
+~~~~~~~~~~~~~~~~~~~~~~
 
-.. _basic_use:
+You need to download and unpack to a directory (let's say $HOME/Documents/):
 
-Basic use
----------
+- `Android SDK <https://developer.android.com/sdk/index.html#Other>`_
+- `Android NDK <https://developer.android.com/ndk/downloads/index.html>`_
 
-python-for-android provides two executables, ``python-for-android``
-and ``p4a``. These are identical and interchangeable, you can
-substitute either one for the other. These instructions all use
-``python-for-android``.
+Then, you can edit your `~/.bashrc` or others favorite shell to include new environment variables necessary for building on android::
 
-You can test that p4a was installed correctly by running
-``python-for-android recipes``. This should print a list of all the
-recipes available to be built into your APKs.
+    # Adjust the paths!
+    export ANDROIDSDK="$HOME/Documents/android-sdk-21"
+    export ANDROIDNDK="$HOME/Documents/android-ndk-r10e"
+    export ANDROIDAPI="14"  # Minimum API version your application require
+    export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 
-Before running any apk packaging or distribution creation, it is
-essential to set some env vars. Make sure you have installed the
-Android SDK and NDK, then:
+You have the possibility to configure on any command the PATH to the SDK, NDK and Android API using:
 
-- Set the ``ANDROIDSDK`` env var to the ``/path/to/the/sdk``
-- Set the ``ANDROIDNDK`` env var to the ``/path/to/the/ndk``
-- Set the ``ANDROIDAPI`` to the targeted API version (or leave it
-  unset to use the default of ``14``).
-- Set the ``ANDROIDNDKVER`` env var to the version of the NDK
-  downloaded, e.g. the current NDK is ``r10e`` (or leave it unset to
-  use the default of ``r9``.
+- `--sdk_dir PATH` as an equivalent of `$ANDROIDSDK`
+- `--ndk_dir PATH` as an equivalent of `$ANDROIDNDK`
+- `--android_api VERSION` as an equivalent of `$ANDROIDAPI`
+- `--ndk_ver PATH` as an equivalent of `$ANDROIDNDKVER`
 
-This is **NOT** the only way to set these variables, see the `setting
-SDK/NDK paths <setting_paths_>`_ section for other options and their
-details.
 
-To create a basic distribution, run .e.g::
+Usage
+-----
 
-     python-for-android create --dist_name=testproject --bootstrap=pygame \
-         --requirements=sdl,python2
+Build a Kivy application
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-This will compile the distribution, which will take a few minutes, but
-will keep you informed about its progress. The arguments relate to the
-properties of the created distribution; the dist_name is an (optional)
-unique identifier, and the requirements is a list of any pure Python
-pypi modules, or dependencies with recipes available, that your app
-depends on. The full list of builtin internal recipes can be seen with
-``python-for-android recipes``.
+To build your application, you need to have a name, version, a package
+identifier, and explicitly write the bootstrap you want to use, as
+well as the requirements::
 
-.. note:: Compiled dists are not located in the same place as with old
-          python-for-android, but instead in an OS-dependent
-          location. The build process will print this location when it
-          finishes, but you no longer need to navigate there manually
-          (see below).
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python2,kivy
 
-To build an APK, use the ``apk`` command::
+This will first build a distribution that contains `python2` and `kivy`, and using a SDL2 bootstrap. Python2 is here explicitely written as kivy can work with python2 or python3.
 
-    python-for-android apk --private /path/to/your/app --package=org.example.packagename \
-        --name="Your app name" --version=0.1
+You can also use ``--bootstrap=pygame``, but this bootstrap is deprecated for use with Kivy and SDL2 is preferred.
 
-The arguments to ``apk`` can be anything accepted by the old
-python-for-android build.py; the above is a minimal set to create a
-basic app. You can see the list with ``python-for-android apk help``.
-
-A new feature of python-for-android is that you can do all of this with just one command::
-
-    python-for-android apk --private /path/to/your/app \
-        --package=org.example.packagename --name="Your app name" --version=0.5
-        --bootstrap=pygame --requirements=sdl,python2 --dist_name=testproject
-
-This combines the previous ``apk`` command with the arguments to
-``create``, and works in exactly the same way; if no internal
-distribution exists with these requirements then one is first built,
-before being used to package the APK. When the command is run again,
-the build step is skipped and the previous dist re-used.
-
-Using this method you don't have to worry about whether a dist exists,
-though it is recommended to use a different ``dist_name`` for each
-project unless they have precisely the same requirements.
-
-You can build an SDL2 APK similarly, creating a dist as follows::
-
-    python-for-android create --dist_name=testsdl2 --bootstrap=sdl2 --requirements=sdl2,python2,kivy
-
-Note that you must now explicitly add ``kivy`` to the requirements, as
-its presence is now optional (you can alternatively use SDL2 in other
-ways, such as with PySDL2).
-
-You can then make an APK in the same way, but this is more
-experimental and doesn't support as much customisation yet.
-
-Your APKs are not limited to Kivy, for instance you can create apps
-using Vispy, or using PySDL2 directly. The basic command for this
-would be e.g.::
-
-    python-for-android create --dist_name=testvispy --bootstrap=sdl2 --requirements=vispy
-
-python-for-android also has commands to list internal information
-about distributions available, to export or symlink these (they come
-with a standalone APK build script), and in future will also support
-features including binary download to avoid the manual compilation
-step.
-
-See the :doc:`commands` documentation for full details of available
-functionality.
-
-.. _setting_paths:
-
-Setting paths to the the SDK and NDK
-------------------------------------
-
-If building your own dists it is necessary to have installed the
-Android SDK and NDK, and to make Kivy aware of their locations. The
-instructions in `basic use <basic_use_>`_ use environment variables
-for this, but this is not the only option. The different possibilities
-for each setting are given below.
-
-Path to the Android SDK
-~~~~~~~~~~~~~~~~~~~~~~~
-
-python-for-android searches in the following places for this path, in
-order; setting any of these variables overrides all the later ones:
-
-- The ``--sdk_dir`` argument to any python-for-android command.
-- The ``ANDROIDSDK`` environment variable.
-- The ``ANDROID_HOME`` environment variable (this may be used or set
-  by other tools).
-- By using buildozer and letting it download the SDK;
-  python-for-android automatically checks the default buildozer
-  download directory. This is intended to make testing
-  python-for-android easy.
-
-If none of these is set, python-for-android will raise an error and exit.
-
-The Android API to target
+Build a WebView application
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When building for Android it is necessary to target an API number
-corresponding to a specific version of Android. Whatever you choose,
-your APK will probably not work in earlier versions, but you also
-cannot use features introduced in later versions.
+To build your application, you need to have a name, version, a package
+identifier, and explicitly use the webview bootstrap, as
+well as the requirements::
 
-You must download specific platform tools for the SDK for any given
-target, it does not come with any. Do this by running
-``/path/to/android/sdk/tools/android``, which will give a gui
-interface, and select the 'platform tools' option under your chosen
-target.
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My WebView Application" --version 0.1 --bootstrap=webview --requirements=flask --port=5000
 
-The default target of python-for-android is 14, corresponding to
-Android 4.0. This may be changed in the near future.
+You can also replace flask with another web framework.
 
-You must pass the target API to python-for-android, and can do this in
-several ways. Each choice overrides all the later ones:
+Replace ``--port=5000`` with the port your app will serve a website
+on. The default for Flask is 5000.
 
-- The ``--android_api`` argument to any python-for-android command.
-- The ``ANDROIDAPI`` environment variables.
-- If neither of the above, the default target is used (currently 14).
+Build an SDL2 based application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-python-for-android checks if the target you select is available, and
-gives an error if not, so it's easy to test if you passed this
-variable correctly.
+This includes `Vispy <http://vispy.org/>`__ and `PySDL2
+<https://pysdl2.readthedocs.io/en/latest/>`__.
 
-Path to the Android NDK
-~~~~~~~~~~~~~~~~~~~~~~~
+To build your application, you need to have a name, version, a package
+identifier, and explicitly write the sdl2 bootstrap, as well as the
+requirements::
 
-python-for-android searches in the following places for this path, in
-order; setting any of these variables overrides all the later ones:
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My SDL2 application" --version 0.1 --bootstrap=sdl2 --requirements=your_requirements
 
-- The ``--ndk_dir`` argument to any python-for-android command.
-- The ``ANDROIDNDK`` environment variable.
-- The ``NDK_HOME`` environment variable (this may be used or set
-  by other tools).
-- The ``ANDROID_NDK_HOME`` environment variable (this may be used or set
-- By using buildozer and letting it download the NDK;
-  python-for-android automatically checks the default buildozer
-  download directory. This is intended to make testing
-  python-for-android easy.
-  by other tools).
+Add your required modules in place of ``your_requirements``,
+e.g. ``--requirements=pysdl2`` or ``--requirements=vispy``.
+    
 
-If none of these is set, python-for-android will raise an error and exit.
+Rebuild everything
+~~~~~~~~~~~~~~~~~~
 
-The Android NDK version
-~~~~~~~~~~~~~~~~~~~~~~~
+If anything goes wrong and you want to clean the downloads and builds to retry everything, run::
 
-python-for-android needs to know what version of the NDK is installed,
-in order to properly resolve its internal filepaths. You can set this
-with any of the following methods - note that the first is preferred,
-and means that you probably do *not* have to manually set this.
+    p4a clean_all
+    
+If you just want to clean the builds to avoid redownloading dependencies, run::
 
-- The ``RELEASE.TXT`` file in the NDK directory. If this exists and
-  contains the version (which it probably does automatically), you do
-  not need to set it manually.
-- The ``--ndk_ver`` argument to any python-for-android command.
-- The ``ANDROIDNDKVER`` environment variable.
+    p4a clean_builds && p4a clean_dists
+    
+Getting help
+~~~~~~~~~~~~
 
-If ``RELEASE.TXT`` exists but you manually set a different version,
-python-for-android will warn you about it, but will assume you are
-correct and try to continue the build.
+If something goes wrong and you don't know how to fix it, add the
+``--debug`` option and post the output log to the `kivy-users Google
+group <https://groups.google.com/forum/#!forum/kivy-users>`__ or irc
+channel #kivy at irc.freenode.net .
 
+See :ref:`Troubleshooting <troubleshooting>` for more information.
+
+
+Advanced usage
+--------------
+
+Recipe management
+~~~~~~~~~~~~~~~~~~
+
+You can see the list of the available recipes with::
+
+    p4a recipes
+    
+If you are contributing to p4a and want to test a recipes again,
+you need to clean the build and rebuild your distribution::
+
+    p4a clean_recipe_build RECIPENAME
+    p4a clean_dists
+    # then rebuild your distribution
+
+You can write "private" recipes for your application, just create a
+``p4a-recipes`` folder in your build directory, and place a recipe in
+it (edit the ``__init__.py``)::
+
+    mkdir -p p4a-recipes/myrecipe
+    touch p4a-recipes/myrecipe/__init__.py
+    
+
+Distribution management
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every time you start a new project, python-for-android will internally
+create a new distribution (an Android build project including Python
+and your other dependencies compiled for Android), according to the
+requirements you added on the command line. You can force the reuse of
+an existing distribution by adding::
+
+   p4a apk --dist_name=myproject ...
+
+This will ensure your distribution will always be built in the same
+directory, and avoids using more disk space every time you adjust a
+requirement.
+
+You can list the available distributions::
+
+    p4a distributions
+
+And clean all of them::
+
+    p4a clean_dists
+    
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
@@ -267,3 +220,20 @@ include such as:
     --dist_name my_example
     --android_api 19
     --requirements kivy,openssl
+
+
+Going further
+~~~~~~~~~~~~~
+
+See the other pages of this doc for more information on specific topics:
+
+.. toctree::
+   :maxdepth: 1
+
+   More detailed build options<buildoptions>
+   Command line arguments<commands>
+   Creating and editing recipes<recipes>
+   Creating and editing bootstraps<bootstraps>
+   Using the Android Java APIs<apis>
+   Troubleshooting<troubleshooting>
+   Contributing<contribute>

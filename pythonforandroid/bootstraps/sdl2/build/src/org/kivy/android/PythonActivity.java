@@ -61,7 +61,6 @@ public class PythonActivity extends SDLActivity {
         super.onCreate(savedInstanceState);
         Log.v(TAG, "Did super onCreate");
 
-        this.showLoadingScreen();
         this.mActivity = this;
 
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
@@ -325,6 +324,8 @@ public class PythonActivity extends SDLActivity {
       // 1. if the image is valid and we don't have layout yet, assign this bitmap
       // as main view.
       // 2. if we have a layout, just set it in the layout.
+      // 3. If we have an mImageView already, then do nothing because it will have
+      // already been made the content view or added to the layout.
       if (mImageView == null) {
         int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
         InputStream is = this.getResources().openRawResource(presplashId);
@@ -343,12 +344,12 @@ public class PythonActivity extends SDLActivity {
         ViewGroup.LayoutParams.FILL_PARENT,
         ViewGroup.LayoutParams.FILL_PARENT));
         mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-      }
 
-      if (mLayout == null) {
-        setContentView(mImageView);
-      } else {
-        mLayout.addView(mImageView);
+        if (mLayout == null) {
+          setContentView(mImageView);
+        } else {
+          mLayout.addView(mImageView);
+        }
       }
     }
 

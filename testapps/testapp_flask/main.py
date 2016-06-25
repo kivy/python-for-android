@@ -61,6 +61,14 @@ def vibrate():
     vibrator.vibrate(float(args['time']) * 1000)
     print('vibrated')
 
+@app.route('/loadUrl')
+def loadUrl():
+    args = request.args
+    if 'url' not in args:
+        print('ERROR: asked to open an url but without url argument')
+    print('asked to open url', args['url'])
+    activity.loadUrl(args['url'])
+
 @app.route('/orientation')
 def orientation():
     args = request.args
@@ -69,7 +77,7 @@ def orientation():
     direction = args['dir']
     if direction not in ('horizontal', 'vertical'):
         print('ERROR: asked to orient to neither horizontal nor vertical')
-        
+
     if direction == 'horizontal':
         activity.setRequestedOrientation(
             ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
