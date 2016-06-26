@@ -311,7 +311,7 @@ public class PythonActivity extends SDLActivity {
       runOnUiThread(new Runnable() {
         public void run() {
           if (PythonActivity.mImageView != null && 
-        		  PythonActivity.mImageView.getParent()!=null) {
+        		  PythonActivity.mImageView.getParent() != null) {
             ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
             PythonActivity.mImageView);
             PythonActivity.mImageView = null;
