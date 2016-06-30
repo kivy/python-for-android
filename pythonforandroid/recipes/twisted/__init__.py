@@ -15,10 +15,13 @@ class TwistedRecipe(CythonRecipe):
     version = '15.4.0'
     url = 'https://pypi.python.org/packages/source/T/Twisted/Twisted-{version}.tar.bz2'
 
-    depends = ['setuptools', 'zope_interface']
+    depends = ['setuptools', 'zope_interface', 'wheel']
 
     call_hostpython_via_targetpython = False
     install_in_hostpython = True
+
+    use_pip = True
+    wheel_name = 'Twisted'
 
     def prebuild_arch(self, arch):
         super(TwistedRecipe, self).prebuild_arch(arch)
