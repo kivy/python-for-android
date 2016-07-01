@@ -754,4 +754,4 @@ def main():
     # NewToolchainCL()
 
 if __name__ == "__main__":
-    new_main()
+    main()
