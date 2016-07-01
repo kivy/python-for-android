@@ -94,16 +94,16 @@ def require_prebuilt_dist(func):
     return wrapper_func
 
 
-def dist_from_args(ctx, dist_args):
+def dist_from_args(ctx, args):
     '''Parses out any distribution-related arguments, and uses them to
     obtain a Distribution class instance for the build.
     '''
     return Distribution.get_distribution(
         ctx,
-        name=dist_args.dist_name,
-        recipes=split_argument_list(dist_args.requirements),
-        extra_dist_dirs=split_argument_list(dist_args.extra_dist_dirs),
-        require_perfect_match=dist_args.require_perfect_match)
+        name=args.dist_name,
+        recipes=split_argument_list(args.requirements),
+        extra_dist_dirs=split_argument_list(args.extra_dist_dirs),
+        require_perfect_match=args.require_perfect_match)
 
 
 def build_dist_from_args(ctx, dist, args):
@@ -668,10 +668,10 @@ class ToolchainCL(object):
             help='Print some debug information about current built components',
             parents=[generic_parser])
 
-        print('ready to parse', sys.argv[1:])
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
-        print('args are', args)
+
+        self.args = args
 
         setup_color(args.color)
 
@@ -853,7 +853,7 @@ class ToolchainCL(object):
 
         '''
         ctx = self.ctx
-        dist = dist_from_args(ctx, self.dist_args)
+        dist = dist_from_args(ctx, args)
         if dist.needs_build:
             info('You asked to symlink a dist, but there is no dist '
                  'with suitable recipes available. For now, you must '
@@ -863,12 +863,12 @@ class ToolchainCL(object):
 
     # def _get_dist(self):
     #     ctx = self.ctx
-    #     dist = dist_from_args(ctx, self.dist_args)
+    #     dist = dist_from_args(ctx, self.args)
 
     @property
     def _dist(self):
         ctx = self.ctx
-        dist = dist_from_args(ctx, self.dist_args)
+        dist = dist_from_args(ctx, self.args)
         return dist
 
     @require_prebuilt_dist
@@ -942,7 +942,7 @@ class ToolchainCL(object):
         pass  # The decorator does this for us
         # ctx = self.ctx
 
-        # dist = dist_from_args(ctx, self.dist_args)
+        # dist = dist_from_args(ctx, self.args)
         # if not dist.needs_build:
         #     info('You asked to create a distribution, but a dist with '
         #          'this name already exists. If you don\'t want to use '
