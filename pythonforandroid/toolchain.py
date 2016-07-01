@@ -751,7 +751,6 @@ class ToolchainCL(object):
 
 def main():
     ToolchainCL()
-    # NewToolchainCL()
 
 if __name__ == "__main__":
     main()
