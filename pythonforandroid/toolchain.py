@@ -102,8 +102,6 @@ def dist_from_args(ctx, dist_args):
         ctx,
         name=dist_args.dist_name,
         recipes=split_argument_list(dist_args.requirements),
-        allow_download=False,  # TODO: remove
-        allow_build=dist_args.allow_build,
         extra_dist_dirs=split_argument_list(dist_args.extra_dist_dirs),
         require_perfect_match=dist_args.require_perfect_match)
 
@@ -536,16 +534,6 @@ class ToolchainCL(object):
             default=None)
 
         add_boolean_option(
-            generic_parser, ["allow-download"],
-            default=False,
-            description='Whether to allow binary dist download:')
-
-        add_boolean_option(
-            generic_parser, ["allow-build"],
-            default=True,
-            description='Whether to allow compilation of a new distribution:')
-
-        add_boolean_option(
             generic_parser, ["force-build"],
             default=False,
             description='Whether to force compilation of a new distribution:')
@@ -681,21 +669,23 @@ class ToolchainCL(object):
             parents=[generic_parser])
 
         print('ready to parse', sys.argv[1:])
-        args = parser.parse_args(sys.argv[1:])
+        args, unknown = parser.parse_known_args(sys.argv[1:])
+        args.unknown_args = unknown
         print('args are', args)
 
         setup_color(args.color)
 
         # strip version from requirements, and put them in environ
-        requirements = []
-        for requirement in split_argument_list(args.requirements):
-            if "==" in requirement:
-                requirement, version = requirement.split(u"==", 1)
-                os.environ["VERSION_{}".format(requirement)] = version
-                info('Recipe {}: version "{}" requested'.format(
-                    requirement, version))
-            requirements.append(requirement)
-        args.requirements = u",".join(requirements)
+        if hasattr(args, 'requirements'):
+            requirements = []
+            for requirement in split_argument_list(args.requirements):
+                if "==" in requirement:
+                    requirement, version = requirement.split(u"==", 1)
+                    os.environ["VERSION_{}".format(requirement)] = version
+                    info('Recipe {}: version "{}" requested'.format(
+                        requirement, version))
+                requirements.append(requirement)
+            args.requirements = u",".join(requirements)
 
         self.ctx = Context()
         self.storage_dir = args.storage_dir
@@ -845,7 +835,7 @@ class ToolchainCL(object):
         and can use the apk command instead.
         '''
         ctx = self.ctx
-        dist = dist_from_args(ctx, self.dist_args)
+        dist = dist_from_args(ctx, args)
         if dist.needs_build:
             info('You asked to export a dist, but there is no dist '
                  'with suitable recipes available. For now, you must '
@@ -918,7 +908,7 @@ class ToolchainCL(object):
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
-            build_args = build.parse_args(args)
+            build_args = build.parse_args(args.unknown_args)
             output = shprint(sh.ant, apk_args.build_mode, _tail=20, _critical=True, _env=env)
 
         info_main('# Copying APK to current directory')
@@ -1049,7 +1039,7 @@ class ToolchainCL(object):
     def logcat(self, args):
         '''Runs ``adb logcat`` using the adb binary from the detected SDK
         directory. All extra args are passed as arguments to logcat.'''
-        self.adb(['logcat'] + args)
+        self.adb(['logcat'] + args.unknown_args)
 
     def build_status(self, args):
 
