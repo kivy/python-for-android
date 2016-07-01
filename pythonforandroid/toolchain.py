@@ -612,18 +612,38 @@ class ToolchainCL(object):
             'clear_download_cache', aliases=['clear-download-cache'],
             help='Delete any cached recipe downloads',
             parents=[generic_parser])
+
         parser_export_dist = subparsers.add_parser(
             'export_dist', aliases=['export-dist'],
             help='Copy the named dist to the given path',
             parents=[generic_parser])
+        parser_export_dist.add_argument('--output', help=('The output dir to copy to'),
+                                        required=True)
+
         parser_symlink_dist = subparsers.add_parser(
             'symlink_dist', aliases=['symlink-dist'],
             help='Symlink the named dist at the given path',
             parents=[generic_parser])
+        parser_symlink_dist.add_argument('--output', help=('The output dir to copy to'),
+                                         required=True)
         # todo: make symlink an option of export
+
         parser_apk = subparsers.add_parser(
             'apk', help='Build an APK',
             parents=[generic_parser])
+        parser_apk.add_argument('--release', dest='build_mode', action='store_const',
+                        const='release', default='debug',
+                        help='Build the PARSER_APK. in Release mode')
+        parser_apk.add_argument('--keystore', dest='keystore', action='store', default=None,
+                        help=('Keystore for JAR signing key, will use jarsigner '
+                              'default if not specified (release build only)'))
+        parser_apk.add_argument('--signkey', dest='signkey', action='store', default=None,
+                        help='Key alias to sign PARSER_APK. with (release build only)')
+        parser_apk.add_argument('--keystorepw', dest='keystorepw', action='store', default=None,
+                        help='Password for keystore')
+        parser_apk.add_argument('--signkeypw', dest='signkeypw', action='store', default=None,
+                        help='Password for key alias')
+
         parser_create = subparsers.add_parser(
             'create', help='Compile a set of requirements into a dist',
             parents=[generic_parser])
@@ -812,9 +832,6 @@ class ToolchainCL(object):
 
         This does *not* delete the build caches or final distributions.
         '''
-        parser = argparse.ArgumentParser(
-                description="Delete all download caches")
-        args = parser.parse_args(args)
         ctx = self.ctx
         if exists(ctx.packages_path):
             shutil.rmtree(ctx.packages_path)
@@ -827,12 +844,6 @@ class ToolchainCL(object):
         or call build.py, though you do not in general need to do this
         and can use the apk command instead.
         '''
-        parser = argparse.ArgumentParser(
-            description='Copy a created dist to a given directory')
-        parser.add_argument('--output', help=('The output dir to copy to'),
-                            required=True)
-        args = parser.parse_args(args)
-
         ctx = self.ctx
         dist = dist_from_args(ctx, self.dist_args)
         if dist.needs_build:
@@ -851,12 +862,6 @@ class ToolchainCL(object):
         and can use the apk command instead.
 
         '''
-        parser = argparse.ArgumentParser(
-            description='Symlink a created dist to a given directory')
-        parser.add_argument('--output', help=('The output dir to copy to'),
-                            required=True)
-        args = parser.parse_args(args)
-
         ctx = self.ctx
         dist = dist_from_args(ctx, self.dist_args)
         if dist.needs_build:
@@ -879,23 +884,6 @@ class ToolchainCL(object):
     @require_prebuilt_dist
     def apk(self, args):
         '''Create an APK using the given distribution.'''
-
-        print('got to apk function')
-        ap = argparse.ArgumentParser(
-            description='Build an APK')
-        ap.add_argument('--release', dest='build_mode', action='store_const',
-                        const='release', default='debug',
-                        help='Build the APK in Release mode')
-        ap.add_argument('--keystore', dest='keystore', action='store', default=None,
-                        help=('Keystore for JAR signing key, will use jarsigner '
-                              'default if not specified (release build only)'))
-        ap.add_argument('--signkey', dest='signkey', action='store', default=None,
-                        help='Key alias to sign APK with (release build only)')
-        ap.add_argument('--keystorepw', dest='keystorepw', action='store', default=None,
-                        help='Password for keystore')
-        ap.add_argument('--signkeypw', dest='signkeypw', action='store', default=None,
-                        help='Password for key alias')
-        apk_args, args = ap.parse_known_args(args)
 
         ctx = self.ctx
         dist = self._dist
@@ -1026,11 +1014,6 @@ class ToolchainCL(object):
         intended as a convenience function if android is not in your
         $PATH.
         '''
-        parser = argparse.ArgumentParser(
-            description='Run a binary from the /path/to/sdk/tools directory')
-        parser.add_argument('tool', help=('The tool binary name to run'))
-        args, unknown = parser.parse_known_args(args)
-
         ctx = self.ctx
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
