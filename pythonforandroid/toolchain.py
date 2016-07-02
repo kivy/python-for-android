@@ -294,7 +294,16 @@ class ToolchainCL(object):
         subparsers = parser.add_subparsers(dest='subparser_name',
                                            help='The command to run')
 
-        parser_recipes = subparsers.add_parser(
+        def add_parser(subparsers, *args, **kwargs):
+            '''
+            argparse in python2 doesn't support the aliases option,
+            so we just don't provide the aliases there.
+            '''
+            if 'aliases' in kwargs and sys.version_info.major < 3:
+                kwargs.pop('aliases')
+            return subparsers.add_parser(*args, **kwargs)
+
+        parser_recipes = add_parser(subparsers,
             'recipes',
             parents=[generic_parser],
             help='List the available recipes')
@@ -302,38 +311,38 @@ class ToolchainCL(object):
                 "--compact", action="store_true", default=False,
                 help="Produce a compact list suitable for scripting")
 
-        parser_bootstraps = subparsers.add_parser(
+        parser_bootstraps = add_parser(subparsers,
             'bootstraps', help='List the available bootstraps',
             parents=[generic_parser])
-        parser_clean_all = subparsers.add_parser(
+        parser_clean_all = add_parser(subparsers,
             'clean_all', aliases=['clean-all'],
             help='Delete all builds, dists and caches',
             parents=[generic_parser])
-        parser_clean_dists = subparsers.add_parser(
+        parser_clean_dists = add_parser(subparsers,
             'clean_dists', aliases=['clean-dists'],
             help='Delete all dists',
             parents=[generic_parser])
-        parser_clean_bootstrap_builds = subparsers.add_parser(
+        parser_clean_bootstrap_builds = add_parser(subparsers,
             'clean_bootstrap_builds', aliases=['clean-bootstrap-builds'],
             help='Delete all bootstrap builds',
             parents=[generic_parser])
-        parser_clean_builds = subparsers.add_parser(
+        parser_clean_builds = add_parser(subparsers,
             'clean_builds', aliases=['clean-builds'],
             help='Delete all builds',
             parents=[generic_parser])
 
-        parser_clean_recipe_build = subparsers.add_parser(
+        parser_clean_recipe_build = add_parser(subparsers,
             'clean_recipe_build', aliases=['clean-recipe-build'],
             help='Delete the build info for the given recipe',
             parents=[generic_parser])
         parser_clean_recipe_build.add_argument('recipe', help='The recipe name')
 
-        parser_clear_download_cache= subparsers.add_parser(
+        parser_clear_download_cache= add_parser(subparsers,
             'clear_download_cache', aliases=['clear-download-cache'],
             help='Delete any cached recipe downloads',
             parents=[generic_parser])
 
-        parser_export_dist = subparsers.add_parser(
+        parser_export_dist = add_parser(subparsers,
             'export_dist', aliases=['export-dist'],
             help='Copy the named dist to the given path',
             parents=[generic_parser])
@@ -341,7 +350,7 @@ class ToolchainCL(object):
         parser_export_dist.add_argument('--symlink', action='store_true',
                                         help=('Symlink the dist instead of copying'))
 
-        parser_apk = subparsers.add_parser(
+        parser_apk = add_parser(subparsers,
             'apk', help='Build an APK',
             parents=[generic_parser])
         parser_apk.add_argument('--release', dest='build_mode', action='store_const',
@@ -357,34 +366,34 @@ class ToolchainCL(object):
         parser_apk.add_argument('--signkeypw', dest='signkeypw', action='store', default=None,
                         help='Password for key alias')
 
-        parser_create = subparsers.add_parser(
+        parser_create = add_parser(subparsers,
             'create', help='Compile a set of requirements into a dist',
             parents=[generic_parser])
-        parser_archs = subparsers.add_parser(
+        parser_archs = add_parser(subparsers,
             'archs', help='List the available target architectures',
             parents=[generic_parser])
-        parser_distributions = subparsers.add_parser(
+        parser_distributions = add_parser(subparsers,
             'distributions', aliases=['dists'],
             help='List the currently available (compiled) dists',
             parents=[generic_parser])
-        parser_delete_dist = subparsers.add_parser(
+        parser_delete_dist = add_parser(subparsers,
             'delete_dist', aliases=['delete-dist'], help='Delete a compiled dist',
             parents=[generic_parser])
 
-        parser_sdk_tools = subparsers.add_parser(
+        parser_sdk_tools = add_parser(subparsers,
             'sdk_tools', aliases=['sdk-tools'],
             help='Run the given binary from the SDK tools dis',
             parents=[generic_parser])
         parser_sdk_tools.add_argument(
             'tool', help=('The tool binary name to run'))
 
-        parser_adb = subparsers.add_parser(
+        parser_adb = add_parser(subparsers,
             'adb', help='Run adb from the given SDK',
             parents=[generic_parser])
-        parser_logcat = subparsers.add_parser(
+        parser_logcat = add_parser(subparsers,
             'logcat', help='Run logcat from the given SDK',
             parents=[generic_parser])
-        parser_build_status = subparsers.add_parser(
+        parser_build_status = add_parser(subparsers,
             'build_status', aliases=['build-status'],
             help='Print some debug information about current built components',
             parents=[generic_parser])
