@@ -287,16 +287,9 @@ class ToolchainCL(object):
             'export_dist', aliases=['export-dist'],
             help='Copy the named dist to the given path',
             parents=[generic_parser])
-        parser_export_dist.add_argument('--output', help=('The output dir to copy to'),
-                                        required=True)
-
-        parser_symlink_dist = subparsers.add_parser(
-            'symlink_dist', aliases=['symlink-dist'],
-            help='Symlink the named dist at the given path',
-            parents=[generic_parser])
-        parser_symlink_dist.add_argument('--output', help=('The output dir to copy to'),
-                                         required=True)
-        # todo: make symlink an option of export
+        parser_export_dist.add_argument('output_dir', help=('The output dir to copy to'))
+        parser_export_dist.add_argument('--symlink', action='store_true',
+                                        help=('Symlink the dist instead of copying'))
 
         parser_apk = subparsers.add_parser(
             'apk', help='Build an APK',
@@ -523,29 +516,10 @@ class ToolchainCL(object):
                  'with suitable recipes available. For now, you must '
                  ' create one first with the create argument.')
             exit(1)
-        shprint(sh.cp, '-r', dist.dist_dir, args.output)
-
-    @require_prebuilt_dist
-    def symlink_dist(self, args):
-        '''Symlinks a created dist to an output dir.
-
-        This makes it easy to navigate to the dist to investigate it
-        or call build.py, though you do not in general need to do this
-        and can use the apk command instead.
-
-        '''
-        ctx = self.ctx
-        dist = dist_from_args(ctx, args)
-        if dist.needs_build:
-            info('You asked to symlink a dist, but there is no dist '
-                 'with suitable recipes available. For now, you must '
-                 'create one first with the create argument.')
-            exit(1)
-        shprint(sh.ln, '-s', dist.dist_dir, args.output)
-
-    # def _get_dist(self):
-    #     ctx = self.ctx
-    #     dist = dist_from_args(ctx, self.args)
+        if args.symlink:
+            shprint(sh.ln, '-s', dist.dist_dir, args.output_dir)
+        else:
+            shprint(sh.cp, '-r', dist.dist_dir, args.output_dir)
 
     @property
     def _dist(self):
