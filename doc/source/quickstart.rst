@@ -72,12 +72,12 @@ install most of these with::
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
 
-You need to download and unpack to a directory (let's say $HOME/Documents/):
+You need to download and unpack the Android SDK and NDK to a directory (let's say $HOME/Documents/):
 
 - `Android SDK <https://developer.android.com/sdk/index.html#Other>`_
 - `Android NDK <https://developer.android.com/ndk/downloads/index.html>`_
 
-Then, you can edit your `~/.bashrc` or others favorite shell to include new environment variables necessary for building on android::
+Then, you can edit your ``~/.bashrc`` or other favorite shell to include new environment variables necessary for building on android::
 
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-21"
@@ -87,10 +87,10 @@ Then, you can edit your `~/.bashrc` or others favorite shell to include new envi
 
 You have the possibility to configure on any command the PATH to the SDK, NDK and Android API using:
 
-- `--sdk_dir PATH` as an equivalent of `$ANDROIDSDK`
-- `--ndk_dir PATH` as an equivalent of `$ANDROIDNDK`
-- `--android_api VERSION` as an equivalent of `$ANDROIDAPI`
-- `--ndk_ver PATH` as an equivalent of `$ANDROIDNDKVER`
+- :code:`--sdk_dir PATH` as an equivalent of `$ANDROIDSDK`
+- :code:`--ndk_dir PATH` as an equivalent of `$ANDROIDNDK`
+- :code:`--android_api VERSION` as an equivalent of `$ANDROIDAPI`
+- :code:`--ndk_ver PATH` as an equivalent of `$ANDROIDNDKVER`
 
 
 Usage
