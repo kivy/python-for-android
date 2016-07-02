@@ -667,7 +667,7 @@ class ToolchainCL(object):
                                       user_ndk_ver=self.ndk_version)
         android = sh.Command(join(ctx.sdk_dir, 'tools', args.tool))
         output = android(
-            *unknown, _iter=True, _out_bufsize=1, _err_to_out=True)
+            *args.unknown_args, _iter=True, _out_bufsize=1, _err_to_out=True)
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
@@ -677,6 +677,16 @@ class ToolchainCL(object):
         arguments straight to it. This is intended as a convenience
         function if adb is not in your $PATH.
         '''
+        self._adb(args.unknown_args)
+
+    def logcat(self, args):
+        '''Runs ``adb logcat`` using the adb binary from the detected SDK
+        directory. All extra args are passed as arguments to logcat.'''
+        self._adb(['logcat'] + args.unknown_args)
+
+    def _adb(self, commands):
+        '''Call the adb executable from the SDK, passing the given commands as
+        arguments.'''
         ctx = self.ctx
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
@@ -687,15 +697,11 @@ class ToolchainCL(object):
         else:
             adb = sh.Command(join(ctx.sdk_dir, 'platform-tools', 'adb'))
         info_notify('Starting adb...')
-        output = adb(args, _iter=True, _out_bufsize=1, _err_to_out=True)
+        output = adb(*commands, _iter=True, _out_bufsize=1, _err_to_out=True)
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
-
-    def logcat(self, args):
-        '''Runs ``adb logcat`` using the adb binary from the detected SDK
-        directory. All extra args are passed as arguments to logcat.'''
-        self.adb(['logcat'] + args.unknown_args)
+        
 
     def build_status(self, args):
 
