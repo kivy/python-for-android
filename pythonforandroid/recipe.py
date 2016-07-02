@@ -900,6 +900,43 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
                 *self.setup_extra_args)
 
+class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
+    """ Extensions that require the cxx-stl """
+    call_hostpython_via_targetpython = False
+ 
+    def get_recipe_env(self, arch):
+        env = super(CppCompiledComponentsPythonRecipe, self).get_recipe_env(arch)
+        keys = dict(
+            ctx=self.ctx,
+            arch=arch,
+            arch_noeabi=arch.arch.replace('eabi', ''),
+            pyroot=self.ctx.get_python_install_dir()
+        )
+        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
+        env['CFLAGS'] += " -I{pyroot}/include/python2.7 " \
+                        " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
+                        " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" \
+                        " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys)
+        env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
+        env['LDFLAGS'] += " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" \
+                " -lpython2.7" \
+                " -lgnustl_shared".format(**keys)
+                
+         
+        return env
+    
+    def build_compiled_components(self,arch):
+        super(CppCompiledComponentsPythonRecipe, self).build_compiled_components(arch)
+        
+        # Copy libgnustl_shared.so
+        with current_directory(self.get_build_dir(arch.arch)):
+            sh.cp(
+                "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx,arch=arch),
+                self.ctx.get_libs_dir(arch.arch)
+            )
+        
+        
+
 
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
