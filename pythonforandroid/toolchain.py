@@ -8,6 +8,57 @@ This module defines the entry point for command line and programmatic use.
 
 from __future__ import print_function
 
+
+def check_python_dependencies():
+    # Check if the Python requirements are installed. This appears
+    # before the imports because otherwise they're imported elsewhere.
+
+    # Using the ok check instead of failing immediately so that all
+    # errors are printed at once
+
+    from distutils.version import LooseVersion
+    from importlib import import_module
+    import sys
+
+    ok = True
+
+    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2',
+               'argparse', 'six']
+
+    for module in modules:
+        if isinstance(module, tuple):
+            module, version = module
+        else:
+            version = None
+
+        try:
+            import_module(module)
+        except ImportError:
+            if version is None:
+                print('ERROR: The {} module could not be found, please '
+                      'install it.'.format(module))
+                ok = False
+            else:
+                print('ERROR: The {} module could not be found, please install '
+                      'version {} or higher'.format(module, version))
+                ok = False
+        else:
+            if version is None:
+                continue
+            cur_ver = sys.modules[module].__version__
+            if LooseVersion(cur_ver) < LooseVersion(version):
+                print('ERROR: {} version is {}, but python-for-android needs '
+                      'at least {}.'.format(module, cur_ver, version))
+                ok = False
+
+
+    if not ok:
+        print('python-for-android is exiting due to the errors above.')
+        exit(1)
+
+check_python_dependencies()
+
+
 import sys
 from sys import platform
 from os.path import (join, dirname, realpath, exists, expanduser)
