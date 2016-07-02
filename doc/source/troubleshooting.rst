@@ -71,5 +71,14 @@ particular.
 Common errors
 -------------
 
-The following are common errors that can arise during the use of
-python-for-android, along with solutions where possible.
+The following are common problems and resolutions that users have reported.
+
+
+AttributeError: 'AnsiCodes' object has no attribute 'LIGHTBLUE_EX'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This occurs if your version of colorama is too low, install version
+0.3.3 or higher.
+
+If you install python-for-android with pip or via setup.py, this
+dependency should be taken care of automatically.
