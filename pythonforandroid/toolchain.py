@@ -566,32 +566,33 @@ class ToolchainCL(object):
         # they are in the current directory.
         fix_args = ('--dir', '--private', '--add-jar', '--add-source',
                     '--whitelist', '--blacklist', '--presplash', '--icon')
-        for i, arg in enumerate(args[:-1]):
+        unknown_args = args.unknown_args
+        for i, arg in enumerate(unknown_args[:-1]):
             argx = arg.split('=')
             if argx[0] in fix_args:
                 if len(argx) > 1:
-                    args[i] = '='.join((argx[0],
+                    unknown_args[i] = '='.join((argx[0],
                                         realpath(expanduser(argx[1]))))
                 else:
-                    args[i+1] = realpath(expanduser(args[i+1]))
+                    unknown_args[i+1] = realpath(expanduser(unknown_args[i+1]))
 
         env = os.environ.copy()
-        if apk_args.build_mode == 'release':
-            if apk_args.keystore:
-                env['P4A_RELEASE_KEYSTORE'] = realpath(expanduser(apk_args.keystore))
-            if apk_args.signkey:
-                env['P4A_RELEASE_KEYALIAS'] = apk_args.signkey
-            if apk_args.keystorepw:
-                env['P4A_RELEASE_KEYSTORE_PASSWD'] = apk_args.keystorepw
-            if apk_args.signkeypw:
-                env['P4A_RELEASE_KEYALIAS_PASSWD'] = apk_args.signkeypw
-            elif apk_args.keystorepw and 'P4A_RELEASE_KEYALIAS_PASSWD' not in env:
-                env['P4A_RELEASE_KEYALIAS_PASSWD'] = apk_args.keystorepw
+        if args.build_mode == 'release':
+            if args.keystore:
+                env['P4A_RELEASE_KEYSTORE'] = realpath(expanduser(args.keystore))
+            if args.signkey:
+                env['P4A_RELEASE_KEYALIAS'] = args.signkey
+            if args.keystorepw:
+                env['P4A_RELEASE_KEYSTORE_PASSWD'] = args.keystorepw
+            if args.signkeypw:
+                env['P4A_RELEASE_KEYALIAS_PASSWD'] = args.signkeypw
+            elif args.keystorepw and 'P4A_RELEASE_KEYALIAS_PASSWD' not in env:
+                env['P4A_RELEASE_KEYALIAS_PASSWD'] = args.keystorepw
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             build_args = build.parse_args(args.unknown_args)
-            output = shprint(sh.ant, apk_args.build_mode, _tail=20, _critical=True, _env=env)
+            output = shprint(sh.ant, args.build_mode, _tail=20, _critical=True, _env=env)
 
         info_main('# Copying APK to current directory')
 
@@ -605,7 +606,7 @@ class ToolchainCL(object):
 
         if not apk_file:
             info_main('# APK filename not found in build output, trying to guess')
-            apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(apk_args.build_mode)))
+            apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(args.build_mode)))
             if len(apks) == 0:
                 raise ValueError('Couldn\'t find the built APK')
             if len(apks) > 1:
