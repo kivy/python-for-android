@@ -309,10 +309,6 @@ class ToolchainCL(object):
         parser_create = subparsers.add_parser(
             'create', help='Compile a set of requirements into a dist',
             parents=[generic_parser])
-        parser_context_info = subparsers.add_parser(
-            'context_info', aliases=['context-info'],
-            help='Print some debug information about the build context',
-            parents=[generic_parser])
         parser_archs = subparsers.add_parser(
             'archs', help='List the available target architectures',
             parents=[generic_parser])
@@ -595,31 +591,7 @@ class ToolchainCL(object):
         '''Create a distribution directory if it doesn't already exist, run
         any recipes if necessary, and build the apk.
         '''
-        pass  # The decorator does this for us
-        # ctx = self.ctx
-
-        # dist = dist_from_args(ctx, self.args)
-        # if not dist.needs_build:
-        #     info('You asked to create a distribution, but a dist with '
-        #          'this name already exists. If you don\'t want to use '
-        #          'it, you must delete it and rebuild, or create your '
-        #          'new dist with a different name.')
-        #     exit(1)
-        # info('Ready to create dist {}, contains recipes {}'.format(
-        #     dist.name, ', '.join(dist.recipes)))
-
-        # build_dist_from_args(ctx, dist, args)
-
-    def context_info(self, args):
-        '''Prints some debug information about which system paths
-        python-for-android will internally use for package building, along
-        with information about where the Android SDK and NDK will be called
-        from.'''
-        ctx = self.ctx
-        for attribute in ('root_dir', 'build_dir', 'dist_dir', 'libs_dir',
-                          'ccache', 'cython', 'sdk_dir', 'ndk_dir',
-                          'ndk_platform', 'ndk_ver', 'android_api'):
-            print('{} is {}'.format(attribute, getattr(ctx, attribute)))
+        pass  # The decorator does everything
 
     def archs(self, args):
         '''List the target architectures available to be built for.'''
