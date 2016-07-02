@@ -15,7 +15,7 @@ class LibSDLRecipe(BootstrapNDKRecipe):
             info('libsdl.so already exists, skipping sdl build.')
             return
         
-        env = arch.get_env()
+        env = self.get_recipe_env(arch)
 
         with current_directory(self.get_jni_dir()):
             shprint(sh.ndk_build, 'V=1', _env=env, _tail=20, _critical=True)
@@ -26,6 +26,14 @@ class LibSDLRecipe(BootstrapNDKRecipe):
         for content in contents:
             shprint(sh.cp, '-a', join(self.ctx.bootstrap.build_dir, 'libs', arch.arch, content),
                     self.ctx.libs_dir)
+
+    def get_recipe_env(self, arch=None):
+        env = super(LibSDLRecipe, self).get_recipe_env(arch)
+        py2 = self.get_recipe('python2', arch.ctx)
+        env['PYTHON2_NAME'] = py2.get_dir_name()
+        if 'python2' in self.ctx.recipe_build_order:
+            env['EXTRA_LDLIBS'] = ' -lpython2.7'
+        return env
 
 
 recipe = LibSDLRecipe()
