@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Tool for compiling Android toolchain
-====================================
+Tool for packaging Python apps for Android
+==========================================
 
-This tool intend to replace all the previous tools/ in shell script.
+This module defines the entry point for command line and programmatic use.
 """
 
 from __future__ import print_function
@@ -16,7 +16,6 @@ import glob
 import shutil
 import re
 import imp
-import logging
 import shlex
 from functools import wraps
 
