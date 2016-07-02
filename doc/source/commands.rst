@@ -75,7 +75,6 @@ supply those that you need.
   targeted at a time, and a given distribution can only include one architecture.
   
 ``--bootstrap BOOTSTRAP``
-
   The Java bootstrap to use for your application. You mostly don't
   need to worry about this or set it manually, as an appropriate
   bootstrap will be chosen from your ``--requirements``. Current
