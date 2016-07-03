@@ -40,10 +40,10 @@ class BdistAPK(Command):
 
         setup_options = self.distribution.get_option_dict('apk')
         for (option, (source, value)) in setup_options.items():
-            if source != 'setup script':
+            if source == 'command line':
                 continue
             if not argv_contains('--' + option):
-                if value is None:
+                if value in (None, 'None'):
                     sys.argv.append('--{}'.format(option))
                 else:
                     sys.argv.append('--{}={}'.format(option, value))
@@ -77,6 +77,7 @@ class BdistAPK(Command):
 
         from pythonforandroid.toolchain import main
         sys.argv[1] = 'apk'
+        print('argv is', sys.argv)
         main()
 
     def prepare_build_dir(self):

@@ -77,3 +77,15 @@ store them in setup.py by passing the ``options`` parameter to
 These options will be automatically included when you run ``python
 setup.py apk``. Any options passed on the command line will override
 these values.
+
+Adding p4a arguments in setup.cfg
+---------------------------------
+
+You can also provide p4a arguments in the setup.cfg file, as normal
+for distutils. The syntax is::
+
+    [apk]
+
+    argument=value
+
+    requirements=sdl2,kivy
