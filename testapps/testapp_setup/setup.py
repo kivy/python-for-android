@@ -7,6 +7,9 @@ register_args('--requirements=sdl2,pyjnius,kivy,python2',
               '--dist-name=bdisttest',
               '--ndk-version=10.3.1')
 
+options = {'apk': {'--debug': '1',
+                   }}
+
 from setuptools import setup, find_packages
 from distutils.extension import Extension
 
@@ -24,5 +27,6 @@ setup(
     author='Alexander Taylor',
     author_email='alexanderjohntaylor@gmail.com',
     packages=find_packages(),
+    options=options,
     package_data={'testapp': ['*.py', '*.png']}
 )
