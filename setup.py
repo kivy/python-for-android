@@ -49,7 +49,7 @@ setup(name='python-for-android',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/kivy/python-for-android', 
       license='MIT', 
-      install_requires=['appdirs', 'colorama>=0.3.3', 'sh>=1.10', 'jinja2', 'argparse',
+      install_requires=['appdirs', 'colorama>=0.3.3', 'sh>=1.10', 'jinja2',
                         'six'],
       entry_points={
           'console_scripts': [
