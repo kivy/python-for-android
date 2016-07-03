@@ -1,13 +1,12 @@
 
 from pythonforandroid.bdist_apk import register_args
 
-register_args('--requirements=sdl2,pyjnius,kivy,python2',
-              '--android-api=19',
-              '--ndk-dir=/home/asandy/android/crystax-ndk-10.3.1',
-              '--dist-name=bdisttest',
-              '--ndk-version=10.3.1')
-
-options = {'apk': {'--debug': '1',
+options = {'apk': {'debug': None,
+                   'requirements': 'sdl2,pyjnius,kivy,python2',
+                   'android-api': 19,
+                   'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.1',
+                   'dist-name': 'bdisttest',
+                   'ndk-version': '10.3.1',
                    }}
 
 from setuptools import setup, find_packages

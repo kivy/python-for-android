@@ -8,21 +8,12 @@ from os import makedirs
 from glob import glob
 from shutil import rmtree, copyfile
 
+
 def argv_contains(t):
     for arg in sys.argv:
         if arg.startswith(t):
             return True
     return False
-
-
-def register_args(*args):
-    if len(sys.argv) < 2:
-        return
-    if sys.argv[1] == 'apk':
-        print('Detected apk build, registering args {}'.format(args))
-        sys.argv.extend(args)
-
-    _set_user_options()
 
 
 class BdistAPK(Command):
@@ -34,9 +25,28 @@ class BdistAPK(Command):
         for option in self.user_options:
             setattr(self, option[0].strip('=').replace('-', '_'), None)
 
-        self.bdist_dir = None
+        option_dict = self.distribution.get_option_dict('apk')
+        print('option_dict is', option_dict)
+
+        # This is a hack, we probably aren't supposed to loop through
+        # the option_dict so early because distutils does exactly the
+        # same thing later to check that we support the
+        # options. However, it works...
+        for (option, (source, value)) in option_dict.items():
+            setattr(self, option, str(value))
+
 
     def finalize_options(self):
+
+        setup_options = self.distribution.get_option_dict('apk')
+        for (option, (source, value)) in setup_options.items():
+            if source != 'setup script':
+                continue
+            if not argv_contains('--' + option):
+                if value is None:
+                    sys.argv.append('--{}'.format(option))
+                else:
+                    sys.argv.append('--{}={}'.format(option, value))
 
         # Inject some argv options from setup.py if the user did not
         # provide them
@@ -60,6 +70,8 @@ class BdistAPK(Command):
             arch = 'armeabi'
             self.arch = arch
             sys.argv.append('--arch={}'.format(arch))
+
+
                     
 
     def run(self):
