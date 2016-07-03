@@ -23,7 +23,7 @@ def check_python_dependencies():
     ok = True
 
     modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2',
-               'argparse', 'six']
+               'six']
 
     for module in modules:
         if isinstance(module, tuple):
@@ -196,11 +196,21 @@ def split_argument_list(l):
         return []
     return re.split(r'[ ,]+', l)
 
+class NoAbbrevParser(argparse.ArgumentParser):
+    '''We want to disable argument abbreviation so as not to interfere
+    with passing through arguments to build.py, but in python2 argparse
+    doesn't have this option.
+
+    This subclass alternative is follows the suggestion at
+    https://bugs.python.org/issue14910.
+    '''
+    def _get_option_tuples(self, option_string):
+        return []
 
 class ToolchainCL(object):
 
     def __init__(self):
-        parser = argparse.ArgumentParser(
+        parser = NoAbbrevParser(
             description=('A packaging tool for turning Python scripts and apps '
                          'into Android APKs'))
 
