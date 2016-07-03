@@ -255,16 +255,19 @@ def make_package(args):
     else:
         intent_filters = ''
 
-    # Figure out if application has service part
-    service = False
     directory = args.dir if public_version else args.private
-    if not (exists(join(realpath(directory), 'main.py')) or
-            exists(join(realpath(directory), 'main.pyo'))):
-        print('''BUILD FAILURE: No main.py(o) found in your app directory. This
-file must exist to act as the entry point for you app. If your app is
+    # Ignore warning if the launcher is in args
+    if not args.launcher:
+        if not (exists(join(realpath(directory), 'main.py')) or
+                exists(join(realpath(directory), 'main.pyo'))):
+            print('''BUILD FAILURE: No main.py(o) found in your app directory.
+This file must exist to act as the entry point for you app. If your app is
 started by a file with a different name, rename it to main.py or add a
 main.py that loads it.''')
-        exit(1)
+            exit(1)
+
+    # Figure out if application has service part
+    service = False
     if directory:
         service_main = join(realpath(directory), 'service', 'main.py')
         if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
