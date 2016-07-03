@@ -1,5 +1,6 @@
 
-from pythonforandroid.bdist_apk import register_args
+from distutils.core import setup
+from setuptools import find_packages
 
 options = {'apk': {'debug': None,
                    'requirements': 'sdl2,pyjnius,kivy,python2',
@@ -8,9 +9,6 @@ options = {'apk': {'debug': None,
                    'dist-name': 'bdisttest',
                    'ndk-version': '10.3.1',
                    }}
-
-from setuptools import setup, find_packages
-from distutils.extension import Extension
 
 package_data = {'': ['*.py',
                      '*.png']

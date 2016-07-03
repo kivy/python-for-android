@@ -71,9 +71,6 @@ class BdistAPK(Command):
             self.arch = arch
             sys.argv.append('--arch={}'.format(arch))
 
-
-                    
-
     def run(self):
 
         self.prepare_build_dir()
@@ -140,5 +137,5 @@ def _set_user_options():
                 user_options.append((arg[2:], None, None))
 
     BdistAPK.user_options = user_options
-        
+
 _set_user_options()

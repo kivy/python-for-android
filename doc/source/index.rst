@@ -29,6 +29,7 @@ Contents
    quickstart
    buildoptions
    commands
+   distutils
    recipes
    bootstraps
    services
