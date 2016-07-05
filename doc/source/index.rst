@@ -32,9 +32,9 @@ Contents
    recipes
    bootstraps
    services
-   launcher
    apis
    troubleshooting
+   launcher
    contribute
    old_toolchain/index.rst
 
