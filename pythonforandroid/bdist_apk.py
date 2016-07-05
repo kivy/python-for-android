@@ -26,7 +26,6 @@ class BdistAPK(Command):
             setattr(self, option[0].strip('=').replace('-', '_'), None)
 
         option_dict = self.distribution.get_option_dict('apk')
-        print('option_dict is', option_dict)
 
         # This is a hack, we probably aren't supposed to loop through
         # the option_dict so early because distutils does exactly the
@@ -77,7 +76,6 @@ class BdistAPK(Command):
 
         from pythonforandroid.toolchain import main
         sys.argv[1] = 'apk'
-        print('argv is', sys.argv)
         main()
 
     def prepare_build_dir(self):
