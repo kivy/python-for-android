@@ -1,43 +1,33 @@
-# Python for Android
+# python-for-android
 
-Python for Android is a project to create your own Python distribution
-including the modules you want, and create an apk including python,
-libs, and your application.
+python-for-android is a packager for Python apps on Android. You can
+create your own Python distribution including the modules and
+dependencies you want, and bundle it in an APK along with your own
+code.
 
-These tools were recently rewritten to provide a new, easier to use
-and extend interface. If you are looking for the old toolchain with
+python-for-android features include:
+
+- Support for building with both Python 2 and Python 3.
+- Different app backends including Kivy, PySDL2, and a WebView with
+  Python webserver.
+- Automatic support for most pure Python modules, and built in support
+  for many others, including popular dependencies such as numpy and
+  sqlalchemy.
+- Multiple architecture targets, for APKs optimised on any given device.
+
+For documentation and support, see:
+
+- Website: http://python-for-android.readthedocs.io
+- Mailing list: https://groups.google.com/forum/#!forum/kivy-users or
+  https://groups.google.com/forum/#!forum/python-android.
+
+In 2015 these tools were rewritten to provide a new, easier to use and
+extend interface. If you are looking for the old toolchain with
 distribute.sh and build.py, it is still available at
 https://github.com/kivy/python-for-android/tree/old_toolchain, and
 issues and PRs relating to this branch are still accepted. However,
 the new toolchain contains all the same functionality via the built in
 pygame bootstrap.
-
-For documentation and support, see:
-
-- Website: http://python-for-android.rtfd.org/
-- Mailing list: https://groups.google.com/forum/#!forum/kivy-users or
-  https://groups.google.com/forum/#!forum/python-android.
-
-Broad goals of the revamp project include:
-
-- ✓ Replace the old toolchain with a more extensible pythonic one
-- ✓ Support SDL2
-- ✓ Support multiple bootstraps (user-chosen java + NDK code, e.g. for
-  multiple graphics backends or non-Kivy projects)
-- ✓ Support python3 (it finally works!)
-- (WIP) Support some kind of binary distribution, including on windows (semi-implemented, just needs finishing)
-- ✓ Be a standalone PyPI module (now available on PyPI!)
-- ✓ Support multiple architectures (full multiarch builds not complete, but arm and x86 with different config both work now)
-
-We are currently working to stabilise all parts of the toolchain and
-add more features. Support for pygame-based APKs is almost feature
-complete with the old toolchain. Testing and contributions are
-welcome.
-
-The recent replacement of the master branch with the revamp will have
-rendered most/all PRs invalid. Please retarget revamp PRs on the
-master branch, or PRs for the old toolchain on the old_toolchain
-branch.
 
 # Documentation
 
@@ -67,39 +57,9 @@ If you did this, to build an APK with SDL2 you can try e.g.
 
     p4a apk --requirements=kivy --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
-For full instructions and parameter options, see the documentation
-linked above.
+For full instructions and parameter options, see the documentation.
 
-# Known missing stuff from P4A
-
-Relating to all bootstraps:
-- Some recipes/components aren't stripped properly of doc etc.
-- Downloaded file md5 and headers aren't checked
-
-Relating to SDL2 only:
-- Public dir installation
-- Keyboard height getter
-- Billing support
-- Kivy Launcher build (can now be implemented as a bootstrap...maybe?)
-- Probably some other stuff
-
-Here are some specific things relating to changes in p4a itself since
-the reference commit that the revamp is based on:
-
-# Current status
-
-python-for-android is fully ready for use. We are working towards a versioned release.
-
-# Development notes
-
-Original reference commit of p4a master was
-7c8d4ce9db384528f7ea83e0841fe2464a558db8 - possibly some things after
-this need adding to the new toolchain. Some of the major later
-additons, including ctypes in the python build, have already been
-merged here.
-
-Support
--------
+# Support
 
 If you need assistance, you can ask for help on our mailing list:
 
@@ -112,12 +72,11 @@ We also have an IRC channel:
 * Port: 6667, 6697 (SSL only)
 * Channel: #kivy
 
-Contributing
-------------
+# Contributing
 
 We love pull requests and discussing novel ideas. Check out our
 [contribution guide](http://kivy.org/docs/contribute.html) and
-feel free to improve Python for Android.
+feel free to improve python-for-android.
 
 The following mailing list and IRC channel are used exclusively for
 discussions about developing the Kivy framework and its sister projects:
@@ -129,10 +88,9 @@ IRC channel:
 
 * Server: irc.freenode.net
 * Port: 6667, 6697 (SSL only)
-* Channel: #kivy-dev
+* Channel: #kivy or #kivy-dev
 
-License
--------
+# License
 
-Python for Android is released under the terms of the MIT License. Please refer to the
+python-for-android is released under the terms of the MIT License. Please refer to the
 LICENSE file.
