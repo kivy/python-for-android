@@ -110,7 +110,7 @@ This will first build a distribution that contains `python2` and `kivy`, and usi
 You can also use ``--bootstrap=pygame``, but this bootstrap is deprecated for use with Kivy and SDL2 is preferred.
 
 Build a WebView application
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To build your application, you need to have a name, version, a package
 identifier, and explicitly use the webview bootstrap, as
@@ -158,14 +158,14 @@ If something goes wrong and you don't know how to fix it, add the
 group <https://groups.google.com/forum/#!forum/kivy-users>`__ or irc
 channel #kivy at irc.freenode.net .
 
-See :ref:`Troubleshooting <troubleshooting>` for more information.
+See :doc:`troubleshooting` for more information.
 
 
 Advanced usage
 --------------
 
 Recipe management
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 You can see the list of the available recipes with::
 
@@ -187,7 +187,7 @@ it (edit the ``__init__.py``)::
     
 
 Distribution management
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Every time you start a new project, python-for-android will internally
 create a new distribution (an Android build project including Python
@@ -215,7 +215,7 @@ Configuration file
 python-for-android checks in the current directory for a configuration
 file named ``.p4a``. If found, it adds all the lines as options to the
 command line. For example, you can add the options you would always
-include such as:
+include such as::
 
     --dist_name my_example
     --android_api 19
