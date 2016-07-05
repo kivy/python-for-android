@@ -57,7 +57,7 @@ setup(name='python-for-android',
               'p4a = pythonforandroid.toolchain:main',
               ],
           'distutils.commands': [
-              'bdist_apk = pythonforandroid.bdist_apk:BdistAPK',
+              'apk = pythonforandroid.bdistapk:BdistAPK',
               ],
           },
       classifiers = [
