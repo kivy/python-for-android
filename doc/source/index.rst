@@ -32,6 +32,7 @@ Contents
    recipes
    bootstraps
    services
+   launcher
    apis
    troubleshooting
    contribute
