@@ -33,22 +33,11 @@ class DocutilsRecipe(Recipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             env = super(DocutilsRecipe, self).get_recipe_env(arch)
-            env['LDFLAGS'] = ' '.join([env['LDFLAGS'],
-                                      '-L'+self.ctx.get_libs_dir(arch.arch)])
             hostpython = sh.Command(self.ctx.hostpython)
 
-            if self.ctx.python_recipe.from_crystax:
-                env['LDSHARED'] = env['CC'] + ' -shared'
-            else:
-                env['LDSHARED'] = join(self.ctx.root_dir,
-                                       'tools', 'liblink.sh')
-
             shprint(hostpython, 'setup.py', 'build_ext')
-            shprint(sh.Command('find'), '.', '-name', "'*.pyx'",
-                    '-exec', 'cython', '{}', ';')
             shprint(hostpython, 'setup.py', 'build_ext', '-v')
             shprint(hostpython, 'setup.py', 'install', '-O2')
-            env['LDSHARED'] = None
 
     def postbuild_arch(self, arch):
         super(DocutilsRecipe, self).build_arch(arch)
