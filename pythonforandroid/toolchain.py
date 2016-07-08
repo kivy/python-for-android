@@ -217,8 +217,7 @@ class ToolchainCL(object):
         # This fix will be removed once a fixed buildozer is released
         if (len(argv) > 2 and
             argv[1].startswith('--color') and
-            argv[2].startswith('--storage-dir') and
-            argv[3] == 'apk'):
+            argv[2].startswith('--storage-dir')):
             argv.append(argv.pop(1))  # the --color arg
             argv.append(argv.pop(1))  # the --storage-dir arg
 
