@@ -7,10 +7,11 @@ class DocutilsRecipe(Recipe):
 
     url = ('http://prdownloads.sourceforge.net/docutils/'
            'docutils-{version}.tar.gz')
-    # md5sum = '4f3dc9a9d857734a488bcbefd9cd64ed'    add later
+    # md5sum = '4622263b62c5c771c03502afa3157768'
     site_packages_name = 'docutils'
-    depends = ['pil', ]
-    version = '0.9.1'
+    depends = ['pil', ]  # 'lxml', ]
+
+    version = '0.12'
     conflicts = []
 
     def should_build(self, arch):
@@ -24,10 +25,6 @@ class DocutilsRecipe(Recipe):
                 '{} apparently isn\'t already in site-packages'.format(name))
         return True
 
-    def prebuild_arch(self, arch):
-        super(DocutilsRecipe, self).prebuild_arch(arch)
-        return True
-
     def build_arch(self, arch):
         super(DocutilsRecipe, self).build_arch(arch)
 
@@ -38,9 +35,5 @@ class DocutilsRecipe(Recipe):
             shprint(hostpython, 'setup.py', 'build_ext')
             shprint(hostpython, 'setup.py', 'build_ext', '-v')
             shprint(hostpython, 'setup.py', 'install', '-O2')
-
-    def postbuild_arch(self, arch):
-        super(DocutilsRecipe, self).build_arch(arch)
-        return True
 
 recipe = DocutilsRecipe()
