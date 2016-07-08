@@ -4,6 +4,6 @@ class KiwiSolverRecipe(CppCompiledComponentsPythonRecipe):
     site_packages_name = 'kiwisolver'
     version = '0.1.3'
     url = 'https://github.com/nucleic/kiwi/archive/master.zip'
-    depends = ['python2']
+    depends = ['python2','setuptools']
     
 recipe = KiwiSolverRecipe()
