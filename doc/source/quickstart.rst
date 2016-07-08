@@ -227,13 +227,11 @@ Going further
 
 See the other pages of this doc for more information on specific topics:
 
-.. toctree::
-   :maxdepth: 1
-
-   More detailed build options<buildoptions>
-   Command line arguments<commands>
-   Creating and editing recipes<recipes>
-   Creating and editing bootstraps<bootstraps>
-   Using the Android Java APIs<apis>
-   Troubleshooting<troubleshooting>
-   Contributing<contribute>
+- :doc:`buildoptions`
+- :doc:`commands`
+- :doc:`recipes`
+- :doc:`bootstraps`
+- :doc:`apis`
+- :doc:`troubleshooting`
+- :doc:`launcher`
+- :doc:`contribute`
