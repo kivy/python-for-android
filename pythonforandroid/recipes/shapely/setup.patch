@@ -1,0 +1,12 @@
+*** shapely/setup.py	2016-06-29 11:29:49.000000000 -0400
+--- b/setup.py	2016-07-09 01:51:37.759670990 -0400
+***************
+*** 359,364 ****
+--- 359,365 ----
+          construct_build_ext(existing_build_ext)
+      setup(ext_modules=ext_modules, **setup_args)
+  except BuildFailed as ex:
++     raise # Force python only build to fail
+      BUILD_EXT_WARNING = "The C extension could not be compiled, " \
+                          "speedups are not enabled."
+      log.warn(ex)
