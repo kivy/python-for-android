@@ -45,16 +45,19 @@ def check_python_dependencies():
         else:
             if version is None:
                 continue
-            cur_ver = sys.modules[module].__version__
+            try:
+                cur_ver = sys.modules[module].__version__
+            except AttributeError:  # this is sometimes not available
+                continue
             if LooseVersion(cur_ver) < LooseVersion(version):
                 print('ERROR: {} version is {}, but python-for-android needs '
                       'at least {}.'.format(module, cur_ver, version))
                 ok = False
 
-
     if not ok:
         print('python-for-android is exiting due to the errors above.')
         exit(1)
+
 
 check_python_dependencies()
 
