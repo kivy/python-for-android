@@ -1,6 +1,6 @@
---- python2/Modules/posixmodule.c	2016-01-05 15:54:39.504651722 -0600
-+++ b/Modules/posixmodule.c	2016-01-05 16:01:48.072559330 -0600
-@@ -3743,54 +3743,8 @@
+--- Python-2.7.9/Modules/posixmodule.c.orig	2016-03-17 11:14:51.668097000 +0100
++++ Python-2.7.9/Modules/posixmodule.c	2016-03-17 12:04:09.598668939 +0100
+@@ -3883,54 +3883,8 @@
  static PyObject *
  posix_openpty(PyObject *self, PyObject *noargs)
  {

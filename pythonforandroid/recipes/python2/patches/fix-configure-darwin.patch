@@ -1,15 +1,15 @@
---- Python-2.7.2.orig/configure	2012-07-09 23:48:02.000000000 +0200
-+++ Python-2.7.2/configure	2012-07-09 23:47:34.000000000 +0200
-@@ -4927,7 +4927,7 @@
- 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
+--- Python-2.7.9/configure.orig	2016-03-17 11:14:51.963097000 +0100
++++ Python-2.7.9/configure	2016-03-17 11:24:32.108578473 +0100
+@@ -5346,7 +5346,7 @@
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
  	  INSTSONAME="$LDLIBRARY".$SOVERSION
            ;;
--    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*)
-+    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|Darwin*)
+-    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*)
++    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|Darwin*)
  	  LDLIBRARY='libpython$(VERSION).so'
  	  BLDLIBRARY='-L. -lpython$(VERSION)'
- 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`:${LD_LIBRARY_PATH}
-@@ -4960,7 +4960,7 @@
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+@@ -5379,7 +5379,7 @@
  	  BLDLIBRARY='-L. -lpython$(VERSION)'
  	  RUNSHARED=DLL_PATH=`pwd`:${DLL_PATH:-/atheos/sys/libs:/atheos/autolnk/lib}
  	  ;;
@@ -17,8 +17,8 @@
 +    DDarwin*)
      	LDLIBRARY='libpython$(VERSION).dylib'
  	BLDLIBRARY='-L. -lpython$(VERSION)'
- 	RUNSHARED='DYLD_LIBRARY_PATH=`pwd`:${DYLD_LIBRARY_PATH}'
-@@ -7625,6 +7625,9 @@
+ 	RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
+@@ -8181,6 +8181,9 @@
  			LDSHARED='ld -b'
  		fi ;;
  	OSF*) LDSHARED="ld -shared -expect_unresolved \"*\"";;
@@ -28,8 +28,8 @@
  	Darwin/1.3*)
  		LDSHARED='$(CC) -bundle'
  		LDCXXSHARED='$(CXX) -bundle'
-@@ -7680,9 +7683,6 @@
- 			fi
+@@ -8243,9 +8246,6 @@
+ 			BLDSHARED="$LDSHARED"
  		fi
  		;;
 -	Linux*|GNU*|QNX*)

@@ -14,6 +14,8 @@ public class PythonUtil {
             "SDL2_image",
             "SDL2_mixer",
             "SDL2_ttf",
+            "sqlite3",
+            "ffi",
             "python2.7",
             "python3.5m",
             "main"
@@ -33,6 +35,14 @@ public class PythonUtil {
                     skippedPython = true;
                     continue;
                 }
+                if (lib.startsWith("sqlite3")) {
+                    Log.v(TAG, "Failed to load lib" + lib + ".so, but that's okay, it's an optional library");
+                    continue;
+                }
+                if (lib.startsWith("ffi")) {
+                    Log.v(TAG, "Failed to load lib" + lib + ".so, but that's okay, it's an optional library");
+                    continue;
+                }
                 throw e;
             }
         }
@@ -42,13 +52,6 @@ public class PythonUtil {
             System.load(filesDirPath + "/lib/python2.7/lib-dynload/unicodedata.so");
         } catch(UnsatisfiedLinkError e) {
             Log.v(TAG, "Failed to load _io.so or unicodedata.so...but that's okay.");
-        }
-        
-        try {
-            // System.loadLibrary("ctypes");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_ctypes.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Unsatisfied linker when loading ctypes");
         }
 
         Log.v(TAG, "Loaded everything!");

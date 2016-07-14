@@ -109,7 +109,7 @@ PYTHONPATH=$(COREPYTHONPATH)
 # various reasons; therefore they are listed here instead of in the
 # normal order.
 
-# This only contains the minimal set of modules required to run the 
+# This only contains the minimal set of modules required to run the
 # setup.py script in the root of the Python source tree.
 
 posix posixmodule.c		# posix (UNIX) system calls
@@ -118,6 +118,7 @@ pwd pwdmodule.c			# this is needed to find out the user's home dir
 				# if $HOME is not set
 _sre _sre.c			# Fredrik Lundh's new regular expressions
 _codecs _codecsmodule.c		# access to the builtin codecs and codec registry
+_weakref _weakref.c             # weak references
 
 # The zipimport module is always imported at startup. Having it as a
 # builtin module avoids some bootstrapping problems and reduces overhead.
@@ -126,9 +127,9 @@ zipimport zipimport.c
 # The rest of the modules listed in this file are all commented out by
 # default.  Usually they can be detected and built as dynamically
 # loaded modules by the new setup.py script added in Python 2.1.  If
-# you're on a platform that doesn't support dynamic loading, want to 
-# compile modules statically into the Python binary, or need to 
-# specify some odd set of compiler switches, you can uncomment the 
+# you're on a platform that doesn't support dynamic loading, want to
+# compile modules statically into the Python binary, or need to
+# specify some odd set of compiler switches, you can uncomment the
 # appropriate lines below.
 
 # ======================================================================
@@ -168,16 +169,16 @@ GLHACK=-Dclear=__GLclear
 # Modules that should always be present (non UNIX dependent):
 
 array arraymodule.c	# array objects
-cmath cmathmodule.c # -lm # complex math library functions
-math mathmodule.c # -lm # math library functions, e.g. sin()
+cmath cmathmodule.c _math.c # -lm # complex math library functions
+math mathmodule.c # _math.c # -lm # math library functions, e.g. sin()
 _struct _struct.c	# binary structure packing/unpacking
 time timemodule.c # -lm # time operations and variables
 operator operator.c	# operator.add() and similar goodies
-_weakref _weakref.c	# basic weak reference support
 #_testcapi _testcapimodule.c    # Python C API test module
 _random _randommodule.c	# Random number generator
 _collections _collectionsmodule.c # Container types
-itertools itertoolsmodule.c	# Functions creating iterators for efficient looping 
+#_heapq _heapqmodule.c		# Heapq type
+itertools itertoolsmodule.c	# Functions creating iterators for efficient looping
 strop stropmodule.c		# String manipulations
 _functools _functoolsmodule.c	# Tools for working with functions and callable objects
 _elementtree -I$(srcdir)/Modules/expat -DHAVE_EXPAT_CONFIG_H -DUSE_PYEXPAT_CAPI _elementtree.c	# elementtree accelerator
@@ -190,13 +191,16 @@ _bisect _bisectmodule.c	# Bisection algorithms
 # access to ISO C locale support
 #_locale _localemodule.c  # -lintl
 
+# Standard I/O baseline
+#_io -I$(srcdir)/Modules/_io _io/bufferedio.c _io/bytesio.c _io/fileio.c _io/iobase.c _io/_iomodule.c _io/stringio.c _io/textio.c
+
 
 # Modules with some UNIX dependencies -- on by default:
 # (If you have a really backward UNIX, select and socket may not be
 # supported...)
 
 fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
-#spwd spwdmodule.c		# spwd(3) 
+#spwd spwdmodule.c		# spwd(3)
 #grp grpmodule.c		# grp(3)
 select selectmodule.c	# select(2); not on ancient System V
 
@@ -299,7 +303,7 @@ _sha512 sha512module.c
 #sunaudiodev sunaudiodev.c
 
 
-# A Linux specific module -- off by default; this may also work on 
+# A Linux specific module -- off by default; this may also work on
 # some *BSDs.
 
 #linuxaudiodev linuxaudiodev.c
@@ -365,7 +369,7 @@ _sha512 sha512module.c
 
 #_curses _cursesmodule.c -lcurses -ltermcap
 # Wrapper for the panel library that's part of ncurses and SYSV curses.
-#_curses_panel _curses_panel.c -lpanel -lncurses 
+#_curses_panel _curses_panel.c -lpanel -lncurses
 
 
 # Generic (SunOS / SVR4) dynamic loading module.
