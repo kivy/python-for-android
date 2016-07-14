@@ -10,7 +10,8 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(CryptographyRecipe, self).get_recipe_env(arch)
-        openssl_dir = self.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
+        r = self.get_recipe('openssl', self.ctx)
+        openssl_dir = r.get_build_dir(arch.arch)
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7' + \
                          ' -I' + join(openssl_dir, 'include')
@@ -19,7 +20,8 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
                           ' -L' + openssl_dir + \
                           ' -lpython2.7' + \
-                          ' -lssl -lcrypto'
+                          ' -lssl' + r.version + \
+                          ' -lcrypto' + r.version
         return env
 
 recipe = CryptographyRecipe()

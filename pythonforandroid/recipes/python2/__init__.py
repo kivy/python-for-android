@@ -93,10 +93,12 @@ class Python2Recipe(TargetPythonRecipe):
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
             if 'openssl' in self.ctx.recipe_build_order:
-                openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
+                r = Recipe.get_recipe('openssl', self.ctx)
+                openssl_build_dir = r.get_build_dir(arch.arch)
                 setuplocal = join('Modules', 'Setup.local')
                 shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
                 shprint(sh.sed, '-i', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
+                env['OPENSSL_VERSION'] = r.version
 
             if 'sqlite3' in self.ctx.recipe_build_order:
                 # Include sqlite3 in python2 build
