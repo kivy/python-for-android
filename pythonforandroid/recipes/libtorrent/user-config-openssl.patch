@@ -20,6 +20,6 @@
 +<linkflags>-L$(OPENSSL_BUILD_PATH)
  <linkflags>-lgnustl_shared
  <linkflags>-lpython2.7
-+<linkflags>-lcrypto
-+<linkflags>-lssl
++<linkflags>-lcrypto$(OPENSSL_VERSION)
++<linkflags>-lssl$(OPENSSL_VERSION)
  ;
