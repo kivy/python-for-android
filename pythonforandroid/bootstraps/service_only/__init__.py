@@ -1,10 +1,12 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
-from os.path import join, exists, curdir, abspath
-from os import walk
 import glob
+from os import walk
+from os.path import join, exists, curdir, abspath
 import sh
+from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
+
 
 class ServiceOnlyBootstrap(Bootstrap):
+
     name = 'service_only'
 
     recipe_depends = ['genericndkbuild', ('python2', 'python3crystax')]
@@ -62,7 +64,7 @@ class ServiceOnlyBootstrap(Bootstrap):
                 # AND: Copylibs stuff should go here
                 if exists(join('libs', arch.arch, 'libpymodules.so')):
                     shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
-                shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
+                shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
                 info('Removing some unwanted files')
                 shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
@@ -117,5 +119,6 @@ class ServiceOnlyBootstrap(Bootstrap):
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
         super(ServiceOnlyBootstrap, self).run_distribute()
+
 
 bootstrap = ServiceOnlyBootstrap()
