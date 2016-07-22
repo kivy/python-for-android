@@ -27,8 +27,7 @@ class BoostRecipe(Recipe):
                     '--arch=' + env['ARCH'],
                     '--platform=android-' + str(self.ctx.android_api),
                     '--toolchain=' + env['CROSSHOST'] + '-' + env['TOOLCHAIN_VERSION'],
-                    '--install-dir=' + env['CROSSHOME'],
-                    '--system=' + 'linux-x86_64'
+                    '--install-dir=' + env['CROSSHOME']
             )
             # Set custom configuration
             shutil.copyfile(join(self.get_recipe_dir(), 'user-config.jam'),
