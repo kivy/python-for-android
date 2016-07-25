@@ -48,14 +48,21 @@ public class PythonActivity extends SDLActivity {
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
 
+    public String getKivyRoot() {
+        String kivy_root =  getFilesDir().getAbsolutePath() + "/app";
+        return kivy_root;
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
         resourceManager = new ResourceManager(this);
         this.showLoadingScreen();
+        File kivy_root_file = new File(getKivyRoot());
 
         Log.v(TAG, "Ready to unpack");
-        unpackData("private", getFilesDir());
+        unpackData("private", kivy_root_file);
 
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
@@ -63,14 +70,15 @@ public class PythonActivity extends SDLActivity {
 
         this.mActivity = this;
 
+        String kivy_root_dir = getKivyRoot();
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
+        SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", kivy_root_dir);
+        SDLActivity.nativeSetEnv("ANDROID_APP_PATH", kivy_root_dir);
         SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
-        SDLActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
-        SDLActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
+        SDLActivity.nativeSetEnv("PYTHONHOME", kivy_root_dir);
+        SDLActivity.nativeSetEnv("PYTHONPATH", kivy_root_dir + ":" + kivy_root_dir + "/lib");
 
         try {
             Log.v(TAG, "Access to our meta-data...");
@@ -93,7 +101,9 @@ public class PythonActivity extends SDLActivity {
     }
 
     public void loadLibraries() {
-        PythonUtil.loadLibraries(getFilesDir());
+        String kivy_root = new String(getKivyRoot());
+        File kivy_root_file = new File(kivy_root);
+        PythonUtil.loadLibraries(kivy_root_file);
     }
 
     public void recursiveDelete(File f) {
@@ -267,11 +277,12 @@ public class PythonActivity extends SDLActivity {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
+        String kivy_root_dir = PythonActivity.mActivity.getKivyRoot();
         serviceIntent.putExtra("androidPrivate", argument);
-        serviceIntent.putExtra("androidArgument", argument);
+        serviceIntent.putExtra("androidArgument", kivy_root_dir);
         serviceIntent.putExtra("serviceEntrypoint", "service/main.pyo");
-        serviceIntent.putExtra("pythonHome", argument);
-        serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
+        serviceIntent.putExtra("pythonHome", kivy_root_dir);
+        serviceIntent.putExtra("pythonPath", kivy_root_dir + ":" + kivy_root_dir + "/lib");
         serviceIntent.putExtra("serviceTitle", serviceTitle);
         serviceIntent.putExtra("serviceDescription", serviceDescription);
         serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
