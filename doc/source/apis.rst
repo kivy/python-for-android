@@ -21,6 +21,10 @@ Pyjnius and Plyer are independent projects whose documentation is
 linked above.  See below for some simple introductory examples, and
 explanation of how to include these modules in your APKs.
 
+This page also documents the ``android`` module which you can include
+with p4a, but this is mostly replaced by Pyjnius and is not
+recommended for use in new applications.
+
 
 Using Pyjnius
 -------------
@@ -100,3 +104,46 @@ would achieve vibration as described in the Pyjnius section above::
     vibrate(10)  # in Plyer, the argument is in seconds
 
 This is obviously *much* less verbose than with Pyjnius!
+
+
+Using ``android``
+-----------------
+
+This Cython module was used for Android API interaction with Kivy's old
+interface, but is now mostly replaced by Pyjnius.
+
+The ``android`` Python module can be included by adding it to your
+requirements, e.g. :code:`--requirements=kivy,android`. It is not
+automatically included by Kivy unless you use the old (Pygame)
+bootstrap.
+
+This module is not separately documented. You can read the source `on
+Github
+<https://github.com/kivy/python-for-android/tree/master/pythonforandroid/recipes/android/src/android>`__.
+
+One useful facility of this module is to make
+:code:`webbrowser.open()` work on Android. You can replicate this
+effect without using the android module via the following
+code::
+
+    from jnius import autoclass
+
+    def open_url(url):
+    Intent = autoclass('android.content.Intent')
+    Uri = autoclass('android.net.Uri')
+    browserIntent = Intent()
+    browserIntent.setAction(Intent.ACTION_VIEW)
+    browserIntent.setData(Uri.parse(url))
+    currentActivity = cast('android.app.Activity', mActivity)
+    currentActivity.startActivity(browserIntent)
+
+    class AndroidBrowser(object):
+        def open(self, url, new=0, autoraise=True):
+            open_url(url)
+        def open_new(self, url):
+            open_url(url)
+        def open_new_tab(self, url):
+            open_url(url)
+
+    import webbrowser
+    webbrowser.register('android', AndroidBrowser, None, -1)
