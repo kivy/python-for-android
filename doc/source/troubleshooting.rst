@@ -91,3 +91,13 @@ This is a known bug in some releases. To work around it, add your
 python requirement explicitly,
 e.g. :code:`--requirements=python2,kivy`. This also applies when using
 buildozer, in which case add python2 to your buildozer.spec requirements.
+
+linkname too long
+-----------------
+
+This can happen when you try to include a very long filename, which
+doesn't normally happen but can occur accidentally if the p4a
+directory contains a .buildozer directory that is not excluded from
+the build (e.g. if buildozer was previously used). Removing this
+directory should fix the problem, and is desirable anyway since you
+don't want it in the APK.
