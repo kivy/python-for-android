@@ -8,7 +8,7 @@ public class Service{{ name|capitalize }} extends PythonService {
 	/**
 	 * Binder given to clients
 	 */
-    private final IBinder mBinder = new LocalBinder();
+    private final IBinder mBinder = new Service{{ name|capitalize }}Binder();
 
     {% if sticky %}
     /**
