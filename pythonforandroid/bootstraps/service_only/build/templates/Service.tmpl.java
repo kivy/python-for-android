@@ -51,6 +51,14 @@ public class Service{{ name|capitalize }} extends PythonService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+    
+    /**
      * Class used for the client Binder. Because we know this service always
      * runs in the same process as its clients, we don't need to deal with IPC.
      */
@@ -59,13 +67,5 @@ public class Service{{ name|capitalize }} extends PythonService {
             // Return this instance of Service{{ name|capitalize }} so clients can call public methods
             return Service{{ name|capitalize }}.this;
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
     }
 }
