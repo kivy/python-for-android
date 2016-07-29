@@ -31,11 +31,16 @@ public class PythonService extends Service implements Runnable {
     private String serviceEntrypoint;
     private String pythonServiceArgument;
 
-    protected boolean autoRestartService = false;
-    protected boolean startForeground = true;
-
-    public int startType() {
+    public int getStartType() {
         return START_NOT_STICKY;
+    }
+
+    public boolean getStartForeground() {
+        return false;
+    }
+
+    public boolean getAutoRestart() {
+        return false;
     }
 
     /**
@@ -81,11 +86,11 @@ public class PythonService extends Service implements Runnable {
         pythonThread = new Thread(this);
         pythonThread.start();
 
-        if (startForeground) {
+        if (getStartForeground()) {
             doStartForeground(extras);
         }
 
-        return startType();
+        return getStartType();
     }
 
     protected void doStartForeground(Bundle extras) {
@@ -118,7 +123,7 @@ public class PythonService extends Service implements Runnable {
     public void onDestroy() {
         super.onDestroy();
         pythonThread = null;
-        if (autoRestartService && startIntent != null) {
+        if (getAutoRestart() && startIntent != null) {
             Log.v(TAG, "Service restart requested");
             startService(startIntent);
         }
@@ -131,8 +136,8 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void run() {
         PythonUtil.loadLibraries(getFilesDir());
-        nativeStart(androidPrivate, androidArgument, serviceEntrypoint,
-                pythonName, pythonHome, pythonPath, pythonServiceArgument);
+        nativeStart(androidPrivate, androidArgument, serviceEntrypoint, pythonName, pythonHome,
+                pythonPath, pythonServiceArgument);
         stopSelf();
     }
 
@@ -145,8 +150,8 @@ public class PythonService extends Service implements Runnable {
      * @param pythonPath            Python path
      * @param pythonServiceArgument Argument to pass to Python code
      */
-    public static native void nativeStart(String androidPrivate,
-                                          String androidArgument, String serviceEntrypoint,
-                                          String pythonName, String pythonHome, String pythonPath,
+    public static native void nativeStart(String androidPrivate, String androidArgument,
+                                          String serviceEntrypoint, String pythonName,
+                                          String pythonHome, String pythonPath,
                                           String pythonServiceArgument);
 }
