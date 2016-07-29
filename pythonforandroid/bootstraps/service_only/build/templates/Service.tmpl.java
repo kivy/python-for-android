@@ -20,13 +20,13 @@ public class Service{{ name|capitalize }} extends PythonService {
     }
     {% endif %}
 
-    {% if not foreground %}
+    {% if foreground %}
     /**
      * {@inheritDoc}
      */
     @Override
     public boolean getStartForeground() {
-        return false;
+        return true;
     }
     {% endif %}
 
