@@ -328,15 +328,16 @@ def open_url(url):
     browserIntent.setData(Uri.parse(url))
     currentActivity = cast('android.app.Activity', mActivity)
     currentActivity.startActivity(browserIntent)
+    return True
 
 # Web browser support.
 class AndroidBrowser(object):
     def open(self, url, new=0, autoraise=True):
-        open_url(url)
+        return open_url(url)
     def open_new(self, url):
-        open_url(url)
+        return open_url(url)
     def open_new_tab(self, url):
-        open_url(url)
+        return open_url(url)
     
 import webbrowser
 webbrowser.register('android', AndroidBrowser, None, -1)
