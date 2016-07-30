@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
   if (dir_exists("lib")) {
     /* If we built our own python, set up the paths correctly */
     LOGP("Setting up python from ANDROID_PRIVATE");
-    PyRun_SimpleString("private = posix.environ['ANDROID_PRIVATE']\n"
+    PyRun_SimpleString("private = posix.environ['ANDROID_PRIVATE'] + '/app'\n"
                        "argument = posix.environ['ANDROID_ARGUMENT']\n"
                        "sys.path[:] = [ \n"
                        "    private + '/lib/python27.zip', \n"
