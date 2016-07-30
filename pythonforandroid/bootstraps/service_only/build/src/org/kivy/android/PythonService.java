@@ -1,20 +1,18 @@
 package org.kivy.android;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Process;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-public class PythonService extends Service implements Runnable {
+public abstract class PythonService extends Service implements Runnable {
     private static String TAG = PythonService.class.getSimpleName();
 
-    public static PythonService mService = null;
     /**
      * Intent that started the service
      */
@@ -31,26 +29,16 @@ public class PythonService extends Service implements Runnable {
     private String serviceEntrypoint;
     private String pythonServiceArgument;
 
-    private boolean autoRestartService = false;
-
-    public void setAutoRestartService(boolean restart) {
-        autoRestartService = restart;
-    }
-
-    public boolean canDisplayNotification() {
-        return true;
-    }
-
-    public int startType() {
+    public int getStartType() {
         return START_NOT_STICKY;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public boolean getStartForeground() {
+        return false;
+    }
+
+    public boolean getAutoRestart() {
+        return false;
     }
 
     /**
@@ -88,28 +76,30 @@ public class PythonService extends Service implements Runnable {
         pythonThread = new Thread(this);
         pythonThread.start();
 
-        if (canDisplayNotification()) {
+        if (getStartForeground()) {
             doStartForeground(extras);
         }
 
-        return startType();
+        return getStartType();
     }
 
     protected void doStartForeground(Bundle extras) {
-        String serviceTitle = extras.getString("serviceTitle");
-        String serviceDescription = extras.getString("serviceDescription");
+        Context appContext = getApplicationContext();
+        ApplicationInfo appInfo = appContext.getApplicationInfo();
 
-        Context context = getApplicationContext();
+        String serviceTitle = extras.getString("serviceTitle", TAG);
+        String serviceDescription = extras.getString("serviceDescription", "");
+        int serviceIconId = extras.getInt("serviceIconId", appInfo.icon);
 
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(context.getApplicationInfo().icon)
+                        .setSmallIcon(serviceIconId)
                         .setContentTitle(serviceTitle)
                         .setContentText(serviceDescription);
 
         int NOTIFICATION_ID = 1;
 
-        Intent targetIntent = new Intent(this, Activity.class);
+        Intent targetIntent = new Intent(this, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(contentIntent);
 
@@ -123,7 +113,7 @@ public class PythonService extends Service implements Runnable {
     public void onDestroy() {
         super.onDestroy();
         pythonThread = null;
-        if (autoRestartService && startIntent != null) {
+        if (getAutoRestart() && startIntent != null) {
             Log.v(TAG, "Service restart requested");
             startService(startIntent);
         }
@@ -136,9 +126,8 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void run() {
         PythonUtil.loadLibraries(getFilesDir());
-        mService = this;
-        nativeStart(androidPrivate, androidArgument, serviceEntrypoint,
-                pythonName, pythonHome, pythonPath, pythonServiceArgument);
+        nativeStart(androidPrivate, androidArgument, serviceEntrypoint, pythonName, pythonHome,
+                pythonPath, pythonServiceArgument);
         stopSelf();
     }
 
@@ -151,8 +140,8 @@ public class PythonService extends Service implements Runnable {
      * @param pythonPath            Python path
      * @param pythonServiceArgument Argument to pass to Python code
      */
-    public static native void nativeStart(String androidPrivate,
-                                          String androidArgument, String serviceEntrypoint,
-                                          String pythonName, String pythonHome, String pythonPath,
+    public static native void nativeStart(String androidPrivate, String androidArgument,
+                                          String serviceEntrypoint, String pythonName,
+                                          String pythonHome, String pythonPath,
                                           String pythonServiceArgument);
 }
