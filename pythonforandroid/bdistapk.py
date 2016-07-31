@@ -87,7 +87,8 @@ class BdistAPK(Command):
                   'that.')
 
         bdist_dir = 'build/bdist.android-{}'.format(self.arch)
-        rmtree(bdist_dir)
+        if exists(bdist_dir):
+            rmtree(bdist_dir)
         makedirs(bdist_dir)
 
         globs = []
