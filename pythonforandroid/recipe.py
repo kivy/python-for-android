@@ -1,4 +1,4 @@
-from os.path import join, dirname, isdir, exists, isfile, split, realpath
+from os.path import join, dirname, isdir, exists, isfile, split, realpath, basename
 import importlib
 import zipfile
 import glob
@@ -433,7 +433,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
-                        if root_directory != directory_name:
+                        if root_directory != basename(directory_name):
                             shprint(sh.mv, root_directory, directory_name)
                     elif (extraction_filename.endswith('.tar.gz') or
                           extraction_filename.endswith('.tgz') or
