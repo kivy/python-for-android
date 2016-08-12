@@ -44,8 +44,8 @@ class LibZMQRecipe(Recipe):
             bootstrap_obj_dir = join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
             ensure_dir(bootstrap_obj_dir)
             shutil.copyfile(
-                '{}/sources/cxx-stl/gnu-libstdc++/4.8/libs/{}/libgnustl_shared.so'.format(
-                    self.ctx.ndk_dir, arch),
+                '{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}/libgnustl_shared.so'.format(
+                    self.ctx.ndk_dir, self.ctx.toolchain_version, arch),
                 join(bootstrap_obj_dir, 'libgnustl_shared.so'))
 
     def get_recipe_env(self, arch):
@@ -53,14 +53,15 @@ class LibZMQRecipe(Recipe):
         env = super(LibZMQRecipe, self).get_recipe_env(arch)
         env['CFLAGS'] += ' -Os'
         env['CXXFLAGS'] += ' -Os -fPIC -fvisibility=default'
-        env['CXXFLAGS'] += ' -I{}/sources/cxx-stl/gnu-libstdc++/4.8/include'.format(self.ctx.ndk_dir)
-        env['CXXFLAGS'] += ' -I{}/sources/cxx-stl/gnu-libstdc++/4.8/libs/{}/include'.format(
-            self.ctx.ndk_dir, arch)
-        env['CXXFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/4.8/libs/{}'.format(
-            self.ctx.ndk_dir, arch)
+        env['CXXFLAGS'] += ' -I{}/sources/cxx-stl/gnu-libstdc++/{}/include'.format(
+            self.ctx.ndk_dir, self.ctx.toolchain_version)
+        env['CXXFLAGS'] += ' -I{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}/include'.format(
+            self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
+        env['CXXFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
+            self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
         env['CXXFLAGS'] += ' -lgnustl_shared'
-        env['LDFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/4.8/libs/{}'.format(
-            self.ctx.ndk_dir, arch)
+        env['LDFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
+            self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
         return env
 
 
