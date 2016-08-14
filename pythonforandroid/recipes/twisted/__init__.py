@@ -12,8 +12,8 @@ import sh
 
 
 class TwistedRecipe(CythonRecipe):
-    version = '15.4.0'
-    url = 'https://pypi.python.org/packages/source/T/Twisted/Twisted-{version}.tar.bz2'
+    version = '16.0.0'
+    url = 'https://github.com/twisted/twisted/archive/twisted-{version}.tar.gz'
 
     depends = ['setuptools', 'zope_interface']
 
