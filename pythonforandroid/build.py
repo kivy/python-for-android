@@ -584,7 +584,7 @@ def build_recipes(build_order, python_modules, ctx):
 
 
 def run_pymodules_install(ctx, modules):
-    modules = filter(ctx.not_has_package, modules)
+    modules = list(filter(ctx.not_has_package, modules))
 
     if not modules:
         info('There are no Python modules to install, skipping')
