@@ -88,24 +88,12 @@ public class PythonService extends Service implements Runnable {
         String serviceDescription = extras.getString("serviceDescription");
 
         Context context = getApplicationContext();
-        /*
         Notification notification = new Notification(context.getApplicationInfo().icon,
             serviceTitle, System.currentTimeMillis());
-        */
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_UPDATE_CURRENT);
-        //notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
-
-        Notification.Builder builder = new Notification.Builder(context);
-        builder.setContentTitle(serviceTitle);
-        builder.setContentText(serviceDescription);
-        builder.setContentIntent(pIntent);
-        builder.setSmallIcon(context.getApplicationInfo().icon);
-        //builder.setLargeIcon();
-        
-        Notification notification = builder.build();
-
+        notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
         startForeground(1, notification);
     }
 

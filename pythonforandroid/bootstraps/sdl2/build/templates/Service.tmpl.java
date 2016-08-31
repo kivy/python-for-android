@@ -27,25 +27,12 @@ public class Service{{ name|capitalize }} extends PythonService {
     @Override
     protected void doStartForeground(Bundle extras) {
         Context context = getApplicationContext();
-        /*
         Notification notification = new Notification(context.getApplicationInfo().icon,
             "{{ args.name }}", System.currentTimeMillis());
-        */
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_UPDATE_CURRENT);
-        //notification.setLatestEventInfo(context, "{{ args.name }}", "{{ name| capitalize }}", pIntent);
-        PackageManager pm = context.getPackageManager();
-
-        Notification.Builder builder = new Notification.Builder(context);
-        builder.setContentTitle("{{ args.name }}");
-        builder.setContentText("{{ name| capitalize }}");
-        builder.setContentIntent(pIntent);
-        builder.setSmallIcon(context.getApplicationInfo().icon);
-        //builder.setLargeIcon();
-        
-        Notification notification = builder.build();
-
+        notification.setLatestEventInfo(context, "{{ args.name }}", "{{ name| capitalize }}", pIntent);
         startForeground({{ service_id }}, notification);
     }
 
