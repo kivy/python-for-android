@@ -69,6 +69,14 @@ install most of these with::
     sudo apt-get update
     sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant ccache
 
+On Arch Linux (64 bit) you should be able to run the following to
+install most of the dependencies (note: this list may not be
+complete). gcc-multilib will conflict with (and replace) gcc if not
+already installed. If your installation is already 32-bit, install the
+same packages but without ``lib32-`` or ``-multilib``::
+
+    sudo pacman -S jdk7-openjdk python2 python2-pip python2-kivy mesa-libgl lib32-mesa-libgl lib32-sdl2 lib32-sdl2_image lib32-sdl2_mixer sdl2_ttf unzip gcc-multilib gcc-libs-multilib
+
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
 
