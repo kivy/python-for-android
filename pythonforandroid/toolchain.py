@@ -76,6 +76,7 @@ from functools import wraps
 import argparse
 import sh
 from appdirs import user_data_dir
+import logging
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
@@ -430,6 +431,9 @@ class ToolchainCL(object):
         self.args = args
 
         setup_color(args.color)
+
+        if args.debug:
+            logger.setLevel(logging.DEBUG)
 
         # strip version from requirements, and put them in environ
         if hasattr(args, 'requirements'):
