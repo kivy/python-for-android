@@ -69,6 +69,8 @@ public class PythonActivity extends SDLActivity {
         Log.v(TAG, "Did super onCreate");
 
         this.mActivity = this;
+        this.showLoadingScreen();
+        
 
         String app_root_dir = getAppRoot();
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
