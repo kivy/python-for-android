@@ -457,6 +457,9 @@ tools directory of the Android SDK.
     args = ap.parse_args(args)
     args.ignore_path = []
 
+    if args.name and args.name[0] == '"' and args.name[-1] == '"':
+        args.name = args.name[1:-1]
+
     if args.billing_pubkey:
         print('Billing not yet supported in sdl2 bootstrap!')
         exit(1)

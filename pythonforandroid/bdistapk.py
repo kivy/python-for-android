@@ -51,7 +51,7 @@ class BdistAPK(Command):
         # provide them
         if not argv_contains('--name'):
             name = self.distribution.get_name()
-            sys.argv.append('--name={}'.format(name))
+            sys.argv.append('--name="{}"'.format(name))
             self.name = name
 
         if not argv_contains('--package'):
