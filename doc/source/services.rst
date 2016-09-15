@@ -62,7 +62,7 @@ python-for-android creates for each one, as follows::
 
     from jnius import autoclass
     service = autoclass('your.package.name.ServiceMyservice')
-    mActivity = autoclass('your.package.name.PythonActivity').mActivity
+    mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
     argument = ''
     service.start(mActivity, argument)
 
