@@ -1,6 +1,6 @@
---- orig/Android.mk	2016-01-03 07:15:57.000000000 +0100
-+++ patch/Android.mk	2016-04-15 21:28:55.169697882 +0200
-@@ -6,22 +6,22 @@
+--- orig/Android.mk	2016-09-22 13:19:04.562867449 +0200
++++ patch/Android.mk	2016-09-22 13:20:04.403821137 +0200
+@@ -6,12 +6,12 @@
  
  # Enable this if you want to support loading MOD music via modplug
  # The library path should be a relative path to this directory.
@@ -15,10 +15,7 @@
  MIKMOD_LIBRARY_PATH := external/libmikmod-3.1.12
  
  # Enable this if you want to support loading MP3 music via SMPEG
- # The library path should be a relative path to this directory.
--SUPPORT_MP3_SMPEG ?= true
-+SUPPORT_MP3_SMPEG := false
- SMPEG_LIBRARY_PATH := external/smpeg2-2.0.0
+@@ -21,7 +21,7 @@
  
  # Enable this if you want to support loading OGG Vorbis music via Tremor
  # The library path should be a relative path to this directory.
