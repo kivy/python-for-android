@@ -38,8 +38,6 @@ class LibSDL2Mixer(BootstrapNDKRecipe):
         Copies the smpeg2 external library to the jni/ folder.
         This is required by the linker.
         """
-        jni_dir = self.get_jni_dir()
-        build_dir = self.get_build_dir(arch)
         self._copy_smpeg2_to_jni()
         super(LibSDL2Mixer, self).prebuild_arch(arch)
 
