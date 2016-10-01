@@ -707,6 +707,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         nativeInitJavaCallbacks();
         nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
         nativeSetEnv("ANDROID_ARGUMENT", mArgument);
+        nativeSetEnv("ANDROID_APP_PATH", mArgument);
         nativeSetEnv("PYTHONOPTIMIZE", "2");
         nativeSetEnv("PYTHONHOME", mFilesDirectory);
         nativeSetEnv("PYTHONPATH", mArgument + ":" + mFilesDirectory + "/lib");
