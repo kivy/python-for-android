@@ -364,8 +364,8 @@ class ToolchainCL(object):
             parents=[generic_parser])
         parser_clean_recipe_build.add_argument('recipe', help='The recipe name')
 
-        parser_clear_download_cache= add_parser(subparsers,
-            'clear_download_cache', aliases=['clear-download-cache'],
+        parser_clean_download_cache= add_parser(subparsers,
+            'clean_download_cache', aliases=['clean-download-cache'],
             help='Delete any cached recipe downloads',
             parents=[generic_parser])
 
@@ -578,13 +578,30 @@ class ToolchainCL(object):
 
     def clean_download_cache(self, args):
         '''
-        Deletes any downloaded recipe packages.
+        Deletes a download cache for recipes stated as arguments. If no
+        argument is passed, it'll delete *all* downloaded cache. ::
+
+            p4a clean_download_cache kivy,pyjnius
 
         This does *not* delete the build caches or final distributions.
         '''
         ctx = self.ctx
-        if exists(ctx.packages_path):
-            shutil.rmtree(ctx.packages_path)
+        msg = "Download cache removed!"
+
+        if args.unknown_args:
+            for package in args.unknown_args[0].split(','):
+                remove_path = join(ctx.packages_path, package)
+                if exists(remove_path):
+                    shutil.rmtree(remove_path)
+                    print(msg[:-1] + ' for: "{}"!'.format(package))
+                else:
+                    print('No download cache for "{}" found!'.format(package))
+        else:
+            if exists(ctx.packages_path):
+                shutil.rmtree(ctx.packages_path)
+                print(msg)
+            else:
+                print('Nothing found at "{}"'.format(ctx.packages_path))
 
     @require_prebuilt_dist
     def export_dist(self, args):
