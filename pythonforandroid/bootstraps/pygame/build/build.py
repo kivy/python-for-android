@@ -480,6 +480,9 @@ tools directory of the Android SDK.
         args = sys.argv[1:]
     args = ap.parse_args(args)
 
+    if args.name and args.name[0] == '"' and args.name[-1] == '"':
+        args.name = args.name[1:-1]
+
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
 
