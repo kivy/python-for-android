@@ -450,7 +450,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                     else:
                         raise Exception(
                             'Could not extract {} download, it must be .zip, '
-                            '.tar.gz or .tar.bz2 or .tar.xz')
+                            '.tar.gz or .tar.bz2 or .tar.xz'.format(extraction_filename))
                 elif isdir(extraction_filename):
                     mkdir(directory_name)
                     for entry in listdir(extraction_filename):

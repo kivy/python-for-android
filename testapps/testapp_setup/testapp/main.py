@@ -8,6 +8,8 @@ print(os.listdir('./lib'))
 print(os.listdir('./lib/python2.7'))
 print(os.listdir('./lib/python2.7/site-packages'))
 
+print('this dir is', os.path.abspath(os.curdir))
+
 print('contents of this dir', os.listdir('./'))
 
 with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
