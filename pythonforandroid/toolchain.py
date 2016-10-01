@@ -368,6 +368,8 @@ class ToolchainCL(object):
             'clean_download_cache', aliases=['clean-download-cache'],
             help='Delete any cached recipe downloads',
             parents=[generic_parser])
+        parser_clean_download_cache.add_argument('recipe',
+                                                 help='The recipe name')
 
         parser_export_dist = add_parser(subparsers,
             'export_dist', aliases=['export-dist'],
@@ -587,9 +589,8 @@ class ToolchainCL(object):
         '''
         ctx = self.ctx
         msg = "Download cache removed!"
-
-        if args.unknown_args:
-            for package in args.unknown_args[0].split(','):
+        if args.recipe:
+            for package in args.recipe.split(','):
                 remove_path = join(ctx.packages_path, package)
                 if exists(remove_path):
                     shutil.rmtree(remove_path)
