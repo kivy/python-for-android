@@ -33,7 +33,6 @@ class Context(object):
     libs_dir = None  # where Android libs are cached after build but
                      # before being placed in dists
     aars_dir = None
-    javaclass_dir = None
 
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
@@ -45,6 +44,8 @@ class Context(object):
     bootstrap_build_dir = None
 
     recipe_build_order = None  # Will hold the list of all built recipes
+
+    symlink_java_src = False # If True, will symlink instead of copying during build
 
     @property
     def packages_path(self):
