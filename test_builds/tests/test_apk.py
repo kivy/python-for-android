@@ -1,5 +1,6 @@
 
 from pythonforandroid.toolchain import main
+from pythonforandroid.recipe import Recipe
 
 from os import path
 import sys
@@ -51,11 +52,14 @@ argument_combinations = [{'app_dir': path.join(testapps_dir, 'testapp'),
 @pytest.mark.parametrize('args', argument_combinations)
 def test_build_sdl2(args):
 
+    Recipe.recipes = {}
+
     set_argv(('apk --requirements={requirements} --private '
               '{app_dir} --package=net.p4a.{packagename} --name={packagename} '
               '--version=0.1 --bootstrap={bootstrap} --android_api=19 '
               '--ndk_dir={ndk_dir} --ndk_version={ndk_version} --debug '
               '--permission VIBRATE '
+              '--symlink-java-src '
               '--orientation portrait --dist_name=test-{packagename}').format(
                   **args).split(' '))
 
