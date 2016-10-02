@@ -40,7 +40,7 @@ argument_combinations = [{'app_dir': path.join(testapps_dir, 'testapp'),
                           'ndk_dir': ndk_dir,
                           'ndk_version': ndk_version},
                          {'app_dir': path.join(testapps_dir, 'testapp_flask'),
-                          'requirements': 'python2,flask',
+                          'requirements': 'python2,flask,pyjnius',
                           'packagename': 'p4a_test_flask',
                           'bootstrap': 'webview',
                           'ndk_dir': ndk_dir,
@@ -55,6 +55,7 @@ def test_build_sdl2(args):
               '{app_dir} --package=net.p4a.{packagename} --name={packagename} '
               '--version=0.1 --bootstrap={bootstrap} --android_api=19 '
               '--ndk_dir={ndk_dir} --ndk_version={ndk_version} --debug '
+              '--permission VIBRATE '
               '--orientation portrait --dist_name=test-{packagename}').format(
                   **args).split(' '))
 
