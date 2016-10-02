@@ -256,6 +256,14 @@ class ToolchainCL(object):
             '--ndk-version', '--ndk_version', dest='ndk_version', default='',
             help=('The version of the Android NDK. This is optional, '
                   'we try to work it out automatically from the ndk_dir.'))
+        generic_parser.add_argument(
+            '--symlink-java-src', '--symlink_java_src',
+            action='store_true',
+            dest='symlink_java_src',
+            default=False,
+            help=('If True, symlinks the java src folder during build and dist '
+                  'creation. This is useful for development only, it could also '
+                  'cause weird problems.'))
 
         default_storage_dir = user_data_dir('python-for-android')
         if ' ' in default_storage_dir:
@@ -454,6 +462,7 @@ class ToolchainCL(object):
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
+        self.ctx.symlink_java_src = args.symlink_java_src
 
         self._archs = split_argument_list(args.arch)
 
