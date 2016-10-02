@@ -1,5 +1,5 @@
 from os.path import (join, dirname, isdir, splitext, basename, realpath)
-from os import listdir
+from os import listdir, mkdir
 import sh
 import glob
 import json
@@ -93,7 +93,10 @@ class Bootstrap(object):
         if self.ctx.symlink_java_src:
             info('Symlinking java src instead of copying')
             shprint(sh.rm, '-r', join(self.build_dir, 'src'))
-            shprint(sh.ln, '-s', join(self.bootstrap_dir, 'build', 'src'), self.build_dir)
+            shprint(sh.mkdir, join(self.build_dir, 'src'))
+            for dirn in listdir(join(self.bootstrap_dir, 'build', 'src')):
+                shprint(sh.ln, '-s', join(self.bootstrap_dir, 'build', 'src', dirn),
+                        join(self.build_dir, 'src'))
         with current_directory(self.build_dir):
             with open('project.properties', 'w') as fileh:
                 fileh.write('target=android-{}'.format(self.ctx.android_api))
