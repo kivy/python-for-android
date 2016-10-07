@@ -374,10 +374,12 @@ class ToolchainCL(object):
 
         parser_clean_download_cache= add_parser(subparsers,
             'clean_download_cache', aliases=['clean-download-cache'],
-            help='Delete any cached recipe downloads',
+            help='Delete cached downloads for requirement builds',
             parents=[generic_parser])
-        parser_clean_download_cache.add_argument('recipe',
-                                                 help='The recipe name')
+        parser_clean_download_cache.add_argument(
+            'recipes', nargs='*',
+            help=('The recipes to clean (space-separated). If no recipe name is '
+                  'provided, the entire cache is cleared.'))
 
         parser_export_dist = add_parser(subparsers,
             'export_dist', aliases=['export-dist'],
@@ -597,21 +599,20 @@ class ToolchainCL(object):
         This does *not* delete the build caches or final distributions.
         '''
         ctx = self.ctx
-        msg = "Download cache removed!"
-        if args.recipe:
-            for package in args.recipe.split(','):
+        if args.recipes:
+            for package in args.recipes:
                 remove_path = join(ctx.packages_path, package)
                 if exists(remove_path):
                     shutil.rmtree(remove_path)
-                    print(msg[:-1] + ' for: "{}"!'.format(package))
+                    info('Download cache removed for: "{}"'.format(package))
                 else:
-                    print('No download cache for "{}" found!'.format(package))
+                    warning('No download cache found for "{}", skipping'.format(package))
         else:
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
-                print(msg)
+                info('Download cache removed.')
             else:
-                print('Nothing found at "{}"'.format(ctx.packages_path))
+                print('No cache found at "{}"'.format(ctx.packages_path))
 
     @require_prebuilt_dist
     def export_dist(self, args):
