@@ -372,10 +372,14 @@ class ToolchainCL(object):
             parents=[generic_parser])
         parser_clean_recipe_build.add_argument('recipe', help='The recipe name')
 
-        parser_clear_download_cache= add_parser(subparsers,
-            'clear_download_cache', aliases=['clear-download-cache'],
-            help='Delete any cached recipe downloads',
+        parser_clean_download_cache= add_parser(subparsers,
+            'clean_download_cache', aliases=['clean-download-cache'],
+            help='Delete cached downloads for requirement builds',
             parents=[generic_parser])
+        parser_clean_download_cache.add_argument(
+            'recipes', nargs='*',
+            help=('The recipes to clean (space-separated). If no recipe name is '
+                  'provided, the entire cache is cleared.'))
 
         parser_export_dist = add_parser(subparsers,
             'export_dist', aliases=['export-dist'],
@@ -587,13 +591,28 @@ class ToolchainCL(object):
 
     def clean_download_cache(self, args):
         '''
-        Deletes any downloaded recipe packages.
+        Deletes a download cache for recipes stated as arguments. If no
+        argument is passed, it'll delete *all* downloaded cache. ::
+
+            p4a clean_download_cache kivy,pyjnius
 
         This does *not* delete the build caches or final distributions.
         '''
         ctx = self.ctx
-        if exists(ctx.packages_path):
-            shutil.rmtree(ctx.packages_path)
+        if args.recipes:
+            for package in args.recipes:
+                remove_path = join(ctx.packages_path, package)
+                if exists(remove_path):
+                    shutil.rmtree(remove_path)
+                    info('Download cache removed for: "{}"'.format(package))
+                else:
+                    warning('No download cache found for "{}", skipping'.format(package))
+        else:
+            if exists(ctx.packages_path):
+                shutil.rmtree(ctx.packages_path)
+                info('Download cache removed.')
+            else:
+                print('No cache found at "{}"'.format(ctx.packages_path))
 
     @require_prebuilt_dist
     def export_dist(self, args):
