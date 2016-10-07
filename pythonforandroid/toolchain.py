@@ -508,7 +508,10 @@ class ToolchainCL(object):
             print(" ".join(set(Recipe.list_recipes(ctx))))
         else:
             for name in sorted(Recipe.list_recipes(ctx)):
-                recipe = Recipe.get_recipe(name, ctx)
+                try:
+                    recipe = Recipe.get_recipe(name, ctx)
+                except IOError:
+                    warning('Recipe "{}" could not be loaded'.format(name))
                 version = str(recipe.version)
                 print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
                       '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
