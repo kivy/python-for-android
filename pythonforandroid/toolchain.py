@@ -369,9 +369,14 @@ class ToolchainCL(object):
 
         parser_clean_recipe_build = add_parser(subparsers,
             'clean_recipe_build', aliases=['clean-recipe-build'],
-            help='Delete the build info for the given recipe',
+            help=('Delete the build components of the given recipe. '
+                  'By default this will also delete built dists'),
             parents=[generic_parser])
         parser_clean_recipe_build.add_argument('recipe', help='The recipe name')
+        parser_clean_recipe_build.add_argument('--no-clean-dists', default=False,
+                                               dest='no_clean_dists',
+                                               action='store_true',
+                                               help='If passed, do not delete existing dists')
 
         parser_clean_download_cache= add_parser(subparsers,
             'clean_download_cache', aliases=['clean-download-cache'],
@@ -592,6 +597,8 @@ class ToolchainCL(object):
         recipe = Recipe.get_recipe(args.recipe, self.ctx)
         info('Cleaning build for {} recipe.'.format(recipe.name))
         recipe.clean_build()
+        if not args.no_clean_dists:
+            self.clean_dists(args)
 
     def clean_download_cache(self, args):
         '''
