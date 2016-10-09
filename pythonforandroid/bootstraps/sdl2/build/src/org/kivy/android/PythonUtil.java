@@ -14,6 +14,8 @@ public class PythonUtil {
             "SDL2_image",
             "SDL2_mixer",
             "SDL2_ttf",
+            "crypto1.0.2h",
+            "ssl1.0.2h",
             "python2.7",
             "python3.5m",
             "python3.6m",
