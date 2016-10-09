@@ -3,17 +3,20 @@ print('main.py was successfully called')
 import os
 print('imported os')
 
-print('contents of ./lib/python2.7/site-packages/ etc.')
-print(os.listdir('./lib'))
-print(os.listdir('./lib/python2.7'))
-print(os.listdir('./lib/python2.7/site-packages'))
+from kivy import platform
 
-print('this dir is', os.path.abspath(os.curdir))
+if platform == 'android':
+    print('contents of ./lib/python2.7/site-packages/ etc.')
+    print(os.listdir('./lib'))
+    print(os.listdir('./lib/python2.7'))
+    print(os.listdir('./lib/python2.7/site-packages'))
 
-print('contents of this dir', os.listdir('./'))
+    print('this dir is', os.path.abspath(os.curdir))
 
-with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
-    print('app.pyo size is', len(fileh.read()))
+    print('contents of this dir', os.listdir('./'))
+
+    with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
+        print('app.pyo size is', len(fileh.read()))
 
 import sys
 print('pythonpath is', sys.path)
@@ -35,58 +38,9 @@ from kivy.utils import platform
 print('platform is', platform)
 
 
-###########
-from kivy import platform
-if platform == 'android':
-    from jnius import PythonJavaClass, java_method, autoclass
-
-    _PythonActivity = autoclass('org.kivy.android.PythonActivity')
-
-
-    class Runnable(PythonJavaClass):
-        '''Wrapper around Java Runnable class. This class can be used to schedule a
-        call of a Python function into the PythonActivity thread.
-        '''
-
-        __javainterfaces__ = ['java/lang/Runnable']
-        __runnables__ = []
-
-        def __init__(self, func):
-            super(Runnable, self).__init__()
-            self.func = func
-
-        def __call__(self, *args, **kwargs):
-            self.args = args
-            self.kwargs = kwargs
-            Runnable.__runnables__.append(self)
-            _PythonActivity.mActivity.runOnUiThread(self)
-
-        @java_method('()V')
-        def run(self):
-            try:
-                self.func(*self.args, **self.kwargs)
-            except:
-                import traceback
-                traceback.print_exc()
-
-            Runnable.__runnables__.remove(self)
-
-    def run_on_ui_thread(f):
-        '''Decorator to create automatically a :class:`Runnable` object with the
-        function. The function will be delayed and call into the Activity thread.
-        '''
-        def f2(*args, **kwargs):
-            Runnable(f)(*args, **kwargs)
-        return f2
-
-else:
-    def run_on_ui_thread(f):
-        return f
-#############
-
-
 kv = '''
 #:import Metrics kivy.metrics.Metrics
+#:import Window kivy.core.window.Window
 
 <FixedSizeButton@Button>:
     size_hint_y: None
@@ -95,53 +49,42 @@ kv = '''
 
 BoxLayout:
     orientation: 'vertical'
-    ScrollView:
-        GridLayout:
-            cols: 1
-            size_hint_y: None
-            height: self.minimum_height
-            FixedSizeButton:
-                text: 'test pyjnius'
-                on_press: app.test_pyjnius()
-            Image:
-                keep_ratio: False
-                allow_stretch: True
-                source: 'colours.png'
-                size_hint_y: None
-                height: dp(100)
-            Label:
-                height: self.texture_size[1]
-                size_hint_y: None
-                font_size: 100
-                text_size: self.size[0], None
-                markup: True
-                text: '[b]Kivy[/b] on [b]SDL2[/b] on [b]Android[/b]!'
-                halign: 'center'
-            Widget:
-                size_hint_y: None
-                height: 20
-            Label:
-                height: self.texture_size[1]
-                size_hint_y: None
-                font_size: 50
-                text_size: self.size[0], None
-                markup: True
-                text: 'dpi: {}\\ndensity: {}\\nfontscale: {}'.format(Metrics.dpi, Metrics.density, Metrics.fontscale)
-                halign: 'center'
-            Widget:
-                size_hint_y: None
-                height: 1000
-                on_touch_down: print 'touched at', args[-1].pos
-    TextInput:
+    BoxLayout:
         size_hint_y: None
-        height: dp(100)
-        text: 'textinput!'
-
-<ErrorPopup>:
-    title: 'Error' 
-    size_hint: 0.75, 0.75
-    Label:
-        text: root.error_text
+        height: dp(50)
+        orientation: 'horizontal'
+        Button:
+            text: 'None'
+            on_press: Window.softinput_mode = ''
+        Button:
+            text: 'pan'
+            on_press: Window.softinput_mode = 'pan'
+        Button:
+            text: 'below_target'
+            on_press: Window.softinput_mode = 'below_target'
+        Button:
+            text: 'resize'
+            on_press: Window.softinput_mode = 'resize'
+    Widget:
+        Scatter:
+            id: scatter
+            size_hint: None, None
+            size: dp(300), dp(80)
+            on_parent: self.pos = (300, 100)
+            BoxLayout:
+                size: scatter.size
+                orientation: 'horizontal'
+                canvas:
+                    Color:
+                        rgba: 1, 0, 0, 1
+                    Rectangle:
+                        pos: 0, 0
+                        size: self.size
+                Widget:
+                    size_hint_x: None
+                    width: dp(30)
+                TextInput:
+                    text: 'type in me'
 '''
 
 
@@ -162,11 +105,7 @@ class TestApp(App):
         print('dpi is', Metrics.dpi)
         print('density is', Metrics.density)
         print('fontscale is', Metrics.fontscale)
-        Clock.schedule_once(self.android_init, 0)
         return root
-
-    def android_init(self, *args):
-        self.set_softinput_mode()
 
     def print_something(self, *args):
         print('App print tick', Clock.get_boottime())
@@ -201,17 +140,5 @@ class TestApp(App):
         print(numpy.zeros(5))
         print(numpy.arange(5))
         print(numpy.random.random((3, 3)))
-
-    @run_on_ui_thread
-    def set_softinput_mode(self):
-        return
-        from jnius import autoclass
-        PythonActivity = autoclass('org.kivy.android.PythonActivity')
-        WindowManager = autoclass('android.view.WindowManager')
-        LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
-        activity = PythonActivity.mActivity
-
-        activity.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_ADJUST_PAN)
-                    
 
 TestApp().run()
