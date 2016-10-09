@@ -35,12 +35,13 @@ def check_python_dependencies():
             import_module(module)
         except ImportError:
             if version is None:
-                print('ERROR: The {} module could not be found, please '
+                print('ERROR: The {} Python module could not be found, please '
                       'install it.'.format(module))
                 ok = False
             else:
-                print('ERROR: The {} module could not be found, please install '
-                      'version {} or higher'.format(module, version))
+                print('ERROR: The {} Python module could not be found, '
+                      'please install version {} or higher'.format(
+                          module, version))
                 ok = False
         else:
             if version is None:
