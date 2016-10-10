@@ -14,6 +14,14 @@ package_data = {'': ['*.tmpl',
 
 data_files = []
 
+
+if os.name == 'nt':
+    install_reqs = ['appdirs', 'colorama>=0.3.3', 'jinja2',
+                        'six']
+else:
+    install_reqs = ['appdirs', 'colorama>=0.3.3', 'sh>=1.10', 'jinja2',
+                        'six']
+
 # By specifying every file manually, package_data will be able to
 # include them in binary distributions. Note that we have to add
 # everything as a 'pythonforandroid' rule, using '' apparently doesn't
@@ -50,8 +58,7 @@ setup(name='python-for-android',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/kivy/python-for-android', 
       license='MIT', 
-      install_requires=['appdirs', 'colorama>=0.3.3', 'sh>=1.10', 'jinja2',
-                        'six'],
+      install_requires=install_reqs,
       entry_points={
           'console_scripts': [
               'python-for-android = pythonforandroid.toolchain:main',
