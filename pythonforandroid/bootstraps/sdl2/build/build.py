@@ -413,6 +413,10 @@ tools directory of the Android SDK.
     ap.add_argument('--presplash', dest='presplash',
                     help=('A jpeg file to use as a screen while the '
                           'application is loading.'))
+    ap.add_argument('--presplash-color', dest='presplash_color', default='#FFFFFFFF',
+                    help=('A string to set the loading screen background color. '
+                          'Suported formats are: #RRGGBB #AARRGGBB or color names '
+                          'like red, green, blue, etc.'))
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
