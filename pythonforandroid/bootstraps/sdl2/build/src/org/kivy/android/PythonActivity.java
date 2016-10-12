@@ -359,14 +359,7 @@ public class PythonActivity extends SDLActivity {
         mImageView.setImageBitmap(bitmap);
 
         /*
-         * Edit this file: pythonforandroid/bootstraps/sdl2/build/templates/strings.tmpl.xml
-         * and set the background presplash color
-         * <?xml version="1.0" encoding="utf-8"?>
-         * <resources>
-         *     <string name="app_name">{{ args.name }}</string>
-         *     <string name="private_version">0.1</string>
-         *     <string name="presplash_bkgcolor">#FF00FFFF</string>
-         * </resources>
+	 * Set the presplash loading screen background color
          * https://developer.android.com/reference/android/graphics/Color.html
          * Parse the color string, and return the corresponding color-int.
          * If the string cannot be parsed, throws an IllegalArgumentException exception.
@@ -375,7 +368,7 @@ public class PythonActivity extends SDLActivity {
          * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
          * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
          */
-        String backgroundColor = resourceManager.getString("presplash_bkgcolor");
+        String backgroundColor = resourceManager.getString("presplash_color");
         if (backgroundColor != null) {
           try {
             mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
