@@ -1,6 +1,13 @@
 
+Working on Android
+==================
+
+This page gives details on accessing Android APIs and managing other
+interactions on Android.
+
+
 Accessing Android APIs
-======================
+----------------------
 
 When writing an Android application you may want to access the normal
 Android Java APIs, in order to control your application's appearance
@@ -27,7 +34,7 @@ recommended for use in new applications.
 
 
 Using Pyjnius
--------------
+~~~~~~~~~~~~~
 
 Pyjnius lets you call the Android API directly from Python Pyjnius is
 works by dynamically wrapping Java classes, so you don't have to wait
@@ -83,7 +90,7 @@ You can check the `Pyjnius documentation <Pyjnius_>`_ for further details.
 
 
 Using Plyer
------------
+~~~~~~~~~~~
 
 Plyer provides a much less verbose, Pythonic wrapper to
 platform-specific APIs. It supports Android as well as iOS and desktop
@@ -107,7 +114,7 @@ This is obviously *much* less verbose than with Pyjnius!
 
 
 Using ``android``
------------------
+~~~~~~~~~~~~~~~~~
 
 This Cython module was used for Android API interaction with Kivy's old
 interface, but is now mostly replaced by Pyjnius.
@@ -147,3 +154,51 @@ code::
 
     import webbrowser
     webbrowser.register('android', AndroidBrowser, None, -1)
+
+
+Working with the App lifecycle
+------------------------------
+
+Handling the back button
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Android phones always have a back button, which users expect to
+perform an appropriate in-app function. If you do not handle it, Kivy
+apps will actually shut down and appear to have crashed.
+
+In SDL2 bootstraps, the back button appears as the escape key (keycode
+27, codepoint 270). You can handle this key to perform actions when it
+is pressed.
+
+For instance, in your App class in Kivy::
+
+    from kivy.core.window import Window
+
+    class YourApp(App):
+
+    def build(self):
+       Window.bind(on_keyboard=self.key_input)
+       return Widget()  # your root widget here as normal
+
+   def key_input(self, window, key, scancode, codepoint, modifier):
+       if key == 27:
+           return True  # override the default behaviour
+                        # the key now does nothing
+       return False
+
+
+Pausing the App
+~~~~~~~~~~~~~~~
+
+When the user leaves an App, it is automatically paused by Android,
+although it gets a few seconds to store data etc. if necessary. Once
+paused, there is no guarantee that your app will run again.
+
+With Kivy, add an ``on_pause`` method to your App class, which returns True::
+
+  def on_pause(self):
+      return True
+
+With the webview bootstrap, pausing should work automatically.
+
+Under SDL2, you can handle the `appropriate events <https://wiki.libsdl.org/SDL_EventType>`__ (see SDL_APP_WILLENTERBACKGROUND etc.).
