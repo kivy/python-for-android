@@ -38,8 +38,8 @@ public class Service{{ name|capitalize }} extends PythonService {
 
     static public void start(Context ctx, String pythonServiceArgument) {
         Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
-        String argument = ctx.getFilesDir().getAbsolutePath();
-        intent.putExtra("androidPrivate", argument);
+        String argument = ctx.getFilesDir().getAbsolutePath() + "/app";
+        intent.putExtra("androidPrivate", ctx.getFilesDir().getAbsolutePath());
         intent.putExtra("androidArgument", argument);
         intent.putExtra("serviceEntrypoint", "{{ entrypoint }}");
         intent.putExtra("pythonName", "{{ name }}");
