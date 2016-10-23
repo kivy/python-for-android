@@ -28,9 +28,9 @@ class Hostpython3Recipe(Recipe):
 
             if exists('hostpython'):
                 info('hostpython already exists, skipping build')
-                self.ctx.hostpython = join(self.get_build_dir('armeabi'),
+                self.ctx.hostpython = join(self.get_build_dir(),
                                            'hostpython')
-                self.ctx.hostpgen = join(self.get_build_dir('armeabi'),
+                self.ctx.hostpgen = join(self.get_build_dir(),
                                          'hostpgen')
                 return
             
