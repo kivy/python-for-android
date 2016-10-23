@@ -381,11 +381,12 @@ class Recipe(with_metaclass(RecipeMeta)):
                 self.download_file(url, filename)
                 shprint(sh.touch, marker_filename)
 
-                if self.md5sum is not None:
-                    print('downloaded md5: {}'.format(current_md5))
-                    print('expected md5: {}'.format(self.md5sum))
-                    print('md5 not handled yet, exiting')
-                    exit(1)
+                if exists(filename) and isfile(filename) and self.md5sum:
+                    if self.md5sum is not None:
+                        print('downloaded md5: {}'.format(current_md5))
+                        print('expected md5: {}'.format(self.md5sum))
+                        print('md5 not handled yet, exiting')
+                        exit(1)
 
     def unpack(self, arch):
         info_main('Unpacking {} for {}'.format(self.name, arch))
