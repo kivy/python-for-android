@@ -8,10 +8,12 @@ import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 import android.util.Log;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
+import android.graphics.Rect;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
@@ -150,6 +152,9 @@ public class PythonActivity extends Activity implements Runnable {
             getWindow().getDecorView().setBackgroundColor(
                 this.mInfo.metaData.getInt("android.background_color"));
         }
+        
+        this._layout_listener = new PythonLayoutListener(this);
+        this.mView.getViewTreeObserver().addOnGlobalLayoutListener(this._layout_listener);
     }
 
     /**
@@ -623,5 +628,45 @@ public class PythonActivity extends Activity implements Runnable {
         return mActivity.mBillingQueue.remove(0);
     }
 
+
+    //Layout Listener for kivy
+    //replaces use of pyjnius in "android" package which can result in deadlock
+    //on app pause
+    public class PythonLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
+
+        private int height = 0;
+        private PythonActivity mActivity = null;
+        
+        public PythonLayoutListener(PythonActivity _mActivity) {
+            this.mActivity = _mActivity;
+        }
+        
+        @Override
+        public void onGlobalLayout() {
+            Rect rctx = new Rect();
+            // print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
+            this.mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx);
+            // print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
+            // print('activity height: {0}'.format(mActivity.getWindowManager().getDefaultDisplay().getHeight())) 
+            // NOTE top should always be zero
+            rctx.top = 0;
+            this.height = this.mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top);
+            // print('final height: {0}'.format(self.height))
+            
+        }
+        
+        public int getHeight() {
+            return this.height;
+        }
+        
+    }
+    
+    private PythonLayoutListener _layout_listener = null;
+    
+    public int getLayoutListenerHeight() {
+        return this._layout_listener.getHeight();
+    }
+
 }
+
 

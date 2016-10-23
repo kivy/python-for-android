@@ -196,14 +196,17 @@ if mActivity:
             self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
             # print('final height: {0}'.format(self.height))
 
-    ll = LayoutListener()
     IF BOOTSTRAP == 'sdl2':
+        ll = LayoutListener()
         python_act.getLayout().getViewTreeObserver().addOnGlobalLayoutListener(ll)
-    ELSE:
-        python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
 
-    def get_keyboard_height():
-        return ll.height
+        def get_keyboard_height():
+            return ll.height
+            
+    ELSE:
+        def get_keyboard_height():
+            return python_act.getLayoutListenerHeight()
+        
 else:
     def get_keyboard_height():
         return 0
