@@ -20,15 +20,15 @@ class BoostRecipe(Recipe):
         super(BoostRecipe, self).prebuild_arch(arch)
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            # Make custom toolchain
-            bash = sh.Command('bash')
-            shprint(bash, join(self.ctx.ndk_dir, 'build/tools/make-standalone-toolchain.sh'),
-                    '--ndk-dir=' + self.ctx.ndk_dir,
-                    '--arch=' + env['ARCH'],
-                    '--platform=android-' + str(self.ctx.android_api),
-                    '--toolchain=' + env['CROSSHOST'] + '-' + env['TOOLCHAIN_VERSION'],
-                    '--install-dir=' + env['CROSSHOME']
-            )
+            if not exists(env['CROSSHOME']):
+                # Make custom toolchain
+                bash = sh.Command('bash')
+                shprint(bash, join(self.ctx.ndk_dir, 'build/tools/make-standalone-toolchain.sh'),
+                        '--arch=' + env['ARCH'],
+                        '--platform=android-' + str(self.ctx.android_api),
+                        '--toolchain=' + env['CROSSHOST'] + '-' + env['TOOLCHAIN_VERSION'],
+                        '--install-dir=' + env['CROSSHOME']
+                )
             # Set custom configuration
             shutil.copyfile(join(self.get_recipe_dir(), 'user-config.jam'),
                             join(env['BOOST_BUILD_PATH'], 'user-config.jam'))
