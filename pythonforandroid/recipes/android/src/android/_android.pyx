@@ -179,31 +179,18 @@ python_act = autoclass(JAVA_NAMESPACE + '.PythonActivity')
 Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    class LayoutListener(PythonJavaClass):
-        __javainterfaces__ = ['android/view/ViewTreeObserver$OnGlobalLayoutListener']
-
-        height = 0
-
-        @java_method('()V')
-        def onGlobalLayout(self):
-            rctx = Rect()
-            # print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
-            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
-            # print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
-            # print('activity height: {0}'.format(mActivity.getWindowManager().getDefaultDisplay().getHeight())) 
-            # NOTE top should always be zero
-            rctx.top = 0
-            self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
-            # print('final height: {0}'.format(self.height))
-
-    ll = LayoutListener()
-    IF BOOTSTRAP == 'sdl2':
-        python_act.getLayout().getViewTreeObserver().addOnGlobalLayoutListener(ll)
-    ELSE:
-        python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
-
+    # PyGame backend already has the listener so adding
+    # one here leads to a crash/too much cpu usage.
+    # SDL2 now does noe need the listener so there is
+    # no point adding a processor intensive layout listenere here.
+    height = 0
     def get_keyboard_height():
-        return ll.height
+        rctx = Rect()
+        mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
+        # NOTE top should always be zero
+        rctx.top = 0
+        height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
+        return height
 else:
     def get_keyboard_height():
         return 0
