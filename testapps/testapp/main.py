@@ -3,15 +3,20 @@ print('main.py was successfully called')
 import os
 print('imported os')
 
-print('contents of ./lib/python2.7/site-packages/ etc.')
-print(os.listdir('./lib'))
-print(os.listdir('./lib/python2.7'))
-print(os.listdir('./lib/python2.7/site-packages'))
+from kivy import platform
 
-print('contents of this dir', os.listdir('./'))
+if platform == 'android':
+    print('contents of ./lib/python2.7/site-packages/ etc.')
+    print(os.listdir('./lib'))
+    print(os.listdir('./lib/python2.7'))
+    print(os.listdir('./lib/python2.7/site-packages'))
 
-with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
-    print('app.pyo size is', len(fileh.read()))
+    print('this dir is', os.path.abspath(os.curdir))
+
+    print('contents of this dir', os.listdir('./'))
+
+    with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
+        print('app.pyo size is', len(fileh.read()))
 
 import sys
 print('pythonpath is', sys.path)
@@ -35,61 +40,51 @@ print('platform is', platform)
 
 kv = '''
 #:import Metrics kivy.metrics.Metrics
+#:import Window kivy.core.window.Window
 
 <FixedSizeButton@Button>:
     size_hint_y: None
     height: dp(60)
 
 
-ScrollView:
-    GridLayout:
-        cols: 1
+BoxLayout:
+    orientation: 'vertical'
+    BoxLayout:
         size_hint_y: None
-        height: self.minimum_height
-        FixedSizeButton:
-            text: 'test pyjnius'
-            on_press: app.test_pyjnius()
-        Image:
-            keep_ratio: False
-            allow_stretch: True
-            source: 'colours.png'
-            size_hint_y: None
-            height: dp(100)
-        Label:
-            height: self.texture_size[1]
-            size_hint_y: None
-            font_size: 100
-            text_size: self.size[0], None
-            markup: True
-            text: '[b]Kivy[/b] on [b]SDL2[/b] on [b]Android[/b]!'
-            halign: 'center'
-        Widget:
-            size_hint_y: None
-            height: 20
-        Label:
-            height: self.texture_size[1]
-            size_hint_y: None
-            font_size: 50
-            text_size: self.size[0], None
-            markup: True
-            text: 'dpi: {}\\ndensity: {}\\nfontscale: {}'.format(Metrics.dpi, Metrics.density, Metrics.fontscale)
-            halign: 'center'
-        FixedSizeButton:
-            text: 'test ctypes'
-            on_press: app.test_ctypes()
-        FixedSizeButton:
-            text: 'test numpy'
-            on_press: app.test_numpy()
-        Widget:
-            size_hint_y: None
-            height: 1000
-            on_touch_down: print 'touched at', args[-1].pos
-
-<ErrorPopup>:
-    title: 'Error' 
-    size_hint: 0.75, 0.75
-    Label:
-        text: root.error_text
+        height: dp(50)
+        orientation: 'horizontal'
+        Button:
+            text: 'None'
+            on_press: Window.softinput_mode = ''
+        Button:
+            text: 'pan'
+            on_press: Window.softinput_mode = 'pan'
+        Button:
+            text: 'below_target'
+            on_press: Window.softinput_mode = 'below_target'
+        Button:
+            text: 'resize'
+            on_press: Window.softinput_mode = 'resize'
+    Widget:
+        Scatter:
+            id: scatter
+            size_hint: None, None
+            size: dp(300), dp(80)
+            on_parent: self.pos = (300, 100)
+            BoxLayout:
+                size: scatter.size
+                orientation: 'horizontal'
+                canvas:
+                    Color:
+                        rgba: 1, 0, 0, 1
+                    Rectangle:
+                        pos: 0, 0
+                        size: self.size
+                Widget:
+                    size_hint_x: None
+                    width: dp(30)
+                TextInput:
+                    text: 'type in me'
 '''
 
 
@@ -145,6 +140,5 @@ class TestApp(App):
         print(numpy.zeros(5))
         print(numpy.arange(5))
         print(numpy.random.random((3, 3)))
-                    
 
 TestApp().run()
