@@ -560,11 +560,13 @@ class ToolchainCL(object):
 
     def clean_bootstrap_builds(self, args):
         '''Delete all the bootstrap builds.'''
-        for bs in Bootstrap.list_bootstraps():
-            bs = Bootstrap.get_bootstrap(bs, self.ctx)
-            if bs.build_dir and exists(bs.build_dir):
-                info('Cleaning build for {} bootstrap.'.format(bs.name))
-                shutil.rmtree(bs.build_dir)
+        if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
+            shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
+        # for bs in Bootstrap.list_bootstraps():
+        #     bs = Bootstrap.get_bootstrap(bs, self.ctx)
+        #     if bs.build_dir and exists(bs.build_dir):
+        #         info('Cleaning build for {} bootstrap.'.format(bs.name))
+        #         shutil.rmtree(bs.build_dir)
 
     def clean_builds(self, args):
         '''Delete all build caches for each recipe, python-install, java code
@@ -610,7 +612,7 @@ class ToolchainCL(object):
         This does *not* delete the build caches or final distributions.
         '''
         ctx = self.ctx
-        if args.recipes:
+        if hasattr(args, 'recipes') and args.recipes:
             for package in args.recipes:
                 remove_path = join(ctx.packages_path, package)
                 if exists(remove_path):
