@@ -3,32 +3,48 @@ package org.kivy.android;
 import java.io.File;
 
 import android.util.Log;
-
+import java.util.ArrayList;
+import java.io.FilenameFilter;
 
 public class PythonUtil {
 	private static final String TAG = "pythonutil";
 
-	protected static String[] getLibraries() {
-        return new String[] {
-            "SDL2",
-            "SDL2_image",
-            "SDL2_mixer",
-            "SDL2_ttf",
-            "crypto1.0.2h",
-            "ssl1.0.2h",
-            "python2.7",
-            "python3.5m",
-            "python3.6m",
-            "main"
+    protected static ArrayList<String> getLibraries(File filesDir) {
+
+        ArrayList<String> MyList = new ArrayList<String>();
+        MyList.add("SDL2");
+        MyList.add("SDL2_image");
+        MyList.add("SDL2_mixer");
+        MyList.add("SDL2_ttf");
+
+        String absPath = filesDir.getParentFile().getParentFile().getAbsolutePath() + "/lib/";
+        filesDir = new File(absPath);
+        File [] files = filesDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return  name.matches(".*ssl.*") || name.matches(".*crypto.*");
+            }
+        });
+
+        for (int i = 0; i < files.length; ++i) {
+            File mfl = files[i];
+            String name = mfl.getName();
+            name = name.substring(3, name.length() - 3);
+            MyList.add(name);
         };
+
+        MyList.add("python2.7");
+        MyList.add("python3.5m");
+        MyList.add("main");
+        return MyList;
     }
 
-	public static void loadLibraries(File filesDir) {
+    public static void loadLibraries(File filesDir) {
 
         String filesDirPath = filesDir.getAbsolutePath();
         boolean foundPython = false;
 
-		for (String lib : getLibraries()) {
+		for (String lib : getLibraries(filesDir)) {
             Log.v(TAG, "Loading library: " + lib);
 		    try {
                 System.loadLibrary(lib);
@@ -68,3 +84,4 @@ public class PythonUtil {
         Log.v(TAG, "Loaded everything!");
     }
 }
+
