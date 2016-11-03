@@ -19,7 +19,7 @@ packages = find_packages()
 print('packages are', packages)
 
 setup(
-    name='testapp_python2',
+    name='testapp_python3',
     version='1.1',
     description='p4a setup.py test',
     author='Alexander Taylor',
