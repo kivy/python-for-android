@@ -72,6 +72,34 @@ public class PythonActivity extends SDLActivity {
         this.mActivity = this;
         this.showLoadingScreen();
         
+        // Figure out the directory where the game is. If the game was
+        // given to us via an intent, then we use the scheme-specific
+        // part of that intent to determine the file to launch. We
+        // also use the android.txt file to determine the orientation.
+        //
+        // Otherwise, we use the public data, if we have it, or the
+        // private data if we do not.
+        if (getIntent() != null && getIntent().getAction() != null &&
+                getIntent().getAction().equals("org.kivy.LAUNCH")) {
+            File path = new File(getIntent().getData().getSchemeSpecificPart());
+
+            Project p = Project.scanDirectory(path);
+
+            if (p != null) {
+                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/main.py");
+            } else {
+                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
+            }
+
+            // Let old apps know they started.
+            try {
+                FileWriter f = new FileWriter(new File(path, ".launch"));
+                f.write("started");
+                f.close();
+            } catch (IOException e) {
+                // pass
+            }
+        }
 
         String app_root_dir = getAppRoot();
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
@@ -79,7 +107,6 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
         SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
         SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
-        SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
         SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
         SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
