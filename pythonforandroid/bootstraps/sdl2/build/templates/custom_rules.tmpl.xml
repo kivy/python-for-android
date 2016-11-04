@@ -6,7 +6,8 @@
             <fileset dir="src" includes="**" />
             {% else %}
             <fileset dir="src">
-                <exclude name="org/kivy/android/Project*.java" />
+                <exclude name="org/kivy/android/ProjectAdapter.java" />
+                <exclude name="org/kivy/android/ProjectChooser.java" />
             </fileset>
             {% endif %}
             {% for dir, includes in args.extra_source_dirs %}
