@@ -84,12 +84,7 @@ public class PythonActivity extends SDLActivity {
             File path = new File(getIntent().getData().getSchemeSpecificPart());
 
             Project p = Project.scanDirectory(path);
-
-            if (p != null) {
-                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/main.py");
-            } else {
-                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
-            }
+            SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/main.py");
 
             // Let old apps know they started.
             try {
@@ -99,6 +94,8 @@ public class PythonActivity extends SDLActivity {
             } catch (IOException e) {
                 // pass
             }
+        } else {
+            SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         }
 
         String app_root_dir = getAppRoot();
