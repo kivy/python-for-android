@@ -50,7 +50,7 @@ BLACKLIST_PATTERNS = [
 if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
 
-WHITELIST_PATTERNS = []
+WHITELIST_PATTERNS = ['pyconfig.h', ]
 
 python_files = []
 
@@ -519,9 +519,6 @@ tools directory of the Android SDK.
     if args.no_compile_pyo:
         PYTHON = None
         BLACKLIST_PATTERNS.remove('*.py')
-
-    if args.launcher:
-        WHITELIST_PATTERNS += ['pyconfig.h']
 
     if args.blacklist:
         with open(args.blacklist) as fd:
