@@ -101,3 +101,9 @@ directory contains a .buildozer directory that is not excluded from
 the build (e.g. if buildozer was previously used). Removing this
 directory should fix the problem, and is desirable anyway since you
 don't want it in the APK.
+
+Exception in thread "main" java.lang.UnsupportedClassVersionError: com/android/dx/command/Main : Unsupported major.minor version 52.0
+-------------------------------------------------------------------------------------------------------------------------------------
+
+This occurs due to a java version mismatch, it should be fixed by
+intalling Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
