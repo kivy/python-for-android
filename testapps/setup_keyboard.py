@@ -19,12 +19,12 @@ packages = find_packages()
 print('packages are', packages)
 
 setup(
-    name='testapp_setup',
+    name='testapp_keyboard',
     version='1.1',
     description='p4a setup.py test',
     author='Alexander Taylor',
     author_email='alexanderjohntaylor@gmail.com',
     packages=find_packages(),
     options=options,
-    package_data={'testapp': ['*.py', '*.png']}
+    package_data={'setup_keyboard': ['*.py', '*.png']}
 )
