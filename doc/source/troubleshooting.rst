@@ -93,7 +93,7 @@ e.g. :code:`--requirements=python2,kivy`. This also applies when using
 buildozer, in which case add python2 to your buildozer.spec requirements.
 
 linkname too long
------------------
+~~~~~~~~~~~~~~~~~
 
 This can happen when you try to include a very long filename, which
 doesn't normally happen but can occur accidentally if the p4a
@@ -103,7 +103,7 @@ directory should fix the problem, and is desirable anyway since you
 don't want it in the APK.
 
 Exception in thread "main" java.lang.UnsupportedClassVersionError: com/android/dx/command/Main : Unsupported major.minor version 52.0
--------------------------------------------------------------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This occurs due to a java version mismatch, it should be fixed by
 intalling Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
