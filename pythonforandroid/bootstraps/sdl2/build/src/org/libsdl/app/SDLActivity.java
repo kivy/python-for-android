@@ -258,6 +258,9 @@ public class SDLActivity extends Activity {
         super.onDestroy();
         // Reset everything in case the user re opens the app
         SDLActivity.initialize();
+
+        // Completely closes application.
+        System.exit(0);
     }
 
     @Override
