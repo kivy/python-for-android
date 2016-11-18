@@ -159,6 +159,26 @@ code::
 Working with the App lifecycle
 ------------------------------
 
+Dismissing the splash screen
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the SDL2 bootstrap, the app's splash screen may not be dismissed
+immediately when your app has finished loading, due to a limitation
+with the way we check if the app has properly started. In this case,
+the splash screen overlaps the app gui for a short time.
+
+You can dismiss the splash screen as follows. Run this code from your
+app build method (or use ``kivy.clock.Clock.schedule_once`` to run it
+in the following frame)::
+
+  from jnius import autoclass
+  activity = autoclass('org.kivy.android.PythonActivity').mActivity
+  activity.removeLoadingScreen()
+
+This problem does not affect the Pygame bootstrap, as it uses a
+different splash screen method.
+
+
 Handling the back button
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
