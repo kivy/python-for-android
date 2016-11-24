@@ -196,15 +196,15 @@ For instance, in your App class in Kivy::
 
     class YourApp(App):
 
-    def build(self):
-       Window.bind(on_keyboard=self.key_input)
-       return Widget()  # your root widget here as normal
+       def build(self):
+          Window.bind(on_keyboard=self.key_input)
+          return Widget() # your root widget here as normal
 
-   def key_input(self, window, key, scancode, codepoint, modifier):
-       if key == 27:
-           return True  # override the default behaviour
-                        # the key now does nothing
-       return False
+       def key_input(self, window, key, scancode, codepoint, modifier):
+          if key == 27:
+             return True  # override the default behaviour
+          else:           # the key now does nothing
+             return False
 
 
 Pausing the App
