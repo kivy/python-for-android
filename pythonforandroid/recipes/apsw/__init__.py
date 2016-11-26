@@ -3,7 +3,7 @@ from os.path import join, exists
 import sh
 
 class ApswRecipe(PythonRecipe):
-    version = '3.11.1-r1'
+    version = '3.15.0-r1'
     url = 'https://github.com/rogerbinns/apsw/archive/{version}.tar.gz'
     depends = ['sqlite3', 'hostpython2', 'python2', 'setuptools']
     call_hostpython_via_targetpython = False
@@ -17,7 +17,7 @@ class ApswRecipe(PythonRecipe):
             shprint(hostpython,
                     'setup.py',
                     'build_ext',
-                    '--enable=fts3'
+                    '--enable=fts4'
             , _env=env)
         # Install python bindings
         super(ApswRecipe, self).build_arch(arch)
