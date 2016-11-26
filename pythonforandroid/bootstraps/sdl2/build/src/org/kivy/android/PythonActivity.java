@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 
 import org.libsdl.app.SDLActivity;
 
@@ -356,6 +357,23 @@ public class PythonActivity extends SDLActivity {
 
         mImageView = new ImageView(this);
         mImageView.setImageBitmap(bitmap);
+
+        /*
+	 * Set the presplash loading screen background color
+         * https://developer.android.com/reference/android/graphics/Color.html
+         * Parse the color string, and return the corresponding color-int.
+         * If the string cannot be parsed, throws an IllegalArgumentException exception.
+         * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
+         * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
+         * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
+         * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
+         */
+        String backgroundColor = resourceManager.getString("presplash_color");
+        if (backgroundColor != null) {
+          try {
+            mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
+          } catch (IllegalArgumentException e) {}
+        }   
         mImageView.setLayoutParams(new ViewGroup.LayoutParams(
         ViewGroup.LayoutParams.FILL_PARENT,
         ViewGroup.LayoutParams.FILL_PARENT));
