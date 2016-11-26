@@ -14,7 +14,7 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from pythonforandroid.logger import (logger, info, warning, error, shprint, info_main)
+from pythonforandroid.logger import (logger, info, warning, error, debug, shprint, info_main)
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
 # this import is necessary to keep imp.load_source from complaining :)
@@ -360,11 +360,15 @@ class Recipe(with_metaclass(RecipeMeta)):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 elif self.md5sum:
-                    current_md5 = shprint(sh.md5sum, filename)
-                    print('downloaded md5: {}'.format(current_md5))
-                    print('expected md5: {}'.format(self.md5sum))
-                    print('md5 not handled yet, exiting')
-                    exit(1)
+                    current_md5 = shprint(sh.md5sum, filename).split()[0]
+                    if current_md5 == self.md5sum:
+                        debug('Downloaded expected content!')
+                        do_download = False
+                    else:
+                        info('Downloaded unexpected content...')
+                        debug('* Generated md5sum: {}'.format(current_md5))
+                        debug('* Expected md5sum: {}'.format(self.md5sum))
+
                 else:
                     do_download = False
                     info('{} download already cached, skipping'
@@ -375,17 +379,22 @@ class Recipe(with_metaclass(RecipeMeta)):
 
             # If we got this far, we will download
             if do_download:
-                print('Downloading {} from {}'.format(self.name, url))
+                debug('Downloading {} from {}'.format(self.name, url))
 
                 shprint(sh.rm, '-f', marker_filename)
                 self.download_file(url, filename)
                 shprint(sh.touch, marker_filename)
 
-                if self.md5sum is not None:
-                    print('downloaded md5: {}'.format(current_md5))
-                    print('expected md5: {}'.format(self.md5sum))
-                    print('md5 not handled yet, exiting')
-                    exit(1)
+                if exists(filename) and isfile(filename) and self.md5sum:
+                    current_md5 = shprint(sh.md5sum, filename).split()[0]
+                    if self.md5sum is not None:
+                        if current_md5 == self.md5sum:
+                            debug('Downloaded expected content!')
+                        else:
+                            info('Downloaded unexpected content...')
+                            debug('* Generated md5sum: {}'.format(current_md5))
+                            debug('* Expected md5sum: {}'.format(self.md5sum))
+                            exit(1)
 
     def unpack(self, arch):
         info_main('Unpacking {} for {}'.format(self.name, arch))
