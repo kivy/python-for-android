@@ -212,13 +212,10 @@ TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
 TYPE_TEXT_VARIATION_URI = 16
 TYPE_CLASS_PHONE = 3
 
-# SDL2 presplash remove
-def remove_presplash():
-    '''Remove android presplash in SDL2 bootstrap.'''
-    try:
+IF BOOTSTRAP == 'sdl2':
+    def remove_presplash():
+        # Remove android presplash in SDL2 bootstrap.
         mActivity.removeLoadingScreen()
-    except:
-        return
 
 def show_keyboard(target, input_type):
     if input_type == 'text':
