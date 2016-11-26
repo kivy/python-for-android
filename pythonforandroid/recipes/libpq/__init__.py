@@ -6,7 +6,7 @@ import os.path
 class LibpqRecipe(Recipe):
     version = '9.5.3'
     url = 'http://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.bz2'
-    depends = [('python2', 'python3')]
+    depends = [('python2', 'python3crystax')]
 
     def should_build(self, arch):
         return not os.path.isfile('{}/libpq.a'.format(self.ctx.get_libs_dir(arch.arch)))

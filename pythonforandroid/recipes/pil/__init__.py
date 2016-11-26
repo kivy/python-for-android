@@ -7,7 +7,7 @@ class PILRecipe(CompiledComponentsPythonRecipe):
 	name = 'pil'
 	version = '1.1.7'
 	url = 'http://effbot.org/downloads/Imaging-{version}.tar.gz'
-	depends = [('python2', 'python3'), 'png', 'jpeg']
+	depends = [('python2', 'python3crystax'), 'png', 'jpeg']
 	site_packages_name = 'PIL'
 
 	patches = ['disable-tk.patch',
