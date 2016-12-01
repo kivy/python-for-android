@@ -82,6 +82,7 @@ public class PythonActivity extends SDLActivity {
         SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
         SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+        SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
 
         try {
             Log.v(TAG, "Access to our meta-data...");
