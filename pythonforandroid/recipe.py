@@ -5,6 +5,8 @@ import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
 
+import hashlib
+
 import sh
 import shutil
 import fnmatch
@@ -360,9 +362,9 @@ class Recipe(with_metaclass(RecipeMeta)):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 elif self.md5sum:
-                    current_md5 = shprint(sh.md5sum, filename).split()[0]
+                    current_md5 = md5sum(filename)
                     if current_md5 == self.md5sum:
-                        debug('Downloaded expected content!')
+                        debug('Checked md5sum: downloaded expected content!')
                         do_download = False
                     else:
                         info('Downloaded unexpected content...')
@@ -386,10 +388,10 @@ class Recipe(with_metaclass(RecipeMeta)):
                 shprint(sh.touch, marker_filename)
 
                 if exists(filename) and isfile(filename) and self.md5sum:
-                    current_md5 = shprint(sh.md5sum, filename).split()[0]
+                    current_md5 = md5sum(filename)
                     if self.md5sum is not None:
                         if current_md5 == self.md5sum:
-                            debug('Downloaded expected content!')
+                            debug('Checked md5sum: downloaded expected content!')
                         else:
                             info('Downloaded unexpected content...')
                             debug('* Generated md5sum: {}'.format(current_md5))
@@ -1102,3 +1104,12 @@ class TargetPythonRecipe(Recipe):
     # def ctx(self, ctx):
     #     self._ctx = ctx
     #     ctx.python_recipe = self
+
+
+def md5sum(filen):
+    '''Calculate the md5sum of a file.
+    '''
+    with open(filen, 'rb') as fileh:
+        md5 = hashlib.md5(fileh.read())
+
+    return md5.hexdigest()
