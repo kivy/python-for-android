@@ -31,7 +31,6 @@ PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
 if not exists(PYTHON):
     print('Could not find hostpython, will not compile to .pyo (this is normal with python3)')
     PYTHON = None
-PYTHON = None
 
 BLACKLIST_PATTERNS = [
     # code versionning
@@ -375,7 +374,7 @@ main.py that loads it.''')
 
 
 def parse_args(args=None):
-    global BLACKLIST_PATTERNS, WHITELIST_PATTERNS
+    global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
     default_android_api = 12
     import argparse
     ap = argparse.ArgumentParser(description='''\
@@ -460,6 +459,8 @@ tools directory of the Android SDK.
                          'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
                     help='Include additional source dirs in Java build')
+    ap.add_argument('--no-compile-pyo', dest='no_compile_pyo', action='store_true',
+                    help='Do not optimise .py files to .pyo.')
 
     if args is None:
         args = sys.argv[1:]
@@ -484,6 +485,10 @@ tools directory of the Android SDK.
 
     if args.services is None:
         args.services = []
+
+    if args.no_compile_pyo:
+        PYTHON = None
+        BLACKLIST_PATTERNS.remove('*.py')
 
     if args.blacklist:
         with open(args.blacklist) as fd:
