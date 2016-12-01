@@ -97,7 +97,7 @@ class Python2Recipe(TargetPythonRecipe):
                 openssl_build_dir = r.get_build_dir(arch.arch)
                 setuplocal = join('Modules', 'Setup.local')
                 shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
-                shprint(sh.sed, '-i', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
+                shprint(sh.sed, '-i.backup', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
                 env['OPENSSL_VERSION'] = r.version
 
             if 'sqlite3' in self.ctx.recipe_build_order:
