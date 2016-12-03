@@ -7,8 +7,8 @@ options = {'apk': {'debug': None,
                    'requirements': (
                         'python2,sdl2,android,'
                         'sqlite3,docutils,pygments,kivy,pyjnius,plyer,'
-                        'cymunk,lxml,pil,'  # audiostream, ffmpeg, openssl,
-                        'twisted,numpy'),  # pyopenssl
+                        'cymunk,lxml,pil,openssl,pyopenssl,'
+                        'twisted'),  # audiostream, ffmpeg, numpy
                    'android-api': 14,
                    'dist-name': 'launchertest_sdl2',
                    'name': 'TestLauncher-sdl2',

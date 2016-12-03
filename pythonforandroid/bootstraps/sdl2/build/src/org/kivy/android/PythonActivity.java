@@ -23,6 +23,7 @@ import android.os.PowerManager;
 import android.graphics.PixelFormat;
 import android.view.SurfaceHolder;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 import android.content.Intent;
@@ -79,12 +80,23 @@ public class PythonActivity extends SDLActivity {
         //
         // Otherwise, we use the public data, if we have it, or the
         // private data if we do not.
+        String app_root_dir = getAppRoot();
         if (getIntent() != null && getIntent().getAction() != null &&
                 getIntent().getAction().equals("org.kivy.LAUNCH")) {
             File path = new File(getIntent().getData().getSchemeSpecificPart());
 
             Project p = Project.scanDirectory(path);
             SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/main.py");
+            SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", p.dir);
+            SDLActivity.nativeSetEnv("ANDROID_APP_PATH", p.dir);
+
+            if (p != null) {
+                if (p.landscape) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                } else {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                }
+            }
 
             // Let old apps know they started.
             try {
@@ -96,14 +108,13 @@ public class PythonActivity extends SDLActivity {
             }
         } else {
             SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
+            SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
+            SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
         }
 
-        String app_root_dir = getAppRoot();
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
         Log.v(TAG, "Setting env vars for start.c and Python to use");
         SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
-        SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
         SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
         SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
         SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
