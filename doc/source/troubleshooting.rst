@@ -69,6 +69,51 @@ on `logcat
 <http://developer.android.com/intl/zh-cn/tools/help/logcat.html>`_ in
 particular.
 
+Unpacking an APK
+----------------
+
+It is sometimes useful to unpack a pacakged APK to see what is inside,
+especially when debugging python-for-android itself.
+
+APKs are just zip files, so you can extract the contents easily::
+
+  unzip YourApk.apk
+
+At the top level, this will always contain the same set of files::
+
+  $ ls
+  AndroidManifest.xml  classes.dex  META-INF                                res
+assets               lib          PyonicPython2interpreter-0.9-debug.apk  resources.arsc
+
+The Python distribution is in the assets folder::
+
+  $ cd assets
+  $ ls 
+  private.mp3
+
+``private.mp3`` is actually a tarball containing all your packaged
+data, and the Python distribution. Extract it::
+
+  $ tar xf private.mp3
+
+This will reveal all the Python-related files::
+
+  $ ls
+  android_runnable.pyo  include          interpreter_subprocess  main.kv   pipinterface.kv   settings.pyo
+  assets                __init__.pyo     interpreterwrapper.pyo  main.pyo  pipinterface.pyo  utils.pyo
+  editor.kv             interpreter.kv   lib                     menu.kv   private.mp3       widgets.pyo
+  editor.pyo            interpreter.pyo  libpymodules.so         menu.pyo  settings.kv
+
+Most of these files have been included by the user (in this case, they
+come from one of my own apps), the rest relate to the python
+distribution.
+
+With Python 2, the Python installation can mostly be found in the
+``lib`` folder. With Python 3 (using the ``python3crystax`` recipe),
+the Python installation can be found in a folder named
+``crystax_python``.
+
+
 Common errors
 -------------
 
