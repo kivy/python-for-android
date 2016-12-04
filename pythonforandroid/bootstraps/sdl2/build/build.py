@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 from os.path import dirname, join, isfile, realpath, relpath, split, exists
-from os import makedirs
+from os import makedirs, remove
 import os
 import tarfile
 import time
@@ -362,6 +362,12 @@ main.py that loads it.''')
         'custom_rules.xml',
         args=args)
 
+    if args.sign:
+        render('build.properties', 'build.properties')
+    else:
+        if exists('build.properties'):
+            os.remove('build.properties')
+
     with open(join(dirname(__file__), 'res',
                    'values', 'strings.xml')) as fileh:
         lines = fileh.read()
@@ -461,6 +467,9 @@ tools directory of the Android SDK.
                     help='Include additional source dirs in Java build')
     ap.add_argument('--no-compile-pyo', dest='no_compile_pyo', action='store_true',
                     help='Do not optimise .py files to .pyo.')
+    ap.add_argument('--sign', action='store_true',
+                    help=('Try to sign the APK with your credentials. You must set '
+                          'the appropriate environment variables.'))
 
     if args is None:
         args = sys.argv[1:]
