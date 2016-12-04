@@ -83,7 +83,7 @@ At the top level, this will always contain the same set of files::
 
   $ ls
   AndroidManifest.xml  classes.dex  META-INF                                res
-assets               lib          PyonicPython2interpreter-0.9-debug.apk  resources.arsc
+  assets               lib          PyonicPython2interpreter-0.9-debug.apk  resources.arsc
 
 The Python distribution is in the assets folder::
 
