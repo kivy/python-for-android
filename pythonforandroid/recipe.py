@@ -737,9 +737,7 @@ class PythonRecipe(Recipe):
 
     def clean_build(self, arch=None):
         super(PythonRecipe, self).clean_build(arch=arch)
-        name = self.site_packages_name
-        if name is None:
-            name = self.name
+        name = self.folder_name
         python_install_dirs = glob.glob(join(self.ctx.python_installs_dir, '*'))
         for python_install in python_install_dirs:
             site_packages_dir = glob.glob(join(python_install, 'lib', 'python*',
@@ -766,6 +764,14 @@ class PythonRecipe(Recipe):
             return self.real_hostpython_location
         return self.ctx.hostpython
 
+    @property
+    def folder_name(self):
+        '''The name of the build folders containing this recipe.'''
+        name = self.site_packages_name
+        if name is None:
+            name = self.name
+        return name
+
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
         if not self.call_hostpython_via_targetpython:
@@ -782,10 +788,7 @@ class PythonRecipe(Recipe):
         return env
 
     def should_build(self, arch):
-        print('name is', self.site_packages_name, type(self))
-        name = self.site_packages_name
-        if name is None:
-            name = self.name
+        name = self.folder_name
         if self.ctx.has_package(name):
             info('Python package already exists in site-packages')
             return False
@@ -1010,11 +1013,20 @@ class CythonRecipe(PythonRecipe):
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
 
-            print('stripping')
-            build_lib = glob.glob('./build/lib*')
-            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
-                    env['STRIP'], '{}', ';', _env=env)
-            print('stripped!?')
+            if 'python2' in self.ctx.recipe_build_order:
+                info('Stripping object files')
+                build_lib = glob.glob('./build/lib*')
+                shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
+                        env['STRIP'], '{}', ';', _env=env)
+
+            if 'python3crystax' in self.ctx.recipe_build_order:
+                info('Stripping object files')
+                shprint(sh.find, '.', '-iname', '*.so', '-exec',
+                        '/usr/bin/echo', '{}', ';', _env=env)
+                shprint(sh.find, '.', '-iname', '*.so', '-exec',
+                        env['STRIP'].split(' ')[0], '--strip-unneeded',
+                        # '/usr/bin/strip', '--strip-unneeded',
+                        '{}', ';', _env=env)
 
     def cythonize_file(self, env, build_dir, filename):
         short_filename = filename
