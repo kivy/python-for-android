@@ -82,8 +82,8 @@ APKs are just zip files, so you can extract the contents easily::
 At the top level, this will always contain the same set of files::
 
   $ ls
-  AndroidManifest.xml  classes.dex  META-INF                                res
-  assets               lib          PyonicPython2interpreter-0.9-debug.apk  resources.arsc
+  AndroidManifest.xml  classes.dex  META-INF     res
+  assets               lib          YourApk.apk  resources.arsc
 
 The Python distribution is in the assets folder::
 
