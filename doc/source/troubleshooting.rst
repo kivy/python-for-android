@@ -151,4 +151,4 @@ Exception in thread "main" java.lang.UnsupportedClassVersionError: com/android/d
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This occurs due to a java version mismatch, it should be fixed by
-intalling Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
+installing Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
