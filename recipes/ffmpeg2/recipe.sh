@@ -1,18 +1,26 @@
 #!/bin/bash
-# Recent change made ffmpeg2 not compatible with python-for-android yet.
-# Only h264+aac build are working.
 
-VERSION_ffmpeg2=${VERSION_ffmpeg2:-2.7.1}
+VERSION_ffmpeg2=${VERSION_ffmpeg2:-2.8.8}
 URL_ffmpeg2=http://ffmpeg.org/releases/ffmpeg-$VERSION_ffmpeg2.tar.bz2
 DEPS_ffmpeg2=(sdl)
-DEPS_OPTIONAL_ffmpeg2=(openssl)
+DEPS_OPTIONAL_ffmpeg2=(openssl ffpyplayer_codecs)
 MD5_ffmpeg2=
 BUILD_ffmpeg2=$BUILD_PATH/ffmpeg2/$(get_directory $URL_ffmpeg2)
 RECIPE_ffmpeg2=$RECIPES_PATH/ffmpeg2
 ARCH_ffmpeg2=${ARCH_ffmpeg2:-armv7a}
 
 function prebuild_ffmpeg2() {
-	true
+	cd $BUILD_ffmpeg2
+
+	if [ -f .patched ]; then
+		return
+	fi
+
+	debug $BUILD_ffmpeg2
+
+	try patch -p1 < $RECIPE_ffmpeg2/patches/fix-libshine-configure.patch
+
+	touch .patched
 }
 
 function shouldbuild_ffmpeg2() {
@@ -24,60 +32,75 @@ function shouldbuild_ffmpeg2() {
 function build_ffmpeg2() {
 	cd $BUILD_ffmpeg2
 
-	# build ffmpeg2
-	export NDK=$ANDROIDNDK
 	push_arm
 
-	# configure
-	DEST=build/ffmpeg
+	export NDK=$ANDROIDNDK
 
-	# openssl activated ?
-	SSL_CFLAGS=""
-	SSL_LDFLAGS=""
-	if [ "X$BUILD_openssl" != "X" ]; then
-		debug "Activate flags for openssl / ffmpeg2"
-		SSL_CFLAGS="-I$BUILD_openssl/include/"
-		SSL_LDFLAGS="-L$BUILD_openssl/"
-	fi
+	DEST=build/ffmpeg
 
 	for version in $ARCH_ffmpeg2; do
 
 	FLAGS="--disable-everything"
-	FLAGS="$FLAGS --enable-parser=h264,aac"
-	FLAGS="$FLAGS --enable-decoder=h263,h264,aac"
-	FLAGS="$FLAGS --enable-filter=aresample,resample,crop,adelay,volume"
-	FLAGS="$FLAGS --enable-protocol=file,http,https,tls_openssl"
-	FLAGS="$FLAGS --enable-demuxer=sdp --enable-pic"
-	FLAGS="$FLAGS --enable-small"
-	FLAGS="$FLAGS --enable-hwaccels"
-	FLAGS="$FLAGS --disable-static --enable-shared"
-	# libpostproc is GPL: https://ffmpeg.org/pipermail/ffmpeg-user/2012-February/005162.html
-	FLAGS="$FLAGS --enable-gpl"
+	EXTRA_CFLAGS=""
+	EXTRA_LDFLAGS=""
 
-	# enable openssl if needed
+	# openssl
 	if [ "X$BUILD_openssl" != "X" ]; then
 		FLAGS="$FLAGS --enable-openssl --enable-nonfree"
 		FLAGS="$FLAGS --enable-protocol=https,tls_openssl"
+		EXTRA_CFLAGS="$EXTRA_CFLAGS -I$BUILD_openssl/include/"
+		EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$BUILD_openssl/"
+	fi
+
+	# ffpyplayer_codecs
+	if [ "X$BUILD_ffpyplayer_codecs" != "X" ]; then
+		# libx264
+		FLAGS="$FLAGS --enable-libx264"
+		EXTRA_CFLAGS="$EXTRA_CFLAGS -I$BUILD_libx264/include/"
+		EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$BUILD_libx264/lib/ -lx264"
+			
+	        # libshine
+		FLAGS="$FLAGS --enable-libshine"
+		EXTRA_CFLAGS="$EXTRA_CFLAGS -I$BUILD_libshine/include/"
+		EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$BUILD_libshine/lib/ -lshine"
+
+	        # Enable all codecs:
+		FLAGS="$FLAGS --enable-parsers"
+		FLAGS="$FLAGS --enable-decoders"
+		FLAGS="$FLAGS --enable-encoders"
+		FLAGS="$FLAGS --enable-muxers"
+		FLAGS="$FLAGS --enable-demuxers"
+	else
+	        # Enable codecs only for .mp4:
+		FLAGS="$FLAGS --enable-parser=h264,aac"
+		FLAGS="$FLAGS --enable-decoder=h263,h264,aac"
+
+		# disable some unused algo
+		# note: "golomb" are the one used in our video test, so don't use --disable-golomb
+		# note: and for aac decoding: "rdft", "mdct", and "fft" are needed
+		FLAGS="$FLAGS --disable-dxva2 --disable-vdpau --disable-vaapi"
+		FLAGS="$FLAGS --disable-dct"		
 	fi
 
 	# needed to prevent _ffmpeg.so: version node not found for symbol av_init_packet@LIBAVFORMAT_52
 	# /usr/bin/ld: failed to set dynamic section sizes: Bad value
 	FLAGS="$FLAGS --disable-symver"
 
-	# disable some unused algo
-	# note: "golomb" are the one used in our video test, so don't use --disable-golomb
-	# note: and for aac decoding: "rdft", "mdct", and "fft" are needed
-	FLAGS="$FLAGS --disable-dxva2 --disable-vdpau --disable-vaapi"
-	FLAGS="$FLAGS --disable-dct"
-
 	# disable binaries / doc
 	FLAGS="$FLAGS --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver"
 	FLAGS="$FLAGS --disable-doc"
 
+	# other flags:
+	FLAGS="$FLAGS --enable-filter=aresample,resample,crop,adelay,volume"
+	FLAGS="$FLAGS --enable-protocol=file,http"
+	FLAGS="$FLAGS --enable-small"
+	FLAGS="$FLAGS --enable-hwaccels"
+	FLAGS="$FLAGS --enable-gpl"
+	FLAGS="$FLAGS --enable-pic"
+	FLAGS="$FLAGS --disable-static --enable-shared"
+
 	case "$version" in
 		x86)
-			EXTRA_CFLAGS="$SSL_CFLAGS"
-			EXTRA_LDFLAGS="$SSL_LDFLAGS"
 			ABI="x86"
 			;;
 		armv7a)
@@ -85,8 +108,7 @@ function build_ffmpeg2() {
 			ARM_FLAGS="$ARM_FLAGS --sysroot=$NDKPLATFORM"
 			FLAGS="$ARM_FLAGS $FLAGS"
 			FLAGS="$FLAGS --enable-neon"
-			EXTRA_CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -fPIC -DANDROID $SSL_CFLAGS"
-			EXTRA_LDFLAGS="$SSL_LDFLAGS"
+			EXTRA_CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -fPIC -DANDROID $EXTRA_CFLAGS"
 			ABI="armeabi-v7a"
 			;;
 		*)
@@ -99,9 +121,11 @@ function build_ffmpeg2() {
 
 	mkdir -p $DEST
 	make distclean
+
 	try ./configure $FLAGS --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="$EXTRA_LDFLAGS"
+
 	make clean
-	try make -j4
+	try make -j$MAKE_JOBS
 	try make install
 
 	done
