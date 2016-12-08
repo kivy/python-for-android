@@ -24,7 +24,7 @@ public class PythonUtil {
             public boolean accept(File dir, String name) {
                 return name.matches(".*ssl.*")
                     || name.matches(".*crypto.*")
-                    || name.matches(".*cffi.*");
+                    || name.matches(".*ffi.*");
             }
         });
 
@@ -72,7 +72,7 @@ public class PythonUtil {
         }
 
         try {
-            System.load(filesDirPath + "/lib/python2.7/site-packages/cffi-1.4.2-py2.7-linux-x86_64.egg/_cffi_backend.so");
+            System.load(filesDirPath + "/lib/python2.7/site-packages/_cffi_backend.so");
         } catch(UnsatisfiedLinkError e) {
             Log.v(TAG, "Unsatisfied linker when loading cffi backend");
         }
