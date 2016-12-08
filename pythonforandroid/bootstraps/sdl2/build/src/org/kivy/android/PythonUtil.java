@@ -66,10 +66,15 @@ public class PythonUtil {
         }
         
         try {
-            // System.loadLibrary("ctypes");
             System.load(filesDirPath + "/lib/python2.7/lib-dynload/_ctypes.so");
         } catch(UnsatisfiedLinkError e) {
             Log.v(TAG, "Unsatisfied linker when loading ctypes");
+        }
+
+        try {
+            System.load(filesDirPath + "/lib/python2.7/site-packages/cffi-1.4.2-py2.7-linux-x86_64.egg/_cffi_backend.so");
+        } catch(UnsatisfiedLinkError e) {
+            Log.v(TAG, "Unsatisfied linker when loading cffi backend");
         }
 
         Log.v(TAG, "Loaded everything!");
