@@ -22,7 +22,9 @@ public class PythonUtil {
         File [] files = filesDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return  name.matches(".*ssl.*") || name.matches(".*crypto.*");
+                return name.matches(".*ssl.*")
+                    || name.matches(".*crypto.*")
+                    || name.matches(".*cffi.*");
             }
         });
 
