@@ -77,11 +77,11 @@ public class PythonUtil {
             Log.v(TAG, "Unsatisfied linker when loading ctypes");
         }
 
-        try {
-            System.load(filesDirPath + "/lib/python2.7/site-packages/_cffi_backend.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Unsatisfied linker when loading cffi backend");
-        }
+        // try {
+        //     System.load(filesDirPath + "/lib/python2.7/site-packages/_cffi_backend.so");
+        // } catch(UnsatisfiedLinkError e) {
+        //     Log.v(TAG, "Unsatisfied linker when loading cffi backend");
+        // }
 
         Log.v(TAG, "Loaded everything!");
     }
