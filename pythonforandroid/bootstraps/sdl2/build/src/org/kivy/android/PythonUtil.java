@@ -11,6 +11,9 @@ public class PythonUtil {
 
     protected static ArrayList<String> getLibraries(File filesDir) {
 
+        // XXX: read libraries/patterns to be loaded from default path from
+        //      file or generated class or similar
+
         ArrayList<String> MyList = new ArrayList<String>();
         MyList.add("SDL2");
         MyList.add("SDL2_image");
@@ -57,6 +60,9 @@ public class PythonUtil {
                 throw e;
             }
         }
+
+        // XXX: read libraries to be loaded from custom path from
+        //      file or generated class or similar
 
         try {
             System.load(filesDirPath + "/lib/python2.7/lib-dynload/_io.so");
