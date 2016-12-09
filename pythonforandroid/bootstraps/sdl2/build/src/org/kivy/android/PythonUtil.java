@@ -39,7 +39,7 @@ public class PythonUtil {
         };
 
         MyList.add("python2.7");
-        MyList.add("python3.5m");
+        // MyList.add("python3.5m");
         MyList.add("main");
         return MyList;
     }
