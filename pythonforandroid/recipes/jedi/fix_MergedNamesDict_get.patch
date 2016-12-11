@@ -1,0 +1,14 @@
+diff --git a/jedi/parser/fast.py b/jedi/parser/fast.py
+index 35bb855..bc43359 100644
+--- a/jedi/parser/fast.py
++++ b/jedi/parser/fast.py
+@@ -75,7 +75,8 @@ class MergedNamesDict(object):
+         return iter(set(key for dct in self.dicts for key in dct))
+ 
+     def __getitem__(self, value):
+-        return list(chain.from_iterable(dct.get(value, []) for dct in self.dicts))
++        return list(chain.from_iterable((dct[value] if value in dct else []) for dct in self.dicts))
++        # return list(chain.from_iterable(dct.get(value, []) for dct in self.dicts))
+ 
+     def items(self):
+         dct = {}
