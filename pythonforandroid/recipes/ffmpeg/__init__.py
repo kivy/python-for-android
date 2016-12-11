@@ -10,6 +10,7 @@ import shutil
 class FFMpegRecipe(Recipe):
     version = '2.8.8'
     url = 'http://ffmpeg.org/releases/ffmpeg-{version}.tar.bz2'
+    md5sum = 'afeae3b80b7e7e03db957f33a7ef20d2'
     depends = ['openssl', 'ffpyplayer_codecs']  # TODO should be opts_depends
     patches = ['patches/fix-libshine-configure.patch']
 

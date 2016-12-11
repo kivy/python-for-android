@@ -6,8 +6,9 @@ import sh
 
 
 class LibX264Recipe(Recipe):
-    version = 'last_stable'
-    url = 'http://mirror.yandex.ru/mirrors/ftp.videolan.org/x264/snapshots/{version}_x264.tar.bz2'
+    version = 'x264-snapshot-20161210-2245-stable'  # using mirror url since can't use ftp
+    url = 'http://mirror.yandex.ru/mirrors/ftp.videolan.org/x264/snapshots/{version}.tar.bz2'
+    md5sum = '6bcca94ae1d81ee14236ba9af42135d9'
 
     # TODO add should_build(self, arch)
 
