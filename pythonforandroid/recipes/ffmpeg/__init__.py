@@ -14,7 +14,9 @@ class FFMpegRecipe(Recipe):
     depends = ['openssl', 'ffpyplayer_codecs']  # TODO should be opts_depends
     patches = ['patches/fix-libshine-configure.patch']
 
-    # TODO add should_build(self, arch)
+    def should_build(self, arch):
+        build_dir = self.get_build_dir(arch.arch)
+        return not exists(join(build_dir, 'lib', 'libavcodec.so'))
 
     def prebuild_arch(self, arch):
         self.apply_patches(arch)

@@ -10,7 +10,9 @@ class LibShineRecipe(Recipe):
     url = 'https://github.com/toots/shine/archive/{version}.zip'
     md5sum = '24cf9488d06f7acf0a0fbb162cc587ab'
 
-    # TODO add should_build(self, arch)
+    def should_build(self, arch):
+        build_dir = self.get_build_dir(arch.arch)
+        return not exists(join(build_dir, 'lib', 'libshine.a'))
 
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):

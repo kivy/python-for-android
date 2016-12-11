@@ -10,7 +10,9 @@ class LibX264Recipe(Recipe):
     url = 'http://mirror.yandex.ru/mirrors/ftp.videolan.org/x264/snapshots/{version}.tar.bz2'
     md5sum = '6bcca94ae1d81ee14236ba9af42135d9'
 
-    # TODO add should_build(self, arch)
+    def should_build(self, arch):
+        build_dir = self.get_build_dir(arch.arch)
+        return not exists(join(build_dir, 'lib', 'libx264.a'))
 
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
