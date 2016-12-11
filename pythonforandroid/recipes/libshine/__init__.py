@@ -6,7 +6,7 @@ import sh
 
 
 class LibShineRecipe(Recipe):
-    version = 'b403b3e8a41377e0576d834b179a5cc7096ff548'  # we need master brnch
+    version = 'b403b3e8a41377e0576d834b179a5cc7096ff548'  # we need master branch
     url = 'https://github.com/toots/shine/archive/{version}.zip'
     md5sum = '24cf9488d06f7acf0a0fbb162cc587ab'
 
