@@ -7,6 +7,9 @@ Permission groups for Android
 A collection of permissions fetched directly from the Android source code,
 grouped by the categories presented in the ``AndroidManifest.xml``
 
+Permission names and permission groups are licensed under Apache 2.0 License,
+Copyright 2006, The Android Open Source Project
+
 * CONTACTS - Permissions for accessing user's contacts including personal
   profile
 
