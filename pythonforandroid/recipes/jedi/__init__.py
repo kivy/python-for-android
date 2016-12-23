@@ -14,5 +14,7 @@ class JediRecipe(PythonRecipe):
     # pypi yet), but it still occurs on Android, I could not reproduce
     # on desktop.
 
+    call_hostpython_via_targetpython = False
+
 
 recipe = JediRecipe()
