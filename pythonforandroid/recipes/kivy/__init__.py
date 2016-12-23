@@ -34,7 +34,6 @@ class KivyRecipe(CythonRecipe):
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)
         if 'sdl2' in self.ctx.recipe_build_order:
-            env['CUR_ARCH'] = arch.arch
             env['USE_SDL2'] = '1'
             env['KIVY_SDL2_PATH'] = ':'.join([
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
