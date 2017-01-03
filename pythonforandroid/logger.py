@@ -146,7 +146,9 @@ def shprint(command, *args, **kwargs):
     kwargs["_err_to_out"] = True
     kwargs["_bg"] = True
     is_critical = kwargs.pop('_critical', False)
-    tail_n = kwargs.pop('_tail', 0)
+    tail_n = kwargs.pop('_tail', None)
+    if "P4A_FULL_DEBUG" in os.environ:
+        tail_n = 0
     filter_in = kwargs.pop('_filter', None)
     filter_out = kwargs.pop('_filterout', None)
     if len(logger.handlers) > 1:
@@ -193,7 +195,7 @@ def shprint(command, *args, **kwargs):
             stdout.write('{}\r{:>{width}}\r'.format(
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))
             stdout.flush()
-        if tail_n or filter_in or filter_out:
+        if tail_n is not None or filter_in or filter_out:
             def printtail(out, name, forecolor, tail_n=0,
                           re_filter_in=None, re_filter_out=None):
                 lines = out.splitlines()
