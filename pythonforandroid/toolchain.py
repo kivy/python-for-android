@@ -8,7 +8,6 @@ This module defines the entry point for command line and programmatic use.
 
 from __future__ import print_function
 
-
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
     # before the imports because otherwise they're imported elsewhere.
@@ -76,6 +75,7 @@ from functools import wraps
 
 import argparse
 import sh
+import imp
 from appdirs import user_data_dir
 import logging
 
@@ -293,10 +293,15 @@ class ToolchainCL(object):
             help=('Dependencies of your app, should be recipe names or '
                   'Python modules'),
             default='')
-        
+
         generic_parser.add_argument(
             '--bootstrap',
             help='The bootstrap to build with. Leave unset to choose automatically.',
+            default=None)
+
+        generic_parser.add_argument(
+            '--hook',
+            help='Filename to a module that contain python-for-android hooks',
             default=None)
 
         add_boolean_option(
@@ -487,6 +492,18 @@ class ToolchainCL(object):
 
         # Each subparser corresponds to a method
         getattr(self, args.subparser_name.replace('-', '_'))(args)
+
+    def hook(self, name):
+        if not self.args.hook:
+            return
+        if not hasattr(self, "hook_module"):
+            # first time, try to load the hook module
+            self.hook_module = imp.load_source("pythonforandroid.hook", self.args.hook)
+        if hasattr(self.hook_module, name):
+            info("Hook: execute {}".format(name))
+            getattr(self.hook_module, name)(self)
+        else:
+            info("Hook: ignore {}".format(name))
 
     @property
     def default_storage_dir(self):
@@ -691,8 +708,12 @@ class ToolchainCL(object):
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
+            self.hook("before_apk_build")
             build_args = build.parse_args(args.unknown_args)
+            self.hook("after_apk_build")
+            self.hook("before_apk_assemble")
             output = shprint(sh.ant, args.build_mode, _tail=20, _critical=True, _env=env)
+            self.hook("after_apk_assemble")
 
         info_main('# Copying APK to current directory')
 
@@ -807,7 +828,7 @@ class ToolchainCL(object):
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
-        
+
 
     def build_status(self, args):
 
