@@ -2,16 +2,11 @@
 Build options
 =============
 
-This page contains instructions for using some of the specific python-for-android build options.
+This page contains instructions for using different build options.
 
 
-Python version
---------------
-
-python-for-android now supports building APKs with either python2 or
-python3, but these have extra requirements or potential disadvantages
-as below.
-
+Python versions
+---------------
 
 python2
 ~~~~~~~
@@ -52,25 +47,19 @@ there may be bugs or surprising behaviours. If you come across any,
 feel free to `open an issue
 <https://github.com/kivy/python-for-android>`__.
 
-As this build is experimental, some features are missing and
-the build is not fully optimised so APKs are probably a little larger
-and slower than they need to be. This is currently being addressed,
-though it's not clear how the final result will compare to python2.
-
 .. _bootstrap_build_options:
 
-Bootstrap
----------
+Bootstrap options
+-----------------
 
-python-for-android supports multiple bootstraps, which contain the app
-backend that starts the app and the python interpreter, then
-handles interactions with the Android OS.
+python-for-android supports multiple app backends with different types
+of interface. These are called *bootstraps*.
 
 Currently the following bootstraps are supported, but we hope that it
 it should be easy to add others if your project has different
 requirements. `Let us know
-<https://groups.google.com/forum/#!forum/python-android>`__ if there
-are any improvements that would help here.
+<https://groups.google.com/forum/#!forum/python-android>`__ if you'd
+like help adding a new one.
 
 sdl2
 ~~~~
@@ -88,6 +77,45 @@ normal. For instance, you can build apps with Kivy or PySDL2
 and have them work with this bootstrap. It should also be possible to
 use e.g. pygame_sdl2, but this would need a build recipe and doesn't
 yet have one.
+
+Build options
+%%%%%%%%%%%%%
+
+The sdl2 bootstrap supports the following additional command line
+options (this list may not be exhaustive):
+
+- ``--private``: The directory containing your project files.
+- ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
+- ``--name``: The app name.
+- ``--version``: The version number.
+- ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``
+  to automatically rotate according to the device orientation.
+- ``--icon``: A path to the png file to use as the application icon.
+- ``-- permission``: A permission name for the app,
+  e.g. ``--permission VIBRATE``. For multiple permissions, add
+  multiple ``--permission`` arguments.
+- ``--meta-data``: Custom key=value pairs to add in the application metadata.
+- ``--presplash``: A path to the image file to use as a screen while
+  the application is loading.
+- ``--presplash-color``: The presplash screen background color, of the
+  form ``#RRGGBB`` or a color name ``red``, ``green``, ``blue`` etc.
+- ``--wakelock``: If the argument is included, the application will
+  prevent the device from sleeping.
+- ``--window``: If the argument is included, the application will not
+  cover the Android status bar.
+- ``--blacklist``: The path to a file containing blacklisted patterns
+  that will be excluded from the final APK. Defaults to ``./blacklist.txt``.
+- ``--whitelist``: The path to a file containing whitelisted patterns
+  that will be included in the APK even if also blacklisted.
+- ``--add-jar``: The path to a .jar file to include in the APK. To
+  include multiple jar files, pass this argument multiple times.
+- ``--intent-filters``: A file path containing intent filter xml to be
+  included in AndroidManifest.xml.
+- ``--service``: A service name and the Python script it should
+  run. See :ref:`arbitrary_scripts_services`.
+- ``--add-source``: Add a source directory to the app's Java code.
+- ``--no-compile-pyo``: Do not optimise .py files to .pyo.
+
 
 webview
 ~~~~~~~
@@ -112,6 +140,39 @@ present (e.g. during the short Python loading time when first
 started), it will instead display a loading screen until the server is
 ready.
 
+- ``--private``: The directory containing your project files.
+- ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
+- ``--name``: The app name.
+- ``--version``: The version number.
+- ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``
+  to automatically rotate according to the device orientation.
+- ``--icon``: A path to the png file to use as the application icon.
+- ``-- permission``: A permission name for the app,
+  e.g. ``--permission VIBRATE``. For multiple permissions, add
+  multiple ``--permission`` arguments.
+- ``--meta-data``: Custom key=value pairs to add in the application metadata.
+- ``--presplash``: A path to the image file to use as a screen while
+  the application is loading.
+- ``--presplash-color``: The presplash screen background color, of the
+  form ``#RRGGBB`` or a color name ``red``, ``green``, ``blue`` etc.
+- ``--wakelock``: If the argument is included, the application will
+  prevent the device from sleeping.
+- ``--window``: If the argument is included, the application will not
+  cover the Android status bar.
+- ``--blacklist``: The path to a file containing blacklisted patterns
+  that will be excluded from the final APK. Defaults to ``./blacklist.txt``.
+- ``--whitelist``: The path to a file containing whitelisted patterns
+  that will be included in the APK even if also blacklisted.
+- ``--add-jar``: The path to a .jar file to include in the APK. To
+  include multiple jar files, pass this argument multiple times.
+- ``--intent-filters``: A file path containing intent filter xml to be
+  included in AndroidManifest.xml.
+- ``--service``: A service name and the Python script it should
+  run. See :ref:`arbitrary_scripts_services`.
+- ``add-source``: Add a source directory to the app's Java code.
+- ``--port``: The port on localhost that the WebView will
+  access. Defaults to 5000.
+
 
 pygame
 ~~~~~~
@@ -126,3 +187,45 @@ apps, but hasn't been developed with this in mind.
 This bootstrap will eventually be deprecated in favour of sdl2, but
 not before the sdl2 bootstrap includes all the features that would be
 lost.
+
+Build options
+%%%%%%%%%%%%%
+
+The pygame bootstrap supports the following additional command line
+options (this list may not be exhaustive):
+
+- ``--private``: The directory containing your project files.
+- ``--dir``: The directory containing your project files if you want
+  them to be unpacked to the external storage directory rather than
+  the app private directory.
+- ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
+- ``--name``: The app name.
+- ``--version``: The version number.
+- ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``
+  to automatically rotate according to the device orientation.
+- ``--icon``: A path to the png file to use as the application icon.
+- ``--ignore-path``: A path to ignore when including the app
+  files. Pass multiple times to ignore multiple paths.
+- ``-- permission``: A permission name for the app,
+  e.g. ``--permission VIBRATE``. For multiple permissions, add
+  multiple ``--permission`` arguments.
+- ``--meta-data``: Custom key=value pairs to add in the application metadata.
+- ``--presplash``: A path to the image file to use as a screen while
+  the application is loading.
+- ``--wakelock``: If the argument is included, the application will
+  prevent the device from sleeping.
+- ``--window``: If the argument is included, the application will not
+  cover the Android status bar.
+- ``--blacklist``: The path to a file containing blacklisted patterns
+  that will be excluded from the final APK. Defaults to ``./blacklist.txt``.
+- ``--whitelist``: The path to a file containing whitelisted patterns
+  that will be included in the APK even if also blacklisted.
+- ``--add-jar``: The path to a .jar file to include in the APK. To
+  include multiple jar files, pass this argument multiple times.
+- ``--intent-filters``: A file path containing intent filter xml to be
+  included in AndroidManifest.xml.
+- ``--service``: A service name and the Python script it should
+  run. See :ref:`arbitrary_scripts_services`.
+- ``add-source``: Add a source directory to the app's Java code.
+- ``--compile-pyo``: Optimise .py files to .pyo.
+- ``--resource``: A key=value pair to add in the string.xml resource file.
