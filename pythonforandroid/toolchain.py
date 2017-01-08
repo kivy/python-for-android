@@ -712,7 +712,15 @@ class ToolchainCL(object):
             build_args = build.parse_args(args.unknown_args)
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
-            output = shprint(sh.ant, args.build_mode, _tail=20, _critical=True, _env=env)
+
+            try:
+                ant = sh.Command('ant')
+            except sh.CommandNotFound:
+                error('Could not find ant binary, please install it and make '
+                      'sure it is in your $PATH.')
+                exit(1)
+
+            output = shprint(ant, args.build_mode, _tail=20, _critical=True, _env=env)
             self.hook("after_apk_assemble")
 
         info_main('# Copying APK to current directory')
