@@ -187,6 +187,8 @@ class Context(object):
             #                # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
+            possible_dirs = [d for d in possible_dirs if not
+                             (d.endswith('.bz2') or d.endswith('.gz'))]
             if possible_dirs:
                 info('Found possible SDK dirs in buildozer dir: {}'.format(
                     ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
