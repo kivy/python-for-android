@@ -7,15 +7,10 @@ import os
 
 
 class FFPyPlayerRecipe(CythonRecipe):
-    version = 'v4.0.0'
+    version = 'master'
     url = 'https://github.com/matham/ffpyplayer/archive/{version}.zip'
-    md5sum = '99f4c7103bce0ecb167510fc810db82f'
     depends = ['python2', 'sdl2', 'ffmpeg']
     opt_depends = ['openssl', 'ffpyplayer_codecs']
-    patches = ['patches/fix-ffpyplayer-setup.patch']  # need this to compile with SDL2
-
-    def prebuild_arch(self, arch):
-        self.apply_patches(arch)
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super(FFPyPlayerRecipe, self).get_recipe_env(arch)
