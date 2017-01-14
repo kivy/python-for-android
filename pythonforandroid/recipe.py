@@ -582,6 +582,10 @@ class Recipe(with_metaclass(RecipeMeta)):
                 info('Deleting {}'.format(directory))
                 shutil.rmtree(directory)
 
+        # Delete any Python distributions to ensure the recipe build
+        # doesn't persist in site-packages
+        shutil.rmtree(self.ctx.python_installs_dir)
+
     def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
         if not libs:
