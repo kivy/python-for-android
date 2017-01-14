@@ -412,8 +412,13 @@ tools directory of the Android SDK.
                     required=True)
     ap.add_argument('--orientation', dest='orientation', default='portrait',
                     help=('The orientation that the game will display in. '
-                          'Usually one of "landscape", "portrait" or '
-                          '"sensor"'))
+                          'Usually one of "landscape", "portrait", '
+                          '"sensor", or "user" (the same as "sensor" but '
+                          'obeying the user\'s Android rotation setting). '
+                          'The full list of options is given under '
+                          'android_screenOrientation at '
+                          'https://developer.android.com/guide/topics/manifest/'
+                          'activity-element.html'))
     ap.add_argument('--icon', dest='icon',
                     help='A png file to use as the icon for the application.')
     ap.add_argument('--permission', dest='permissions', action='append',

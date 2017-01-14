@@ -88,8 +88,12 @@ options (this list may not be exhaustive):
 - ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
-- ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``
-  to automatically rotate according to the device orientation.
+- ``--orientation``: Usually one of ``portait``, ``landscape``,
+  ``sensor`` to automatically rotate according to the device
+  orientation, or ``user`` to do the same but obeying the user's
+  settings. The full list of valid options is given under
+  ``android:screenOrientation`` in the `Android documentation
+  <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
 - ``--icon``: A path to the png file to use as the application icon.
 - ``-- permission``: A permission name for the app,
   e.g. ``--permission VIBRATE``. For multiple permissions, add
@@ -144,8 +148,12 @@ ready.
 - ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
-- ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``
-  to automatically rotate according to the device orientation.
+- ``--orientation``: Usually one of ``portait``, ``landscape``,
+  ``sensor`` to automatically rotate according to the device
+  orientation, or ``user`` to do the same but obeying the user's
+  settings. The full list of valid options is given under
+  ``android:screenOrientation`` in the `Android documentation
+  <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
 - ``--icon``: A path to the png file to use as the application icon.
 - ``-- permission``: A permission name for the app,
   e.g. ``--permission VIBRATE``. For multiple permissions, add

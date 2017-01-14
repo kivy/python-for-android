@@ -9,6 +9,7 @@ options = {'apk': {'debug': None,
                    'dist-name': 'bdisttest',
                    'ndk-version': '10.3.2',
                    'permission': 'VIBRATE',
+                   'window': None,
                    }}
 
 package_data = {'': ['*.py',
