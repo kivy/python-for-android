@@ -774,6 +774,9 @@ class PythonRecipe(Recipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+
+        env['PYTHONNOUSERSITE'] = '1'
+
         if not self.call_hostpython_via_targetpython:
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
