@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_ffpyplayer=${VERSION_ffpyplayer:-v3.2}
+VERSION_ffpyplayer=${VERSION_ffpyplayer:-master}
 URL_ffpyplayer=http://github.com/matham/ffpyplayer/archive/$VERSION_ffpyplayer.zip
 DEPS_ffpyplayer=(python ffmpeg2)
 DEPS_OPTIONAL_ffpyplayer=(openssl ffpyplayer_codecs)
