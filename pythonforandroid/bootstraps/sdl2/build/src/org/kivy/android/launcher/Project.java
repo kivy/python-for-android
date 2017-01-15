@@ -1,4 +1,4 @@
-package org.kivy.android;
+package org.kivy.android.launcher;
 
 import java.io.UnsupportedEncodingException;
 import java.io.File;
@@ -15,11 +15,11 @@ import android.graphics.BitmapFactory;
  */
 public class Project {
 
-    String dir = null;
+    public String dir = null;
     String title = null;
     String author = null;
     Bitmap icon = null;
-    boolean landscape = false;
+    public boolean landscape = false;
 
     static String decode(String s) {
         try {

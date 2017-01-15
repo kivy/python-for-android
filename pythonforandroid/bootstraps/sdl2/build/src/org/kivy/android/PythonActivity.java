@@ -36,6 +36,7 @@ import android.graphics.Color;
 import org.libsdl.app.SDLActivity;
 
 import org.kivy.android.PythonUtil;
+import org.kivy.android.launcher.Project;
 
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;

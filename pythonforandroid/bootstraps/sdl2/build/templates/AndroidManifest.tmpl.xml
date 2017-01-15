@@ -86,7 +86,7 @@
         </activity>
 
         {% if args.launcher %}
-        <activity android:name="org.kivy.android.ProjectChooser"
+        <activity android:name="org.kivy.android.launcher.ProjectChooser"
                   android:icon="@drawable/icon"
                   android:label="@string/app_name">
 

@@ -1,4 +1,4 @@
-package org.kivy.android;
+package org.kivy.android.launcher;
 
 import android.app.Activity;
 import android.content.Context;
