@@ -131,12 +131,6 @@ public class PythonActivity extends SDLActivity {
             // private data if we do not.
             mActivity.finishLoad();
 
-            // finishLoad called setContentView with the SDL view, which
-            // removed the loading screen. However, we still need it to
-            // show until the app is ready to render, so pop it back up
-            // on top of the SDL view.
-            mActivity.showLoadingScreen();
-
             String app_root_dir = getAppRoot();
             if (getIntent() != null && getIntent().getAction() != null &&
                     getIntent().getAction().equals("org.kivy.LAUNCH")) {
@@ -172,6 +166,7 @@ public class PythonActivity extends SDLActivity {
             String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
             Log.v(TAG, "Setting env vars for start.c and Python to use");
             SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+            SDLActivity.nativeSetEnv("ANDROID_UNPACK", mFilesDirectory + "/app");
             SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
             SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
             SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
