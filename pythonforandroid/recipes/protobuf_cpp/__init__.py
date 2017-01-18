@@ -15,7 +15,7 @@ class ProtobufCppRecipe(PythonRecipe):
 	url = 'https://github.com/google/protobuf/releases/download/v{version}/protobuf-python-{version}.tar.gz'
 	call_hostpython_via_targetpython = False
 	depends = ['cffi', 'setuptools']
-
+	site_packages_name = 'google/protobuf/pyext'
 
 	def build_arch(self, arch):
 		env = self.get_recipe_env(arch)
