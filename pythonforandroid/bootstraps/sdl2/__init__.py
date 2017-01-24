@@ -41,9 +41,13 @@ class SDL2Bootstrap(Bootstrap):
             hostpython = sh.Command(self.ctx.hostpython)
             if not self.ctx.python_recipe.from_crystax:
                 try:
+                    env = environ.copy()
+                    if 'hostpython2' in self.ctx.recipe_build_order:
+                        env['XCOMPILE_BUILD_PYTHONHOME_EXEC'] = \
+                            Recipe.get_recipe('hostpython2', self.ctx).get_build_dir()
                     shprint(hostpython, '-OO', '-m', 'compileall',
                             self.ctx.get_python_install_dir(),
-                            _tail=10, _filterout="^Listing")
+                            _tail=10, _filterout="^Listing", _env=env)
                 except sh.ErrorReturnCode:
                     pass
                 if not exists('python-install'):
