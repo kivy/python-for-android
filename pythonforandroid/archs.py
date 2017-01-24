@@ -18,6 +18,8 @@ class Arch(object):
     command_prefix = None
     '''The prefix for NDK commands such as gcc.'''
 
+    original_environ = environ.copy()
+
     def __init__(self, ctx):
         super(Arch, self).__init__()
         self.ctx = ctx
@@ -33,8 +35,37 @@ class Arch(object):
                 d.format(arch=self))
             for d in self.ctx.include_dirs]
 
+    def msys_get_base_env(self, full=False, convert=False):
+        # we need the original env for many reasons, target python
+        # doesn't want to build otherwise, neither does build python
+        # android ndk fails at finding the host OS blah blah blah
+        original_environ = self.original_environ
+        env = original_environ.copy() if full else {}
+
+        # fill in the msys required variables
+        for name in ('ACLOCAL_PATH', 'CONFIG_SITE', 'INFOPATH', 'MANPATH',
+            'MINGW_PREFIX', 'MSYSTEM_PREFIX', 'PKG_CONFIG_PATH',
+            'TEXTDOMAIN', 'TEXTDOMAINDIR', 'SHELL'):
+            if name in original_environ:
+                if convert:
+                    if name.endswith('PATH'):
+                        args = '-p', original_environ[name]
+                    else:
+                        args = original_environ[name],
+                    env[name] = shprint(sh.cygpath, '-u', *args, _env=original_environ).stdout.strip()
+                else:
+                    env[name] = original_environ[name]
+
+        for name in (
+            'COMSPEC', 'MSYSTEM', 'MSYSTEM_CARCH', 'MSYSTEM_CHOST',
+            'MINGW_CHOST', 'PATH', 'temp', 'TEMP', 'tmp', 'TMP',
+            'TMPDIR'):
+            if name in original_environ:
+                env[name] = original_environ[name]
+        return env
+
     def get_env(self, with_flags_in_cc=True):
-        env = {}
+        env = self.msys_get_base_env(full=True) if is_msys() else {}
 
         env["CFLAGS"] = " ".join([
             "-DANDROID", "-mandroid", "-fomit-frame-pointer",
