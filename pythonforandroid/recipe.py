@@ -16,7 +16,8 @@ try:
 except ImportError:
     from urllib.parse import urlparse
 from pythonforandroid.logger import (logger, info, warning, error, debug, shprint, info_main)
-from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
+from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir, mpath)
+from pythonforandroid.patching import is_msys
 
 # this import is necessary to keep imp.load_source from complaining :)
 import pythonforandroid.recipes
@@ -49,11 +50,6 @@ class RecipeMeta(type):
                 dct['_version'] = dct.pop('version')
 
         return super(RecipeMeta, cls).__new__(cls, name, bases, dct)
-
-def win_to_posix(p):
-    if ':' not in p:
-        return p
-    return '/' + p.replace(':', '').replace('\\', '/')
 
 
 class Recipe(with_metaclass(RecipeMeta)):
@@ -784,6 +780,8 @@ class PythonRecipe(Recipe):
         env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
 
         env['PYTHONNOUSERSITE'] = '1'
+        env['XCOMPILE_BUILD_PYTHONHOME_EXEC'] = dirname(self.real_hostpython_location)
+        env['XCOMPILE_BUILD_PYTHONHOME'] = self.ctx.get_python_install_dir()
 
         if not self.call_hostpython_via_targetpython:
             hppath = []
@@ -1064,19 +1062,26 @@ class CythonRecipe(PythonRecipe):
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super(CythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        if is_msys():
+            env['CFLAGS'] = '-I{} '.format(
+                mpath(join(self.ctx.get_python_install_dir(), 'include',
+                     'python2.7'))) + env['CFLAGS']
+        env['CROSS_COMPILE_TARGET'] = 'yes'
+
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
             ' -L{} '.format(self.ctx.libs_dir) +
-            ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
-                                arch.arch)))
+            ' -L{}'.format(mpath(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
+                                arch.arch))))
         if self.ctx.python_recipe.from_crystax:
             env['LDFLAGS'] = (env['LDFLAGS'] +
-                              ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
+                              ' -L{}'.format(mpath(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch))))
             # ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
         if self.ctx.python_recipe.from_crystax:
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
-            env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink.sh')
+            liblink = mpath(join(self.ctx.root_dir, 'tools', 'liblink.sh'))
+            env['LDSHARED'] = ('sh ' + liblink) if is_msys() else liblink
         # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
         env['NDKPLATFORM'] = self.ctx.ndk_platform
@@ -1085,16 +1090,16 @@ class CythonRecipe(PythonRecipe):
 
         # Every recipe uses its own liblink path, object files are
         # collected and biglinked later
-        liblink_path = join(self.get_build_container_dir(arch.arch),
-                            'objects_{}'.format(self.name))
+        liblink_path = mpath(join(self.get_build_container_dir(arch.arch),
+                            'objects_{}'.format(self.name)))
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
 
         if self.ctx.python_recipe.from_crystax:
             env['CFLAGS'] = '-I{} '.format(
-                join(self.ctx.ndk_dir, 'sources', 'python',
+                mpath(join(self.ctx.ndk_dir, 'sources', 'python',
                      self.ctx.python_recipe.version, 'include',
-                     'python')) + env['CFLAGS']
+                     'python'))) + env['CFLAGS']
 
         return env
 
