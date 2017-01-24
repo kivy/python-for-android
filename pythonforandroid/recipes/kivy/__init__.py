@@ -32,6 +32,10 @@ class KivyRecipe(CythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)
+        if 'KIVY_USE_SETUPTOOLS' in env:
+            del env['KIVY_USE_SETUPTOOLS']
+        if 'USE_GSTREAMER' in env:
+            del env['USE_GSTREAMER']
         if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
             env['KIVY_SDL2_PATH'] = ':'.join([
