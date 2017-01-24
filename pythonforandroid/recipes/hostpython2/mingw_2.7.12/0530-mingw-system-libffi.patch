@@ -1,0 +1,135 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:32.838200000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:32.963000000 +0300
+@@ -2475,14 +2475,32 @@
+             [],
+             [with_system_ffi="no"])
+ 
+-if test "$with_system_ffi" = "yes" && test -n "$PKG_CONFIG"; then
+-    LIBFFI_INCLUDEDIR="`"$PKG_CONFIG" libffi --cflags-only-I 2>/dev/null | sed -e 's/^-I//;s/ *$//'`"
++if test "$with_system_ffi" = "yes"; then
++    LIBFFI_INCLUDEDIR="$LIBFFI_INCLUDEDIR"
++fi
++AC_MSG_RESULT($with_system_ffi)
++
++ac_previous_cppflags=$CPPFLAGS
++CPPFLAGS="-I$LIBFFI_INCLUDEDIR"
++ac_previous_ldflags=$LDFLAGS
++# check for ffi.h
++AC_CHECK_HEADER(ffi.h, [
++  AC_DEFINE(WITH_SYSTEM_LIBFFI, 1,
++  [Define if we have external libffi.])
++  ffi_h="yes"
++],
++ffi_h="no"
++)
++if test "$ffi_h" = "yes"; then
++    LIBFFI_INCLUDEDIR="$LIBFFI_INCLUDEDIR"
+ else
+     LIBFFI_INCLUDEDIR=""
+ fi
++CPPFLAGS=$ac_previous_cppflags
++LDFLAGS=$ac_previous_ldflags
+ AC_SUBST(LIBFFI_INCLUDEDIR)
+ 
+-AC_MSG_RESULT($with_system_ffi)
++
+ 
+ # Check for --with-tcltk-includes=path and --with-tcltk-libs=path
+ AC_SUBST(TCLTK_INCLUDES)
+diff -Naur Python-2.7.9-orig/Lib/ctypes/test/test_as_parameter.py Python-2.7.9/Lib/ctypes/test/test_as_parameter.py
+--- Python-2.7.9-orig/Lib/ctypes/test/test_as_parameter.py	2014-12-10 18:59:33.000000000 +0300
++++ Python-2.7.9/Lib/ctypes/test/test_as_parameter.py	2014-12-11 13:50:32.963000000 +0300
+@@ -2,6 +2,7 @@
+ from ctypes import *
+ from ctypes.test import need_symbol
+ import _ctypes_test
++import sys
+ 
+ dll = CDLL(_ctypes_test.__file__)
+ 
+@@ -169,6 +170,10 @@
+         s2h = dll.ret_2h_func(self.wrap(inp))
+         self.assertEqual((s2h.x, s2h.y), (99*2, 88*3))
+ 
++    # This is known cdecl incompatibility between GCC
++    # and MSVC. It is addressed in GCC issue #36834.
++    # Python libffi detect it and complain.
++    @unittest.skipIf(sys.platform == "win32" and sys.version.find("GCC") >= 0, 'XFAIL GCC(mingw)')
+     def test_struct_return_8H(self):
+         class S8I(Structure):
+             _fields_ = [("a", c_int),
+diff -Naur Python-2.7.9-orig/Lib/ctypes/test/test_functions.py Python-2.7.9/Lib/ctypes/test/test_functions.py
+--- Python-2.7.9-orig/Lib/ctypes/test/test_functions.py	2014-12-10 18:59:33.000000000 +0300
++++ Python-2.7.9/Lib/ctypes/test/test_functions.py	2014-12-11 13:50:32.963000000 +0300
+@@ -352,6 +352,10 @@
+         s2h = windll.s_ret_2h_func(S2H(99, 88))
+         self.assertEqual((s2h.x, s2h.y), (99*2, 88*3))
+ 
++    # This is known cdecl incompatibility between GCC
++    # and MSVC. It is addressed in GCC issue #36834.
++    # Python libffi detect it and complain.
++    @unittest.skipIf(sys.platform == "win32" and sys.version.find("GCC") >= 0, 'XFAIL GCC(mingw)')
+     def test_struct_return_8H(self):
+         class S8I(Structure):
+             _fields_ = [("a", c_int),
+diff -Naur Python-2.7.9-orig/Modules/_ctypes/libffi/fficonfig.py.in Python-2.7.9/Modules/_ctypes/libffi/fficonfig.py.in
+--- Python-2.7.9-orig/Modules/_ctypes/libffi/fficonfig.py.in	2014-12-10 18:59:51.000000000 +0300
++++ Python-2.7.9/Modules/_ctypes/libffi/fficonfig.py.in	2014-12-11 13:50:32.963000000 +0300
+@@ -23,6 +23,7 @@
+     'FRV': ['src/frv/eabi.S', 'src/frv/ffi.c'],
+     'S390': ['src/s390/sysv.S', 'src/s390/ffi.c'],
+     'X86_64': ['src/x86/ffi64.c', 'src/x86/unix64.S', 'src/x86/ffi.c', 'src/x86/sysv.S'],
++    'X86_WIN64': ['src/x86/ffi.c', 'src/x86/win64.S'],
+     'SH': ['src/sh/sysv.S', 'src/sh/ffi.c'],
+     'SH64': ['src/sh64/sysv.S', 'src/sh64/ffi.c'],
+     'PA': ['src/pa/linux.S', 'src/pa/ffi.c'],
+@@ -30,6 +31,9 @@
+     'PA_HPUX': ['src/pa/hpux32.S', 'src/pa/ffi.c'],
+ }
+ 
++ffi_target = '@TARGET@'
++if ffi_target not in ['X86_WIN32', 'X86_WIN64']:
++    ffi_sources += 'src/dlmalloc.c'
+ ffi_sources += ffi_platforms['@TARGET@']
+ 
+ ffi_cflags = '@CFLAGS@'
+diff -Naur Python-2.7.9-orig/pyconfig.h.in Python-2.7.9/pyconfig.h.in
+--- Python-2.7.9-orig/pyconfig.h.in	2014-12-11 13:50:11.528600000 +0300
++++ Python-2.7.9/pyconfig.h.in	2014-12-11 13:50:32.978600000 +0300
+@@ -1128,6 +1128,9 @@
+ /* Define if you want to compile in Python-specific mallocs */
+ #undef WITH_PYMALLOC
+ 
++/* Define if we have external libffi. */
++#undef WITH_SYSTEM_LIBFFI
++
+ /* Define if you want to compile in rudimentary thread support */
+ #undef WITH_THREAD
+ 
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:21.403400000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:32.978600000 +0300
+@@ -2058,6 +2058,11 @@
+         return True
+ 
+     def configure_ctypes(self, ext):
++        if host_platform in ['mingw', 'win32']:
++            ext.libraries.extend(['ole32', 'oleaut32', 'uuid'])
++            #AdditionalOptions="/EXPORT:DllGetClassObject,PRIVATE /EXPORT:DllCanUnloadNow,PRIVATE"
++            ext.export_symbols.extend(['DllGetClassObject PRIVATE',
++                                       'DllCanUnloadNow PRIVATE'])
+         if not self.use_system_libffi:
+             if host_platform == 'darwin':
+                 return self.configure_ctypes_darwin(ext)
+@@ -2082,6 +2087,10 @@
+                 if not self.verbose:
+                     config_args.append("-q")
+ 
++                if host_platform in ['mingw', 'win32']:
++                    table = str.maketrans('\\', '/')
++                    ffi_builddir = ffi_builddir.translate(table)
++                    ffi_srcdir = ffi_srcdir.translate(table)
+                 # Pass empty CFLAGS because we'll just append the resulting
+                 # CFLAGS to Python's; -g or -O2 is to be avoided.
+                 cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \

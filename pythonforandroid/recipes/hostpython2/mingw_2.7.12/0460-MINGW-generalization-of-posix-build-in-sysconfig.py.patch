@@ -1,0 +1,62 @@
+diff -Naur Python-2.7.9-orig/Lib/sysconfig.py Python-2.7.9/Lib/sysconfig.py
+--- Python-2.7.9-orig/Lib/sysconfig.py	2014-12-11 13:50:16.614200000 +0300
++++ Python-2.7.9/Lib/sysconfig.py	2014-12-11 13:50:21.512600000 +0300
+@@ -94,6 +94,10 @@
+ _CONFIG_VARS = None
+ _USER_BASE = None
+ 
++# GCC[mingw*] use posix build system
++_POSIX_BUILD = os.name == 'posix' or \
++    (os.name == "nt" and 'GCC' in sys.version)
++
+ def _safe_realpath(path):
+     try:
+         return realpath(path)
+@@ -162,7 +166,7 @@
+     return res
+ 
+ def _get_default_scheme():
+-    if os.name == 'posix':
++    if _POSIX_BUILD:
+         # the default scheme for posix is posix_prefix
+         return 'posix_prefix'
+     return os.name
+@@ -173,7 +177,7 @@
+         return os.path.expanduser(os.path.join(*args))
+ 
+     # what about 'os2emx', 'riscos' ?
+-    if os.name == "nt":
++    if os.name == "nt" and not _POSIX_BUILD:
+         base = os.environ.get("APPDATA") or "~"
+         return env_base if env_base else joinuser(base, "Python")
+ 
+@@ -418,7 +422,7 @@
+ def get_config_h_filename():
+     """Returns the path of pyconfig.h."""
+     if _PYTHON_BUILD:
+-        if os.name == "nt":
++        if os.name == "nt" and not _POSIX_BUILD:
+             inc_dir = os.path.join(_PROJECT_BASE, "PC")
+         else:
+             inc_dir = _PROJECT_BASE
+@@ -480,9 +484,9 @@
+         _CONFIG_VARS['platbase'] = _EXEC_PREFIX
+         _CONFIG_VARS['projectbase'] = _PROJECT_BASE
+ 
+-        if os.name in ('nt', 'os2'):
++        if os.name in ('nt', 'os2') and not _POSIX_BUILD:
+             _init_non_posix(_CONFIG_VARS)
+-        if os.name == 'posix':
++        if _POSIX_BUILD:
+             _init_posix(_CONFIG_VARS)
+ 
+         # Setting 'userbase' is done below the call to the
+@@ -497,7 +501,7 @@
+         # Normally it is relative to the build directory.  However, during
+         # testing, for example, we might be running a non-installed python
+         # from a different directory.
+-        if _PYTHON_BUILD and os.name == "posix":
++        if _PYTHON_BUILD and _POSIX_BUILD:
+             base = _PROJECT_BASE
+             try:
+                 cwd = os.getcwd()

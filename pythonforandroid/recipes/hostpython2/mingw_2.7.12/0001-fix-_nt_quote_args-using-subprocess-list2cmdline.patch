@@ -1,0 +1,221 @@
+diff -urN Python-2.7.10.orig/Lib/distutils/spawn.py Python-2.7.10/Lib/distutils/spawn.py
+--- Python-2.7.10.orig/Lib/distutils/spawn.py	2016-01-02 00:59:12.580711100 +0000
++++ Python-2.7.10/Lib/distutils/spawn.py	2016-01-02 01:45:53.195782000 +0000
+@@ -14,6 +14,7 @@
+ from distutils.errors import DistutilsPlatformError, DistutilsExecError
+ from distutils.debug import DEBUG
+ from distutils import log
++from list2cmdline import list2cmdline
+ 
+ def spawn(cmd, search_path=1, verbose=0, dry_run=0):
+     """Run another program, specified as a command list 'cmd', in a new process.
+@@ -47,17 +48,13 @@
+ def _nt_quote_args(args):
+     """Quote command-line arguments for DOS/Windows conventions.
+ 
+-    Just wraps every argument which contains blanks in double quotes, and
+-    returns a new argument list.
++    Defer to list2cmdline as the logic is complex.
++    The previous implementation here failed to handle
++    -DG_LOG_DOMAIN="GEGL-"__FILE__ which was encountered in MSYS2
++    while building the gobject-introspection part of GEGL 0.3.4.
+     """
+-    # XXX this doesn't seem very robust to me -- but if the Windows guys
+-    # say it'll work, I guess I'll have to accept it.  (What if an arg
+-    # contains quotes?  What other magic characters, other than spaces,
+-    # have to be escaped?  Is there an escaping mechanism other than
+-    # quoting?)
+     for i, arg in enumerate(args):
+-        if ' ' in arg:
+-            args[i] = '"%s"' % arg
++        args[i] = list2cmdline([args[i]])
+     return args
+ 
+ def _spawn_nt(cmd, search_path=1, verbose=0, dry_run=0):
+diff -urN Python-2.7.10.orig/Lib/list2cmdline.py Python-2.7.10/Lib/list2cmdline.py
+--- Python-2.7.10.orig/Lib/list2cmdline.py	1970-01-01 01:00:00.000000000 +0100
++++ Python-2.7.10/Lib/list2cmdline.py	2016-01-02 01:15:25.244121800 +0000
+@@ -0,0 +1,79 @@
++# list2cmdline - Utility to escape nt commandline arguments
++#
++# Copyright (c) 2003-2005 by Peter Astrand <astrand@lysator.liu.se>
++#
++# Licensed to PSF under a Contributor Agreement.
++# See http://www.python.org/2.4/license for licensing details.
++
++def list2cmdline(seq):
++    """
++    Translate a sequence of arguments into a command line
++    string, using the same rules as the MS C runtime:
++
++    1) Arguments are delimited by white space, which is either a
++       space or a tab.
++
++    2) A string surrounded by double quotation marks is
++       interpreted as a single argument, regardless of white space
++       contained within.  A quoted string can be embedded in an
++       argument.
++
++    3) A double quotation mark preceded by a backslash is
++       interpreted as a literal double quotation mark.
++
++    4) Backslashes are interpreted literally, unless they
++       immediately precede a double quotation mark.
++
++    5) If backslashes immediately precede a double quotation mark,
++       every pair of backslashes is interpreted as a literal
++       backslash.  If the number of backslashes is odd, the last
++       backslash escapes the next double quotation mark as
++       described in rule 3.
++
++    Extracted from subprocess.py so that distutils spawn.py can
++    use it too.
++    """
++
++    # See
++    # http://msdn.microsoft.com/en-us/library/17w5ykft.aspx
++    # or search http://msdn.microsoft.com for
++    # "Parsing C++ Command-Line Arguments"
++    result = []
++    needquote = False
++    for arg in seq:
++        bs_buf = []
++
++        # Add a space to separate this argument from the others
++        if result:
++            result.append(' ')
++
++        needquote = (" " in arg) or ("\t" in arg) or not arg
++        if needquote:
++            result.append('"')
++
++        for c in arg:
++            if c == '\\':
++                # Don't know if we need to double yet.
++                bs_buf.append(c)
++            elif c == '"':
++                # Double backslashes.
++                result.append('\\' * len(bs_buf)*2)
++                bs_buf = []
++                result.append('\\"')
++            else:
++                # Normal char
++                if bs_buf:
++                    result.extend(bs_buf)
++                    bs_buf = []
++                result.append(c)
++
++        # Add remaining backslashes, if any.
++        if bs_buf:
++            result.extend(bs_buf)
++
++        if needquote:
++            result.extend(bs_buf)
++            result.append('"')
++
++    return ''.join(result)
++
+diff -urN Python-2.7.10.orig/Lib/subprocess.py Python-2.7.10/Lib/subprocess.py
+--- Python-2.7.10.orig/Lib/subprocess.py	2016-01-02 00:59:10.775707300 +0000
++++ Python-2.7.10/Lib/subprocess.py	2016-01-02 01:33:13.687423600 +0000
+@@ -395,6 +395,7 @@
+ import gc
+ import signal
+ import errno
++from list2cmdline import list2cmdline
+ 
+ # Exception classes used by this module.
+ class CalledProcessError(Exception):
+@@ -574,76 +575,6 @@
+     return output
+ 
+ 
+-def list2cmdline(seq):
+-    """
+-    Translate a sequence of arguments into a command line
+-    string, using the same rules as the MS C runtime:
+-
+-    1) Arguments are delimited by white space, which is either a
+-       space or a tab.
+-
+-    2) A string surrounded by double quotation marks is
+-       interpreted as a single argument, regardless of white space
+-       contained within.  A quoted string can be embedded in an
+-       argument.
+-
+-    3) A double quotation mark preceded by a backslash is
+-       interpreted as a literal double quotation mark.
+-
+-    4) Backslashes are interpreted literally, unless they
+-       immediately precede a double quotation mark.
+-
+-    5) If backslashes immediately precede a double quotation mark,
+-       every pair of backslashes is interpreted as a literal
+-       backslash.  If the number of backslashes is odd, the last
+-       backslash escapes the next double quotation mark as
+-       described in rule 3.
+-    """
+-
+-    # See
+-    # http://msdn.microsoft.com/en-us/library/17w5ykft.aspx
+-    # or search http://msdn.microsoft.com for
+-    # "Parsing C++ Command-Line Arguments"
+-    result = []
+-    needquote = False
+-    for arg in seq:
+-        bs_buf = []
+-
+-        # Add a space to separate this argument from the others
+-        if result:
+-            result.append(' ')
+-
+-        needquote = (" " in arg) or ("\t" in arg) or not arg
+-        if needquote:
+-            result.append('"')
+-
+-        for c in arg:
+-            if c == '\\':
+-                # Don't know if we need to double yet.
+-                bs_buf.append(c)
+-            elif c == '"':
+-                # Double backslashes.
+-                result.append('\\' * len(bs_buf)*2)
+-                bs_buf = []
+-                result.append('\\"')
+-            else:
+-                # Normal char
+-                if bs_buf:
+-                    result.extend(bs_buf)
+-                    bs_buf = []
+-                result.append(c)
+-
+-        # Add remaining backslashes, if any.
+-        if bs_buf:
+-            result.extend(bs_buf)
+-
+-        if needquote:
+-            result.extend(bs_buf)
+-            result.append('"')
+-
+-    return ''.join(result)
+-
+-
+ class Popen(object):
+     _child_created = False  # Set here since __del__ checks it
+ 
+diff -urN Python-2.7.10.orig/setup.py Python-2.7.10/setup.py
+--- Python-2.7.10.orig/setup.py	2016-01-02 00:59:17.405520700 +0000
++++ Python-2.7.10/setup.py	2016-01-02 01:00:52.537873000 +0000
+@@ -1167,11 +1167,7 @@
+                 '_sqlite/statement.c',
+                 '_sqlite/util.c', ]
+ 
+-            sqlite_defines = []
+-            if host_platform != "win32":
+-                sqlite_defines.append(('MODULE_NAME', '"sqlite3"'))
+-            else:
+-                sqlite_defines.append(('MODULE_NAME', '\\"sqlite3\\"'))
++            sqlite_defines = [('MODULE_NAME', '"sqlite3"')]
+ 
+             # Comment this out if you want the sqlite3 module to be able to load extensions.
+             sqlite_defines.append(("SQLITE_OMIT_LOAD_EXTENSION", "1"))

@@ -1,0 +1,58 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:11.528600000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:11.637800000 +0300
+@@ -647,11 +647,20 @@
+         if (config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
+             # May be necessary on AIX for flock function
+             libs = ['bsd']
+-        exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
++        if not host_platform.startswith(('mingw', 'win')):
++            exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
++        else:
++            missing.append('fcntl')
+         # pwd(3)
+-        exts.append( Extension('pwd', ['pwdmodule.c']) )
++        if not host_platform.startswith(('mingw', 'win')):
++            exts.append( Extension('pwd', ['pwdmodule.c']) )
++        else:
++            missing.append('pwd')
+         # grp(3)
+-        exts.append( Extension('grp', ['grpmodule.c']) )
++        if not host_platform.startswith(('mingw', 'win')):
++            exts.append( Extension('grp', ['grpmodule.c']) )
++        else:
++            missing.append('grp')
+         # spwd, shadow passwords
+         if (config_h_vars.get('HAVE_GETSPNAM', False) or
+                 config_h_vars.get('HAVE_GETSPENT', False)):
+@@ -681,7 +690,10 @@
+ 
+         # Lance Ellinghaus's syslog module
+         # syslog daemon interface
+-        exts.append( Extension('syslog', ['syslogmodule.c']) )
++        if not host_platform.startswith(('mingw', 'win')):
++            exts.append( Extension('syslog', ['syslogmodule.c']) )
++        else:
++            missing.append('syslog')
+ 
+         # George Neville-Neil's timing module:
+         # Deprecated in PEP 4 http://www.python.org/peps/pep-0004.html
+@@ -781,11 +793,14 @@
+ 
+         # crypt module.
+ 
+-        if self.compiler.find_library_file(lib_dirs, 'crypt'):
+-            libs = ['crypt']
++        if not host_platform.startswith(('mingw', 'win')):
++            if self.compiler.find_library_file(lib_dirs, 'crypt'):
++                libs = ['crypt']
++            else:
++                libs = []
++            exts.append( Extension('crypt', ['_cryptmodule.c'], libraries=libs) )
+         else:
+-            libs = []
+-        exts.append( Extension('crypt', ['cryptmodule.c'], libraries=libs) )
++            missing.append('crypt')
+ 
+         # CSV files
+         exts.append( Extension('_csv', ['_csv.c']) )

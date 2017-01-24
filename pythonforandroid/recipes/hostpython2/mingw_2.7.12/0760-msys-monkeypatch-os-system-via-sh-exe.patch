@@ -1,0 +1,21 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:51:01.994600000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:51:08.359400000 +0300
+@@ -29,6 +29,17 @@
+     return sys.platform
+ host_platform = get_platform()
+ 
++# On MSYS, os.system needs to be wrapped with sh.exe
++# as otherwise all the io redirection will fail.
++# Arguably, this could happen inside the real os.system
++# rather than this monkey patch.
++if sys.platform == "win32" and "MSYSTEM" in os.environ:
++    os_system = os.system
++    def msys_system(command):
++        command_in_sh = 'sh.exe -c "%s"' % command.replace("\\", "/")
++        return os_system(command_in_sh)
++    os.system = msys_system
++
+ # Were we compiled --with-pydebug or with #define Py_DEBUG?
+ COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
+ 

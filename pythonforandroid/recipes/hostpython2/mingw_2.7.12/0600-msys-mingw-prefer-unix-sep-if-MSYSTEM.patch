@@ -1,0 +1,215 @@
+diff -Naur Python-2.7.9-orig/Lib/ntpath.py Python-2.7.9/Lib/ntpath.py
+--- Python-2.7.9-orig/Lib/ntpath.py	2014-12-10 18:59:39.000000000 +0300
++++ Python-2.7.9/Lib/ntpath.py	2014-12-11 13:50:46.238600000 +0300
+@@ -24,9 +24,22 @@
+ curdir = '.'
+ pardir = '..'
+ extsep = '.'
+-sep = '\\'
++# Generally we prefer forwards slashes for MinGW-w64 Python,
++# but should probably defer to the C code and a set of #defines
++# with the following precedence and logic:
++# DIRSEP_MSYSTEM    = If MSYSTEM env. var is set then / otherwise \.
++# DIRSEP_ARGV0      = Whichever of / and \ is more prevalent in argv0
++#                     (if equal DIRSEP_FORWARDS or DIRSEP_BACKWARDS)
++# DIRSEP_FORWARDS   = Always /
++# DIRSEP_BACKWARDS  = Always \
++# .. note, UNC paths are always converted to backslashes.
++if sys.platform == "win32" and "MSYSTEM" in os.environ:
++    sep = '/'
++    altsep = '\\'
++else:
++    sep = '\\'
++    altsep = '/'
+ pathsep = ';'
+-altsep = '/'
+ defpath = '.;C:\\bin'
+ if 'ce' in sys.builtin_module_names:
+     defpath = '\\Windows'
+@@ -60,7 +73,7 @@
+ 
+ # Join two (or more) paths.
+ def join(path, *paths):
+-    """Join two or more pathname components, inserting "\\" as needed."""
++    """Join two or more pathname components, inserting sep as needed."""
+     result_drive, result_path = splitdrive(path)
+     for p in paths:
+         p_drive, p_path = splitdrive(p)
+@@ -80,7 +93,7 @@
+             result_drive = p_drive
+         # Second path is relative to the first
+         if result_path and result_path[-1] not in '\\/':
+-            result_path = result_path + '\\'
++            result_path = result_path + sep
+         result_path = result_path + p_path
+     ## add separator between UNC and non-absolute path
+     if (result_path and result_path[0] not in '\\/' and
+@@ -415,13 +428,19 @@
+     """Normalize path, eliminating double slashes, etc."""
+     # Preserve unicode (if path is unicode)
+     backslash, dot = (u'\\', u'.') if isinstance(path, _unicode) else ('\\', '.')
++    isUNC = path.startswith('\\\\')
++    this_sep = sep
++    other_sep = altsep
++    if isUNC:
++        this_sep = backslash
++        other_sep = '/'
+     if path.startswith(('\\\\.\\', '\\\\?\\')):
+         # in the case of paths with these prefixes:
+         # \\.\ -> device names
+         # \\?\ -> literal paths
+         # do not do any normalization, but return the path unchanged
+         return path
+-    path = path.replace("/", "\\")
++    path = path.replace(other_sep, this_sep)
+     prefix, path = splitdrive(path)
+     # We need to be careful here. If the prefix is empty, and the path starts
+     # with a backslash, it could either be an absolute path on the current
+@@ -434,15 +453,15 @@
+     # is any better behaviour for such edge cases.
+     if prefix == '':
+         # No drive letter - preserve initial backslashes
+-        while path[:1] == "\\":
+-            prefix = prefix + backslash
++        while path[:1] == this_sep:
++            prefix = prefix + this_sep
+             path = path[1:]
+     else:
+         # We have a drive letter - collapse initial backslashes
+-        if path.startswith("\\"):
+-            prefix = prefix + backslash
+-            path = path.lstrip("\\")
+-    comps = path.split("\\")
++        if path.startswith(sep):
++            prefix = prefix + this_sep
++            path = path.lstrip(this_sep)
++    comps = path.split(this_sep)
+     i = 0
+     while i < len(comps):
+         if comps[i] in ('.', ''):
+@@ -451,7 +470,7 @@
+             if i > 0 and comps[i-1] != '..':
+                 del comps[i-1:i+1]
+                 i -= 1
+-            elif i == 0 and prefix.endswith("\\"):
++            elif i == 0 and prefix.endswith(this_sep):
+                 del comps[i]
+             else:
+                 i += 1
+@@ -460,7 +479,7 @@
+     # If the path is now empty, substitute '.'
+     if not prefix and not comps:
+         comps.append(dot)
+-    return prefix + backslash.join(comps)
++    return prefix + this_sep.join(comps)
+ 
+ 
+ # Return an absolute path.
+--- Python-2.7.10/Include/pythonrun.h.orig	2015-05-23 17:09:00.000000000 +0100
++++ Python-2.7.10/Include/pythonrun.h	2015-12-31 03:30:18.917684800 +0000
+@@ -104,6 +104,7 @@
+ PyAPI_FUNC(char *) Py_GetPrefix(void);
+ PyAPI_FUNC(char *) Py_GetExecPrefix(void);
+ PyAPI_FUNC(char *) Py_GetPath(void);
++PyAPI_FUNC(void) Py_NormalizeSepsA(char *name);
+ 
+ /* In their own files */
+ PyAPI_FUNC(const char *) Py_GetVersion(void);
+--- Python-2.7.10/Python/pythonrun.c.orig	2015-12-31 04:09:05.267647200 +0000
++++ Python-2.7.10/Python/pythonrun.c	2015-12-31 04:06:39.381327400 +0000
+@@ -667,13 +667,67 @@
+     PyInterpreterState_Delete(interp);
+ }
+ 
+-static char *progname = "python";
++ static char progname[PATH_MAX+1] = "python";
++ 
++char
++Py_GetSepA(char *name)
++{
++    char* msystem = (char*)2; /* So that non Windows use / as sep */
++    static char sep = '\0';
++#ifdef _WIN32
++    /* https://msdn.microsoft.com/en-gb/library/windows/desktop/aa365247%28v=vs.85%29.aspx
++     * The "\\?\" prefix .. indicate that the path should be passed to the system with minimal
++     * modification, which means that you cannot use forward slashes to represent path separators
++     */
++    if (name != NULL && memcmp(name, "\\\\?\\", sizeof("\\\\?\\") - sizeof(char)) == 0)
++    {
++        return '\\';
++    }
++#endif
++    if (sep != '\0')
++        return sep;
++#if defined(__MINGW32__)
++    msystem = Py_GETENV("MSYSTEM");
++#endif
++    if (msystem != NULL)
++        sep = '/';
++    else
++        sep = '\\';
++    return sep;
++}
++
++static wchar_t
++Py_GetAltSepA(char *name)
++{
++    char sep = Py_GetSepA(name);
++    if (sep == '/')
++        return '\\';
++    return '/';
++}
+ 
+ void
+-Py_SetProgramName(char *pn)
++Py_NormalizeSepsA(char *name)
+ {
+-    if (pn && *pn)
+-        progname = pn;
++    char sep = Py_GetSepA(name);
++    char altsep = Py_GetAltSepA(name);
++    char* seps;
++    if (strlen(name) > 1 && name[1] == ':') {
++        name[0] = toupper(name[0]);
++    }
++    seps = strchr(name, altsep);
++    while(seps) {
++        *seps = sep;
++        seps = strchr(seps, altsep);
++    }
++}
++
++ void
++ Py_SetProgramName(char *pn)
++ {
++     if (pn && *pn)
++         strncpy(progname, pn, PATH_MAX);
++     pn = &progname[0];
++    Py_NormalizeSepsA(pn);
+ }
+ 
+ char *
+--- Python-2.7.10/Modules/posixmodule.c.orig	2015-12-31 04:14:46.133487100 +0000
++++ Python-2.7.10/Modules/posixmodule.c	2015-12-31 04:31:31.496990600 +0000
+@@ -2220,6 +2220,8 @@
+     if (res == NULL)
+         return posix_error();
+ 
++    Py_NormalizeSepsA(tmpbuf);
++
+     dynamic_return = PyString_FromString(tmpbuf);
+     free(tmpbuf);
+ 
+--- Python-2.7.11/Lib/ntpath.py.orig	2016-01-09 20:49:07.348817600 +0000
++++ Python-2.7.11/Lib/ntpath.py	2016-02-22 09:38:39.978263400 +0000
+@@ -56,8 +56,8 @@
+ def normcase(s):
+     """Normalize case of pathname.
+ 
+-    Makes all characters lowercase and all slashes into backslashes."""
+-    return s.replace("/", "\\").lower()
++    Makes all characters lowercase and all os.altsep into os.sep."""
++    return s.replace(os.altsep, os.sep).lower()
+ 
+ 
+ # Return whether a path is absolute.

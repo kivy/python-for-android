@@ -1,0 +1,33 @@
+diff -Naur Python-2.7.9-orig/Modules/parsermodule.c Python-2.7.9/Modules/parsermodule.c
+--- Python-2.7.9-orig/Modules/parsermodule.c	2014-12-10 18:59:55.000000000 +0300
++++ Python-2.7.9/Modules/parsermodule.c	2014-12-11 13:51:05.192600000 +0300
+@@ -39,7 +39,7 @@
+ #include "ast.h"
+ #include "pyarena.h"
+ 
+-extern grammar _PyParser_Grammar; /* From graminit.c */
++PyAPI_DATA(grammar) _PyParser_Grammar; /* From graminit.c */
+ 
+ #ifdef lint
+ #include <note.h>
+diff -Naur Python-2.7.9-orig/Parser/metagrammar.c Python-2.7.9/Parser/metagrammar.c
+--- Python-2.7.9-orig/Parser/metagrammar.c	2014-12-10 18:59:58.000000000 +0300
++++ Python-2.7.9/Parser/metagrammar.c	2014-12-11 13:51:05.192600000 +0300
+@@ -139,7 +139,7 @@
+     {7, 0},
+     {8, 0},
+ };
+-static grammar _PyParser_Grammar = {
++static grammar _PyParser_MetaGrammar = {
+     6,
+     dfas,
+     {19, labels},
+@@ -149,7 +149,7 @@
+ grammar *
+ meta_grammar(void)
+ {
+-    return &_PyParser_Grammar;
++    return &_PyParser_MetaGrammar;
+ }
+ 
+ grammar *

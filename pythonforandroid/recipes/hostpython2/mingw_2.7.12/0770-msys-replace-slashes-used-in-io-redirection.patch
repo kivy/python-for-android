@@ -1,0 +1,51 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:51:09.919400000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:51:10.059800000 +0300
+@@ -377,7 +377,7 @@
+         # Debian/Ubuntu multiarch support.
+         # https://wiki.ubuntu.com/MultiarchSpec
+         cc = sysconfig.get_config_var('CC')
+-        tmpfile = os.path.join(self.build_temp, 'multiarch')
++        tmpfile = os.path.join(self.build_temp, 'multiarch').replace('\\','/')
+         if not os.path.exists(self.build_temp):
+             os.makedirs(self.build_temp)
+         ret = os.system(
+@@ -402,7 +402,7 @@
+         opt = ''
+         if cross_compiling:
+             opt = '-t' + sysconfig.get_config_var('HOST_GNU_TYPE')
+-        tmpfile = os.path.join(self.build_temp, 'multiarch')
++        tmpfile = os.path.join(self.build_temp, 'multiarch').replace('\\','/')
+         if not os.path.exists(self.build_temp):
+             os.makedirs(self.build_temp)
+         ret = os.system(
+@@ -421,7 +421,7 @@
+ 
+     def add_gcc_paths(self):
+         gcc = sysconfig.get_config_var('CC')
+-        tmpfile = os.path.join(self.build_temp, 'gccpaths')
++        tmpfile = os.path.join(self.build_temp, 'gccpaths').replace('\\','/')
+         if not os.path.exists(self.build_temp):
+             os.makedirs(self.build_temp)
+         ret = os.system('%s -E -v - </dev/null 2>%s 1>/dev/null' % (gcc, tmpfile))
+@@ -875,7 +875,7 @@
+         opensslv_h = find_file('openssl/opensslv.h', [],
+                 inc_dirs + search_for_ssl_incs_in)
+         if opensslv_h:
+-            name = os.path.join(opensslv_h[0], 'openssl/opensslv.h')
++            name = os.path.join(opensslv_h[0], 'openssl/opensslv.h').replace('\\','/')
+             if host_platform == 'darwin' and is_macosx_sdk_path(name):
+                 name = os.path.join(macosx_sdk_root(), name[1:])
+             try:
+@@ -1908,9 +1908,9 @@
+         archs = re.findall('-arch\s+(\w+)', cflags)
+ 
+         if is_macosx_sdk_path(F):
+-            fp = os.popen("file %s/Tk.framework/Tk | grep 'for architecture'"%(os.path.join(sysroot, F[1:]),))
++            fp = os.popen("file %s/Tk.framework/Tk | grep 'for architecture'"%(os.path.join(sysroot, F[1:]).replace('\\','/'),))
+         else:
+-            fp = os.popen("file %s/Tk.framework/Tk | grep 'for architecture'"%(F,))
++            fp = os.popen("file %s/Tk.framework/Tk | grep 'for architecture'"%(F.replace('\\','/'),))
+ 
+         detected_archs = []
+         for ln in fp:

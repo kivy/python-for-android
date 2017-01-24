@@ -1,0 +1,39 @@
+diff -Naur a/distutils/util.py b/distutils/util.py
+--- a/distutils/util.py	2017-01-21 05:33:05.422254000 -0500
++++ b/distutils/util.py	2017-01-21 18:12:46.649184700 -0500
+@@ -160,26 +160,21 @@
+         else:
+             return os.path.join(new_root, pathname[1:])
+ 
+-    elif os.name == 'nt' or os.name == 'os2':
++    elif os.name == 'nt':
++        (drive, path) = os.path.splitdrive(pathname)
++        if path[0] == '\\':
++            path = path[1:]
++        return os.path.join(new_root, path)
++
++    elif os.name == 'os2':
+         (drive, path) = os.path.splitdrive(pathname)
+         if path[0] == os.sep:
+             path = path[1:]
+-        (drive_r, path_r) = os.path.splitdrive(new_root)
+-        if path_r and path_r[0] == os.sep:
+-            path_r = path_r[1:]
+-        drive_used = ''
+-        if len(drive) == 2 and len(drive_r) == 2 and drive != drive_r:
+-            raise DistutilsChangeRootError("root and pathname not on same drive (%s, %s)"
+-                   % (drive_r,drive))
+-        elif len(drive_r) == 2:
+-            drive_used = drive_r+os.sep
+-        elif len(drive) == 2:
+-            drive_used = drive+os.sep
+-        return os.path.join(drive_used+path_r, path)
++        return os.path.join(new_root, path)
+ 
+     else:
+         raise DistutilsPlatformError, \
+-              "nothing known about platform '%s'" % os.name
++            "nothing known about platform '%s'" % os.name
+ 
+ 
+ _environ_checked = 0

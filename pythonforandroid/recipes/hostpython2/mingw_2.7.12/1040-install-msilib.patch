@@ -1,0 +1,11 @@
+diff -Naur Python-2.7.9-orig/Makefile.pre.in Python-2.7.9/Makefile.pre.in
+--- Python-2.7.9-orig/Makefile.pre.in	2014-12-11 13:51:16.284200000 +0300
++++ Python-2.7.9/Makefile.pre.in	2014-12-11 13:51:31.728200000 +0300
+@@ -997,6 +997,7 @@
+ 		distutils distutils/command distutils/tests $(XMLLIBSUBDIRS) \
+ 		multiprocessing multiprocessing/dummy \
+ 		unittest unittest/test \
++		msilib \
+ 		lib-old \
+ 		curses pydoc_data $(MACHDEPS)
+ libinstall:	build_all $(srcdir)/Lib/$(PLATDIR) $(srcdir)/Modules/xxmodule.c

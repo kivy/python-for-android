@@ -1,0 +1,33 @@
+diff -Naur Python-2.7.9-orig/Lib/site.py Python-2.7.9/Lib/site.py
+--- Python-2.7.9-orig/Lib/site.py	2014-12-10 18:59:40.000000000 +0300
++++ Python-2.7.9/Lib/site.py	2014-12-11 13:50:26.145800000 +0300
+@@ -252,6 +252,12 @@
+             USER_SITE = get_path('purelib', 'osx_framework_user')
+             return USER_SITE
+ 
++    if sys.platform == 'win32':
++        from sysconfig import _POSIX_BUILD
++        if _POSIX_BUILD:
++            USER_SITE = get_path('purelib', 'posix_user')
++            return USER_SITE
++
+     USER_SITE = get_path('purelib', '%s_user' % os.name)
+     return USER_SITE
+ 
+@@ -280,6 +286,7 @@
+     sitepackages = []
+     seen = set()
+ 
++    from sysconfig import _POSIX_BUILD
+     for prefix in PREFIXES:
+         if not prefix or prefix in seen:
+             continue
+@@ -287,7 +294,7 @@
+ 
+         if sys.platform in ('os2emx', 'riscos'):
+             sitepackages.append(os.path.join(prefix, "Lib", "site-packages"))
+-        elif os.sep == '/':
++        elif _POSIX_BUILD:
+             sitepackages.append(os.path.join(prefix, "lib",
+                                         "python" + sys.version[:3],
+                                         "site-packages"))

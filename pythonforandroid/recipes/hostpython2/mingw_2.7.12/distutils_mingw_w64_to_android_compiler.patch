@@ -1,0 +1,37 @@
+diff -Naur a/distutils/ccompiler.py b/distutils/ccompiler.py
+index 35cd4bc..311f975 100644
+--- a/distutils/ccompiler.py
++++ b/distutils/ccompiler.py
+@@ -919,6 +919,8 @@ def get_default_compiler(osname=None, platform=None):
+         osname = os.name
+     if platform is None:
+         platform = sys.platform
++    if os.environ.get('CROSS_COMPILE_TARGET') == 'yes':
++        return 'mingwxandroid'
+     if get_platform().startswith('mingw'):
+         return 'mingw32'
+     for pattern, compiler in _default_compilers:
+@@ -943,6 +945,8 @@ compiler_class = { 'unix':    ('unixccompiler', 'UnixCCompiler',
+                                "Borland C++ Compiler"),
+                    'emx':     ('emxccompiler', 'EMXCCompiler',
+                                "EMX port of GNU C Compiler for OS/2"),
++                   'mingwxandroid':     ('cygwinccompiler', 'MingwXACCompiler',
++                                         "Mingw-w64 compiler for android"),
+                  }
+ 
+ def show_compilers():
+diff -Naur a/distutils/cygwinccompiler.py b/distutils/cygwinccompiler.py
+index bc098ce..d9e6469 100644
+--- a/distutils/cygwinccompiler.py
++++ b/distutils/cygwinccompiler.py
+@@ -79,6 +79,10 @@ def get_msvcr():
+             raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+ 
+ 
++class MingwXACCompiler(UnixCCompiler):
++    pass
++
++
+ class CygwinCCompiler (UnixCCompiler):
+ 
+     compiler_type = 'cygwin'

@@ -1,0 +1,12 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:49:56.256200000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:02.683400000 +0300
+@@ -1320,7 +1320,7 @@
+             missing.append('gdbm')
+ 
+         # Unix-only modules
+-        if host_platform not in ['win32']:
++        if not host_platform.startswith(('mingw', 'win')):
+             # Steen Lumholt's termios module
+             exts.append( Extension('termios', ['termios.c']) )
+             # Jeremy Hylton's rlimit interface

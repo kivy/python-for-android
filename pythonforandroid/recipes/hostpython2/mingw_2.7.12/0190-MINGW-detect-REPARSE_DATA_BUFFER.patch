@@ -1,0 +1,44 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:49:43.308200000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:49:43.448600000 +0300
+@@ -3530,6 +3530,27 @@
+ 	AC_DEFINE(HAVE_SOCKADDR_STORAGE, 1, [struct sockaddr_storage (sys/socket.h)])
+ fi
+ 
++case $host in
++  *-*-mingw*)
++    dnl See Modules/posixmodule.c for details.
++    dnl Also check below distinguish wingw and mingw-w64
++    AC_MSG_CHECKING([for REPARSE_DATA_BUFFER])
++    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
++#include <windows.h>
++#include <winnt.h>
++], [
++  REPARSE_DATA_BUFFER rdb
++])],
++      [py_reparse_data_buffer=yes],
++      [py_reparse_data_buffer=no]
++    )
++    AC_MSG_RESULT([$py_reparse_data_buffer])
++    if test yes = $py_reparse_data_buffer; then
++      AC_DEFINE([HAVE_REPARSE_DATA_BUFFER],[1],[Define to 1 if you have the 'REPARSE_DATA_BUFFER' structure.])
++    fi
++  ;;
++esac
++
+ # checks for compiler characteristics
+ 
+ AC_C_CHAR_UNSIGNED
+diff -Naur Python-2.7.9-orig/pyconfig.h.in Python-2.7.9/pyconfig.h.in
+--- Python-2.7.9-orig/pyconfig.h.in	2014-12-11 13:49:31.124600000 +0300
++++ Python-2.7.9/pyconfig.h.in	2014-12-11 13:49:43.448600000 +0300
+@@ -550,6 +550,9 @@
+ /* Define to 1 if you have the `realpath' function. */
+ #undef HAVE_REALPATH
+ 
++/* Define to 1 if you have the 'REPARSE_DATA_BUFFER' structure. */
++#undef HAVE_REPARSE_DATA_BUFFER
++
+ /* Define if you have readline 2.1 */
+ #undef HAVE_RL_CALLBACK
+ 

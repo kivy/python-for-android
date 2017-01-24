@@ -1,0 +1,77 @@
+diff -Naur Python-2.7.9-orig/Include/pyport.h Python-2.7.9/Include/pyport.h
+--- Python-2.7.9-orig/Include/pyport.h	2014-12-11 13:49:33.729800000 +0300
++++ Python-2.7.9/Include/pyport.h	2014-12-11 13:49:54.805400000 +0300
+@@ -761,37 +761,39 @@
+ */
+ 
+ /*
+-  All windows ports, except cygwin, are handled in PC/pyconfig.h.
++  Only MSVC windows ports is handled in PC/pyconfig.h.
+ 
+-  BeOS and cygwin are the only other autoconf platform requiring special
++  Cygwin and Mingw are autoconf platforms requiring special
+   linkage handling and both of these use __declspec().
+ */
+-#if defined(__CYGWIN__) || defined(__BEOS__)
++#if defined(__CYGWIN__) || defined(__BEOS__) || defined(__MINGW32__)
+ #       define HAVE_DECLSPEC_DLL
+ #endif
+ 
+ /* only get special linkage if built as shared or platform is Cygwin */
+ #if defined(Py_ENABLE_SHARED) || defined(__CYGWIN__)
+ #       if defined(HAVE_DECLSPEC_DLL)
+-#               ifdef Py_BUILD_CORE
++#               if defined(Py_BUILD_CORE) || defined(Py_BUILD_CORE_MODULE)
+ #                       define PyAPI_FUNC(RTYPE) __declspec(dllexport) RTYPE
+ #                       define PyAPI_DATA(RTYPE) extern __declspec(dllexport) RTYPE
+         /* module init functions inside the core need no external linkage */
+-        /* except for Cygwin to handle embedding (FIXME: BeOS too?) */
+-#                       if defined(__CYGWIN__)
++        /* except for Cygwin/Mingw to handle embedding (FIXME: BeOS too?) */
++#                       if defined(__CYGWIN__) || defined(__MINGW32__)
+ #                               define PyMODINIT_FUNC __declspec(dllexport) void
+-#                       else /* __CYGWIN__ */
++#                       else
+ #                               define PyMODINIT_FUNC void
+-#                       endif /* __CYGWIN__ */
+-#               else /* Py_BUILD_CORE */
++#                       endif
++#               else /* Py_BUILD_CORE... */
+         /* Building an extension module, or an embedded situation */
+         /* public Python functions and data are imported */
+-        /* Under Cygwin, auto-import functions to prevent compilation */
++        /* Under Cygwin/Mingw, auto-import functions to prevent compilation */
+         /* failures similar to those described at the bottom of 4.1: */
+         /* http://docs.python.org/extending/windows.html#a-cookbook-approach */
+-#                       if !defined(__CYGWIN__)
++#                       if defined(__CYGWIN__) || defined(__MINGW32__)
++#                               define PyAPI_FUNC(RTYPE) RTYPE
++#                       else
+ #                               define PyAPI_FUNC(RTYPE) __declspec(dllimport) RTYPE
+-#                       endif /* !__CYGWIN__ */
++#                       endif
+ #                       define PyAPI_DATA(RTYPE) extern __declspec(dllimport) RTYPE
+         /* module init functions outside the core must be exported */
+ #                       if defined(__cplusplus)
+@@ -799,7 +801,7 @@
+ #                       else /* __cplusplus */
+ #                               define PyMODINIT_FUNC __declspec(dllexport) void
+ #                       endif /* __cplusplus */
+-#               endif /* Py_BUILD_CORE */
++#               endif /* Py_BUILD_CORE... */
+ #       endif /* HAVE_DECLSPEC */
+ #endif /* Py_ENABLE_SHARED */
+ 
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-10 19:00:01.000000000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:49:54.805400000 +0300
+@@ -162,6 +162,9 @@
+ 
+     def build_extensions(self):
+ 
++        if host_platform.startswith(('mingw', 'win', 'cygwin')):
++            self.compiler.define_macro("Py_BUILD_CORE_MODULE")
++
+         # Detect which modules should be compiled
+         missing = self.detect_modules()
+ 

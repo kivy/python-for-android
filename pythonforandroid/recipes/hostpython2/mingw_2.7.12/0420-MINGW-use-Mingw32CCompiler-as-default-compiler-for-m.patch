@@ -1,0 +1,53 @@
+diff -Naur Python-2.7.9-orig/Lib/distutils/ccompiler.py Python-2.7.9/Lib/distutils/ccompiler.py
+--- Python-2.7.9-orig/Lib/distutils/ccompiler.py	2014-12-10 18:59:34.000000000 +0300
++++ Python-2.7.9/Lib/distutils/ccompiler.py	2014-12-11 13:50:16.785800000 +0300
+@@ -15,7 +15,7 @@
+ from distutils.file_util import move_file
+ from distutils.dir_util import mkpath
+ from distutils.dep_util import newer_group
+-from distutils.util import split_quoted, execute
++from distutils.util import split_quoted, execute, get_platform
+ from distutils import log
+ # following import is for backward compatibility
+ from distutils.sysconfig import customize_compiler
+@@ -918,6 +918,8 @@
+         osname = os.name
+     if platform is None:
+         platform = sys.platform
++    if get_platform().startswith('mingw'):
++        return 'mingw32'
+     for pattern, compiler in _default_compilers:
+         if re.match(pattern, platform) is not None or \
+            re.match(pattern, osname) is not None:
+diff -Naur Python-2.7.9-orig/Lib/distutils/cygwinccompiler.py Python-2.7.9/Lib/distutils/cygwinccompiler.py
+--- Python-2.7.9-orig/Lib/distutils/cygwinccompiler.py	2014-12-10 18:59:34.000000000 +0300
++++ Python-2.7.9/Lib/distutils/cygwinccompiler.py	2014-12-11 13:50:16.801400000 +0300
+@@ -271,12 +271,17 @@
+         if output_dir is None: output_dir = ''
+         obj_names = []
+         for src_name in source_filenames:
+-            # use normcase to make sure '.rc' is really '.rc' and not '.RC'
+-            (base, ext) = os.path.splitext (os.path.normcase(src_name))
++            base, ext = os.path.splitext(src_name)
++            # use 'normcase' only for resource suffixes
++            ext_normcase = os.path.normcase(ext)
++            if ext_normcase in ['.rc','.res']:
++                ext = ext_normcase
+             if ext not in (self.src_extensions + ['.rc','.res']):
+                 raise UnknownFileError, \
+                       "unknown file type '%s' (from '%s')" % \
+                       (ext, src_name)
++            base = os.path.splitdrive(base)[1] # Chop off the drive
++            base = base[os.path.isabs(base):]  # If abs, chop off leading /
+             if strip_dir:
+                 base = os.path.basename (base)
+             if ext == '.res' or ext == '.rc':
+@@ -340,7 +345,7 @@
+ 
+         # Include the appropriate MSVC runtime library if Python was built
+         # with MSVC 7.0 or later.
+-        self.dll_libraries = get_msvcr()
++        self.dll_libraries = get_msvcr() or []
+ 
+     # __init__ ()
+ 

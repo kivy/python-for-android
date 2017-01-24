@@ -1,0 +1,12 @@
+diff -Naur Python-2.7.9-orig/Lib/compileall.py Python-2.7.9/Lib/compileall.py
+--- Python-2.7.9-orig/Lib/compileall.py	2014-12-10 18:59:33.000000000 +0300
++++ Python-2.7.9/Lib/compileall.py	2014-12-11 13:50:57.377000000 +0300
+@@ -42,6 +42,8 @@
+     success = 1
+     for name in names:
+         fullname = os.path.join(dir, name)
++        if sys.platform == "win32" and sys.version.find("GCC") >= 0:
++            fullname = fullname.replace('\\','/')
+         if ddir is not None:
+             dfile = os.path.join(ddir, name)
+         else:

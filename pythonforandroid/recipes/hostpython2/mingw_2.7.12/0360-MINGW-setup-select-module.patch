@@ -1,0 +1,40 @@
+diff -Naur Python-2.7.9-orig/Modules/selectmodule.c Python-2.7.9/Modules/selectmodule.c
+--- Python-2.7.9-orig/Modules/selectmodule.c	2014-12-10 18:59:55.000000000 +0300
++++ Python-2.7.9/Modules/selectmodule.c	2014-12-11 13:50:05.865800000 +0300
+@@ -107,9 +107,9 @@
+         v = PyObject_AsFileDescriptor( o );
+         if (v == -1) goto finally;
+ 
+-#if defined(_MSC_VER)
++#if defined(MS_WIN32)
+         max = 0;                             /* not used for Win32 */
+-#else  /* !_MSC_VER */
++#else  /* !MS_WIN32 */
+         if (!_PyIsSelectable_fd(v)) {
+             PyErr_SetString(PyExc_ValueError,
+                         "filedescriptor out of range in select()");
+@@ -117,7 +117,7 @@
+         }
+         if (v > max)
+             max = v;
+-#endif /* _MSC_VER */
++#endif /* MS_WIN32 */
+         FD_SET(v, set);
+ 
+         /* add object and its file descriptor to the list */
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:05.741000000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:05.865800000 +0300
+@@ -660,7 +660,11 @@
+             missing.append('spwd')
+ 
+         # select(2); not on ancient System V
+-        exts.append( Extension('select', ['selectmodule.c']) )
++        select_libs = []
++        if host_platform.startswith(('mingw', 'win')):
++            select_libs += ['ws2_32']
++        exts.append( Extension('select', ['selectmodule.c'],
++                               libraries=select_libs) )
+ 
+         # Fred Drake's interface to the Python parser
+         exts.append( Extension('parser', ['parsermodule.c']) )

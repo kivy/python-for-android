@@ -1,0 +1,21 @@
+diff -Naur Python-2.7.9-orig/Python/fileblocks.c Python-2.7.9/Python/fileblocks.c
+--- Python-2.7.9-orig/Python/fileblocks.c	1970-01-01 03:00:00.000000000 +0300
++++ Python-2.7.9/Python/fileblocks.c	2014-12-11 13:49:50.031800000 +0300
+@@ -0,0 +1,17 @@
++/*
++-- Macro: AC_STRUCT_ST_BLOCKS
++    If 'struct stat' contains an 'st_blocks' member, define
++    'HAVE_STRUCT_STAT_ST_BLOCKS'.  Otherwise, require an 'AC_LIBOBJ'
++    replacement of 'fileblocks'.
++*/
++
++#if !HAVE_STRUCT_STAT_ST_BLOCKS
++/* If necessary you may see gnulib for replacement function:
++ * off_t st_blocks (off_t size).
++ * You may found code available under GPL2 or GPL3.
++ */
++
++/* This declaration is solely to ensure that after preprocessing
++   this file is never empty. */
++typedef int textutils_fileblocks_unused;
++#endif

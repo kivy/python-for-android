@@ -1,0 +1,88 @@
+diff -Naur Python-2.7.9-orig/PC/getpathp.c Python-2.7.9/PC/getpathp.c
+--- Python-2.7.9-orig/PC/getpathp.c	2017-01-20 13:56:45.656717000 -0500
++++ Python-2.7.9/PC/getpathp.c	2017-01-20 16:57:16.820578500 -0500
+@@ -202,6 +202,19 @@
+ search_for_posix_prefix(char *argv0_path, char *home, char *_prefix)
+ {
+     size_t n;
++    char *xhome = getenv("XCOMPILE_BUILD_PYTHONHOME");
++
++    /* If XCOMPILE_BUILD_PYTHONHOME is set, we believe it unconditionally */
++    if (xhome) {
++        char *delim;
++        strncpy(prefix, xhome, MAXPATHLEN);
++        delim = strchr(prefix, DELIM);
++        if (delim)
++            *delim = '\0';
++        join(prefix, lib_python);
++        join(prefix, LANDMARK);
++        return 1;
++    }
+ 
+     /* If PYTHONHOME is set, we believe it unconditionally */
+     if (home) {
+@@ -303,6 +316,20 @@
+ search_for_exec_prefix(char *argv0_path, char *home, char *_exec_prefix)
+ {
+     size_t n;
++    char *xhome = getenv("XCOMPILE_BUILD_PYTHONHOME_EXEC");
++
++    /* If XCOMPILE_BUILD_PYTHONHOME_EXEC is set, we believe it unconditionally */
++    if (xhome) {
++        char *delim;
++        delim = srtchr(xhome, DELIM);
++        if (delim)
++            strncpy(exec_prefix, delim+1, MAXPATHLEN);
++        else
++            strncpy(exec_prefix, xhome, MAXPATHLEN);
++        join(exec_prefix, lib_python);
++        join(exec_prefix, "lib-dynload");
++        return 1;
++    }
+ 
+     /* If PYTHONHOME is set, we believe it unconditionally */
+     if (home) {
+diff -Naur Python-2.7.9-orig/Modules/getpath.c Python-2.7.9/Modules/getpath.c
+--- Python-2.7.9-orig/Modules/getpath.c	2017-01-20 17:27:50.032086400 -0500
++++ Python-2.7.9/Modules/getpath.c	2017-01-20 21:18:08.719805600 -0500
+@@ -242,6 +242,19 @@
+ {
+     size_t n;
+     char *vpath;
++    char *xhome = getenv("XCOMPILE_BUILD_PYTHONHOME");
++
++    /* If XCOMPILE_BUILD_PYTHONHOME is set, we believe it unconditionally */
++    if (xhome) {
++        char *delim;
++        strncpy(prefix, xhome, MAXPATHLEN);
++        delim = strchr(prefix, DELIM);
++        if (delim)
++            *delim = '\0';
++        joinpath(prefix, lib_python);
++        joinpath(prefix, LANDMARK);
++        return 1;
++    }
+ 
+     /* If PYTHONHOME is set, we believe it unconditionally */
+     if (home) {
+@@ -300,6 +313,20 @@
+ search_for_exec_prefix(char *argv0_path, char *home)
+ {
+     size_t n;
++    char *xhome = getenv("XCOMPILE_BUILD_PYTHONHOME_EXEC");
++
++    /* If XCOMPILE_BUILD_PYTHONHOME_EXEC is set, we believe it unconditionally */
++    if (xhome) {
++        char *delim;
++        delim = strchr(xhome, DELIM);
++        if (delim)
++            strncpy(exec_prefix, delim+1, MAXPATHLEN);
++        else
++            strncpy(exec_prefix, xhome, MAXPATHLEN);
++        joinpath(exec_prefix, lib_python);
++        joinpath(exec_prefix, "lib-dynload");
++        return 1;
++    }
+ 
+     /* If PYTHONHOME is set, we believe it unconditionally */
+     if (home) {

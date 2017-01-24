@@ -1,0 +1,14 @@
+diff -Naur Python-2.7.9-orig/Lib/ctypes/__init__.py Python-2.7.9/Lib/ctypes/__init__.py
+--- Python-2.7.9-orig/Lib/ctypes/__init__.py	2014-12-10 18:59:33.000000000 +0300
++++ Python-2.7.9/Lib/ctypes/__init__.py	2014-12-11 13:51:26.439800000 +0300
+@@ -445,7 +445,9 @@
+ cdll = LibraryLoader(CDLL)
+ pydll = LibraryLoader(PyDLL)
+ 
+-if _os.name in ("nt", "ce"):
++if _os.name == "nt" and _sys.version.find('GCC') >= 0:
++    pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2], None)
++elif _os.name in ("nt", "ce"):
+     pythonapi = PyDLL("python dll", None, _sys.dllhandle)
+ elif _sys.platform == "cygwin":
+     pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])

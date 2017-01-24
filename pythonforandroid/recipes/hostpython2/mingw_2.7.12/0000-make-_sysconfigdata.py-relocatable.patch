@@ -1,0 +1,31 @@
+diff -Naur Python-2.7.9-orig/Lib/sysconfig.py Python-2.7.9/Lib/sysconfig.py
+--- Python-2.7.9-orig/Lib/sysconfig.py	2014-12-10 18:59:40.000000000 +0300
++++ Python-2.7.9/Lib/sysconfig.py	2014-12-11 13:49:27.926600000 +0300
+@@ -231,6 +231,7 @@
+                     done[n] = v
+ 
+     # do variable interpolation here
++    done['prefix']='${SYS_PREFIX}'
+     while notdone:
+         for name in notdone.keys():
+             value = notdone[name]
+@@ -346,6 +347,19 @@
+         f.write('build_time_vars = ')
+         pprint.pprint(vars, stream=f)
+ 
++    # Now reload the file and replace:
++    replacements = {": '${SYS_PREFIX}'" : ": sys.prefix",
++                    ": '${SYS_PREFIX}"  : ": sys.prefix + '",
++                     "${SYS_PREFIX}'" : "' + sys.prefix",
++                     "${SYS_PREFIX}"  : "' + sys.prefix + '"}
++
++    contents = open(destfile).read()
++    for rep in replacements.keys():
++        contents = contents.replace(rep, replacements[rep])
++    with open(destfile, 'wb') as f:
++        f.write('import sys\n')
++        f.write(contents)
++
+     # Create file used for sys.path fixup -- see Modules/getpath.c
+     with open('pybuilddir.txt', 'w') as f:
+         f.write(pybuilddir)

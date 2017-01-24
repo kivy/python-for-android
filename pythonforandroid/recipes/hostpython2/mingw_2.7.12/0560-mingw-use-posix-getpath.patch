@@ -1,0 +1,166 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:36.005000000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:37.643000000 +0300
+@@ -4850,7 +4850,9 @@
+ case $host in
+   *-*-mingw*)
+     dnl default sys.path calculations for windows platforms
+-    MODULE_GETPATH=PC/getpathp.o
++    MODULE_GETPATH=Modules/getpath.o
++    dnl "PC" is project sub-directory and we has to prepend user defined flags
++    CPPFLAGS="-I\$(srcdir)/Python -I\$(srcdir)/PC $CPPFLAGS"
+     ;;
+ esac
+ 
+diff -Naur Python-2.7.9-orig/Modules/getpath.c Python-2.7.9/Modules/getpath.c
+--- Python-2.7.9-orig/Modules/getpath.c	2014-12-11 13:50:36.005000000 +0300
++++ Python-2.7.9/Modules/getpath.c	2014-12-11 13:50:37.643000000 +0300
+@@ -10,6 +10,10 @@
+ #include <mach-o/dyld.h>
+ #endif
+ 
++#ifdef MS_WINDOWS
++#include <windows.h>
++#endif
++
+ /* Search in some common locations for the associated Python libraries.
+  *
+  * Two directories must be found, the platform independent directory
+@@ -127,7 +131,11 @@
+ 
+ static char prefix[MAXPATHLEN+1];
+ static char exec_prefix[MAXPATHLEN+1];
+-static char progpath[MAXPATHLEN+1];
++static char progpath[MAXPATHLEN+1]  = {'\0'};
++#ifdef MS_WINDOWS
++static char dllpath[MAXPATHLEN+1] = {'\0'};
++extern HANDLE PyWin_DLLhModule;
++#endif
+ static char *module_search_path = NULL;
+ static char lib_python[] = "lib/python" VERSION;
+ 
+@@ -137,7 +145,7 @@
+     size_t i = strlen(dir);
+     while (i > 0 && dir[i] != SEP)
+         --i;
+-    dir[i] = '\0';
++    dir[i] = 0;
+ }
+ 
+ 
+@@ -208,7 +216,11 @@
+ joinpath(char *buffer, char *stuff)
+ {
+     size_t n, k;
++#ifdef MS_WINDOWS
++    if (stuff[0] == SEP || (stuff[0] != 0 && stuff[1] == ':'))
++#else
+     if (stuff[0] == SEP)
++#endif
+         n = 0;
+     else {
+         n = strlen(buffer);
+@@ -229,7 +241,11 @@
+ static void
+ copy_absolute(char *path, char *p)
+ {
++#ifdef MS_WINDOWS
++    if (p[0] == SEP || (p[0] != 0 && p[1] == ':'))
++#else
+     if (p[0] == SEP)
++#endif
+         strcpy(path, p);
+     else {
+         if (!getcwd(path, MAXPATHLEN)) {
+@@ -249,7 +265,11 @@
+ {
+     char buffer[MAXPATHLEN + 1];
+ 
++#ifdef MS_WINDOWS
++    if (path[0] == SEP || (path[0] != 0 && path[1] == ':'))
++#else
+     if (path[0] == SEP)
++#endif
+         return;
+     copy_absolute(buffer, path);
+     strcpy(path, buffer);
+@@ -382,6 +402,35 @@
+ }
+ 
+ 
++#ifdef MS_WINDOWS
++/* Calculates dllpath and progpath, replacing \\ with / */
++int GetWindowsModulePaths()
++{
++    int result = 0;
++    char* seps;
++    result = GetModuleFileNameA(NULL, progpath, MAXPATHLEN);
++    seps = strchr(progpath, '\\');
++    while(seps) {
++        *seps = '/';
++        seps = strchr(seps, '\\');
++    }
++    dllpath[0] = '\0';
++#ifdef Py_ENABLE_SHARED
++    if (PyWin_DLLhModule) {
++        if((GetModuleFileNameA(PyWin_DLLhModule, dllpath, MAXPATHLEN) > 0)) {
++            result = 1;
++            seps = strchr(dllpath, '\\');
++            while(seps) {
++                *seps = '/';
++                seps = strchr(seps, '\\');
++            }
++        }
++    }
++#endif
++    return result;
++}
++#endif /* MS_WINDOWS */
++
+ static void
+ calculate_path(void)
+ {
+@@ -433,6 +482,10 @@
+      else if(0 == _NSGetExecutablePath(progpath, &nsexeclength) && progpath[0] == SEP)
+        ;
+ #endif /* __APPLE__ */
++#ifdef MS_WINDOWS
++    else if(GetWindowsModulePaths()) {
++    }
++#endif /* MS_WINDOWS */
+         else if (path) {
+                 while (1) {
+                         char *delim = strchr(path, DELIM);
+@@ -460,7 +513,11 @@
+         }
+         else
+                 progpath[0] = '\0';
++#ifdef MS_WINDOWS
++        if (progpath[0] != '\0' && progpath[0] != SEP && progpath[1] != ':')
++#else
+         if (progpath[0] != SEP && progpath[0] != '\0')
++#endif
+                 absolutize(progpath);
+         strncpy(argv0_path, progpath, MAXPATHLEN);
+         argv0_path[MAXPATHLEN] = '\0';
+diff -Naur Python-2.7.9-orig/Modules/posixmodule.c Python-2.7.9/Modules/posixmodule.c
+--- Python-2.7.9-orig/Modules/posixmodule.c	2014-12-11 13:49:43.323800000 +0300
++++ Python-2.7.9/Modules/posixmodule.c	2014-12-11 13:50:37.643000000 +0300
+@@ -2324,7 +2324,7 @@
+             Py_END_ALLOW_THREADS
+             /* FindNextFile sets error to ERROR_NO_MORE_FILES if
+                it got to the end of the directory. */
+-            if (!result && GetLastError() != ERROR_NO_MORE_FILES) {
++            if (!result && GetLastError() != 0 && GetLastError() != ERROR_NO_MORE_FILES) {
+                 Py_DECREF(d);
+                 win32_error_unicode("FindNextFileW", wnamebuf);
+                 FindClose(hFindFile);
+@@ -2392,7 +2392,7 @@
+         Py_END_ALLOW_THREADS
+         /* FindNextFile sets error to ERROR_NO_MORE_FILES if
+            it got to the end of the directory. */
+-        if (!result && GetLastError() != ERROR_NO_MORE_FILES) {
++        if (!result && GetLastError() != 0 && GetLastError() != ERROR_NO_MORE_FILES) {
+             Py_DECREF(d);
+             win32_error("FindNextFile", namebuf);
+             FindClose(hFindFile);

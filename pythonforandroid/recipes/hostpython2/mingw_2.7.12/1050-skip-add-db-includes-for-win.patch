@@ -1,0 +1,64 @@
+--- Python-2.7.11/setup.py.orig	2016-01-10 18:51:31.735951500 +0300
++++ Python-2.7.11/setup.py	2016-01-10 18:53:04.697051500 +0300
+@@ -1024,23 +1024,24 @@
+             '/sw/include/db4',
+             '/sw/include/db3',
+         ]
+-        # 4.x minor number specific paths
+-        for x in gen_db_minor_ver_nums(4):
+-            db_inc_paths.append('/usr/include/db4%d' % x)
+-            db_inc_paths.append('/usr/include/db4.%d' % x)
+-            db_inc_paths.append('/usr/local/BerkeleyDB.4.%d/include' % x)
+-            db_inc_paths.append('/usr/local/include/db4%d' % x)
+-            db_inc_paths.append('/pkg/db-4.%d/include' % x)
+-            db_inc_paths.append('/opt/db-4.%d/include' % x)
+-            # MacPorts default (http://www.macports.org/)
+-            db_inc_paths.append('/opt/local/include/db4%d' % x)
+-        # 3.x minor number specific paths
+-        for x in gen_db_minor_ver_nums(3):
+-            db_inc_paths.append('/usr/include/db3%d' % x)
+-            db_inc_paths.append('/usr/local/BerkeleyDB.3.%d/include' % x)
+-            db_inc_paths.append('/usr/local/include/db3%d' % x)
+-            db_inc_paths.append('/pkg/db-3.%d/include' % x)
+-            db_inc_paths.append('/opt/db-3.%d/include' % x)
++        if host_platform not in ['mingw', 'win32']:
++            # 4.x minor number specific paths
++            for x in gen_db_minor_ver_nums(4):
++                db_inc_paths.append('/usr/include/db4%d' % x)
++                db_inc_paths.append('/usr/include/db4.%d' % x)
++                db_inc_paths.append('/usr/local/BerkeleyDB.4.%d/include' % x)
++                db_inc_paths.append('/usr/local/include/db4%d' % x)
++                db_inc_paths.append('/pkg/db-4.%d/include' % x)
++                db_inc_paths.append('/opt/db-4.%d/include' % x)
++                # MacPorts default (http://www.macports.org/)
++                db_inc_paths.append('/opt/local/include/db4%d' % x)
++            # 3.x minor number specific paths
++            for x in gen_db_minor_ver_nums(3):
++                db_inc_paths.append('/usr/include/db3%d' % x)
++                db_inc_paths.append('/usr/local/BerkeleyDB.3.%d/include' % x)
++                db_inc_paths.append('/usr/local/include/db3%d' % x)
++                db_inc_paths.append('/pkg/db-3.%d/include' % x)
++                db_inc_paths.append('/opt/db-3.%d/include' % x)
+ 
+         if cross_compiling:
+             db_inc_paths = []
+@@ -1054,12 +1054,13 @@
+         for dn in inc_dirs:
+             std_variants.append(os.path.join(dn, 'db3'))
+             std_variants.append(os.path.join(dn, 'db4'))
+-            for x in gen_db_minor_ver_nums(4):
+-                std_variants.append(os.path.join(dn, "db4%d"%x))
+-                std_variants.append(os.path.join(dn, "db4.%d"%x))
+-            for x in gen_db_minor_ver_nums(3):
+-                std_variants.append(os.path.join(dn, "db3%d"%x))
+-                std_variants.append(os.path.join(dn, "db3.%d"%x))
++            if host_platform not in ['mingw', 'win32']:
++                for x in gen_db_minor_ver_nums(4):
++                    std_variants.append(os.path.join(dn, "db4%d"%x))
++                    std_variants.append(os.path.join(dn, "db4.%d"%x))
++                for x in gen_db_minor_ver_nums(3):
++                    std_variants.append(os.path.join(dn, "db3%d"%x))
++                    std_variants.append(os.path.join(dn, "db3.%d"%x))
+ 
+         db_inc_paths = std_variants + db_inc_paths
+         db_inc_paths = [p for p in db_inc_paths if os.path.exists(p)]

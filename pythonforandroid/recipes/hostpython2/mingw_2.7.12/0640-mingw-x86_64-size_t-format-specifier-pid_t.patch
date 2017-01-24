@@ -1,0 +1,24 @@
+diff -Naur Python-2.7.9-orig/Include/pyport.h Python-2.7.9/Include/pyport.h
+--- Python-2.7.9-orig/Include/pyport.h	2014-12-11 13:49:56.256200000 +0300
++++ Python-2.7.9/Include/pyport.h	2014-12-11 13:50:54.272600000 +0300
+@@ -218,9 +218,11 @@
+ /* Smallest negative value of type Py_ssize_t. */
+ #define PY_SSIZE_T_MIN (-PY_SSIZE_T_MAX-1)
+ 
++/*
+ #if SIZEOF_PID_T > SIZEOF_LONG
+ #   error "Python doesn't support sizeof(pid_t) > sizeof(long)"
+ #endif
++*/
+ 
+ /* PY_FORMAT_SIZE_T is a platform-specific modifier for use in a printf
+  * format to convert an argument with the width of a size_t or Py_ssize_t.
+@@ -252,6 +254,8 @@
+ #       define PY_FORMAT_SIZE_T "l"
+ #   elif defined(MS_WINDOWS)
+ #       define PY_FORMAT_SIZE_T "I"
++#   elif defined(__MINGW32__) && defined(__USE_MINGW_ANSI_STDIO)
++#       define PY_FORMAT_SIZE_T "z"
+ #   else
+ #       error "This platform's pyconfig.h needs to define PY_FORMAT_SIZE_T"
+ #   endif

@@ -1,0 +1,12 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:51:17.891000000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:51:18.015800000 +0300
+@@ -272,6 +272,8 @@
+             args['compiler_so'] = compiler + ' ' + ccshared + ' ' + cflags
+         self.compiler.set_executables(**args)
+ 
++        self.compiler.library_dirs.insert(0, '.')
++
+         build_ext.build_extensions(self)
+ 
+         longest = 0

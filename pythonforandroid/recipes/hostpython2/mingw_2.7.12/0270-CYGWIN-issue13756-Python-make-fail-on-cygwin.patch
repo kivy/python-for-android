@@ -1,0 +1,17 @@
+diff -Naur Python-2.7.9-orig/Lib/distutils/command/build_ext.py Python-2.7.9/Lib/distutils/command/build_ext.py
+--- Python-2.7.9-orig/Lib/distutils/command/build_ext.py	2014-12-10 18:59:34.000000000 +0300
++++ Python-2.7.9/Lib/distutils/command/build_ext.py	2014-12-11 13:49:53.214200000 +0300
+@@ -723,13 +723,6 @@
+             # don't extend ext.libraries, it may be shared with other
+             # extensions, it is a reference to the original list
+             return ext.libraries + [pythonlib]
+-        elif sys.platform[:6] == "cygwin":
+-            template = "python%d.%d"
+-            pythonlib = (template %
+-                   (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff))
+-            # don't extend ext.libraries, it may be shared with other
+-            # extensions, it is a reference to the original list
+-            return ext.libraries + [pythonlib]
+         elif sys.platform[:6] == "atheos":
+             from distutils import sysconfig
+ 

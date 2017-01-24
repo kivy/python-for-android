@@ -1,0 +1,26 @@
+--- Python-2.7.10/setup.py.orig	2015-12-28 12:34:14.075841800 +0000
++++ Python-2.7.10/setup.py	2015-12-28 15:47:57.770679100 +0000
+@@ -1731,6 +1731,23 @@
+         if '_tkinter' not in [e.name for e in self.extensions]:
+             missing.append('_tkinter')
+ 
++        # Remove any extensions.library_dirs that are also in compiler.library_dirs
++        # Rationale: It's wrong. Ok, better. The compiler.library_dirs appear first
++        #            in the link command line and (finally, not yet) include "." which
++        #            causes the build dir to be searched in for -lpython2.7 before
++        #            $sysroot/lib. This is necessary as otherwise the old python import
++        #            library is used instead of the new one. This affects sqlite (and
++        #            some others). I could go into fixing these individually .. but I
++        #            worry I'll be back here in 6 months fixing the same bug again if
++        #            I do for some other module(s) in Python 2.7.12. In our case,
++        #            C:/msys64/mingw64/lib was turning up as that's where libsqlite was
++        #            and this prevented me from switching from an installed release to
++        #            an new debug Python. We should be building in clean sysroots but
++        #            that's another matter really.
++        for ext in self.extensions:
++            ext.library_dirs = [dir for dir in ext.library_dirs
++                                if dir not in self.compiler.library_dirs]
++
+ ##         # Uncomment these lines if you want to play with xxmodule.c
+ ##         ext = Extension('xx', ['xxmodule.c'])
+ ##         self.extensions.append(ext)

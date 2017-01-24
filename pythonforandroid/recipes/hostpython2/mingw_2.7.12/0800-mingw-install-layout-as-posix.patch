@@ -1,0 +1,29 @@
+diff -Naur Python-2.7.9-orig/Lib/distutils/command/install.py Python-2.7.9/Lib/distutils/command/install.py
+--- Python-2.7.9-orig/Lib/distutils/command/install.py	2014-12-11 13:51:00.419000000 +0300
++++ Python-2.7.9/Lib/distutils/command/install.py	2014-12-11 13:51:13.179800000 +0300
+@@ -32,10 +32,10 @@
+     }
+ else:
+     WINDOWS_SCHEME = {
+-        'purelib': '$base/Lib/site-packages',
+-        'platlib': '$base/Lib/site-packages',
+-        'headers': '$base/Include/$dist_name',
+-        'scripts': '$base/Scripts',
++        'purelib': '$base/lib/python$py_version_short/site-packages',
++        'platlib': '$base/lib/python$py_version_short/site-packages',
++        'headers': '$base/include/python$py_version_short/$dist_name',
++        'scripts': '$base/bin',
+         'data'   : '$base',
+     }
+ 
+@@ -65,8 +65,8 @@
+     'nt_user': {
+         'purelib': '$usersite',
+         'platlib': '$usersite',
+-        'headers': '$userbase/Python$py_version_nodot/Include/$dist_name',
+-        'scripts': '$userbase/Scripts',
++        'headers': '$userbase/include/python$py_version_short/$dist_name',
++        'scripts': '$userbase/bin',
+         'data'   : '$userbase',
+         },
+     'os2': {
