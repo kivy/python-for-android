@@ -171,8 +171,8 @@ def shprint(command, *args, **kwargs):
     try:
         msg_hdr = '           working: '
         msg_width = columns - len(msg_hdr) - 1
-        output = command(*args)
-        for line in output:
+        output = command(*args, **kwargs)
+        for line in iter(output):
             if logger.level > logging.DEBUG:
                 msg = line.replace(
                     '\n', ' ').replace(
@@ -211,10 +211,10 @@ def shprint(command, *args, **kwargs):
                         name, tail_n, len(lines),
                         forecolor, '\t\n'.join([s for s in lines[-tail_n:]]),
                         Out_Fore.RESET))
-            printtail(err.stdout.decode('utf-8'), 'STDOUT', Out_Fore.YELLOW, tail_n,
+            printtail(err.stdout.decode(sh.DEFAULT_ENCODING), 'STDOUT', Out_Fore.YELLOW, tail_n,
                       re.compile(filter_in) if filter_in else None,
                       re.compile(filter_out) if filter_out else None)
-            printtail(err.stderr.decode('utf-8'), 'STDERR', Err_Fore.RED)
+            printtail(err.stderr.decode(sh.DEFAULT_ENCODING), 'STDERR', Err_Fore.RED)
         if is_critical:
             env = kwargs.get("env")
             if env is not None:
