@@ -3,6 +3,7 @@ from os import walk
 from os.path import join, exists, curdir, abspath
 import pythonforandroid.sh as sh
 from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
+from pythonforandroid.util import mpath
 
 
 class ServiceOnlyBootstrap(Bootstrap):
@@ -20,8 +21,8 @@ class ServiceOnlyBootstrap(Bootstrap):
         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
         with current_directory(self.dist_dir):
             with open('local.properties', 'w') as fileh:
-                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
-                fileh.write('ndk.dir={}'.format(self.ctx.ndk_dir))
+                fileh.write('sdk.dir={}'.format(mpath(self.ctx.sdk_dir)))
+                fileh.write('ndk.dir={}'.format(mpath(self.ctx.ndk_dir)))
 
         arch = self.ctx.archs[0]
         if len(self.ctx.archs) > 1:

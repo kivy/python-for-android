@@ -15,11 +15,12 @@ def check_any(*callables):
 
 def is_platform(platform):
     def is_x(**kwargs):
-        return sh.uname('-o').stdout == platform
+        return sh.uname('-o').stdout.strip() == platform
     return is_x
 
 is_linux = is_platform('Linux')
 is_darwin = is_platform('Darwin')
+is_msys = is_platform('Msys')
 
 
 def is_arch(xarch):

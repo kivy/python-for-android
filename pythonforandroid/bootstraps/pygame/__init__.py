@@ -3,6 +3,7 @@ from os.path import join, exists
 from os import walk
 import glob
 import pythonforandroid.sh as sh
+from pythonforandroid.util import mpath
 
 
 class PygameBootstrap(Bootstrap):
@@ -42,7 +43,7 @@ class PygameBootstrap(Bootstrap):
             shprint(sh.cp, '-a', join(src_path, 'whitelist.txt'), '.')
 
             with open('local.properties', 'w') as fileh:
-                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+                fileh.write('sdk.dir={}'.format(mpath(self.ctx.sdk_dir)))
 
             info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)

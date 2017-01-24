@@ -5,7 +5,9 @@ import sys
 from distutils.spawn import find_executable
 
 from pythonforandroid.logger import warning
-from pythonforandroid.recipe import Recipe
+from pythonforandroid.recipe import Recipe, mpath
+from pythonforandroid.patching import is_msys
+from pythonforandroid.logger import shprint
 
 
 class Arch(object):
@@ -36,14 +38,15 @@ class Arch(object):
 
         env["CFLAGS"] = " ".join([
             "-DANDROID", "-mandroid", "-fomit-frame-pointer",
-            "--sysroot", self.ctx.ndk_platform])
+            "--sysroot", mpath(self.ctx.ndk_platform)])
 
         env["CXXFLAGS"] = env["CFLAGS"]
-
-        env["LDFLAGS"] = " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
+        env["LDFLAGS"] = " ".join(['-lm', '-L' + mpath(self.ctx.get_libs_dir(self.arch))])
+        env["CROSS_COMPILE_TARGET"] = "yes"
 
         if self.ctx.ndk == 'crystax':
-            env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
+            env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(
+                mpath(self.ctx.ndk_dir), self.arch)
 
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
@@ -106,7 +109,7 @@ class Arch(object):
         # AND: This hardcodes python version 2.7, needs fixing
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.linux-{}-2.7'.format(sh.uname('-m').stdout))
+            'build', 'lib.linux-{}-2.7'.format(sh.uname('-m').stdout.strip()))
 
         env['PATH'] = environ['PATH']
 

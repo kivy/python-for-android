@@ -3,6 +3,8 @@ from os.path import join, exists, curdir, abspath
 from os import walk
 import glob
 import pythonforandroid.sh as sh
+from pythonforandroid.util import mpath
+
 
 class WebViewBootstrap(Bootstrap):
     name = 'webview'
@@ -17,7 +19,7 @@ class WebViewBootstrap(Bootstrap):
         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
         with current_directory(self.dist_dir):
             with open('local.properties', 'w') as fileh:
-                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+                fileh.write('sdk.dir={}'.format(mpath(self.ctx.sdk_dir)))
 
         arch = self.ctx.archs[0]
         if len(self.ctx.archs) > 1:

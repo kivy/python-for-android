@@ -145,3 +145,9 @@ def get_directory(filename):
         return basename(filename[:-4])
     info('Unknown file extension for {}'.format(filename))
     exit(1)
+
+
+def mpath(p):
+    if ':' not in p:
+        return p
+    return p.replace('\\', '/').replace('//', '/')
