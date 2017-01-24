@@ -132,3 +132,9 @@ def mpath(p):
     if ':' not in p:
         return p
     return p.replace('\\', '/').replace('//', '/')
+
+
+def posix_path(p):
+    if ':' not in p:
+        return p
+    return '/' + p.replace(':', '').replace('\\', '/').replace('//', '/')

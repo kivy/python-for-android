@@ -16,7 +16,8 @@ try:
 except ImportError:
     from urllib.parse import urlparse
 from pythonforandroid.logger import (logger, info, warning, error, debug, shprint, info_main)
-from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir, mpath)
+from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir,
+    mpath, posix_path)
 from pythonforandroid.patching import is_msys
 
 # this import is necessary to keep imp.load_source from complaining :)
@@ -178,10 +179,10 @@ class Recipe(with_metaclass(RecipeMeta)):
             info("Extract {} into {}".format(source, cwd))
 
             if source.endswith(".tgz") or source.endswith(".tar.gz"):
-                shprint(sh.tar, "-C", win_to_posix(cwd), "-xvzf", win_to_posix(source))
+                shprint(sh.tar, "-C", posix_path(cwd), "-xvzf", posix_path(source))
 
             elif source.endswith(".tbz2") or source.endswith(".tar.bz2"):
-                shprint(sh.tar, "-C", win_to_posix(cwd), "-xvjf", win_to_posix(source))
+                shprint(sh.tar, "-C", posix_path(cwd), "-xvjf", posix_path(source))
 
             elif source.endswith(".zip"):
                 zf = zipfile.ZipFile(source)
@@ -452,9 +453,9 @@ class Recipe(with_metaclass(RecipeMeta)):
                           extraction_filename.endswith('.tbz2') or
                           extraction_filename.endswith('.tar.xz') or
                           extraction_filename.endswith('.txz')):
-                        sh.tar('xf', win_to_posix(extraction_filename))
+                        sh.tar('xf', posix_path(extraction_filename))
                         root_directory = shprint(
-                            sh.tar, 'tf', win_to_posix(extraction_filename)).stdout.decode(
+                            sh.tar, 'tf', posix_path(extraction_filename)).stdout.decode(
                                 'utf-8').split('\n')[0].split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
