@@ -1,0 +1,12 @@
+diff -Naur a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
+--- a/Lib/distutils/command/build_ext.py	2017-01-23 13:47:53.683127800 -0500
++++ b/Lib/distutils/command/build_ext.py	2017-01-23 05:05:37.158263700 -0500
+@@ -678,7 +678,7 @@
+         so_ext = get_config_var('SO')
+         if os.name == 'nt' and self.debug:
+             return os.path.join(*ext_path) + '_d' + so_ext
+-        return os.path.join(*ext_path) + so_ext
++        return os.path.join(*ext_path) + '.so'
+ 
+     def get_export_symbols (self, ext):
+         """Return the list of symbols that a shared extension has to

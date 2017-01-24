@@ -1,0 +1,39 @@
+diff --git a/configure b/configure
+index 29ce00c..e4283f8 100755
+--- a/configure
++++ b/configure
+@@ -7680,7 +7680,7 @@ then
+ 			fi
+ 		fi
+ 		;;
+-	Linux*|GNU*|QNX*)
++	Linux*|GNU*|QNX*|MSYS_NT*|MINGW64_NT*|MINGW32_NT*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+ 	BSD/OS*/4*)
+diff --git a/configure.in b/configure.in
+index ea106b5..6e6ac9d 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1858,7 +1858,7 @@ then
+ 			fi
+ 		fi
+ 		;;
+-	Linux*|GNU*|QNX*)
++	Linux*|GNU*|QNX*|MSYS_NT*|MINGW64_NT*|MINGW32_NT*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+ 	BSD/OS*/4*)
+diff --git a/setup.py b/setup.py
+index 6b47451..04c74c6 100644
+--- a/setup.py
++++ b/setup.py
+@@ -231,7 +231,7 @@ class PyBuildExt(build_ext):
+         # compilers
+         if compiler is not None:
+             (ccshared,cflags) = sysconfig.get_config_vars('CCSHARED','CFLAGS')
+-            args['compiler_so'] = compiler + ' ' + ccshared + ' ' + cflags
++            args['compiler_so'] = compiler #+ ' ' + ccshared + ' ' + cflags
+         self.compiler.set_executables(**args)
+ 
+         build_ext.build_extensions(self)

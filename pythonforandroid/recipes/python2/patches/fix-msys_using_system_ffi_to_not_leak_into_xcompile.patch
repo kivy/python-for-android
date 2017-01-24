@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+index 6b47451..d179eac 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1935,7 +1935,7 @@ class PyBuildExt(build_ext):
+                              sources=['_ctypes/_ctypes_test.c'])
+         self.extensions.extend([ext, ext_test])
+ 
+-        if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
++        if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS") or self.cross_compile:
+             return
+ 
+         if sys.platform == 'darwin':

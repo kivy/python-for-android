@@ -1,0 +1,32 @@
+diff -Naur a/Lib/distutils/sysconfig.py b/Lib/distutils/sysconfig.py
+--- a/Lib/distutils/sysconfig.py	2017-01-23 13:47:53.580642400 -0500
++++ b/Lib/distutils/sysconfig.py	2017-01-23 05:05:51.473750800 -0500
+@@ -162,6 +162,9 @@
+         (cc, cxx, opt, cflags, ccshared, ldshared, so_ext) = \
+             get_config_vars('CC', 'CXX', 'OPT', 'CFLAGS',
+                             'CCSHARED', 'LDSHARED', 'SO')
++        cc = cc or ''
++        cflags = cflags or ''
++        ccshared = ccshared or ''
+ 
+         if 'CC' in os.environ:
+             cc = os.environ['CC']
+@@ -174,14 +177,14 @@
+         else:
+             cpp = cc + " -E"           # not always
+         if 'LDFLAGS' in os.environ:
+-            ldshared = ldshared + ' ' + os.environ['LDFLAGS']
++            ldshared = (ldshared or '') + ' ' + os.environ['LDFLAGS']
+         if 'CFLAGS' in os.environ:
+-            cflags = opt + ' ' + os.environ['CFLAGS']
+-            ldshared = ldshared + ' ' + os.environ['CFLAGS']
++            cflags = (opt or '') + ' ' + os.environ['CFLAGS']
++            ldshared = (ldshared or '') + ' ' + os.environ['CFLAGS']
+         if 'CPPFLAGS' in os.environ:
+             cpp = cpp + ' ' + os.environ['CPPFLAGS']
+             cflags = cflags + ' ' + os.environ['CPPFLAGS']
+-            ldshared = ldshared + ' ' + os.environ['CPPFLAGS']
++            ldshared = (ldshared or '') + ' ' + os.environ['CPPFLAGS']
+ 
+         cc_cmd = cc + ' ' + cflags
+         compiler.set_executables(
