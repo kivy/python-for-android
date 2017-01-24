@@ -160,7 +160,7 @@ def parse_shebang(filename):
     return shebang
 
 
-def which(program):
+def which(program, path_env=None):
     def is_exe(fpath):
         return (os.path.exists(fpath) and os.access(fpath, os.X_OK)
                 and os.path.isfile(os.path.realpath(fpath)))
@@ -174,7 +174,7 @@ def which(program):
             if is_exe(program + name):
                 return program + name
     else:
-        for path in os.environ["PATH"].split(os.pathsep):
+        for path in (path_env or os.environ["PATH"]).split(os.pathsep):
             path = os.path.abspath(path)
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
