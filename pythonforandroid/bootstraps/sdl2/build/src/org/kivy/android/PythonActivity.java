@@ -135,7 +135,7 @@ public class PythonActivity extends SDLActivity {
             // removed the loading screen. However, we still need it to
             // show until the app is ready to render, so pop it back up
             // on top of the SDL view.
-            this.showLoadingScreen();
+            mActivity.showLoadingScreen();
 
             String app_root_dir = getAppRoot();
             if (getIntent() != null && getIntent().getAction() != null &&
