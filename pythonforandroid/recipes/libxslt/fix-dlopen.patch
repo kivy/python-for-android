@@ -1,0 +1,11 @@
+--- libxslt-1.1.27.orig/python/libxsl.py	2012-09-04 16:26:23.000000000 +0200
++++ libxslt-1.1.27/python/libxsl.py	2013-07-29 15:11:04.182227378 +0200
+@@ -4,7 +4,7 @@
+ # loader to work in that mode if feasible
+ #
+ import sys
+-if not hasattr(sys,'getdlopenflags'):
++if True:
+     import libxml2mod
+     import libxsltmod
+     import libxml2
