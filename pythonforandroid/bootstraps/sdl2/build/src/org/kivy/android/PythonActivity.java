@@ -131,6 +131,12 @@ public class PythonActivity extends SDLActivity {
             // private data if we do not.
             mActivity.finishLoad();
 
+            // finishLoad called setContentView with the SDL view, which
+            // removed the loading screen. However, we still need it to
+            // show until the app is ready to render, so pop it back up
+            // on top of the SDL view.
+            mActivity.showLoadingScreen();
+
             String app_root_dir = getAppRoot();
             if (getIntent() != null && getIntent().getAction() != null &&
                     getIntent().getAction().equals("org.kivy.LAUNCH")) {
