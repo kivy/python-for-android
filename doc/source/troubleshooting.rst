@@ -152,3 +152,11 @@ Exception in thread "main" java.lang.UnsupportedClassVersionError: com/android/d
 
 This occurs due to a java version mismatch, it should be fixed by
 installing Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
+
+JNI DETECTED ERROR IN APPLICATION: static jfieldID 0x0000000 not valid for class java.lang.Class<org.renpy.android.PythonActivity>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This error appears in the logcat log if you try to access
+``org.renpy.android.PythonActivity`` from within the new toolchain. To
+fix it, change your code to reference
+``org.kivy.android.PythonActivity`` instead.
