@@ -12,7 +12,7 @@ class LibxsltRecipe(CythonRecipe):
     patches = ['fix-dlopen.patch']
 
     def should_build(self, arch):
-        return not exists(join(self.get_build_container_dir(arch.arch),"libxslt/.libs/libxslt.a"))
+        return not exists(join(self.get_build_dir(arch.arch),".libs/libxslt.a"))
 
 
     def get_recipe_env(self, arch):
