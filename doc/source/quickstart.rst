@@ -128,13 +128,13 @@ well as the requirements::
 
 You can also replace flask with another web framework.
 
-Replace ``--port=5000`` with the port your app will serve a website
-on. The default for Flask is 5000.
+Replace ``--port=5000`` with the port on which your app will serve a
+website. The default for Flask is 5000.
 
 Build an SDL2 based application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This includes `Vispy <http://vispy.org/>`__ and `PySDL2
+This includes e.g. `PySDL2
 <https://pysdl2.readthedocs.io/en/latest/>`__.
 
 To build your application, you need to have a name, version, a package
@@ -145,6 +145,14 @@ requirements::
 
 Add your required modules in place of ``your_requirements``,
 e.g. ``--requirements=pysdl2`` or ``--requirements=vispy``.
+
+Other options
+~~~~~~~~~~~~~
+
+You can pass other command line arguments to control app behaviours
+such as orientation, wakelock and app permissions. See
+:ref:`bootstrap_build_options`.
+
     
 
 Rebuild everything

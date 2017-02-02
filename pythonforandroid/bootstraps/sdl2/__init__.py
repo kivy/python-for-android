@@ -111,6 +111,9 @@ class SDL2Bootstrap(Bootstrap):
                     shprint(sh.mv, filen, filen.split('.')[0] + '.so')
                 site_packages_dir = join(abspath(curdir),
                                          site_packages_dir)
+            if 'sqlite3' not in self.ctx.recipe_build_order:
+                with open('blacklist.txt', 'a') as fileh:
+                    fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
 
         self.strip_libraries(arch)

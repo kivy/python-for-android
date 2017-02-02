@@ -2,7 +2,14 @@
 <project name="CustomRules">
     <target name="-pre-build">
         <copy todir="tmp-src">
+            {% if args.launcher %}
             <fileset dir="src" includes="**" />
+            {% else %}
+            <fileset dir="src">
+                <exclude name="org/kivy/android/ProjectAdapter.java" />
+                <exclude name="org/kivy/android/ProjectChooser.java" />
+            </fileset>
+            {% endif %}
             {% for dir, includes in args.extra_source_dirs %}
             <fileset dir="{{ dir }}" includes="{{ includes }}" />
             {% endfor %}

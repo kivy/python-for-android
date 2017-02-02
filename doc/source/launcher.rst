@@ -20,25 +20,23 @@ python-for-android.
 Building
 --------
 
-The Kivy Launcher is built using python-for-android, and is currently
-only supported by the pygame bootstrap (there is no SDL2 launcher
-yet). To get the most recent versions of packages you need to clean
-them first, so that the packager won't grab an old package instead of
-fresh one.
+The Kivy Launcher is built using python-for-android. To get the most recent
+versions of packages you need to clean them first, so that the packager won't
+grab an old (cached) package instead of fresh one.
 
 .. highlight:: none
 
 ::
 
-    p4a clean_dists
-    p4a clean_builds
+    p4a clean_download_cache requirements
+    p4a clean_dists && p4a clean_builds
     p4a apk --requirements=requirements \
             --permission PERMISSION \
             --package=the.package.name \
             --name="App name" \
             --version=x.y.z \
             --android_api XY \
-            --bootstrap=pygame \
+            --bootstrap=pygame or sdl2 \
             --launcher \
             --minsdk 13
 
@@ -80,6 +78,9 @@ to change other settings.
 After you set your `android.txt` file, you can now run the launcher
 and start any available app from the list.
 
+To differentiate between apps in ``/sdcard/kivy`` you can include an icon
+named ``icon.png`` to the folder. The icon should be a square.
+
 Release on the market
 ---------------------
 
@@ -91,10 +92,14 @@ Source code
 -----------
 
 .. |renpy| replace:: pygame org.renpy.android
+.. |kivy| replace:: sdl2 org.kivy.android
 
 .. _renpy:
     https://github.com/kivy/python-for-android/tree/master/\
     pythonforandroid/bootstraps/pygame/build/src/org/renpy/android
+.. _sdl2:
+    https://github.com/kivy/python-for-android/tree/master/\
+    pythonforandroid/bootstraps/sdl2/build/src/org/kivy/android
 
 If you feel confident, feel free to improve the launcher. You can find the
-source code at |renpy|_. 
+source code at |renpy|_ or at |kivy|_.
