@@ -1,11 +1,11 @@
  
-from pythonforandroid.toolchain import (PythonRecipe, shprint,
+from pythonforandroid.toolchain import (CythonRecipe, shprint,
                                         current_directory, info, Recipe)
 from pythonforandroid.patching import will_build, check_any
 import sh
 from os.path import join
 
-class BSoup4Recipe(PythonRecipe):
+class BSoup4Recipe(CythonRecipe):
     version = '4.1.0'
     url = 'https://www.crummy.com/software/BeautifulSoup/bs4/download/4.0/beautifulsoup4-{version}.tar.gz'
     depends = [('python2', 'python3crystax'), 'lxml']

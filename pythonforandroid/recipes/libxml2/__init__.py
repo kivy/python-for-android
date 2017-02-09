@@ -13,10 +13,15 @@ class Libxml2Recipe(Recipe):
 
     def get_recipe_env(self, arch):
         env = super(Libxml2Recipe, self).get_recipe_env(arch)
+        return env
 
-        sh.sed('runtest$(EXEEXT) \/ \/', 'Makefile')
-        sh.sed('testrecurse$(EXEEXT)$//', 'Makefile')
-        sh.make('-j', '5')
+    def build_arch(self, arch):
+        env = self.get_recipe_env(arch)
+
+        with current_directory(self.get_build_dir(arch.arch)):
+            sh.sed('runtest$(EXEEXT)', 'Makefile')
+            sh.sed('testrecurse$(EXEEXT)', 'Makefile')
+            sh.make('-j', '5')
         
 
 recipe = Libxml2Recipe()

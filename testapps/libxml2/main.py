@@ -5,8 +5,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
 from kivy.uix.popup import Popup
 
-import requests
-from bs4 import BeautifulSoup
+import libxml2
+
 
 Builder.load_string('''
 <PopupScreen>:
@@ -17,13 +17,13 @@ Builder.load_string('''
         size_hint_y: None
         height: '40dp'
     Label:
-        id: title
+        id: head
         font_size: 30
         size_hint_y: None
         height: '50dp'
     ScrollView:
         Label:
-            id: story  
+            id: str_doc
             font_size: 20
             text_size: self.width, None
             size_hint_y: None
@@ -34,22 +34,36 @@ Builder.load_string('''
 class PopupScreen(BoxLayout):
 
     def detail(self):
+        DOC = """<?xml version="1.0" encoding="UTF-8"?>
 
-        f_url = 'https://httpbin.org/html'
-        title = self.ids.title
-        story = self.ids.story
+        <verse>
 
-        var = requests.get(f_url)
+          <attribution>Christopher Okibgo</attribution>
 
-        soup = BeautifulSoup(var.content)
+          <line>For he was a shrub among the poplars,</line>
 
-        title_find = soup.find("h1")
-        story_find = soup.find("p")
+          <line>Needing more roots</line>
 
-        for x in title_find:
-            title.text = x
-        for x in story_find:
-            story.text = x
+          <line>More sap to grow to sunlight,</line>
+
+          <line>Thirsting for sunlight</line>
+
+        </verse>
+
+        """
+
+        doc = libxml2.parseDoc(DOC)
+
+        root = doc.children
+
+        # print root
+        lbl = self.ids.str_doc
+        head = self.ids.head
+
+        head.text = "Here is the string version of the children of doc"
+
+        lbl.text = str(root)
+        doc.freeDoc()
 
 
 class MovieApp(App):
