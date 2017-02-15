@@ -29,9 +29,13 @@ public class PythonUtil {
 		    try {
                 System.loadLibrary(lib);
             } catch(UnsatisfiedLinkError e) {
-                if (lib.startsWith("python") && !skippedPython) {
-                    skippedPython = true;
-                    continue;
+                if (lib.startsWith("python")){
+                    Log.v(TAG, e.getMessage());
+                    Log.v(TAG, "It's ok not to load python2 library for python3 app and vice versa.");
+                    if (!skippedPython) {
+                        skippedPython = true;
+                        continue;
+                    }
                 }
                 throw e;
             }
