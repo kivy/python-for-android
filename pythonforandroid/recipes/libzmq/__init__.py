@@ -48,6 +48,13 @@ class LibZMQRecipe(Recipe):
                     self.ctx.ndk_dir, self.ctx.toolchain_version, arch),
                 join(bootstrap_obj_dir, 'libgnustl_shared.so'))
 
+            # Copy libgnustl_shared.so
+            with current_directory(self.get_build_dir(arch.arch)):
+                sh.cp(
+                    "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx,arch=arch),
+                    self.ctx.get_libs_dir(arch.arch)
+                )
+
     def get_recipe_env(self, arch):
         # XXX should stl be configuration for the toolchain itself?
         env = super(LibZMQRecipe, self).get_recipe_env(arch)
