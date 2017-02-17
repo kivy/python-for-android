@@ -736,7 +736,7 @@ class ToolchainCL(object):
         if not apk_file:
             info_main('# APK filename not found in build output, trying to guess')
             suffix = args.build_mode
-            if suffix == 'release':
+            if suffix == 'release' and not args.keystore:
                 suffix = suffix + '-unsigned'
             apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(suffix)))
             if len(apks) == 0:
