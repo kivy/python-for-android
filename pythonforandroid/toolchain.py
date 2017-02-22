@@ -352,25 +352,39 @@ class ToolchainCL(object):
                 "--compact", action="store_true", default=False,
                 help="Produce a compact list suitable for scripting")
 
-        parser_bootstraps = add_parser(subparsers,
-            'bootstraps', help='List the available bootstraps',
+        parser_bootstraps = add_parser(
+            subparsers, 'bootstraps',
+            help='List the available bootstraps',
             parents=[generic_parser])
-        parser_clean_all = add_parser(subparsers,
-            'clean_all', aliases=['clean-all'],
+        parser_clean_all = add_parser(
+            subparsers, 'clean_all',
+            aliases=['clean-all'],
             help='Delete all builds, dists and caches',
             parents=[generic_parser])
-        parser_clean_dists = add_parser(subparsers,
+        parser_clean_dists = add_parser(
+            subparsers,
             'clean_dists', aliases=['clean-dists'],
             help='Delete all dists',
             parents=[generic_parser])
-        parser_clean_bootstrap_builds = add_parser(subparsers,
+        parser_clean_bootstrap_builds = add_parser(
+            subparsers,
             'clean_bootstrap_builds', aliases=['clean-bootstrap-builds'],
             help='Delete all bootstrap builds',
             parents=[generic_parser])
-        parser_clean_builds = add_parser(subparsers,
+        parser_clean_builds = add_parser(
+            subparsers,
             'clean_builds', aliases=['clean-builds'],
             help='Delete all builds',
             parents=[generic_parser])
+
+        parser_clean = add_parser(subparsers, 'clean',
+                                  help='Delete build components.',
+                                  parents=[generic_parser])
+        parser_clean.add_argument(
+            'component', nargs='+',
+            help=('The build component(s) to delete. You can pass any '
+                  'number of arguments from "all", "builds", "dists", '
+                  '"distributions", "bootstrap_builds", "downloads".'))
 
         parser_clean_recipe_build = add_parser(subparsers,
             'clean_recipe_build', aliases=['clean-recipe-build'],
@@ -560,6 +574,24 @@ class ToolchainCL(object):
                   .format(bs=bs, Fore=Out_Fore, Style=Out_Style))
             print('    {Fore.GREEN}depends: {bs.recipe_depends}{Fore.RESET}'
                   .format(bs=bs, Fore=Out_Fore))
+
+    def clean(self, args):
+        components = args.component
+
+        component_clean_methods = {'all': self.clean_all,
+                                   'dists': self.clean_dists,
+                                   'distributions': self.clean_dists,
+                                   'builds': self.clean_builds,
+                                   'bootstrap_builds': self.clean_bootstrap_builds,
+                                   'downloads': self.clean_download_cache}
+
+        for component in components:
+            if component not in component_clean_methods:
+                raise ValueError((
+                    'Asked to clean "{}" but this argument is not '
+                    'recognised'.format(component)))
+            component_clean_methods[component](args)
+            
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,

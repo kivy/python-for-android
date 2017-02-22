@@ -1089,6 +1089,13 @@ class CythonRecipe(PythonRecipe):
                      self.ctx.python_recipe.version, 'include',
                      'python')) + env['CFLAGS']
 
+            # Temporarily hardcode the -lpython3.5 as this does not
+            # get applied automatically in some environments.  This
+            # will need generalising, along with the other hardcoded
+            # py3.5 references, to support other python3 or crystax
+            # python versions.
+            env['LDFLAGS'] = env['LDFLAGS'] + ' -lpython3.5m'
+
         return env
 
 
