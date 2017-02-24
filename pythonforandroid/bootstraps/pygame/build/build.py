@@ -180,7 +180,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
                   if select(x)]
 
     # create tar.gz of thoses files
-    tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
+    tf = tarfile.open(tfn, 'w:gz', format=tarfile.GNU_FORMAT)
     dirs = []
     for fn, afn in files:
 #         print('%s: %s' % (tfn, fn))
