@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION_openssl=${VERSION_openssl:-1.0.1p}
+VERSION_openssl=${VERSION_openssl:-1.0.2f}
 URL_openssl=https://www.openssl.org/source/openssl-$VERSION_openssl.tar.gz
 DEPS_openssl=()
 MD5_openssl=7563e92327199e0067ccd0f79f436976
