@@ -1,6 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe
 from pythonforandroid.logger import shprint
-from pythonforandroid.util import current_directory
+from pythonforandroid.util import current_directory, shutil
+from pythonforandroid.util import ensure_dir
 from os.path import exists, join, dirname
 import sh
 from multiprocessing import cpu_count
@@ -36,6 +37,10 @@ class ProtobufCppRecipe(PythonRecipe):
 			with current_directory(join(self.get_build_dir(arch.arch), 'src')):
 				shprint(sh.make, 'libprotobuf.la', '-j'+str(cpu_count()), _env=env)
 				shprint(sh.cp, '.libs/libprotobuf.a', join(self.ctx.get_libs_dir(arch.arch), 'libprotobuf.a'))
+
+		# Copy stl library
+                shutil.copyfile(self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + '/libgnustl_shared.so',
+                	join(self.ctx.get_libs_dir(arch.arch), 'libgnustl_shared.so'))
 
 		# Build python bindings and _message.so
 		with current_directory(join(self.get_build_dir(arch.arch), 'python')):
