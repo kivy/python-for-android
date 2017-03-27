@@ -79,3 +79,8 @@ do pass it, the service can make use of this argument.
 Services support a range of options and interactions not yet
 documented here but all accessible via calling other methods of the
 ``service`` reference.
+
+This kind of service has the app root folder in sys.path instead
+of the folder where it's file is. This means that you have to
+type "import service.module" instead of "import module", if the
+service file is in "service/" folder
