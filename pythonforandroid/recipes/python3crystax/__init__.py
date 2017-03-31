@@ -1,12 +1,15 @@
 
 from pythonforandroid.recipe import TargetPythonRecipe
 from pythonforandroid.toolchain import shprint, current_directory, ArchARM
-from pythonforandroid.logger import info
-from pythonforandroid.util import ensure_dir
+from pythonforandroid.logger import info, error
+from pythonforandroid.util import ensure_dir, temp_directory
 from os.path import exists, join
-from os import uname
 import glob
 import sh
+
+prebuilt_download_locations = {
+    '3.6': ('https://github.com/inclement/crystax_python_builds/'
+            'releases/download/0.1/crystax_python_3.6_armeabi_armeabi-v7a.tar.gz')}
 
 class Python3Recipe(TargetPythonRecipe):
     version = '3.5'
@@ -24,19 +27,50 @@ class Python3Recipe(TargetPythonRecipe):
         return name
 
     def build_arch(self, arch):
-        info('Extracting CrystaX python3 from NDK package')
+        # We don't have to actually build anything as CrystaX comes
+        # with the necessary modules. They are included by modifying
+        # the Android.mk in the jni folder.
+
+        # If the Python version to be used is not prebuilt with the CrystaX
+        # NDK, we do have to download it.
+
+        crystax_python_dir = join(self.ctx.ndk_dir, 'sources', 'python')
+        if not exists(join(crystax_python_dir, self.version)):
+            info(('The NDK does not have a prebuilt Python {}, trying '
+                  'to obtain one.').format(self.version))
+
+            if self.version not in prebuilt_download_locations:
+                error(('No prebuilt version for Python {} could be found, '
+                       'the built cannot continue.'))
+                exit(1)
+
+            with temp_directory() as td:
+                self.download_file(prebuilt_download_locations[self.version],
+                                   join(td, 'downloaded_python'))
+                shprint(sh.tar, 'xf', join(td, 'downloaded_python'),
+                        '--directory', crystax_python_dir)
+
+            if not exists(join(crystax_python_dir, self.version)):
+                error(('Something went wrong, the directory at {} should '
+                       'have been created but does not exist.').format(
+                           join(crystax_python_dir, self.version)))
+
+        if not exists(join(
+                crystax_python_dir, self.version, 'libs', arch.arch)):
+            error(('The prebuilt Python for version {} does not contain '
+                   'binaries for your chosen architecture "{}".').format(
+                       self.version, arch.arch))
+            exit(1)
+
+        # TODO: We should have an option to build a new Python. This
+        # would also allow linking to openssl and sqlite from CrystaX.
 
         dirn = self.ctx.get_python_install_dir()
         ensure_dir(dirn)
 
+        # Instead of using a locally built hostpython, we use the
+        # user's Python for now. They must have the right version
+        # available. Using e.g. pyenv makes this easy.
         self.ctx.hostpython = 'python{}'.format(self.version)
-        # ensure_dir(join(dirn, 'lib'))
-        # ensure_dir(join(dirn, 'lib', 'python{}'.format(self.version),
-        #                 'site-packages'))
-
-        # ndk_dir = self.ctx.ndk_dir
-        # sh.cp('-r', '/home/asandy/kivytest/crystax_stdlib', join(dirn, 'lib', 'python3.5'))
-        # sh.cp('-r', '/home/asandy/android/crystax-ndk-10.3.0/sources/python/3.5/libs/armeabi/modules', join(dirn, 'lib', 'python3.5', 'lib-dynload'))
-        # ensure_dir(join(dirn, 'lib', 'site-packages'))
 
 recipe = Python3Recipe()

@@ -818,7 +818,6 @@ class PythonRecipe(Recipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
-            # hostpython = sh.Command('python3.5')
 
 
             if self.ctx.python_recipe.from_crystax:
@@ -986,7 +985,6 @@ class CythonRecipe(PythonRecipe):
             site_packages_dirs = command(
                 '-c', 'import site; print("\\n".join(site.getsitepackages()))')
             site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
-            # env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
             if 'PYTHONPATH' in env:
                 env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))
             else:
@@ -994,7 +992,6 @@ class CythonRecipe(PythonRecipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
-            # hostpython = sh.Command('python3.5')
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
             print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
@@ -1089,12 +1086,14 @@ class CythonRecipe(PythonRecipe):
                      self.ctx.python_recipe.version, 'include',
                      'python')) + env['CFLAGS']
 
-            # Temporarily hardcode the -lpython3.5 as this does not
+            # Temporarily hardcode the -lpython3.x as this does not
             # get applied automatically in some environments.  This
             # will need generalising, along with the other hardcoded
             # py3.5 references, to support other python3 or crystax
             # python versions.
-            env['LDFLAGS'] = env['LDFLAGS'] + ' -lpython3.5m'
+            python3_version = self.ctx.python_recipe.version
+            python3_version = '.'.join(python3_version.split('.')[:2])
+            env['LDFLAGS'] = env['LDFLAGS'] + ' -lpython{}m'.format(python3_version)
 
         return env
 
