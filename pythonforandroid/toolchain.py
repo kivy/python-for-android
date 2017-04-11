@@ -871,18 +871,20 @@ class ToolchainCL(object):
 
 
     def build_status(self, args):
-
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
               'already built:{Style.RESET_ALL}'.format(Style=Out_Style))
-        for filen in os.listdir(join(self.ctx.build_dir, 'bootstrap_builds')):
-            print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'
-                  .format(filen=filen, Fore=Out_Fore, Style=Out_Style))
+
+        bootstrap_dir = join(self.ctx.build_dir, 'bootstrap_builds')
+        if exists(bootstrap_dir):
+            for filen in os.listdir(bootstrap_dir):
+                print('    {Fore.GREEN}{Style.BRIGHT}{filen}{Style.RESET_ALL}'
+                      .format(filen=filen, Fore=Out_Fore, Style=Out_Style))
 
         print('{Style.BRIGHT}Recipes that are probably already built:'
               '{Style.RESET_ALL}'.format(Style=Out_Style))
-        if exists(join(self.ctx.build_dir, 'other_builds')):
-            for filen in sorted(
-                    os.listdir(join(self.ctx.build_dir, 'other_builds'))):
+        other_builds_dir = join(self.ctx.build_dir, 'other_builds')
+        if exists(other_builds_dir):
+            for filen in sorted(os.listdir(other_builds_dir)):
                 name = filen.split('-')[0]
                 dependencies = filen.split('-')[1:]
                 recipe_str = ('    {Style.BRIGHT}{Fore.GREEN}{name}'
