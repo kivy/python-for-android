@@ -1,0 +1,11 @@
+--- setup.py	2017-03-23 05:28:37.000000000 -0700
++++ b/setup.py	2017-04-12 15:03:28.218529255 -0700
+@@ -316,7 +316,7 @@
+                 os.system('pip install .')
+                 sys.exit(0)
+             print('error: you have to install with "pip install ."')
+-            sys.exit(1)
++            # sys.exit(1)
+         # If you only support an extension module on Linux, Windows thinks it
+         # is pure. That way you would get pure python .whl files that take
+         # precedence for downloading on Linux over source with compilable C
