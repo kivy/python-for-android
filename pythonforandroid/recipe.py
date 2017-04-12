@@ -783,8 +783,13 @@ class PythonRecipe(Recipe):
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
             builddir = join(dirname(self.hostpython_location), 'build')
-            hppath += [join(builddir, d) for d in listdir(builddir)
-                       if isdir(join(builddir, d))]
+            try:
+                listed = listdir(builddir)
+                hppath += [join(builddir, d) for d in listed
+                           if isdir(join(builddir, d))]
+            except OSError as err:
+                debug('%s', err)
+
             if 'PYTHONPATH' in env:
                 env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
             else:
