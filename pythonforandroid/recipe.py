@@ -104,6 +104,21 @@ class Recipe(with_metaclass(RecipeMeta)):
     archs = ['armeabi']  # Not currently implemented properly
 
     @property
+    def user_dir(self):
+        #  user source directory overriding standard location defined in recipe
+        key = 'P4A_{0}_DIR'.format(self.name)
+        #  for easier debug
+        v = environ.get(key)
+        return v
+
+    @property
+    def force_build(self):
+        #  if True forces recipe build see build.py build_recipes()
+        fb = bool(environ.get('P4A_force_build'))
+        v = bool(fb and self.user_dir)
+        return v
+
+    @property
     def version(self):
         key = 'VERSION_' + self.name
         return environ.get(key, self._version)
@@ -336,8 +351,8 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def download_if_necessary(self):
         info_main('Downloading {}'.format(self.name))
-        user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
-        if user_dir is not None:
+        # user_dir is a property
+        if self.user_dir is not None:
             info('P4A_{}_DIR is set, skipping download for {}'.format(
                 self.name, self.name))
             return
@@ -400,20 +415,24 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         build_dir = self.get_build_container_dir(arch)
 
-        user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
-        if user_dir is not None:
+        # user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
+        if self.user_dir is not None:
             info('P4A_{}_DIR exists, symlinking instead'.format(
                 self.name.lower()))
             # AND: Currently there's something wrong if I use ln, fix this
             warning('Using cp -a instead of symlink...fix this!')
-            if exists(self.get_build_dir(arch)):
+            if exists(self.get_build_dir(arch)) and not self.force_build:
+                info('copy in place skipping cp {0}'.format(self.user_dir))
                 return
-            shprint(sh.rm, '-rf', build_dir)
-            shprint(sh.mkdir, '-p', build_dir)
-            shprint(sh.rmdir, build_dir)
-            ensure_dir(build_dir)
-            shprint(sh.cp, '-a', user_dir, self.get_build_dir(arch))
-            return
+            else:
+                info('clening dirs')
+                shprint(sh.rm, '-rf', build_dir)
+                shprint(sh.mkdir, '-p', build_dir)
+                shprint(sh.rmdir, build_dir)
+                ensure_dir(build_dir)
+                info('starting cp {0}'.format(self.user_dir))
+                shprint(sh.cp, '-a', self.user_dir, self.get_build_dir(arch))
+                return
 
         if self.url is None:
             info('Skipping {} unpack as no URL is set'.format(self.name))
