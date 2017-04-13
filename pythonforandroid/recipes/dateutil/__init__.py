@@ -4,7 +4,7 @@ from pythonforandroid.recipe import PythonRecipe
 class DateutilRecipe(PythonRecipe):
 	name = 'dateutil'
 	version = '2.6.0'
-	url = 'https://pypi.python.org/packages/3e/f5/aad82824b369332a676a90a8c0d1e608b17e740bbb6aeeebca726f17b902/python-dateutil-{version}.tar.gz'
+	url = 'https://pypi.python.org/packages/51/fc/39a3fbde6864942e8bb24c93663734b74e281b984d1b8c4f95d64b0c21f6/python-dateutil-2.6.0.tar.gz'
 
 	depends = ['python2', "setuptools"]
 	call_hostpython_via_targetpython = False
