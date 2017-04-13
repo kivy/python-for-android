@@ -1039,6 +1039,8 @@ class CythonRecipe(PythonRecipe):
             cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
         elif 'PYTHONPATH' in cyenv:
             del cyenv['PYTHONPATH']
+        if 'PYTHONNOUSERSITE' in cyenv:
+            cyenv.pop('PYTHONNOUSERSITE')
         cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
         cython_command = sh.Command(cython)
         shprint(cython_command, filename, *self.cython_args, _env=cyenv)
