@@ -1,7 +1,5 @@
-Binary files websocket/.DS_Store and websocket-patch/.DS_Store differ
-diff -ruN websocket/_logging.py websocket-patch/_logging.py
---- websocket/_logging.py	2016-10-02 21:35:05.000000000 -0400
-+++ websocket-patch/_logging.py	2017-04-10 15:01:56.000000000 -0400
+--- a/websocket/_logging.py	2016-10-02 21:35:05.000000000 -0400
++++ b/websocket/_logging.py	2017-04-13 21:17:34.539598154 -0400
 @@ -19,9 +19,10 @@
      Boston, MA  02110-1335  USA
  
@@ -9,25 +7,23 @@ diff -ruN websocket/_logging.py websocket-patch/_logging.py
 -import logging
 -
 -_logger = logging.getLogger('websocket')
-+# import logging
++#import logging
 +from kivy.logger import Logger
-+# _logger = logging.getLogger('websocket')
++#_logger = logging.getLogger('websocket')
 +_logger = Logger
  _traceEnabled = False
  
  __all__ = ["enableTrace", "dump", "error", "debug", "trace",
-@@ -67,8 +68,10 @@
+@@ -67,8 +68,9 @@
  
  
  def isEnabledForError():
 -    return _logger.isEnabledFor(logging.ERROR)
+-
++#    return _logger.isEnabledFor(logging.ERROR)
 +    return True
-+    # return _logger.isEnabledFor(logging.ERROR)
- 
  
  def isEnabledForDebug():
 -    return _logger.isEnabledFor(logging.DEBUG)
++#    return _logger.isEnabledFor(logging.DEBUG)
 +    return True
-+    # return _logger.isEnabledFor(logging.DEBUG)
-Binary files websocket/tests/__init__.pyc and websocket-patch/tests/__init__.pyc differ
-Binary files websocket/tests/test_websocket.pyc and websocket-patch/tests/test_websocket.pyc differ
