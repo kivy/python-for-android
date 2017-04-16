@@ -9,7 +9,7 @@ class WebSocketClient(Recipe):
 
     patches = ['websocket.patch']  # Paths relative to the recipe dir
 
-    depends = ['kivy', 'python2', 'android', 'pyjnius', 'backports.ssl-match-hostname',
+    depends = ['kivy', 'python2', 'android', 'pyjnius',
                'cryptography', 'pyasn1', 'ndg_httpsclient', 'pyopenssl']
 
 recipe = WebSocketClient()
