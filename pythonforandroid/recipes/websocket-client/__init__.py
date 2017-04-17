@@ -8,8 +8,9 @@ from pythonforandroid.toolchain import Recipe
 
 
 class WebSocketClient(Recipe):
+
     url = 'https://github.com/debauchery1st/websocket-client/raw/master/websocket_client-0.40.0.tar.gz'
-    # url = 'https://pypi.python.org/packages/a7/2b/0039154583cb0489c8e18313aa91ccd140ada103289c5c5d31d80fd6d186/websocket_client-0.40.0.tar.gz'
+
     version = '0.40.0'
     # md5sum = 'f1cf4cc7869ef97a98e5f4be25c30986'
 
