@@ -1,0 +1,26 @@
+--- setup.old	2013-08-06 19:33:44.169818581 -0300
++++ setup.py	2013-08-06 19:35:28.481815499 -0300
+@@ -1,12 +1,10 @@
+ #!/usr/bin/env python
+-
+-from setuptools import setup, Extension
++from distutils.core import setup
++from distutils.extension import Extension
+ import sys
+ import platform
+ import os
+ 
+-from py4a import patch_distutils
+-patch_distutils()
+ 
+ mods = []
+ 
+@@ -52,7 +50,7 @@
+                 )
+         mods.append (mod2)
+     
+-elif sys.platform == 'linux2':
++elif sys.platform == 'linux2' or sys.platform == 'linux3' :
+     mod1 = Extension('bluetooth._bluetooth',
+                          sources = ['bluez/bluetooth/hci.c', 
+                             'bluez/bluetooth/bluetooth.c',
