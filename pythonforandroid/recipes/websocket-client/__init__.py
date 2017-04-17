@@ -1,5 +1,11 @@
 from pythonforandroid.toolchain import Recipe
 
+# if android app crashes on start with "ImportError: No module named websocket"
+#
+#     copy the 'websocket' directory into your app directory to force inclusion.
+#
+# see my example at https://github.com/debauchery1st/example_kivy_websocket-recipe
+
 
 class WebSocketClient(Recipe):
     url = 'https://github.com/debauchery1st/websocket-client/raw/master/websocket_client-0.40.0.tar.gz'
