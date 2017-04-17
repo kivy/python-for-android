@@ -1,29 +1,28 @@
---- a/websocket/_logging.py	2016-10-02 21:35:05.000000000 -0400
-+++ b/websocket/_logging.py	2017-04-13 21:17:34.539598154 -0400
-@@ -19,9 +19,10 @@
+diff --git a/websocket/_logging.py b/websocket/_logging.py
+index 8a5f4a5..cebc23b 100644
+--- a/websocket/_logging.py
++++ b/websocket/_logging.py
+@@ -19,9 +19,8 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
      Boston, MA  02110-1335  USA
  
  """
 -import logging
 -
 -_logger = logging.getLogger('websocket')
-+#import logging
 +from kivy.logger import Logger
-+#_logger = logging.getLogger('websocket')
 +_logger = Logger
  _traceEnabled = False
  
  __all__ = ["enableTrace", "dump", "error", "debug", "trace",
-@@ -67,8 +68,9 @@
+@@ -67,8 +66,9 @@ def trace(msg):
  
  
  def isEnabledForError():
 -    return _logger.isEnabledFor(logging.ERROR)
--
-+#    return _logger.isEnabledFor(logging.ERROR)
 +    return True
+ 
  
  def isEnabledForDebug():
 -    return _logger.isEnabledFor(logging.DEBUG)
-+#    return _logger.isEnabledFor(logging.DEBUG)
 +    return True
++
