@@ -179,14 +179,27 @@ version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
 python_act = autoclass('org.renpy.android.PythonActivity')
+Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    # do not add a listener here, one is already implemented in
-    # SDLSurfaceView.java which sends a event to kivy which makes
-    # a call to `get_keyboard_height`. 
+    class LayoutListener(PythonJavaClass):
+        __javainterfaces__ = ['android/view/ViewTreeObserver$OnGlobalLayoutListener']
+
+        height = 0
+
+        @java_method('()V')
+        def onGlobalLayout(self):
+            rctx = Rect()
+            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
+            # NOTE top should always be zero
+            rctx.top = 0
+            self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
+
+    ll = LayoutListener()
+    python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
 
     def get_keyboard_height():
-        return python_act.mView.kHeight
+        return ll.height
 else:
     def get_keyboard_height():
         return 0
