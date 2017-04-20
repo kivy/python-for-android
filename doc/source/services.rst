@@ -39,8 +39,10 @@ you wish to use this method)::
                           description='service description',
                           arg='argument to service')
 
-Arbitrary scripts
-~~~~~~~~~~~~~~~~~
+.. _arbitrary_scripts_services:
+
+Arbitrary service scripts
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: This service method is *not supported* by the Pygame bootstrap.
 
@@ -77,3 +79,9 @@ do pass it, the service can make use of this argument.
 Services support a range of options and interactions not yet
 documented here but all accessible via calling other methods of the
 ``service`` reference.
+
+.. note:: The app root directory for Python imports will be in the app
+root folder even if the service file is in a subfolder. To import from
+your service folder you must use e.g.  ``import service.module``
+instead of ``import module``, if the service file is in the
+``service/`` folder.

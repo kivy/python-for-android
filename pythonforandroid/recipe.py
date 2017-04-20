@@ -376,9 +376,6 @@ class Recipe(with_metaclass(RecipeMeta)):
                     info('{} download already cached, skipping'
                          .format(self.name))
 
-            # Should check headers here!
-            warning('Should check headers here! Skipping for now.')
-
             # If we got this far, we will download
             if do_download:
                 debug('Downloading {} from {}'.format(self.name, url))
@@ -582,6 +579,10 @@ class Recipe(with_metaclass(RecipeMeta)):
                 info('Deleting {}'.format(directory))
                 shutil.rmtree(directory)
 
+        # Delete any Python distributions to ensure the recipe build
+        # doesn't persist in site-packages
+        shutil.rmtree(self.ctx.python_installs_dir)
+
     def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
         if not libs:
@@ -774,6 +775,9 @@ class PythonRecipe(Recipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+
+        env['PYTHONNOUSERSITE'] = '1'
+
         if not self.call_hostpython_via_targetpython:
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
@@ -814,7 +818,6 @@ class PythonRecipe(Recipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
-            # hostpython = sh.Command('python3.5')
 
 
             if self.ctx.python_recipe.from_crystax:
@@ -917,7 +920,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
     """ Extensions that require the cxx-stl """
     call_hostpython_via_targetpython = False
- 
+
     def get_recipe_env(self, arch):
         env = super(CppCompiledComponentsPythonRecipe, self).get_recipe_env(arch)
         keys = dict(
@@ -935,21 +938,21 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" \
                 " -lpython2.7" \
                 " -lgnustl_shared".format(**keys)
-                
-         
+
+
         return env
-    
+
     def build_compiled_components(self,arch):
         super(CppCompiledComponentsPythonRecipe, self).build_compiled_components(arch)
-        
+
         # Copy libgnustl_shared.so
         with current_directory(self.get_build_dir(arch.arch)):
             sh.cp(
                 "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx,arch=arch),
                 self.ctx.get_libs_dir(arch.arch)
             )
-        
-        
+
+
 
 
 class CythonRecipe(PythonRecipe):
@@ -982,7 +985,6 @@ class CythonRecipe(PythonRecipe):
             site_packages_dirs = command(
                 '-c', 'import site; print("\\n".join(site.getsitepackages()))')
             site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
-            # env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
             if 'PYTHONPATH' in env:
                 env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))
             else:
@@ -990,7 +992,6 @@ class CythonRecipe(PythonRecipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
-            # hostpython = sh.Command('python3.5')
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
             print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
@@ -1038,6 +1039,8 @@ class CythonRecipe(PythonRecipe):
             cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
         elif 'PYTHONPATH' in cyenv:
             del cyenv['PYTHONPATH']
+        if 'PYTHONNOUSERSITE' in cyenv:
+            cyenv.pop('PYTHONNOUSERSITE')
         cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
         cython_command = sh.Command(cython)
         shprint(cython_command, filename, *self.cython_args, _env=cyenv)
@@ -1084,6 +1087,15 @@ class CythonRecipe(PythonRecipe):
                 join(self.ctx.ndk_dir, 'sources', 'python',
                      self.ctx.python_recipe.version, 'include',
                      'python')) + env['CFLAGS']
+
+            # Temporarily hardcode the -lpython3.x as this does not
+            # get applied automatically in some environments.  This
+            # will need generalising, along with the other hardcoded
+            # py3.5 references, to support other python3 or crystax
+            # python versions.
+            python3_version = self.ctx.python_recipe.version
+            python3_version = '.'.join(python3_version.split('.')[:2])
+            env['LDFLAGS'] = env['LDFLAGS'] + ' -lpython{}m'.format(python3_version)
 
         return env
 

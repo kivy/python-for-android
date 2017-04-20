@@ -18,11 +18,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.graphics.PixelFormat;
 import android.view.SurfaceHolder;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 import android.content.Intent;
@@ -35,6 +37,7 @@ import android.graphics.Color;
 import org.libsdl.app.SDLActivity;
 
 import org.kivy.android.PythonUtil;
+import org.kivy.android.launcher.Project;
 
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
@@ -59,11 +62,6 @@ public class PythonActivity extends SDLActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
         resourceManager = new ResourceManager(this);
-        this.showLoadingScreen();
-        File app_root_file = new File(getAppRoot());
-
-        Log.v(TAG, "Ready to unpack");
-        unpackData("private", app_root_file);
 
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
@@ -71,37 +69,8 @@ public class PythonActivity extends SDLActivity {
 
         this.mActivity = this;
         this.showLoadingScreen();
-        
 
-        String app_root_dir = getAppRoot();
-        String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
-        Log.v(TAG, "Setting env vars for start.c and Python to use");
-        SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-        SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
-        SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
-        SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
-        SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
-        SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
-        SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
-
-        try {
-            Log.v(TAG, "Access to our meta-data...");
-            this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
-                    this.mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
-
-            PowerManager pm = (PowerManager) this.mActivity.getSystemService(Context.POWER_SERVICE);
-            if ( this.mMetaData.getInt("wakelock") == 1 ) {
-                this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
-            }
-            if ( this.mMetaData.getInt("surface.transparent") != 0 ) {
-                Log.v(TAG, "Surface will be transparent.");
-                getSurface().setZOrderOnTop(true);
-                getSurface().getHolder().setFormat(PixelFormat.TRANSPARENT);
-            } else {
-                Log.i(TAG, "Surface will NOT be transparent");
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-        }
+        new UnpackFilesTask().execute(getAppRoot());
     }
 
     public void loadLibraries() {
@@ -139,6 +108,100 @@ public class PythonActivity extends SDLActivity {
                 this.wait(1000);
             } catch (InterruptedException e) {
             }
+        }
+    }
+
+    private class UnpackFilesTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            File app_root_file = new File(params[0]);
+            Log.v(TAG, "Ready to unpack");
+            unpackData("private", app_root_file);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            // Figure out the directory where the game is. If the game was
+            // given to us via an intent, then we use the scheme-specific
+            // part of that intent to determine the file to launch. We
+            // also use the android.txt file to determine the orientation.
+            //
+            // Otherwise, we use the public data, if we have it, or the
+            // private data if we do not.
+            mActivity.finishLoad();
+
+            // finishLoad called setContentView with the SDL view, which
+            // removed the loading screen. However, we still need it to
+            // show until the app is ready to render, so pop it back up
+            // on top of the SDL view.
+            mActivity.showLoadingScreen();
+
+            String app_root_dir = getAppRoot();
+            if (getIntent() != null && getIntent().getAction() != null &&
+                    getIntent().getAction().equals("org.kivy.LAUNCH")) {
+                File path = new File(getIntent().getData().getSchemeSpecificPart());
+
+                Project p = Project.scanDirectory(path);
+                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/main.py");
+                SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", p.dir);
+                SDLActivity.nativeSetEnv("ANDROID_APP_PATH", p.dir);
+
+                if (p != null) {
+                    if (p.landscape) {
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    } else {
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                    }
+                }
+
+                // Let old apps know they started.
+                try {
+                    FileWriter f = new FileWriter(new File(path, ".launch"));
+                    f.write("started");
+                    f.close();
+                } catch (IOException e) {
+                    // pass
+                }
+            } else {
+                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
+                SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
+                SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
+            }
+
+            String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
+            Log.v(TAG, "Setting env vars for start.c and Python to use");
+            SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+            SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
+            SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+            SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
+
+            try {
+                Log.v(TAG, "Access to our meta-data...");
+                mActivity.mMetaData = mActivity.getPackageManager().getApplicationInfo(
+                        mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+
+                PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
+                if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
+                    mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+                }
+                if ( mActivity.mMetaData.getInt("surface.transparent") != 0 ) {
+                    Log.v(TAG, "Surface will be transparent.");
+                    getSurface().setZOrderOnTop(true);
+                    getSurface().getHolder().setFormat(PixelFormat.TRANSPARENT);
+                } else {
+                    Log.i(TAG, "Surface will NOT be transparent");
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+            }
+        }
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
         }
     }
 

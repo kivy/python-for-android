@@ -404,7 +404,7 @@ tools directory of the Android SDK.
     ap.add_argument('--icon', dest='icon',
                     help='A png file to use as the icon for the application.')
     ap.add_argument('--permission', dest='permissions', action='append',
-                    help='The permissions to give this app.')
+                    help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--presplash', dest='presplash',
@@ -456,6 +456,9 @@ tools directory of the Android SDK.
     args = ap.parse_args(args)
     args.ignore_path = []
 
+    if args.name and args.name[0] == '"' and args.name[-1] == '"':
+        args.name = args.name[1:-1]
+
     if args.billing_pubkey:
         print('Billing not yet supported in sdl2 bootstrap!')
         exit(1)
@@ -465,6 +468,9 @@ tools directory of the Android SDK.
 
     if args.permissions is None:
         args.permissions = []
+    elif args.permissions:
+        if isinstance(args.permissions[0], list):
+            args.permissions = [p for perm in args.permissions for p in perm]
 
     if args.meta_data is None:
         args.meta_data = []
