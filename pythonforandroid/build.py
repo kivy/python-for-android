@@ -530,6 +530,7 @@ def build_recipes(build_order, python_modules, ctx):
     bs = ctx.bootstrap
     info_notify("Recipe build order is {}".format(build_order))
     if python_modules:
+        python_modules = sorted(set(python_modules))
         info_notify(
             ('The requirements ({}) were not found as recipes, they will be '
              'installed with pip.').format(', '.join(python_modules)))
