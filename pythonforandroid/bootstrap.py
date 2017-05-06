@@ -195,20 +195,21 @@ class Bootstrap(object):
         bootstrap.ctx = ctx
         return bootstrap
 
-    def distribute_libs(self, arch, src_dirs, wildcard='*'):
+    def distribute_libs(self, arch, src_dirs, wildcard='*', dest_dir="libs"):
         '''Copy existing arch libs from build dirs to current dist dir.'''
         info('Copying libs')
-        tgt_dir = join('libs', arch.arch)
+        tgt_dir = join(dest_dir, arch.arch)
         ensure_dir(tgt_dir)
         for src_dir in src_dirs:
             for lib in glob.glob(join(src_dir, wildcard)):
                 shprint(sh.cp, '-a', lib, tgt_dir)
 
-    def distribute_javaclasses(self, javaclass_dir):
+    def distribute_javaclasses(self, javaclass_dir, dest_dir="src"):
         '''Copy existing javaclasses from build dir to current dist dir.'''
         info('Copying java files')
+        ensure_dir(dest_dir)
         for filename in glob.glob(javaclass_dir):
-            shprint(sh.cp, '-a', filename, 'src')
+            shprint(sh.cp, '-a', filename, dest_dir)
 
     def distribute_aars(self, arch):
         '''Process existing .aar bundles and copy to current dist dir.'''
