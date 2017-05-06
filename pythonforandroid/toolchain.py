@@ -64,7 +64,7 @@ check_python_dependencies()
 
 import sys
 from sys import platform
-from os.path import (join, dirname, realpath, exists, expanduser)
+from os.path import (join, dirname, realpath, exists, expanduser, basename)
 import os
 import glob
 import shutil
@@ -591,7 +591,7 @@ class ToolchainCL(object):
                     'Asked to clean "{}" but this argument is not '
                     'recognised'.format(component)))
             component_clean_methods[component](args)
-            
+
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
@@ -741,18 +741,48 @@ class ToolchainCL(object):
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
+            os.environ["ANDROID_API"] = str(self.ctx.android_api)
             build_args = build.parse_args(args.unknown_args)
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
 
-            try:
-                ant = sh.Command('ant')
-            except sh.CommandNotFound:
-                error('Could not find ant binary, please install it and make '
-                      'sure it is in your $PATH.')
-                exit(1)
+            if exists(join(dist.dist_dir, "templates", "build.tmpl.gradle")):
+                # gradle-based build
+                env["ANDROID_NDK_HOME"] = self.ctx.ndk_dir
+                env["ANDROID_HOME"] = self.ctx.sdk_dir
 
-            output = shprint(ant, args.build_mode, _tail=20, _critical=True, _env=env)
+                gradlew = sh.Command('./gradlew')
+                if args.build_mode == "debug":
+                    gradle_task = "assembleDebug"
+                elif args.build_mode == "release":
+                    gradle_task = "assembleRelease"
+                else:
+                    error("Unknown build mode {} for apk()".format(
+                        args.build_mode))
+                    exit(1)
+                output = shprint(gradlew, gradle_task, _tail=20,
+                                 _critical=True, _env=env)
+
+                # gradle output apks somewhere else
+                # and don't have version in file
+                apk_dir = join(dist.dist_dir, "build", "outputs", "apk")
+                apk_glob = "*-{}.apk"
+                apk_add_version = True
+
+            else:
+                # ant-based build
+                try:
+                    ant = sh.Command('ant')
+                except sh.CommandNotFound:
+                    error('Could not find ant binary, please install it '
+                          'and make sure it is in your $PATH.')
+                    exit(1)
+                output = shprint(ant, args.build_mode, _tail=20,
+                                 _critical=True, _env=env)
+                apk_dir = join(dist.dist_dir, "bin")
+                apk_glob = "*-*-{}.apk"
+                apk_add_version = False
+
             self.hook("after_apk_assemble")
 
         info_main('# Copying APK to current directory')
@@ -770,16 +800,24 @@ class ToolchainCL(object):
             suffix = args.build_mode
             if suffix == 'release' and not args.keystore:
                 suffix = suffix + '-unsigned'
-            apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(suffix)))
+            apks = glob.glob(join(apk_dir, apk_glob.format(suffix)))
             if len(apks) == 0:
                 raise ValueError('Couldn\'t find the built APK')
             if len(apks) > 1:
-                info('More than one built APK found...guessing you '
+                info('More than one built APK found... guessing you '
                      'just built {}'.format(apks[-1]))
             apk_file = apks[-1]
 
         info_main('# Found APK file: {}'.format(apk_file))
-        shprint(sh.cp, apk_file, './')
+        if apk_add_version:
+            info('# Add version number to APK')
+            apk_name, apk_suffix = basename(apk_file).split("-", 1)
+            apk_file_dest = "{}-{}-{}".format(
+                apk_name, build_args.version, apk_suffix)
+            info('# APK renamed to {}'.format(apk_file_dest))
+            shprint(sh.cp, apk_file, apk_file_dest)
+        else:
+            shprint(sh.cp, apk_file, './')
 
     @require_prebuilt_dist
     def create(self, args):
