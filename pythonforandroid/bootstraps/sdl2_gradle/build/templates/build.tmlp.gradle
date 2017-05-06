@@ -1,0 +1,66 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+       jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.1'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+	    flatDir {
+	    	dirs 'libs'
+	    }
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion {{ args.sdk_version }}
+	buildToolsVersion '25.0.3'
+	defaultConfig {
+		minSdkVersion {{ args.min_sdk_version }}
+		targetSdkVersion {{ args.sdk_version }}
+		versionCode {{ args.numeric_version }}
+		versionName {{ args.version }}
+		ndk {
+			abiFilters 'armeabi-v7a'
+		}
+	}
+
+	{% if args.sign -%}
+	signingConfigs {
+		release {
+			storeFile file(System.getenv("P4A_RELEASE_KEYSTORE"))
+			keyAlias System.getenv("P4A_RELEASE_KEYALIAS")
+			storePassword System.getenv("P4A_RELEASE_KEYSTORE_PASSWD")
+			keyPassword System.getenv("P4A_RELEASE_KEYALIAS_PASSWD")
+		}
+	}
+	{%- endif %}
+
+	externalNativeBuild {
+		ndkBuild {
+			path './jni/Android.mk'
+		}
+	}
+
+	buildTypes {
+		debug {
+		}
+	}
+
+}
+
+dependencies {
+	{%- for aar in aars %}
+	compile(name: '{{ aar }}', ext: 'aar')
+	{%- endfor -%}
+	{%- for depend in args.depends %}
+	compile '{{ depend }}'
+	{%- endfor %}
+}
