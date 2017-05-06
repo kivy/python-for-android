@@ -278,7 +278,7 @@ main.py that loads it.''')
                 print('Requested aar does not exists: {}'.format(aarname))
                 sys.exit(-1)
             shutil.copy(aarname, 'libs')
-            aars.append(basename(aarname).splitext()[0])
+            aars.append(basename(aarname).rsplit('.', 1)[0])
 
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
