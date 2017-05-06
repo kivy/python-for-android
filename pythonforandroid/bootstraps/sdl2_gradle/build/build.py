@@ -12,18 +12,10 @@ import subprocess
 import shutil
 from zipfile import ZipFile
 import sys
-import re
 
 from fnmatch import fnmatch
 
 import jinja2
-
-if os.name == 'nt':
-    ANDROID = 'android.bat'
-    ANT = 'ant.bat'
-else:
-    ANDROID = 'android'
-    ANT = 'ant'
 
 curdir = dirname(__file__)
 
@@ -265,9 +257,9 @@ main.py that loads it.''')
     # Prepare some variables for templating process
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
-    shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
+    shutil.copy(args.icon or default_icon, 'src/main/res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash,
-                'res/drawable/presplash.jpg')
+                'src/main/res/drawable/presplash.jpg')
 
     # If extra Java jars were requested, copy them into the libs directory
     if args.add_jar:
@@ -334,53 +326,34 @@ main.py that loads it.''')
         service_names.append(name)
         render(
             'Service.tmpl.java',
-            'src/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
+            'src/main/java/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
             name=name,
             entrypoint=entrypoint,
             args=args,
             foreground=foreground,
             sticky=sticky,
-            service_id=sid + 1,
-        )
+            service_id=sid + 1)
 
     render(
         'AndroidManifest.tmpl.xml',
-        'AndroidManifest.xml',
+        'src/main/AndroidManifest.xml',
         args=args,
         service=service,
         service_names=service_names,
-        url_scheme=url_scheme,
-        )
+        url_scheme=url_scheme)
 
     render(
         'build.tmpl.gradle',
         'build.gradle',
         args=args,
-        aars=aars,
-        versioned_name=versioned_name)
+        aars=aars)
 
     render(
         'strings.tmpl.xml',
         'src/main/res/values/strings.xml',
         args=args,
         url_scheme=url_scheme,
-        )
-
-    if args.sign:
-        render('build.properties', 'build.properties')
-    else:
-        if exists('build.properties'):
-            os.remove('build.properties')
-
-    with open(join(dirname(__file__), 'res',
-                   'values', 'strings.xml')) as fileh:
-        lines = fileh.read()
-
-    with open(join(dirname(__file__), 'res',
-                   'values', 'strings.xml'), 'w') as fileh:
-        fileh.write(re.sub(r'"private_version">[0-9\.]*<',
-                           '"private_version">{}<'.format(
-                               str(time.time())), lines))
+        private_version=str(time.time()))
 
 
 def parse_args(args=None):
@@ -476,8 +449,6 @@ tools directory of the Android SDK.
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
-    ap.add_argument('--with-billing', dest='billing_pubkey',
-                    help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--service', dest='services', action='append',
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
@@ -496,10 +467,6 @@ tools directory of the Android SDK.
 
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
-
-    if args.billing_pubkey:
-        print('Billing not yet supported in sdl2 bootstrap!')
-        exit(1)
 
     if args.sdk_version == -1:
         args.sdk_version = args.min_sdk_version
@@ -538,5 +505,4 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
-
     parse_args()

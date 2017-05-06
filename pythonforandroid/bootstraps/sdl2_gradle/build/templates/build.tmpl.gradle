@@ -26,7 +26,7 @@ android {
 		minSdkVersion {{ args.min_sdk_version }}
 		targetSdkVersion {{ args.sdk_version }}
 		versionCode {{ args.numeric_version }}
-		versionName {{ args.version }}
+		versionName '{{ args.version }}'
 		ndk {
 			abiFilters 'armeabi-v7a'
 		}
@@ -60,7 +60,9 @@ dependencies {
 	{%- for aar in aars %}
 	compile(name: '{{ aar }}', ext: 'aar')
 	{%- endfor -%}
+	{%- if args.depends -%}
 	{%- for depend in args.depends %}
 	compile '{{ depend }}'
 	{%- endfor %}
+	{%- endif %}
 }

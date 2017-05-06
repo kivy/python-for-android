@@ -11,14 +11,16 @@ Good point:
 
 TODO:
 - test with crystax
+- hardcoded -lpython2.7 in build/jni/src/Android.mk
+- Android.mk require both -I, otherwise it fail in different points
 
 """
 
 from pythonforandroid.toolchain import (
-    Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main)
-from pythonforandroid.utils import ensure_dir
+    Bootstrap, shprint, current_directory, info, info_main)
+from pythonforandroid.util import ensure_dir
 from os.path import join, exists, curdir, abspath
-from os import walk, makedirs
+from os import walk
 import glob
 import sh
 

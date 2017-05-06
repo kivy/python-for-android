@@ -6,7 +6,7 @@ import json
 import importlib
 
 from pythonforandroid.logger import (warning, shprint, info, logger,
-                                     debug)
+                                     debug, error)
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    temp_directory, which)
 from pythonforandroid.recipe import Recipe
@@ -276,6 +276,15 @@ class Bootstrap(object):
                 if files:
                     shprint(sh.mv, '-t', sitepackages, *files)
                 shprint(sh.rm, '-rf', d)
+
+    def apk(self, build_mode, env):
+        try:
+            ant = sh.Command('ant')
+        except sh.CommandNotFound:
+            error('Could not find ant binary, please install it and make '
+                  'sure it is in your $PATH.')
+            exit(1)
+        return shprint(ant, build_mode, _tail=20, _critical=True, _env=env)
 
 
 def expand_dependencies(recipes):
