@@ -52,7 +52,7 @@ recursively_include(package_data, 'pythonforandroid',
                     ['liblink', 'biglink', 'liblink.sh'])
 
 setup(name='python-for-android',
-      version='0.4',
+      version='0.5',
       description='Android APK packager for Python scripts and apps',
       author='The Kivy team',
       author_email='kivy-dev@googlegroups.com',
