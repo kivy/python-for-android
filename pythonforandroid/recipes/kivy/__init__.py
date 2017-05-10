@@ -1,16 +1,12 @@
-
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
-from os.path import exists, join
-import sh
-import glob
-
+from pythonforandroid.toolchain import CythonRecipe
+from os.path import join
 
 class KivyRecipe(CythonRecipe):
     version = 'master'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
-
     depends = [('sdl2', 'pygame'), 'pyjnius']
+    call_hostpython_via_targetpython = False
 
     # patches = ['setargv.patch']
 
