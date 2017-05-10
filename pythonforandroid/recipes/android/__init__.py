@@ -17,6 +17,8 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     config_env = {}
 
+    call_hostpython_via_targetpython = False
+
     def get_recipe_env(self, arch):
         env = super(AndroidRecipe, self).get_recipe_env(arch)
         env.update(self.config_env)
