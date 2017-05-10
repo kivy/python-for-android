@@ -8,7 +8,7 @@ import sh
 
 
 class Python2Recipe(TargetPythonRecipe):
-    version = "2.7.2"
+    version = "2.7.13"
     url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'python2'
 
