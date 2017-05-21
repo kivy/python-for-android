@@ -1,0 +1,14 @@
+--- astropy-0.4.4.orig/astropy_helpers/astropy_helpers/setup_helpers.py	2015-02-15 18:16:02.135642283 -0600
++++ astropy-0.4.4/astropy_helpers/astropy_helpers/setup_helpers.py	2015-02-15 18:28:03.482778786 -0600
+@@ -1307,6 +1307,11 @@
+     # install, since Numpy may still think it's in "setup mode", when
+     # in fact we're ready to use it to build astropy now.
+ 
++    # Allow the environment to override the include path, to allow
++    # cross-compilation
++    if 'NUMPY_INCLUDE_PATH' in os.environ:
++        return os.environ['NUMPY_INCLUDE_PATH']
++
+     if sys.version_info[0] >= 3:
+         import builtins
+         if hasattr(builtins, '__NUMPY_SETUP__'):
