@@ -41,7 +41,7 @@ android {
 			keyPassword System.getenv("P4A_RELEASE_KEYALIAS_PASSWD")
 		}
 	}
-	{%- endif %}
+    {%- endif %}
 
 	externalNativeBuild {
 		ndkBuild {
@@ -53,7 +53,9 @@ android {
 		debug {
 		}
 		release {
+			{% if args.sign -%}
 			signingConfig signingConfigs.release
+			{%- endif %}
 		}
 	}
 
