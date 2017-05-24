@@ -52,6 +52,9 @@ android {
 	buildTypes {
 		debug {
 		}
+		release {
+			signingConfig signingConfigs.release
+		}
 	}
 
 }
