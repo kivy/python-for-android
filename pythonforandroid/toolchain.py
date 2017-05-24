@@ -811,16 +811,20 @@ class ToolchainCL(object):
 
         if not apk_file:
             info_main('# APK filename not found in build output, trying to guess')
-            suffix = args.build_mode
-            if suffix == 'release' and not args.keystore:
-                suffix = suffix + '-unsigned'
-            apks = glob.glob(join(apk_dir, apk_glob.format(suffix)))
-            if len(apks) == 0:
+            if args.build_mode == "release":
+                suffixes = ("release", "release-unsigned")
+            else:
+                suffixes = ("debug", )
+            for suffix in suffixes:
+                apks = glob.glob(join(apk_dir, apk_glob.format(suffix)))
+                if apks:
+                    if len(apks) > 1:
+                        info('More than one built APK found... guessing you '
+                             'just built {}'.format(apks[-1]))
+                    apk_file = apks[-1]
+                    break
+            else:
                 raise ValueError('Couldn\'t find the built APK')
-            if len(apks) > 1:
-                info('More than one built APK found... guessing you '
-                     'just built {}'.format(apks[-1]))
-            apk_file = apks[-1]
 
         info_main('# Found APK file: {}'.format(apk_file))
         if apk_add_version:
