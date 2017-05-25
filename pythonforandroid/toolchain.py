@@ -467,6 +467,10 @@ class ToolchainCL(object):
 
         self.args = args
 
+        if args.subparser_name is None:
+            parser.print_help()
+            exit(1)
+
         setup_color(args.color)
 
         if args.debug:
