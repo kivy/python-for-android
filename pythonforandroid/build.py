@@ -226,12 +226,12 @@ class Context(object):
             error('You probably want to build with --arch=armeabi-v7a instead')
             exit(1)
 
-        if exists(join(sdk_dir, 'tools', 'android')):
+        if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
+            avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
+            targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+        elif exists(join(sdk_dir, 'tools', 'android')):
             android = sh.Command(join(sdk_dir, 'tools', 'android'))
             targets = android('list').stdout.decode('utf-8').split('\n')
-        elif exists(join(sdk_dir, 'bin', 'avdmanager')):
-            avdmanager = sh.Command(join(sdk_dir, 'bin', 'avdmanager'))
-            targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
         else:
             error('Could not find `android` or `sdkmanager` binaries in '
                   'Android SDK. Exiting.')
