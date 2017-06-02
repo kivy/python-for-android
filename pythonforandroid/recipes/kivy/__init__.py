@@ -1,6 +1,7 @@
 
 from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
-from os.path import exists, join
+from os.path import exists, join, isdir
+from shutil import rmtree
 import sh
 import glob
 
@@ -42,5 +43,13 @@ class KivyRecipe(CythonRecipe):
                 ])
 
         return env
+
+    def install_python_package(self, arch):
+        super(KivyRecipe, self).install_python_package(arch)
+        site_packages_dir = self.ctx.get_site_packages_dir(arch)
+        usr_dir = join(site_packages_dir, 'usr', 'share', 'kivy-examples')
+        print('usr_dir is', usr_dir)
+        if exists(usr_dir) and isdir(usr_dir):
+            rmtree(usr_dir)
 
 recipe = KivyRecipe()
