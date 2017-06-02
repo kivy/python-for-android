@@ -1,7 +1,6 @@
 
 from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
-from os.path import exists, join, isdir
-from shutil import rmtree
+from os.path import exists, join
 import sh
 import glob
 
@@ -35,6 +34,7 @@ class KivyRecipe(CythonRecipe):
         env = super(KivyRecipe, self).get_recipe_env(arch)
         if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
+            env['KIVY_SPLIT_EXAMPLES'] = '1'
             env['KIVY_SDL2_PATH'] = ':'.join([
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
@@ -43,12 +43,5 @@ class KivyRecipe(CythonRecipe):
                 ])
 
         return env
-
-    def install_python_package(self, arch):
-        super(KivyRecipe, self).install_python_package(arch)
-        site_packages_dir = self.ctx.get_site_packages_dir(arch)
-        usr_dir = join(site_packages_dir, 'usr', 'share', 'kivy-examples')
-        if exists(usr_dir) and isdir(usr_dir):
-            rmtree(usr_dir)
 
 recipe = KivyRecipe()
