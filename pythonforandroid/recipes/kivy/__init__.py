@@ -48,7 +48,6 @@ class KivyRecipe(CythonRecipe):
         super(KivyRecipe, self).install_python_package(arch)
         site_packages_dir = self.ctx.get_site_packages_dir(arch)
         usr_dir = join(site_packages_dir, 'usr', 'share', 'kivy-examples')
-        print('usr_dir is', usr_dir)
         if exists(usr_dir) and isdir(usr_dir):
             rmtree(usr_dir)
 
