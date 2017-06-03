@@ -1,10 +1,9 @@
-
 from pythonforandroid.toolchain import PythonRecipe
-
 
 class SixRecipe(PythonRecipe):
     version = '1.9.0'
     url = 'https://pypi.python.org/packages/source/s/six/six-{version}.tar.gz'
     depends = [('python2', 'python3crystax')]
+    call_hostpython_via_targetpython = False
 
 recipe = SixRecipe()
