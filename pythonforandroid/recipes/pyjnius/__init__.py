@@ -11,15 +11,14 @@ class PyjniusRecipe(CythonRecipe):
     name = 'pyjnius'
     depends = [('python2', 'python3crystax'), ('sdl2', 'sdl', 'genericndkbuild'), 'six']
     site_packages_name = 'jnius'
-
     patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')),
                ('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild'))]
+    call_hostpython_via_targetpython = False
 
     def postbuild_arch(self, arch):
         super(PyjniusRecipe, self).postbuild_arch(arch)
         info('Copying pyjnius java class to classes build dir')
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(sh.cp, '-a', join('jnius', 'src', 'org'), self.ctx.javaclass_dir)
-
 
 recipe = PyjniusRecipe()
