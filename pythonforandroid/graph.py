@@ -1,5 +1,6 @@
 
 from copy import deepcopy
+from itertools import product
 
 from pythonforandroid.logger import (info, info_notify, warning)
 from pythonforandroid.recipe import Recipe
@@ -115,6 +116,84 @@ class Graph(object):
                     bset.discard(result)
 
 
+class RecipeOrder(dict):
+
+    def __init__(self, ctx):
+        self.ctx = ctx
+
+    def conflicts(self, name):
+        for name in self.keys():
+            try:
+                recipe = Recipe.get_recipe(name, self.ctx)
+                conflicts = recipe.conflicts
+            except OSError:
+                conflicts = []
+            
+            if any([c in self for c in recipe.conflicts]):
+                return True
+        return False
+
+def recursively_collect_orders(name, ctx, orders=[]):
+    '''For each possible recipe ordering we were passed, try to add the
+    new recipe name to that order. Recursively do the same thing with
+    all the dependencies of each recipe.
+    '''
+    try:
+        recipe = Recipe.get_recipe(name, ctx)
+        if recipe.depends is None:
+            dependencies = []
+        else:
+            # make all dependencies into lists so that product will work
+            dependencies = [([dependency] if not isinstance(dependency, (list, tuple))
+                            else dependency) for dependency in recipe.depends]
+    except OSError:
+        # The recipe does not exist, so we assume it can be installed
+        # via pip with no extra dependencies
+        dependencies = []
+
+    new_orders = []
+    # for each existing recipe order, see if we can add the new recipe name
+    for order in orders:
+        if name in order:
+            new_orders.append(deepcopy(order))
+            continue
+        if order.conflicts(name):
+            continue
+
+        for dependency_set in product(*dependencies):
+            new_order = deepcopy(order)
+            new_order[name] = set(dependency_set)
+
+            dependency_new_orders = [new_order]
+            for dependency in dependency_set:
+                dependency_new_orders = recursively_collect_orders(
+                    dependency, ctx, dependency_new_orders)
+
+            new_orders.extend(dependency_new_orders)
+
+    return new_orders
+
+
+def new_get_recipe_order_and_bootstrap(ctx, names, bs=None):
+    recipes_to_load = set(names)
+    # if bs is not None and bs.recipe_depends:
+    #     recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
+
+    possible_orders = [RecipeOrder(ctx)]
+
+    # get all possible recipe orders
+    for name in names:
+        possible_orders = recursively_collect_orders(name, ctx, orders=possible_orders)
+
+    # prefer python2 and SDL2 if available
+    possible_orders = sorted(possible_orders,
+                             key=lambda order: -('python2' in order) - ('sdl2' in order))
+
+
+    
+    return possible_orders
+
+
 def get_recipe_order_and_bootstrap(ctx, names, bs=None):
     '''Takes a list of recipe names and (optionally) a bootstrap. Then
     works out the dependency graph (including bootstrap recipes if
@@ -129,7 +208,9 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
     recipes_to_load = list(recipes_to_load)
     recipe_loaded = []
     python_modules = []
+    print('recipes_to_load', recipes_to_load)
     while recipes_to_load:
+        info('Current recipes to load: {}'.format(', '.join(map(str, recipes_to_load))))
         name = recipes_to_load.pop(0)
         if name in recipe_loaded or isinstance(name, (list, tuple)):
             continue
