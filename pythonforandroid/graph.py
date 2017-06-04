@@ -127,7 +127,7 @@ class RecipeOrder(dict):
             try:
                 recipe = Recipe.get_recipe(name, self.ctx)
                 conflicts = recipe.conflicts
-            except OSError:
+            except IOError:
                 conflicts = []
             
             if any([c in self for c in conflicts]):
@@ -152,7 +152,7 @@ def recursively_collect_orders(name, ctx, orders=[]):
             conflicts = []
         else:
             conflicts = recipe.conflicts
-    except OSError:
+    except IOError:
         # The recipe does not exist, so we assume it can be installed
         # via pip with no extra dependencies
         dependencies = []
@@ -209,8 +209,8 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
 
     possible_orders = []
 
-    # get all possible recipe sets if names includes alternative
-    # dependencies
+    # get all possible order graphs, as names may include tuples/lists
+    # of alternative dependencies
     names = [([name] if not isinstance(name, (list, tuple)) else name)
              for name in names]
     for name_set in product(*names):
@@ -258,11 +258,20 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
 
     if bs is None:
         bs = Bootstrap.get_bootstrap_from_recipes(chosen_order, ctx)
-        chosen_order, bs = get_recipe_order_and_bootstrap(ctx, chosen_order, bs=bs)
+        recipes, python_modules, bs = get_recipe_order_and_bootstrap(ctx, chosen_order, bs=bs)
+    else:
+        # check if each requirement has a recipe
+        recipes = []
+        python_modules = []
+        for name in chosen_order:
+            try:
+                recipe = Recipe.get_recipe(name, ctx)
+            except IOError:
+                python_modules.append(name)
+            else:
+                recipes.append(name)
 
-    return chosen_order, bs
-
-
+    return recipes, python_modules, bs
 
 
 # def get_recipe_order_and_bootstrap(ctx, names, bs=None):
