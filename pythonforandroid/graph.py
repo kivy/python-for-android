@@ -1,8 +1,9 @@
 
 from copy import deepcopy
 from itertools import product
+from sys import exit
 
-from pythonforandroid.logger import (info, info_notify, warning)
+from pythonforandroid.logger import (info, info_notify, warning, error)
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.bootstrap import Bootstrap
 
@@ -219,27 +220,41 @@ def new_get_recipe_order_and_bootstrap(ctx, names, bs=None):
         try:
             order = find_order(possible_order)
         except ValueError:  # a circular dependency was found
-            info('Circular dependency found in graph {}'.format(possible_order))
+            info('Circular dependency found in graph {}, skipping it.'.format(possible_order))
             continue
+        except:
+            warning('Failed to import recipe named {}; the recipe exists '
+                    'but appears broken.'.format(name))
+            warning('Exception was:')
+            raise
         orders.append(list(order))
 
     # prefer python2 and SDL2 if available
     orders = sorted(orders,
                     key=lambda order: -('python2' in order) - ('sdl2' in order))
 
+    if not orders:
+        error('Didn\'t find any valid dependency graphs.')
+        error('This means that some of your requirements pull in conflicting dependencies.')
+        error('Exiting.')
+        exit(1)
     # It would be better to check against possible orders other
     # than the first one, but in practice clashes will be rare,
     # and can be resolved by specifying more parameters
-    order = orders[0]
-
-    print('pre-bs order is', order)
+    chosen_order = orders[0]
+    if len(orders) > 1:
+        info('Found multiple valid dependency orders:')
+        for order in orders:
+            info('    {}'.format(order))
+        info('Using the first of these: {}'.format(chosen_order))
+    else:
+        info('Found a single valid recipe set: {}'.format(chosen_order))
 
     if bs is None:
-        bs = Bootstrap.get_bootstrap_from_recipes(order, ctx)
-        orders, bs = new_get_recipe_order_and_bootstrap(ctx, order, bs=bs)
-        order = orders[0]
-    
-    return order, bs
+        bs = Bootstrap.get_bootstrap_from_recipes(chosen_order, ctx)
+        chosen_order, bs = new_get_recipe_order_and_bootstrap(ctx, chosen_order, bs=bs)
+
+    return chosen_order, bs
 
 
 
