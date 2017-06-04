@@ -129,7 +129,7 @@ class RecipeOrder(dict):
             except OSError:
                 conflicts = []
             
-            if any([c in self for c in recipe.conflicts]):
+            if any([c in self for c in conflicts]):
                 return True
         return False
 
@@ -150,6 +150,8 @@ def recursively_collect_orders(name, ctx, orders=[]):
         # The recipe does not exist, so we assume it can be installed
         # via pip with no extra dependencies
         dependencies = []
+
+    # TODO: Also check recipe conflicts
 
     new_orders = []
     # for each existing recipe order, see if we can add the new recipe name
@@ -174,24 +176,72 @@ def recursively_collect_orders(name, ctx, orders=[]):
     return new_orders
 
 
+def find_order(graph):
+    '''
+    Do a topological sort on the dependency graph dict.
+    '''
+    while graph:
+        # Find all items without a parent
+        leftmost = [l for l, s in graph.items() if not s]
+        if not leftmost:
+            raise ValueError('Dependency cycle detected! %s' % graph)
+        # If there is more than one, sort them for predictable order
+        leftmost.sort()
+        for result in leftmost:
+            # Yield and remove them from the graph
+            yield result
+            graph.pop(result)
+            for bset in graph.values():
+                bset.discard(result)
+    
+
 def new_get_recipe_order_and_bootstrap(ctx, names, bs=None):
     recipes_to_load = set(names)
-    # if bs is not None and bs.recipe_depends:
-    #     recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
+    if bs is not None and bs.recipe_depends:
+        recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
 
-    possible_orders = [RecipeOrder(ctx)]
+    possible_orders = []
 
-    # get all possible recipe orders
-    for name in names:
-        possible_orders = recursively_collect_orders(name, ctx, orders=possible_orders)
+    # get all possible recipe sets if names includes alternative
+    # dependencies
+    names = [([name] if not isinstance(name, (list, tuple)) else name)
+             for name in names]
+    for name_set in product(*names):
+        new_possible_orders = [RecipeOrder(ctx)]
+        for name in name_set:
+            new_possible_orders = recursively_collect_orders(
+                name, ctx, orders=new_possible_orders)
+        possible_orders.extend(new_possible_orders)
+
+    # turn each order graph into a linear list if possible
+    orders = []
+    for possible_order in possible_orders:
+        try:
+            order = find_order(possible_order)
+        except ValueError:  # a circular dependency was found
+            info('Circular dependency found in graph {}'.format(possible_order))
+            continue
+        orders.append(list(order))
 
     # prefer python2 and SDL2 if available
-    possible_orders = sorted(possible_orders,
-                             key=lambda order: -('python2' in order) - ('sdl2' in order))
+    orders = sorted(orders,
+                    key=lambda order: -('python2' in order) - ('sdl2' in order))
 
+    # It would be better to check against possible orders other
+    # than the first one, but in practice clashes will be rare,
+    # and can be resolved by specifying more parameters
+    order = orders[0]
 
+    print('pre-bs order is', order)
+
+    if bs is None:
+        bs = Bootstrap.get_bootstrap_from_recipes(order, ctx)
+        orders, bs = new_get_recipe_order_and_bootstrap(ctx, order, bs=bs)
+        order = orders[0]
     
-    return possible_orders
+    return order, bs
+
+
 
 
 def get_recipe_order_and_bootstrap(ctx, names, bs=None):
@@ -210,7 +260,6 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
     python_modules = []
     print('recipes_to_load', recipes_to_load)
     while recipes_to_load:
-        info('Current recipes to load: {}'.format(', '.join(map(str, recipes_to_load))))
         name = recipes_to_load.pop(0)
         if name in recipe_loaded or isinstance(name, (list, tuple)):
             continue
