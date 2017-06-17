@@ -6,9 +6,9 @@ import sh
 
 
 class LibShineRecipe(Recipe):
-    version = 'b403b3e8a41377e0576d834b179a5cc7096ff548'  # we need master branch
+    version = '20aee967f67abefd065c196eec7ce21adbbe1549'
     url = 'https://github.com/toots/shine/archive/{version}.zip'
-    md5sum = '24cf9488d06f7acf0a0fbb162cc587ab'
+    md5sum = 'bbf1f657e6adccb5e79f59da9ecfac2d'
 
     def should_build(self, arch):
         build_dir = self.get_build_dir(arch.arch)

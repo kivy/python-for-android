@@ -8,10 +8,10 @@ import shutil
 
 
 class FFMpegRecipe(Recipe):
-    version = '2.8.8'
+    version = '3.1.8'  # 3.2+ works with bugs
     url = 'http://ffmpeg.org/releases/ffmpeg-{version}.tar.bz2'
-    md5sum = 'afeae3b80b7e7e03db957f33a7ef20d2'
-    depends = ['sdl2']  # Actually no, but we need this to build correct recipe order
+    md5sum = 'f25a0cdd7f731cfbd8c0f7842b0d15b9'
+    depends = ['sdl2']  # Need this to build correct recipe order
     opts_depends = ['openssl', 'ffpyplayer_codecs']
     patches = ['patches/fix-libshine-configure.patch']
 
