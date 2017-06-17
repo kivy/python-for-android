@@ -19,7 +19,9 @@ if os.name == 'nt':
     install_reqs = ['appdirs', 'colorama>=0.3.3', 'jinja2',
                         'six']
 else:
-    install_reqs = ['appdirs', 'colorama>=0.3.3', 'sh>=1.10', 'jinja2',
+    # don't use sh after 1.12.5, we have performance issues
+    # https://github.com/amoffat/sh/issues/378
+    install_reqs = ['appdirs', 'colorama>=0.3.3', 'sh>=1.10,<1.12.5', 'jinja2',
                         'six']
 
 # By specifying every file manually, package_data will be able to
@@ -52,7 +54,7 @@ recursively_include(package_data, 'pythonforandroid',
                     ['liblink', 'biglink', 'liblink.sh'])
 
 setup(name='python-for-android',
-      version='0.4',
+      version='0.5',
       description='Android APK packager for Python scripts and apps',
       author='The Kivy team',
       author_email='kivy-dev@googlegroups.com',

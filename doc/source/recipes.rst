@@ -181,7 +181,7 @@ this using the ``sh`` module as follows::
   def build_arch(self, arch):
       super(YourRecipe, self).build_arch(arch)
       env = self.get_recipe_env(arch)
-      sh.echo('$PATH', _env=env)  # Will print the PATH entry fron the
+      sh.echo('$PATH', _env=env)  # Will print the PATH entry from the
                                   # env dict
 
 You can also use the ``shprint`` helper function from the p4a

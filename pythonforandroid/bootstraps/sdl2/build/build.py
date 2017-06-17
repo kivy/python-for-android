@@ -50,7 +50,7 @@ BLACKLIST_PATTERNS = [
 if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
 
-WHITELIST_PATTERNS = []
+WHITELIST_PATTERNS = ['pyconfig.h', ]
 
 python_files = []
 
@@ -222,13 +222,15 @@ def make_package(args):
     #     print('Your PATH must include android tools.')
     #     sys.exit(-1)
 
-    if not (exists(join(realpath(args.private), 'main.py')) or
-            exists(join(realpath(args.private), 'main.pyo'))):
-        print('''BUILD FAILURE: No main.py(o) found in your app directory. This
+    # Ignore warning if the launcher is in args
+    if not args.launcher:
+        if not (exists(join(realpath(args.private), 'main.py')) or
+                exists(join(realpath(args.private), 'main.pyo'))):
+            print('''BUILD FAILURE: No main.py(o) found in your app directory. This
 file must exist to act as the entry point for you app. If your app is
 started by a file with a different name, rename it to main.py or add a
 main.py that loads it.''')
-        exit(1)
+            exit(1)
 
     # Delete the old assets.
     if exists('assets/public.mp3'):
@@ -248,7 +250,12 @@ main.py that loads it.''')
         tar_dirs.append('private')
     if exists('crystax_python'):
         tar_dirs.append('crystax_python')
+
     if args.private:
+        make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
+    elif args.launcher:
+        # clean 'None's as a result of main.py path absence
+        tar_dirs = [tdir for tdir in tar_dirs if tdir]
         make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
     # else:
     #     make_tar('assets/private.mp3', ['private'])
@@ -267,12 +274,18 @@ main.py that loads it.''')
     #     sys.exit(-1)
 
 
-    # Prepare some variables for templating process
+    # folder name for launcher
+    url_scheme = 'kivy'
 
-    default_icon = 'templates/kivy-icon.png'
+    # Prepare some variables for templating process
+    if args.launcher:
+        default_icon = 'templates/launcher-icon.png'
+        default_presplash = 'templates/launcher-presplash.jpg'
+    else:
+        default_icon = 'templates/kivy-icon.png'
+        default_presplash = 'templates/kivy-presplash.jpg'
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
 
-    default_presplash = 'templates/kivy-presplash.jpg'
     shutil.copy(args.presplash or default_presplash,
                 'res/drawable/presplash.jpg')
 
@@ -312,9 +325,10 @@ main.py that loads it.''')
         args.extra_source_dirs = []
 
     service = False
-    service_main = join(realpath(args.private), 'service', 'main.py')
-    if exists(service_main) or exists(service_main + 'o'):
-        service = True
+    if args.private:
+        service_main = join(realpath(args.private), 'service', 'main.py')
+        if exists(service_main) or exists(service_main + 'o'):
+            service = True
 
     service_names = []
     for sid, spec in enumerate(args.services):
@@ -344,6 +358,7 @@ main.py that loads it.''')
         args=args,
         service=service,
         service_names=service_names,
+        url_scheme=url_scheme,
         )
 
     render(
@@ -355,7 +370,9 @@ main.py that loads it.''')
     render(
         'strings.tmpl.xml',
         'res/values/strings.xml',
-        args=args)
+        args=args,
+        url_scheme=url_scheme,
+        )
 
     render(
         'custom_rules.tmpl.xml',
@@ -391,8 +408,9 @@ tools directory of the Android SDK.
 ''')
 
     ap.add_argument('--private', dest='private',
-                    help='the dir of user files',
-                    required=True)
+                    help='the dir of user files')
+                    # , required=True) for launcher, crashes in make_package
+                    # if not mentioned (and the check is there anyway)
     ap.add_argument('--package', dest='package',
                     help=('The name of the java package the project will be'
                           ' packaged under.'),
@@ -412,12 +430,20 @@ tools directory of the Android SDK.
                     required=True)
     ap.add_argument('--orientation', dest='orientation', default='portrait',
                     help=('The orientation that the game will display in. '
-                          'Usually one of "landscape", "portrait" or '
-                          '"sensor"'))
+                          'Usually one of "landscape", "portrait", '
+                          '"sensor", or "user" (the same as "sensor" but '
+                          'obeying the user\'s Android rotation setting). '
+                          'The full list of options is given under '
+                          'android_screenOrientation at '
+                          'https://developer.android.com/guide/topics/manifest/'
+                          'activity-element.html'))
+    ap.add_argument('--launcher', dest='launcher', action='store_true',
+                    help=('Provide this argument to build a multi-app '
+                          'launcher, rather than a single app.'))
     ap.add_argument('--icon', dest='icon',
                     help='A png file to use as the icon for the application.')
     ap.add_argument('--permission', dest='permissions', action='append',
-                    help='The permissions to give this app.')
+                    help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--presplash', dest='presplash',
@@ -425,7 +451,7 @@ tools directory of the Android SDK.
                           'application is loading.'))
     ap.add_argument('--presplash-color', dest='presplash_color', default='#000000',
                     help=('A string to set the loading screen background color. '
-                          'Suported formats are: #RRGGBB #AARRGGBB or color names '
+                          'Supported formats are: #RRGGBB #AARRGGBB or color names '
                           'like red, green, blue, etc.'))
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
@@ -488,6 +514,9 @@ tools directory of the Android SDK.
 
     if args.permissions is None:
         args.permissions = []
+    elif args.permissions:
+        if isinstance(args.permissions[0], list):
+            args.permissions = [p for perm in args.permissions for p in perm]
 
     if args.meta_data is None:
         args.meta_data = []

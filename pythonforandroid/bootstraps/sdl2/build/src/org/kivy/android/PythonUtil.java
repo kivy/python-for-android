@@ -16,6 +16,7 @@ public class PythonUtil {
             "SDL2_ttf",
             "python2.7",
             "python3.5m",
+            "python3.6m",
             "main"
         };
     }
@@ -23,17 +24,22 @@ public class PythonUtil {
 	public static void loadLibraries(File filesDir) {
 
         String filesDirPath = filesDir.getAbsolutePath();
-        boolean skippedPython = false;
+        boolean foundPython = false;
 
 		for (String lib : getLibraries()) {
 		    try {
                 System.loadLibrary(lib);
-            } catch(UnsatisfiedLinkError e) {
-                if (lib.startsWith("python") && !skippedPython) {
-                    skippedPython = true;
-                    continue;
+                if (lib.startsWith("python")) {
+                    foundPython = true;
                 }
-                throw e;
+            } catch(UnsatisfiedLinkError e) {
+                // If this is the last possible libpython
+                // load, and it has failed, give a more
+                // general error
+                if (lib.startsWith("python3.6") && !foundPython) {
+                    throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
+                }
+                continue;
             }
         }
 
@@ -52,5 +58,5 @@ public class PythonUtil {
         }
 
         Log.v(TAG, "Loaded everything!");
-	}
+    }
 }

@@ -81,9 +81,7 @@ lib-dynload/*audioop.so
 lib-dynload/mmap.so
 lib-dynload/_hotshot.so
 lib-dynload/_csv.so
-lib-dynload/future_builtins.so
 lib-dynload/_heapq.so
-lib-dynload/_json.so
 lib-dynload/grp.so
 lib-dynload/resource.so
 lib-dynload/pyexpat.so

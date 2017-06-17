@@ -1,19 +1,35 @@
 
 from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
-from os.path import exists, join
+from os.path import exists, join, isdir
+from shutil import rmtree
 import sh
 import glob
 
 
 class KivyRecipe(CythonRecipe):
-    # version = 'stable'
-    version = 'master'
+    version = '1.10.0'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
     depends = [('sdl2', 'pygame'), 'pyjnius']
 
     # patches = ['setargv.patch']
+
+    def cythonize_build(self, env, build_dir='.'):
+        super(KivyRecipe, self).cythonize_build(env, build_dir=build_dir)
+
+        if not exists(join(build_dir, 'kivy', 'include')):
+            return
+
+        # If kivy is new enough to use the include dir, copy it
+        # manually to the right location as we bypass this stage of
+        # the build
+        with current_directory(build_dir):
+            build_libs_dirs = glob.glob(join('build', 'lib.*'))
+
+            for dirn in build_libs_dirs:
+                shprint(sh.cp, '-r', join('kivy', 'include'),
+                        join(dirn, 'kivy'))
 
     def get_recipe_env(self, arch):
         env = super(KivyRecipe, self).get_recipe_env(arch)
@@ -25,6 +41,14 @@ class KivyRecipe(CythonRecipe):
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer'),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
                 ])
+
         return env
+
+    def install_python_package(self, arch):
+        super(KivyRecipe, self).install_python_package(arch)
+        site_packages_dir = self.ctx.get_site_packages_dir(arch)
+        usr_dir = join(site_packages_dir, 'usr', 'share', 'kivy-examples')
+        if exists(usr_dir) and isdir(usr_dir):
+            rmtree(usr_dir)
 
 recipe = KivyRecipe()

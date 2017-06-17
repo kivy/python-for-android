@@ -57,16 +57,16 @@ class Arch(object):
 
         ccache = ''
         if self.ctx.ccache and bool(int(environ.get('USE_CCACHE', '1'))):
-            print('ccache found, will optimize builds')
+            # print('ccache found, will optimize builds')
             ccache = self.ctx.ccache + ' '
             env['USE_CCACHE'] = '1'
             env['NDK_CCACHE'] = self.ctx.ccache
             env.update({k: v for k, v in environ.items() if k.startswith('CCACHE_')})
 
-        print('path is', environ['PATH'])
         cc = find_executable('{command_prefix}-gcc'.format(
             command_prefix=command_prefix), path=environ['PATH'])
         if cc is None:
+            print('Searching path are: {!r}'.format(environ['PATH']))
             warning('Couldn\'t find executable for CC. This indicates a '
                     'problem locating the {} executable in the Android '
                     'NDK, not that you don\'t have a normal compiler '
@@ -180,4 +180,3 @@ class ArchAarch_64(Arch):
             env['CC'] += incpath
             env['CXX'] += incpath
         return env
-

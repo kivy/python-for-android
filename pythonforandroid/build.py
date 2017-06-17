@@ -187,6 +187,8 @@ class Context(object):
             #                # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
+            possible_dirs = [d for d in possible_dirs if not
+                             (d.endswith('.bz2') or d.endswith('.gz'))]
             if possible_dirs:
                 info('Found possible SDK dirs in buildozer dir: {}'.format(
                     ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
@@ -224,8 +226,15 @@ class Context(object):
             error('You probably want to build with --arch=armeabi-v7a instead')
             exit(1)
 
-        android = sh.Command(join(sdk_dir, 'tools', 'android'))
-        targets = android('list').stdout.decode('utf-8').split('\n')
+        if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
+            avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
+            targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+        elif exists(join(sdk_dir, 'tools', 'android')):
+            android = sh.Command(join(sdk_dir, 'tools', 'android'))
+            targets = android('list').stdout.decode('utf-8').split('\n')
+        else:
+            error('Could not find `android` or `sdkmanager` binaries in '
+                  'Android SDK. Exiting.')
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
         apis = [re.findall(r'[0-9]+', s) for s in apis]
         apis = [int(s[0]) for s in apis if s]
@@ -528,6 +537,7 @@ def build_recipes(build_order, python_modules, ctx):
     bs = ctx.bootstrap
     info_notify("Recipe build order is {}".format(build_order))
     if python_modules:
+        python_modules = sorted(set(python_modules))
         info_notify(
             ('The requirements ({}) were not found as recipes, they will be '
              'installed with pip.').format(', '.join(python_modules)))
