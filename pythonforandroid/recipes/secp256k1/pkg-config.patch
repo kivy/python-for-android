@@ -1,0 +1,12 @@
+diff --git a/setup_support.py b/setup_support.py
+index 68a2a7f..42e85a3 100644
+--- a/setup_support.py
++++ b/setup_support.py
+@@ -40,6 +40,7 @@ def absolute(*paths):
+ 
+ def build_flags(library, type_, path):
+     """Return separated build flags from pkg-config output"""
++    return []
+ 
+     pkg_config_path = [path]
+     if "PKG_CONFIG_PATH" in os.environ:
