@@ -2,8 +2,8 @@ from pythonforandroid.recipe import PythonRecipe
 
 
 class PyethereumRecipe(PythonRecipe):
-
-    url = 'https://github.com/ethereum/pyethereum/archive/develop.zip'
+    version = 'v1.6.1'
+    url = 'https://github.com/ethereum/pyethereum/archive/{version}.tar.gz'
 
     depends = [
         'python2', 'setuptools', 'pycryptodome', 'pysha3', 'ethash', 'scrypt'
