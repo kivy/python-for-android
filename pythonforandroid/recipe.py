@@ -986,7 +986,7 @@ class CythonRecipe(PythonRecipe):
                 '-c', 'import site; print("\\n".join(site.getsitepackages()))')
             site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
             if 'PYTHONPATH' in env:
-                env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))
+                env['PYTHONPATH'] = env['PYTHONPATH'] + ':{}'.format(':'.join(site_packages_dirs))
             else:
                 env['PYTHONPATH'] = ':'.join(site_packages_dirs)
 
