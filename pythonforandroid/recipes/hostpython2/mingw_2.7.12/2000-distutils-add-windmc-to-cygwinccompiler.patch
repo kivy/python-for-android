@@ -1,0 +1,41 @@
+diff -aur 1040/Lib/distutils/cygwinccompiler.py 2000/Lib/distutils/cygwinccompiler.py
+--- 1040/Lib/distutils/cygwinccompiler.py	2015-03-31 19:50:52.675374300 -0300
++++ 2000/Lib/distutils/cygwinccompiler.py	2015-03-31 19:57:35.460903800 -0300
+@@ -159,6 +159,28 @@
+                 self.spawn(["windres", "-i", src, "-o", obj])
+             except DistutilsExecError, msg:
+                 raise CompileError, msg
++        elif ext == '.mc':
++            # Adapted from msvc9compiler:
++            #
++            # Compile .MC to .RC file to .RES file.
++            #   * '-h dir' specifies the directory for the generated include file
++            #   * '-r dir' specifies the target directory of the generated RC file and the binary message resource it includes
++            #
++            # For now (since there are no options to change this),
++            # we use the source-directory for the include file and
++            # the build directory for the RC file and message
++            # resources. This works at least for win32all.
++            h_dir = os.path.dirname(src)
++            rc_dir = os.path.dirname(obj)
++            try:
++                # first compile .MC to .RC and .H file
++                self.spawn(['windmc'] + ['-h', h_dir, '-r', rc_dir] + [src])
++                base, _ = os.path.splitext (os.path.basename (src))
++                rc_file = os.path.join (rc_dir, base + '.rc')
++                # then compile .RC to .RES file
++                self.spawn(['windres', '-i', rc_file, '-o', obj])
++            except DistutilsExecError, msg:
++                raise CompileError(msg)
+         else: # for other files use the C-compiler
+             try:
+                 self.spawn(self.compiler_so + cc_args + [src, '-o', obj] +
+@@ -277,7 +299,7 @@
+             ext_normcase = os.path.normcase(ext)
+             if ext_normcase in ['.rc','.res']:
+                 ext = ext_normcase
+-            if ext not in (self.src_extensions + ['.rc','.res']):
++            if ext not in (self.src_extensions + ['.rc', '.res', '.mc']):
+                 raise UnknownFileError, \
+                       "unknown file type '%s' (from '%s')" % \
+                       (ext, src_name)

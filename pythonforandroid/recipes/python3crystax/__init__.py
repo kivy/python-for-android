@@ -5,7 +5,7 @@ from pythonforandroid.logger import info, error
 from pythonforandroid.util import ensure_dir, temp_directory
 from os.path import exists, join
 import glob
-import sh
+import pythonforandroid.sh as sh
 
 prebuilt_download_locations = {
     '3.6': ('https://github.com/inclement/crystax_python_builds/'

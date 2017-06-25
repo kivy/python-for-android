@@ -1,0 +1,12 @@
+diff -Naur Python-2.7.9-orig/Lib/distutils/command/build_ext.py Python-2.7.9/Lib/distutils/command/build_ext.py
+--- Python-2.7.9-orig/Lib/distutils/command/build_ext.py	2014-12-11 13:50:52.587800000 +0300
++++ Python-2.7.9/Lib/distutils/command/build_ext.py	2014-12-11 13:58:32.038800000 +0300
+@@ -221,7 +221,7 @@
+ 
+         # for extensions under Cygwin and AtheOS Python's library directory must be
+         # appended to library_dirs
+-        if sys.platform[:6] == 'cygwin' or sys.platform[:6] == 'atheos':
++        if sys.platform[:6] == 'cygwin' or sys.platform[:6] == 'atheos' or self.plat_name.startswith(('mingw')):
+             if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
+                 # building third party extensions
+                 config_dir_name = os.path.basename(sysconfig.get_config_var('LIBPL'))

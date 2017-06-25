@@ -1,0 +1,34 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:13.073000000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:13.182200000 +0300
+@@ -914,6 +914,30 @@
+         min_db_ver = (4, 3)
+         db_setup_debug = False   # verbose debug prints from this script?
+ 
++        # Modules with some Windows dependencies:
++        if host_platform.startswith(('mingw', 'win')):
++            srcdir = sysconfig.get_config_var('srcdir')
++            pc_srcdir = os.path.abspath(os.path.join(srcdir, 'PC'))
++
++            exts.append( Extension('msvcrt', [os.path.join(pc_srcdir, p)
++                for p in ['msvcrtmodule.c']]) )
++
++            exts.append( Extension('_msi', [os.path.join(pc_srcdir, p)
++                for p in ['_msi.c']],
++                libraries=['msi','cabinet','rpcrt4']) ) # To link with lib(msi|cabinet|rpcrt4).a
++
++            exts.append( Extension('_subprocess', [os.path.join(pc_srcdir, p)
++                for p in ['_subprocess.c']]) )
++
++            # On win32 host(mingw build in MSYS environment) show that site.py
++            # fail to load if some modules are not build-in:
++            #exts.append( Extension('_winreg', [os.path.join(pc_srcdir, p)
++            #    for p in ['_winreg.c']]) )
++
++            exts.append( Extension('winsound', [os.path.join(pc_srcdir, p)
++                for p in ['winsound.c']],
++                libraries=['winmm']) )
++
+         def allow_db_ver(db_ver):
+             """Returns a boolean if the given BerkeleyDB version is acceptable.
+ 

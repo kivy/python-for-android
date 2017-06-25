@@ -1,5 +1,5 @@
 import os
-import sh
+import pythonforandroid.sh as sh
 from os.path import join
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from pythonforandroid.util import current_directory

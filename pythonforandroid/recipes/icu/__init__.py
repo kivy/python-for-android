@@ -1,4 +1,4 @@
-import sh
+import pythonforandroid.sh as sh
 import os
 from os.path import join, isdir
 from pythonforandroid.recipe import NDKRecipe

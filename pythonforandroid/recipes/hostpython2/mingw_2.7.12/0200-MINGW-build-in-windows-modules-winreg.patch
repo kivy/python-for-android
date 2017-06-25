@@ -1,0 +1,82 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:49:44.961800000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:49:45.086600000 +0300
+@@ -2451,6 +2451,14 @@
+ fi])
+ AC_MSG_RESULT($with_dbmliborder)
+ 
++
++# Determine if windows modules should be used.
++AC_SUBST(USE_WIN32_MODULE)
++USE_WIN32_MODULE='#'
++case $host in
++  *-*-mingw*) USE_WIN32_MODULE=;;
++esac
++
+ # Determine if signalmodule should be used.
+ AC_SUBST(USE_SIGNAL_MODULE)
+ AC_SUBST(SIGNAL_OBJS)
+diff -Naur Python-2.7.9-orig/Modules/Setup.config.in Python-2.7.9/Modules/Setup.config.in
+--- Python-2.7.9-orig/Modules/Setup.config.in	2014-12-11 13:49:43.323800000 +0300
++++ Python-2.7.9/Modules/Setup.config.in	2014-12-11 13:49:45.086600000 +0300
+@@ -12,5 +12,8 @@
+ # The signal module
+ @USE_SIGNAL_MODULE@signal signalmodule.c
+ 
++# build-in modules for windows platform:
++@USE_WIN32_MODULE@_winreg ../PC/_winreg.c
++
+ # The rest of the modules previously listed in this file are built
+ # by the setup.py script in Python 2.1 and later.
+diff -Naur Python-2.7.9-orig/PC/_winreg.c Python-2.7.9/PC/_winreg.c
+--- Python-2.7.9-orig/PC/_winreg.c	2014-12-10 18:59:57.000000000 +0300
++++ Python-2.7.9/PC/_winreg.c	2014-12-11 13:49:45.086600000 +0300
+@@ -17,6 +17,25 @@
+ #include "malloc.h" /* for alloca */
+ #include "windows.h"
+ 
++#ifndef SIZEOF_HKEY
++/* used only here */
++#if defined(MS_WIN64)
++#  define SIZEOF_HKEY 8
++#elif defined(MS_WIN32)
++#  define SIZEOF_HKEY 4
++#else
++#  error "SIZEOF_HKEY is not defined"
++#endif
++#endif
++
++#ifndef REG_LEGAL_CHANGE_FILTER
++#define REG_LEGAL_CHANGE_FILTER        (\
++          REG_NOTIFY_CHANGE_NAME       |\
++          REG_NOTIFY_CHANGE_ATTRIBUTES |\
++          REG_NOTIFY_CHANGE_LAST_SET   |\
++          REG_NOTIFY_CHANGE_SECURITY   )
++#endif
++
+ static BOOL PyHKEY_AsHKEY(PyObject *ob, HKEY *pRes, BOOL bNoneOK);
+ static PyObject *PyHKEY_FromHKEY(HKEY h);
+ static BOOL PyHKEY_Close(PyObject *obHandle);
+@@ -1095,6 +1114,10 @@
+ static PyObject *
+ PyDeleteKeyEx(PyObject *self, PyObject *args)
+ {
++#ifdef KEY_WOW64_64KEY
++/* KEY_WOW64_64KEY is defined for _WIN32_WINNT >= 0x0502,
++ * i.e. Windows Server 2003 with SP1, Windows XP with SP2
++ * and not supported on w2k. */
+     HKEY hKey;
+     PyObject *obKey;
+     HMODULE hMod;
+@@ -1130,6 +1153,11 @@
+         return PyErr_SetFromWindowsErrWithFunction(rc, "RegDeleteKeyEx");
+     Py_INCREF(Py_None);
+     return Py_None;
++#else /*def KEY_WOW64_64KEY*/
++    PyErr_SetString(PyExc_NotImplementedError,
++                    "not implemented on this platform");
++    return NULL;
++#endif
+ }
+ 
+ static PyObject *

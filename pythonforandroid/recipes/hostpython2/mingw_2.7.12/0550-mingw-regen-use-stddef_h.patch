@@ -1,0 +1,26 @@
+diff -Naur Python-2.7.9-orig/Lib/plat-generic/regen Python-2.7.9/Lib/plat-generic/regen
+--- Python-2.7.9-orig/Lib/plat-generic/regen	2014-12-10 18:59:39.000000000 +0300
++++ Python-2.7.9/Lib/plat-generic/regen	2014-12-11 13:50:36.129800000 +0300
+@@ -1,3 +1,9 @@
+ #! /bin/sh
+ set -v
+-eval $PYTHON_FOR_BUILD ../../Tools/scripts/h2py.py -i "'(u_long)'" /usr/include/netinet/in.h
++if [ -n "$1" ]; then
++    CCINSTALL=$($1 -print-search-dirs | head -1 | cut -d' ' -f2)
++    REGENHEADER=${CCINSTALL//\\//}/include/stddef.h
++else
++    REGENHEADER=/usr/include/netinet/in.h
++fi
++eval $PYTHON_FOR_BUILD ../../Tools/scripts/h2py.py -i "'(u_long)'" $REGENHEADER
+diff -Naur Python-2.7.9-orig/Makefile.pre.in Python-2.7.9/Makefile.pre.in
+--- Python-2.7.9-orig/Makefile.pre.in	2014-12-11 13:50:36.005000000 +0300
++++ Python-2.7.9/Makefile.pre.in	2014-12-11 13:50:36.129800000 +0300
+@@ -1089,7 +1089,7 @@
+ 	else \
+ 	  PYTHON_FOR_BUILD="$(PYTHON_FOR_BUILD)"; \
+ 	fi; \
+-	cd $(srcdir)/Lib/$(PLATDIR); $(RUNSHARED) ./regen
++	cd $(srcdir)/Lib/$(PLATDIR); $(RUNSHARED) ./regen "$(CC)"
+ 
+ python-config: $(srcdir)/Misc/python-config.in
+ 	# Substitution happens here, as the completely-expanded BINDIR

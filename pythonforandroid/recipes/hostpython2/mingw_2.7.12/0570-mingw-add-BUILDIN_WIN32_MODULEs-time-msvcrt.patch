@@ -1,0 +1,72 @@
+diff -Naur Python-2.7.9-orig/Modules/Setup.config.in Python-2.7.9/Modules/Setup.config.in
+--- Python-2.7.9-orig/Modules/Setup.config.in	2014-12-11 13:49:48.191000000 +0300
++++ Python-2.7.9/Modules/Setup.config.in	2014-12-11 13:50:40.841000000 +0300
+@@ -17,6 +17,11 @@
+ 
+ # build-in modules for windows platform:
+ @USE_WIN32_MODULE@_winreg ../PC/_winreg.c
++@USE_WIN32_MODULE@_functools _functoolsmodule.c	# Tools for working with functions and callable objects
++@USE_WIN32_MODULE@operator operator.c	# operator.add() and similar goodies
++@USE_WIN32_MODULE@_locale _localemodule.c	# -lintl
++@USE_WIN32_MODULE@time timemodule.c
++@USE_WIN32_MODULE@msvcrt ../PC/msvcrtmodule.c
+ 
+ # The rest of the modules previously listed in this file are built
+ # by the setup.py script in Python 2.1 and later.
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:34.460600000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:40.856600000 +0300
+@@ -600,14 +600,20 @@
+         # heapq
+         exts.append( Extension("_heapq", ["_heapqmodule.c"]) )
+         # operator.add() and similar goodies
+-        exts.append( Extension('operator', ['operator.c']) )
++        # On win32 host(mingw build in MSYS environment) show that site.py
++        # fail to load if some modules are not build-in:
++        if host_platform not in ['mingw', 'win32']:
++            exts.append( Extension('operator', ['operator.c']) )
+         # Python 3.1 _io library
+         exts.append( Extension("_io",
+             ["_io/bufferedio.c", "_io/bytesio.c", "_io/fileio.c",
+              "_io/iobase.c", "_io/_iomodule.c", "_io/stringio.c", "_io/textio.c"],
+              depends=["_io/_iomodule.h"], include_dirs=["Modules/_io"]))
+         # _functools
+-        exts.append( Extension("_functools", ["_functoolsmodule.c"]) )
++        # On win32 host(mingw build in MSYS environment) show that site.py
++        # fail to load if some modules are not build-in:
++        if host_platform not in ['mingw', 'win32']:
++            exts.append( Extension("_functools", ["_functoolsmodule.c"]) )
+         # _json speedups
+         exts.append( Extension("_json", ["_json.c"]) )
+         # Python C API test module
+@@ -634,7 +640,10 @@
+             locale_extra_link_args = []
+ 
+ 
+-        exts.append( Extension('_locale', ['_localemodule.c'],
++        # On win32 host(mingw build in MSYS environment) show that site.py
++        # fail to load if some modules are not build-in:
++        if host_platform not in ['mingw', 'win32']:
++            exts.append( Extension('_locale', ['_localemodule.c'],
+                                libraries=locale_libs,
+                                extra_link_args=locale_extra_link_args) )
+ 
+@@ -1582,7 +1591,7 @@
+         if sys.maxint == 0x7fffffff:
+             # This requires sizeof(int) == sizeof(long) == sizeof(char*)
+             dl_inc = find_file('dlfcn.h', [], inc_dirs)
+-            if (dl_inc is not None) and (host_platform not in ['atheos']):
++            if (dl_inc is not None) and (host_platform not in ['atheos', 'mingw', 'win32']):
+                 exts.append( Extension('dl', ['dlmodule.c']) )
+             else:
+                 missing.append('dl')
+@@ -1975,6 +1984,9 @@
+         if host_platform == 'sunos5':
+             include_dirs.append('/usr/openwin/include')
+             added_lib_dirs.append('/usr/openwin/lib')
++        elif host_platform == 'win32':
++            # mingw&win32 don't use X11 headers and libraries
++            pass
+         elif os.path.exists('/usr/X11R6/include'):
+             include_dirs.append('/usr/X11R6/include')
+             added_lib_dirs.append('/usr/X11R6/lib64')

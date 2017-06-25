@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import PythonRecipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 class ApswRecipe(PythonRecipe):
     version = '3.15.0-r1'

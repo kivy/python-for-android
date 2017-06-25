@@ -1,0 +1,14 @@
+diff -Naur a/sysconfig.py b/sysconfig.py
+index 9e8acc5..da72d6e 100644
+--- a/sysconfig.py
++++ b/sysconfig.py
+@@ -426,6 +426,9 @@ def get_config_vars(*args):
+         if 'srcdir' not in _CONFIG_VARS:
+             _CONFIG_VARS['srcdir'] = _PROJECT_BASE
+ 
++        if "_PYTHON_PROJECT_BASE" in os.environ:
++            _CONFIG_VARS['projectbase'] = _CONFIG_VARS['srcdir'] = _PROJECT_BASE
++
+         # Convert srcdir into an absolute path if it appears necessary.
+         # Normally it is relative to the build directory.  However, during
+         # testing, for example, we might be running a non-installed python

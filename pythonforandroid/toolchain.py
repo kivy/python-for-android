@@ -21,7 +21,7 @@ def check_python_dependencies():
 
     ok = True
 
-    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2',
+    modules = [('colorama', '0.3.3'), 'appdirs', 'jinja2',
                'six']
 
     for module in modules:
@@ -74,7 +74,7 @@ import shlex
 from functools import wraps
 
 import argparse
-import sh
+import pythonforandroid.sh as sh
 import imp
 from appdirs import user_data_dir
 import logging

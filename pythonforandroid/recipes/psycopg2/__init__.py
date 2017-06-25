@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import PythonRecipe, current_directory, shprint
-import sh
+import pythonforandroid.sh as sh
 
 
 class Psycopg2Recipe(PythonRecipe):

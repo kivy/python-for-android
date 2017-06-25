@@ -1,0 +1,130 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:02.558600000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:10.077800000 +0300
+@@ -3559,21 +3559,36 @@
+ ],[])
+ AC_MSG_RESULT($was_it_defined)
+ 
++AC_CHECK_HEADERS([ws2tcpip.h])
+ AC_MSG_CHECKING(for addrinfo)
+ AC_CACHE_VAL(ac_cv_struct_addrinfo,
+-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <netdb.h>]], [[struct addrinfo a]])],
++AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
++#ifdef HAVE_WS2TCPIP_H
++#  include <ws2tcpip.h>
++#else
++#  include <netdb.h>
++#endif]],
++    [[struct addrinfo a]])],
+   [ac_cv_struct_addrinfo=yes],
+   [ac_cv_struct_addrinfo=no]))
+ AC_MSG_RESULT($ac_cv_struct_addrinfo)
+ if test $ac_cv_struct_addrinfo = yes; then
+-	AC_DEFINE(HAVE_ADDRINFO, 1, [struct addrinfo (netdb.h)])
++	AC_DEFINE(HAVE_ADDRINFO, 1, [struct addrinfo])
+ fi
+ 
+ AC_MSG_CHECKING(for sockaddr_storage)
+ AC_CACHE_VAL(ac_cv_struct_sockaddr_storage,
+ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+-#		include <sys/types.h>
+-#		include <sys/socket.h>]], [[struct sockaddr_storage s]])],
++#ifdef HAVE_WS2TCPIP_H
++#include <ws2tcpip.h>
++#endif
++#ifdef HAVE_SYS_TYPES_H
++#include <sys/types.h>
++#endif
++#ifdef HAVE_SYS_SOCKET_H
++#include <sys/socket.h>
++#endif]],
++    [[struct sockaddr_storage s]])],
+   [ac_cv_struct_sockaddr_storage=yes],
+   [ac_cv_struct_sockaddr_storage=no]))
+ AC_MSG_RESULT($ac_cv_struct_sockaddr_storage)
+@@ -4727,7 +4742,10 @@
+ 
+ AC_CHECK_TYPE(socklen_t,,
+   AC_DEFINE(socklen_t,int,
+-            [Define to `int' if <sys/socket.h> does not define.]),[
++            [Define to `int' if <sys/socket.h> or <ws2tcpip.h> does not define.]),[
++#ifdef HAVE_WS2TCPIP_H
++#include <ws2tcpip.h>
++#endif
+ #ifdef HAVE_SYS_TYPES_H
+ #include <sys/types.h>
+ #endif
+diff -Naur Python-2.7.9-orig/Misc/config_mingw Python-2.7.9/Misc/config_mingw
+--- Python-2.7.9-orig/Misc/config_mingw	2014-12-11 13:49:38.565800000 +0300
++++ Python-2.7.9/Misc/config_mingw	2014-12-11 13:50:10.077800000 +0300
+@@ -10,3 +10,6 @@
+ # files to ignore
+ ac_cv_file__dev_ptmx=ignore #NOTE: under MSYS environment device exist
+ ac_cv_file__dev_ptc=no
++
++# force detection of winsock2 functionality - require wxp or newer
++ac_cv_func_getpeername=yes
+diff -Naur Python-2.7.9-orig/Modules/socketmodule.c Python-2.7.9/Modules/socketmodule.c
+--- Python-2.7.9-orig/Modules/socketmodule.c	2014-12-10 18:59:55.000000000 +0300
++++ Python-2.7.9/Modules/socketmodule.c	2014-12-11 13:50:10.077800000 +0300
+@@ -317,6 +317,12 @@
+   /* Do not include addrinfo.h for MSVC7 or greater. 'addrinfo' and
+    * EAI_* constants are defined in (the already included) ws2tcpip.h.
+    */
++#elif defined(__MINGW32__)
++  /* Do not include addrinfo.h as minimum supported version is
++   * _WIN32_WINNT >= WindowsXP(0x0501)
++   */
++#  define HAVE_GETADDRINFO
++#  define HAVE_GETNAMEINFO
+ #else
+ #  include "addrinfo.h"
+ #endif
+diff -Naur Python-2.7.9-orig/pyconfig.h.in Python-2.7.9/pyconfig.h.in
+--- Python-2.7.9-orig/pyconfig.h.in	2014-12-11 13:49:44.961800000 +0300
++++ Python-2.7.9/pyconfig.h.in	2014-12-11 13:50:10.077800000 +0300
+@@ -49,7 +49,7 @@
+ /* Define to 1 if you have the `acosh' function. */
+ #undef HAVE_ACOSH
+ 
+-/* struct addrinfo (netdb.h) */
++/* struct addrinfo */
+ #undef HAVE_ADDRINFO
+ 
+ /* Define to 1 if you have the `alarm' function. */
+@@ -916,6 +916,9 @@
+    */
+ #undef HAVE_WORKING_TZSET
+ 
++/* Define to 1 if you have the <ws2tcpip.h> header file. */
++#undef HAVE_WS2TCPIP_H
++
+ /* Define if the zlib library has inflateCopy */
+ #undef HAVE_ZLIB_COPY
+ 
+@@ -1254,7 +1257,7 @@
+ /* Define to `unsigned int' if <sys/types.h> does not define. */
+ #undef size_t
+ 
+-/* Define to `int' if <sys/socket.h> does not define. */
++/* Define to `int' if <sys/socket.h> or <ws2tcpip.h> does not define. */
+ #undef socklen_t
+ 
+ /* Define to `int' if <sys/types.h> doesn't define. */
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:09.937400000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:10.093400000 +0300
+@@ -791,9 +791,12 @@
+         exts.append( Extension('_csv', ['_csv.c']) )
+ 
+         # socket(2)
++        _socket_libs = math_libs
++        if host_platform == 'win32':
++            _socket_libs.append('ws2_32')
+         exts.append( Extension('_socket', ['socketmodule.c', 'timemodule.c'],
+                                depends=['socketmodule.h'],
+-                               libraries=math_libs) )
++                               libraries=_socket_libs) )
+         # Detect SSL support for the socket module (via _ssl)
+         search_for_ssl_incs_in = [
+                               '/usr/local/ssl/include',

@@ -1,0 +1,99 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:50.996600000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:51:02.103800000 +0300
+@@ -4716,15 +4716,51 @@
+ fi
+ 
+ AC_MSG_CHECKING(whether WINDOW has _flags)
+-AC_CACHE_VAL(ac_cv_window_has_flags,
+ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <curses.h>]], [[
+   WINDOW *w;
+   w->_flags = 0;
+ ]])],
+ [ac_cv_window_has_flags=yes],
+-[ac_cv_window_has_flags=no]))
++[ac_cv_window_has_flags=no])
+ AC_MSG_RESULT($ac_cv_window_has_flags)
+ 
++py_curses_window_is_opaque=no
++if test no = $ac_cv_window_has_flags; then
++  AC_MSG_CHECKING([whether WINDOW has _flags in non-opaque structure])
++  AC_COMPILE_IFELSE([
++  AC_LANG_PROGRAM([[
++    #define NCURSES_OPAQUE 0
++    #include <curses.h>
++  ]],[[
++    WINDOW *w;
++    w->_flags = 0;
++  ]])],
++  [py_curses_window_is_opaque=yes])
++  AC_MSG_RESULT([$py_curses_window_is_opaque])
++fi
++if test yes = $py_curses_window_is_opaque; then
++  ac_cv_window_has_flags=yes
++  AC_DEFINE([NCURSES_OPAQUE], [0], [Define to 0 if you have WINDOW _flags in non-opaque structure.])
++fi
++
++py_curses_window_is_internal=no
++if test no = $ac_cv_window_has_flags; then
++  AC_MSG_CHECKING([whether WINDOW has _flags as internal structure])
++  AC_COMPILE_IFELSE([
++  AC_LANG_PROGRAM([[
++    #define NCURSES_INTERNALS 1
++    #include <curses.h>
++  ]],[[
++    WINDOW *w;
++    w->_flags = 0;
++  ]])],
++  [py_curses_window_is_internal=yes])
++  AC_MSG_RESULT([$py_curses_window_is_internal])
++fi
++if test yes = $py_curses_window_is_internal; then
++  ac_cv_window_has_flags=yes
++  AC_DEFINE([NCURSES_INTERNALS], [1], [Define to 1 if you have WINDOW _flags as internal structure.])
++fi
+ 
+ if test "$ac_cv_window_has_flags" = yes
+ then
+diff -Naur Python-2.7.9-orig/Include/py_curses.h Python-2.7.9/Include/py_curses.h
+--- Python-2.7.9-orig/Include/py_curses.h	2014-12-10 18:59:32.000000000 +0300
++++ Python-2.7.9/Include/py_curses.h	2014-12-11 13:51:02.103800000 +0300
+@@ -14,7 +14,9 @@
+ /* the following define is necessary for OS X 10.6; without it, the
+    Apple-supplied ncurses.h sets NCURSES_OPAQUE to 1, and then Python
+    can't get at the WINDOW flags field. */
++/* NOTE configure check if ncurses require such definition
+ #define NCURSES_OPAQUE 0
++*/
+ #endif /* __APPLE__ */
+ 
+ #ifdef __FreeBSD__
+@@ -57,9 +59,12 @@
+ #ifdef HAVE_NCURSES_H
+ /* configure was checking <curses.h>, but we will
+    use <ncurses.h>, which has all these features. */
++/* NOTE configure check for existence of flags
++ * Also flags are visible only if WINDOW structure is not opaque
+ #ifndef WINDOW_HAS_FLAGS
+ #define WINDOW_HAS_FLAGS 1
+ #endif
++*/
+ #ifndef MVWDELCH_IS_EXPRESSION
+ #define MVWDELCH_IS_EXPRESSION 1
+ #endif
+diff -Naur Python-2.7.9-orig/pyconfig.h.in Python-2.7.9/pyconfig.h.in
+--- Python-2.7.9-orig/pyconfig.h.in	2014-12-11 13:50:34.460600000 +0300
++++ Python-2.7.9/pyconfig.h.in	2014-12-11 13:51:02.103800000 +0300
+@@ -945,6 +945,12 @@
+ /* Define to 1 if you want to use native NT threads */
+ #undef NT_THREADS
+ 
++/* Define to 1 if you have WINDOW _flags as internal structure. */
++#undef NCURSES_INTERNALS
++
++/* Define to 0 if you have WINDOW _flags in non-opaque structure. */
++#undef NCURSES_OPAQUE
++
+ /* Define to the address where bug reports for this package should be sent. */
+ #undef PACKAGE_BUGREPORT
+ 

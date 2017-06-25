@@ -1,0 +1,99 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:34.460600000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:34.585400000 +0300
+@@ -551,6 +551,16 @@
+ fi
+ AC_MSG_RESULT($EXTRAPLATDIR)
+ 
++# Windows uses ; to separate paths, everything else uses :
++AC_MSG_CHECKING(DELIM)
++DELIM=:
++if test "$MACHDEP" = "win32"
++then
++	DELIM=\;
++fi
++AC_MSG_RESULT([$DELIM])
++AC_SUBST(DELIM)
++
+ AC_MSG_CHECKING([for init system calls])
+ AC_SUBST(INITSYS)
+ case $host in
+diff -Naur Python-2.7.9-orig/Include/osdefs.h Python-2.7.9/Include/osdefs.h
+--- Python-2.7.9-orig/Include/osdefs.h	2014-12-10 18:59:32.000000000 +0300
++++ Python-2.7.9/Include/osdefs.h	2014-12-11 13:50:34.585400000 +0300
+@@ -10,7 +10,7 @@
+ /* Mod by chrish: QNX has WATCOM, but isn't DOS */
+ #if !defined(__QNX__)
+ #if defined(MS_WINDOWS) || defined(__BORLANDC__) || defined(__WATCOMC__) || defined(__DJGPP__) || defined(PYOS_OS2)
+-#if defined(PYOS_OS2) && defined(PYCC_GCC)
++#if (defined(PYOS_OS2) && defined(PYCC_GCC)) || defined(__MINGW32__)
+ #define MAXPATHLEN 260
+ #define SEP '/'
+ #define ALTSEP '\\'
+@@ -20,6 +20,7 @@
+ #define MAXPATHLEN 256
+ #endif
+ #define DELIM ';'
++#define DELIMSTR ";"
+ #endif
+ #endif
+ 
+@@ -27,6 +28,7 @@
+ #define SEP '.'
+ #define MAXPATHLEN 256
+ #define DELIM ','
++#define DELIMSTR ","
+ #endif
+ 
+ 
+@@ -55,6 +57,7 @@
+ /* Search path entry delimiter */
+ #ifndef DELIM
+ #define DELIM ':'
++#define DELIMSTR ":"
+ #endif
+ 
+ #ifdef __cplusplus
+diff -Naur Python-2.7.9-orig/Makefile.pre.in Python-2.7.9/Makefile.pre.in
+--- Python-2.7.9-orig/Makefile.pre.in	2014-12-11 13:50:29.203400000 +0300
++++ Python-2.7.9/Makefile.pre.in	2014-12-11 13:50:34.585400000 +0300
+@@ -84,7 +84,8 @@
+ # C flags used for building the interpreter object files
+ PY_CFLAGS=	$(CFLAGS) $(CPPFLAGS) $(CFLAGSFORSHARED) -DPy_BUILD_CORE
+ 
+-
++# ; on Windows otherwise :
++DELIM=		@DELIM@
+ # Machine-dependent subdirectories
+ MACHDEP=	@MACHDEP@
+ 
+diff -Naur Python-2.7.9-orig/Modules/Setup.dist Python-2.7.9/Modules/Setup.dist
+--- Python-2.7.9-orig/Modules/Setup.dist	2014-12-11 13:49:48.191000000 +0300
++++ Python-2.7.9/Modules/Setup.dist	2014-12-11 13:50:34.585400000 +0300
+@@ -84,22 +84,22 @@
+ # Empty since this is now just the runtime prefix.
+ DESTPATH=
+ 
+-# Site specific path components -- should begin with : if non-empty
++# Site specific path components -- should begin with $(DELIM) if non-empty
+ SITEPATH=
+ 
+ # Standard path components for test modules
+ TESTPATH=
+ 
+ # Path components for machine- or system-dependent modules and shared libraries
+-MACHDEPPATH=:$(PLATDIR)
++MACHDEPPATH=$(DELIM)$(PLATDIR)
+ EXTRAMACHDEPPATH=
+ 
+ # Path component for the Tkinter-related modules
+ # The TKPATH variable is always enabled, to save you the effort.
+-TKPATH=:lib-tk
++TKPATH=$(DELIM)lib-tk
+ 
+ # Path component for old modules.
+-OLDPATH=:lib-old
++OLDPATH=$(DELIM)lib-old
+ 
+ COREPYTHONPATH=$(DESTPATH)$(SITEPATH)$(TESTPATH)$(MACHDEPPATH)$(EXTRAMACHDEPPATH)$(TKPATH)$(OLDPATH)
+ PYTHONPATH=$(COREPYTHONPATH)

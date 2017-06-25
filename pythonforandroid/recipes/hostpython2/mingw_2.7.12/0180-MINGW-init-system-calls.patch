@@ -1,0 +1,98 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:49:40.157000000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:49:41.841800000 +0300
+@@ -527,6 +527,14 @@
+ fi
+ AC_MSG_RESULT($EXTRAPLATDIR)
+ 
++AC_MSG_CHECKING([for init system calls])
++AC_SUBST(INITSYS)
++case $host in
++  *-*-mingw*)	INITSYS=nt;;
++  *)		INITSYS=posix;;
++esac
++AC_MSG_RESULT([$INITSYS])
++
+ # Record the configure-time value of MACOSX_DEPLOYMENT_TARGET,
+ # it may influence the way we can build extensions, so distutils
+ # needs to check it
+diff -Naur Python-2.7.9-orig/Modules/posixmodule.c Python-2.7.9/Modules/posixmodule.c
+--- Python-2.7.9-orig/Modules/posixmodule.c	2014-12-10 18:59:55.000000000 +0300
++++ Python-2.7.9/Modules/posixmodule.c	2014-12-11 13:49:41.841800000 +0300
+@@ -131,6 +131,25 @@
+ #define HAVE_CWAIT      1
+ #define HAVE_FSYNC      1
+ #define fsync _commit
++#elif defined(__MINGW32__)	/* GCC for windows hosts */
++/* getlogin is detected by configure on mingw-w64 */
++/*#undef HAVE_GETLOGIN */
++/*#define HAVE_GETCWD	1 - detected by configure*/
++/*#define HAVE_GETPPID    1 */
++/*#define HAVE_GETLOGIN   1 */
++#define HAVE_SPAWNV	1
++/*#define HAVE_EXECV	1 - detected by configure*/
++#define HAVE_PIPE	1
++#define HAVE_POPEN	1
++#define HAVE_SYSTEM	1
++#define HAVE_CWAIT	1
++#define HAVE_FSYNC	1
++#define fsync _commit
++#include <windows.h>
++#include <winioctl.h>
++#ifndef _MAX_ENV
++#define _MAX_ENV	32767
++#endif
+ #else
+ #if defined(PYOS_OS2) && defined(PYCC_GCC) || defined(__VMS)
+ /* Everything needed is defined in PC/os2emx/pyconfig.h or vms/pyconfig.h */
+@@ -259,7 +278,7 @@
+ #endif
+ #endif
+ 
+-#ifdef _MSC_VER
++#ifdef MS_WINDOWS
+ #ifdef HAVE_DIRECT_H
+ #include <direct.h>
+ #endif
+@@ -575,7 +594,7 @@
+ */
+ #include <crt_externs.h>
+ static char **environ;
+-#elif !defined(_MSC_VER) && ( !defined(__WATCOMC__) || defined(__QNX__) )
++#elif !defined(MS_WINDOWS) && ( !defined(__WATCOMC__) || defined(__QNX__) )
+ extern char **environ;
+ #endif /* !_MSC_VER */
+ 
+@@ -9392,7 +9411,7 @@
+ }
+ 
+ 
+-#if (defined(_MSC_VER) || defined(__WATCOMC__) || defined(__BORLANDC__)) && !defined(__QNX__)
++#if defined(MS_WINDOWS) && !defined(__QNX__)
+ #define INITFUNC initnt
+ #define MODNAME "nt"
+ 
+diff -Naur Python-2.7.9-orig/Modules/Setup.config.in Python-2.7.9/Modules/Setup.config.in
+--- Python-2.7.9-orig/Modules/Setup.config.in	2014-12-10 18:59:51.000000000 +0300
++++ Python-2.7.9/Modules/Setup.config.in	2014-12-11 13:49:41.841800000 +0300
+@@ -3,6 +3,9 @@
+ # The purpose of this file is to conditionally enable certain modules
+ # based on configure-time options.
+ 
++# init system calls(posix/nt/...) for INITFUNC (used by makesetup)
++@INITSYS@ posixmodule.c
++
+ # Threading
+ @USE_THREAD_MODULE@thread threadmodule.c
+ 
+diff -Naur Python-2.7.9-orig/Modules/Setup.dist Python-2.7.9/Modules/Setup.dist
+--- Python-2.7.9-orig/Modules/Setup.dist	2014-12-10 18:59:51.000000000 +0300
++++ Python-2.7.9/Modules/Setup.dist	2014-12-11 13:49:41.841800000 +0300
+@@ -112,7 +112,6 @@
+ # This only contains the minimal set of modules required to run the 
+ # setup.py script in the root of the Python source tree.
+ 
+-posix posixmodule.c		# posix (UNIX) system calls
+ errno errnomodule.c		# posix (UNIX) errno values
+ pwd pwdmodule.c			# this is needed to find out the user's home dir
+ 				# if $HOME is not set

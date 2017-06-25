@@ -7,14 +7,14 @@ import os
 import glob
 import sys
 import re
-import sh
+import pythonforandroid.sh as sh
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
                                      Err_Fore, Err_Style, info_main,
                                      shprint)
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64, ArchAarch_64
-from pythonforandroid.recipe import Recipe
+from pythonforandroid.recipe import Recipe, mpath
 
 DEFAULT_ANDROID_API = 15
 
@@ -339,18 +339,18 @@ class Context(object):
         if virtualenv is None:
             raise IOError('Couldn\'t find a virtualenv executable, '
                           'you must install this to use p4a.')
-        self.virtualenv = virtualenv
+        self.virtualenv = mpath(virtualenv)
         info('Found virtualenv at {}'.format(virtualenv))
 
         # path to some tools
-        self.ccache = sh.which("ccache")
+        self.ccache = mpath(sh.which("ccache"))
         if not self.ccache:
             info('ccache is missing, the build will not be optimized in the '
                  'future.')
         for cython_fn in ("cython2", "cython-2.7", "cython"):
             cython = sh.which(cython_fn)
             if cython:
-                self.cython = cython
+                self.cython = mpath(cython)
                 break
         else:
             error('No cython binary found. Exiting.')
@@ -377,6 +377,8 @@ class Context(object):
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
+        elif 'win32' in py_platform:
+            py_platform = 'windows'
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
@@ -412,14 +414,15 @@ class Context(object):
         # Modify the path so that sh finds modules appropriately
         environ['PATH'] = (
             '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
-            'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
+            'prebuilt/{py_platform}-x86/bin/{sep}{ndk_dir}/toolchains/'
             '{toolchain_prefix}-{toolchain_version}/prebuilt/'
-            '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
-            'tools:{path}').format(
+            '{py_platform}-x86_64/bin/{sep}{ndk_dir}{sep}{sdk_dir}/'
+            'tools{sep}{path}').format(
                 sdk_dir=self.sdk_dir, ndk_dir=self.ndk_dir,
                 toolchain_prefix=toolchain_prefix,
                 toolchain_version=toolchain_version,
-                py_platform=py_platform, path=environ.get('PATH'))
+                py_platform=py_platform, path=environ.get('PATH'),
+                sep=os.pathsep)
 
         for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
                            "tar", "bzip2", "unzip", "make", "gcc", "g++"):

@@ -2,7 +2,7 @@ from pythonforandroid.toolchain import Bootstrap
 from os.path import join, exists
 from os import walk
 import glob
-import sh
+import pythonforandroid.sh as sh
 
 
 class EmptyBootstrap(Bootstrap):

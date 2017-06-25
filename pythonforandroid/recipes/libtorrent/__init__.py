@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 # This recipe builds libtorrent with Python bindings
 # It depends on Boost.Build and the source of several Boost libraries present in BOOST_ROOT,

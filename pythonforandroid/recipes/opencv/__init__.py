@@ -1,5 +1,5 @@
 import os
-import sh
+import pythonforandroid.sh as sh
 from pythonforandroid.toolchain import (
     NDKRecipe,
     Recipe,

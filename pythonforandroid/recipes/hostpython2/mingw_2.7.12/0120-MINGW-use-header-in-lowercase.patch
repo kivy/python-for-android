@@ -1,0 +1,24 @@
+diff -Naur Python-2.7.9-orig/Modules/signalmodule.c Python-2.7.9/Modules/signalmodule.c
+--- Python-2.7.9-orig/Modules/signalmodule.c	2014-12-10 18:59:55.000000000 +0300
++++ Python-2.7.9/Modules/signalmodule.c	2014-12-11 13:49:33.839000000 +0300
+@@ -7,7 +7,7 @@
+ #include "intrcheck.h"
+ 
+ #ifdef MS_WINDOWS
+-#include <Windows.h>
++#include <windows.h>
+ #ifdef HAVE_PROCESS_H
+ #include <process.h>
+ #endif
+diff -Naur Python-2.7.9-orig/Modules/socketmodule.h Python-2.7.9/Modules/socketmodule.h
+--- Python-2.7.9-orig/Modules/socketmodule.h	2014-12-10 18:59:55.000000000 +0300
++++ Python-2.7.9/Modules/socketmodule.h	2014-12-11 13:49:33.854600000 +0300
+@@ -21,7 +21,7 @@
+  * I use SIO_GET_MULTICAST_FILTER to detect a decent SDK.
+  */
+ # ifdef SIO_GET_MULTICAST_FILTER
+-#  include <MSTcpIP.h> /* for SIO_RCVALL */
++#  include <mstcpip.h> /* for SIO_RCVALL */
+ #  define HAVE_ADDRINFO
+ #  define HAVE_SOCKADDR_STORAGE
+ #  define HAVE_GETADDRINFO

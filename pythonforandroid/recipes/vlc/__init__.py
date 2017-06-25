@@ -2,7 +2,7 @@ from pythonforandroid.toolchain import Recipe, current_directory
 from pythonforandroid.logger import info, debug, shprint, warning
 from os.path import exists, join
 from os import environ
-import sh
+import pythonforandroid.sh as sh
 from colorama import Fore, Style
 
 class VlcRecipe(Recipe):

@@ -1,8 +1,10 @@
 from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
 from os.path import join, exists, curdir, abspath
-from os import walk
+from os import walk, environ
 import glob
-import sh
+import pythonforandroid.sh as sh
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import mpath
 
 class SDL2Bootstrap(Bootstrap):
     name = 'sdl2'
@@ -18,7 +20,7 @@ class SDL2Bootstrap(Bootstrap):
         shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
         with current_directory(self.dist_dir):
             with open('local.properties', 'w') as fileh:
-                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+                fileh.write('sdk.dir={}'.format(mpath(self.ctx.sdk_dir)))
 
         arch = self.ctx.archs[0]
         if len(self.ctx.archs) > 1:
@@ -39,9 +41,13 @@ class SDL2Bootstrap(Bootstrap):
             hostpython = sh.Command(self.ctx.hostpython)
             if not self.ctx.python_recipe.from_crystax:
                 try:
+                    env = environ.copy()
+                    if 'hostpython2' in self.ctx.recipe_build_order:
+                        env['XCOMPILE_BUILD_PYTHONHOME_EXEC'] = \
+                            Recipe.get_recipe('hostpython2', self.ctx).get_build_dir()
                     shprint(hostpython, '-OO', '-m', 'compileall',
                             self.ctx.get_python_install_dir(),
-                            _tail=10, _filterout="^Listing")
+                            _tail=10, _filterout="^Listing", _env=env)
                 except sh.ErrorReturnCode:
                     pass
                 if not exists('python-install'):

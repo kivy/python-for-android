@@ -1,0 +1,57 @@
+diff -Naur Python-2.7.9-orig/Lib/distutils/sysconfig.py Python-2.7.9/Lib/distutils/sysconfig.py
+--- Python-2.7.9-orig/Lib/distutils/sysconfig.py	2014-12-11 13:49:53.105000000 +0300
++++ Python-2.7.9/Lib/distutils/sysconfig.py	2014-12-11 13:50:24.601400000 +0300
+@@ -62,6 +62,16 @@
+     """
+     return sys.version[:3]
+ 
++def _posix_build():
++    # GCC[mingw*] use posix build system
++    # Check for cross builds explicitly
++    host_platform = os.environ.get("_PYTHON_HOST_PLATFORM")
++    if host_platform:
++        if host_platform.startswith('mingw'):
++            return True
++    return os.name == 'posix' or \
++        (os.name == "nt" and 'GCC' in sys.version)
++posix_build = _posix_build()
+ 
+ def get_python_inc(plat_specific=0, prefix=None):
+     """Return the directory containing installed Python header files.
+@@ -77,7 +87,7 @@
+     if prefix is None:
+         prefix = plat_specific and EXEC_PREFIX or PREFIX
+ 
+-    if os.name == "posix":
++    if posix_build:
+         if python_build:
+             buildir = os.path.dirname(sys.executable)
+             if plat_specific:
+@@ -118,7 +128,7 @@
+     if prefix is None:
+         prefix = plat_specific and EXEC_PREFIX or PREFIX
+ 
+-    if os.name == "posix":
++    if posix_build:
+         libpython = os.path.join(prefix,
+                                  "lib", "python" + get_python_version())
+         if standard_lib:
+@@ -240,7 +250,7 @@
+ def get_config_h_filename():
+     """Return full pathname of installed pyconfig.h file."""
+     if python_build:
+-        if os.name == "nt":
++        if os.name == "nt" and not posix_build:
+             inc_dir = os.path.join(project_base, "PC")
+         else:
+             inc_dir = project_base
+@@ -417,6 +427,9 @@
+ 
+ 
+ def _init_nt():
++    if posix_build:
++        _init_posix()
++        return
+     """Initialize the module as appropriate for NT"""
+     g = {}
+     # set basic install directories

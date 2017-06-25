@@ -3,7 +3,7 @@
 from pythonforandroid.recipe import CythonRecipe, Recipe
 from os.path import join
 from pythonforandroid.util import current_directory
-import sh
+import pythonforandroid.sh as sh
 from pythonforandroid.logger import shprint
 import glob
 

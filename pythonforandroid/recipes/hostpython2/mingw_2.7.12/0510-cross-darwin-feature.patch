@@ -1,0 +1,129 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:29.187800000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:29.312600000 +0300
+@@ -312,6 +312,7 @@
+ then
+     # avoid using uname for cross builds
+     if test "$cross_compiling" = yes; then
++       ac_sys_release=
+        # ac_sys_system and ac_sys_release are only used for setting
+        # `define_xopen_source' in the case statement below. For the
+        # current supported cross builds, this macro is not adjusted.
+@@ -325,12 +326,32 @@
+ 	*-*-mingw*)
+ 		ac_sys_system=MinGW
+ 		;;
++	*-*-darwin*)
++		ac_sys_system=Darwin
++		ac_sys_release=$(echo $host | sed -n 's/.*-[^0-9]\+\([0-9]\+\)/\1/p')
++		if test -z "$ac_sys_release"; then
++			# A reasonable default.
++			ac_sys_release=11
++		fi
++		# Use the last released version number for old versions.
++	        if test "$ac_sys_release" = "9" ; then
++			ac_sys_release=9.8
++	        elif test "$ac_sys_release" = "10" ; then
++			ac_sys_release=10.8
++	        elif test "$ac_sys_release" = "11" ; then
++			ac_sys_release=11.4.0
++	        elif test "$ac_sys_release" = "12" ; then
++			ac_sys_release=12.0.0
++		else
++		# ..and .0.0 for unknown versions.
++			ac_sys_release=${ac_sys_release}.0.0
++		fi
++		;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+ 		AC_MSG_ERROR([cross build not supported for $host])
+ 	esac
+-	ac_sys_release=
+     else
+ 	ac_sys_system=`uname -s`
+ 	if test "$ac_sys_system" = "AIX" \
+@@ -375,6 +396,9 @@
+ 	*-*-mingw*)
+ 		_host_cpu=
+ 		;;
++	*-*-darwin*)
++		_host_cpu=
++		;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -1153,6 +1177,26 @@
+ 
+ AC_SUBST(BASECFLAGS)
+ 
++if test "x$cross_compiling" = xyes; then
++    function cross_arch
++    {
++        case $host in
++	  x86_64*darwin*)
++	    echo i386
++          ;;
++	  x86_64*)
++            echo x86_64
++	  ;;
++	  *)
++            echo i386
++	  ;;
++	esac
++    }
++    ARCH_PROG=cross_arch
++else
++    ARCH_PROG=/usr/bin/arch
++fi
++
+ # The -arch flags for universal builds on OSX
+ UNIVERSAL_ARCH_FLAGS=
+ AC_SUBST(UNIVERSAL_ARCH_FLAGS)
+@@ -1239,7 +1283,7 @@
+ 				    cur_target='10.5'
+ 			    fi
+ 		    else
+-			    if test `/usr/bin/arch` = "i386"; then
++			    if test "$($ARCH_PROG)" = "i386"; then
+ 				    # On Intel macs default to a deployment
+ 				    # target of 10.4, that's the first OSX
+ 				    # release with Intel support.
+@@ -1932,7 +1976,7 @@
+     if test "${enable_universalsdk}"; then
+ 	    :
+     else
+-        LIBTOOL_CRUFT="${LIBTOOL_CRUFT} -arch_only `/usr/bin/arch`"
++        LIBTOOL_CRUFT="${LIBTOOL_CRUFT} -arch_only $($ARCH_PROG)"
+     fi
+     LIBTOOL_CRUFT=$LIBTOOL_CRUFT' -install_name $(PYTHONFRAMEWORKINSTALLDIR)/Versions/$(VERSION)/$(PYTHONFRAMEWORK)'
+     LIBTOOL_CRUFT=$LIBTOOL_CRUFT' -compatibility_version $(VERSION) -current_version $(VERSION)';;
+@@ -1957,7 +2001,7 @@
+     ]])],[ac_osx_32bit=yes],[ac_osx_32bit=no],[ac_osx_32bit=yes])
+     
+     if test "${ac_osx_32bit}" = "yes"; then
+-    	case `/usr/bin/arch` in
++    	case $($ARCH_PROG) in
+     	i386) 
+     		MACOSX_DEFAULT_ARCH="i386" 
+     		;;
+@@ -1969,7 +2013,7 @@
+     		;;
+     	esac
+     else
+-    	case `/usr/bin/arch` in
++    	case $($ARCH_PROG) in
+     	i386) 
+     		MACOSX_DEFAULT_ARCH="x86_64" 
+     		;;
+@@ -2008,8 +2052,8 @@
+ fi
+ 
+ AC_MSG_CHECKING(for dyld)
+-case $ac_sys_system/$ac_sys_release in
+-  Darwin/*)
++case $host in
++  *darwin*)
+   	AC_DEFINE(WITH_DYLD, 1, 
+         [Define if you want to use the new-style (Openstep, Rhapsody, MacOS)
+          dynamic linker (dyld) instead of the old-style (NextStep) dynamic

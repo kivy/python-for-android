@@ -1,0 +1,33 @@
+diff -Naur Python-2.7.9-orig/Modules/getpath.c Python-2.7.9/Modules/getpath.c
+--- Python-2.7.9-orig/Modules/getpath.c	2014-12-11 13:50:39.187400000 +0300
++++ Python-2.7.9/Modules/getpath.c	2014-12-11 13:50:39.312200000 +0300
+@@ -726,6 +726,29 @@
+     }
+     else
+         strncpy(exec_prefix, EXEC_PREFIX, MAXPATHLEN);
++#ifdef MS_WINDOWS
++    if (path) {
++        /* Add path of executable/dll to system path. This
++         * is so that the correct tcl??.dll and tk??.dll get
++         * used. */
++        char *module_path = dllpath[0] ? dllpath : progpath;
++        char *new_path = alloca(strlen("PATH=")+strlen(module_path)+1+strlen(path)+1);
++        if (new_path) {
++            strcpy( new_path, "PATH=" );
++            strcat( new_path, module_path );
++            char *slashes = strchr( new_path, '/' );
++            while (slashes) {
++                *slashes = '\\';
++                slashes = strchr( slashes+1, '/' );
++            }
++            char *end = strrchr(new_path, '\\') ? strrchr(new_path, '\\') : new_path + strlen(new_path);
++            end[0] = ';';
++            end[1] = '\0';
++            strcat( new_path, path );
++            _putenv( new_path );
++        }
++    }
++#endif
+ }
+ 
+ 

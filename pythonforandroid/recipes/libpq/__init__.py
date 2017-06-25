@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import Recipe, current_directory, shprint
-import sh
+import pythonforandroid.sh as sh
 import os.path
 
 

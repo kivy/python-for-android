@@ -1,0 +1,61 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:49:31.124600000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:49:35.383400000 +0300
+@@ -322,6 +322,9 @@
+ 	*-*-cygwin*)
+ 		ac_sys_system=Cygwin
+ 		;;
++	*-*-mingw*)
++		ac_sys_system=MinGW
++		;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+@@ -349,6 +352,7 @@
+ 	darwin*) MACHDEP="darwin";;
+ 	atheos*) MACHDEP="atheos";;
+         irix646) MACHDEP="irix6";;
++	mingw*) MACHDEP="win32";;
+ 	'')	MACHDEP="unknown";;
+     esac
+ fi
+@@ -368,12 +372,23 @@
+ 	*-*-cygwin*)
+ 		_host_cpu=
+ 		;;
++	*-*-mingw*)
++		_host_cpu=
++		;;
+ 	*)
+ 		# for now, limit cross builds to known configurations
+ 		MACHDEP="unknown"
+ 		AC_MSG_ERROR([cross build not supported for $host])
+ 	esac
+ 	_PYTHON_HOST_PLATFORM="$MACHDEP${_host_cpu:+-$_host_cpu}"
++
++	case "$host_os" in
++	mingw*)
++	# As sys.platform() return 'win32' to build python and extantions
++	# we will use 'mingw' (in setup.py and etc.)
++	_PYTHON_HOST_PLATFORM=mingw
++	;;
++	esac
+ fi
+ 	
+ # Some systems cannot stand _XOPEN_SOURCE being defined at all; they
+diff -Naur Python-2.7.9-orig/Python/getplatform.c Python-2.7.9/Python/getplatform.c
+--- Python-2.7.9-orig/Python/getplatform.c	2014-12-10 18:59:59.000000000 +0300
++++ Python-2.7.9/Python/getplatform.c	2014-12-11 13:49:35.383400000 +0300
+@@ -1,6 +1,12 @@
+ 
+ #include "Python.h"
+ 
++#ifdef __MINGW32__
++#  undef PLATFORM
++/* see PC/pyconfig.h */
++#  define PLATFORM "win32"
++#endif
++
+ #ifndef PLATFORM
+ #define PLATFORM "unknown"
+ #endif

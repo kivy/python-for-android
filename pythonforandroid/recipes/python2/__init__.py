@@ -1,10 +1,12 @@
 
-from pythonforandroid.recipe import TargetPythonRecipe, Recipe
+from pythonforandroid.recipe import TargetPythonRecipe, Recipe, mpath
 from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
-                                       check_all, is_api_lt, is_ndk)
+                                       check_all, is_api_lt, is_ndk, is_msys)
+from pythonforandroid.logger import debug
 from os.path import exists, join, realpath
-import sh
+import sys
+import pythonforandroid.sh as sh
 
 
 class Python2Recipe(TargetPythonRecipe):
@@ -19,20 +21,27 @@ class Python2Recipe(TargetPythonRecipe):
     patches = ['patches/Python-{version}-xcompile.patch',
                'patches/Python-{version}-ctypes-disable-wchar.patch',
                'patches/disable-modules.patch',
-               'patches/fix-locale.patch',
+               'patches/fix-locale-{version}.patch',
                'patches/fix-gethostbyaddr.patch',
-               'patches/fix-setup-flags.patch',
+               'patches/fix-setup-flags-{version}.patch',
                'patches/fix-filesystemdefaultencoding.patch',
                'patches/fix-termios.patch',
                'patches/custom-loader.patch',
-               'patches/verbose-compilation.patch',
+               'patches/verbose-compilation-{version}.patch',
                'patches/fix-remove-corefoundation.patch',
-               'patches/fix-dynamic-lookup.patch',
+               'patches/fix-dynamic-lookup-{version}.patch',
                'patches/fix-dlfcn.patch',
-               'patches/parsetuple.patch',
+               'patches/parsetuple-{version}.patch',
                'patches/ctypes-find-library-updated.patch',
-               ('patches/fix-configure-darwin.patch', is_darwin),
-               ('patches/fix-distutils-darwin.patch', is_darwin),
+               ('patches/fix-ldshared-gcc-mingwXandroid-{version}.patch', is_msys),
+               ('patches/fix-config-mingwXandroid-{version}.patch', is_msys),
+               ('patches/fix-msys_using_system_ffi_to_not_leak_into_xcompile.patch', is_msys),
+               ('patches/distutils_mingw_w64_to_android_compiler.patch', is_msys),
+               ('patches/fix_cross_compile_of_cython_ext.patch', is_msys),
+               ('patches/fix_cross_compile_config_missing_compiler_flags-{version}.patch', is_msys),
+               ('patches/fix_to_always_use_so.patch', is_msys),  # should really figure out why it's trying to use .pyd
+               ('patches/fix-configure-darwin-{version}.patch', is_darwin),
+               ('patches/fix-distutils-darwin-{version}.patch', is_darwin),
                ('patches/fix-ftime-removal.patch', is_api_gt(19)),
                ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))]
 
@@ -51,6 +60,9 @@ class Python2Recipe(TargetPythonRecipe):
         info('Copying hostpython binary to targetpython folder')
         shprint(sh.cp, self.ctx.hostpython,
                 join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
+        if self.ctx.shared_lib:
+            shprint(sh.cp, self.ctx.shared_lib,
+                    join(self.ctx.get_python_install_dir(), 'bin'))
         self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
 
         if not exists(join(self.ctx.get_libs_dir(arch.arch), 'libpython2.7.so')):
@@ -71,14 +83,13 @@ class Python2Recipe(TargetPythonRecipe):
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
         shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
+        if self.ctx.shared_lib:
+            shprint(sh.cp, self.ctx.shared_lib, self.get_build_dir(arch.arch))
         shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir(arch.arch))
         hostpython = join(self.get_build_dir(arch.arch), 'hostpython')
         hostpgen = join(self.get_build_dir(arch.arch), 'hostpython')
 
         with current_directory(self.get_build_dir(arch.arch)):
-
-
-            hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
             env = arch.get_env()
@@ -87,8 +98,11 @@ class Python2Recipe(TargetPythonRecipe):
             # neatness, but the whole recipe needs tidying along these
             # lines
             env['HOSTARCH'] = 'arm-eabi'
-            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
+            env['BUILDARCH'] = mpath(shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0].strip().encode('utf8'))
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
+            env['_PYTHON_PROJECT_BASE'] = '1'
+            env['XCOMPILE_BUILD_PYTHONHOME_EXEC'] = env['XCOMPILE_BUILD_PYTHONHOME'] = hostpython_recipe.get_build_dir(arch.arch)
+            env['_PYTHON_HOST_PLATFORM'] = sys.platform
 
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
@@ -117,7 +131,7 @@ class Python2Recipe(TargetPythonRecipe):
                     '--host={}'.format(env['HOSTARCH']),
                     '--build={}'.format(env['BUILDARCH']),
                     # 'OPT={}'.format(env['OFLAG']),
-                    '--prefix={}'.format(realpath('./python-install')),
+                    '--prefix={}'.format(mpath(realpath('./python-install'))),
                     '--enable-shared',
                     '--disable-toolbox-glue',
                     '--disable-framework',
@@ -131,21 +145,32 @@ class Python2Recipe(TargetPythonRecipe):
             # check if we can avoid this part.
 
             make = sh.Command(env['MAKE'].split(' ')[0])
-            print('First install (expected to fail...')
+            if is_msys():
+                debug('Building python')
+                try:
+                    shprint(make, '-j5', 'HOSTPYTHON={}'.format(mpath(hostpython)),
+                            'HOSTPGEN={}'.format(mpath(hostpgen)),
+                            'CROSS_COMPILE_TARGET=yes',
+                            'INSTSONAME=libpython2.7.so',
+                            _env=env)
+                except sh.ErrorReturnCode_2:
+                    debug('Building python failed, trying again install.')
+
+            debug('First install (expected to fail...')
             try:
-                shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
-                        'HOSTPGEN={}'.format(hostpgen),
+                shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(mpath(hostpython)),
+                        'HOSTPGEN={}'.format(mpath(hostpgen)),
                         'CROSS_COMPILE_TARGET=yes',
                         'INSTSONAME=libpython2.7.so',
                         _env=env)
             except sh.ErrorReturnCode_2:
-                print('First python2 make failed. This is expected, trying again.')
+                debug('First python2 make failed. This is expected, trying again.')
 
 
-            print('Second install (expected to work)')
+            info('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')
-            shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
-                    'HOSTPGEN={}'.format(hostpgen),
+            shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(mpath(hostpython)),
+                    'HOSTPGEN={}'.format(mpath(hostpgen)),
                     'CROSS_COMPILE_TARGET=yes',
                     'INSTSONAME=libpython2.7.so',
                     _env=env)
@@ -166,7 +191,7 @@ class Python2Recipe(TargetPythonRecipe):
                                            'lib', 'python2.7', dir_name))
 
 
-            # info('Copying python-install to dist-dependent location')
+            # debug('Copying python-install to dist-dependent location')
             # shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
 
             # print('Copying hostpython binary to targetpython folder')

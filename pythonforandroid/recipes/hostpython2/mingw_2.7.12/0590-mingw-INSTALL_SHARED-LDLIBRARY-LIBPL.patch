@@ -1,0 +1,11 @@
+diff -Naur Python-2.7.9-orig/Makefile.pre.in Python-2.7.9/Makefile.pre.in
+--- Python-2.7.9-orig/Makefile.pre.in	2014-12-11 13:50:37.518200000 +0300
++++ Python-2.7.9/Makefile.pre.in	2014-12-11 13:50:44.678600000 +0300
+@@ -925,6 +925,7 @@
+ 	if test -f $(LDLIBRARY); then \
+ 		if test -n "$(DLLLIBRARY)" ; then \
+ 			$(INSTALL_SHARED) $(DLLLIBRARY) $(DESTDIR)$(BINDIR); \
++			mkdir -p $(DESTDIR)$(LIBPL); $(INSTALL_SHARED) $(LDLIBRARY) $(DESTDIR)$(LIBPL); \
+ 		else \
+ 			$(INSTALL_SHARED) $(LDLIBRARY) $(DESTDIR)$(LIBDIR)/$(INSTSONAME); \
+ 			if test $(LDLIBRARY) != $(INSTSONAME); then \

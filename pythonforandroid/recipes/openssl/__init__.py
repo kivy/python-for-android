@@ -1,7 +1,7 @@
 from functools import partial
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory
-import sh
+import pythonforandroid.sh as sh
 
 
 class OpenSSLRecipe(Recipe):

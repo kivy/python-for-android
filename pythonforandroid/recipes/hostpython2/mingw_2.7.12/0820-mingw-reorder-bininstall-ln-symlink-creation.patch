@@ -1,0 +1,14 @@
+diff -Naur Python-2.7.9-orig/Makefile.pre.in Python-2.7.9/Makefile.pre.in
+--- Python-2.7.9-orig/Makefile.pre.in	2014-12-11 13:51:00.419000000 +0300
++++ Python-2.7.9/Makefile.pre.in	2014-12-11 13:51:14.771000000 +0300
+@@ -904,9 +904,9 @@
+ 	then rm -f $(DESTDIR)$(BINDIR)/$(PYTHON); \
+ 	else true; \
+ 	fi
+-	(cd $(DESTDIR)$(BINDIR); $(LN) -s python2$(EXE) $(PYTHON))
+ 	-rm -f $(DESTDIR)$(BINDIR)/python2$(EXE)
+ 	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)$(EXE) python2$(EXE))
++	(cd $(DESTDIR)$(BINDIR); $(LN) -s python2$(EXE) $(PYTHON))
+ 	-rm -f $(DESTDIR)$(BINDIR)/python2-config
+ 	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)-config python2-config)
+ 	-rm -f $(DESTDIR)$(BINDIR)/python-config

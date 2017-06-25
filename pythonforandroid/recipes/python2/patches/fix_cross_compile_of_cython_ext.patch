@@ -1,0 +1,311 @@
+diff -Naur a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
+--- a/Lib/distutils/command/build_ext.py	2014-12-10 18:59:34.000000000 +0300
++++ b/Lib/distutils/command/build_ext.py	2014-12-11 13:49:53.214200000 +0300
+@@ -723,13 +723,6 @@
+             # don't extend ext.libraries, it may be shared with other
+             # extensions, it is a reference to the original list
+             return ext.libraries + [pythonlib]
+-        elif sys.platform[:6] == "cygwin":
+-            template = "python%d.%d"
+-            pythonlib = (template %
+-                   (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff))
+-            # don't extend ext.libraries, it may be shared with other
+-            # extensions, it is a reference to the original list
+-            return ext.libraries + [pythonlib]
+         elif sys.platform[:6] == "atheos":
+             from distutils import sysconfig
+ 
+diff -Naur a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
+--- a/Lib/distutils/command/build_ext.py	2014-12-11 13:49:54.618200000 +0300
++++ b/Lib/distutils/command/build_ext.py	2014-12-11 13:50:14.773400000 +0300
+@@ -179,7 +179,7 @@
+         # for extensions under windows use different directories
+         # for Release and Debug builds.
+         # also Python's library directory must be appended to library_dirs
+-        if os.name == 'nt':
++        if os.name == 'nt' and not self.plat_name.startswith(('mingw')):
+             # the 'libs' directory is for binary installs - we assume that
+             # must be the *native* platform.  But we don't really support
+             # cross-compiling via a binary install anyway, so we let it go.
+@@ -697,6 +697,20 @@
+         # pyconfig.h that MSVC groks.  The other Windows compilers all seem
+         # to need it mentioned explicitly, though, so that's what we do.
+         # Append '_d' to the python import library on debug builds.
++
++        # Use self.plat_name as it works even in case of
++        # cross-compilation (at least for mingw build).
++        if self.plat_name.startswith('mingw'):
++            from distutils import sysconfig
++            extra = []
++            for lib in (
++                sysconfig.get_config_var('BLDLIBRARY').split()
++                + sysconfig.get_config_var('SHLIBS').split()
++                ):
++                if lib.startswith('-l'):
++                    extra.append(lib[2:])
++            return ext.libraries + extra
++
+         if sys.platform == "win32":
+             from distutils.msvccompiler import MSVCCompiler
+             if not isinstance(self.compiler, MSVCCompiler):
+diff -Naur a/Lib/distutils/util.py b/Lib/distutils/util.py
+--- a/Lib/distutils/util.py	2014-12-10 18:59:35.000000000 +0300
++++ b/Lib/distutils/util.py	2014-12-11 13:50:14.773400000 +0300
+@@ -38,6 +38,8 @@
+     For other non-POSIX platforms, currently just returns 'sys.platform'.
+     """
+     if os.name == 'nt':
++        if 'GCC' in sys.version:
++            return 'mingw'
+         # sniff sys.version for architecture.
+         prefix = " bit ("
+         i = string.find(sys.version, prefix)
+diff -Naur a/Lib/sysconfig.py b/Lib/sysconfig.py
+--- a/Lib/sysconfig.py	2014-12-11 13:49:29.549000000 +0300
++++ b/Lib/sysconfig.py	2014-12-11 13:50:14.773400000 +0300
+@@ -560,6 +560,8 @@
+     """
+     import re
+     if os.name == 'nt':
++        if 'GCC' in sys.version:
++            return 'mingw'
+         # sniff sys.version for architecture.
+         prefix = " bit ("
+         i = sys.version.find(prefix)
+diff -Naur a/Lib/distutils/sysconfig.py b/Lib/distutils/sysconfig.py
+--- a/Lib/distutils/sysconfig.py	2014-12-11 13:49:53.105000000 +0300
++++ b/Lib/distutils/sysconfig.py	2014-12-11 13:50:24.601400000 +0300
+@@ -62,6 +62,16 @@
+     """
+     return sys.version[:3]
+ 
++def _posix_build():
++    # GCC[mingw*] use posix build system
++    # Check for cross builds explicitly
++    host_platform = os.environ.get("_PYTHON_HOST_PLATFORM")
++    if host_platform:
++        if host_platform.startswith('mingw'):
++            return True
++    return os.name == 'posix' or \
++        (os.name == "nt" and 'GCC' in sys.version)
++posix_build = _posix_build()
+ 
+ def get_python_inc(plat_specific=0, prefix=None):
+     """Return the directory containing installed Python header files.
+@@ -77,7 +87,7 @@
+     if prefix is None:
+         prefix = plat_specific and EXEC_PREFIX or PREFIX
+ 
+-    if os.name == "posix":
++    if posix_build:
+         if python_build:
+             buildir = os.path.dirname(sys.executable)
+             if plat_specific:
+@@ -118,7 +128,7 @@
+     if prefix is None:
+         prefix = plat_specific and EXEC_PREFIX or PREFIX
+ 
+-    if os.name == "posix":
++    if posix_build:
+         libpython = os.path.join(prefix,
+                                  "lib", "python" + get_python_version())
+         if standard_lib:
+@@ -240,7 +250,7 @@
+ def get_config_h_filename():
+     """Return full pathname of installed pyconfig.h file."""
+     if python_build:
+-        if os.name == "nt":
++        if os.name == "nt" and not posix_build:
+             inc_dir = os.path.join(project_base, "PC")
+         else:
+             inc_dir = project_base
+@@ -417,6 +427,9 @@
+ 
+ 
+ def _init_nt():
++    if posix_build:
++        _init_posix()
++        return
+     """Initialize the module as appropriate for NT"""
+     g = {}
+     # set basic install directories
+diff -Naur a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
+--- a/Lib/distutils/command/build_ext.py	2014-12-11 13:50:16.614200000 +0300
++++ b/Lib/distutils/command/build_ext.py	2014-12-11 13:50:51.121400000 +0300
+@@ -224,9 +224,10 @@
+         if sys.platform[:6] == 'cygwin' or sys.platform[:6] == 'atheos':
+             if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
+                 # building third party extensions
++                config_dir_name = os.path.basename(sysconfig.get_config_var('LIBPL'))
+                 self.library_dirs.append(os.path.join(sys.prefix, "lib",
+                                                       "python" + get_python_version(),
+-                                                      "config"))
++                                                      config_dir_name))
+             else:
+                 # building python standard extensions
+                 self.library_dirs.append('.')
+diff -Naur a/Lib/sysconfig.py b/Lib/sysconfig.py
+--- a/Lib/sysconfig.py	2014-12-11 13:50:51.012200000 +0300
++++ b/Lib/sysconfig.py	2014-12-11 13:50:51.121400000 +0300
+@@ -27,13 +27,13 @@
+         'data'   : '{base}',
+         },
+     'nt': {
+-        'stdlib': '{base}/Lib',
+-        'platstdlib': '{base}/Lib',
+-        'purelib': '{base}/Lib/site-packages',
+-        'platlib': '{base}/Lib/site-packages',
+-        'include': '{base}/Include',
+-        'platinclude': '{base}/Include',
+-        'scripts': '{base}/Scripts',
++        'stdlib': '{base}/lib/python{py_version_short}',
++        'platstdlib': '{base}/lib/python{py_version_short}',
++        'purelib': '{base}/lib/python{py_version_short}',
++        'platlib': '{base}/lib/python{py_version_short}',
++        'include': '{base}/include/python{py_version_short}',
++        'platinclude': '{base}/include/python{py_version_short}',
++        'scripts': '{base}/bin',
+         'data'   : '{base}',
+         },
+     'os2': {
+@@ -56,12 +56,12 @@
+         'data'   : '{userbase}',
+         },
+     'nt_user': {
+-        'stdlib': '{userbase}/Python{py_version_nodot}',
+-        'platstdlib': '{userbase}/Python{py_version_nodot}',
+-        'purelib': '{userbase}/Python{py_version_nodot}/site-packages',
+-        'platlib': '{userbase}/Python{py_version_nodot}/site-packages',
+-        'include': '{userbase}/Python{py_version_nodot}/Include',
+-        'scripts': '{userbase}/Scripts',
++        'stdlib': '{userbase}/lib/python{py_version_short}',
++        'platstdlib': '{userbase}/lib/python{py_version_short}',
++        'purelib': '{userbase}/lib/python{py_version_short}',
++        'platlib': '{userbase}/lib/python{py_version_short}',
++        'include': '{userbase}/include/python{py_version_short}',
++        'scripts': '{userbase}/bin',
+         'data'   : '{userbase}',
+         },
+     'posix_user': {
+@@ -390,7 +390,7 @@
+     vars['INCLUDEPY'] = get_path('include')
+     vars['SO'] = '.pyd'
+     vars['EXE'] = '.exe'
+-    vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
++    vars['VERSION'] = _PY_VERSION_SHORT
+     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
+ 
+ #
+diff -Naur a/Lib/distutils/command/install.py b/Lib/distutils/command/install.py
+--- a/Lib/distutils/command/install.py	2014-12-10 18:59:34.000000000 +0300
++++ b/Lib/distutils/command/install.py	2014-12-11 13:50:58.983800000 +0300
+@@ -348,7 +348,8 @@
+ 
+         # Convert directories from Unix /-separated syntax to the local
+         # convention.
+-        self.convert_paths('lib', 'purelib', 'platlib',
++        self.convert_paths('base', 'platbase',
++                           'lib', 'purelib', 'platlib',
+                            'scripts', 'data', 'headers',
+                            'userbase', 'usersite')
+ 
+diff -Naur a/Lib/distutils/util.py b/Lib/distutils/util.py
+--- a/Lib/distutils/util.py	2014-12-11 13:50:16.614200000 +0300
++++ b/Lib/distutils/util.py	2014-12-11 13:50:58.983800000 +0300
+@@ -132,6 +132,13 @@
+         paths.remove('.')
+     if not paths:
+         return os.curdir
++    # On Windows, if paths is ['C:','folder','subfolder'] then
++    # os.path.join(*paths) will return 'C:folder\subfolder' which
++    # is thus relative to the CWD on that drive. So we work around
++    # this by adding a \ to path[0]
++    if (len(paths) > 0 and paths[0].endswith(':') and
++        sys.platform == "win32" and sys.version.find("GCC") >= 0):
++        paths[0] += '\\'
+     return os.path.join(*paths)
+ 
+ # convert_path ()
+@@ -142,6 +149,10 @@
+     relative, this is equivalent to "os.path.join(new_root,pathname)".
+     Otherwise, it requires making 'pathname' relative and then joining the
+     two, which is tricky on DOS/Windows and Mac OS.
++
++    If on Windows or OS/2 and both new_root and pathname are on different
++    drives, raises DistutilsChangeRootError as this is nonsensical,
++    otherwise use drive which can be in either of new_root or pathname.
+     """
+     if os.name == 'posix':
+         if not os.path.isabs(pathname):
+@@ -149,17 +160,22 @@
+         else:
+             return os.path.join(new_root, pathname[1:])
+ 
+-    elif os.name == 'nt':
+-        (drive, path) = os.path.splitdrive(pathname)
+-        if path[0] == '\\':
+-            path = path[1:]
+-        return os.path.join(new_root, path)
+-
+-    elif os.name == 'os2':
++    elif os.name == 'nt' or os.name == 'os2':
+         (drive, path) = os.path.splitdrive(pathname)
+         if path[0] == os.sep:
+             path = path[1:]
+-        return os.path.join(new_root, path)
++        (drive_r, path_r) = os.path.splitdrive(new_root)
++        if path_r and path_r[0] == os.sep:
++            path_r = path_r[1:]
++        drive_used = ''
++        if len(drive) == 2 and len(drive_r) == 2 and drive != drive_r:
++            raise DistutilsChangeRootError("root and pathname not on same drive (%s, %s)"
++                   % (drive_r,drive))
++        elif len(drive_r) == 2:
++            drive_used = drive_r+os.sep
++        elif len(drive) == 2:
++            drive_used = drive+os.sep
++        return os.path.join(drive_used+path_r, path)
+ 
+     else:
+         raise DistutilsPlatformError, \
+diff -Naur a/Lib/distutils/command/install.py b/Lib/distutils/command/install.py
+--- a/Lib/distutils/command/install.py	2014-12-11 13:51:00.419000000 +0300
++++ b/Lib/distutils/command/install.py	2014-12-11 13:51:13.179800000 +0300
+@@ -32,10 +32,10 @@
+     }
+ else:
+     WINDOWS_SCHEME = {
+-        'purelib': '$base/Lib/site-packages',
+-        'platlib': '$base/Lib/site-packages',
+-        'headers': '$base/Include/$dist_name',
+-        'scripts': '$base/Scripts',
++        'purelib': '$base/lib/python$py_version_short/site-packages',
++        'platlib': '$base/lib/python$py_version_short/site-packages',
++        'headers': '$base/include/python$py_version_short/$dist_name',
++        'scripts': '$base/bin',
+         'data'   : '$base',
+     }
+ 
+@@ -65,8 +65,8 @@
+     'nt_user': {
+         'purelib': '$usersite',
+         'platlib': '$usersite',
+-        'headers': '$userbase/Python$py_version_nodot/Include/$dist_name',
+-        'scripts': '$userbase/Scripts',
++        'headers': '$userbase/include/python$py_version_short/$dist_name',
++        'scripts': '$userbase/bin',
+         'data'   : '$userbase',
+         },
+     'os2': {
+diff -Naur a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
+--- a/Lib/distutils/command/build_ext.py	2014-12-11 13:50:52.587800000 +0300
++++ b/Lib/distutils/command/build_ext.py	2014-12-11 13:58:32.038800000 +0300
+@@ -221,7 +221,7 @@
+ 
+         # for extensions under Cygwin and AtheOS Python's library directory must be
+         # appended to library_dirs
+-        if sys.platform[:6] == 'cygwin' or sys.platform[:6] == 'atheos':
++        if sys.platform[:6] == 'cygwin' or sys.platform[:6] == 'atheos' or self.plat_name.startswith(('mingw')):
+             if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
+                 # building third party extensions
+                 config_dir_name = os.path.basename(sysconfig.get_config_var('LIBPL'))

@@ -1,0 +1,72 @@
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:57.252200000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:51:00.543800000 +0300
+@@ -538,7 +538,7 @@
+         if host_platform == 'hp-ux11':
+             lib_dirs += ['/usr/lib/hpux64', '/usr/lib/hpux32']
+ 
+-        if host_platform == 'darwin':
++        if host_platform in ['darwin', 'mingw', 'win32']:
+             # This should work on any unixy platform ;-)
+             # If the user has bothered specifying additional -I and -L flags
+             # in OPT and LDFLAGS we might as well use them here.
+@@ -547,6 +547,8 @@
+             # with whitespace in the name to store libraries.
+             cflags, ldflags = sysconfig.get_config_vars(
+                     'CFLAGS', 'LDFLAGS')
++            cflags = cflags + ' ' + ('',os.environ.get('CC'))[os.environ.get('CC') != None]
++            ldflags = ldflags + ' ' + ('',os.environ.get('LDSHARED'))[os.environ.get('LDSHARED') != None]
+             for item in cflags.split():
+                 if item.startswith('-I'):
+                     inc_dirs.append(item[2:])
+@@ -1941,14 +1943,19 @@
+         # The versions with dots are used on Unix, and the versions without
+         # dots on Windows, for detection by cygwin.
+         tcllib = tklib = tcl_includes = tk_includes = None
+-        for version in ['8.6', '86', '8.5', '85', '8.4', '84', '8.3', '83',
+-                        '8.2', '82', '8.1', '81', '8.0', '80']:
+-            tklib = self.compiler.find_library_file(lib_dirs,
+-                                                        'tk' + version)
+-            tcllib = self.compiler.find_library_file(lib_dirs,
+-                                                         'tcl' + version)
+-            if tklib and tcllib:
+-                # Exit the loop when we've found the Tcl/Tk libraries
++        tcltk_suffix = None
++        for suffix in ['', 's']:
++            for version in ['8.6', '86', '8.5', '85', '8.4', '84', '8.3', '83',
++                            '8.2', '82', '8.1', '81', '8.0', '80', '']:
++                tklib = self.compiler.find_library_file(lib_dirs,
++                                                            'tk' + version + suffix)
++                tcllib = self.compiler.find_library_file(lib_dirs,
++                                                             'tcl' + version + suffix)
++                if tklib and tcllib:
++                    # Exit the loop when we've found the Tcl/Tk libraries
++                    tcltk_suffix = suffix
++                    break
++            if tcltk_suffix != None:
+                 break
+ 
+         # Now check for the header files
+@@ -2019,13 +2026,21 @@
+         # Add the Tcl/Tk libraries
+         libs.append('tk'+ version)
+         libs.append('tcl'+ version)
++        libs.append('tk'+ version + tcltk_suffix)
++        libs.append('tcl'+ version + tcltk_suffix)
++        if host_platform in ['mingw', 'win32']:
++            for winlib in ['ws2_32','gdi32','comctl32','comdlg32','imm32','uuid','oleaut32','ole32']:
++                libs.append( winlib )
+ 
+         if host_platform in ['aix3', 'aix4']:
+             libs.append('ld')
+ 
+         # Finally, link with the X11 libraries (not appropriate on cygwin)
+-        if host_platform != "cygwin":
++        # ...on those platforms, define STATIC_BUILD if linking to static tcl/tk.
++        if not host_platform in ['cygwin', 'mingw', 'win32']:
+             libs.append('X11')
++        elif tcllib.endswith('s.a'):
++            defs.append( ('STATIC_BUILD',1) )
+ 
+         ext = Extension('_tkinter', ['_tkinter.c', 'tkappinit.c'],
+                         define_macros=[('WITH_APPINIT', 1)] + defs,

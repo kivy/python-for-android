@@ -1,0 +1,86 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:49:57.831800000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:49:57.941000000 +0300
+@@ -1890,6 +1890,9 @@
+ 	*)
+ 		enable_toolbox_glue="no";;
+ 	esac
++	case $host_os in
++	mingw*)    SHLIB_SUFFIX=.dll;;
++	esac
+ fi
+ case "$enable_toolbox_glue" in
+ yes)
+@@ -2035,6 +2038,16 @@
+ 	CYGWIN*)   SO=.dll;;
+ 	*)	   SO=.so;;
+ 	esac
++	case $host in
++	*-*-mingw*)
++	#NOTE: see _PyImport_DynLoadFiletab in dynload_win.c
++	if test "x$Py_DEBUG" = xtrue; then
++		SO=_d.pyd
++	else
++		SO=.pyd
++	fi
++	;;
++	esac
+ else
+ 	# this might also be a termcap variable, see #610332
+         echo
+@@ -3035,6 +3048,12 @@
+ 	fi
+ 	;;
+ 	esac
++	case $host in
++	*-*-mingw*)
++	DYNLOADFILE="dynload_win.o"
++	extra_machdep_objs="$extra_machdep_objs PC/dl_nt.o PC/import_nt.o"
++	;;
++	esac
+ fi
+ AC_MSG_RESULT($DYNLOADFILE)
+ if test "$DYNLOADFILE" != "dynload_stub.o"
+diff -Naur Python-2.7.9-orig/Python/dynload_win.c Python-2.7.9/Python/dynload_win.c
+--- Python-2.7.9-orig/Python/dynload_win.c	2014-12-10 18:59:59.000000000 +0300
++++ Python-2.7.9/Python/dynload_win.c	2014-12-11 13:49:57.941000000 +0300
+@@ -11,9 +11,11 @@
+ #include "importdl.h"
+ #include <windows.h>
+ 
+-// "activation context" magic - see dl_nt.c...
++#ifdef Py_ENABLE_SHARED
++/* "activation context" magic - see dl_nt.c... */
+ extern ULONG_PTR _Py_ActivateActCtx();
+ void _Py_DeactivateActCtx(ULONG_PTR cookie);
++#endif
+ 
+ const struct filedescr _PyImport_DynLoadFiletab[] = {
+ #ifdef _DEBUG
+@@ -25,6 +27,10 @@
+ };
+ 
+ 
++#if defined(__MINGW32__)
++/* avoid compile error: conflicting types for 'strcasecmp' */
++#  define strcasecmp fake_strcasecmp
++#endif
+ /* Case insensitive string compare, to avoid any dependencies on particular
+    C RTL implementations */
+ 
+@@ -190,11 +196,15 @@
+                             sizeof(pathbuf),
+                             pathbuf,
+                             &dummy)) {
++#ifdef Py_ENABLE_SHARED
+             ULONG_PTR cookie = _Py_ActivateActCtx();
++#endif
+             /* XXX This call doesn't exist in Windows CE */
+             hDLL = LoadLibraryEx(pathname, NULL,
+                                  LOAD_WITH_ALTERED_SEARCH_PATH);
++#ifdef Py_ENABLE_SHARED
+             _Py_DeactivateActCtx(cookie);
++#endif
+         }
+ 
+         /* restore old error mode settings */

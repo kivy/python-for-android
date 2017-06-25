@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 """
 This recipe creates a custom toolchain and bootstraps Boost from source to build Boost.Build

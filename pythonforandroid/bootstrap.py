@@ -1,6 +1,6 @@
 from os.path import (join, dirname, isdir, splitext, basename, realpath)
 from os import listdir, mkdir
-import sh
+import pythonforandroid.sh as sh
 import glob
 import json
 import importlib

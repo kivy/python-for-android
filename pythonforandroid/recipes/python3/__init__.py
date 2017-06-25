@@ -1,9 +1,9 @@
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
 from os.path import exists, join
-from os import uname
+# from os import uname
 import glob
-import sh
+import pythonforandroid.sh as sh
 
 class Python3Recipe(Recipe):
     version = '3.4.2'

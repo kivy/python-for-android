@@ -2,7 +2,7 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory
 from os.path import exists, join
-import sh
+import pythonforandroid.sh as sh
 import glob
 
 

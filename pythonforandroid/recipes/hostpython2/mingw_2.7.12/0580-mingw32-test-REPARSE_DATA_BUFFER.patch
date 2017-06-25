@@ -1,0 +1,32 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:39.187400000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:43.071800000 +0300
+@@ -4315,6 +4315,28 @@
+ # check for endianness
+ AC_C_BIGENDIAN
+ 
++# REPARSE_DATA_BUFFER is in winnt.h on mingw32 and (unusably) ddk/ntifs.h on mingw64.
++case $host in
++  *-*-mingw*)
++AC_CACHE_CHECK([if struct REPARSE_DATA_BUFFER is in winnt.h],
++[ac_cv_struct_reparse_data_buffer_in_winnt_h],
++  [AC_COMPILE_IFELSE(
++    [AC_LANG_PROGRAM(
++      [#include <windows.h>
++       #include <winnt.h>],
++      [REPARSE_DATA_BUFFER rdb],
++    )],
++    [ac_cv_struct_reparse_data_buffer_in_winnt_h=yes],
++    [ac_cv_struct_reparse_data_buffer_in_winnt_h=no]
++  )
++])
++if test "x${ac_cv_struct_reparse_data_buffer_in_winnt_h}" = xyes; then
++  AC_DEFINE([REPARSE_DATA_BUFFER_IN_WINNT], [], [REPARSE_DATA_BUFFER in winnt.h])
++  AC_SUBST(REPARSE_DATA_BUFFER_IN_WINNT)
++fi
++  ;;
++esac
++
+ # Check whether right shifting a negative integer extends the sign bit
+ # or fills with zeros (like the Cray J90, according to Tim Peters).
+ AC_MSG_CHECKING(whether right shift extends the sign bit)

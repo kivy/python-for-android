@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, current_directory, info
 from os.path import exists, join
-import sh
+import pythonforandroid.sh as sh
 
 
 class GenericNDKBuildRecipe(BootstrapNDKRecipe):

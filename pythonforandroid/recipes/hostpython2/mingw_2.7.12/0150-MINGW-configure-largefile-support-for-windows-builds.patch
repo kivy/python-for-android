@@ -1,0 +1,36 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:49:38.565800000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:49:38.737400000 +0300
+@@ -1795,10 +1795,22 @@
+ ])
+ 
+ AC_MSG_CHECKING(whether to enable large file support)
++have_largefile_support=no
+ if test "$have_long_long" = yes
+ then
+ if test "$ac_cv_sizeof_off_t" -gt "$ac_cv_sizeof_long" -a \
+ 	"$ac_cv_sizeof_long_long" -ge "$ac_cv_sizeof_off_t"; then
++  have_largefile_support=yes
++else
++  case $host in
++  *-*-mingw*)
++    dnl Activate on windows platforms (32&64-bit) where off_t(4) < fpos_t(8)
++    have_largefile_support=yes
++    ;;
++  esac
++fi
++fi
++if test $have_largefile_support = yes ; then
+   AC_DEFINE(HAVE_LARGEFILE_SUPPORT, 1, 
+   [Defined to enable large file support when an off_t is bigger than a long
+    and long long is available and at least as big as an off_t. You may need
+@@ -1808,9 +1820,6 @@
+ else
+   AC_MSG_RESULT(no)
+ fi
+-else
+-  AC_MSG_RESULT(no)
+-fi
+ 
+ AC_CHECK_SIZEOF(time_t, [], [
+ #ifdef HAVE_SYS_TYPES_H

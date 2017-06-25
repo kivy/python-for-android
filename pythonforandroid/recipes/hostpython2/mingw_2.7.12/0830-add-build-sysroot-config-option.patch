@@ -1,0 +1,131 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:51:08.234600000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:51:16.409000000 +0300
+@@ -641,6 +641,17 @@
+ CONFIGURE_MACOSX_DEPLOYMENT_TARGET=
+ EXPORT_MACOSX_DEPLOYMENT_TARGET='#'
+ 
++# There are certain cases where we don't want build machine's
++# sysroot folders (/usr/include, /usr/lib, /usr/lib64 etc) to
++# be used. An example of where this is needed is if running
++# on a 64bit machine via linux32 running a 32bit targetting GCC.
++# Without this, 64bit libs will cause the linker to fail.
++# This also prevents add_multiarch_paths from being called.
++# You can specify this multiple times to add more prefixes.
++AC_MSG_CHECKING(for --with-build-sysroot)
++AC_ARG_WITH([build-sysroot],
++AS_HELP_STRING([--with-build-sysroot], [Select sysroot and ignore multilibs, even when not cross-compiling]))
++
+ # checks for alternative programs
+ 
+ # compiler flags are generated in two sets, BASECFLAGS and OPT.  OPT is just
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:51:11.495000000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:51:16.409000000 +0300
+@@ -43,6 +43,16 @@
+ # Were we compiled --with-pydebug or with #define Py_DEBUG?
+ COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
+ 
++with_build_sysroot_args = [arg.split('=')[-1] for arg in sysconfig.get_config_var("CONFIG_ARGS").split()
++                           if ('--with-build-sysroot' in arg)]
++
++if len(with_build_sysroot_args):
++    with_build_sysroot_specified = True
++    with_build_sysroots = [arg.replace("'",'') for arg in with_build_sysroot_args]
++else:
++    with_build_sysroot_specified = False
++    with_build_sysroots = ['/usr']
++
+ # This global variable is used to hold the list of modules to be disabled.
+ disabled_module_list = []
+ 
+@@ -391,10 +401,11 @@
+             os.unlink(tmpfile)
+ 
+         if multiarch_path_component != '':
+-            add_dir_to_list(self.compiler.library_dirs,
+-                            '/usr/lib/' + multiarch_path_component)
+-            add_dir_to_list(self.compiler.include_dirs,
+-                            '/usr/include/' + multiarch_path_component)
++            for sysroot in with_build_sysroots:
++                add_dir_to_list(self.compiler.library_dirs,
++                                sysroot + '/lib/' + multiarch_path_component)
++                add_dir_to_list(self.compiler.include_dirs,
++                                sysroot + '/include/' + multiarch_path_component)
+             return
+ 
+         if not find_executable('dpkg-architecture'):
+@@ -412,10 +423,11 @@
+             if ret >> 8 == 0:
+                 with open(tmpfile) as fp:
+                     multiarch_path_component = fp.readline().strip()
+-                add_dir_to_list(self.compiler.library_dirs,
+-                                '/usr/lib/' + multiarch_path_component)
+-                add_dir_to_list(self.compiler.include_dirs,
+-                                '/usr/include/' + multiarch_path_component)
++                for sysroot in with_build_sysroots:
++                    add_dir_to_list(self.compiler.library_dirs,
++                                    sysroot + '/lib/' + multiarch_path_component)
++                    add_dir_to_list(self.compiler.include_dirs,
++                                    sysroot + '/include/' + multiarch_path_component)
+         finally:
+             os.unlink(tmpfile)
+ 
+@@ -453,7 +465,7 @@
+ 
+     def detect_modules(self):
+         # Ensure that /usr/local is always used
+-        if not cross_compiling:
++        if not cross_compiling and not with_build_sysroot_specified:
+             add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+             add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
+         if cross_compiling:
+@@ -516,7 +528,7 @@
+         # be assumed that no additional -I,-L directives are needed.
+         inc_dirs = self.compiler.include_dirs[:]
+         lib_dirs = self.compiler.library_dirs[:]
+-        if not cross_compiling:
++        if not cross_compiling and not with_build_sysroot_specified:
+             for d in (
+                 '/usr/include',
+                 ):
+@@ -804,11 +816,11 @@
+             elif curses_library:
+                 readline_libs.append(curses_library)
+             elif self.compiler.find_library_file(lib_dirs +
+-                                                     ['/usr/lib/termcap'],
++                                                     [sr + '/lib/termcap' for sr in with_build_sysroots],
+                                                      'termcap'):
+                 readline_libs.append('termcap')
+             exts.append( Extension('readline', ['readline.c'],
+-                                   library_dirs=['/usr/lib/termcap'],
++                                   library_dirs=[sr + '/lib/termcap' for sr in with_build_sysroots],
+                                    extra_link_args=readline_extra_link_args,
+                                    libraries=readline_libs) )
+         else:
+@@ -837,20 +849,20 @@
+                                libraries=_socket_libs) )
+         # Detect SSL support for the socket module (via _ssl)
+         search_for_ssl_incs_in = [
+-                              '/usr/local/ssl/include',
+-                              '/usr/contrib/ssl/include/'
++                              sr + sslinc for sr in with_build_sysroots
++                              for sslinc in ('/local/ssl/include', '/contrib/ssl/include')
+                              ]
+         ssl_incs = find_file('openssl/ssl.h', inc_dirs,
+                              search_for_ssl_incs_in
+                              )
+         if ssl_incs is not None:
+             krb5_h = find_file('krb5.h', inc_dirs,
+-                               ['/usr/kerberos/include'])
++                               [sr + '/kerberos/include' for sr in with_build_sysroots])
+             if krb5_h:
+                 ssl_incs += krb5_h
+         ssl_libs = find_library_file(self.compiler, 'ssl',lib_dirs,
+-                                     ['/usr/local/ssl/lib',
+-                                      '/usr/contrib/ssl/lib/'
++                                     [sr + ssllib for sr in with_build_sysroots
++                                      for ssllib in ('/local/ssl/lib', '/contrib/ssl/lib')
+                                      ] )
+ 
+         if (ssl_incs is not None and

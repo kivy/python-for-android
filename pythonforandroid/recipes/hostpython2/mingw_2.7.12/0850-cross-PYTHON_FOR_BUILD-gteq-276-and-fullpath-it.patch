@@ -1,0 +1,13 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:51:17.891000000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:51:19.669400000 +0300
+@@ -24,7 +24,8 @@
+     if test -z "$PYTHON_FOR_BUILD"; then
+         for interp in python$PACKAGE_VERSION python2 python; do
+ 	    which $interp >/dev/null 2>&1 || continue
+-	    if $interp -c 'import sys;sys.exit(not (sys.version_info@<:@:2@:>@ >= (2,7) and sys.version_info@<:@0@:>@ < 3))'; then
++	    interp=$(which $interp)
++	    if $interp -c 'import sys;sys.exit(not (sys.version_info@<:@:3@:>@ >= (2,7,6) and sys.version_info@<:@0@:>@ < 3))'; then
+ 	        break
+ 	    fi
+             interp=

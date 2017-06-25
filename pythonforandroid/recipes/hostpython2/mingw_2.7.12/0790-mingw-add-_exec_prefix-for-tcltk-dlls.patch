@@ -1,0 +1,27 @@
+diff -Naur Python-2.7.9-orig/Modules/getpath.c Python-2.7.9/Modules/getpath.c
+--- Python-2.7.9-orig/Modules/getpath.c	2014-12-11 13:50:40.731800000 +0300
++++ Python-2.7.9/Modules/getpath.c	2014-12-11 13:51:11.604200000 +0300
+@@ -645,7 +645,10 @@
+ 
+     bufsz += strlen(zip_path) + 1;
+     bufsz += strlen(exec_prefix) + 1;
+-
++#ifdef MS_WINDOWS
++    if (EXEC_PREFIX)
++        bufsz += strlen(EXEC_PREFIX) + 1;
++#endif
+     /* This is the only malloc call in this file */
+     buf = (char *)PyMem_Malloc(bufsz);
+ 
+@@ -727,6 +730,11 @@
+     else
+         strncpy(exec_prefix, EXEC_PREFIX, MAXPATHLEN);
+ #ifdef MS_WINDOWS
++    if (EXEC_PREFIX) {
++        /* Next add bin folder where the exe was found, for System DLLs e.g. tcl86.dll, tk86.dll */
++        strcat(buf, delimiter);
++        strcat(buf, EXEC_PREFIX);
++      }
+     if (path) {
+         /* Add path of executable/dll to system path. This
+          * is so that the correct tcl??.dll and tk??.dll get

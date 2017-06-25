@@ -1,0 +1,30 @@
+diff -Naur Python-2.7.9-orig/configure.ac Python-2.7.9/configure.ac
+--- Python-2.7.9-orig/configure.ac	2014-12-11 13:50:30.747800000 +0300
++++ Python-2.7.9/configure.ac	2014-12-11 13:50:30.857000000 +0300
+@@ -1667,8 +1667,8 @@
+ AC_HEADER_STDC
+ AC_CHECK_HEADERS(asm/types.h conio.h direct.h dlfcn.h errno.h \
+ fcntl.h grp.h \
+-ieeefp.h io.h langinfo.h libintl.h poll.h process.h pthread.h \
+-shadow.h signal.h stdint.h stropts.h termios.h thread.h \
++ieeefp.h io.h langinfo.h libintl.h poll.h process.h \
++shadow.h signal.h stdint.h stropts.h termios.h \
+ unistd.h utime.h \
+ sys/audioio.h sys/bsdtty.h sys/epoll.h sys/event.h sys/file.h sys/loadavg.h \
+ sys/lock.h sys/mkdev.h sys/modem.h \
+diff -Naur Python-2.7.9-orig/Python/thread.c Python-2.7.9/Python/thread.c
+--- Python-2.7.9-orig/Python/thread.c	2014-12-10 18:59:59.000000000 +0300
++++ Python-2.7.9/Python/thread.c	2014-12-11 13:50:30.857000000 +0300
+@@ -8,6 +8,12 @@
+ #include "Python.h"
+ 
+ 
++#ifdef __MINGW32__
++# if !defined(HAVE_PTHREAD_H) || defined(NT_THREADS)
++#  undef _POSIX_THREADS
++# endif
++#endif
++
+ #ifndef _POSIX_THREADS
+ /* This means pthreads are not implemented in libc headers, hence the macro
+    not present in unistd.h. But they still can be implemented as an external

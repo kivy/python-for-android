@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 """
 FFmpeg for Android compiled with x264, libass, fontconfig, freetype, fribidi and lame (Supports Android 4.1+)

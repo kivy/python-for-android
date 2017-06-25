@@ -1,0 +1,16 @@
+diff -Naur Python-2.7.9-orig/Python/random.c Python-2.7.9/Python/random.c
+--- Python-2.7.9-orig/Python/random.c	2014-12-10 18:59:59.000000000 +0300
++++ Python-2.7.9/Python/random.c	2014-12-11 13:49:40.266200000 +0300
+@@ -1,6 +1,12 @@
+ #include "Python.h"
+ #ifdef MS_WINDOWS
+ #include <windows.h>
++#ifdef __MINGW32__
++/* NOTE: All sample MSDN wincrypt programs include header below as it
++ * is required to ensure that application could be build properly in
++ * all cases. */
++#  include <wincrypt.h>
++#endif
+ #else
+ #include <fcntl.h>
+ #endif

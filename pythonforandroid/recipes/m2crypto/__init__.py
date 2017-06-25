@@ -1,6 +1,6 @@
 from pythonforandroid.toolchain import PythonRecipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+import pythonforandroid.sh as sh
 
 class M2CryptoRecipe(PythonRecipe):
     version = '0.24.0'

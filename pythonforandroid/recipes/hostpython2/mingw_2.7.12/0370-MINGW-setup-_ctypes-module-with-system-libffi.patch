@@ -1,0 +1,82 @@
+diff -Naur Python-2.7.9-orig/Modules/_ctypes/callproc.c Python-2.7.9/Modules/_ctypes/callproc.c
+--- Python-2.7.9-orig/Modules/_ctypes/callproc.c	2014-12-10 18:59:51.000000000 +0300
++++ Python-2.7.9/Modules/_ctypes/callproc.c	2014-12-11 13:50:07.425800000 +0300
+@@ -752,6 +752,21 @@
+ }
+ 
+ 
++#undef USE_PYFFI_DELTA
++#ifdef MS_WIN32
++#ifdef X86_ANY
++/* NOTE:
++ * - Standard library does not calculate stack pointer difference
++ *   unlike python specific for MSVC source.
++ * - As X86_ANY is defined in standard libffi only we will use as flag
++ *   to distinguish between standard and customized sources.
++ */
++#else
++/* use customized python libffi source */
++#  define USE_PYFFI_DELTA
++#endif
++#endif
++
+ /*
+  * libffi uses:
+  *
+@@ -780,7 +795,9 @@
+     ffi_cif cif;
+     int cc;
+ #ifdef MS_WIN32
++#ifdef USE_PYFFI_DELTA
+     int delta;
++#endif /* USE_PYFFI_DELTA */
+ #ifndef DONT_USE_SEH
+     DWORD dwExceptionCode = 0;
+     EXCEPTION_RECORD record;
+@@ -831,7 +848,9 @@
+ #ifndef DONT_USE_SEH
+     __try {
+ #endif
++#ifdef USE_PYFFI_DELTA
+         delta =
++#endif /* USE_PYFFI_DELTA */
+ #endif
+                 ffi_call(&cif, (void *)pProc, resmem, avalues);
+ #ifdef MS_WIN32
+@@ -865,6 +884,7 @@
+         return -1;
+     }
+ #endif
++#ifdef USE_PYFFI_DELTA
+ #ifdef MS_WIN64
+     if (delta != 0) {
+         PyErr_Format(PyExc_RuntimeError,
+@@ -894,6 +914,7 @@
+         return -1;
+     }
+ #endif
++#endif /* USE_PYFFI_DELTA */
+ #endif
+     if ((flags & FUNCFLAG_PYTHONAPI) && PyErr_Occurred())
+         return -1;
+diff -Naur Python-2.7.9-orig/setup.py Python-2.7.9/setup.py
+--- Python-2.7.9-orig/setup.py	2014-12-11 13:50:07.301000000 +0300
++++ Python-2.7.9/setup.py	2014-12-11 13:50:07.425800000 +0300
+@@ -2108,6 +2108,8 @@
+                         depends=depends)
+         ext_test = Extension('_ctypes_test',
+                              sources=['_ctypes/_ctypes_test.c'])
++        if host_platform.startswith(('mingw', 'win')):
++            ext_test.libraries.extend(['oleaut32'])
+         self.extensions.extend([ext, ext_test])
+ 
+         if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
+@@ -2141,6 +2143,8 @@
+         if ffi_inc and ffi_lib:
+             ext.include_dirs.extend(ffi_inc)
+             ext.libraries.append(ffi_lib)
++            if host_platform.startswith(('mingw', 'win')):
++                ext.libraries.extend(['ole32', 'oleaut32', 'uuid'])
+             self.use_system_libffi = True
+ 
+ 

@@ -6,6 +6,8 @@ import json
 import shutil
 import sys
 from tempfile import mkdtemp
+import pythonforandroid.sh as sh
+from pythonforandroid.sh import which
 try:
     from urllib.request import FancyURLopener
 except ImportError:
@@ -109,27 +111,6 @@ class JsonStore(object):
                 fd.write(unicode(json.dumps(self.data, ensure_ascii=False)))
 
 
-def which(program, path_env):
-    '''Locate an executable in the system.'''
-    import os
-
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in path_env.split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
-
-
 def get_directory(filename):
     '''If the filename ends with a recognised file extension, return the
     filename without this extension.'''
@@ -145,3 +126,15 @@ def get_directory(filename):
         return basename(filename[:-4])
     info('Unknown file extension for {}'.format(filename))
     exit(1)
+
+
+def mpath(p):
+    if ':' not in p:
+        return p
+    return p.replace('\\', '/').replace('//', '/')
+
+
+def posix_path(p):
+    if ':' not in p:
+        return p
+    return '/' + p.replace(':', '').replace('\\', '/').replace('//', '/')

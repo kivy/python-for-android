@@ -1,0 +1,57 @@
+diff -Naur Python-2.7.9-orig/Lib/distutils/command/build_ext.py Python-2.7.9/Lib/distutils/command/build_ext.py
+--- Python-2.7.9-orig/Lib/distutils/command/build_ext.py	2014-12-11 13:49:54.618200000 +0300
++++ Python-2.7.9/Lib/distutils/command/build_ext.py	2014-12-11 13:50:14.773400000 +0300
+@@ -179,7 +179,7 @@
+         # for extensions under windows use different directories
+         # for Release and Debug builds.
+         # also Python's library directory must be appended to library_dirs
+-        if os.name == 'nt':
++        if os.name == 'nt' and not self.plat_name.startswith(('mingw')):
+             # the 'libs' directory is for binary installs - we assume that
+             # must be the *native* platform.  But we don't really support
+             # cross-compiling via a binary install anyway, so we let it go.
+@@ -697,6 +697,20 @@
+         # pyconfig.h that MSVC groks.  The other Windows compilers all seem
+         # to need it mentioned explicitly, though, so that's what we do.
+         # Append '_d' to the python import library on debug builds.
++
++        # Use self.plat_name as it works even in case of
++        # cross-compilation (at least for mingw build).
++        if self.plat_name.startswith('mingw'):
++            from distutils import sysconfig
++            extra = []
++            for lib in (
++                sysconfig.get_config_var('BLDLIBRARY').split()
++                + sysconfig.get_config_var('SHLIBS').split()
++                ):
++                if lib.startswith('-l'):
++                    extra.append(lib[2:])
++            return ext.libraries + extra
++
+         if sys.platform == "win32":
+             from distutils.msvccompiler import MSVCCompiler
+             if not isinstance(self.compiler, MSVCCompiler):
+diff -Naur Python-2.7.9-orig/Lib/distutils/util.py Python-2.7.9/Lib/distutils/util.py
+--- Python-2.7.9-orig/Lib/distutils/util.py	2014-12-10 18:59:35.000000000 +0300
++++ Python-2.7.9/Lib/distutils/util.py	2014-12-11 13:50:14.773400000 +0300
+@@ -38,6 +38,8 @@
+     For other non-POSIX platforms, currently just returns 'sys.platform'.
+     """
+     if os.name == 'nt':
++        if 'GCC' in sys.version:
++            return 'mingw'
+         # sniff sys.version for architecture.
+         prefix = " bit ("
+         i = string.find(sys.version, prefix)
+diff -Naur Python-2.7.9-orig/Lib/sysconfig.py Python-2.7.9/Lib/sysconfig.py
+--- Python-2.7.9-orig/Lib/sysconfig.py	2014-12-11 13:49:29.549000000 +0300
++++ Python-2.7.9/Lib/sysconfig.py	2014-12-11 13:50:14.773400000 +0300
+@@ -560,6 +560,8 @@
+     """
+     import re
+     if os.name == 'nt':
++        if 'GCC' in sys.version:
++            return 'mingw'
+         # sniff sys.version for architecture.
+         prefix = " bit ("
+         i = sys.version.find(prefix)

@@ -1,7 +1,7 @@
 
 from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, info
 from pythonforandroid.patching import will_build, check_any
-import sh
+import pythonforandroid.sh as sh
 from os.path import join
 
 
