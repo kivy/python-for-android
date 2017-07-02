@@ -74,8 +74,7 @@ class SDL2GradleBootstrap(Bootstrap):
                     shprint(
                         sh.cp, '-a', python_install_dir, './python-install')
 
-            self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)],
-                                 dest_dir=join("src", "main", "jniLibs"))
+            self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
             self.distribute_javaclasses(self.ctx.javaclass_dir,
                                         dest_dir=join("src", "main", "java"))
 
