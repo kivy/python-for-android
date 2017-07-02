@@ -9,10 +9,6 @@ Good point:
 - automatic dependencies management
 - no need to unpack aar
 
-TODO:
-- test with crystax
-- Android.mk require both -I, otherwise it fail in different points
-
 """
 
 from pythonforandroid.toolchain import (
