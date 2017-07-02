@@ -27,9 +27,6 @@ android {
 		targetSdkVersion {{ args.sdk_version }}
 		versionCode {{ args.numeric_version }}
 		versionName '{{ args.version }}'
-		ndk {
-			abiFilters 'armeabi-v7a'
-		}
 	}
 
 	{% if args.sign -%}
