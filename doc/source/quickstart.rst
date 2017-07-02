@@ -61,13 +61,15 @@ p4a has several dependencies that must be installed:
 - unzip
 - virtualenv (can be installed via pip)
 - ccache (optional)
+- autoconf (for ffpyplayer_codecs recipe)
+- libtool (for ffpyplayer_codecs recipe)
 
 On recent versions of Ubuntu and its derivatives you may be able to
 install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant ccache
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant ccache autoconf libtool
 
 On Arch Linux (64 bit) you should be able to run the following to
 install most of the dependencies (note: this list may not be
