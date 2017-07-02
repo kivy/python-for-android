@@ -11,7 +11,6 @@ Good point:
 
 TODO:
 - test with crystax
-- hardcoded -lpython2.7 in build/jni/src/Android.mk
 - Android.mk require both -I, otherwise it fail in different points
 
 """
@@ -129,7 +128,7 @@ class SDL2GradleBootstrap(Bootstrap):
                 shprint(sh.cp, '-r', join(python_dir,
                                           'modules'), crystax_python_dir)
                 shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
-                        crystax_python_dir)
+                        join(crystax_python_dir, 'site-packages'))
 
                 info('Renaming .so files to reflect cross-compile')
                 site_packages_dir = join(crystax_python_dir, "site-packages")
