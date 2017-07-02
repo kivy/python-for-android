@@ -277,14 +277,14 @@ class Bootstrap(object):
                     shprint(sh.mv, '-t', sitepackages, *files)
                 shprint(sh.rm, '-rf', d)
 
-    def apk(self, build_mode, env):
-        try:
-            ant = sh.Command('ant')
-        except sh.CommandNotFound:
-            error('Could not find ant binary, please install it and make '
-                  'sure it is in your $PATH.')
-            exit(1)
-        return shprint(ant, build_mode, _tail=20, _critical=True, _env=env)
+    # def apk(self, build_mode, env):
+    #     try:
+    #         ant = sh.Command('ant')
+    #     except sh.CommandNotFound:
+    #         error('Could not find ant binary, please install it and make '
+    #               'sure it is in your $PATH.')
+    #         exit(1)
+    #     return shprint(ant, build_mode, _tail=20, _critical=True, _env=env)
 
 
 def expand_dependencies(recipes):
