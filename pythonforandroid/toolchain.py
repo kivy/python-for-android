@@ -772,10 +772,10 @@ class ToolchainCL(object):
             if build_type == 'auto':
                 info('Selecting java build tool:')
                 if exists('gradlew'):
-                    build_type == 'gradle'
+                    build_type = 'gradle'
                     info('    Building with gradle, as gradle executable is present')
                 else:
-                    build_type == 'ant'
+                    build_type = 'ant'
                     info('    Building with ant, as no gradle executable detected')
 
             if build_type == 'gradle':
