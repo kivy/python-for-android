@@ -79,6 +79,7 @@ import sh
 import imp
 from appdirs import user_data_dir
 import logging
+from distutils.version import LooseVersion
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
@@ -771,12 +772,24 @@ class ToolchainCL(object):
             build_type = ctx.java_build_tool
             if build_type == 'auto':
                 info('Selecting java build tool:')
-                if exists('gradlew'):
+
+                build_tools_versions = os.listdir(join(ctx.sdk_dir, 'build-tools'))
+                build_tools_versions = sorted(build_tools_versions,
+                                              key=LooseVersion)
+                build_tools_version = build_tools_versions[-1]
+                info(('Detected highest available build tools '
+                      'version to be {}').format(build_tools_version))
+
+                if build_tools_version >= '25.0' and exists('gradlew'):
                     build_type = 'gradle'
                     info('    Building with gradle, as gradle executable is present')
                 else:
                     build_type = 'ant'
-                    info('    Building with ant, as no gradle executable detected')
+                    if build_tools_version < '25.0':
+                        info(('    Building with ant, as the highest '
+                              'build-tools-version is only {}').format(build_tools_version))
+                    else:
+                        info('    Building with ant, as no gradle executable detected')
 
             if build_type == 'gradle':
                 # gradle-based build
