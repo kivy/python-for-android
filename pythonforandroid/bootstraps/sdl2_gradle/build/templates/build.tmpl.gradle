@@ -21,7 +21,7 @@ apply plugin: 'com.android.application'
 
 android {
 	compileSdkVersion {{ android_api }}
-	buildToolsVersion {{ build_tools_version }}
+	buildToolsVersion '{{ build_tools_version }}'
 	defaultConfig {
 		minSdkVersion {{ args.min_sdk_version }}
 		targetSdkVersion {{ android_api }}
