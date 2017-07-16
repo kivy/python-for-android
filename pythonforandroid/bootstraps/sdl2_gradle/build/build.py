@@ -356,6 +356,7 @@ main.py that loads it.''')
         args=args,
         service=service,
         service_names=service_names,
+        android_api=android_api,
         url_scheme=url_scheme)
 
     # Copy the AndroidManifest.xml to the dist root dir so that ant
