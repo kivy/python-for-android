@@ -328,6 +328,13 @@ class ToolchainCL(object):
             dest='local_recipes', default='./p4a-recipes',
             help='Directory to look for local recipes')
 
+        generic_parser.add_argument(
+            '--java-build-tool',
+            dest='java_build_tool', default='auto',
+            choices=['auto', 'ant', 'gradle'],
+            help=('The java build tool to use when packaging the APK, defaults '
+                  'to automatically selecting an appropriate tool.'))
+
         add_boolean_option(
             generic_parser, ['copy-libs'],
             default=False,
@@ -501,6 +508,7 @@ class ToolchainCL(object):
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
         self.ctx.symlink_java_src = args.symlink_java_src
+        self.ctx.java_build_tool = args.java_build_tool
 
         self._archs = split_argument_list(args.arch)
 
@@ -760,7 +768,17 @@ class ToolchainCL(object):
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
 
-            if exists(join(dist.dist_dir, "templates", "build.tmpl.gradle")):
+            build_type = ctx.java_build_tool
+            if build_type == 'auto':
+                info('Selecting java build tool:')
+                if exists('gradlew'):
+                    build_type == 'gradle'
+                    info('    Building with gradle, as gradle executable is present')
+                else:
+                    build_type == 'ant'
+                    info('    Building with ant, as no gradle executable detected')
+
+            if build_type == 'gradle':
                 # gradle-based build
                 env["ANDROID_NDK_HOME"] = self.ctx.ndk_dir
                 env["ANDROID_HOME"] = self.ctx.sdk_dir
