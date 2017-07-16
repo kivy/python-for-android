@@ -1,16 +1,3 @@
-# coding=utf-8
-"""
-Bootstrap for SDL2, using gradlew for building
-==============================================
-
-.. warning:: Experimental
-
-Good point:
-- automatic dependencies management
-- no need to unpack aar
-
-"""
-
 from pythonforandroid.toolchain import (
     Bootstrap, shprint, current_directory, info, info_main)
 from pythonforandroid.util import ensure_dir

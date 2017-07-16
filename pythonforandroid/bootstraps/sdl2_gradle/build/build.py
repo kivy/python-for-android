@@ -343,18 +343,37 @@ main.py that loads it.''')
         url_scheme=url_scheme)
 
     render(
-        'build.tmpl.gradle',
-        'build.gradle',
-        args=args,
-        aars=aars)
-
-    render(
         'strings.tmpl.xml',
         'src/main/res/values/strings.xml',
         args=args,
         url_scheme=url_scheme,
         private_version=str(time.time()))
 
+    ## gradle build templates
+    render(
+        'build.tmpl.gradle',
+        'build.gradle',
+        args=args,
+        aars=aars)
+
+    ## ant build templates
+    render(
+        'build.tmpl.xml',
+        'build.xml',
+        args=args,
+        versioned_name=versioned_name)
+
+    render(
+        'custom_rules.tmpl.xml',
+        'custom_rules.xml',
+        args=args)
+
+
+    if args.sign:
+        render('build.properties', 'build.properties')
+    else:
+        if exists('build.properties'):
+            os.remove('build.properties')
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
