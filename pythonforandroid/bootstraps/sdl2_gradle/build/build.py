@@ -4,7 +4,7 @@
 from __future__ import print_function
 from os.path import (
     dirname, join, isfile, realpath, relpath, split, exists, basename)
-from os import makedirs
+from os import makedirs, remove, listdir
 import os
 import tarfile
 import time
@@ -12,6 +12,7 @@ import subprocess
 import shutil
 from zipfile import ZipFile
 import sys
+from distutils.version import LooseVersion
 
 from fnmatch import fnmatch
 
@@ -334,6 +335,21 @@ main.py that loads it.''')
             sticky=sticky,
             service_id=sid + 1)
 
+    # Find the SDK directory and target API
+    with open('project.properties', 'r') as fileh:
+        target = fileh.read().strip()
+    android_api = target.split('-')[1]
+    with open('local.properties', 'r') as fileh:
+        sdk_dir = fileh.read().strip()
+    sdk_dir = sdk_dir[8:]
+
+    # Try to build with the newest available build tools
+    build_tools_versions = listdir(join(sdk_dir, 'build-tools'))
+    build_tools_versions = sorted(build_tools_versions,
+                                  key=LooseVersion)
+    build_tools_version = build_tools_versions[-1]
+
+
     render(
         'AndroidManifest.tmpl.xml',
         'src/main/AndroidManifest.xml',
@@ -341,6 +357,14 @@ main.py that loads it.''')
         service=service,
         service_names=service_names,
         url_scheme=url_scheme)
+
+    # Copy the AndroidManifest.xml to the dist root dir so that ant
+    # can also use it
+    if exists('AndroidManifest.xml'):
+        remove('AndroidManifest.xml')
+    shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
+                'AndroidManifest.xml')
+        
 
     render(
         'strings.tmpl.xml',
@@ -354,7 +378,9 @@ main.py that loads it.''')
         'build.tmpl.gradle',
         'build.gradle',
         args=args,
-        aars=aars)
+        aars=aars,
+        android_api=android_api,
+        build_tools_version=build_tools_version)
 
     ## ant build templates
     render(
@@ -454,9 +480,11 @@ tools directory of the Android SDK.
     ap.add_argument('--depend', dest='depends', action='append',
                     help=('Add a external dependency '
                           '(eg: com.android.support:appcompat-v7:19.0.1)'))
-    ap.add_argument('--sdk', dest='sdk_version', default=-1,
-                    type=int, help=('Android SDK version to use. Default to '
-                                    'the value of minsdk'))
+    ## The --sdk option has been removed, it is ignored in favour of
+    ## --android-api handled by toolchain.py
+    # ap.add_argument('--sdk', dest='sdk_version', default=-1,
+    #                 type=int, help=('Android SDK version to use. Default to '
+    #                                 'the value of minsdk'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
                     default=default_android_api, type=int,
                     help=('Minimum Android SDK version to use. Default to '
@@ -487,8 +515,8 @@ tools directory of the Android SDK.
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
 
-    if args.sdk_version == -1:
-        args.sdk_version = args.min_sdk_version
+    # if args.sdk_version == -1:
+    #     args.sdk_version = args.min_sdk_version
 
     if args.permissions is None:
         args.permissions = []

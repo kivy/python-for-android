@@ -20,11 +20,11 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion {{ args.sdk_version }}
-	buildToolsVersion '25.0.3'
+	compileSdkVersion {{ android_api }}
+	buildToolsVersion {{ build_tools_version }}
 	defaultConfig {
 		minSdkVersion {{ args.min_sdk_version }}
-		targetSdkVersion {{ args.sdk_version }}
+		targetSdkVersion {{ android_api }}
 		versionCode {{ args.numeric_version }}
 		versionName '{{ args.version }}'
 	}
