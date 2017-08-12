@@ -553,6 +553,11 @@ class ToolchainCL(object):
                     recipe = Recipe.get_recipe(name, ctx)
                 except IOError:
                     warning('Recipe "{}" could not be loaded'.format(name))
+                except SyntaxError:
+                    import traceback
+                    traceback.print_exc()
+                    warning(('Recipe "{}" could not be loaded due to a '
+                             'syntax error').format(name))
                 version = str(recipe.version)
                 print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
                       '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
