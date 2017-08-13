@@ -182,6 +182,8 @@ def build_dist_from_args(ctx, dist, args):
     bs.distribution = dist
     info_notify('Dist will have name {} and recipes ({})'.format(
         dist.name, ', '.join(dist.recipes)))
+    info('Dist will also contain modules ({}) installed from pip'.format(
+        ', '.join(ctx.python_modules)))
 
     ctx.dist_name = bs.distribution.name
     ctx.prepare_bootstrap(bs)
