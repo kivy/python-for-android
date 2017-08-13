@@ -174,6 +174,8 @@ def shprint(command, *args, **kwargs):
         output = command(*args, **kwargs)
         for line in output:
             if logger.level > logging.DEBUG:
+                if isinstance(line, bytes):
+                    line = line.decode('utf-8', errors='replace')
                 msg = line.replace(
                     '\n', ' ').replace(
                         '\t', ' ').replace(
