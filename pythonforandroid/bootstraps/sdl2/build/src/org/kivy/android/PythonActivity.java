@@ -172,6 +172,7 @@ public class PythonActivity extends SDLActivity {
             String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
             Log.v(TAG, "Setting env vars for start.c and Python to use");
             SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+            SDLActivity.nativeSetEnv("ANDROID_UNPACK", mFilesDirectory + "/app");
             SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
             SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
             SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
