@@ -1,4 +1,4 @@
-from os.path import (join, dirname)
+from os.path import (exists, join, dirname)
 from os import environ, uname
 import sys
 from distutils.spawn import find_executable
@@ -33,13 +33,27 @@ class Arch(object):
     def get_env(self, with_flags_in_cc=True):
         env = {}
 
-        env["CFLAGS"] = " ".join([
-            "-DANDROID", "-mandroid", "-fomit-frame-pointer",
-            "--sysroot", self.ctx.ndk_platform])
+        env['CFLAGS'] = ' '.join([
+            '-DANDROID', '-mandroid', '-fomit-frame-pointer'
+            ' -D__ANDROID_API__={}'.format(self.ctx._android_api),
+           ])
+        env['LDFLAGS'] = ' '
+
+        sysroot = join(self.ctx._ndk_dir, 'sysroot')
+        if exists(sysroot):
+            # post-15 NDK per
+            # https://android.googlesource.com/platform/ndk/+/ndk-r15-release/docs/UnifiedHeaders.md
+            env['CFLAGS'] += ' -isystem {}/sysroot/usr/include/{}'.format(
+                self.ctx.ndk_dir, self.ctx.toolchain_prefix)
+        else:
+            sysroot = self.ctx.ndk_platform
+            env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk_platform)
+        env['CFLAGS'] += ' -isysroot {} '.format(sysroot)
+        env['LDFLAGS'] += '--sysroot {} '.format(self.ctx.ndk_platform)
 
         env["CXXFLAGS"] = env["CFLAGS"]
 
-        env["LDFLAGS"] = " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
+        env["LDFLAGS"] += " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
 
         if self.ctx.ndk == 'crystax':
             env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
