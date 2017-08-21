@@ -49,14 +49,12 @@ class LibGlobRecipe(CompiledComponentsPythonRecipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             cflags = env['CFLAGS'].split()
-            cflags.extend(['-I.', '-c', '-l.', 'glob.c', '-I.']) # , '-o', 'glob.o'])
+            cflags.extend(['-I.', '-c', '-l.', 'glob.c', '-I.'])
             shprint(cc, *cflags, _env=env)
 
             cflags = env['CFLAGS'].split()
-            srindex = cflags.index('--sysroot')
-            if srindex:
-                cflags[srindex+1] = self.ctx.ndk_platform
             cflags.extend(['-shared', '-I.', 'glob.o', '-o', 'libglob.so'])
+            cflags.extend(env['LDFLAGS'].split())
             shprint(cc, *cflags, _env=env)
 
             shprint(sh.cp, 'libglob.so', join(self.ctx.libs_dir, arch.arch))
