@@ -57,7 +57,7 @@ If you did this, to build an APK with SDL2 you can try e.g.
 
     p4a apk --requirements=kivy --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
-For full instructions and parameter options, see the documentation.
+For full instructions and parameter options, see [the documentation](https://python-for-android.readthedocs.io/en/latest/quickstart/#usage).
 
 # Support
 
