@@ -46,7 +46,7 @@ or to test the master branch::
     pip install git+https://github.com/kivy/python-for-android.git
 
 The executable is called ``python-for-android`` or ``p4a`` (both are
-equivalent). To test that the installation worked, try
+equivalent). To test that the installation worked, try::
 
     python-for-android recipes
 
@@ -55,7 +55,7 @@ This should return a list of recipes available to be built.
 To build any distributions, you need to set up the Android SDK and NDK
 as described in the documentation linked above.
 
-If you did this, to build an APK with SDL2 you can try e.g.
+If you did this, to build an APK with SDL2 you can try e.g.::
 
     p4a apk --requirements=kivy --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
