@@ -53,9 +53,13 @@ recursively_include(package_data, 'pythonforandroid/bootstraps/webview',
 recursively_include(package_data, 'pythonforandroid',
                     ['liblink', 'biglink', 'liblink.sh'])
 
+with open(join(dirname(__file__), 'README.rst')) as fileh:
+    long_description = fileh.read()
+
 setup(name='python-for-android',
-      version='0.5',
+      version='0.5.2',
       description='Android APK packager for Python scripts and apps',
+      long_description=long_description,
       author='The Kivy team',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/kivy/python-for-android', 
