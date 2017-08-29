@@ -63,6 +63,9 @@ class Arch(object):
         if self.ctx.ndk == 'crystax':
             env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
 
+        # Pass the ndk platform include dir to Android.mk files if necessary
+        env['NDK_PLATFORM_INCLUDE_DIR'] = join(self.ctx.ndk_platform, 'usr', 'include')
+
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
