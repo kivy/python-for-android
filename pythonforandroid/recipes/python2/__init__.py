@@ -111,6 +111,8 @@ class Python2Recipe(TargetPythonRecipe):
                 f = 'LDFLAGS'
                 env[f] = env[f] + l if f in env else l
 
+            # NDK has langinfo.h but doesn't define nl_langinfo()
+            env['ac_cv_header_langinfo_h'] = 'no'
             configure = sh.Command('./configure')
             # AND: OFLAG isn't actually set, should it be?
             shprint(configure,
