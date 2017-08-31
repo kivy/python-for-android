@@ -27,6 +27,7 @@ public class PythonUtil {
         boolean foundPython = false;
 
 		for (String lib : getLibraries()) {
+            Log.v("python", "Loading library: " + lib);
 		    try {
                 System.loadLibrary(lib);
                 if (lib.startsWith("python")) {
@@ -36,10 +37,15 @@ public class PythonUtil {
                 // If this is the last possible libpython
                 // load, and it has failed, give a more
                 // general error
+                Log.v("python", "Library loading error: " + e.getMessage());
                 if (lib.startsWith("python3.6") && !foundPython) {
                     throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
+                } else if (lib.startsWith("python")) {
+                    continue;
+                } else {
+                    Log.v("python", "An UnsatisfiedLinkError occurred loading " + lib);
+                    throw e;
                 }
-                continue;
             }
         }
 
