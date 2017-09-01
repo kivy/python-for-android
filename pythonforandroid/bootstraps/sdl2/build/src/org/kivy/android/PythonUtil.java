@@ -5,38 +5,48 @@ import java.io.File;
 import android.util.Log;
 import java.util.ArrayList;
 import java.io.FilenameFilter;
+// import android.os.PatternMatcher;
+import java.util.regex.Pattern;
 
 public class PythonUtil {
 	private static final String TAG = "pythonutil";
 
+    protected static void addLibraryIfExists(ArrayList<String> libsList, String pattern, File libsDir) {
+        // pattern should be the name of the lib file, without the
+        // preceding "lib" or suffix ".so", for instance "ssl.*" will
+        // match files of the form "libssl.*.so".
+        File [] files = libsDir.listFiles();
+
+        pattern = "lib" + pattern + "\\.so";
+        Pattern p = Pattern.compile(pattern);
+        for (int i = 0; i < files.length; ++i) {
+            File file = files[i];
+            String name = file.getName();
+            Log.v(TAG, "Checking pattern " + pattern + " against " + name);
+            if (p.matcher(name).matches()) {
+                Log.v(TAG, "Pattern " + pattern + " matched file " + name);
+                libsList.add(name.substring(3, name.length() - 3));
+            }
+        }
+    }
+
     protected static ArrayList<String> getLibraries(File filesDir) {
 
-        ArrayList<String> MyList = new ArrayList<String>();
-        MyList.add("SDL2");
-        MyList.add("SDL2_image");
-        MyList.add("SDL2_mixer");
-        MyList.add("SDL2_ttf");
+        String libsDirPath = filesDir.getParentFile().getParentFile().getAbsolutePath() + "/lib/";
+        File libsDir = new File(libsDirPath);
 
-        String absPath = filesDir.getParentFile().getParentFile().getAbsolutePath() + "/lib/";
-        filesDir = new File(absPath);
-        File [] files = filesDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return  name.matches(".*ssl.*") || name.matches(".*crypto.*");
-            }
-        });
-
-        for (int i = 0; i < files.length; ++i) {
-            File mfl = files[i];
-            String name = mfl.getName();
-            name = name.substring(3, name.length() - 3);
-            MyList.add(name);
-        };
-
-        MyList.add("python2.7");
-        MyList.add("python3.5m");
-        MyList.add("main");
-        return MyList;
+        ArrayList<String> libsList = new ArrayList<String>();
+        addLibraryIfExists(libsList, "crystax", libsDir);
+        libsList.add("SDL2");
+        libsList.add("SDL2_image");
+        libsList.add("SDL2_mixer");
+        libsList.add("SDL2_ttf");
+        addLibraryIfExists(libsList, "ssl.*", libsDir);
+        addLibraryIfExists(libsList, "crypto.*", libsDir);
+        libsList.add("python2.7");
+        libsList.add("python3.5m");
+        libsList.add("main");
+        return libsList;
     }
 
     public static void loadLibraries(File filesDir) {
