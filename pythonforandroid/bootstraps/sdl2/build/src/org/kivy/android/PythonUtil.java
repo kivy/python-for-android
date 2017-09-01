@@ -5,7 +5,6 @@ import java.io.File;
 import android.util.Log;
 import java.util.ArrayList;
 import java.io.FilenameFilter;
-// import android.os.PatternMatcher;
 import java.util.regex.Pattern;
 
 public class PythonUtil {
@@ -37,6 +36,7 @@ public class PythonUtil {
 
         ArrayList<String> libsList = new ArrayList<String>();
         addLibraryIfExists(libsList, "crystax", libsDir);
+        addLibraryIfExists(libsList, "sqlite3", libsDir);
         libsList.add("SDL2");
         libsList.add("SDL2_image");
         libsList.add("SDL2_mixer");
