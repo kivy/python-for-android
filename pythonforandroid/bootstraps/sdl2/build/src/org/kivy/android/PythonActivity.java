@@ -172,6 +172,7 @@ public class PythonActivity extends SDLActivity {
             String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
             Log.v(TAG, "Setting env vars for start.c and Python to use");
             SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+            SDLActivity.nativeSetEnv("ANDROID_UNPACK", app_root_dir);
             SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
             SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
             SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
@@ -183,7 +184,8 @@ public class PythonActivity extends SDLActivity {
 
                 PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
                 if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
-                    mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+                	mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+                	mActivity.mWakeLock.acquire();
                 }
                 if ( mActivity.mMetaData.getInt("surface.transparent") != 0 ) {
                     Log.v(TAG, "Surface will be transparent.");
@@ -452,5 +454,27 @@ public class PythonActivity extends SDLActivity {
     }
 
     }
+    
+    @Override
+    protected void onPause() {
+    	// fooabc
+        if ( this.mWakeLock != null &&  mWakeLock.isHeld()){
+        	this.mWakeLock.release();
+        }
+
+        Log.v(TAG, "onPause()");
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+    	if ( this.mWakeLock != null){
+    		this.mWakeLock.acquire(); 
+    	}
+	    Log.v(TAG, "onResume()");
+	    super.onResume();
+    }
+
+    
 
 }

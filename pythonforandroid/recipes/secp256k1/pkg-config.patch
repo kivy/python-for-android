@@ -1,0 +1,28 @@
+diff --git a/setup.py b/setup.py
+index bba4bce..609481c 100644
+--- a/setup.py
++++ b/setup.py
+@@ -48,10 +48,7 @@ if [int(i) for i in setuptools_version.split('.')] < [3, 3]:
+ try:
+     subprocess.check_call(['pkg-config', '--version'])
+ except OSError:
+-    raise SystemExit(
+-        "'pkg-config' is required to install this package. "
+-        "Please see the README for details."
+-    )
++    pass
+ 
+ 
+ def download_library(command):
+diff --git a/setup_support.py b/setup_support.py
+index 68a2a7f..ccbafac 100644
+--- a/setup_support.py
++++ b/setup_support.py
+@@ -40,6 +40,7 @@ def absolute(*paths):
+ 
+ def build_flags(library, type_, path):
+     """Return separated build flags from pkg-config output"""
++    return []
+ 
+     pkg_config_path = [path]
+     if "PKG_CONFIG_PATH" in os.environ:

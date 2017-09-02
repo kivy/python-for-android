@@ -158,6 +158,7 @@ public class PythonActivity extends Activity {
         PythonActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
         PythonActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
         PythonActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
+        PythonActivity.nativeSetEnv("ANDROID_UNPACK", mFilesDirectory);
         PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
         PythonActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
         PythonActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");

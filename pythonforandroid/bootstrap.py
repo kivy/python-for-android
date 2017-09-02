@@ -27,7 +27,7 @@ class Bootstrap(object):
     dist_name = None
     distribution = None
 
-    recipe_depends = []
+    recipe_depends = ['sdl2']
 
     can_be_chosen_automatically = True
     '''Determines whether the bootstrap can be chosen as one that
@@ -150,9 +150,14 @@ class Bootstrap(object):
                         ok = False
                         break
                 for recipe in recipes:
-                    recipe = Recipe.get_recipe(recipe, ctx)
+                    try:
+                        recipe = Recipe.get_recipe(recipe, ctx)
+                    except IOError:
+                        conflicts = []
+                    else:
+                        conflicts = recipe.conflicts
                     if any([conflict in possible_dependencies
-                            for conflict in recipe.conflicts]):
+                            for conflict in conflicts]):
                         ok = False
                         break
                 if ok:
