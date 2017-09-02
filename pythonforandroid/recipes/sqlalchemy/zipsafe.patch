@@ -1,0 +1,12 @@
+diff --git a/setup.py b/setup.py
+index 09b524c..1e65772 100644
+--- a/setup.py
++++ b/setup.py
+@@ -125,6 +125,7 @@ def run_setup(with_cext):
+     setup(name="SQLAlchemy",
+           version=VERSION,
+           description="Database Abstraction Library",
++          zip_safe=False,
+           author="Mike Bayer",
+           author_email="mike_mp@zzzcomputing.com",
+           url="http://www.sqlalchemy.org",

@@ -1,0 +1,11 @@
+--- Python-2.7.2.orig/setup.py	2010-10-31 17:40:21.000000000 +0100
++++ Python-2.7.2/setup.py	2011-11-27 16:49:36.840204364 +0100
+@@ -21,7 +21,7 @@
+ COMPILED_WITH_PYDEBUG = hasattr(sys, 'gettotalrefcount')
+ 
+ # This global variable is used to hold the list of modules to be disabled.
+-disabled_module_list = []
++disabled_module_list = ['spwd','bz2','ossaudiodev','_curses','_curses_panel','readline','_locale','_bsddb','gdbm','dbm','nis','linuxaudiodev','crypt','_multiprocessing']
+ 
+ def add_dir_to_list(dirlist, dir):
+     """Add the directory 'dir' to the list 'dirlist' (at the front) if

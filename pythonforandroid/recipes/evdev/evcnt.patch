@@ -1,0 +1,21 @@
+diff -Naur orig/evdev/input.c v0.4.7/evdev/input.c
+--- orig/evdev/input.c	2015-06-11 13:56:43.483891914 -0500
++++ v0.4.7/evdev/input.c	2015-06-11 13:57:29.079529095 -0500
+@@ -24,6 +24,8 @@
+ #include <linux/input.h>
+ #endif
+ 
++#define EV_CNT (EV_MAX+1)
++
+ #define MAX_NAME_SIZE 256
+ 
+ extern char*  EV_NAME[EV_CNT];
+@@ -190,7 +192,7 @@
+                                                    absinfo.maximum,
+                                                    absinfo.fuzz,
+                                                    absinfo.flat,
+-                                                   absinfo.resolution);
++                                                   0);
+ 
+                         evlong = PyLong_FromLong(ev_code);
+                         absitem = Py_BuildValue("(OO)", evlong, py_absinfo);

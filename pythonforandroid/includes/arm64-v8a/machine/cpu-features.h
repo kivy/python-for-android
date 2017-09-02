@@ -1,0 +1,7 @@
+#ifndef _ARM64_CPU_FEATURES
+#define _ARM64_CPU_FEATURES
+
+#define __ARM_ARCH__ 8
+#define __ARM_HAVE_HALFWORD_MULTIPLY 1
+
+#endif // _ARM64_CPU_FEATURES

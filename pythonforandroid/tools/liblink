@@ -1,0 +1,101 @@
+#!/usr/bin/env python2.7
+
+from __future__ import print_function
+import sys
+import subprocess
+from os import environ
+from os.path import basename, join
+
+libs = [ ]
+objects = [ ]
+output = None
+
+copylibs = environ.get('COPYLIBS', '0') == '1'
+
+i = 1
+while i < len(sys.argv):
+    opt = sys.argv[i]
+    i += 1
+
+    if opt == "-o":
+        output = sys.argv[i]
+        i += 1
+        continue
+
+    if opt.startswith("-l") or opt.startswith("-L"):
+        libs.append(opt)
+        continue
+
+    if opt in ("-r", "-pipe", "-no-cpp-precomp"):
+        continue
+
+    if opt in ("--sysroot", "-isysroot", "-framework", "-undefined",
+            "-macosx_version_min"):
+        i += 1
+        continue
+
+    if opt.startswith("-I"):
+        continue
+
+    if opt.startswith("-m"):
+        continue
+
+    if opt.startswith("-f"):
+        continue
+
+    if opt.startswith("-O"):
+        continue
+
+    if opt.startswith("-g"):
+        continue
+
+    if opt.startswith("-D"):
+        continue
+
+    if opt.startswith("-R"):
+        # for -rpath, not implemented yet.
+        continue
+
+    if opt.startswith("-"):
+        print(sys.argv)
+        print("Unknown option: %s" % opt)
+        sys.exit(1)
+
+    if not opt.endswith('.o'):
+        continue
+
+    objects.append(opt)
+
+
+print('liblink path is', str(environ.get('LIBLINK_PATH')))
+abs_output = join(environ.get('LIBLINK_PATH'), basename(output))
+
+if not copylibs:
+    f = open(output, "w")
+    f.close()
+
+    output = abs_output
+
+    f = open(output + ".libs", "w")
+    f.write(" ".join(libs))
+    f.close()
+
+    sys.exit(subprocess.call([
+        environ.get('LD'), '-r',
+        '-o', output + '.o'
+        #, '-arch', environ.get('ARCH')
+        ] + objects))
+else:
+    with open(abs_output + '.libs', 'w') as f_libs:
+        with open(abs_output + '.libdirs', 'w') as f_libdirs:
+            for l in libs:
+                if l[1] == 'l':
+                    f_libs.write(l[2:])
+                    f_libs.write(' ')
+                else:
+                    f_libdirs.write(l[2:])
+                    f_libdirs.write(' ')
+
+    libargs = ' '.join(["'%s'" % arg for arg in sys.argv[1:]])
+    cmd = '%s -shared %s %s' % (environ['CC'], environ['LDFLAGS'], libargs)
+    sys.exit(subprocess.call(cmd, shell=True))

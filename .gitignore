@@ -1,15 +1,6 @@
-build
 *.swp
 *.swo
 *~
-src/obj
-src/local.properties
-src/default.properties
-src/libs/armeabi
-dist
-*.pyc
-testsuite
-.packages
 
 #ECLIPSE + PYDEV
 .project
@@ -18,3 +9,15 @@ testsuite
 .deps
 
 .optional-deps
+
+*.pyc
+*.pyo
+*.apk
+.packages
+python_for_android.egg-info
+/build/
+doc/build
+__pycache__/
+
+#idea/pycharm
+.idea/

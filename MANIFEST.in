@@ -1,0 +1,13 @@
+
+include LICENSE README.md
+
+recursive-include doc *
+prune doc/build
+
+recursive-include pythonforandroid *.py *.tmpl biglink liblink
+recursive-include pythonforandroid/recipes *.py *.patch *.c *.pyx Setup *.h
+    
+recursive-include pythonforandroid/bootstraps *.properties *.xml *.java *.tmpl *.txt *.png *.aidl *.py *.sh *.c *.h *.html
+    
+prune .git
+prune pythonforandroid/bootstraps/pygame/build/libs

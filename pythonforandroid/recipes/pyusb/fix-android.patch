@@ -1,0 +1,40 @@
+--- pyusb-1.0.0b1.orig/usb/backend/libusb1.py	2013-10-21 12:56:10.000000000 -0500
++++ pyusb-1.0.0b1/usb/backend/libusb1.py	2014-12-08 16:49:07.141514148 -0600
+@@ -265,13 +265,7 @@
+ 
+ def _load_library():
+     if sys.platform != 'cygwin':
+-        candidates = ('usb-1.0', 'libusb-1.0', 'usb')
+-        for candidate in candidates:
+-            if sys.platform == 'win32':
+-                candidate = candidate + '.dll'
+-
+-            libname = ctypes.util.find_library(candidate)
+-            if libname is not None: break
++        libname = '/system/lib/libusb1.0.so'
+     else:
+         # corner cases
+         # cygwin predefines library names with 'cyg' instead of 'lib'
+@@ -672,16 +666,21 @@
+ 
+ # implementation of libusb 1.0 backend
+ class _LibUSB(usb.backend.IBackend):
++    
++    ran_init = False
++    
+     @methodtrace(_logger)
+     def __init__(self, lib):
+         usb.backend.IBackend.__init__(self)
+         self.lib = lib
+         self.ctx = c_void_p()
+         _check(self.lib.libusb_init(byref(self.ctx)))
++        self.ran_init = True
+ 
+     @methodtrace(_logger)
+     def __del__(self):
+-        self.lib.libusb_exit(self.ctx)
++	if self.ran_init is True:
++	  self.lib.libusb_exit(self.ctx)
+ 
+ 
+     @methodtrace(_logger)
