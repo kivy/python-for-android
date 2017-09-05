@@ -491,6 +491,9 @@ tools directory of the Android SDK.
                          'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
                     help='Include additional source dirs in Java build')
+    ap.add_argument('--try-system-python-compile', dest='try_system_python_compile',
+                    action='store_true',
+                    help='Use the system python during compileall if possible.')
     ap.add_argument('--no-compile-pyo', dest='no_compile_pyo', action='store_true',
                     help='Do not optimise .py files to .pyo.')
     ap.add_argument('--sign', action='store_true',
@@ -523,6 +526,17 @@ tools directory of the Android SDK.
 
     if args.services is None:
         args.services = []
+
+    if args.try_system_python_compile:
+        # Hardcoding python2.7 is okay for now, as python3 skips the
+        # compilation anyway
+        python_executable = 'python2.7'
+        try:
+            subprocess.call([python_executable, '--version'])
+        except (OSError, subprocess.CalledProcessError):
+            pass
+        else:
+            PYTHON = python_executable
 
     if args.no_compile_pyo:
         PYTHON = None
