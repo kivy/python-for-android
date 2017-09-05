@@ -530,13 +530,14 @@ tools directory of the Android SDK.
     if args.try_system_python_compile:
         # Hardcoding python2.7 is okay for now, as python3 skips the
         # compilation anyway
-        python_executable = 'python2.7'
-        try:
-            subprocess.call([python_executable, '--version'])
-        except (OSError, subprocess.CalledProcessError):
-            pass
-        else:
-            PYTHON = python_executable
+        if not exists('crystax_python'):
+            python_executable = 'python2.7'
+            try:
+                subprocess.call([python_executable, '--version'])
+            except (OSError, subprocess.CalledProcessError):
+                pass
+            else:
+                PYTHON = python_executable
 
     if args.no_compile_pyo:
         PYTHON = None
