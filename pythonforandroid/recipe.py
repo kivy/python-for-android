@@ -149,7 +149,7 @@ class Recipe(with_metaclass(RecipeMeta)):
 
             urlretrieve(url, target, report_hook)
             return target
-        elif parsed_url.scheme in ('git', 'git+ssh', 'git+http', 'git+https'):
+        elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
                 with current_directory(target):
                     shprint(sh.git, 'fetch', '--tags')
