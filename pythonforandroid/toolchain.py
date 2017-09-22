@@ -7,6 +7,7 @@ This module defines the entry point for command line and programmatic use.
 """
 
 from __future__ import print_function
+from pythonforandroid import __version__
 
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
@@ -463,6 +464,8 @@ class ToolchainCL(object):
             'build_status', aliases=['build-status'],
             help='Print some debug information about current built components',
             parents=[generic_parser])
+
+        parser.add_argument('-v', '--version', action='version', version=__version__)
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
