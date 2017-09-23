@@ -28,16 +28,16 @@ class SDL2Bootstrap(Bootstrap):
         with current_directory(self.dist_dir):
             info('Copying python distribution')
 
-            if not exists('private') and not self.ctx.python_recipe.from_crystax:
+            if not exists('private') and self.ctx.python_recipe is not None and not self.ctx.python_recipe.from_crystax:
                 shprint(sh.mkdir, 'private')
-            if not exists('crystax_python') and self.ctx.python_recipe.from_crystax:
+            if not exists('crystax_python') and self.ctx.python_recipe is not None and self.ctx.python_recipe.from_crystax:
                 shprint(sh.mkdir, 'crystax_python')
                 shprint(sh.mkdir, 'crystax_python/crystax_python')
             if not exists('assets'):
                 shprint(sh.mkdir, 'assets')
 
             hostpython = sh.Command(self.ctx.hostpython)
-            if not self.ctx.python_recipe.from_crystax:
+            if self.ctx.python_recipe is not None and not self.ctx.python_recipe.from_crystax:
                 try:
                     shprint(hostpython, '-OO', '-m', 'compileall',
                             self.ctx.get_python_install_dir(),
@@ -51,7 +51,7 @@ class SDL2Bootstrap(Bootstrap):
             self.distribute_aars(arch)
             self.distribute_javaclasses(self.ctx.javaclass_dir)
 
-            if not self.ctx.python_recipe.from_crystax:
+            if self.ctx.python_recipe is not None and not self.ctx.python_recipe.from_crystax:
                 info('Filling private directory')
                 if not exists(join('private', 'lib')):
                     info('private/lib does not exist, making')
