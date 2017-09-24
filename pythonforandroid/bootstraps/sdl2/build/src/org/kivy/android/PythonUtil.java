@@ -3,30 +3,58 @@ package org.kivy.android;
 import java.io.File;
 
 import android.util.Log;
-
+import java.util.ArrayList;
+import java.io.FilenameFilter;
+import java.util.regex.Pattern;
 
 public class PythonUtil {
 	private static final String TAG = "pythonutil";
 
-	protected static String[] getLibraries() {
-        return new String[] {
-            "SDL2",
-            "SDL2_image",
-            "SDL2_mixer",
-            "SDL2_ttf",
-            "python2.7",
-            "python3.5m",
-            "python3.6m",
-            "main"
-        };
+    protected static void addLibraryIfExists(ArrayList<String> libsList, String pattern, File libsDir) {
+        // pattern should be the name of the lib file, without the
+        // preceding "lib" or suffix ".so", for instance "ssl.*" will
+        // match files of the form "libssl.*.so".
+        File [] files = libsDir.listFiles();
+
+        pattern = "lib" + pattern + "\\.so";
+        Pattern p = Pattern.compile(pattern);
+        for (int i = 0; i < files.length; ++i) {
+            File file = files[i];
+            String name = file.getName();
+            Log.v(TAG, "Checking pattern " + pattern + " against " + name);
+            if (p.matcher(name).matches()) {
+                Log.v(TAG, "Pattern " + pattern + " matched file " + name);
+                libsList.add(name.substring(3, name.length() - 3));
+            }
+        }
     }
 
-	public static void loadLibraries(File filesDir) {
+    protected static ArrayList<String> getLibraries(File filesDir) {
+
+        String libsDirPath = filesDir.getParentFile().getParentFile().getAbsolutePath() + "/lib/";
+        File libsDir = new File(libsDirPath);
+
+        ArrayList<String> libsList = new ArrayList<String>();
+        addLibraryIfExists(libsList, "crystax", libsDir);
+        addLibraryIfExists(libsList, "sqlite3", libsDir);
+        libsList.add("SDL2");
+        libsList.add("SDL2_image");
+        libsList.add("SDL2_mixer");
+        libsList.add("SDL2_ttf");
+        addLibraryIfExists(libsList, "ssl.*", libsDir);
+        addLibraryIfExists(libsList, "crypto.*", libsDir);
+        libsList.add("python2.7");
+        libsList.add("python3.5m");
+        libsList.add("main");
+        return libsList;
+    }
+
+    public static void loadLibraries(File filesDir) {
 
         String filesDirPath = filesDir.getAbsolutePath();
         boolean foundPython = false;
 
-		for (String lib : getLibraries()) {
+		for (String lib : getLibraries(filesDir)) {
             Log.v(TAG, "Loading library: " + lib);
 		    try {
                 System.loadLibrary(lib);
@@ -66,3 +94,4 @@ public class PythonUtil {
         Log.v(TAG, "Loaded everything!");
     }
 }
+
