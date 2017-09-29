@@ -1,6 +1,6 @@
 **WARNING: This old python-for-android toolchain is deprecated and
-   no longer supported. Please move to the current toolchain, see
-   https://github.com/kivy/python-for-android.**
+no longer supported. Please move to the current toolchain, see
+https://github.com/kivy/python-for-android.**
 
 Python for Android
 ==================
