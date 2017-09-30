@@ -1,3 +1,4 @@
+import os
 from os.path import exists, join
 import glob
 import json
@@ -28,6 +29,12 @@ class Distribution(object):
     recipes = []
 
     description = ''  # A long description
+
+    P4A_force_build = False
+    '''P4A_force_build True if distribution build forced by environmental variables:
+    P4A_{name}_DIR - pointing to local repository
+    P4A_force_build - request build for local recipies
+    '''
 
     def __init__(self, ctx):
         self.ctx = ctx
@@ -102,15 +109,20 @@ class Distribution(object):
             info('No existing dists meet the given requirements!')
 
         # If any dist has perfect recipes, return it
+        P4A_force_build = False
         for dist in possible_dists:
-            if force_build:
-                continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and
                  not require_perfect_match)):
-                info_notify('{} has compatible recipes, using this one'
-                            .format(dist.name))
-                return dist
+                if force_build:
+                    #  distribution exists, rebuild forced
+                    P4A_force_build = True
+                    continue
+                else:
+                    #  existing distribution returned, no build required
+                    info_notify('{} has compatible recipes, using this one'
+                                .format(dist.name))
+                    return dist
 
         assert len(possible_dists) < 2
 
@@ -145,6 +157,11 @@ class Distribution(object):
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)
         dist.needs_build = True
+        """Locally modified recipes will be forced to build, others are reused
+        environmental variable P4A_{recipe_name}_DIR points to local recipe
+        P4A_force_build affects all local recipes"""
+
+        dist.P4A_force_build = P4A_force_build and os.environ.get('P4A_force_build')
 
         if not name:
             filen = 'unnamed_dist_{}'

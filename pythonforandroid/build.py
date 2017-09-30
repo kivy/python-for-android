@@ -47,6 +47,8 @@ class Context(object):
 
     symlink_java_src = False # If True, will symlink instead of copying during build
 
+    P4A_force_build = False  #  True forces local recipes rebuild, see toolchain.dist_from_args()
+
     @property
     def packages_path(self):
         '''Where packages are downloaded before being unpacked'''
@@ -547,6 +549,9 @@ def build_recipes(build_order, python_modules, ctx):
     # download is arch independent
     info_main('# Downloading recipes ')
     for recipe in recipes:
+        if ctx.P4A_force_build and not recipe.force_build:
+            info_main('recipe {0} not marked for force build, skip download'.format(recipe.name))
+            continue
         recipe.download_if_necessary()
 
     for arch in ctx.archs:
@@ -554,6 +559,9 @@ def build_recipes(build_order, python_modules, ctx):
 
         info_main('# Unpacking recipes')
         for recipe in recipes:
+            if ctx.P4A_force_build and not recipe.force_build:
+                info_main('recipe {0} not marked for force build, skip unpack'.format(recipe.name))
+                continue
             ensure_dir(recipe.get_build_container_dir(arch.arch))
             recipe.prepare_build_dir(arch.arch)
 
@@ -568,7 +576,7 @@ def build_recipes(build_order, python_modules, ctx):
         info_main('# Building recipes')
         for recipe in recipes:
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
-            if recipe.should_build(arch):
+            if recipe.force_build or recipe.should_build(arch):
                 recipe.build_arch(arch)
             else:
                 info('{} said it is already built, skipping'

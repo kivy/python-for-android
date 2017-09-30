@@ -154,12 +154,19 @@ def dist_from_args(ctx, args):
     '''Parses out any distribution-related arguments, and uses them to
     obtain a Distribution class instance for the build.
     '''
-    return Distribution.get_distribution(
+    #  check if distribution force build requested
+    force_build = bool( os.environ.get('P4A_force_build') ) or args.force_build
+    dist = Distribution.get_distribution(
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
+        force_build=force_build,
         extra_dist_dirs=split_argument_list(args.extra_dist_dirs),
         require_perfect_match=args.require_perfect_match)
+
+    #  for distribution where user requested local recipe rebuild P4A_force_build set tue
+    ctx.P4A_force_build = dist.P4A_force_build  #  see Distribution.get_distribution()
+    return dist
 
 
 def build_dist_from_args(ctx, dist, args):
@@ -514,7 +521,10 @@ class ToolchainCL(object):
         self.ctx.copy_libs = args.copy_libs
 
         # Each subparser corresponds to a method
-        getattr(self, args.subparser_name.replace('-', '_'))(args)
+        #  make executed command starts build, let's make it more visible
+        # getattr(self, args.subparser_name.replace('-', '_'))(args)
+        cmd = args.subparser_name.replace('-', '_')
+        getattr(self, cmd)(args)
 
     def hook(self, name):
         if not self.args.hook:
