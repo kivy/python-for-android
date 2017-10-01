@@ -30,7 +30,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         tpy = '{} = {}\n'
 
         bootstrap = bootstrap_name = self.ctx.bootstrap.name
-        is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3')
+        is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3', 'sdl2_gradle')
         is_pygame = bootstrap_name in ('pygame',)
         is_webview = bootstrap_name in ('webview',)
 

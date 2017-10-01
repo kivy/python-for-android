@@ -1,9 +1,10 @@
 #!/usr/bin/env python2.7
+# coding: utf-8
 
 from __future__ import print_function
-
-from os.path import dirname, join, isfile, realpath, relpath, split, exists
-from os import makedirs, remove
+from os.path import (
+    dirname, join, isfile, realpath, relpath, split, exists, basename)
+from os import makedirs, remove, listdir
 import os
 import tarfile
 import time
@@ -11,18 +12,11 @@ import subprocess
 import shutil
 from zipfile import ZipFile
 import sys
-import re
+from distutils.version import LooseVersion
 
 from fnmatch import fnmatch
 
 import jinja2
-
-if os.name == 'nt':
-    ANDROID = 'android.bat'
-    ANT = 'ant.bat'
-else:
-    ANDROID = 'android'
-    ANT = 'ant'
 
 curdir = dirname(__file__)
 
@@ -57,6 +51,17 @@ python_files = []
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
+
+
+def try_unlink(fn):
+    if exists(fn):
+        os.unlink(fn)
+
+
+def ensure_dir(path):
+    if not exists(path):
+        makedirs(path)
+
 
 def render(template, dest, **kwargs):
     '''Using jinja2, render `template` to the filename `dest`, supplying the
@@ -109,6 +114,7 @@ def listfiles(d):
         for fn in listfiles(subdir):
             yield fn
 
+
 def make_python_zip():
     '''
     Search for all the python related files, and construct the pythonXX.zip
@@ -124,7 +130,6 @@ def make_python_zip():
 
     global python_files
     d = realpath(join('private', 'lib', 'python2.7'))
-
 
     def select(fn):
         if is_blacklist(fn):
@@ -151,6 +156,7 @@ def make_python_zip():
         afn = fn[len(d):]
         zf.write(fn, afn)
     zf.close()
+
 
 def make_tar(tfn, source_dirs, ignore_path=[]):
     '''
@@ -213,15 +219,6 @@ def compile_dir(dfn):
 
 
 def make_package(args):
-    # # Update the project to a recent version.
-    # try:
-    #     subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
-    #                      'android-{}'.format(args.sdk_version)])
-    # except (OSError, IOError):
-    #     print('An error occured while calling', ANDROID, 'update')
-    #     print('Your PATH must include android tools.')
-    #     sys.exit(-1)
-
     # Ignore warning if the launcher is in args
     if not args.launcher:
         if not (exists(join(realpath(args.private), 'main.py')) or
@@ -233,11 +230,8 @@ main.py that loads it.''')
             exit(1)
 
     # Delete the old assets.
-    if exists('assets/public.mp3'):
-        os.unlink('assets/public.mp3')
-
-    if exists('assets/private.mp3'):
-        os.unlink('assets/private.mp3')
+    try_unlink('src/main/assets/public.mp3')
+    try_unlink('src/main/assets/private.mp3')
 
     # In order to speedup import and initial depack,
     # construct a python27.zip
@@ -252,42 +246,21 @@ main.py that loads it.''')
         tar_dirs.append('crystax_python')
 
     if args.private:
-        make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
+        make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
     elif args.launcher:
         # clean 'None's as a result of main.py path absence
         tar_dirs = [tdir for tdir in tar_dirs if tdir]
-        make_tar('assets/private.mp3', tar_dirs, args.ignore_path)
-    # else:
-    #     make_tar('assets/private.mp3', ['private'])
-
-    # if args.dir:
-    #     make_tar('assets/public.mp3', [args.dir], args.ignore_path)
-
-
-    # # Build.
-    # try:
-    #     for arg in args.command:
-    #         subprocess.check_call([ANT, arg])
-    # except (OSError, IOError):
-    #     print 'An error occured while calling', ANT
-    #     print 'Did you install ant on your system ?'
-    #     sys.exit(-1)
-
+        make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
 
     # folder name for launcher
     url_scheme = 'kivy'
 
     # Prepare some variables for templating process
-    if args.launcher:
-        default_icon = 'templates/launcher-icon.png'
-        default_presplash = 'templates/launcher-presplash.jpg'
-    else:
-        default_icon = 'templates/kivy-icon.png'
-        default_presplash = 'templates/kivy-presplash.jpg'
-    shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
-
+    default_icon = 'templates/kivy-icon.png'
+    default_presplash = 'templates/kivy-presplash.jpg'
+    shutil.copy(args.icon or default_icon, 'src/main/res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash,
-                'res/drawable/presplash.jpg')
+                'src/main/res/drawable/presplash.jpg')
 
     # If extra Java jars were requested, copy them into the libs directory
     if args.add_jar:
@@ -295,7 +268,18 @@ main.py that loads it.''')
             if not exists(jarname):
                 print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
-            shutil.copy(jarname, 'libs')
+            shutil.copy(jarname, 'src/main/libs')
+
+    # if extra aar were requested, copy them into the libs directory
+    aars = []
+    if args.add_aar:
+        ensure_dir("libs")
+        for aarname in args.add_aar:
+            if not exists(aarname):
+                print('Requested aar does not exists: {}'.format(aarname))
+                sys.exit(-1)
+            shutil.copy(aarname, 'libs')
+            aars.append(basename(aarname).rsplit('.', 1)[0])
 
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
@@ -343,24 +327,63 @@ main.py that loads it.''')
         service_names.append(name)
         render(
             'Service.tmpl.java',
-            'src/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
+            'src/main/java/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
             name=name,
             entrypoint=entrypoint,
             args=args,
             foreground=foreground,
             sticky=sticky,
-            service_id=sid + 1,
-        )
+            service_id=sid + 1)
+
+    # Find the SDK directory and target API
+    with open('project.properties', 'r') as fileh:
+        target = fileh.read().strip()
+    android_api = target.split('-')[1]
+    with open('local.properties', 'r') as fileh:
+        sdk_dir = fileh.read().strip()
+    sdk_dir = sdk_dir[8:]
+
+    # Try to build with the newest available build tools
+    build_tools_versions = listdir(join(sdk_dir, 'build-tools'))
+    build_tools_versions = sorted(build_tools_versions,
+                                  key=LooseVersion)
+    build_tools_version = build_tools_versions[-1]
+
 
     render(
         'AndroidManifest.tmpl.xml',
-        'AndroidManifest.xml',
+        'src/main/AndroidManifest.xml',
         args=args,
         service=service,
         service_names=service_names,
-        url_scheme=url_scheme,
-        )
+        android_api=android_api,
+        url_scheme=url_scheme)
 
+    # Copy the AndroidManifest.xml to the dist root dir so that ant
+    # can also use it
+    if exists('AndroidManifest.xml'):
+        remove('AndroidManifest.xml')
+    shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
+                'AndroidManifest.xml')
+        
+
+    render(
+        'strings.tmpl.xml',
+        'src/main/res/values/strings.xml',
+        args=args,
+        url_scheme=url_scheme,
+        private_version=str(time.time()))
+
+    ## gradle build templates
+    render(
+        'build.tmpl.gradle',
+        'build.gradle',
+        args=args,
+        aars=aars,
+        android_api=android_api,
+        build_tools_version=build_tools_version)
+
+    ## ant build templates
     render(
         'build.tmpl.xml',
         'build.xml',
@@ -368,33 +391,16 @@ main.py that loads it.''')
         versioned_name=versioned_name)
 
     render(
-        'strings.tmpl.xml',
-        'res/values/strings.xml',
-        args=args,
-        url_scheme=url_scheme,
-        )
-
-    render(
         'custom_rules.tmpl.xml',
         'custom_rules.xml',
         args=args)
+
 
     if args.sign:
         render('build.properties', 'build.properties')
     else:
         if exists('build.properties'):
             os.remove('build.properties')
-
-    with open(join(dirname(__file__), 'res',
-                   'values', 'strings.xml')) as fileh:
-        lines = fileh.read()
-
-    with open(join(dirname(__file__), 'res',
-                   'values', 'strings.xml'), 'w') as fileh:
-        fileh.write(re.sub(r'"private_version">[0-9\.]*<',
-                           '"private_version">{}<'.format(
-                               str(time.time())), lines))
-
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
@@ -470,9 +476,16 @@ tools directory of the Android SDK.
                     help=('Add a Java .jar to the libs, so you can access its '
                           'classes with pyjnius. You can specify this '
                           'argument more than once to include multiple jars'))
-    ap.add_argument('--sdk', dest='sdk_version', default=-1,
-                    type=int, help=('Android SDK version to use. Default to '
-                                    'the value of minsdk'))
+    ap.add_argument('--add-aar', dest='add_aar', action='append',
+                    help=('Add an aar dependency manually'))
+    ap.add_argument('--depend', dest='depends', action='append',
+                    help=('Add a external dependency '
+                          '(eg: com.android.support:appcompat-v7:19.0.1)'))
+    ## The --sdk option has been removed, it is ignored in favour of
+    ## --android-api handled by toolchain.py
+    # ap.add_argument('--sdk', dest='sdk_version', default=-1,
+    #                 type=int, help=('Android SDK version to use. Default to '
+    #                                 'the value of minsdk'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
                     default=default_android_api, type=int,
                     help=('Minimum Android SDK version to use. Default to '
@@ -484,8 +497,6 @@ tools directory of the Android SDK.
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
-    ap.add_argument('--with-billing', dest='billing_pubkey',
-                    help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--service', dest='services', action='append',
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
@@ -508,12 +519,8 @@ tools directory of the Android SDK.
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
 
-    if args.billing_pubkey:
-        print('Billing not yet supported in sdl2 bootstrap!')
-        exit(1)
-
-    if args.sdk_version == -1:
-        args.sdk_version = args.min_sdk_version
+    # if args.sdk_version == -1:
+    #     args.sdk_version = args.min_sdk_version
 
     if args.permissions is None:
         args.permissions = []
@@ -561,5 +568,4 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
-
     parse_args()

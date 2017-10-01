@@ -65,7 +65,7 @@ check_python_dependencies()
 
 import sys
 from sys import platform
-from os.path import (join, dirname, realpath, exists, expanduser)
+from os.path import (join, dirname, realpath, exists, expanduser, basename)
 import os
 import glob
 import shutil
@@ -79,6 +79,7 @@ import sh
 import imp
 from appdirs import user_data_dir
 import logging
+from distutils.version import LooseVersion
 
 from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
                                      CompiledComponentsPythonRecipe,
@@ -328,6 +329,13 @@ class ToolchainCL(object):
             dest='local_recipes', default='./p4a-recipes',
             help='Directory to look for local recipes')
 
+        generic_parser.add_argument(
+            '--java-build-tool',
+            dest='java_build_tool', default='auto',
+            choices=['auto', 'ant', 'gradle'],
+            help=('The java build tool to use when packaging the APK, defaults '
+                  'to automatically selecting an appropriate tool.'))
+
         add_boolean_option(
             generic_parser, ['copy-libs'],
             default=False,
@@ -501,6 +509,7 @@ class ToolchainCL(object):
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
         self.ctx.symlink_java_src = args.symlink_java_src
+        self.ctx.java_build_tool = args.java_build_tool
 
         self._archs = split_argument_list(args.arch)
 
@@ -605,7 +614,7 @@ class ToolchainCL(object):
                     'Asked to clean "{}" but this argument is not '
                     'recognised'.format(component)))
             component_clean_methods[component](args)
-            
+
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
@@ -755,18 +764,70 @@ class ToolchainCL(object):
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
+            os.environ["ANDROID_API"] = str(self.ctx.android_api)
             build_args = build.parse_args(args.unknown_args)
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
 
-            try:
-                ant = sh.Command('ant')
-            except sh.CommandNotFound:
-                error('Could not find ant binary, please install it and make '
-                      'sure it is in your $PATH.')
-                exit(1)
+            build_type = ctx.java_build_tool
+            if build_type == 'auto':
+                info('Selecting java build tool:')
 
-            output = shprint(ant, args.build_mode, _tail=20, _critical=True, _env=env)
+                build_tools_versions = os.listdir(join(ctx.sdk_dir, 'build-tools'))
+                build_tools_versions = sorted(build_tools_versions,
+                                              key=LooseVersion)
+                build_tools_version = build_tools_versions[-1]
+                info(('Detected highest available build tools '
+                      'version to be {}').format(build_tools_version))
+
+                if build_tools_version >= '25.0' and exists('gradlew'):
+                    build_type = 'gradle'
+                    info('    Building with gradle, as gradle executable is present')
+                else:
+                    build_type = 'ant'
+                    if build_tools_version < '25.0':
+                        info(('    Building with ant, as the highest '
+                              'build-tools-version is only {}').format(build_tools_version))
+                    else:
+                        info('    Building with ant, as no gradle executable detected')
+
+            if build_type == 'gradle':
+                # gradle-based build
+                env["ANDROID_NDK_HOME"] = self.ctx.ndk_dir
+                env["ANDROID_HOME"] = self.ctx.sdk_dir
+
+                gradlew = sh.Command('./gradlew')
+                if args.build_mode == "debug":
+                    gradle_task = "assembleDebug"
+                elif args.build_mode == "release":
+                    gradle_task = "assembleRelease"
+                else:
+                    error("Unknown build mode {} for apk()".format(
+                        args.build_mode))
+                    exit(1)
+                output = shprint(gradlew, gradle_task, _tail=20,
+                                 _critical=True, _env=env)
+
+                # gradle output apks somewhere else
+                # and don't have version in file
+                apk_dir = join(dist.dist_dir, "build", "outputs", "apk")
+                apk_glob = "*-{}.apk"
+                apk_add_version = True
+
+            else:
+                # ant-based build
+                try:
+                    ant = sh.Command('ant')
+                except sh.CommandNotFound:
+                    error('Could not find ant binary, please install it '
+                          'and make sure it is in your $PATH.')
+                    exit(1)
+                output = shprint(ant, args.build_mode, _tail=20,
+                                 _critical=True, _env=env)
+                apk_dir = join(dist.dist_dir, "bin")
+                apk_glob = "*-*-{}.apk"
+                apk_add_version = False
+
             self.hook("after_apk_assemble")
 
         info_main('# Copying APK to current directory')
@@ -781,19 +842,31 @@ class ToolchainCL(object):
 
         if not apk_file:
             info_main('# APK filename not found in build output, trying to guess')
-            suffix = args.build_mode
-            if suffix == 'release' and not args.keystore:
-                suffix = suffix + '-unsigned'
-            apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(suffix)))
-            if len(apks) == 0:
+            if args.build_mode == "release":
+                suffixes = ("release", "release-unsigned")
+            else:
+                suffixes = ("debug", )
+            for suffix in suffixes:
+                apks = glob.glob(join(apk_dir, apk_glob.format(suffix)))
+                if apks:
+                    if len(apks) > 1:
+                        info('More than one built APK found... guessing you '
+                             'just built {}'.format(apks[-1]))
+                    apk_file = apks[-1]
+                    break
+            else:
                 raise ValueError('Couldn\'t find the built APK')
-            if len(apks) > 1:
-                info('More than one built APK found...guessing you '
-                     'just built {}'.format(apks[-1]))
-            apk_file = apks[-1]
 
         info_main('# Found APK file: {}'.format(apk_file))
-        shprint(sh.cp, apk_file, './')
+        if apk_add_version:
+            info('# Add version number to APK')
+            apk_name, apk_suffix = basename(apk_file).split("-", 1)
+            apk_file_dest = "{}-{}-{}".format(
+                apk_name, build_args.version, apk_suffix)
+            info('# APK renamed to {}'.format(apk_file_dest))
+            shprint(sh.cp, apk_file, apk_file_dest)
+        else:
+            shprint(sh.cp, apk_file, './')
 
     @require_prebuilt_dist
     def create(self, args):

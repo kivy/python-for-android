@@ -84,15 +84,31 @@ Installing Android SDK
 
 You need to download and unpack the Android SDK and NDK to a directory (let's say $HOME/Documents/):
 
-- `Android SDK <https://developer.android.com/sdk/index.html#Other>`_
+- `Android SDK <https://developer.android.com/studio/index.html>`_
 - `Android NDK <https://developer.android.com/ndk/downloads/index.html>`_
+
+For the Android SDK, you can download 'just the command line
+tools'. When you have extracted these you'll see only a directory
+named ``tools``, and you will need to run extra commands to install
+the SDK packages needed.
+
+First, install a platform to target (you can also replace ``19`` with
+a different platform number, this will be used again later)::
+
+  $SDK_DIR/tools/bin/sdkmanager "platforms;android-19"
+
+Second, install the build-tools. You can use
+``$SDK_DIR/tools/bin/sdkmanager --list`` to see all the
+possibilities, but 26.0.2 is the latest version at the time of writing::
+
+  $SDK_DIR/tools/bin/sdkmanager "build-tools;26.0.2"
 
 Then, you can edit your ``~/.bashrc`` or other favorite shell to include new environment variables necessary for building on android::
 
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-21"
     export ANDROIDNDK="$HOME/Documents/android-ndk-r10e"
-    export ANDROIDAPI="14"  # Minimum API version your application require
+    export ANDROIDAPI="19"  # Minimum API version your application require
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 
 You have the possibility to configure on any command the PATH to the SDK, NDK and Android API using:
