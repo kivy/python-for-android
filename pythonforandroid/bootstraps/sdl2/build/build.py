@@ -483,9 +483,8 @@ tools directory of the Android SDK.
                           '(eg: com.android.support:appcompat-v7:19.0.1)'))
     ## The --sdk option has been removed, it is ignored in favour of
     ## --android-api handled by toolchain.py
-    # ap.add_argument('--sdk', dest='sdk_version', default=-1,
-    #                 type=int, help=('Android SDK version to use. Default to '
-    #                                 'the value of minsdk'))
+    ap.add_argument('--sdk', dest='sdk_version', default=-1,
+                    type=int, help=('Deprecated argument, does nothing'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
                     default=default_android_api, type=int,
                     help=('Minimum Android SDK version to use. Default to '
@@ -521,6 +520,10 @@ tools directory of the Android SDK.
 
     # if args.sdk_version == -1:
     #     args.sdk_version = args.min_sdk_version
+
+    if args.sdk_version != -1:
+        print('WARNING: Received a --sdk argument, but this argument is '
+              'deprecated and does nothing.')
 
     if args.permissions is None:
         args.permissions = []
