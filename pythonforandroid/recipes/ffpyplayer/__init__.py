@@ -7,14 +7,10 @@ import os
 
 
 class FFPyPlayerRecipe(CythonRecipe):
-    version = '08d08d1d60b9b25198aab40230a27235d5cbbfa1'  # https://github.com/matham/ffpyplayer/pull/29
+    version = 'master'
     url = 'https://github.com/matham/ffpyplayer/archive/{version}.zip'
     depends = [('python2', 'python3crystax'), 'sdl2', 'ffmpeg']
     opt_depends = ['openssl', 'ffpyplayer_codecs']
-    patches = ['patches/add-mixer.patch']
-
-    def prebuild_arch(self, arch):
-        self.apply_patches(arch)
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super(FFPyPlayerRecipe, self).get_recipe_env(arch)
