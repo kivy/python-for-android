@@ -95,7 +95,7 @@ options (this list may not be exhaustive):
   ``android:screenOrientation`` in the `Android documentation
   <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
 - ``--icon``: A path to the png file to use as the application icon.
-- ``-- permission``: A permission name for the app,
+- ``--permission``: A permission name for the app,
   e.g. ``--permission VIBRATE``. For multiple permissions, add
   multiple ``--permission`` arguments.
 - ``--meta-data``: Custom key=value pairs to add in the application metadata.

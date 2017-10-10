@@ -80,8 +80,10 @@ Services support a range of options and interactions not yet
 documented here but all accessible via calling other methods of the
 ``service`` reference.
 
-.. note:: The app root directory for Python imports will be in the app
-root folder even if the service file is in a subfolder. To import from
-your service folder you must use e.g.  ``import service.module``
-instead of ``import module``, if the service file is in the
-``service/`` folder.
+.. note::
+
+    The app root directory for Python imports will be in the app
+    root folder even if the service file is in a subfolder. To import from
+    your service folder you must use e.g.  ``import service.module``
+    instead of ``import module``, if the service file is in the
+    ``service/`` folder.

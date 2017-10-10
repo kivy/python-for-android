@@ -26,6 +26,7 @@ public abstract class PythonService extends Service implements Runnable {
     private String pythonName;
     private String pythonHome;
     private String pythonPath;
+    private String androidUnpack;
     private String serviceEntrypoint;
     private String pythonServiceArgument;
 
@@ -70,6 +71,7 @@ public abstract class PythonService extends Service implements Runnable {
         pythonName = extras.getString("pythonName");
         pythonHome = extras.getString("pythonHome");
         pythonPath = extras.getString("pythonPath");
+        androidUnpack = extras.getString("androidUnpack");
         pythonServiceArgument = extras.getString("pythonServiceArgument");
 
         Log.v(TAG, "Starting Python thread");
@@ -127,7 +129,7 @@ public abstract class PythonService extends Service implements Runnable {
     public void run() {
         PythonUtil.loadLibraries(getFilesDir());
         nativeStart(androidPrivate, androidArgument, serviceEntrypoint, pythonName, pythonHome,
-                pythonPath, pythonServiceArgument);
+                pythonPath, pythonServiceArgument, androidUnpack);
         stopSelf();
     }
 
@@ -143,5 +145,5 @@ public abstract class PythonService extends Service implements Runnable {
     public static native void nativeStart(String androidPrivate, String androidArgument,
                                           String serviceEntrypoint, String pythonName,
                                           String pythonHome, String pythonPath,
-                                          String pythonServiceArgument);
+                                          String pythonServiceArgument, String androidUnpack);
 }
