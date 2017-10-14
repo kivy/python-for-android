@@ -84,6 +84,11 @@ int main(int argc, char *argv[]) {
   setenv("ANDROID_APP_PATH", env_argument, 1);
   env_entrypoint = getenv("ANDROID_ENTRYPOINT");
   env_logname = getenv("PYTHON_NAME");
+
+  if (!getenv("ANDROID_UNPACK")) {
+    /* ANDROID_UNPACK currently isn't set in services */
+    setenv("ANDROID_UNPACK", env_argument, 1);
+  }
   
   if (env_logname == NULL) {
     env_logname = "python";
