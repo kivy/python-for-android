@@ -168,43 +168,6 @@ class Recipe(with_metaclass(RecipeMeta)):
                         shprint(sh.git, 'submodule', 'update', '--recursive')
             return target
 
-    def extract_source(self, source, cwd):
-        """
-        (internal) Extract the `source` into the directory `cwd`.
-        """
-        if not source:
-            return
-        if isfile(source):
-            info("Extract {} into {}".format(source, cwd))
-
-            if source.endswith(".tgz") or source.endswith(".tar.gz"):
-                shprint(sh.tar, "-C", cwd, "-xvzf", source)
-
-            elif source.endswith(".tbz2") or source.endswith(".tar.bz2"):
-                shprint(sh.tar, "-C", cwd, "-xvjf", source)
-
-            elif source.endswith(".zip"):
-                zf = zipfile.ZipFile(source)
-                zf.extractall(path=cwd)
-                zf.close()
-
-            else:
-                warning(
-                    "Error: cannot extract, unrecognized extension for {}"
-                    .format(source))
-                raise Exception()
-
-        elif isdir(source):
-            info("Copying {} into {}".format(source, cwd))
-
-            shprint(sh.cp, '-a', source, cwd)
-
-        else:
-            warning(
-                "Error: cannot extract or copy, unrecognized path {}"
-                .format(source))
-            raise Exception()
-
     # def get_archive_rootdir(self, filename):
     #     if filename.endswith(".tgz") or filename.endswith(".tar.gz") or \
     #         filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
