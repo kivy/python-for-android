@@ -116,7 +116,7 @@ You have the possibility to configure on any command the PATH to the SDK, NDK an
 - :code:`--sdk_dir PATH` as an equivalent of `$ANDROIDSDK`
 - :code:`--ndk_dir PATH` as an equivalent of `$ANDROIDNDK`
 - :code:`--android_api VERSION` as an equivalent of `$ANDROIDAPI`
-- :code:`--ndk_ver PATH` as an equivalent of `$ANDROIDNDKVER`
+- :code:`--ndk_version PATH` as an equivalent of `$ANDROIDNDKVER`
 
 
 Usage
