@@ -275,8 +275,6 @@ class Recipe(with_metaclass(RecipeMeta)):
     def name(self):
         '''The name of the recipe, the same as the folder containing it.'''
         modname = self.__class__.__module__
-        if self.from_pip:
-            return modname.split(".")[-2]
         return modname.split(".", 2)[-1]
 
     # @property
@@ -633,12 +631,13 @@ class Recipe(with_metaclass(RecipeMeta)):
         Example
         --------
 
-        #: In somepackage/myrecipe/__init__.py
+        #: In p4a_myrecipe/__init__.py
 
             from pythonforandroid.recipe import CythonRecipe
 
             class MyRecipe(CythonRecipe):
                 version = "1.0"
+                name = "my-recipe" #: Must be defined
                 # etc ...
 
             def get_recipe():
@@ -649,13 +648,14 @@ class Recipe(with_metaclass(RecipeMeta)):
             setup(
               #...
               entry_points = {
-                'p4a_recipe': ['myrecipe = somepackage.myrecipe:get_recipe'],
+                'p4a_recipe': ['my_recipe = p4a_myrecipe:get_recipe'],
               },
             )
 
         '''
         for ep in pkg_resources.iter_entry_points(group="p4a_recipe"):
-            if ep.name == name:
+            #: Match names with - or _ the same as entry_points requires underscores
+            if ep.name.replace("-", "_") == name.replace("-", "_"):
                 get_recipe = ep.load()
                 return get_recipe()
 
