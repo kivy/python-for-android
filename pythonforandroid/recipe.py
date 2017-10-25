@@ -275,6 +275,8 @@ class Recipe(with_metaclass(RecipeMeta)):
     def name(self):
         '''The name of the recipe, the same as the folder containing it.'''
         modname = self.__class__.__module__
+        if self.from_pip:
+            return modname.split(".")[-2]
         return modname.split(".", 2)[-1]
 
     # @property
