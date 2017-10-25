@@ -160,3 +160,10 @@ This error appears in the logcat log if you try to access
 ``org.renpy.android.PythonActivity`` from within the new toolchain. To
 fix it, change your code to reference
 ``org.kivy.android.PythonActivity`` instead.
+
+websocket-client: if you see errors relating to 'SSL not available'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ensure you have the package backports.ssl-match-hostname in the buildozer requirements, since Kivy targets python 2.7.x
+ 
+You may also need sslopt={"cert_reqs": ssl.CERT_NONE} as a parameter to ws.run_forever() if you get an error relating to host verification
+

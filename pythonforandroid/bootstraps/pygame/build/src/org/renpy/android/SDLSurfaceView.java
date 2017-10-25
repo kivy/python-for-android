@@ -706,6 +706,7 @@ public class SDLSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         nativeResize(mWidth, mHeight);
         nativeInitJavaCallbacks();
         nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+        nativeSetEnv("ANDROID_UNPACK", mFilesDirectory);
         nativeSetEnv("ANDROID_ARGUMENT", mArgument);
         nativeSetEnv("ANDROID_APP_PATH", mArgument);
         nativeSetEnv("PYTHONOPTIMIZE", "2");

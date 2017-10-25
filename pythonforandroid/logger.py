@@ -173,6 +173,8 @@ def shprint(command, *args, **kwargs):
         msg_width = columns - len(msg_hdr) - 1
         output = command(*args, **kwargs)
         for line in output:
+            if isinstance(line, bytes):
+                line = line.decode('utf-8', errors='replace')
             if logger.level > logging.DEBUG:
                 msg = line.replace(
                     '\n', ' ').replace(
