@@ -633,7 +633,7 @@ class Recipe(with_metaclass(RecipeMeta)):
         Example
         --------
 
-        #: In somepackage/myrecipe.py
+        #: In somepackage/myrecipe/__init__.py
 
             from pythonforandroid.recipe import CythonRecipe
 
