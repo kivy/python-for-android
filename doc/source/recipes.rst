@@ -15,6 +15,10 @@ python-for-android comes with many recipes for popular modules. No
 recipe is necessary to use of Python modules with no
 compiled components; these are installed automaticaly via pip.
 
+Recipes can now be defined in a separate pip package so specific versions
+can be installed and removed via pip. These use the ``p4a_recipe`` 
+entry_point. See details on how to create a recipe this way below.
+
 If you are new to building recipes, it is recommended that you first
 read all of this page, at least up to the Recipe reference
 documentation. The different recipe sections include a number of
@@ -490,4 +494,48 @@ how to create your own Recipe subclass.
    :member-order: = 'bysource'
 
 
+
+Installing recipes via pip
+--------------------------------------
+
+Recipes can now be created as separate pypi packages that can be
+installed and removed with pip using setuptools ``entry_points``. This allows
+installing specific versions of a recipe without needing to create a
+custom python-for-android fork.
+
+.. note:: pip installed recipes should be installed with the --user flag
+
+For example:
+
+``pip install --user p4a-msgpack``
+
+A specific version can be installed using the normal ``<package>==<version`` format.
+
+
+To create a pip package that defines a Recipe, the package must 
+use of the "p4a_recipe" entry point. This entry point must be a
+function that return a tuple of (recipe, __file__)
+        
+    from pythonforandroid.recipe import CythonRecipe
+    #: In p4a_myrecipe/__init__.py
+    class MyRecipe(CythonRecipe):
+        version = "1.0"
+        name = "my-recipe" #: Must be defined
+        # etc ...
+    
+    def get_recipe():
+        return (MyRecipe(), __file__)
+                
+The setup.py file must then  reference it as shown below.
+    
+    from setuptools import setup    
+    #: setup.py
+    setup(
+        #...
+        entry_points = {
+            'p4a_recipe': ['my_recipe = p4a_myrecipe:get_recipe'],
+        },
+    )
+
+Search pypi for "p4a-msgpack" or simply "p4a-" to see a working example.
 
