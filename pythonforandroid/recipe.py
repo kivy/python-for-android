@@ -337,7 +337,7 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def get_recipe_dir(self):
         # AND: Redundant, an equivalent property is already set by get_recipe
-        return join(self.ctx.root_dir, 'recipes', self.name)
+        return self.recipe_dir # set in Recipe.get_recipe()
 
     # Public Recipe API to be subclassed if needed
 
