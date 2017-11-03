@@ -192,10 +192,11 @@
          # on Windows, look for the OpenJPEG libraries in the location that
          # the official installer puts them
          if sys.platform == "win32":
-@@ -408,6 +242,15 @@
+@@ -408,6 +242,17 @@
                          sys.platform == "win32" and
                          _find_library_file(self, "libjpeg")):
                      feature.jpeg = "libjpeg"  # alternative name
++                feature.simd = None
 +                if _find_include_file(self, "jsimd.h"):
 +                    if _find_library_file(self, "simd"):
 +                        feature.simd = "simd"
@@ -203,8 +204,9 @@
 +                            sys.platform == "win32" and
 +                            _find_library_file(self, "libsimd")):
 +                        feature.simd = "libsimd"  # alternative name
-+                    _add_directory(self.compiler.include_dirs, os.path.join(JPEG_ROOT[1], 'simd'), 0)
-+                    _add_directory(self.compiler.include_dirs, os.path.join(JPEG_ROOT[1], 'android'), 0)
++                    if feature.simd:
++                        _add_directory(self.compiler.include_dirs, os.path.join(JPEG_ROOT[1], 'simd'), 0)
++                        _add_directory(self.compiler.include_dirs, os.path.join(JPEG_ROOT[1], 'android'), 0)
  
          feature.openjpeg_version = None
          if feature.want('jpeg2000'):
