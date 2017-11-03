@@ -225,19 +225,19 @@ class Recipe(with_metaclass(RecipeMeta)):
         build directory.
         """
         info("Applying patch {}".format(filename))
-        filename = join(self.recipe_dir, filename)
+        filename = join(self.get_recipe_dir(), filename)
         shprint(sh.patch, "-t", "-d", self.get_build_dir(arch), "-p1",
                 "-i", filename, _tail=10)
 
     def copy_file(self, filename, dest):
         info("Copy {} to {}".format(filename, dest))
-        filename = join(self.recipe_dir, filename)
+        filename = join(self.get_recipe_dir(), filename)
         dest = join(self.build_dir, dest)
         shutil.copy(filename, dest)
 
     def append_file(self, filename, dest):
         info("Append {} to {}".format(filename, dest))
-        filename = join(self.recipe_dir, filename)
+        filename = join(self.get_recipe_dir(), filename)
         dest = join(self.build_dir, dest)
         with open(filename, "rb") as fd:
             data = fd.read()
@@ -638,7 +638,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
-        recipe.recipe_dir = dirname(recipe_file)
         recipe.ctx = ctx
         cls.recipes[name] = recipe
         return recipe
