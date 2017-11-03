@@ -1,7 +1,7 @@
 
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory, ensure_dir
-from pythonforandroid.logger import debug, shprint, info
+from pythonforandroid.logger import debug, shprint, info, warning
 from os.path import exists, join
 import sh
 import glob
@@ -39,8 +39,6 @@ class PygameRecipe(Recipe):
                 join(self.get_build_dir(arch.arch), 'Setup'))
         
     def build_arch(self, arch):
-        # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now
-        
         env = self.get_recipe_env(arch)
         
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(
@@ -71,8 +69,7 @@ class PygameRecipe(Recipe):
                     env['STRIP'], '{}', ';')
 
         python_install_path = join(self.ctx.build_dir, 'python-install')
-        # AND: Should do some deleting here!
-        print('Should remove pygame tests etc. here, but skipping for now')
+        warning('Should remove pygame tests etc. here, but skipping for now')
 
 
 recipe = PygameRecipe()

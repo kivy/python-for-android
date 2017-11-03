@@ -61,7 +61,6 @@ class ServiceOnlyBootstrap(Bootstrap):
                     shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
                 shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
 
-                # AND: Copylibs stuff should go here
                 if exists(join('libs', arch.arch, 'libpymodules.so')):
                     shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
                 shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))

@@ -83,9 +83,6 @@ class Python2Recipe(TargetPythonRecipe):
 
             env = arch.get_env()
 
-            # AND: Should probably move these to get_recipe_env for
-            # neatness, but the whole recipe needs tidying along these
-            # lines
             env['HOSTARCH'] = 'arm-eabi'
             env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
@@ -114,7 +111,6 @@ class Python2Recipe(TargetPythonRecipe):
             # NDK has langinfo.h but doesn't define nl_langinfo()
             env['ac_cv_header_langinfo_h'] = 'no'
             configure = sh.Command('./configure')
-            # AND: OFLAG isn't actually set, should it be?
             shprint(configure,
                     '--host={}'.format(env['HOSTARCH']),
                     '--build={}'.format(env['BUILDARCH']),
@@ -125,7 +121,7 @@ class Python2Recipe(TargetPythonRecipe):
                     '--disable-framework',
                     _env=env)
 
-            # AND: tito left this comment in the original source. It's still true!
+            # tito left this comment in the original source. It's still true!
             # FIXME, the first time, we got a error at:
             # python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
         # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
