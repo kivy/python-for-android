@@ -49,7 +49,7 @@ class PILRecipe(CompiledComponentsPythonRecipe):
         free_inc_dir = join(r.get_build_dir(arch.arch), 'include')
         cflags += ' -I{} -L{}'.format(free_inc_dir, free_lib_dir)
         env['LDFLAGS'] += ' -L{} -lfreetype{}'.format(
-            free_lib_dir, '')  # r.version)
+            free_lib_dir, '')
         if 'harfbuzz' in self.ctx.recipe_build_order:
             r = self.get_recipe('harfbuzz', self.ctx)
             harf_lib_dir = join(r.get_build_dir(arch.arch), 'src', '.libs')
@@ -58,7 +58,7 @@ class PILRecipe(CompiledComponentsPythonRecipe):
                 harf_inc_dir, join(harf_inc_dir, 'src'),
                 harf_lib_dir)
             env['LDFLAGS'] += ' -L{} -lharfbuzz{}'.format(
-                harf_lib_dir, '')  # r.version)
+                harf_lib_dir, '')
         # Patch freetype headers to be found by pil
         freetype_link = join(free_inc_dir, 'freetype')
         if not exists(freetype_link):
