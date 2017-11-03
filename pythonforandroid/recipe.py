@@ -1,9 +1,11 @@
-from os.path import join, dirname, isdir, exists, isfile, split, realpath
+from os.path import join, dirname, isdir, exists, isfile, split, realpath, basename
 import importlib
 import zipfile
 import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
+
+import hashlib
 
 import sh
 import shutil
@@ -14,7 +16,7 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from pythonforandroid.logger import (logger, info, warning, error, shprint, info_main)
+from pythonforandroid.logger import (logger, info, warning, error, debug, shprint, info_main)
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
 # this import is necessary to keep imp.load_source from complaining :)
@@ -147,7 +149,7 @@ class Recipe(with_metaclass(RecipeMeta)):
 
             urlretrieve(url, target, report_hook)
             return target
-        elif parsed_url.scheme in ('git', 'git+ssh', 'git+http', 'git+https'):
+        elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
                 with current_directory(target):
                     shprint(sh.git, 'fetch', '--tags')
@@ -360,32 +362,38 @@ class Recipe(with_metaclass(RecipeMeta)):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 elif self.md5sum:
-                    current_md5 = shprint(sh.md5sum, filename)
-                    print('downloaded md5: {}'.format(current_md5))
-                    print('expected md5: {}'.format(self.md5sum))
-                    print('md5 not handled yet, exiting')
-                    exit(1)
+                    current_md5 = md5sum(filename)
+                    if current_md5 == self.md5sum:
+                        debug('Checked md5sum: downloaded expected content!')
+                        do_download = False
+                    else:
+                        info('Downloaded unexpected content...')
+                        debug('* Generated md5sum: {}'.format(current_md5))
+                        debug('* Expected md5sum: {}'.format(self.md5sum))
+
                 else:
                     do_download = False
                     info('{} download already cached, skipping'
                          .format(self.name))
 
-            # Should check headers here!
-            warning('Should check headers here! Skipping for now.')
-
             # If we got this far, we will download
             if do_download:
-                print('Downloading {} from {}'.format(self.name, url))
+                debug('Downloading {} from {}'.format(self.name, url))
 
                 shprint(sh.rm, '-f', marker_filename)
                 self.download_file(url, filename)
                 shprint(sh.touch, marker_filename)
 
-                if self.md5sum is not None:
-                    print('downloaded md5: {}'.format(current_md5))
-                    print('expected md5: {}'.format(self.md5sum))
-                    print('md5 not handled yet, exiting')
-                    exit(1)
+                if exists(filename) and isfile(filename) and self.md5sum:
+                    current_md5 = md5sum(filename)
+                    if self.md5sum is not None:
+                        if current_md5 == self.md5sum:
+                            debug('Checked md5sum: downloaded expected content!')
+                        else:
+                            info('Downloaded unexpected content...')
+                            debug('* Generated md5sum: {}'.format(current_md5))
+                            debug('* Expected md5sum: {}'.format(self.md5sum))
+                            exit(1)
 
     def unpack(self, arch):
         info_main('Unpacking {} for {}'.format(self.name, arch))
@@ -423,11 +431,17 @@ class Recipe(with_metaclass(RecipeMeta)):
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
                     if extraction_filename.endswith('.zip'):
-                        sh.unzip(extraction_filename)
+                        try:
+                            sh.unzip(extraction_filename)
+                        except (sh.ErrorReturnCode_1, sh.ErrorReturnCode_2):
+                            pass  # return code 1 means unzipping had
+                                  # warnings but did complete,
+                                  # apparently happens sometimes with
+                                  # github zips
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
-                        if root_directory != directory_name:
+                        if root_directory != basename(directory_name):
                             shprint(sh.mv, root_directory, directory_name)
                     elif (extraction_filename.endswith('.tar.gz') or
                           extraction_filename.endswith('.tgz') or
@@ -444,7 +458,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                     else:
                         raise Exception(
                             'Could not extract {} download, it must be .zip, '
-                            '.tar.gz or .tar.bz2 or .tar.xz')
+                            '.tar.gz or .tar.bz2 or .tar.xz'.format(extraction_filename))
                 elif isdir(extraction_filename):
                     mkdir(directory_name)
                     for entry in listdir(extraction_filename):
@@ -564,6 +578,10 @@ class Recipe(with_metaclass(RecipeMeta)):
             if exists(directory):
                 info('Deleting {}'.format(directory))
                 shutil.rmtree(directory)
+
+        # Delete any Python distributions to ensure the recipe build
+        # doesn't persist in site-packages
+        shutil.rmtree(self.ctx.python_installs_dir)
 
     def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
@@ -720,9 +738,7 @@ class PythonRecipe(Recipe):
 
     def clean_build(self, arch=None):
         super(PythonRecipe, self).clean_build(arch=arch)
-        name = self.site_packages_name
-        if name is None:
-            name = self.name
+        name = self.folder_name
         python_install_dirs = glob.glob(join(self.ctx.python_installs_dir, '*'))
         for python_install in python_install_dirs:
             site_packages_dir = glob.glob(join(python_install, 'lib', 'python*',
@@ -749,8 +765,19 @@ class PythonRecipe(Recipe):
             return self.real_hostpython_location
         return self.ctx.hostpython
 
+    @property
+    def folder_name(self):
+        '''The name of the build folders containing this recipe.'''
+        name = self.site_packages_name
+        if name is None:
+            name = self.name
+        return name
+
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+
+        env['PYTHONNOUSERSITE'] = '1'
+
         if not self.call_hostpython_via_targetpython:
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
@@ -765,10 +792,7 @@ class PythonRecipe(Recipe):
         return env
 
     def should_build(self, arch):
-        print('name is', self.site_packages_name, type(self))
-        name = self.site_packages_name
-        if name is None:
-            name = self.name
+        name = self.folder_name
         if self.ctx.has_package(name):
             info('Python package already exists in site-packages')
             return False
@@ -794,7 +818,6 @@ class PythonRecipe(Recipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
-            # hostpython = sh.Command('python3.5')
 
 
             if self.ctx.python_recipe.from_crystax:
@@ -894,6 +917,43 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
                 *self.setup_extra_args)
 
+class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
+    """ Extensions that require the cxx-stl """
+    call_hostpython_via_targetpython = False
+
+    def get_recipe_env(self, arch):
+        env = super(CppCompiledComponentsPythonRecipe, self).get_recipe_env(arch)
+        keys = dict(
+            ctx=self.ctx,
+            arch=arch,
+            arch_noeabi=arch.arch.replace('eabi', ''),
+            pyroot=self.ctx.get_python_install_dir()
+        )
+        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
+        env['CFLAGS'] += " -I{pyroot}/include/python2.7 " \
+                        " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
+                        " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" \
+                        " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys)
+        env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
+        env['LDFLAGS'] += " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" \
+                " -lpython2.7" \
+                " -lgnustl_shared".format(**keys)
+
+
+        return env
+
+    def build_compiled_components(self,arch):
+        super(CppCompiledComponentsPythonRecipe, self).build_compiled_components(arch)
+
+        # Copy libgnustl_shared.so
+        with current_directory(self.get_build_dir(arch.arch)):
+            sh.cp(
+                "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx,arch=arch),
+                self.ctx.get_libs_dir(arch.arch)
+            )
+
+
+
 
 class CythonRecipe(PythonRecipe):
     pre_build_ext = False
@@ -925,15 +985,13 @@ class CythonRecipe(PythonRecipe):
             site_packages_dirs = command(
                 '-c', 'import site; print("\\n".join(site.getsitepackages()))')
             site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
-            # env['PYTHONPATH'] = '/usr/lib/python3.5/site-packages/:/usr/lib/python3.5'
             if 'PYTHONPATH' in env:
-                env['PYTHONPATH'] = env + ':{}'.format(':'.join(site_packages_dirs))
+                env['PYTHONPATH'] = env['PYTHONPATH'] + ':{}'.format(':'.join(site_packages_dirs))
             else:
                 env['PYTHONPATH'] = ':'.join(site_packages_dirs)
 
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
-            # hostpython = sh.Command('python3.5')
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
             print('cwd is', realpath(curdir))
             info('Trying first build of {} to get cython files: this is '
@@ -956,11 +1014,20 @@ class CythonRecipe(PythonRecipe):
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
 
-            print('stripping')
-            build_lib = glob.glob('./build/lib*')
-            shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
-                    env['STRIP'], '{}', ';', _env=env)
-            print('stripped!?')
+            if 'python2' in self.ctx.recipe_build_order:
+                info('Stripping object files')
+                build_lib = glob.glob('./build/lib*')
+                shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
+                        env['STRIP'], '{}', ';', _env=env)
+
+            if 'python3crystax' in self.ctx.recipe_build_order:
+                info('Stripping object files')
+                shprint(sh.find, '.', '-iname', '*.so', '-exec',
+                        '/usr/bin/echo', '{}', ';', _env=env)
+                shprint(sh.find, '.', '-iname', '*.so', '-exec',
+                        env['STRIP'].split(' ')[0], '--strip-unneeded',
+                        # '/usr/bin/strip', '--strip-unneeded',
+                        '{}', ';', _env=env)
 
     def cythonize_file(self, env, build_dir, filename):
         short_filename = filename
@@ -972,6 +1039,8 @@ class CythonRecipe(PythonRecipe):
             cyenv['PYTHONPATH'] = cyenv['CYTHONPATH']
         elif 'PYTHONPATH' in cyenv:
             del cyenv['PYTHONPATH']
+        if 'PYTHONNOUSERSITE' in cyenv:
+            cyenv.pop('PYTHONNOUSERSITE')
         cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
         cython_command = sh.Command(cython)
         shprint(cython_command, filename, *self.cython_args, _env=cyenv)
@@ -1019,6 +1088,15 @@ class CythonRecipe(PythonRecipe):
                      self.ctx.python_recipe.version, 'include',
                      'python')) + env['CFLAGS']
 
+            # Temporarily hardcode the -lpython3.x as this does not
+            # get applied automatically in some environments.  This
+            # will need generalising, along with the other hardcoded
+            # py3.5 references, to support other python3 or crystax
+            # python versions.
+            python3_version = self.ctx.python_recipe.version
+            python3_version = '.'.join(python3_version.split('.')[:2])
+            env['LDFLAGS'] = env['LDFLAGS'] + ' -lpython{}m'.format(python3_version)
+
         return env
 
 
@@ -1050,3 +1128,12 @@ class TargetPythonRecipe(Recipe):
     # def ctx(self, ctx):
     #     self._ctx = ctx
     #     ctx.python_recipe = self
+
+
+def md5sum(filen):
+    '''Calculate the md5sum of a file.
+    '''
+    with open(filen, 'rb') as fileh:
+        md5 = hashlib.md5(fileh.read())
+
+    return md5.hexdigest()

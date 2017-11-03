@@ -179,31 +179,18 @@ python_act = autoclass(JAVA_NAMESPACE + '.PythonActivity')
 Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    class LayoutListener(PythonJavaClass):
-        __javainterfaces__ = ['android/view/ViewTreeObserver$OnGlobalLayoutListener']
-
-        height = 0
-
-        @java_method('()V')
-        def onGlobalLayout(self):
-            rctx = Rect()
-            # print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
-            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
-            # print('rctx_bottom: {0}, top: {1}'.format(rctx.bottom, rctx.top))
-            # print('activity height: {0}'.format(mActivity.getWindowManager().getDefaultDisplay().getHeight())) 
-            # NOTE top should always be zero
-            rctx.top = 0
-            self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
-            # print('final height: {0}'.format(self.height))
-
-    ll = LayoutListener()
-    IF BOOTSTRAP == 'sdl2':
-        python_act.getLayout().getViewTreeObserver().addOnGlobalLayoutListener(ll)
-    ELSE:
-        python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
-
+    # PyGame backend already has the listener so adding
+    # one here leads to a crash/too much cpu usage.
+    # SDL2 now does noe need the listener so there is
+    # no point adding a processor intensive layout listenere here.
+    height = 0
     def get_keyboard_height():
-        return ll.height
+        rctx = Rect()
+        mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
+        # NOTE top should always be zero
+        rctx.top = 0
+        height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
+        return height
 else:
     def get_keyboard_height():
         return 0
@@ -224,6 +211,11 @@ TYPE_TEXT_VARIATION_PASSWORD = 128
 TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
 TYPE_TEXT_VARIATION_URI = 16
 TYPE_CLASS_PHONE = 3
+
+IF BOOTSTRAP == 'sdl2':
+    def remove_presplash():
+        # Remove android presplash in SDL2 bootstrap.
+        mActivity.removeLoadingScreen()
 
 def show_keyboard(target, input_type):
     if input_type == 'text':
@@ -328,15 +320,16 @@ def open_url(url):
     browserIntent.setData(Uri.parse(url))
     currentActivity = cast('android.app.Activity', mActivity)
     currentActivity.startActivity(browserIntent)
+    return True
 
 # Web browser support.
 class AndroidBrowser(object):
     def open(self, url, new=0, autoraise=True):
-        open_url(url)
+        return open_url(url)
     def open_new(self, url):
-        open_url(url)
+        return open_url(url)
     def open_new_tab(self, url):
-        open_url(url)
+        return open_url(url)
     
 import webbrowser
 webbrowser.register('android', AndroidBrowser, None, -1)

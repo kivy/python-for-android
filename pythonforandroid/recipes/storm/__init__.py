@@ -5,7 +5,7 @@ import sh
 class StormRecipe(PythonRecipe):
     version = '0.20'
     url = 'https://launchpad.net/storm/trunk/{version}/+download/storm-{version}.tar.bz2'
-    depends = [('python2', 'python3')]
+    depends = [('python2', 'python3crystax')]
     site_packages_name = 'storm'
     call_hostpython_via_targetpython = False
 

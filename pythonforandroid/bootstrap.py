@@ -1,12 +1,12 @@
 from os.path import (join, dirname, isdir, splitext, basename, realpath)
-from os import listdir
+from os import listdir, mkdir
 import sh
 import glob
 import json
 import importlib
 
 from pythonforandroid.logger import (warning, shprint, info, logger,
-                                     debug)
+                                     debug, error)
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    temp_directory, which)
 from pythonforandroid.recipe import Recipe
@@ -27,7 +27,7 @@ class Bootstrap(object):
     dist_name = None
     distribution = None
 
-    recipe_depends = []
+    recipe_depends = ['sdl2']
 
     can_be_chosen_automatically = True
     '''Determines whether the bootstrap can be chosen as one that
@@ -89,10 +89,14 @@ class Bootstrap(object):
         self.build_dir = self.get_build_dir()
         shprint(sh.cp, '-r',
                 join(self.bootstrap_dir, 'build'),
-                # join(self.ctx.root_dir,
-                #      'bootstrap_templates',
-                #      self.name),
                 self.build_dir)
+        if self.ctx.symlink_java_src:
+            info('Symlinking java src instead of copying')
+            shprint(sh.rm, '-r', join(self.build_dir, 'src'))
+            shprint(sh.mkdir, join(self.build_dir, 'src'))
+            for dirn in listdir(join(self.bootstrap_dir, 'build', 'src')):
+                shprint(sh.ln, '-s', join(self.bootstrap_dir, 'build', 'src', dirn),
+                        join(self.build_dir, 'src'))
         with current_directory(self.build_dir):
             with open('project.properties', 'w') as fileh:
                 fileh.write('target=android-{}'.format(self.ctx.android_api))
@@ -146,9 +150,14 @@ class Bootstrap(object):
                         ok = False
                         break
                 for recipe in recipes:
-                    recipe = Recipe.get_recipe(recipe, ctx)
+                    try:
+                        recipe = Recipe.get_recipe(recipe, ctx)
+                    except IOError:
+                        conflicts = []
+                    else:
+                        conflicts = recipe.conflicts
                     if any([conflict in possible_dependencies
-                            for conflict in recipe.conflicts]):
+                            for conflict in conflicts]):
                         ok = False
                         break
                 if ok:
@@ -186,20 +195,21 @@ class Bootstrap(object):
         bootstrap.ctx = ctx
         return bootstrap
 
-    def distribute_libs(self, arch, src_dirs, wildcard='*'):
+    def distribute_libs(self, arch, src_dirs, wildcard='*', dest_dir="libs"):
         '''Copy existing arch libs from build dirs to current dist dir.'''
         info('Copying libs')
-        tgt_dir = join('libs', arch.arch)
+        tgt_dir = join(dest_dir, arch.arch)
         ensure_dir(tgt_dir)
         for src_dir in src_dirs:
             for lib in glob.glob(join(src_dir, wildcard)):
                 shprint(sh.cp, '-a', lib, tgt_dir)
 
-    def distribute_javaclasses(self, javaclass_dir):
+    def distribute_javaclasses(self, javaclass_dir, dest_dir="src"):
         '''Copy existing javaclasses from build dir to current dist dir.'''
         info('Copying java files')
+        ensure_dir(dest_dir)
         for filename in glob.glob(javaclass_dir):
-            shprint(sh.cp, '-a', filename, 'src')
+            shprint(sh.cp, '-a', filename, dest_dir)
 
     def distribute_aars(self, arch):
         '''Process existing .aar bundles and copy to current dist dir.'''

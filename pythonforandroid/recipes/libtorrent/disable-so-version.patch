@@ -4,7 +4,7 @@
  	if $(type) = SHARED_LIB &&
  		( ! ( [ $(property-set).get <target-os> ] in windows cygwin ) )
  	{
-+		return $(name) ; # disable version suffix for android
++		return "libtorrent_rasterbar.so" ; # linked by python bindings .so
  		name = $(name).$(VERSION) ;
  	}
  

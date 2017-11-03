@@ -5,7 +5,7 @@
          if ( <toolset>gcc in $(properties) )
          {
 -           result += <linkflags>-Wl,-Bsymbolic ;
-+           result += <linkflags>-Wl,-soname=libtorrentpython.so,-Bsymbolic ;
++           result += <linkflags>-Wl,-soname=libtorrent.so,-Bsymbolic ;
          }
      }
  

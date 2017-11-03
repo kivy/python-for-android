@@ -7,6 +7,10 @@ using distribute.sh and build.py. This it entirely superseded by the
 new toolchain, you do not need to read it unless using this old
 method.
 
+.. warning:: The old toolchain is deprecated and no longer
+             supported. You should instead use the :doc:`current version
+             <../quickstart>`.
+
 Python for android is a project to create your own Python distribution
 including the modules you want, and create an apk including python, libs, and
 your application.

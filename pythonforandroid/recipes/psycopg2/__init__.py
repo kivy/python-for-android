@@ -5,7 +5,7 @@ import sh
 class Psycopg2Recipe(PythonRecipe):
     version = 'latest'
     url = 'http://initd.org/psycopg/tarballs/psycopg2-{version}.tar.gz'
-    depends = [('python2', 'python3'), 'libpq']
+    depends = [('python2', 'python3crystax'), 'libpq']
     site_packages_name = 'psycopg2'
 
     def prebuild_arch(self, arch):

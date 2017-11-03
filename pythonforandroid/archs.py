@@ -1,4 +1,4 @@
-from os.path import (join, dirname)
+from os.path import (exists, join, dirname)
 from os import environ, uname
 import sys
 from distutils.spawn import find_executable
@@ -33,13 +33,32 @@ class Arch(object):
     def get_env(self, with_flags_in_cc=True):
         env = {}
 
-        env["CFLAGS"] = " ".join([
-            "-DANDROID", "-mandroid", "-fomit-frame-pointer",
-            "--sysroot", self.ctx.ndk_platform])
+        env['CFLAGS'] = ' '.join([
+            '-DANDROID', '-mandroid', '-fomit-frame-pointer'
+            ' -D__ANDROID_API__={}'.format(self.ctx._android_api),
+           ])
+        env['LDFLAGS'] = ' '
+
+        sysroot = join(self.ctx._ndk_dir, 'sysroot')
+        if exists(sysroot):
+            # post-15 NDK per
+            # https://android.googlesource.com/platform/ndk/+/ndk-r15-release/docs/UnifiedHeaders.md
+            env['CFLAGS'] += ' -isystem {}/sysroot/usr/include/{}'.format(
+                self.ctx.ndk_dir, self.ctx.toolchain_prefix)
+        else:
+            sysroot = self.ctx.ndk_platform
+            env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk_platform)
+        env['CFLAGS'] += ' -isysroot {} '.format(sysroot)
+        env['CFLAGS'] += '-I' + join(self.ctx.get_python_install_dir(),
+                                     'include/python{}'.format(
+                                         self.ctx.python_recipe.version[0:3])
+                                    )
+
+        env['LDFLAGS'] += '--sysroot {} '.format(self.ctx.ndk_platform)
 
         env["CXXFLAGS"] = env["CFLAGS"]
 
-        env["LDFLAGS"] = " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
+        env["LDFLAGS"] += " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
 
         if self.ctx.ndk == 'crystax':
             env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
@@ -57,16 +76,16 @@ class Arch(object):
 
         ccache = ''
         if self.ctx.ccache and bool(int(environ.get('USE_CCACHE', '1'))):
-            print('ccache found, will optimize builds')
+            # print('ccache found, will optimize builds')
             ccache = self.ctx.ccache + ' '
             env['USE_CCACHE'] = '1'
             env['NDK_CCACHE'] = self.ctx.ccache
             env.update({k: v for k, v in environ.items() if k.startswith('CCACHE_')})
 
-        print('path is', environ['PATH'])
         cc = find_executable('{command_prefix}-gcc'.format(
             command_prefix=command_prefix), path=environ['PATH'])
         if cc is None:
+            print('Searching path are: {!r}'.format(environ['PATH']))
             warning('Couldn\'t find executable for CC. This indicates a '
                     'problem locating the {} executable in the Android '
                     'NDK, not that you don\'t have a normal compiler '
@@ -180,4 +199,3 @@ class ArchAarch_64(Arch):
             env['CC'] += incpath
             env['CXX'] += incpath
         return env
-

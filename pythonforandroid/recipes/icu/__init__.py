@@ -11,7 +11,7 @@ class ICURecipe(NDKRecipe):
     version = '57.1'
     url = 'http://download.icu-project.org/files/icu4c/57.1/icu4c-57_1-src.tgz'
 
-    depends = [('python2', 'python3crystax')]  # installs in python
+    depends = [('python2', 'python3crystax'), 'hostpython2']  # installs in python
     generated_libraries = [
         'libicui18n.so', 'libicuuc.so', 'libicudata.so', 'libicule.so']
 
@@ -68,50 +68,48 @@ class ICURecipe(NDKRecipe):
                 shprint(sh.make, "install", _env=host_env)
 
         build_android, exists = make_build_dest("build_icu_android")
-        if exists:
-            return
+        if not exists:
 
-        configure = sh.Command(join(build_root, "source", "configure"))
+            configure = sh.Command(join(build_root, "source", "configure"))
 
-        include = (
-            " -I{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/include/"
-            " -I{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/"
-            "{arch}/include")
-        include = include.format(ndk=self.ctx.ndk_dir,
-                                 version=env["TOOLCHAIN_VERSION"],
-                                 arch=arch.arch)
-        env["CPPFLAGS"] = env["CXXFLAGS"] + " "
-        env["CPPFLAGS"] += host_env["CPPFLAGS"]
-        env["CPPFLAGS"] += include
+            include = (
+                " -I{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/include/"
+                " -I{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/"
+                "{arch}/include")
+            include = include.format(ndk=self.ctx.ndk_dir,
+                                     version=env["TOOLCHAIN_VERSION"],
+                                     arch=arch.arch)
+            env["CPPFLAGS"] = env["CXXFLAGS"] + " "
+            env["CPPFLAGS"] += host_env["CPPFLAGS"]
+            env["CPPFLAGS"] += include
 
-        lib = "{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/{arch}"
-        lib = lib.format(ndk=self.ctx.ndk_dir,
-                         version=env["TOOLCHAIN_VERSION"],
-                         arch=arch.arch)
-        env["LDFLAGS"] += " -lgnustl_shared -L"+lib
+            lib = "{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/{arch}"
+            lib = lib.format(ndk=self.ctx.ndk_dir,
+                             version=env["TOOLCHAIN_VERSION"],
+                             arch=arch.arch)
+            env["LDFLAGS"] += " -lgnustl_shared -L"+lib
 
-        env.pop("CFLAGS", None)
-        env.pop("CXXFLAGS", None)
+            env.pop("CFLAGS", None)
+            env.pop("CXXFLAGS", None)
 
-        with current_directory(build_android):
-            shprint(
-                configure,
-                "--with-cross-build="+build_linux,
-                "--enable-extras=no",
-                "--enable-strict=no",
-                "--enable-static",
-                "--enable-tests=no",
-                "--enable-samples=no",
-                "--host="+env["TOOLCHAIN_PREFIX"],
-                "--prefix="+icu_build,
-                _env=env)
-            shprint(sh.make, "-j5", _env=env)
-            shprint(sh.make, "install", _env=env)
+            with current_directory(build_android):
+                shprint(
+                    configure,
+                    "--with-cross-build="+build_linux,
+                    "--enable-extras=no",
+                    "--enable-strict=no",
+                    "--enable-static",
+                    "--enable-tests=no",
+                    "--enable-samples=no",
+                    "--host="+env["TOOLCHAIN_PREFIX"],
+                    "--prefix="+icu_build,
+                    _env=env)
+                shprint(sh.make, "-j5", _env=env)
+                shprint(sh.make, "install", _env=env)
 
         self.copy_files(arch)
 
     def copy_files(self, arch):
-        ndk = self.ctx.ndk_dir
         env = self.get_recipe_env(arch)
 
         lib = "{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/{arch}"

@@ -255,16 +255,19 @@ def make_package(args):
     else:
         intent_filters = ''
 
-    # Figure out if application has service part
-    service = False
     directory = args.dir if public_version else args.private
-    if not (exists(join(realpath(directory), 'main.py')) or
-            exists(join(realpath(directory), 'main.pyo'))):
-        print('''BUILD FAILURE: No main.py(o) found in your app directory. This
-file must exist to act as the entry point for you app. If your app is
+    # Ignore warning if the launcher is in args
+    if not args.launcher:
+        if not (exists(join(realpath(directory), 'main.py')) or
+                exists(join(realpath(directory), 'main.pyo'))):
+            print('''BUILD FAILURE: No main.py(o) found in your app directory.
+This file must exist to act as the entry point for you app. If your app is
 started by a file with a different name, rename it to main.py or add a
 main.py that loads it.''')
-        exit(1)
+            exit(1)
+
+    # Figure out if application has service part
+    service = False
     if directory:
         service_main = join(realpath(directory), 'service', 'main.py')
         if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
@@ -412,7 +415,7 @@ tools directory of the Android SDK.
                           'Usually one of "landscape", "portrait" or '
                           '"sensor"'))
     ap.add_argument('--permission', dest='permissions', action='append',
-                    help='The permissions to give this app.')
+                    help='The permissions to give this app.', nargs='+')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append',
                     help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon',
@@ -477,11 +480,17 @@ tools directory of the Android SDK.
         args = sys.argv[1:]
     args = ap.parse_args(args)
 
+    if args.name and args.name[0] == '"' and args.name[-1] == '"':
+        args.name = args.name[1:-1]
+
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
 
     if args.permissions is None:
         args.permissions = []
+    elif args.permissions:
+        if isinstance(args.permissions[0], list):
+            args.permissions = [p for perm in args.permissions for p in perm]
 
     if args.ignore_path is None:
         args.ignore_path = []

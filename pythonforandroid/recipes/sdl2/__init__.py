@@ -6,6 +6,7 @@ import sh
 class LibSDL2Recipe(BootstrapNDKRecipe):
     version = "2.0.4"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
+    md5sum = '44fc4a023349933e7f5d7a582f7b886e'
 
     dir_name = 'SDL'
 
@@ -20,6 +21,8 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env['PYTHON2_NAME'] = py2.get_dir_name()
         if 'python2' in self.ctx.recipe_build_order:
             env['EXTRA_LDLIBS'] = ' -lpython2.7'
+
+        env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
 
     def build_arch(self, arch):
