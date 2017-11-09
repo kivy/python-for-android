@@ -3,28 +3,28 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 class CffiRecipe(CompiledComponentsPythonRecipe):
     name = 'cffi'
-    version = '1.11.2'
-    url = 'https://pypi.python.org/packages/c9/70/89b68b6600d479034276fed316e14b9107d50a62f5627da37fafe083fde3/cffi-1.11.2.tar.gz#md5=a731487324b501c8295221b629d3f5f3'
+    version = 'local'
+    url = 'git+file:///home/enoch/cffi'
 
-	depends = [('python2', 'python3crystax'), 'setuptools', 'pycparser', 'libffi']
+    depends = [('python2', 'python3crystax'), 'setuptools', 'pycparser', 'libffi']
 
-	patches = ['disable-pkg-config.patch']
+    patches = ['disable-pkg-config.patch']
 
-	# call_hostpython_via_targetpython = False
-	install_in_hostpython = True
+    call_hostpython_via_targetpython = False
+    # install_in_hostpython = True
 
-	def get_recipe_env(self, arch=None):
-		env = super(CffiRecipe, self).get_recipe_env(arch)
-		libffi = self.get_recipe('libffi', self.ctx)
-		includes = libffi.get_include_dirs(arch)
-		env['CFLAGS'] = ' -I'.join([env.get('CFLAGS', '')] + includes)
-		env['LDFLAGS'] = (env.get('CFLAGS', '') + ' -L' +
-		                  self.ctx.get_libs_dir(arch.arch))
-		env['PYTHONPATH'] = ':'.join([
-			self.ctx.get_site_packages_dir(),
-			env['BUILDLIB_PATH'],
-		])
-		return env
+    def get_recipe_env(self, arch=None):
+        env = super(CffiRecipe, self).get_recipe_env(arch)
+        libffi = self.get_recipe('libffi', self.ctx)
+        includes = libffi.get_include_dirs(arch)
+        env['CFLAGS'] = ' -I'.join([env.get('CFLAGS', '')] + includes)
+        env['LDFLAGS'] = (env.get('CFLAGS', '') + ' -L' +
+                          self.ctx.get_libs_dir(arch.arch))
+        env['PYTHONPATH'] = ':'.join([
+                self.ctx.get_site_packages_dir(),
+                env['BUILDLIB_PATH'],
+        ])
+        return env
 
 
 recipe = CffiRecipe()
