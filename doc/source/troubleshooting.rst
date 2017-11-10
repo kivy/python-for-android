@@ -167,3 +167,10 @@ Ensure you have the package backports.ssl-match-hostname in the buildozer requir
  
 You may also need sslopt={"cert_reqs": ssl.CERT_NONE} as a parameter to ws.run_forever() if you get an error relating to host verification
 
+Requested API target 19 is not available, install it with the SDK android tool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+As suggested your SDK doesn't have any platform tools installed.
+Run SDK android tool from buildozer to install it:
+```
+~/.buildozer/android/platform/android-sdk-20/tools/android
+```
