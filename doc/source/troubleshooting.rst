@@ -169,8 +169,12 @@ You may also need sslopt={"cert_reqs": ssl.CERT_NONE} as a parameter to ws.run_f
 
 Requested API target 19 is not available, install it with the SDK android tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-As suggested your SDK doesn't have any platform tools installed.
-Run SDK android tool from buildozer to install it:
-```
-~/.buildozer/android/platform/android-sdk-20/tools/android
-```
+
+This means that your SDK is missing the required platform tools. You
+need to install the ``platforms;android-19`` package in your SDK,
+using the ``android`` or ``sdkmanager`` tools (depending on SDK
+version).
+
+If using buildozer this should be done automatically, but as a
+workaround you can run these from
+``~/.buildozer/android/platform/android-sdk-20/tools/android``.
