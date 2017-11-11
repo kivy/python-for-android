@@ -5,7 +5,7 @@ from pythonforandroid.toolchain import CompiledComponentsPythonRecipe, warning
 class NumpyRecipe(CompiledComponentsPythonRecipe):
     
     version = '1.9.2'
-    url = 'http://pypi.python.org/packages/source/n/numpy/numpy-{version}.tar.gz'
+    url = 'https://pypi.python.org/packages/source/n/numpy/numpy-{version}.tar.gz'
     site_packages_name= 'numpy'
 
     depends = ['python2']

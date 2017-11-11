@@ -353,7 +353,9 @@ class Recipe(with_metaclass(RecipeMeta)):
         ma = match(u'^(.+)#md5=([0-9a-f]{32})$', url)
         if ma:                  # fragmented URL?
             if self.md5sum:
-                raise Exception('Recipe md5sum via fragmented URL only!')
+                raise ValueError(
+                    ('Received md5sum from both the {} recipe '
+                     'and its url').format(self.name))
             url = ma.group(1)
             expected_md5 = ma.group(2)
         else:
@@ -374,7 +376,9 @@ class Recipe(with_metaclass(RecipeMeta)):
                     if current_md5 != expected_md5:
                         debug('* Generated md5sum: {}'.format(current_md5))
                         debug('* Expected md5sum: {}'.format(expected_md5))
-                        raise Exception('Cached unexpected content!')
+                        raise ValueError(
+                            ('Generated md5sum does not match expected md5sum '
+                             'for {} recipe').format(self.name))
                     do_download = False
                 else:
                     do_download = False
@@ -393,7 +397,9 @@ class Recipe(with_metaclass(RecipeMeta)):
                         if current_md5 != expected_md5:
                             debug('* Generated md5sum: {}'.format(current_md5))
                             debug('* Expected md5sum: {}'.format(expected_md5))
-                            raise Exception('Downloaded unexpected content!')
+                            raise ValueError(
+                                ('Generated md5sum does not match expected md5sum '
+                                'for {} recipe').format(self.name))
             else:
                 info('{} download already cached, skipping'.format(self.name))
 
