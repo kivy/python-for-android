@@ -159,7 +159,6 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
-        extra_dist_dirs=split_argument_list(args.extra_dist_dirs),
         require_perfect_match=args.require_perfect_match)
 
 
