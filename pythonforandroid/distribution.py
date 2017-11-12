@@ -70,10 +70,6 @@ class Distribution(object):
             correct set of recipes.
         '''
 
-        # AND: This whole function is a bit hacky, it needs checking
-        # properly to make sure it follows logically correct
-        # possibilities
-
         existing_dists = Distribution.get_distributions(ctx)
 
         needs_build = True  # whether the dist needs building, will be returned

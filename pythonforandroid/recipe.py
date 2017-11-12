@@ -226,19 +226,19 @@ class Recipe(with_metaclass(RecipeMeta)):
         build directory.
         """
         info("Applying patch {}".format(filename))
-        filename = join(self.recipe_dir, filename)
+        filename = join(self.get_recipe_dir(), filename)
         shprint(sh.patch, "-t", "-d", self.get_build_dir(arch), "-p1",
                 "-i", filename, _tail=10)
 
     def copy_file(self, filename, dest):
         info("Copy {} to {}".format(filename, dest))
-        filename = join(self.recipe_dir, filename)
+        filename = join(self.get_recipe_dir(), filename)
         dest = join(self.build_dir, dest)
         shutil.copy(filename, dest)
 
     def append_file(self, filename, dest):
         info("Append {} to {}".format(filename, dest))
-        filename = join(self.recipe_dir, filename)
+        filename = join(self.get_recipe_dir(), filename)
         dest = join(self.build_dir, dest)
         with open(filename, "rb") as fd:
             data = fd.read()
@@ -330,7 +330,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         return join(self.get_build_container_dir(arch), self.name)
 
     def get_recipe_dir(self):
-        # AND: Redundant, an equivalent property is already set by get_recipe
         return join(self.ctx.root_dir, 'recipes', self.name)
 
     # Public Recipe API to be subclassed if needed
@@ -412,8 +411,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         if user_dir is not None:
             info('P4A_{}_DIR exists, symlinking instead'.format(
                 self.name.lower()))
-            # AND: Currently there's something wrong if I use ln, fix this
-            warning('Using cp -a instead of symlink...fix this!')
             if exists(self.get_build_dir(arch)):
                 return
             shprint(sh.rm, '-rf', build_dir)
@@ -436,7 +433,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         with current_directory(build_dir):
             directory_name = self.get_build_dir(arch)
 
-            # AND: Could use tito's get_archive_rootdir here
             if not exists(directory_name) or not isdir(directory_name):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
@@ -649,7 +645,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
-        recipe.recipe_dir = dirname(recipe_file)
         recipe.ctx = ctx
         cls.recipes[name] = recipe
         return recipe
@@ -832,26 +827,11 @@ class PythonRecipe(Recipe):
 
 
             if self.ctx.python_recipe.from_crystax:
-                # hppath = join(dirname(self.hostpython_location), 'Lib',
-                #               'site-packages')
                 hpenv = env.copy()
-                # if 'PYTHONPATH' in hpenv:
-                #     hpenv['PYTHONPATH'] = ':'.join([hppath] +
-                #                                    hpenv['PYTHONPATH'].split(':'))
-                # else:
-                #     hpenv['PYTHONPATH'] = hppath
-                # hpenv['PYTHONHOME'] = self.ctx.get_python_install_dir()
-                # shprint(hostpython, 'setup.py', 'build',
-                #         _env=hpenv, *self.setup_extra_args)
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
                         '--install-lib=.',
-                        # AND: will need to unhardcode the 3.5 when adding 2.7 (and other crystax supported versions)
                         _env=hpenv, *self.setup_extra_args)
-                # site_packages_dir = self.ctx.get_site_packages_dir()
-                # built_files = glob.glob(join('build', 'lib*', '*'))
-                # for filen in built_files:
-                #     shprint(sh.cp, '-r', filen, join(site_packages_dir, split(filen)[-1]))
             elif self.call_hostpython_via_targetpython:
                 shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
                         *self.setup_extra_args)
@@ -868,7 +848,6 @@ class PythonRecipe(Recipe):
                         '--root={}'.format(self.ctx.get_python_install_dir()),
                         '--install-lib=lib/python2.7/site-packages',
                         _env=hpenv, *self.setup_extra_args)
-                # AND: Hardcoded python2.7 needs fixing
 
             # If asked, also install in the hostpython build dir
             if self.install_in_hostpython:
