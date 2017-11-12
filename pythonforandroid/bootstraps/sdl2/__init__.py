@@ -69,7 +69,6 @@ class SDL2GradleBootstrap(Bootstrap):
                 shprint(sh.mkdir, "-p",
                         join("private", "include", "python2.7"))
 
-                # AND: Copylibs stuff should go here
                 libpymodules_fn = join("libs", arch.arch, "libpymodules.so")
                 if exists(libpymodules_fn):
                     shprint(sh.mv, libpymodules_fn, 'private/')

@@ -173,8 +173,6 @@ class Context(object):
         if self._build_env_prepared:
             return
 
-        # AND: This needs revamping to carefully check each dependency
-        # in turn
         ok = True
 
         # Work out where the Android SDK is
@@ -186,7 +184,7 @@ class Context(object):
         if sdk_dir is None:  # This seems used more conventionally
             sdk_dir = environ.get('ANDROID_HOME', None)
         if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
-            #                # for debug tests of p4a
+                             # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
             possible_dirs = [d for d in possible_dirs if not
@@ -325,8 +323,9 @@ class Context(object):
                     warning('If the NDK dir result is correct, you don\'t '
                             'need to manually set the NDK ver.')
         if ndk_ver is None:
-            warning('Android NDK version could not be found, exiting.')
-            exit(1)
+            warning('Android NDK version could not be found. This probably'
+                    'won\'t cause any problems, but if necessary you can'
+                    'set it with `--ndk-version=...`.')
         self.ndk_ver = ndk_ver
 
         info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
@@ -361,7 +360,7 @@ class Context(object):
             ok = False
             warning("Missing requirement: cython is not installed")
 
-        # AND: need to change if supporting multiple archs at once
+        # This would need to be changed if supporting multiarch APKs
         arch = self.archs[0]
         platform_dir = arch.platform_dir
         toolchain_prefix = arch.toolchain_prefix
@@ -498,7 +497,7 @@ class Context(object):
         dir.
         '''
 
-        # AND: This *must* be replaced with something more general in
+        # This needs to be replaced with something more general in
         # order to support multiple python versions and/or multiple
         # archs.
         if self.python_recipe.from_crystax:
@@ -577,7 +576,6 @@ def build_recipes(build_order, python_modules, ctx):
                      .format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional
         info_main('# Biglinking object files')
         if not ctx.python_recipe or not ctx.python_recipe.from_crystax:
             biglink(ctx, arch)

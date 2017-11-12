@@ -178,8 +178,6 @@ class Bootstrap(object):
         This is the only way you should access a bootstrap class, as
         it sets the bootstrap directory correctly.
         '''
-        # AND: This method will need to check user dirs, and access
-        # bootstraps in a slightly different way
         if name is None:
             return None
         if not hasattr(cls, 'bootstraps'):
