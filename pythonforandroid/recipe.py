@@ -659,6 +659,8 @@ class Recipe(with_metaclass(RecipeMeta)):
             #: Match names with - or _ the same as entry_points requires underscores
             if ep.name.replace("-", "_") == name.replace("-", "_"):
                 get_recipe = ep.load()
+                warning("The '{}' recipe was loaded from a pip installed package. "\
+                        "It is recommened to use P4A's builtin versions if available.".format(name))
                 return get_recipe()
 
     @classmethod
