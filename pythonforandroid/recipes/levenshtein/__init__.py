@@ -11,10 +11,10 @@ class LevenshteinRecipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(LevenshteinRecipe, self).get_recipe_env(arch)
-        bxml = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxml2/armeabi/libxml2/"
-        bxsl = "/home/zgoldberg/.local/share/python-for-android/build/other_builds/libxslt/armeabi/libxslt"
+        libxslt_recipe = Recipe.get_recipe('libxslt', self.ctx)
+        libxml2_recipe = Recipe.get_recipe('libxml2', self.ctx)
         targetpython = "%s/include/python2.7/" % dirname(dirname(self.ctx.hostpython))
-        env['CC'] += " -I%s/include -I%s -I%s" % (bxml, bxsl, targetpython)
+        env['CC'] += " -I%s/include -I%s -I%s" % (libxml2_recipe, libxslt_recipe, targetpython)
         env['LDSHARED'] = '%s -nostartfiles -shared -fPIC -lpython2.7' % env['CC']
         return env
 
