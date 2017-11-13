@@ -1,13 +1,11 @@
-diff --git a/src/core/android/SDL_android.c b/src/core/android/SDL_android.c
-index d806208..0ff801b 100644
---- a/src/core/android/SDL_android.c
-+++ b/src/core/android/SDL_android.c
-@@ -180,6 +180,19 @@ void Java_org_libsdl_app_SDLActivity_onNativeHat(
+--- orig/src/core/android/SDL_android.c	2016-01-02 20:56:31.000000000 +0100
++++ patch/src/core/android/SDL_android.c	2016-04-15 22:21:13.985708267 +0200
+@@ -188,6 +188,19 @@
      Android_OnHat(device_id, hat_id, x, y);
  }
  
 +/* Patched in env var setter for python-for-android */
-+void Java_org_libsdl_app_SDLActivity_nativeSetEnv(
++JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_nativeSetEnv(
 +                                    JNIEnv* env, jclass jcls,
 +                                    jstring j_name, jstring j_value)
 +{
@@ -20,5 +18,5 @@ index d806208..0ff801b 100644
 +}
 +
  
- int Java_org_libsdl_app_SDLActivity_nativeAddJoystick(
+ JNIEXPORT jint JNICALL Java_org_libsdl_app_SDLActivity_nativeAddJoystick(
      JNIEnv* env, jclass jcls,

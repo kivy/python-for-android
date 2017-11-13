@@ -1,0 +1,25 @@
+From 156a0426f7350bf49bdfae1aad555e13c9494b9a Mon Sep 17 00:00:00 2001
+From: frmdstryr <frmdstryr@gmail.com>
+Date: Thu, 23 Jun 2016 22:04:32 -0400
+Subject: [PATCH] Update setup.py
+
+---
+ setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 3bfd2a2..99817e5 100644
+--- a/setup.py
++++ b/setup.py
+@@ -72,7 +72,7 @@ setup(
+     url='https://github.com/nucleic/enaml',
+     description='Declarative DSL for building rich user interfaces in Python',
+     long_description=open('README.rst').read(),
+-    requires=['atom', 'PyQt', 'ply', 'kiwisolver'],
++    requires=['atom', 'ply', 'kiwisolver'],
+     install_requires=['distribute', 'atom >= 0.3.8', 'kiwisolver >= 0.1.2', 'ply >= 3.4'],
+     packages=find_packages(),
+     package_data={
+-- 
+2.7.4
+

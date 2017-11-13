@@ -1,0 +1,70 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+       jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.1'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+	    flatDir {
+	    	dirs 'libs'
+	    }
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion {{ android_api }}
+	buildToolsVersion '{{ build_tools_version }}'
+	defaultConfig {
+		minSdkVersion {{ args.min_sdk_version }}
+		targetSdkVersion {{ android_api }}
+		versionCode {{ args.numeric_version }}
+		versionName '{{ args.version }}'
+	}
+
+	{% if args.sign -%}
+	signingConfigs {
+		release {
+			storeFile file(System.getenv("P4A_RELEASE_KEYSTORE"))
+			keyAlias System.getenv("P4A_RELEASE_KEYALIAS")
+			storePassword System.getenv("P4A_RELEASE_KEYSTORE_PASSWD")
+			keyPassword System.getenv("P4A_RELEASE_KEYALIAS_PASSWD")
+		}
+	}
+    {%- endif %}
+
+	buildTypes {
+		debug {
+		}
+		release {
+			{% if args.sign -%}
+			signingConfig signingConfigs.release
+			{%- endif %}
+		}
+	}
+
+    sourceSets {
+        main {
+            jniLibs.srcDir 'libs' 
+            }
+        }
+
+}
+
+dependencies {
+	{%- for aar in aars %}
+	compile(name: '{{ aar }}', ext: 'aar')
+	{%- endfor -%}
+	{%- if args.depends -%}
+	{%- for depend in args.depends %}
+	compile '{{ depend }}'
+	{%- endfor %}
+	{%- endif %}
+}

@@ -17,8 +17,8 @@
 +
 +    /* Ensure we have access to libpymodules. */
 +    if (libpymodules == -1) {
-+        printf("ANDROID_PRIVATE = %s\n", getenv("ANDROID_PRIVATE"));
-+        PyOS_snprintf(pathbuf, sizeof(pathbuf), "%s/libpymodules.so", getenv("ANDROID_PRIVATE"));
++        printf("ANDROID_UNPACK = %s\n", getenv("ANDROID_UNPACK"));
++        PyOS_snprintf(pathbuf, sizeof(pathbuf), "%s/libpymodules.so", getenv("ANDROID_UNPACK"));
 +        libpymodules = dlopen(pathbuf, RTLD_NOW);
 +
 +        if (libpymodules == NULL) {
