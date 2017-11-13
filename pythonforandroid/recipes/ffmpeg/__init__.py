@@ -6,11 +6,14 @@ import sh
 import os
 import shutil
 
+# TODO
+# Recipe doesn't work with NDK r15c+ yet,
+# see: https://github.com/android-ndk/ndk/issues/477
+
 
 class FFMpegRecipe(Recipe):
-    version = '3.1.8'  # 3.2+ works with bugs
+    version = '3.3.3'
     url = 'http://ffmpeg.org/releases/ffmpeg-{version}.tar.bz2'
-    md5sum = 'f25a0cdd7f731cfbd8c0f7842b0d15b9'
     depends = ['sdl2']  # Need this to build correct recipe order
     opts_depends = ['openssl', 'ffpyplayer_codecs']
     patches = ['patches/fix-libshine-configure.patch']
@@ -22,7 +25,7 @@ class FFMpegRecipe(Recipe):
     def prebuild_arch(self, arch):
         self.apply_patches(arch)
 
-    def get_recipe_env(self,arch):
+    def get_recipe_env(self, arch):
         env = super(FFMpegRecipe, self).get_recipe_env(arch)
         env['NDK'] = self.ctx.ndk_dir
         return env
@@ -69,16 +72,10 @@ class FFMpegRecipe(Recipe):
             else:
                 # Enable codecs only for .mp4:
                 flags += [
-                    '--enable-parser=h264,aac',
-                    '--enable-decoder=h263,h264,aac',
-                ]
-
-                # disable some unused algo
-                # note: "golomb" are the one used in our video test, so don't use --disable-golomb
-                # note: and for aac decoding: "rdft", "mdct", and "fft" are needed
-                flags += [
-                    '--disable-dxva2 --disable-vdpau --disable-vaapi',
-                    '--disable-dct',
+                    '--enable-parser=aac,ac3,h261,h264,mpegaudio,mpeg4video,mpegvideo,vc1',
+                    '--enable-decoder=aac,h264,mpeg4,mpegvideo',
+                    '--enable-muxer=h264,mov,mp4,mpeg2video',
+                    '--enable-demuxer=aac,h264,m4v,mov,mpegvideo,vc1',
                 ]
 
             # needed to prevent _ffmpeg.so: version node not found for symbol av_init_packet@LIBAVFORMAT_52
@@ -89,10 +86,10 @@ class FFMpegRecipe(Recipe):
 
             # disable binaries / doc
             flags += [
-                '--disable-ffmpeg', 
-                '--disable-ffplay', 
-                '--disable-ffprobe', 
-                '--disable-ffserver', 
+                '--disable-ffmpeg',
+                '--disable-ffplay',
+                '--disable-ffprobe',
+                '--disable-ffserver',
                 '--disable-doc',
             ]
 
@@ -104,7 +101,7 @@ class FFMpegRecipe(Recipe):
                 '--enable-hwaccels',
                 '--enable-gpl',
                 '--enable-pic',
-                '--disable-static', 
+                '--disable-static',
                 '--enable-shared',
             ]
 
@@ -117,13 +114,11 @@ class FFMpegRecipe(Recipe):
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]
-            cflags = [
-                '-march=armv7-a', 
+            cflags += [
                 '-mfpu=vfpv3-d16', 
                 '-mfloat-abi=softfp', 
-                '-fPIC', 
-                '-DANDROID',
-            ] + cflags
+                '-fPIC',
+            ]
 
             env['CFLAGS'] += ' ' + ' '.join(cflags)
             env['LDFLAGS'] += ' ' + ' '.join(ldflags)

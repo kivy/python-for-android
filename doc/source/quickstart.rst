@@ -90,7 +90,13 @@ You need to download and unpack the Android SDK and NDK to a directory (let's sa
 For the Android SDK, you can download 'just the command line
 tools'. When you have extracted these you'll see only a directory
 named ``tools``, and you will need to run extra commands to install
-the SDK packages needed.
+the SDK packages needed. 
+
+For Android NDK, note that modern releases will only work on a 64-bit
+operating system. If you are using a 32-bit distribution (or hardware),
+the latest useable NDK version is r10e, which can be downloaded here:
+
+- `Legacy 32-bit Linux NDK r10e <http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86.bin>`_
 
 First, install a platform to target (you can also replace ``19`` with
 a different platform number, this will be used again later)::
