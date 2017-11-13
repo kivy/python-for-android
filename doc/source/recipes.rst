@@ -55,9 +55,15 @@ omitted if the source is somehow loaded from elsewhere.
 You must include ``recipe = YourRecipe()``. This variable is accessed
 when the recipe is imported.
 
-.. note:: The url includes the ``{version}`` tag. You should only
-          access the url with the ``versioned_url`` property, which
-          replaces this with the version attribute.
+The currently supported url's include the following package retrieval
+methods: http, https, git+http, git+https, git+ssh and git+file (to
+checkout from a local file system repository). When using git, ``version``
+should be the required repository branch or tag.
+
+Source packages can also be retrieved from PyPI using their fragmented URL
+format which includes their md5sum value. For example,
+'https://pypi.python.org/packages.../package.tar.gz-1.1.1#md5=...' (do not
+define the ``md5sum`` otherwise).
 
 The actual build process takes place via three core methods::
 

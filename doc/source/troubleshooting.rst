@@ -52,8 +52,8 @@ or::
 
 Running logcat command gives a lot of information about what Android is
 doing. You can usually see important lines by using logcat's built in
-functionality to see only lines with the ``python`` tag (or just
-grepping this).
+functionality to see only lines with the ``python`` tag, `logcat python:*
+*:S`.
 
 When your app crashes, you'll see the normal Python traceback here, as
 well as the output of any print statements etc. that your app
