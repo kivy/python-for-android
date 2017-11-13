@@ -61,27 +61,35 @@ error = logger.error
 
 class colorama_shim(object):
 
-    def __init__(self):
+    def __init__(self, real):
         self._dict = defaultdict(str)
+        self._real = real
+        self._enabled = False
 
     def __getattr__(self, key):
-        return self._dict[key]
+        return getattr(self._real, key) if self._enabled else self._dict[key]
 
-Null_Style = Null_Fore = colorama_shim()
+    def enable(self, enable):
+        self._enabled = enable
 
-if stdout.isatty():
-    Out_Style = Colo_Style
-    Out_Fore = Colo_Fore
-else:
-    Out_Style = Null_Style
-    Out_Fore = Null_Fore
+Out_Style = colorama_shim(Colo_Style)
+Out_Fore = colorama_shim(Colo_Fore)
+Err_Style = colorama_shim(Colo_Style)
+Err_Fore = colorama_shim(Colo_Fore)
 
-if stderr.isatty():
-    Err_Style = Colo_Style
-    Err_Fore = Colo_Fore
-else:
-    Err_Style = Null_Style
-    Err_Fore = Null_Fore
+
+def setup_color(color):
+    enable_out = (False if color == 'never' else
+                  True if color == 'always' else
+                  stdout.isatty())
+    Out_Style.enable(enable_out)
+    Out_Fore.enable(enable_out)
+
+    enable_err = (False if color == 'never' else
+                  True if color == 'always' else
+                  stderr.isatty())
+    Err_Style.enable(enable_err)
+    Err_Fore.enable(enable_err)
 
 
 def info_main(*args):
@@ -138,7 +146,9 @@ def shprint(command, *args, **kwargs):
     kwargs["_err_to_out"] = True
     kwargs["_bg"] = True
     is_critical = kwargs.pop('_critical', False)
-    tail_n = kwargs.pop('_tail', 0)
+    tail_n = kwargs.pop('_tail', None)
+    if "P4A_FULL_DEBUG" in os.environ:
+        tail_n = 0
     filter_in = kwargs.pop('_filter', None)
     filter_out = kwargs.pop('_filterout', None)
     if len(logger.handlers) > 1:
@@ -163,6 +173,8 @@ def shprint(command, *args, **kwargs):
         msg_width = columns - len(msg_hdr) - 1
         output = command(*args, **kwargs)
         for line in output:
+            if isinstance(line, bytes):
+                line = line.decode('utf-8', errors='replace')
             if logger.level > logging.DEBUG:
                 msg = line.replace(
                     '\n', ' ').replace(
@@ -185,7 +197,7 @@ def shprint(command, *args, **kwargs):
             stdout.write('{}\r{:>{width}}\r'.format(
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))
             stdout.flush()
-        if tail_n or filter_in or filter_out:
+        if tail_n is not None or filter_in or filter_out:
             def printtail(out, name, forecolor, tail_n=0,
                           re_filter_in=None, re_filter_out=None):
                 lines = out.splitlines()

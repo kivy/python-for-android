@@ -28,12 +28,14 @@ Contents
 
    quickstart
    buildoptions
-   installation
    commands
+   distutils
    recipes
    bootstraps
+   services
    apis
    troubleshooting
+   launcher
    contribute
    old_toolchain/index.rst
 
@@ -44,4 +46,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

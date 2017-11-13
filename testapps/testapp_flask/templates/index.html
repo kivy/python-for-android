@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+
+<h2>Page one</h2>
+
+<img src="static/colours.png" style="width:50%;margin-left:auto;margin-right:auto;display:block">
+
+<form>
+    <button formaction="/page2" >Second page</button>
+</form>
+
+
+<button onClick="vibrate()">
+    vibrate for 1s with pyjnius
+</button>
+
+<script>
+ function vibrate() {
+     var request = new XMLHttpRequest();
+     request.open('GET', 'vibrate?time=1', true);
+     request.send();
+     }
+</script>
+
+<button onClick="loadUrl()">
+    open url
+</button>
+<input type="text" value="http://www.google.com" id="url_field"/>
+
+<script>
+ function loadUrl() {
+     var request = new XMLHttpRequest();
+     var url = document.getElementById("url_field").value
+     request.open('GET', 'loadUrl?url=' + url, true);
+     request.send();
+     }
+</script>
+
+<button onClick="vertical()">
+    vertical orientation
+</button>
+
+<button onClick="horizontal()">
+    horizontal orientation
+</button>
+
+<script>
+ function horizontal() {
+     var request = new XMLHttpRequest();
+     request.open('GET', 'orientation?dir=horizontal', true);
+     request.send();
+ }
+
+ function vertical() {
+     var request = new XMLHttpRequest();
+     request.open('GET', 'orientation?dir=vertical', true);
+     request.send();
+ }
+</script>
+
+{% endblock %}

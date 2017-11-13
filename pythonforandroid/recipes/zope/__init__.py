@@ -6,7 +6,7 @@ import glob
 
 class ZopeRecipe(PythonRecipe):
     name = 'zope'
-    version = '4.1.2'
+    version = '4.1.3'
     url = 'http://pypi.python.org/packages/source/z/zope.interface/zope.interface-{version}.tar.gz'
 
     depends = ['python2']

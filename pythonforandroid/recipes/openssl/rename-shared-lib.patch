@@ -1,0 +1,16 @@
+--- openssl/Makefile.shared	2016-05-03 15:44:42.000000000 +0200
++++ patch/Makefile.shared	2016-07-14 00:08:37.268792948 +0200
+@@ -147,11 +147,11 @@
+ DETECT_GNU_LD=($(CC) -Wl,-V /dev/null 2>&1 | grep '^GNU ld' )>/dev/null
+ 
+ DO_GNU_SO=$(CALC_VERSIONS); \
+-	SHLIB=lib$(LIBNAME).so; \
++	SHLIB=lib$(LIBNAME)$(OPENSSL_VERSION).so; \
+ 	SHLIB_SUFFIX=; \
+ 	ALLSYMSFLAGS='-Wl,--whole-archive'; \
+ 	NOALLSYMSFLAGS='-Wl,--no-whole-archive'; \
+-	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -Wl,-Bsymbolic -Wl,-soname=$$SHLIB$$SHLIB_SOVER$$SHLIB_SUFFIX"
++	SHAREDFLAGS="$(CFLAGS) $(SHARED_LDFLAGS) -shared -Wl,-Bsymbolic -Wl,-soname=$$SHLIB"
+ 
+ DO_GNU_APP=LDFLAGS="$(CFLAGS) -Wl,-rpath,$(LIBRPATH)"
+ 

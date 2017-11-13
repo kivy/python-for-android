@@ -3,15 +3,10 @@ print('main.py was successfully called')
 import os
 print('imported os')
 
-print('contents of ./lib/python2.7/site-packages/ etc.')
-print(os.listdir('./lib'))
-print(os.listdir('./lib/python2.7'))
-print(os.listdir('./lib/python2.7/site-packages'))
+
+print('this dir is', os.path.abspath(os.curdir))
 
 print('contents of this dir', os.listdir('./'))
-
-with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
-    print('app.pyo size is', len(fileh.read()))
 
 import sys
 print('pythonpath is', sys.path)
@@ -35,6 +30,7 @@ print('platform is', platform)
 
 kv = '''
 #:import Metrics kivy.metrics.Metrics
+#:import sys sys
 
 <FixedSizeButton@Button>:
     size_hint_y: None
@@ -63,6 +59,14 @@ ScrollView:
             markup: True
             text: '[b]Kivy[/b] on [b]SDL2[/b] on [b]Android[/b]!'
             halign: 'center'
+        Label:
+            height: self.texture_size[1]
+            size_hint_y: None
+            text_size: self.size[0], None
+            markup: True
+            text: sys.version
+            halign: 'center'
+            padding_y: dp(10)
         Widget:
             size_hint_y: None
             height: 20
@@ -83,7 +87,7 @@ ScrollView:
         Widget:
             size_hint_y: None
             height: 1000
-            on_touch_down: print 'touched at', args[-1].pos
+            on_touch_down: print('touched at', args[-1].pos)
 
 <ErrorPopup>:
     title: 'Error' 
