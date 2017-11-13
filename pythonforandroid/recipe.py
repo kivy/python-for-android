@@ -872,6 +872,11 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
     build_cmd = 'build_ext'
 
+    def get_recipe_env(self, arch):
+        env = super(CompiledComponentsPythonRecipe, self).get_recipe_env(arch)
+        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
+        return env
+
     def build_arch(self, arch):
         '''Build any cython components, then install the Python module by
         calling setup.py install with the target Python dir.
