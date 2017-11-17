@@ -1,4 +1,5 @@
 from functools import partial
+from os.path import join
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory
 import sh
@@ -61,5 +62,9 @@ class OpenSSLRecipe(Recipe):
 
             self.install_libs(arch, 'libssl' + self.version + '.so',
                               'libcrypto' + self.version + '.so')
+
+    def get_include_dirs(self, arch):
+        return [join(self.get_build_dir(arch.arch), 'include')]
+
 
 recipe = OpenSSLRecipe()

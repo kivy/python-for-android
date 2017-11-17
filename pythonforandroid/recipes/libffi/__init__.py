@@ -1,4 +1,5 @@
 from os.path import exists, join
+from re import match
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import info, shprint
 from pythonforandroid.util import current_directory
@@ -7,18 +8,19 @@ import sh
 
 class LibffiRecipe(Recipe):
     name = 'libffi'
-    version = 'v3.2.1'
-    url = 'https://github.com/atgreen/libffi/archive/{version}.zip'
+    version = 'master'
+    url = 'git+file:///home/enoch/libffi'
 
-    patches = ['remove-version-info.patch']
+    patches = []
 
     def get_host(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             host = None
             with open('Makefile') as f:
                 for line in f:
-                    if line.startswith('host = '):
-                        host = line.strip()[7:]
+                    ma = match('^host_triplet\s=\s(\S+)$', line)
+                    if ma:
+                        host = ma.group(1)
                         break
 
             if not host or not exists(host):
