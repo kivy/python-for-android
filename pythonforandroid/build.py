@@ -674,7 +674,8 @@ def biglink(ctx, arch):
             join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
             obj_dir.split(' '),
             extra_link_dirs=[join(ctx.bootstrap.build_dir,
-                                'obj', 'local', arch.arch)],
+                                  'obj', 'local', arch.arch),
+                             os.path.abspath('.')],
             env=env)
 
 
