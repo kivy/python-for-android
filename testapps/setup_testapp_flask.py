@@ -10,6 +10,7 @@ options = {'apk': {'debug': None,
                    'ndk-version': '10.3.2',
                    'bootstrap': 'webview',
                    'permissions': ['INTERNET', 'VIBRATE'],
+                   'arch': 'armeabi-v7a',
                    'window': None,
                    }}
 
