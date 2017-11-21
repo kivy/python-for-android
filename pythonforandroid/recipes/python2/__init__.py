@@ -9,7 +9,7 @@ import sh
 
 class Python2Recipe(TargetPythonRecipe):
     version = "2.7.2"
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
+    url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'python2'
 
     depends = ['hostpython2']

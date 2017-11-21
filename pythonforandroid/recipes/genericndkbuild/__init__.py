@@ -19,6 +19,8 @@ class GenericNDKBuildRecipe(BootstrapNDKRecipe):
         env['PYTHON2_NAME'] = py2.get_dir_name()
         if 'python2' in self.ctx.recipe_build_order:
             env['EXTRA_LDLIBS'] = ' -lpython2.7'
+
+        env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
 
     def build_arch(self, arch):
