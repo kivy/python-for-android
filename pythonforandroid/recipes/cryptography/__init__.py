@@ -5,7 +5,8 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
     name = 'cryptography'
     version = 'master'
     url = 'git+file:///home/enoch/cryptography'
-    depends = ['idna', 'asn1crypto', 'six', 'cffi', 'enum34', 'ipaddress', 'openssl']
+    depends = ['hostcffi', 'idna', 'asn1crypto', 'six',
+               'cffi', 'enum34', 'ipaddress', 'openssl']
 
     call_hostpython_via_targetpython = False
 

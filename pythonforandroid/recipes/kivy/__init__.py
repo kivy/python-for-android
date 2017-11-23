@@ -6,9 +6,9 @@ import glob
 
 
 class KivyRecipe(CythonRecipe):
+    name = 'kivy'
     version = 'master'
     url = 'git+file:///home/enoch/kivy'
-    name = 'kivy'
 
     depends = [('sdl2', 'pygame'), 'pyjnius']
 

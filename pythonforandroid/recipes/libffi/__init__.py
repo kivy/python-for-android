@@ -8,10 +8,10 @@ import sh
 
 class LibffiRecipe(Recipe):
     name = 'libffi'
-    version = 'master'
-    url = 'git+file:///home/enoch/libffi'
+    version = 'v3.2.1'
+    url = 'https://github.com/atgreen/libffi/archive/{version}.zip'
 
-    patches = []
+    patches = ['remove-version-info.patch']
 
     def get_host(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):

@@ -817,7 +817,8 @@ class PythonRecipe(Recipe):
                 self.install_hostpython_package(arch)
 
     def get_hostrecipe_env(self, arch):
-        env = environ.copy()
+        env = {}
+        env['PATH'] = '/usr/local/bin:/usr/bin:/bin'
         env['PYTHONPATH'] = join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
         return env
 

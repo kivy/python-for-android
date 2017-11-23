@@ -12,9 +12,10 @@ import sh
 
 
 class TwistedRecipe(CythonRecipe):
-    version = 'trunk'
-    url = 'git+file:///home/enoch/twisted'
-
+    name = 'twisted'
+    version = '17.9.0'
+    url = 'https://pypi.python.org/packages/a2/37/298f9547606c45d75aa9792369302cc63aa4bbcf7b5f607560180dd099d2/Twisted-17.9.0.tar.bz2#md5=6dbedb918f0c7288a4c670f59393ecf8'
+    
     depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']
 
     call_hostpython_via_targetpython = False
