@@ -26,6 +26,7 @@ class OpenSSLRecipe(Recipe):
         env['OPENSSL_VERSION'] = self.version
         env['CFLAGS'] += ' ' + env['LDFLAGS']
         env['CC'] += ' ' + env['LDFLAGS']
+        env['MAKE'] = 'make'  # This removes the '-j5', which isn't safe
         return env
 
     def select_build_arch(self, arch):
