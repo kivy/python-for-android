@@ -1,0 +1,13 @@
+diff --git a/Android.mk b/Android.mk
+index d48111b..3108b2c 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -22,7 +22,7 @@ SUPPORT_WEBP := false
+ WEBP_LIBRARY_PATH := external/libwebp-0.3.0
+ 
+ 
+-LOCAL_C_INCLUDES := $(LOCAL_PATH)
++LOCAL_C_INCLUDES := $(LOCAL_PATH) $(NDK_PLATFORM_INCLUDE_DIR)
+ LOCAL_CFLAGS := -DLOAD_BMP -DLOAD_GIF -DLOAD_LBM -DLOAD_PCX -DLOAD_PNM \
+                 -DLOAD_TGA -DLOAD_XCF -DLOAD_XPM -DLOAD_XV
+ LOCAL_CFLAGS += -O3 -fstrict-aliasing -fprefetch-loop-arrays $(EXTRA_CFLAGS)
