@@ -823,6 +823,9 @@ class PythonRecipe(Recipe):
         return env
 
     def install_hostpython_package(self, arch):
+
+        info('install_hostpython_package: {}'.format(self.name))
+
         env = self.get_hostrecipe_env(arch)
         real_hostpython = sh.Command(self.real_hostpython_location)
         shprint(real_hostpython, 'setup.py', 'install', '-O2',
@@ -831,8 +834,11 @@ class PythonRecipe(Recipe):
                 _env=env, *self.setup_extra_args)
 
     def pip_install_hostpython_package(self, arch):
-        """ calling recipe build_arch() must hast 'host_pip' in depends[] """
-        package = (self.name + '==' + self.version if hasattr(self, 'version')
+        """ calling recipe build_arch() must have 'host_pip' in depends[] """
+
+        info('pip_install_hostpython_package: {}'.format(self.name))
+
+        package = (self.name + '==' + self.version if self.version
                    else self.name)
         env = self.get_hostrecipe_env(arch)
         real_hostpython = sh.Command(self.real_hostpython_location)
