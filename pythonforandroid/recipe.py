@@ -1,6 +1,6 @@
-from os.path import join, dirname, isdir, exists, isfile, split, realpath, basename
+from os.path import (join, dirname, normpath, isfile,
+                     isdir, exists, realpath, basename)
 import importlib
-import zipfile
 import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
@@ -788,7 +788,6 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
 
-
             if self.ctx.python_recipe.from_crystax:
                 hpenv = env.copy()
                 shprint(hostpython, 'setup.py', 'install', '-O2',
@@ -819,7 +818,8 @@ class PythonRecipe(Recipe):
     def get_hostrecipe_env(self, arch):
         env = {}
         env['PATH'] = '/usr/local/bin:/usr/bin:/bin'
-        env['PYTHONPATH'] = join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
+        env['PYTHONPATH'] = join(dirname(self.real_hostpython_location),
+                                 'Lib', 'site-packages')
         return env
 
     def install_hostpython_package(self, arch):
@@ -829,6 +829,22 @@ class PythonRecipe(Recipe):
                 '--root={}'.format(dirname(self.real_hostpython_location)),
                 '--install-lib=Lib/site-packages',
                 _env=env, *self.setup_extra_args)
+
+    def pip_install_hostpython_package(self, arch):
+        """ calling recipe build_arch() must hast 'host_pip' in depends[] """
+        package = (self.name + '==' + self.version if hasattr(self, 'version')
+                   else self.name)
+        env = self.get_hostrecipe_env(arch)
+        real_hostpython = sh.Command(self.real_hostpython_location)
+        build_dir = normpath(join(dirname(self.real_hostpython_location),
+                                  '..', self.name))
+        target_dir = env['PYTHONPATH']
+        ensure_dir(build_dir)
+        with current_directory(build_dir):
+            shprint(real_hostpython, '-mpip', 'install', '--upgrade', package,
+                    "--build={}".format(build_dir),
+                    "--target={}".format(target_dir),
+                    _env=env, *self.setup_extra_args)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
