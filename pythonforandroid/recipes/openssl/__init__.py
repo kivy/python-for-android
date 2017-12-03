@@ -60,9 +60,10 @@ class OpenSSLRecipe(Recipe):
                 if all(map(check_crypto, ('SSLeay', 'MD5_Transform', 'MD4_Init'))):
                     break
                 shprint(sh.make, 'clean', _env=env)
-
-            self.install_libs(arch, 'libssl' + self.version + '.so',
-                              'libcrypto' + self.version + '.so')
+            libn = 'libssl', 'libcrypto'
+            libs = [lib + self.version + '.so' for lib in libn]
+            lnks = {lib + self.version + '.so': lib + '.so' for lib in libn}
+            self.install_libs(arch, *libs, **lnks)
 
     def get_include_dirs(self, arch):
         return [join(self.get_build_dir(arch.arch), 'include')]

@@ -553,13 +553,15 @@ class Recipe(with_metaclass(RecipeMeta)):
         # doesn't persist in site-packages
         shutil.rmtree(self.ctx.python_installs_dir)
 
-    def install_libs(self, arch, *libs):
+    def install_libs(self, arch, *libs, **links):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
         if not libs:
             warning('install_libs called with no libraries to install!')
             return
         args = libs + (libs_dir,)
         shprint(sh.cp, *args)
+        for lib, link in links.iteritems():
+            shprint(sh.ln, '-s', join(libs_dir, lib), join(libs_dir, link))
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
@@ -879,8 +881,12 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
             hostpython = sh.Command(self.hostpython_location)
             if self.install_in_hostpython:
                 shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
+
             shprint(hostpython, 'setup.py', self.build_cmd, '-v',
                     _env=env, *self.setup_extra_args)
+
+            # hostpython('setup.py', self.build_cmd, '-v', _env=env, _fg=True)
+
             build_dir = glob.glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
