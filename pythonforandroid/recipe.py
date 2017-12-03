@@ -1,5 +1,6 @@
 from os.path import (join, dirname, normpath, isfile,
                      isdir, exists, realpath, basename)
+from os import chdir
 import importlib
 import glob
 from shutil import rmtree
@@ -560,8 +561,10 @@ class Recipe(with_metaclass(RecipeMeta)):
             return
         args = libs + (libs_dir,)
         shprint(sh.cp, *args)
-        for lib, link in links.iteritems():
-            shprint(sh.ln, '-s', join(libs_dir, lib), join(libs_dir, link))
+        if links:
+            with current_directory(libs_dir):
+                for lib, link in links.iteritems():
+                    shprint(sh.ln, '-s', lib, link)
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
