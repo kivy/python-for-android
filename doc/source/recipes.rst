@@ -2,17 +2,18 @@
 Recipes
 =======
 
-This documentation describes how python-for-android (p4a) recipes
-work. These are special scripts for installing different programs
+This page describes how python-for-android (p4a) compilation recipes
+work, and how to build your own. If you just want to build an APK,
+ignore this and jump straight to the :doc:`quickstart`.
+
+Recipes are special scripts for compiling and installing different programs
 (including Python modules) into a p4a distribution. They are necessary
 to take care of compilation for any compiled components, as these must
 be compiled for Android with the correct architecture.
 
-python-for-android comes with many recipes for popular modules, and no
-recipe is necessary at all for the use of Python modules with no
-compiled components; if you just want to build an APK, you can jump
-straight to the :doc:`quickstart` or :doc:`commands` documentation, or
-can use the :code:`recipes` command to list available recipes. 
+python-for-android comes with many recipes for popular modules. No
+recipe is necessary to use of Python modules with no
+compiled components; these are installed automaticaly via pip.
 
 If you are new to building recipes, it is recommended that you first
 read all of this page, at least up to the Recipe reference
@@ -23,8 +24,7 @@ examples of how recipes are built or overridden for specific purposes.
 Creating your own Recipe
 ------------------------
 
-This documentation jumps straight to the practicalities of creating
-your own recipe. The formal reference documentation of the Recipe
+The formal reference documentation of the Recipe
 class can be found in the `Recipe class <recipe_class_>`_ section and below.
 
 Check the `recipe template section <recipe_template_>`_ for a template
@@ -38,6 +38,8 @@ The basic declaration of a recipe is as follows::
       url = 'http://example.com/example-{version}.tar.gz'
       version = '2.0.3'
       md5sum = '4f3dc9a9d857734a488bcbefd9cd64ed'
+      
+      patches = ['some_fix.patch']  # Paths relative to the recipe dir
 
       depends = ['kivy', 'sdl2']  # These are just examples
       conflicts = ['pygame'] 
@@ -50,9 +52,8 @@ information about each parameter.
 These core options are vital for all recipes, though the url may be
 omitted if the source is somehow loaded from elsewhere.
 
-The ``recipe = YourRecipe()`` is also vital. This variable is used
-when the recipe is imported as the recipe instance to build with. If
-it is omitted, your recipe won't work.
+You must include ``recipe = YourRecipe()``. This variable is accessed
+when the recipe is imported.
 
 .. note:: The url includes the ``{version}`` tag. You should only
           access the url with the ``versioned_url`` property, which
@@ -72,9 +73,8 @@ The actual build process takes place via three core methods::
           super(YourRecipe, self).build_arch(arch)
           # Do any clearing up
 
-The prebuild of every recipe is run before the build of any recipe,
-and likewise the build of every recipe is run before the postbuild of
-any. This lets you strictly order the build process.
+These methods are always run in the listed order; prebuild, then
+build, then postbuild.
 
 If you defined an url for your recipe, you do *not* need to manually
 download it, this is handled automatically.
@@ -118,26 +118,35 @@ Methods and tools to help with compilation
 Patching modules before installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can easily apply patches to your recipes with the ``apply_patch``
-method. For instance, you could do this in your prebuild method::
+You can easily apply patches to your recipes by adding them to the
+``patches`` declaration, e.g.::
 
-  import sh
-  def prebuild_arch(self, arch):
-       super(YourRecipe, self).prebuild_arch(arch)
-       build_dir = self.get_build_dir(arch.arch)
-       if exists(join(build_dir, '.patched')):
-           print('Your recipe is already patched, skipping')
-           return
-       self.apply_patch('some_patch.patch')
-       shprint(sh.touch, join(build_dir, '.patched'))
+      patches = ['some_fix.patch',
+                 'another_fix.patch']  
+      
+The paths should be relative to the recipe file. Patches are
+automatically applied just once (i.e. not reapplied the second time
+python-for-android is run).
 
-The path to the patch should be in relation to your recipe code.
-In this case, ``some_path.patch`` must be in the same directory as the
-recipe.
+You can also use the helper functions in ``pythonforandroid.patching``
+to apply patches depending on certain conditions, e.g.::
 
-This code also manually takes care to patch only once. You can use the
-same strategy yourself, though a more generic solution may be provided
-in the future.
+  from pythonforandroid.patching import will_build, is_arch
+
+  ...
+
+  class YourRecipe(Recipe):
+      
+      patches = [('x86_patch.patch', is_arch('x86')),
+                 ('sdl2_compatibility.patch', will_build('sdl2'))]
+
+      ...
+      
+You can include your own conditions by passing any function as the
+second entry of the tuple. It will receive the ``arch`` (e.g. x86,
+armeabi) and ``recipe`` (i.e. the Recipe object) as kwargs. The patch
+will be applied only if the function returns True.
+
 
 Installing libs
 ~~~~~~~~~~~~~~~
@@ -172,7 +181,7 @@ this using the ``sh`` module as follows::
   def build_arch(self, arch):
       super(YourRecipe, self).build_arch(arch)
       env = self.get_recipe_env(arch)
-      sh.echo('$PATH', _env=env)  # Will print the PATH entry fron the
+      sh.echo('$PATH', _env=env)  # Will print the PATH entry from the
                                   # env dict
 
 You can also use the ``shprint`` helper function from the p4a
@@ -210,26 +219,25 @@ The should_build method
 ~~~~~~~~~~~~~~~~~~~~~~~
     
 The Recipe class has a ``should_build`` method, which returns a
-boolean. This is called before running ``build_arch``, and if it
-returns False then the build is skipped. This is useful to avoid
-building a recipe more than once for different dists.
+boolean. This is called for each architecture before running
+``build_arch``, and if it returns False then the build is
+skipped. This is useful to avoid building a recipe more than once for
+different dists.
 
 By default, should_build returns True, but you can override it however
 you like. For instance, PythonRecipe and its subclasses all replace it
 with a check for whether the recipe is already installed in the Python
 distribution::
 
-    def should_build(self):
+    def should_build(self, arch):
         name = self.site_packages_name
         if name is None:
             name = self.name
-        if exists(join(self.ctx.get_site_packages_dir(), name)):
+        if self.ctx.has_package(name):
             info('Python package already exists in site-packages')
             return False
-        print('site packages', self.ctx.get_site_packages_dir())
         info('{} apparently isn\'t already in site-packages'.format(name))
         return True
-
 
 
 
@@ -402,7 +410,7 @@ A Recipe template
 -----------------
 
 The following template includes all the recipe sections you might
-use. Note that none are compulsory, feel free to delete method
+use. None are compulsory, feel free to delete method
 overrides if you do not use them::
 
     from pythonforandroid.toolchain import Recipe, shprint, current_directory
@@ -417,6 +425,7 @@ overrides if you do not use them::
 
         version = 'some_version_string'
         url = 'http://example.com/example-{version}.tar.gz'
+        # {version} will be replaced with self.version when downloading
 
         depends = ['python2', 'numpy']  # A list of any other recipe names
                                         # that must be built before this
@@ -459,16 +468,13 @@ overrides if you do not use them::
 Examples of recipes
 -------------------
 
-The above documentation has included a number of snippets
-demonstrating different behaviour. Together, these cover most of what
-is ever necessary to make a recipe work.
+This documentation covers most of what is ever necessary to make a
+recipe work. For further examples, python-for-android includes many
+recipes for popular modules, which are an excellent resource to find
+out how to add your own. You can find these in the `python-for-android
+Github page
+<https://github.com/kivy/python-for-android/tree/master/pythonforandroid/recipes>`__.
 
-The following short sections further demonstrate a few full recipes from p4a's
-internal recipes folder. Unless your own module has some unusual
-complication, following these templates should be all you need to make
-your own recipes work. 
-
-TODO
 
 .. _recipe_class:
 

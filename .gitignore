@@ -12,8 +12,12 @@
 
 *.pyc
 *.pyo
+*.apk
 .packages
 python_for_android.egg-info
-src
 /build/
+doc/build
 __pycache__/
+
+#idea/pycharm
+.idea/

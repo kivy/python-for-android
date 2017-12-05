@@ -1,13 +1,14 @@
 from jnius import PythonJavaClass, java_method, autoclass, cast
+from android.config import JAVA_NAMESPACE, JNI_NAMESPACE
 
-_activity = autoclass('org.renpy.android.PythonActivity').mActivity
+_activity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
 
 _callbacks = {
     'on_new_intent': [],
     'on_activity_result': [] }
 
 class NewIntentListener(PythonJavaClass):
-    __javainterfaces__ = ['org/renpy/android/PythonActivity$NewIntentListener']
+    __javainterfaces__ = [JNI_NAMESPACE + '/PythonActivity$NewIntentListener']
     __javacontext__ = 'app'
 
     def __init__(self, callback, **kwargs):
@@ -20,7 +21,7 @@ class NewIntentListener(PythonJavaClass):
 
 
 class ActivityResultListener(PythonJavaClass):
-    __javainterfaces__ = ['org/renpy/android/PythonActivity$ActivityResultListener']
+    __javainterfaces__ = [JNI_NAMESPACE + '/PythonActivity$ActivityResultListener']
     __javacontext__ = 'app'
 
     def __init__(self, callback):

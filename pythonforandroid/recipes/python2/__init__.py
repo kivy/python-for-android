@@ -1,58 +1,50 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, get_directory, current_directory, ArchAndroid, info
+from pythonforandroid.recipe import TargetPythonRecipe, Recipe
+from pythonforandroid.toolchain import shprint, current_directory, info
+from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
+                                       check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
-from os import uname
-import glob
 import sh
 
 
-class Python2Recipe(Recipe):
+class Python2Recipe(TargetPythonRecipe):
     version = "2.7.2"
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
+    url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'python2'
 
     depends = ['hostpython2']
-    conflicts = ['python3']
-    opt_depends = ['openssl']
+    conflicts = ['python3crystax', 'python3']
+    opt_depends = ['openssl','sqlite3']
+    
+    patches = ['patches/Python-{version}-xcompile.patch',
+               'patches/Python-{version}-ctypes-disable-wchar.patch',
+               'patches/disable-modules.patch',
+               'patches/fix-locale.patch',
+               'patches/fix-gethostbyaddr.patch',
+               'patches/fix-setup-flags.patch',
+               'patches/fix-filesystemdefaultencoding.patch',
+               'patches/fix-termios.patch',
+               'patches/custom-loader.patch',
+               'patches/verbose-compilation.patch',
+               'patches/fix-remove-corefoundation.patch',
+               'patches/fix-dynamic-lookup.patch',
+               'patches/fix-dlfcn.patch',
+               'patches/parsetuple.patch',
+               'patches/ctypes-find-library-updated.patch',
+               ('patches/fix-configure-darwin.patch', is_darwin),
+               ('patches/fix-distutils-darwin.patch', is_darwin),
+               ('patches/fix-ftime-removal.patch', is_api_gt(19)),
+               ('patches/disable-openpty.patch', check_all(is_api_lt(21), is_ndk('crystax')))]
 
-    def prebuild_armeabi(self):
-        build_dir = self.get_build_container_dir('armeabi')
-        if exists(join(build_dir, '.patched')):
-            info('Python2 already patched, skipping.')
-            return
-        self.apply_patch(join('patches', 'Python-{}-xcompile.patch'.format(self.version)))
-        self.apply_patch(join('patches', 'Python-{}-ctypes-disable-wchar.patch'.format(self.version)))
-        self.apply_patch(join('patches', 'disable-modules.patch'))
-        self.apply_patch(join('patches', 'fix-locale.patch'))
-        self.apply_patch(join('patches', 'fix-gethostbyaddr.patch'))
-        self.apply_patch(join('patches', 'fix-setup-flags.patch'))
-        self.apply_patch(join('patches', 'fix-filesystemdefaultencoding.patch'))
-        self.apply_patch(join('patches', 'fix-termios.patch'))
-        self.apply_patch(join('patches', 'custom-loader.patch'))
-        self.apply_patch(join('patches', 'verbose-compilation.patch'))
-        self.apply_patch(join('patches', 'fix-remove-corefoundation.patch'))
-        self.apply_patch(join('patches', 'fix-dynamic-lookup.patch'))
-        self.apply_patch(join('patches', 'fix-dlfcn.patch'))
-        self.apply_patch(join('patches', 'parsetuple.patch'))
-        # self.apply_patch(join('patches', 'ctypes-find-library.patch'))
-        self.apply_patch(join('patches', 'ctypes-find-library-updated.patch'))
+    from_crystax = False
 
-        if uname()[0] == 'Linux':
-            self.apply_patch(join('patches', 'fix-configure-darwin.patch'))
-            self.apply_patch(join('patches', 'fix-distutils-darwin.patch'))
+    def build_arch(self, arch):
 
-        if self.ctx.android_api > 19:
-            self.apply_patch(join('patches', 'fix-ftime-removal.patch'))
-
-        shprint(sh.touch, join(build_dir, '.patched'))
-
-    def build_armeabi(self):
-
-        if not exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
-            self.do_python_build()
+        if not exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
+            self.do_python_build(arch)
 
         if not exists(self.ctx.get_python_install_dir()):
-            shprint(sh.cp, '-a', join(self.get_build_dir('armeabi'), 'python-install'),
+            shprint(sh.cp, '-a', join(self.get_build_dir(arch.arch), 'python-install'),
                     self.ctx.get_python_install_dir())
 
         # This should be safe to run every time
@@ -61,11 +53,11 @@ class Python2Recipe(Recipe):
                 join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
         self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
 
-        if not exists(join(self.ctx.get_libs_dir('armeabi'), 'libpython2.7.so')):
-            shprint(sh.cp, join(self.get_build_dir('armeabi'), 'libpython2.7.so'), self.ctx.get_libs_dir('armeabi'))
+        if not exists(join(self.ctx.get_libs_dir(arch.arch), 'libpython2.7.so')):
+            shprint(sh.cp, join(self.get_build_dir(arch.arch), 'libpython2.7.so'), self.ctx.get_libs_dir(arch.arch))
 
 
-        # # if exists(join(self.get_build_dir('armeabi'), 'libpython2.7.so')):
+        # # if exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
         # if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
         #     info('libpython2.7.so already exists, skipping python build.')
         #     if not exists(join(self.ctx.get_python_install_dir(), 'libpython2.7.so')):
@@ -75,43 +67,50 @@ class Python2Recipe(Recipe):
 
         #     return
 
-    def do_python_build(self):
-        if 'sqlite' in self.ctx.recipe_build_order:
-            print('sqlite support not yet enabled in python recipe')
-            exit(1)
+    def do_python_build(self, arch):
 
         hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
-        shprint(sh.cp, self.ctx.hostpython, self.get_build_dir('armeabi'))
-        shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir('armeabi'))
-        hostpython = join(self.get_build_dir('armeabi'), 'hostpython')
-        hostpgen = join(self.get_build_dir('armeabi'), 'hostpython')
+        shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
+        shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir(arch.arch))
+        hostpython = join(self.get_build_dir(arch.arch), 'hostpython')
+        hostpgen = join(self.get_build_dir(arch.arch), 'hostpython')
 
-        with current_directory(self.get_build_dir('armeabi')):
+        with current_directory(self.get_build_dir(arch.arch)):
 
 
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
-            env = ArchAndroid(self.ctx).get_env()
+            env = arch.get_env()
 
-            # AND: Should probably move these to get_recipe_env for
-            # neatness, but the whole recipe needs tidying along these
-            # lines
             env['HOSTARCH'] = 'arm-eabi'
-            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.split('\n')[0]
+            env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
 
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
             if 'openssl' in self.ctx.recipe_build_order:
-                openssl_build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir('armeabi')
-                env['CFLAGS'] = ' '.join([env['CFLAGS'],
-                    '-I{}'.format(join(openssl_build_dir, 'include'))])
-                env['LDFLAGS'] = ' '.join([env['LDFLAGS'],
-                    '-L{}'.format(openssl_build_dir)])
+                r = Recipe.get_recipe('openssl', self.ctx)
+                openssl_build_dir = r.get_build_dir(arch.arch)
+                setuplocal = join('Modules', 'Setup.local')
+                shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
+                shprint(sh.sed, '-i.backup', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
+                env['OPENSSL_VERSION'] = r.version
 
+            if 'sqlite3' in self.ctx.recipe_build_order:
+                # Include sqlite3 in python2 build
+                r = Recipe.get_recipe('sqlite3', self.ctx)
+                i = ' -I' + r.get_build_dir(arch.arch)
+                l = ' -L' + r.get_lib_dir(arch) + ' -lsqlite3'
+                # Insert or append to env
+                f = 'CPPFLAGS'
+                env[f] = env[f] + i if f in env else i
+                f = 'LDFLAGS'
+                env[f] = env[f] + l if f in env else l
+
+            # NDK has langinfo.h but doesn't define nl_langinfo()
+            env['ac_cv_header_langinfo_h'] = 'no'
             configure = sh.Command('./configure')
-            # AND: OFLAG isn't actually set, should it be?
             shprint(configure,
                     '--host={}'.format(env['HOSTARCH']),
                     '--build={}'.format(env['BUILDARCH']),
@@ -122,7 +121,7 @@ class Python2Recipe(Recipe):
                     '--disable-framework',
                     _env=env)
 
-            # AND: tito left this comment in the original source. It's still true!
+            # tito left this comment in the original source. It's still true!
             # FIXME, the first time, we got a error at:
             # python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
         # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
@@ -149,7 +148,7 @@ class Python2Recipe(Recipe):
                     'INSTSONAME=libpython2.7.so',
                     _env=env)
 
-            if uname()[0] == 'Darwin':
+            if is_darwin():
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),
                         join('python-install', 'Lib'))
                 shprint(sh.cp, join(self.get_recipe_dir(), 'patches', '_scproxy.py'),

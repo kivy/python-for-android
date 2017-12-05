@@ -1,0 +1,25 @@
+--- boost/user-config.jam	2016-03-02 14:31:41.280414820 +0100
++++ boost-patch/user-config.jam	2016-03-02 14:32:08.904384741 +0100
+@@ -6,6 +6,7 @@
+ local TOOLCHAIN_PREFIX = [ os.environ TOOLCHAIN_PREFIX ] ;
+ local ARCH = [ os.environ ARCH ] ;
+ local PYTHON_ROOT = [ os.environ PYTHON_ROOT ] ;
++local OPENSSL_BUILD_PATH = [ os.environ OPENSSL_BUILD_PATH ] ;
+ 
+ using gcc : $(ARCH) : $(TOOLCHAIN_PREFIX)-g++ :
+ <architecture>$(ARCH)
+@@ -20,9 +21,14 @@
+ <compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/include
+ <compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)/include
+ <compileflags>-I$(PYTHON_ROOT)/include/python2.7
++<compileflags>-I$(OPENSSL_BUILD_PATH)/include
++<compileflags>-I$(OPENSSL_BUILD_PATH)/include/openssl
+ <linkflags>--sysroot=$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-$(ARCH)
+ <linkflags>-L$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)
+ <linkflags>-L$(PYTHON_ROOT)/lib
++<linkflags>-L$(OPENSSL_BUILD_PATH)
+ <linkflags>-lgnustl_shared
+ <linkflags>-lpython2.7
++<linkflags>-lcrypto$(OPENSSL_VERSION)
++<linkflags>-lssl$(OPENSSL_VERSION)
+ ;

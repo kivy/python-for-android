@@ -1,5 +1,7 @@
 
-from pythonforandroid.toolchain import Recipe, shprint, ArchAndroid, current_directory, debug, info, ensure_dir
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.logger import debug, shprint, info, warning
 from os.path import exists, join
 import sh
 import glob
@@ -12,7 +14,11 @@ class PygameRecipe(Recipe):
     depends = ['python2', 'sdl']
     conflicts = ['sdl2']
 
-    def get_recipe_env(self, arch):
+    patches = ['patches/fix-surface-access.patch',
+               'patches/fix-array-surface.patch',
+               'patches/fix-sdl-spam-log.patch']
+
+    def get_recipe_env(self, arch=None):
         env = super(PygameRecipe, self).get_recipe_env(arch)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
             self.ctx.get_libs_dir(arch.arch))
@@ -26,21 +32,13 @@ class PygameRecipe(Recipe):
         ensure_dir(liblink_path)
         return env
 
-    def prebuild_armeabi(self):
-        if exists(join(self.get_build_container_dir('armeabi'), '.patched')):
-            info('Pygame already patched, skipping.')
+    def prebuild_arch(self, arch):
+        if self.is_patched(arch):
             return
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
-                join(self.get_build_dir('armeabi'), 'Setup'))
-        self.apply_patch(join('patches', 'fix-surface-access.patch'))
-        self.apply_patch(join('patches', 'fix-array-surface.patch'))
-        self.apply_patch(join('patches', 'fix-sdl-spam-log.patch'))
-        shprint(sh.touch, join(self.get_build_container_dir('armeabi'), '.patched'))
+                join(self.get_build_dir(arch.arch), 'Setup'))
         
-    def build_armeabi(self):
-        # AND: I'm going to ignore any extra pythonrecipe or cythonrecipe behaviour for now
-        
-        arch = ArchAndroid(self.ctx)
+    def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(
@@ -57,7 +55,7 @@ class PygameRecipe(Recipe):
 
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
 
-        with current_directory(self.get_build_dir('armeabi')):
+        with current_directory(self.get_build_dir(arch.arch)):
             info('hostpython is ' + self.ctx.hostpython)
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, 'setup.py', 'install', '-O2', _env=env,
@@ -71,8 +69,7 @@ class PygameRecipe(Recipe):
                     env['STRIP'], '{}', ';')
 
         python_install_path = join(self.ctx.build_dir, 'python-install')
-        # AND: Should do some deleting here!
-        print('Should remove pygame tests etc. here, but skipping for now')
+        warning('Should remove pygame tests etc. here, but skipping for now')
 
 
 recipe = PygameRecipe()

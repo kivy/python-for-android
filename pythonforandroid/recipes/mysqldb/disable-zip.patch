@@ -1,0 +1,8 @@
+--- mysqldb/setup.py	2014-01-02 13:52:50.000000000 -0600
++++ b/setup.py	2016-01-13 15:48:36.781216443 -0600
+@@ -18,4 +18,5 @@
+ metadata['ext_modules'] = [
+     setuptools.Extension(sources=['_mysql.c'], **options)]
+ metadata['long_description'] = metadata['long_description'].replace(r'\n', '')
++metadata['zip_safe'] = False
+ setuptools.setup(**metadata)

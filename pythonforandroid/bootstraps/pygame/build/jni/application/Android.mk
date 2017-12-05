@@ -18,7 +18,7 @@ LOCAL_CFLAGS := $(foreach D, $(APP_SUBDIRS), -I$(LOCAL_PATH)/$(D)) \
 				-I$(LOCAL_PATH)/../jpeg \
 				-I$(LOCAL_PATH)/../intl \
 				-I$(LOCAL_PATH)/.. \
-                -I$(LOCAL_PATH)/../../../../other_builds/python2/armeabi/python2/python-install/include/python2.7
+                -I$(LOCAL_PATH)/../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/include/python2.7
 				# -I$(LOCAL_PATH)/../../../../python-install/include/python2.7
 				# -I$(LOCAL_PATH)/../../../build/python-install/include/python2.7
 
@@ -39,7 +39,8 @@ LOCAL_STATIC_LIBRARIES := jpeg png
 LOCAL_LDLIBS := -lpython2.7 -lGLESv1_CM -ldl -llog -lz
 
 # AND: Another hardcoded path that should be templated
-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../other_builds/python2/armeabi/python2/python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
+# AND: NOT TEMPALTED! We can use $ARCH
+LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
 
 LIBS_WITH_LONG_SYMBOLS := $(strip $(shell \
 	for f in $(LOCAL_PATH)/../../libs/$ARCH/*.so ; do \

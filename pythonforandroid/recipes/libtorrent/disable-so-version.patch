@@ -1,0 +1,10 @@
+--- libtorrent/Jamfile	2016-01-17 23:52:45.000000000 +0100
++++ libtorrent-patch/Jamfile	2016-02-09 13:37:57.499561750 +0100
+@@ -325,6 +325,7 @@
+ 	if $(type) = SHARED_LIB &&
+ 		( ! ( [ $(property-set).get <target-os> ] in windows cygwin ) )
+ 	{
++		return "libtorrent_rasterbar.so" ; # linked by python bindings .so
+ 		name = $(name).$(VERSION) ;
+ 	}
+ 

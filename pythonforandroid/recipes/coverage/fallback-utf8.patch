@@ -1,0 +1,12 @@
+--- coverage-4.1/coverage/misc.py	2016-02-13 20:04:35.000000000 +0100
++++ patch/coverage/misc.py	2016-07-11 17:07:22.656603295 +0200
+@@ -166,7 +166,8 @@
+     encoding = (
+         getattr(outfile, "encoding", None) or
+         getattr(sys.__stdout__, "encoding", None) or
+-        locale.getpreferredencoding()
++        locale.getpreferredencoding() or
++        'utf-8'
+     )
+     return encoding
+ 

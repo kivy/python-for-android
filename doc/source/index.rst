@@ -27,13 +27,15 @@ Contents
    :maxdepth: 2
 
    quickstart
-   installation
+   buildoptions
    commands
+   distutils
    recipes
    bootstraps
+   services
    apis
    troubleshooting
-   old_p4a
+   launcher
    contribute
    old_toolchain/index.rst
 
@@ -44,4 +46,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

@@ -1,12 +1,12 @@
 
-from pythonforandroid.toolchain import NDKRecipe, shprint, current_directory, info_main
+from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, current_directory, info_main
 from os.path import exists, join
 import sh
 
 
 
 
-class FontconfigRecipe(NDKRecipe):
+class FontconfigRecipe(BootstrapNDKRecipe):
     version = "really_old"
     url = 'https://github.com/vault/fontconfig/archive/androidbuild.zip'
     depends = ['sdl2']

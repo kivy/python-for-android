@@ -1,0 +1,12 @@
+--- Imaging-1.1.7/setup.py.orig	2012-08-31 12:52:25.000000000 +0200
++++ Imaging-1.1.7/setup.py	2012-08-31 12:53:04.000000000 +0200
+@@ -322,7 +322,7 @@
+                 "_imagingcms", ["_imagingcms.c"], libraries=["lcms"] + extra
+                 ))
+ 
+-        if sys.platform == "darwin":
++        if False: #sys.platform == "darwin":
+             # locate Tcl/Tk frameworks
+             frameworks = []
+             framework_roots = [
+

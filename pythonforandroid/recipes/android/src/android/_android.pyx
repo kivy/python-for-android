@@ -1,19 +1,22 @@
 # Android-specific python services.
 
-cdef extern int SDL_ANDROID_CheckPause()
-cdef extern void SDL_ANDROID_WaitForResume() nogil
-cdef extern void SDL_ANDROID_MapKey(int scancode, int keysym)
+include "config.pxi"
 
-def check_pause():
-    return SDL_ANDROID_CheckPause()
+IF BOOTSTRAP == 'pygame':
+    cdef extern int SDL_ANDROID_CheckPause()
+    cdef extern void SDL_ANDROID_WaitForResume() nogil
+    cdef extern void SDL_ANDROID_MapKey(int scancode, int keysym)
 
-def wait_for_resume():
-    android_accelerometer_enable(False)
-    SDL_ANDROID_WaitForResume()
-    android_accelerometer_enable(accelerometer_enabled)
-
-def map_key(scancode, keysym):
-    SDL_ANDROID_MapKey(scancode, keysym)
+    def check_pause():
+        return SDL_ANDROID_CheckPause()
+    
+    def wait_for_resume():
+        android_accelerometer_enable(False)
+        SDL_ANDROID_WaitForResume()
+        android_accelerometer_enable(accelerometer_enabled)
+    
+    def map_key(scancode, keysym):
+        SDL_ANDROID_MapKey(scancode, keysym)
 
 # Android keycodes.
 KEYCODE_UNKNOWN         = 0
@@ -109,12 +112,6 @@ KEYCODE_MEDIA_REWIND    = 89
 KEYCODE_MEDIA_FAST_FORWARD = 90
 KEYCODE_MUTE            = 91
 
-# Activate input - required to receive input events.
-cdef extern void android_activate_input()
-
-def init():
-    android_activate_input()
-
 # Vibration support.
 cdef extern void android_vibrate(double)
 
@@ -171,33 +168,29 @@ cdef extern void android_show_keyboard(int)
 cdef extern void android_hide_keyboard()
 
 
-from jnius import autoclass, PythonJavaClass, java_method
+from jnius import autoclass, PythonJavaClass, java_method, cast
 
 # API versions
 api_version = autoclass('android.os.Build$VERSION').SDK_INT
 version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
-python_act = autoclass('org.renpy.android.PythonActivity')
+python_act = autoclass(JAVA_NAMESPACE + '.PythonActivity')
 Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    class LayoutListener(PythonJavaClass):
-        __javainterfaces__ = ['android/view/ViewTreeObserver$OnGlobalLayoutListener']
-
-        height = 0
-
-        @java_method('()V')
-        def onGlobalLayout(self):
-            rctx = Rect()
-            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
-            self.height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
-
-    ll = LayoutListener()
-    python_act.mView.getViewTreeObserver().addOnGlobalLayoutListener(ll)
-
+    # PyGame backend already has the listener so adding
+    # one here leads to a crash/too much cpu usage.
+    # SDL2 now does noe need the listener so there is
+    # no point adding a processor intensive layout listenere here.
+    height = 0
     def get_keyboard_height():
-        return ll.height
+        rctx = Rect()
+        mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rctx)
+        # NOTE top should always be zero
+        rctx.top = 0
+        height = mActivity.getWindowManager().getDefaultDisplay().getHeight() - (rctx.bottom - rctx.top)
+        return height
 else:
     def get_keyboard_height():
         return 0
@@ -218,6 +211,11 @@ TYPE_TEXT_VARIATION_PASSWORD = 128
 TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
 TYPE_TEXT_VARIATION_URI = 16
 TYPE_CLASS_PHONE = 3
+
+IF BOOTSTRAP == 'sdl2':
+    def remove_presplash():
+        # Remove android presplash in SDL2 bootstrap.
+        mActivity.removeLoadingScreen()
 
 def show_keyboard(target, input_type):
     if input_type == 'text':
@@ -276,50 +274,63 @@ def get_buildinfo():
     binfo.VERSION_RELEASE = BUILD_VERSION_RELEASE
     return binfo
 
-# Action send
-cdef extern void android_action_send(char*, char*, char*, char*, char*)
-def action_send(mimetype, filename=None, subject=None, text=None,
-        chooser_title=None):
-    cdef char *j_mimetype = <bytes>mimetype
-    cdef char *j_filename = NULL
-    cdef char *j_subject = NULL
-    cdef char *j_text = NULL
-    cdef char *j_chooser_title = NULL
-    if filename is not None:
-        j_filename = <bytes>filename
-    if subject is not None:
-        j_subject = <bytes>subject
-    if text is not None:
-        j_text = <bytes>text
-    if chooser_title is not None:
-        j_chooser_title = <bytes>chooser_title
-    android_action_send(j_mimetype, j_filename, j_subject, j_text,
-            j_chooser_title)
+IF IS_PYGAME:
+    # Activate input - required to receive input events.
+    cdef extern void android_activate_input()
 
-cdef extern int android_checkstop()
-cdef extern void android_ackstop()
+    def init():
+        android_activate_input()
 
-def check_stop():
-    return android_checkstop()
-
-def ack_stop():
-    android_ackstop()
-
+    # Action send
+    cdef extern void android_action_send(char*, char*, char*, char*, char*)
+    def action_send(mimetype, filename=None, subject=None, text=None,
+            chooser_title=None):
+        cdef char *j_mimetype = <bytes>mimetype
+        cdef char *j_filename = NULL
+        cdef char *j_subject = NULL
+        cdef char *j_text = NULL
+        cdef char *j_chooser_title = NULL
+        if filename is not None:
+            j_filename = <bytes>filename
+        if subject is not None:
+            j_subject = <bytes>subject
+        if text is not None:
+            j_text = <bytes>text
+        if chooser_title is not None:
+            j_chooser_title = <bytes>chooser_title
+        android_action_send(j_mimetype, j_filename, j_subject, j_text,
+                j_chooser_title)
+    
+    cdef extern int android_checkstop()
+    cdef extern void android_ackstop()
+    
+    def check_stop():
+        return android_checkstop()
+    
+    def ack_stop():
+        android_ackstop()
+    
 # -------------------------------------------------------------------
 # URL Opening.
-cdef extern void android_open_url(char *url)
 def open_url(url):
-    android_open_url(url)
+    Intent = autoclass('android.content.Intent')
+    Uri = autoclass('android.net.Uri')
+    browserIntent = Intent()
+    browserIntent.setAction(Intent.ACTION_VIEW)
+    browserIntent.setData(Uri.parse(url))
+    currentActivity = cast('android.app.Activity', mActivity)
+    currentActivity.startActivity(browserIntent)
+    return True
 
 # Web browser support.
 class AndroidBrowser(object):
     def open(self, url, new=0, autoraise=True):
-        open_url(url)
+        return open_url(url)
     def open_new(self, url):
-        open_url(url)
+        return open_url(url)
     def open_new_tab(self, url):
-        open_url(url)
-
+        return open_url(url)
+    
 import webbrowser
 webbrowser.register('android', AndroidBrowser, None, -1)
 
@@ -370,3 +381,5 @@ class AndroidService(object):
         '''Stop the service.
         '''
         stop_service()
+
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-from os.path import dirname, join, isfile, realpath, relpath, split
+from os.path import dirname, join, isfile, realpath, relpath, split, exists
 from zipfile import ZipFile
 import sys
 sys.path.insert(0, 'buildlib/jinja2.egg')
@@ -68,7 +68,7 @@ def render(template, dest, **kwargs):
     template = environment.get_template(template)
     text = template.render(**kwargs)
 
-    f = file(dest, 'wb')
+    f = open(dest, 'wb')
     f.write(text.encode('utf-8'))
     f.close()
 
@@ -224,9 +224,9 @@ def make_package(args):
 
         args.numeric_version = str(version_code)
 
-    args.name = args.name.decode('utf-8')
-    if args.icon_name:
-        args.icon_name = args.icon_name.decode('utf-8')
+    # args.name = args.name.decode('utf-8')
+    # if args.icon_name:
+    #     args.icon_name = args.icon_name.decode('utf-8')
 
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
@@ -255,9 +255,19 @@ def make_package(args):
     else:
         intent_filters = ''
 
+    directory = args.dir if public_version else args.private
+    # Ignore warning if the launcher is in args
+    if not args.launcher:
+        if not (exists(join(realpath(directory), 'main.py')) or
+                exists(join(realpath(directory), 'main.pyo'))):
+            print('''BUILD FAILURE: No main.py(o) found in your app directory.
+This file must exist to act as the entry point for you app. If your app is
+started by a file with a different name, rename it to main.py or add a
+main.py that loads it.''')
+            exit(1)
+
     # Figure out if application has service part
     service = False
-    directory = args.dir if public_version else args.private
     if directory:
         service_main = join(realpath(directory), 'service', 'main.py')
         if os.path.exists(service_main) or os.path.exists(service_main + 'o'):
@@ -306,8 +316,8 @@ def make_package(args):
         subprocess.call([ANDROID, 'update', 'project', '-p', '.', '-t',
                          'android-{}'.format(args.sdk_version)])
     except (OSError, IOError):
-        print 'An error occured while calling', ANDROID, 'update'
-        print 'Your PATH must include android tools.'
+        print('An error occured while calling', ANDROID, 'update')
+        print('Your PATH must include android tools.')
         sys.exit(-1)
 
     # Delete the old assets.
@@ -346,7 +356,7 @@ def make_package(args):
     if args.add_jar:
         for jarname in args.add_jar:
             if not os.path.exists(jarname):
-                print 'Requested jar does not exist: {}'.format(jarname)
+                print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'libs')
 
@@ -355,8 +365,8 @@ def make_package(args):
         for arg in args.command:
             subprocess.check_call([ANT, arg])
     except (OSError, IOError):
-        print 'An error occured while calling', ANT
-        print 'Did you install ant on your system ?'
+        print('An error occured while calling', ANT)
+        print('Did you install ant on your system ?')
         sys.exit(-1)
 
 def parse_args(args=None):
@@ -405,7 +415,7 @@ tools directory of the Android SDK.
                           'Usually one of "landscape", "portrait" or '
                           '"sensor"'))
     ap.add_argument('--permission', dest='permissions', action='append',
-                    help='The permissions to give this app.')
+                    help='The permissions to give this app.', nargs='+')
     ap.add_argument('--ignore-path', dest='ignore_path', action='append',
                     help='Ignore path when building the app')
     ap.add_argument('--icon', dest='icon',
@@ -470,11 +480,17 @@ tools directory of the Android SDK.
         args = sys.argv[1:]
     args = ap.parse_args(args)
 
+    if args.name and args.name[0] == '"' and args.name[-1] == '"':
+        args.name = args.name[1:-1]
+
     if not args.dir and not args.private and not args.launcher:
         ap.error('One of --dir, --private, or --launcher must be supplied.')
 
     if args.permissions is None:
         args.permissions = []
+    elif args.permissions:
+        if isinstance(args.permissions[0], list):
+            args.permissions = [p for perm in args.permissions for p in perm]
 
     if args.ignore_path is None:
         args.ignore_path = []
@@ -509,6 +525,9 @@ tools directory of the Android SDK.
         WHITELIST_PATTERNS += patterns
 
     make_package(args)
+
+    return args
+
 
 if __name__ == '__main__':
     parse_args()

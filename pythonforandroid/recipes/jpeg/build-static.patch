@@ -1,0 +1,85 @@
+diff -Naur jpeg/Android.mk b/Android.mk
+--- jpeg/Android.mk	2015-12-14 11:37:25.900190235 -0600
++++ b/Android.mk	2015-12-14 11:41:27.532182210 -0600
+@@ -54,8 +54,7 @@
+ 
+ LOCAL_SRC_FILES:= $(libjpeg_SOURCES_DIST)
+  
+-LOCAL_SHARED_LIBRARIES := libcutils
+-LOCAL_STATIC_LIBRARIES := libsimd
++LOCAL_STATIC_LIBRARIES := libsimd libcutils
+  
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) 
+  
+@@ -68,7 +67,7 @@
+  
+ LOCAL_MODULE := libjpeg
+ 
+-include $(BUILD_SHARED_LIBRARY)
++include $(BUILD_STATIC_LIBRARY)
+ 
+ ######################################################
+ ###         cjpeg                                  ###
+@@ -82,7 +81,7 @@
+ 
+ LOCAL_SRC_FILES:= $(cjpeg_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) \
+                     $(LOCAL_PATH)/android
+@@ -110,7 +109,7 @@
+ 
+ LOCAL_SRC_FILES:= $(djpeg_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) \
+                     $(LOCAL_PATH)/android
+@@ -137,7 +136,7 @@
+ 
+ LOCAL_SRC_FILES:= $(jpegtran_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) \
+                     $(LOCAL_PATH)/android
+@@ -163,7 +162,7 @@
+ 
+ LOCAL_SRC_FILES:= $(tjunittest_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) 
+ 
+@@ -189,7 +188,7 @@
+ 
+ LOCAL_SRC_FILES:= $(tjbench_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) 
+ 
+@@ -215,7 +214,7 @@
+ 
+ LOCAL_SRC_FILES:= $(rdjpgcom_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) 
+ 
+@@ -240,7 +239,7 @@
+ 
+ LOCAL_SRC_FILES:= $(wrjpgcom_SOURCES)
+ 
+-LOCAL_SHARED_LIBRARIES := libjpeg
++LOCAL_STATIC_LIBRARIES := libjpeg
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH) 
+ 

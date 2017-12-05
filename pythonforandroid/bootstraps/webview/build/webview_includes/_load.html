@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link href="_loading_style.css" rel="stylesheet" type="text/css">
+        <title>
+            Python WebView loader
+        </title>
+        
+    </head>
+
+    <body>
+      
+      <div id="load" style="height:100%">
+          <div class="loader" >Loading...</div>
+      </div>
+      
+      
+      <div id="result" >
+      </div>
+      
+      <script>
+       console.log('called!');
+       var resultElem = document.getElementById('result');
+
+       function queryFlask() {
+
+           var request = new XMLHttpRequest();
+           request.open('HEAD', 'http://127.0.0.1:5000/', true);
+           request.send();
+           request.onerror = function(e) {
+               console.log('error!');
+               console.log(e);
+               resultElem.innerHTML = 'workederr';
+               }
+           request.onreadystatechange = function() {
+               if (request.status == 500) {
+                   console.log('500!!!!!');
+               }
+               if (request.readyState == 4 & request.status == 200) {
+                   resultElem.innerHTML = 'worked';
+                   console.log('worked');
+               } else {
+                   resultElem.innerHTML = 'failed';
+                   console.log(request.status);
+                   console.log('done');
+               }
+
+
+           }
+       }
+
+       /* window.setInterval(queryFlask, 500); */
+       /* window.setTimeout(function() {location.replace('http://127.0.0.1:5000/')}, 1000) */
+      </script>
+
+    </body>
+
+</html> 

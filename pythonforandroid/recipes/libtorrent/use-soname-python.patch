@@ -1,0 +1,11 @@
+--- libtorrent/bindings/python/Jamfile	2016-01-17 23:52:45.000000000 +0100
++++ libtorrent-patch/bindings/python/Jamfile	2016-02-09 17:11:44.261578000 +0100
+@@ -35,7 +35,7 @@
+ 
+         if ( <toolset>gcc in $(properties) )
+         {
+-           result += <linkflags>-Wl,-Bsymbolic ;
++           result += <linkflags>-Wl,-soname=libtorrent.so,-Bsymbolic ;
+         }
+     }
+ 

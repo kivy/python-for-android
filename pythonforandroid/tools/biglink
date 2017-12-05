@@ -38,7 +38,7 @@ while args:
         continue
     if a not in unique_args:
         unique_args.insert(0, a)
-
+unique_args = [x for x in unique_args if x]
 
 print('Biglink create %s library' % sys.argv[1])
 print('Biglink arguments:')

@@ -5,6 +5,9 @@
     <property file="ant.properties" />
     <loadproperties srcFile="project.properties" />
 
+    <property environment="env" />
+    <property file="build.properties" />
+
     <fail
             message="sdk.dir is missing. Make sure to generate local.properties using 'android update project'"
             unless="sdk.dir"
