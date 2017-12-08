@@ -888,10 +888,8 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
             shprint(hostpython, 'setup.py', self.build_cmd, '-v',
                     _env=env, *self.setup_extra_args)
 
-            # hostpython('setup.py', self.build_cmd, '-v', _env=env, _fg=True)
-
             build_dir = glob.glob('build/lib.*')[0]
-            shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
+            shprint(sh.find, build_dir, '-name', '"*.so"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
 
     def install_hostpython_package(self, arch):
