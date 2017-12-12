@@ -60,7 +60,7 @@ class OpenSSLRecipe(Recipe):
                     break
                 shprint(sh.make, 'clean', _env=env)
 
-            self.install_libs(arch, 'libssl' + self.version + '.so',
-                              'libcrypto' + self.version + '.so')
+            self.install_libs(arch, 'libssl.a', 'libssl' + self.version + '.so',
+                              'libcrypto.a', 'libcrypto' + self.version + '.so')
 
 recipe = OpenSSLRecipe()
