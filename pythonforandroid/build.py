@@ -235,6 +235,7 @@ class Context(object):
         else:
             error('Could not find `android` or `sdkmanager` binaries in '
                   'Android SDK. Exiting.')
+            exit(1)
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
         apis = [re.findall(r'[0-9]+', s) for s in apis]
         apis = [int(s[0]) for s in apis if s]
