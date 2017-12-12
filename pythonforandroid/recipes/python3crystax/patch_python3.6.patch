@@ -1,0 +1,89 @@
+diff --git a/Modules/expat/xmlparse.c b/Modules/expat/xmlparse.c
+--- a/Modules/expat/xmlparse.c
++++ b/Modules/expat/xmlparse.c
+@@ -84,6 +84,8 @@
+ # define LOAD_LIBRARY_SEARCH_SYSTEM32  0x00000800
+ #endif
+ 
++#define XML_POOR_ENTROPY 1
++
+ #if !defined(HAVE_GETRANDOM) && !defined(HAVE_SYSCALL_GETRANDOM) \
+     && !defined(HAVE_ARC4RANDOM_BUF) && !defined(HAVE_ARC4RANDOM) \
+     && !defined(XML_DEV_URANDOM) \
+diff --git a/Modules/getpath.c b/Modules/getpath.c
+--- a/Modules/getpath.c
++++ b/Modules/getpath.c
+@@ -101,8 +101,35 @@
+ #endif
+ 
+ 
+-#if !defined(PREFIX) || !defined(EXEC_PREFIX) || !defined(VERSION) || !defined(VPATH)
+-#error "PREFIX, EXEC_PREFIX, VERSION, and VPATH must be constant defined"
++   /* These variables were set this way in old versions of Python, but
++      changed somewhere between 3.5.0 and 3.5.3. Here we just force
++      the old way again. A better solution would be to work out where
++      they should be defined, and make the CrystaX build scripts do
++      so. */
++
++/* #if !defined(PREFIX) || !defined(EXEC_PREFIX) || !defined(VERSION) || !defined(VPATH) */
++/* #error "PREFIX, EXEC_PREFIX, VERSION, and VPATH must be constant defined" */
++/* #endif */
++
++#ifndef VERSION
++#define VERSION "2.1"
++#endif
++
++#ifndef VPATH
++#define VPATH "."
++#endif
++
++#ifndef PREFIX
++#  define PREFIX "/usr/local"
++#endif
++
++#ifndef EXEC_PREFIX
++#define EXEC_PREFIX PREFIX
++#endif
++
++#ifndef PYTHONPATH
++#define PYTHONPATH PREFIX "/lib/python" VERSION ":" \
++              EXEC_PREFIX "/lib/python" VERSION "/lib-dynload"
+ #endif
+ 
+ #ifndef LANDMARK
+diff --git a/Modules/timemodule.c b/Modules/timemodule.c
+--- a/Modules/timemodule.c
++++ b/Modules/timemodule.c
+@@ -358,18 +358,20 @@ time_gmtime(PyObject *self, PyObject *args)
+ #endif
+ }
+ 
+-#ifndef HAVE_TIMEGM
+-static time_t
+-timegm(struct tm *p)
+-{
+-    /* XXX: the following implementation will not work for tm_year < 1970.
+-       but it is likely that platforms that don't have timegm do not support
+-       negative timestamps anyways. */
+-    return p->tm_sec + p->tm_min*60 + p->tm_hour*3600 + p->tm_yday*86400 +
+-        (p->tm_year-70)*31536000 + ((p->tm_year-69)/4)*86400 -
+-        ((p->tm_year-1)/100)*86400 + ((p->tm_year+299)/400)*86400;
+-}
+-#endif
++/* In the Android build, HAVE_TIMEGM apparently should be defined but isn't. A better fix would be to work out why and fix that. */
++
++/* #ifndef HAVE_TIMEGM */
++/* static time_t */
++/* timegm(struct tm *p) */
++/* { */
++/*     /\* XXX: the following implementation will not work for tm_year < 1970. */
++/*        but it is likely that platforms that don't have timegm do not support */
++/*        negative timestamps anyways. *\/ */
++/*     return p->tm_sec + p->tm_min*60 + p->tm_hour*3600 + p->tm_yday*86400 + */
++/*         (p->tm_year-70)*31536000 + ((p->tm_year-69)/4)*86400 - */
++/*         ((p->tm_year-1)/100)*86400 + ((p->tm_year+299)/400)*86400; */
++/* } */
++/* #endif */
+ 
+ PyDoc_STRVAR(gmtime_doc,
+ "gmtime([seconds]) -> (tm_year, tm_mon, tm_mday, tm_hour, tm_min,\n\
