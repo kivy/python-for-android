@@ -160,7 +160,8 @@ class Context(object):
         self._ndk_dir = value
 
     def prepare_build_environment(self, user_sdk_dir, user_ndk_dir,
-                                  user_android_api, user_ndk_ver):
+                                  user_android_api, user_android_min_api,
+                                  user_ndk_ver):
         '''Checks that build dependencies exist and sets internal variables
         for the Android SDK etc.
 
@@ -224,6 +225,30 @@ class Context(object):
                   '{}, but API 21 or greater does not support armeabi'.format(
                       self.android_api))
             error('You probably want to build with --arch=armeabi-v7a instead')
+            exit(1)
+
+        # try to determinate min_api
+        android_min_api = None
+        if user_android_min_api:
+            android_min_api = user_android_min_api
+            if android_min_api is not None:
+                info('Getting Minimum Android API version from user argument')
+        if android_min_api is None:
+            android_min_api = environ.get("ANDROIDMINAPI", None)
+            if android_min_api is not None:
+                info('Found Android minimum api in $ANDROIDMINAPI')
+        if android_min_api is None:
+            info('Minimum Android API was not set, using current Android API '
+                 '{}'.format(android_api))
+            android_min_api = android_api
+        android_min_api = int(android_min_api)
+        self.android_min_api = android_min_api
+
+        info("Requested API {} (minimum {})".format(
+            self.android_api, self.android_min_api))
+
+        if self.android_min_api > android_api:
+            error('Android minimum api cannot be higher than Android api')
             exit(1)
 
         if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
@@ -369,7 +394,7 @@ class Context(object):
         self.ndk_platform = join(
             self.ndk_dir,
             'platforms',
-            'android-{}'.format(self.android_api),
+            'android-{}'.format(self.android_min_api),
             platform_dir)
         if not exists(self.ndk_platform):
             warning('ndk_platform doesn\'t exist: {}'.format(

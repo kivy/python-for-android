@@ -21,7 +21,7 @@ class ICURecipe(NDKRecipe):
         return lib_dir
 
     def prepare_build_dir(self, arch):
-        if self.ctx.android_api > 19:
+        if self.ctx.android_min_api > 19:
             # greater versions do not have /usr/include/sys/exec_elf.h
             raise RuntimeError("icu needs an android api <= 19")
 

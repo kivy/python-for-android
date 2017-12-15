@@ -14,7 +14,7 @@
  <compileflags>-I$(PYTHON_ROOT)/include/python2.7
 +<compileflags>-I$(OPENSSL_BUILD_PATH)/include
 +<compileflags>-I$(OPENSSL_BUILD_PATH)/include/openssl
- <linkflags>--sysroot=$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-$(ARCH)
+ <linkflags>--sysroot=$(ANDROIDNDK)/platforms/android-$(ANDROIDMINAPI)/arch-$(ARCH)
  <linkflags>-L$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)
  <linkflags>-L$(PYTHON_ROOT)/lib
 +<linkflags>-L$(OPENSSL_BUILD_PATH)

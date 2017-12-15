@@ -32,7 +32,7 @@ class LevelDBRecipe(Recipe):
         if 'snappy' in recipe.ctx.recipe_build_order:
             env['CFLAGS'] += ' -DSNAPPY' + \
                              ' -I./snappy'
-        env['CFLAGS'] += ' -I' + self.ctx.ndk_dir + '/platforms/android-' + str(self.ctx.android_api) + '/arch-' + arch.arch.replace('eabi', '') + '/usr/include' + \
+        env['CFLAGS'] += ' -I' + self.ctx.ndk_dir + '/platforms/android-' + str(self.ctx.android_min_api) + '/arch-' + arch.arch.replace('eabi', '') + '/usr/include' + \
                          ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/include' + \
                          ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + '/include'
         env['CXXFLAGS'] = env['CFLAGS']

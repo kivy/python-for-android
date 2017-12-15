@@ -30,31 +30,31 @@ def is_arch(xarch):
 
 def is_api_gt(apiver):
     def is_x(recipe, **kwargs):
-        return recipe.ctx.android_api > apiver
+        return recipe.ctx.android_min_api > apiver
     return is_x
 
 
 def is_api_gte(apiver):
     def is_x(recipe, **kwargs):
-        return recipe.ctx.android_api >= apiver
+        return recipe.ctx.android_min_api >= apiver
     return is_x
 
 
 def is_api_lt(apiver):
     def is_x(recipe, **kwargs):
-        return recipe.ctx.android_api < apiver
+        return recipe.ctx.android_min_api < apiver
     return is_x
 
 
 def is_api_lte(apiver):
     def is_x(recipe, **kwargs):
-        return recipe.ctx.android_api <= apiver
+        return recipe.ctx.android_min_api <= apiver
     return is_x
 
 
 def is_api(apiver):
     def is_x(recipe, **kwargs):
-        return recipe.ctx.android_api == apiver
+        return recipe.ctx.android_min_api == apiver
     return is_x
 
 
@@ -68,4 +68,3 @@ def is_ndk(ndk):
     def is_x(recipe, **kwargs):
         return recipe.ctx.ndk == ndk
     return is_x
-

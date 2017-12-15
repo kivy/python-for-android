@@ -92,7 +92,7 @@ class ProtobufCppRecipe(PythonRecipe):
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['TARGET_OS'] = 'OS_ANDROID_CROSSCOMPILE'
         env['CFLAGS'] += ' -I' + self.ctx.ndk_dir + '/platforms/android-' + str(
-            self.ctx.android_api) + '/arch-' + arch.arch.replace('eabi', '') + '/usr/include' + \
+            self.ctx.android_min_api) + '/arch-' + arch.arch.replace('eabi', '') + '/usr/include' + \
                          ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/include' + \
                          ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + '/include' + \
                          ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'

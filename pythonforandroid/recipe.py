@@ -884,7 +884,7 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
         )
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         env['CFLAGS'] += " -I{pyroot}/include/python2.7 " \
-                        " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
+                        " -I{ctx.ndk_dir}/platforms/android-{ctx.android_min_api}/arch-{arch_noeabi}/usr/include" \
                         " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" \
                         " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys)
         env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'

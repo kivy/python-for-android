@@ -18,7 +18,7 @@ class PymunkRecipe(CompiledComponentsPythonRecipe):
         arch_noeabi = arch.arch.replace('eabi', '')
         env['LDFLAGS'] += " -shared -llog"
         env['LDFLAGS'] += " -landroid -lpython2.7"
-        env['LDFLAGS'] += " --sysroot={ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}".format(
+        env['LDFLAGS'] += " --sysroot={ctx.ndk_dir}/platforms/android-{ctx.android_min_api}/arch-{arch_noeabi}".format(
 		ctx=self.ctx, arch_noeabi=arch_noeabi)
         return env
 
