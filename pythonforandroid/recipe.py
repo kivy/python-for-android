@@ -5,7 +5,6 @@ import importlib
 import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
-
 import hashlib
 from re import match
 
@@ -556,15 +555,15 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def install_libs(self, arch, *libs, **links):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
-        if not libs:
-            warning('install_libs called with no libraries to install!')
-            return
-        args = libs + (libs_dir,)
-        shprint(sh.cp, *args)
         if links:
-            with current_directory(libs_dir):
-                for lib, link in links.iteritems():
-                    shprint(sh.ln, '-s', lib, link)
+            for lib, link in links.iteritems():
+                shprint(sh.cp, lib, join(libs_dir, link))
+        else:
+            if not libs:
+                warning('install_libs called with no libraries to install!')
+                return
+            args = libs + (libs_dir,)
+            shprint(sh.cp, *args)
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))

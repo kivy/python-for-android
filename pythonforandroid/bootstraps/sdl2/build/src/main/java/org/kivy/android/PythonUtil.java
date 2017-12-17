@@ -41,8 +41,9 @@ public class PythonUtil {
         libsList.add("SDL2_image");
         libsList.add("SDL2_mixer");
         libsList.add("SDL2_ttf");
-        addLibraryIfExists(libsList, "ssl.*", libsDir);
-        addLibraryIfExists(libsList, "crypto.*", libsDir);
+        addLibraryIfExists(libsList, "ssl", libsDir);
+        addLibraryIfExists(libsList, "crypto", libsDir);
+        addLibraryIfExists(libsList, "ffi", libsDir);
         libsList.add("python2.7");
         libsList.add("python3.5m");
         libsList.add("main");
