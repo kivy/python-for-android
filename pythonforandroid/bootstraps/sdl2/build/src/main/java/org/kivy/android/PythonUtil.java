@@ -21,7 +21,6 @@ public class PythonUtil {
         for (int i = 0; i < files.length; ++i) {
             File file = files[i];
             String name = file.getName();
-            Log.v(TAG, "Checking pattern " + pattern + " against " + name);
             if (p.matcher(name).matches()) {
                 Log.v(TAG, "Pattern " + pattern + " matched file " + name);
                 libsList.add(name.substring(3, name.length() - 3));
@@ -41,9 +40,9 @@ public class PythonUtil {
         libsList.add("SDL2_image");
         libsList.add("SDL2_mixer");
         libsList.add("SDL2_ttf");
-        addLibraryIfExists(libsList, "ssl", libsDir);
-        addLibraryIfExists(libsList, "crypto", libsDir);
         addLibraryIfExists(libsList, "ffi", libsDir);
+        addLibraryIfExists(libsList, "ssl.*", libsDir);
+        addLibraryIfExists(libsList, "crypto.*", libsDir);
         libsList.add("python2.7");
         libsList.add("python3.5m");
         libsList.add("main");

@@ -8,6 +8,7 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
     depends = ['host_cffi', 'host_cython', 'host_setuptools', 'host_sh',
                'idna', 'asn1crypto', 'six', 'cffi',
                'enum34', 'ipaddress', 'openssl']
+    patches = ['version_openssl.patch']
 
     call_hostpython_via_targetpython = False
 
@@ -16,6 +17,7 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         recipe = self.get_recipe('libffi', self.ctx)
         dirs = recipe.get_include_dirs(arch)
         recipe = self.get_recipe('openssl', self.ctx)
+        env['OPENSSL_VERSION'] = recipe.version
         dirs += recipe.get_include_dirs(arch)
         # Required: ln -s \
         # ~/Android/Sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi/asm/unistd-common.h \

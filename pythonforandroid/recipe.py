@@ -553,17 +553,13 @@ class Recipe(with_metaclass(RecipeMeta)):
         # doesn't persist in site-packages
         shutil.rmtree(self.ctx.python_installs_dir)
 
-    def install_libs(self, arch, *libs, **links):
+    def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
-        if links:
-            for lib, link in links.iteritems():
-                shprint(sh.cp, lib, join(libs_dir, link))
-        else:
-            if not libs:
-                warning('install_libs called with no libraries to install!')
-                return
-            args = libs + (libs_dir,)
-            shprint(sh.cp, *args)
+        if not libs:
+            warning('install_libs called with no libraries to install!')
+            return
+        args = libs + (libs_dir,)
+        shprint(sh.cp, *args)
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))

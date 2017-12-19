@@ -62,8 +62,7 @@ class OpenSSLRecipe(Recipe):
                 shprint(sh.make, 'clean', _env=env)
             libn = 'libssl', 'libcrypto'
             libs = [lib + self.version + '.so' for lib in libn]
-            lnks = {lib + self.version + '.so': lib + '.so' for lib in libn}
-            self.install_libs(arch, *libs, **lnks)
+            self.install_libs(arch, *libs)
 
     def get_include_dirs(self, arch):
         return [join(self.get_build_dir(arch.arch), 'include')]
