@@ -3,7 +3,7 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
     name = 'cryptography'
-    version = 'local'
+    version = 'master'
     url = 'git+file:///home/enoch/cryptography'
     depends = ['host_cffi', 'host_cython', 'host_setuptools', 'host_sh',
                'idna', 'asn1crypto', 'six', 'cffi',
