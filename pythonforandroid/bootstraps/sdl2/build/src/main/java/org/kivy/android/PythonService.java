@@ -1,8 +1,5 @@
 package org.kivy.android;
 
-import android.os.Build;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 import android.app.Service;
 import android.os.IBinder;
 import android.os.Bundle;
@@ -91,31 +88,13 @@ public class PythonService extends Service implements Runnable {
         String serviceTitle = extras.getString("serviceTitle");
         String serviceDescription = extras.getString("serviceDescription");
 
-        Notification notification;
         Context context = getApplicationContext();
+        Notification notification = new Notification(context.getApplicationInfo().icon,
+            serviceTitle, System.currentTimeMillis());
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_UPDATE_CURRENT);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            notification = new Notification(
-                context.getApplicationInfo().icon, serviceTitle, System.currentTimeMillis());
-            try {
-                // prevent using NotificationCompat, this saves 100kb on apk
-                Method func = notification.getClass().getMethod(
-                    "setLatestEventInfo", Context.class, CharSequence.class,
-                    CharSequence.class, PendingIntent.class);
-                func.invoke(notification, context, serviceTitle, serviceDescription, pIntent);
-            } catch (NoSuchMethodException | IllegalAccessException |
-                     IllegalArgumentException | InvocationTargetException e) {
-            }
-        } else {
-            Notification.Builder builder = new Notification.Builder(context);
-            builder.setContentTitle(serviceTitle);
-            builder.setContentText(serviceDescription);
-            builder.setContentIntent(pIntent);
-            builder.setSmallIcon(context.getApplicationInfo().icon);
-            notification = builder.build();
-        }
+        notification.setLatestEventInfo(context, serviceTitle, serviceDescription, pIntent);
         startForeground(1, notification);
     }
 
