@@ -8,7 +8,7 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
     depends = ['host_cffi', 'host_cython', 'host_setuptools', 'host_sh',
                'idna', 'asn1crypto', 'six', 'cffi',
                'enum34', 'ipaddress', 'openssl']
-    patches = ['version_openssl.patch']
+    patches = ['creepy.patch']
 
     call_hostpython_via_targetpython = False
 
