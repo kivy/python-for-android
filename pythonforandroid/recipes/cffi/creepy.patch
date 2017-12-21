@@ -1,7 +1,8 @@
-diff -Naur cffi-1.4.2/setup.py b/setup.py
---- cffi-1.4.2/setup.py	2015-12-21 12:09:47.000000000 -0600
-+++ b/setup.py	2015-12-23 10:20:40.590622524 -0600
-@@ -5,8 +5,7 @@
+diff --git a/setup.py b/setup.py
+index 37518b95..c928d1d5 100644
+--- a/setup.py
++++ b/setup.py
+@@ -5,12 +5,12 @@ import errno
  
  sources = ['c/_cffi_backend.c']
  libraries = ['ffi']
@@ -11,8 +12,14 @@ diff -Naur cffi-1.4.2/setup.py b/setup.py
  define_macros = []
  library_dirs = []
  extra_compile_args = []
-@@ -67,14 +66,7 @@
-         sys.stderr.write("The above error message can be safely ignored\n")
+-extra_link_args = []
++_libs = os.getenv('LD_LIBRARY_PATH', '')
++extra_link_args = ['-Wl,-rpath=' + _libs] if _libs else []
+ 
+ 
+ def _ask_pkg_config(resultlist, option, result_prefix='', sysroot=False):
+@@ -94,14 +94,7 @@ def uses_msvc():
+     return config.try_compile('#ifndef _MSC_VER\n#error "not MSVC"\n#endif')
  
  def use_pkg_config():
 -    if sys.platform == 'darwin' and os.path.exists('/usr/local/bin/brew'):
