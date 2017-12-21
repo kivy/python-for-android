@@ -469,8 +469,8 @@ class ToolchainCL(object):
 
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
-        if args.package:
-            unknown.append('--package=' + args.package)
+        if args.appId:
+            unknown.append('--package=' + args.appId)
         args.unknown_args = unknown
         self.args = args
 
