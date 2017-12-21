@@ -860,6 +860,8 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(CompiledComponentsPythonRecipe, self).get_recipe_env(arch)
+        env['LDFLAGS'] += ' -lpython2.7'
+        env['LD_LIBRARY_PATH'] = "/data/data/{}/lib".format(self.ctx.appId)
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         return env
 

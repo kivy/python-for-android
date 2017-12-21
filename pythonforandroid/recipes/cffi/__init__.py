@@ -15,7 +15,6 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
         recipe = self.get_recipe('libffi', self.ctx)
         dirs = recipe.get_include_dirs(arch)
         env['CFLAGS'] += ''.join([' -I' + dir for dir in dirs])
-        env['LD_LIBRARY_PATH'] = "/data/data/{}/lib".format(self.ctx.appId)
         return env
 
 

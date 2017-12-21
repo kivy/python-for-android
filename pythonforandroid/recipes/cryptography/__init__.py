@@ -24,7 +24,6 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         env['CFLAGS'] += (' -include unistd-common.h' +
                           ''.join([' -I' + dir for dir in dirs]))
         env['OPENSSL_VERSION'] = recipe.version
-        env['LD_LIBRARY_PATH'] = "/data/data/{}/lib".format(self.ctx.appId)
         return env
 
 
