@@ -17,13 +17,14 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         recipe = self.get_recipe('libffi', self.ctx)
         dirs = recipe.get_include_dirs(arch)
         recipe = self.get_recipe('openssl', self.ctx)
-        env['OPENSSL_VERSION'] = recipe.version
         dirs += recipe.get_include_dirs(arch)
         # Required: ln -s \
         # ~/Android/Sdk/ndk-bundle/sysroot/usr/include/arm-linux-androideabi/asm/unistd-common.h \
         # ~/Android/CrystaX/platforms/android-19/arch-arm/usr/include
         env['CFLAGS'] += (' -include unistd-common.h' +
                           ''.join([' -I' + dir for dir in dirs]))
+        env['OPENSSL_VERSION'] = recipe.version
+        env['LD_LIBRARY_PATH'] = "/data/data/{}/lib".format(self.ctx.appId)
         return env
 
 

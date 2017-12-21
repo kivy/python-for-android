@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from pythonforandroid import __version__
 
+
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
     # before the imports because otherwise they're imported elsewhere.
@@ -236,9 +237,8 @@ class ToolchainCL(object):
         generic_parser = argparse.ArgumentParser(
             add_help=False,
             description=('Generic arguments applied to all commands'))
-        dist_parser = argparse.ArgumentParser(
-            add_help=False,
-            description=('Arguments for dist building'))
+
+        generic_parser.add_argument('--package', dest='appId', default='org.test.myapp')
 
         generic_parser.add_argument(
             '--debug', dest='debug', action='store_true',
@@ -467,9 +467,11 @@ class ToolchainCL(object):
 
         parser.add_argument('-v', '--version', action='version', version=__version__)
 
-        args, unknown = parser.parse_known_args(sys.argv[1:])
-        args.unknown_args = unknown
 
+        args, unknown = parser.parse_known_args(sys.argv[1:])
+        if args.package:
+            unknown.append('--package=' + args.package)
+        args.unknown_args = unknown
         self.args = args
 
         if args.subparser_name is None:
@@ -494,6 +496,7 @@ class ToolchainCL(object):
             args.requirements = u",".join(requirements)
 
         self.ctx = Context()
+        self.ctx.appId = args.appId
         self.storage_dir = args.storage_dir
         self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir

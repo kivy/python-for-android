@@ -13,7 +13,7 @@ index 7ec235ff..ba4f5c9d 100644
  
  def _extra_compile_args(platform):
 diff --git a/src/_cffi_src/utils.py b/src/_cffi_src/utils.py
-index d3dd18a4..646f4d30 100644
+index d3dd18a4..a781642a 100644
 --- a/src/_cffi_src/utils.py
 +++ b/src/_cffi_src/utils.py
 @@ -4,7 +4,7 @@
@@ -25,12 +25,19 @@ index d3dd18a4..646f4d30 100644
  from distutils.ccompiler import new_compiler
  from distutils.dist import Distribution
  
-@@ -61,7 +61,7 @@ def build_ffi(module_name, cdef_source, verify_source, libraries=[],
+@@ -56,12 +56,14 @@ def build_ffi(module_name, cdef_source, verify_source, libraries=[],
+               extra_compile_args=[], extra_link_args=[]):
+     ffi = FFI()
+     ffi.cdef(cdef_source)
++    libs = os.getenv('LD_LIBRARY_PATH', '')
++    xtra = ['-Wl,-rpath=' + libs] if libs else []
+     ffi.set_source(
+         module_name,
          verify_source,
          libraries=libraries,
          extra_compile_args=extra_compile_args,
 -        extra_link_args=extra_link_args,
-+        extra_link_args=['-Wl,-rpath=$ORIGIN/../../../../../../../../lib'],
++        extra_link_args=xtra,
      )
      return ffi
  
