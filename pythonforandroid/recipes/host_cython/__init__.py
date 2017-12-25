@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe
 
 
-class Host_cython_recipe(PythonRecipe):
+class Host_CythonRecipe(PythonRecipe):
     name = 'cython'
 
     depends = ['host_pip']
@@ -13,4 +13,4 @@ class Host_cython_recipe(PythonRecipe):
         self.pip_install_hostpython_package(arch)
 
 
-recipe = Host_cython_recipe()
+recipe = Host_CythonRecipe()

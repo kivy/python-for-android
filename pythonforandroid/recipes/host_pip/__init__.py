@@ -5,7 +5,7 @@ from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import shprint
 
 
-class Host_pip_recipe(PythonRecipe):
+class Host_PipRecipe(PythonRecipe):
     name = 'pip'
     url = 'https://bootstrap.pypa.io/get-pip.py'
 
@@ -29,4 +29,4 @@ class Host_pip_recipe(PythonRecipe):
                     _env=env)
 
 
-recipe = Host_pip_recipe()
+recipe = Host_PipRecipe()

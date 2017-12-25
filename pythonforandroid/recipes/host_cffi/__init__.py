@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe
 
 
-class Host_cffi_recipe(PythonRecipe):
+class Host_CffiRecipe(PythonRecipe):
     name = 'cffi'
     version = '1.11.2'
 
@@ -14,4 +14,4 @@ class Host_cffi_recipe(PythonRecipe):
         self.pip_install_hostpython_package(arch)
 
 
-recipe = Host_cffi_recipe()
+recipe = Host_CffiRecipe()
