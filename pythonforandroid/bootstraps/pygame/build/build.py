@@ -241,6 +241,7 @@ def make_package(args):
     # Annoying fixups.
     args.name = args.name.replace('\'', '\\\'')
     args.icon_name = args.icon_name.replace('\'', '\\\'')
+    args.add_activity = args.add_activity or []
 
     # Figure out versions of the private and public data.
     private_version = str(time.time())
@@ -475,6 +476,8 @@ tools directory of the Android SDK.
                     help='Custom key=value to add in strings.xml resource file')
     ap.add_argument('--manifest-extra', dest='manifest_extra', action='append',
                     help='Custom file to add at the end of the manifest')
+    ap.add_argument('--add-activity', dest='add_activity', action='append',
+                    help='Add this Java class as an Activity to the manifest.')
 
     if args is None:
         args = sys.argv[1:]

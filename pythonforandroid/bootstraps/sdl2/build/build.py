@@ -293,6 +293,8 @@ main.py that loads it.''')
     if args.intent_filters:
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
+    
+    args.add_activity = args.add_activity or []
 
     if args.extra_source_dirs:
         esd = []
@@ -508,6 +510,8 @@ tools directory of the Android SDK.
     ap.add_argument('--sign', action='store_true',
                     help=('Try to sign the APK with your credentials. You must set '
                           'the appropriate environment variables.'))
+    ap.add_argument('--add-activity', dest='add_activity', action='append',
+                    help='Add this Java class as an Activity to the manifest.')
 
     if args is None:
         args = sys.argv[1:]

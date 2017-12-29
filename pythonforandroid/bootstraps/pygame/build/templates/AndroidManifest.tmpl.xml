@@ -94,6 +94,10 @@
 	</receiver>
 	{% endif %}
 
+  {% for a in args.add_activity  %}
+  <activity android:name="{{ a }}"></activity>
+  {% endfor %}
+
   </application>
 
   <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.sdk_version }}"/>
