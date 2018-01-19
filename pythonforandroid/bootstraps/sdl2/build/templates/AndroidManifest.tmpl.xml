@@ -119,6 +119,9 @@
             </intent-filter>
         </receiver>
         {% endif %}
+    {% for a in args.add_activity  %}
+    <activity android:name="{{ a }}"></activity>
+    {% endfor %}
     </application>
 
 </manifest>
