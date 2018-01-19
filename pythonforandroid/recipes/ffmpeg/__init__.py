@@ -6,17 +6,13 @@ import sh
 import os
 import shutil
 
-# TODO
-# Recipe doesn't work with NDK r15c+ yet,
-# see: https://github.com/android-ndk/ndk/issues/477
-
 
 class FFMpegRecipe(Recipe):
-    version = '3.3.3'
+    version = '3.4.1'
     url = 'http://ffmpeg.org/releases/ffmpeg-{version}.tar.bz2'
     depends = ['sdl2']  # Need this to build correct recipe order
     opts_depends = ['openssl', 'ffpyplayer_codecs']
-    patches = ['patches/fix-libshine-configure.patch']
+    patches = ['patches/configure.patch']
 
     def should_build(self, arch):
         build_dir = self.get_build_dir(arch.arch)
