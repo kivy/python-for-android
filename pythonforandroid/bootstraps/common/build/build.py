@@ -184,7 +184,7 @@ def make_python_zip():
     zf.close()
 
 
-def make_tar(tfn, source_dirs, ignore_path=[]):
+def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
     '''
     Make a zip file `fn` from the contents of source_dis.
     '''
@@ -205,7 +205,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     files = []
     for sd in source_dirs:
         sd = realpath(sd)
-        compile_dir(sd)
+        compile_dir(sd, optimize_python=optimize_python)
         files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd)
                   if select(x)]
 
@@ -233,7 +233,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     tf.close()
 
 
-def compile_dir(dfn):
+def compile_dir(dfn, optimize_python=True):
     '''
     Compile *.py in directory `dfn` to *.pyo
     '''
@@ -244,7 +244,10 @@ def compile_dir(dfn):
     # -OO = strip docstrings
     if PYTHON is None:
         return
-    subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
+    args = [PYTHON, '-m', 'compileall', '-f', dfn]
+    if optimize_python:
+        args.insert(1, '-OO')
+    subprocess.call(args)
 
 
 def make_package(args):
@@ -283,10 +286,10 @@ main.py that loads it.''')
             tar_dirs.append(python_bundle_dir)
     if get_bootstrap_name() == "webview":
         tar_dirs.append('webview_includes')
-    if args.private:
-        make_tar(join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path)
-    elif args.launcher:
-        make_tar(join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path)
+    if args.private or args.launcher:
+        make_tar(
+            join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
+            optimize_python=args.optimize_python)
 
     # Prepare some variables for templating process
     res_dir = "src/main/res"
@@ -644,6 +647,10 @@ tools directory of the Android SDK.
                     help='Set the launch mode of the main activity in the manifest.')
     ap.add_argument('--allow-backup', dest='allow_backup', default='true',
                     help="if set to 'false', then android won't backup the application.")
+    ap.add_argument('--no-optimize-python', dest='optimize_python',
+                    action='store_false', default=True,
+                    help=('Whether to compile to optimised .pyo files, using -OO '
+                          '(strips docstrings and asserts)'))
 
     # Put together arguments, and add those from .p4a config file:
     if args is None:
