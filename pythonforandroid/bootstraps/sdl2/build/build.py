@@ -261,6 +261,7 @@ main.py that loads it.''')
     shutil.copy(args.presplash or default_presplash,
                 'src/main/res/drawable/presplash.jpg')
 
+    jars = []
     # If extra Java jars were requested, copy them into the libs directory
     if args.add_jar:
         for jarname in args.add_jar:
@@ -268,7 +269,7 @@ main.py that loads it.''')
                 print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'src/main/libs')
-
+            jars.append(basename(jarname))
     # if extra aar were requested, copy them into the libs directory
     aars = []
     if args.add_aar:
@@ -381,6 +382,7 @@ main.py that loads it.''')
         'build.gradle',
         args=args,
         aars=aars,
+        jars=jars,
         android_api=android_api,
         build_tools_version=build_tools_version)
 

@@ -67,6 +67,9 @@ dependencies {
 	{%- for aar in aars %}
 	compile(name: '{{ aar }}', ext: 'aar')
 	{%- endfor -%}
+        {%- for jar in jars %}
+        compile files('src/main/libs/{{ jar }}')
+        {%- endfor -%}
 	{%- if args.depends -%}
 	{%- for depend in args.depends %}
 	compile '{{ depend }}'
