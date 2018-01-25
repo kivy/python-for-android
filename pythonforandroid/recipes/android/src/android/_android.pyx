@@ -175,7 +175,7 @@ api_version = autoclass('android.os.Build$VERSION').SDK_INT
 version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
-python_act = autoclass(JAVA_NAMESPACE + '.PythonActivity')
+python_act = autoclass(JAVA_NAMESPACE.decode("utf-8") + '.PythonActivity')
 Rect = autoclass('android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
