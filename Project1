@@ -1,0 +1,24 @@
+import time 
+t = time.localtime()
+день = [2]
+години = t[3]
+хвилини = t[4]
+def Годинник():
+    print(день)    
+    print(години)   
+    print(хвилини)
+from tkinter import *
+tk = Tk()
+btn = Button(tk, text='Вчитель', command=Годинник
+)btn.pack()
+a = int(input('Введіть число:'))
+d = input('Введіть дію:')
+b = int(input('Введіть число:'))
+if d == '*':
+    print(a*b)
+if d == '/':
+    print(a/b)
+if d == '+':    
+    print(a+b)
+if d == '-':    
+    print(a-b)
