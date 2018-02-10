@@ -7,7 +7,15 @@ import os
 import glob
 import sys
 import re
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
@@ -30,9 +38,9 @@ class Context(object):
     build_dir = None  # in which bootstraps are copied for building
                       # and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
-    libs_dir = None  # where Android libs are cached after build but
+    #libs_dir = None  # where Android libs are cached after build but
                      # before being placed in dists
-    aars_dir = None
+    # aars_dir = None
 
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name

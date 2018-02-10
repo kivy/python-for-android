@@ -1,6 +1,15 @@
 from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, ArchARM, current_directory, info
 from os.path import exists, join
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 
 class LibSDLRecipe(BootstrapNDKRecipe):
     version = "1.2.14"

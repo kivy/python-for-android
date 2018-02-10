@@ -3,7 +3,16 @@
 from pythonforandroid.recipe import CythonRecipe, Recipe
 from os.path import join
 from pythonforandroid.util import current_directory
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 from pythonforandroid.logger import shprint
 import glob
 

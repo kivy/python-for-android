@@ -1,5 +1,6 @@
 from os.path import (exists, join, dirname)
-from os import environ, uname
+from os import environ
+from platform import uname
 import sys
 from distutils.spawn import find_executable
 
@@ -18,6 +19,7 @@ class Arch(object):
     def __init__(self, ctx):
         super(Arch, self).__init__()
         self.ctx = ctx
+        self.arch = None
 
     def __str__(self):
         return self.arch

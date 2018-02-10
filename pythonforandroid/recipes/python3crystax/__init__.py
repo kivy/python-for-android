@@ -5,7 +5,16 @@ from pythonforandroid.logger import info, error
 from pythonforandroid.util import ensure_dir, temp_directory
 from os.path import exists, join
 import glob
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 
 prebuilt_download_locations = {
     '3.6': ('https://github.com/inclement/crystax_python_builds/'

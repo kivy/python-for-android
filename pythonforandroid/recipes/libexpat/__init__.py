@@ -1,5 +1,14 @@
  
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import exists, join
 from multiprocessing import cpu_count

@@ -8,7 +8,16 @@ from six import PY2, with_metaclass
 import hashlib
 from re import match
 
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 import shutil
 import fnmatch
 from os import listdir, unlink, environ, mkdir, curdir, walk

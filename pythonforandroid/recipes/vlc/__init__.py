@@ -2,7 +2,16 @@ from pythonforandroid.toolchain import Recipe, current_directory
 from pythonforandroid.logger import info, debug, shprint, warning
 from os.path import join, isdir, isfile
 from os import environ
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 from colorama import Fore, Style
 
 class VlcRecipe(Recipe):

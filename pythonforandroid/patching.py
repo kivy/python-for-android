@@ -1,4 +1,4 @@
-from os import uname
+from platform import uname
 
 
 def check_all(*callables):

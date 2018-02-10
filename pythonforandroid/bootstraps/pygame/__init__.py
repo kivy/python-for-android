@@ -2,7 +2,15 @@ from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, in
 from os.path import join, exists
 from os import walk
 import glob
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
 
 
 class PygameBootstrap(Bootstrap):
