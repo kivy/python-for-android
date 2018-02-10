@@ -1,7 +1,7 @@
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
 from os.path import exists, join, realpath
-from os import uname
+from platform import uname
 import glob
 import sh
 
