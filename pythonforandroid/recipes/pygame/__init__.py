@@ -3,7 +3,16 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import debug, shprint, info, warning
 from os.path import exists, join
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 import glob
 
 class PygameRecipe(Recipe):

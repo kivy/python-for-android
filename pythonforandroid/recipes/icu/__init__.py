@@ -1,4 +1,13 @@
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 import os
 from os.path import join, isdir
 from pythonforandroid.recipe import NDKRecipe

@@ -1,6 +1,15 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import join, exists
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 
 # This recipe builds libtorrent with Python bindings
 # It depends on Boost.Build and the source of several Boost libraries present in BOOST_ROOT,

@@ -1,7 +1,16 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from pythonforandroid.util import ensure_dir
 from os.path import exists, join, abspath
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 from multiprocessing import cpu_count
 
 class LibgeosRecipe(Recipe):

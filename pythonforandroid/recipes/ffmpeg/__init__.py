@@ -2,7 +2,16 @@ from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchA
 from os.path import exists, join, realpath
 from platform import uname
 import glob
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 import os
 import shutil
 

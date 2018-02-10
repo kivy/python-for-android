@@ -1,7 +1,16 @@
 from pythonforandroid.logger import shprint
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 from os.path import join
 
 

@@ -4,7 +4,15 @@ from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
 
 
 class Python2Recipe(TargetPythonRecipe):

@@ -3,7 +3,15 @@ from pythonforandroid.toolchain import Recipe, shprint, current_directory, info,
 from os.path import join, exists
 from os import chdir
 import os
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
 
 
 class Hostpython2Recipe(Recipe):

@@ -6,7 +6,16 @@ from os.path import exists, join, dirname
 from pythonforandroid.toolchain import (CompiledComponentsPythonRecipe,
                                         current_directory)
 from pythonforandroid.logger import shprint, info, warning, info_main
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 
 class LibGlobRecipe(CompiledComponentsPythonRecipe):
     """Make a glob.h and glob.so for the python_install_dir()"""

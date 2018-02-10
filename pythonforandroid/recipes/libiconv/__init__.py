@@ -2,7 +2,15 @@ import os
 from pythonforandroid.toolchain import shprint, current_directory
 from pythonforandroid.recipe import Recipe
 from multiprocessing import cpu_count
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
 
 
 class LibIconvRecipe(Recipe):
