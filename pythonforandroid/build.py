@@ -38,9 +38,9 @@ class Context(object):
     build_dir = None  # in which bootstraps are copied for building
                       # and recipes are built
     dist_dir = None  # the Android project folder where everything ends up
-    libs_dir = None  # where Android libs are cached after build but
+    #libs_dir = None  # where Android libs are cached after build but
                      # before being placed in dists
-    aars_dir = None
+    # aars_dir = None
 
     ccache = None  # whether to use ccache
     cython = None  # the cython interpreter name
