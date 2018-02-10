@@ -7,7 +7,15 @@ import os
 import glob
 import sys
 import re
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,

@@ -2,7 +2,16 @@
 import logging
 import os
 import re
-import sh
+try:
+    import sh
+except ImportError:
+    # fallback: emulate the sh API with pbs
+    import pbs
+    class Sh(object):
+        def __getattr__(self, attr):
+            return pbs.Command(attr)
+    sh = Sh()
+
 from sys import stdout, stderr
 from math import log10
 from collections import defaultdict
