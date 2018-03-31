@@ -732,6 +732,10 @@ class PythonRecipe(Recipe):
             return join(
                 Recipe.get_recipe('hostpython2', self.ctx).get_build_dir(),
                 'hostpython')
+        elif 'hostpython3crystax' in self.ctx.recipe_build_order:
+            return join(
+                Recipe.get_recipe('hostpython3crystax', self.ctx).get_build_dir(),
+                'hostpython')
         else:
             python_recipe = self.ctx.python_recipe
             return 'python{}'.format(python_recipe.version)
