@@ -62,6 +62,8 @@ class Arch(object):
 
         if self.ctx.ndk == 'crystax':
             env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
+            env['CFLAGS'] += ' -I{}/sources/python/{}/include/python/'.format(
+                self.ctx.ndk_dir, self.ctx.python_recipe.version[0:3])
 
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
