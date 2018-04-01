@@ -15,7 +15,7 @@ diff -Naur gevent-1.1.1/setup.py gevent-1.1.1_diff/setup.py
  ares_configure_command = ' '.join(["(cd ", _quoted_abspath('c-ares/'),
                                     " && if [ -r ares_build.h ]; then cp ares_build.h ares_build.h.orig; fi ",
 -                                   " && /bin/sh ./configure " + _m32 + "CONFIG_COMMANDS= CONFIG_FILES= ",
-+                                   " && /bin/sh ./configure --host={} ".format(os.environ['TOOLCHAIN_PREFIX']) + "CFLAGS= LDFLAGS= CONFIG_COMMANDS= CONFIG_FILES= ",
++                                   " && /bin/sh ./configure --host={} ".format(os.environ['TOOLCHAIN_PREFIX']) + "CONFIG_COMMANDS= CONFIG_FILES= ",
                                     " && cp ares_config.h ares_build.h \"$OLDPWD\" ",
                                     " && mv ares_build.h.orig ares_build.h)",
                                     "> configure-output.txt"])
