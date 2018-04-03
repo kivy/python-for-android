@@ -9,6 +9,9 @@ from pythonforandroid.recipe import Recipe
 
 class Arch(object):
 
+    include_prefix = None
+    '''The prefix for the include dir in the NDK.'''
+
     toolchain_prefix = None
     '''The prefix for the toolchain dir in the NDK.'''
 
@@ -44,7 +47,7 @@ class Arch(object):
             # post-15 NDK per
             # https://android.googlesource.com/platform/ndk/+/ndk-r15-release/docs/UnifiedHeaders.md
             env['CFLAGS'] += ' -isystem {}/sysroot/usr/include/{}'.format(
-                self.ctx.ndk_dir, self.ctx.toolchain_prefix)
+                self.ctx.ndk_dir, self.ctx.include_prefix)
         else:
             sysroot = self.ctx.ndk_platform
             env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk_platform)
@@ -67,10 +70,12 @@ class Arch(object):
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
 
+        include_prefix = self.ctx.include_prefix
         toolchain_prefix = self.ctx.toolchain_prefix
         toolchain_version = self.ctx.toolchain_version
         command_prefix = self.command_prefix
 
+        env['INCLUDE_PREFIX'] = include_prefix
         env['TOOLCHAIN_PREFIX'] = toolchain_prefix
         env['TOOLCHAIN_VERSION'] = toolchain_version
 
@@ -138,6 +143,7 @@ class Arch(object):
 
 class ArchARM(Arch):
     arch = "armeabi"
+    include_prefix = 'arm-linux-androideabi'
     toolchain_prefix = 'arm-linux-androideabi'
     command_prefix = 'arm-linux-androideabi'
     platform_dir = 'arch-arm'
@@ -157,6 +163,7 @@ class ArchARMv7_a(ArchARM):
 
 class Archx86(Arch):
     arch = 'x86'
+    include_prefix = 'i686-linux-android'
     toolchain_prefix = 'x86'
     command_prefix = 'i686-linux-android'
     platform_dir = 'arch-x86'
@@ -171,7 +178,8 @@ class Archx86(Arch):
 
 class Archx86_64(Arch):
     arch = 'x86_64'
-    toolchain_prefix = 'x86'
+    include_prefix = 'x86_64-linux-android'
+    toolchain_prefix = 'x86_64'
     command_prefix = 'x86_64-linux-android'
     platform_dir = 'arch-x86'
 
@@ -185,6 +193,7 @@ class Archx86_64(Arch):
 
 class ArchAarch_64(Arch):
     arch = 'arm64-v8a'
+    include_prefix = 'aarch64-linux-android'
     toolchain_prefix = 'aarch64-linux-android'
     command_prefix = 'aarch64-linux-android'
     platform_dir = 'arch-arm64'
