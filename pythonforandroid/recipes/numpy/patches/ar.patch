@@ -5,7 +5,7 @@
          self.mkpath(os.path.dirname(output_filename))
          tmp_objects = objects + self.objects
 +        from os import environ
-+        self.archiver[0] = 'arm-linux-androideabi-ar'
++        self.archiver[0] = environ["AR"]
          while tmp_objects:
              objects = tmp_objects[:50]
              tmp_objects = tmp_objects[50:]
