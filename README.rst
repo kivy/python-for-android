@@ -1,6 +1,11 @@
 python-for-android
 ==================
 
+|Build Status|
+
+.. |Build Status| image:: https://secure.travis-ci.org/kivy/python-for-android.png?branch=master
+   :target: https://travis-ci.org/kivy/python-for-android
+
 python-for-android is a packager for Python apps on Android. You can
 create your own Python distribution including the modules and
 dependencies you want, and bundle it in an APK along with your own code.

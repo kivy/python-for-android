@@ -1,0 +1,14 @@
+sudo: required
+
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build --tag=p4a .
+
+script:
+  - docker run p4a /bin/sh -c 'uname -a'
+  - docker run p4a /bin/sh -c '. venv/bin/activate && p4a apk --help'
+  - docker run p4a /bin/sh -c '. venv/bin/activate && p4a apk --private testapps/testapp/ --package=com.github.kivy --name "Testapp" --version 0.1 --sdk_dir /opt/android/android-sdk/ --android_api 19 --ndk_dir /opt/android/android-ndk/ --ndk-version 16b --bootstrap=sdl2 --requirements=python2,kivy'
