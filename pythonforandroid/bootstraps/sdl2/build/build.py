@@ -297,6 +297,8 @@ main.py that loads it.''')
     
     args.add_activity = args.add_activity or []
 
+    args.activity_launch_mode = args.activity_launch_mode or ''
+
     if args.extra_source_dirs:
         esd = []
         for spec in args.extra_source_dirs:
@@ -514,6 +516,8 @@ tools directory of the Android SDK.
                           'the appropriate environment variables.'))
     ap.add_argument('--add-activity', dest='add_activity', action='append',
                     help='Add this Java class as an Activity to the manifest.')
+    ap.add_argument('--activity-launch-mode', dest='activity_launch_mode',
+                    help='Set the launch mode of the main activity in the manifest.')
 
     if args is None:
         args = sys.argv[1:]
