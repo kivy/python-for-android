@@ -232,6 +232,7 @@ main.py that loads it.''')
     # Delete the old assets.
     try_unlink('src/main/assets/public.mp3')
     try_unlink('src/main/assets/private.mp3')
+    ensure_dir('src/main/assets')
 
     # In order to speedup import and initial depack,
     # construct a python27.zip
@@ -257,6 +258,7 @@ main.py that loads it.''')
     # Prepare some variables for templating process
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
+    ensure_dir('src/main/res/drawable')
     shutil.copy(args.icon or default_icon, 'src/main/res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash,
                 'src/main/res/drawable/presplash.jpg')
