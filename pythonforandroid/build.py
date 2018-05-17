@@ -364,7 +364,6 @@ class Context(object):
         # This would need to be changed if supporting multiarch APKs
         arch = self.archs[0]
         platform_dir = arch.platform_dir
-        include_prefix = arch.include_prefix
         toolchain_prefix = arch.toolchain_prefix
         toolchain_version = None
         self.ndk_platform = join(
@@ -380,13 +379,6 @@ class Context(object):
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
-
-        self.include_prefix = include_prefix
-        include_path = join(self.ndk_dir, 'sysroot/usr/include/', self.include_prefix)
-        if not os.path.isdir(include_path):
-            warning('include directory doesn\'t exist: {}'.format(
-                include_path))
-            ok = False
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
@@ -454,7 +446,6 @@ class Context(object):
         self._ndk_ver = None
         self.ndk = None
 
-        self.include_prefix = None
         self.toolchain_prefix = None
         self.toolchain_version = None
 
