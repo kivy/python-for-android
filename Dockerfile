@@ -29,16 +29,16 @@ ENV ANDROID_NDK_DL_URL="https://dl.google.com/android/repository/${ANDROID_NDK_A
 	ANDROID_SDK_TOOLS_DL_URL="https://dl.google.com/android/repository/${ANDROID_SDK_TOOLS_ARCHIVE}"
 
 # install system dependencies
-RUN apt update && apt install --yes --no-install-recommends \
+RUN apt update -qq && apt install -qq --yes --no-install-recommends \
 	python virtualenv python-pip wget curl lbzip2 patch
 
 # build dependencies
 # https://buildozer.readthedocs.io/en/latest/installation.html#android-on-ubuntu-16-04-64bit
-RUN dpkg --add-architecture i386 &&  apt-get update && apt install --yes --no-install-recommends \
+RUN dpkg --add-architecture i386 &&  apt update -qq && apt install -qq --yes --no-install-recommends \
 	build-essential ccache git libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 \
 	libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 python2.7 python2.7-dev \
 	openjdk-8-jdk unzip zlib1g-dev zlib1g:i386
-RUN	pip install --upgrade cython==0.21
+RUN	pip install --quiet --upgrade cython==0.21
 
 # download and install Android NDK
 RUN curl --progress-bar "${ANDROID_NDK_DL_URL}" --output "${ANDROID_NDK_ARCHIVE}" && \
@@ -61,4 +61,4 @@ RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;26.0.2"
 # install python-for-android from current branch
 WORKDIR /app
 COPY . /app
-RUN virtualenv --python=python venv && . venv/bin/activate && pip install -e .
+RUN virtualenv --python=python venv && . venv/bin/activate && pip install --quiet -e .
