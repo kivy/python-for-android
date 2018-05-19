@@ -16,16 +16,22 @@ FROM ubuntu:16.04
 
 # get the latest version from https://developer.android.com/ndk/downloads/index.html
 ENV ANDROID_NDK_VERSION="16b"
+# get the latest version from https://www.crystax.net/en/download
+ENV CRYSTAX_NDK_VERSION="10.3.2"
 # get the latest version from https://developer.android.com/studio/index.html
 ENV ANDROID_SDK_TOOLS_VERSION="3859397"
 
 ENV ANDROID_HOME="/opt/android"
 ENV ANDROID_NDK_HOME="${ANDROID_HOME}/android-ndk" \
+	CRYSTAX_NDK_HOME="${ANDROID_HOME}/crystax-ndk" \
 	ANDROID_SDK_HOME="${ANDROID_HOME}/android-sdk"
-ENV ANDROID_NDK_HOME_V="${ANDROID_NDK_HOME}-r${ANDROID_NDK_VERSION}"
+ENV ANDROID_NDK_HOME_V="${ANDROID_NDK_HOME}-r${ANDROID_NDK_VERSION}" \
+	CRYSTAX_NDK_HOME_V="${CRYSTAX_NDK_HOME}-${CRYSTAX_NDK_VERSION}"
 ENV ANDROID_NDK_ARCHIVE="android-ndk-r${ANDROID_NDK_VERSION}-linux-x86_64.zip" \
+	CRYSTAX_NDK_ARCHIVE="crystax-ndk-${CRYSTAX_NDK_VERSION}-linux-x86.tar.xz" \
 	ANDROID_SDK_TOOLS_ARCHIVE="sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
 ENV ANDROID_NDK_DL_URL="https://dl.google.com/android/repository/${ANDROID_NDK_ARCHIVE}" \
+	CRYSTAX_NDK_DL_URL="https://eu.crystax.net/download/${CRYSTAX_NDK_ARCHIVE}" \
 	ANDROID_SDK_TOOLS_DL_URL="https://dl.google.com/android/repository/${ANDROID_SDK_TOOLS_ARCHIVE}"
 
 # install system dependencies
@@ -45,6 +51,11 @@ RUN curl --progress-bar "${ANDROID_NDK_DL_URL}" --output "${ANDROID_NDK_ARCHIVE}
     mkdir --parents "${ANDROID_NDK_HOME_V}" && \
     unzip -q "${ANDROID_NDK_ARCHIVE}" -d "${ANDROID_HOME}" && \
 	ln -sfn "${ANDROID_NDK_HOME_V}" "${ANDROID_NDK_HOME}"
+
+# download and install CrystaX NDK
+RUN curl --progress-bar "${CRYSTAX_NDK_DL_URL}" --output "${CRYSTAX_NDK_ARCHIVE}" && \
+    tar -xf "${CRYSTAX_NDK_ARCHIVE}" --directory "${ANDROID_HOME}" && \
+	ln -sfn "${CRYSTAX_NDK_HOME_V}" "${CRYSTAX_NDK_HOME}"
 
 # download and install Android SDK
 RUN curl --progress-bar "${ANDROID_SDK_TOOLS_DL_URL}" --output "${ANDROID_SDK_TOOLS_ARCHIVE}" && \
