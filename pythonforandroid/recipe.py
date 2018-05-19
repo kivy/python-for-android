@@ -293,6 +293,14 @@ class Recipe(with_metaclass(RecipeMeta)):
         return join(self.get_build_container_dir(arch), self.name)
 
     def get_recipe_dir(self):
+        """
+        Returns the local recipe directory or defaults to the core recipe
+        directory.
+        """
+        if self.ctx.local_recipes is not None:
+            local_recipe_dir = join(self.ctx.local_recipes, self.name)
+            if exists(local_recipe_dir):
+                return local_recipe_dir
         return join(self.ctx.root_dir, 'recipes', self.name)
 
     # Public Recipe API to be subclassed if needed
