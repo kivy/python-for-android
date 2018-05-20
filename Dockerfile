@@ -36,7 +36,7 @@ ENV ANDROID_NDK_DL_URL="https://dl.google.com/android/repository/${ANDROID_NDK_A
 
 # install system dependencies
 RUN apt update -qq && apt install -qq --yes --no-install-recommends \
-	python virtualenv python-pip wget curl lbzip2 patch
+	python virtualenv python-pip wget curl lbzip2 patch bsdtar
 
 # build dependencies
 # https://buildozer.readthedocs.io/en/latest/installation.html#android-on-ubuntu-16-04-64bit
@@ -47,18 +47,27 @@ RUN dpkg --add-architecture i386 &&  apt update -qq && apt install -qq --yes --n
 RUN	pip install --quiet --upgrade cython==0.21
 
 # download and install Android NDK
-RUN curl --progress-bar "${ANDROID_NDK_DL_URL}" --output "${ANDROID_NDK_ARCHIVE}" && \
+RUN curl --location --progress-bar "${ANDROID_NDK_DL_URL}" --output "${ANDROID_NDK_ARCHIVE}" && \
     mkdir --parents "${ANDROID_NDK_HOME_V}" && \
     unzip -q "${ANDROID_NDK_ARCHIVE}" -d "${ANDROID_HOME}" && \
 	ln -sfn "${ANDROID_NDK_HOME_V}" "${ANDROID_NDK_HOME}"
 
 # download and install CrystaX NDK
-RUN curl --progress-bar "${CRYSTAX_NDK_DL_URL}" --output "${CRYSTAX_NDK_ARCHIVE}" && \
-    tar -xf "${CRYSTAX_NDK_ARCHIVE}" --directory "${ANDROID_HOME}" && \
+# added `gnutls_handshake` flag to workaround random `gnutls_handshake()` issues
+RUN curl --location --progress-bar "${CRYSTAX_NDK_DL_URL}" --output "${CRYSTAX_NDK_ARCHIVE}" --insecure && \
+    bsdtar -xf "${CRYSTAX_NDK_ARCHIVE}" --directory "${ANDROID_HOME}" \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/docs \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/samples \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/tests \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/renderscript \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/x86_64-* \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/llvm-* \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/aarch64-* \
+    --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/mips64el-* && \
 	ln -sfn "${CRYSTAX_NDK_HOME_V}" "${CRYSTAX_NDK_HOME}"
 
 # download and install Android SDK
-RUN curl --progress-bar "${ANDROID_SDK_TOOLS_DL_URL}" --output "${ANDROID_SDK_TOOLS_ARCHIVE}" && \
+RUN curl --location --progress-bar "${ANDROID_SDK_TOOLS_DL_URL}" --output "${ANDROID_SDK_TOOLS_ARCHIVE}" && \
     mkdir --parents "${ANDROID_SDK_HOME}" && \
     unzip -q "${ANDROID_SDK_TOOLS_ARCHIVE}" -d "${ANDROID_SDK_HOME}"
 
