@@ -34,7 +34,8 @@ class Hostpython3Recipe(Recipe):
         # https://github.com/kivy/python-for-android/issues/1154
         sub_build_dir = join(self.get_build_dir(), 'build')
         shprint(sh.mkdir, '-p', sub_build_dir)
-        system_python = sh.which("python" + self.version)
+        python3crystax = self.get_recipe('python3crystax', self.ctx)
+        system_python = sh.which("python" + python3crystax.version)
         link_dest = join(self.get_build_dir(), 'hostpython')
         shprint(sh.ln, '-sf', system_python, link_dest)
 
