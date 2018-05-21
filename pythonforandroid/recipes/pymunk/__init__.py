@@ -19,7 +19,7 @@ class PymunkRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += " -shared -llog"
         env['LDFLAGS'] += " -landroid -lpython2.7"
         env['LDFLAGS'] += " --sysroot={ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}".format(
-		ctx=self.ctx, arch_noeabi=arch_noeabi)
+            ctx=self.ctx, arch_noeabi=arch_noeabi)
         return env
 
 recipe = PymunkRecipe()
