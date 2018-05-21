@@ -6,7 +6,8 @@ services:
   - docker
 
 before_install:
-  - docker build --tag=p4a .
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-tox
 
 env:
   - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/android-ndk'
@@ -16,5 +17,10 @@ env:
   - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/crystax-ndk'
   - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/crystax-ndk --requirements python3crystax,setuptools,android'
 
+before_script:
+  # we want to fail fast on tox errors without having to `docker build` first
+  - tox
+
 script:
+  - docker build --tag=p4a .
   - docker run p4a /bin/sh -c "$COMMAND"
