@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 class LibNaClRecipe(PythonRecipe):
     version = '1.4.4'

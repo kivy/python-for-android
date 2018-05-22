@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import CompiledComponentsPythonRecipe
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 
 class UJsonRecipe(CompiledComponentsPythonRecipe):

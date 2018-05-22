@@ -1,6 +1,5 @@
-from os.path import join, dirname, isdir, exists, isfile, split, realpath, basename
+from os.path import basename, dirname, exists, isdir, isfile, join, realpath
 import importlib
-import zipfile
 import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
@@ -21,7 +20,6 @@ from pythonforandroid.logger import (logger, info, warning, error, debug, shprin
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
 # this import is necessary to keep imp.load_source from complaining :)
-import pythonforandroid.recipes
 
 
 if PY2:

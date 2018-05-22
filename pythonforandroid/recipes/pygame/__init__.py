@@ -2,7 +2,7 @@
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import debug, shprint, info, warning
-from os.path import exists, join
+from os.path import join
 import sh
 import glob
 

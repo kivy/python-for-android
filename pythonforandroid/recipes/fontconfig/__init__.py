@@ -1,9 +1,6 @@
-
-from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, current_directory, info_main
-from os.path import exists, join
+from pythonforandroid.recipe import BootstrapNDKRecipe
+from pythonforandroid.toolchain import current_directory, shprint
 import sh
-
-
 
 
 class FontconfigRecipe(BootstrapNDKRecipe):

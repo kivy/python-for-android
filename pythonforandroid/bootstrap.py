@@ -1,12 +1,12 @@
-from os.path import (join, dirname, isdir, splitext, basename, realpath)
-from os import listdir, mkdir
+from os.path import (join, dirname, isdir, splitext, basename)
+from os import listdir
 import sh
 import glob
 import json
 import importlib
 
 from pythonforandroid.logger import (warning, shprint, info, logger,
-                                     debug, error)
+                                     debug)
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    temp_directory, which)
 from pythonforandroid.recipe import Recipe

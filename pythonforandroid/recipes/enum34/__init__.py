@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 class Enum34Recipe(PythonRecipe):
     version = '1.1.3'

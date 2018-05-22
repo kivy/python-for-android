@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 class CherryPyRecipe(PythonRecipe):
     version = '5.1.0'

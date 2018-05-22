@@ -1,8 +1,6 @@
 
-from pythonforandroid.toolchain import PythonRecipe, shprint, current_directory
-from os.path import exists, join
-import sh
-import glob
+from pythonforandroid.recipe import PythonRecipe
+from os.path import join
 
 class ZopeRecipe(PythonRecipe):
     name = 'zope'

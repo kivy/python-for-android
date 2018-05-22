@@ -1,7 +1,6 @@
 from pythonforandroid.recipe import PythonRecipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory, shutil
-from pythonforandroid.util import ensure_dir
 from os.path import exists, join, dirname
 import sh
 from multiprocessing import cpu_count

@@ -1,6 +1,5 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from pythonforandroid.util import ensure_dir
-from os.path import exists, join, abspath
+from os.path import exists, join
 import sh
 from multiprocessing import cpu_count
 

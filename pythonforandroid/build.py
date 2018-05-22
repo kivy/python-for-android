@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from os.path import (join, realpath, dirname, expanduser, exists,
                      split, isdir)
-from os import environ, listdir
+from os import environ
 import os
 import glob
 import sys
@@ -11,9 +11,8 @@ import sh
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
-                                     Err_Fore, Err_Style, info_main,
-                                     shprint)
-from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64, ArchAarch_64
+                                     Err_Fore, info_main, shprint)
+from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86
 from pythonforandroid.recipe import Recipe
 
 DEFAULT_ANDROID_API = 15
@@ -382,7 +381,7 @@ class Context(object):
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
-        if os.path.isdir(toolchain_path):
+        if isdir(toolchain_path):
             toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
                                                             toolchain_prefix))
             toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]

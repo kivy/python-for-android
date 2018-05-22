@@ -1,7 +1,6 @@
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
 from os.path import join, exists
-from os import chdir
 import os
 import sh
 
