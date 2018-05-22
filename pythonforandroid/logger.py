@@ -1,4 +1,3 @@
-
 import logging
 import os
 import re
@@ -16,7 +15,7 @@ if not six.PY3:
     stderr = codecs.getwriter('utf8')(stderr)
 
 if six.PY2:
-    unistr = unicode
+    unistr = unicode  # noqa F821
 else:
     unistr = str
 
