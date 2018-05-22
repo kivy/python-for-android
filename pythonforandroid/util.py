@@ -15,11 +15,6 @@ from pythonforandroid.logger import (logger, Err_Fore)
 
 IS_PY3 = sys.version_info[0] >= 3
 
-if IS_PY3:
-    unistr = str
-else:
-    unistr = unicode
-
 
 class WgetDownloader(FancyURLopener):
     version = ('Wget/1.17.1')
@@ -106,7 +101,7 @@ class JsonStore(object):
                 json.dump(self.data, fd, ensure_ascii=False)
         else:
             with io.open(self.filename, 'w', encoding='utf-8') as fd:
-                fd.write(unicode(json.dumps(self.data, ensure_ascii=False)))
+                fd.write(unicode(json.dumps(self.data, ensure_ascii=False)))  # noqa F821
 
 
 def which(program, path_env):
@@ -128,20 +123,3 @@ def which(program, path_env):
                 return exe_file
 
     return None
-
-
-def get_directory(filename):
-    '''If the filename ends with a recognised file extension, return the
-    filename without this extension.'''
-    if filename.endswith('.tar.gz'):
-        return basename(filename[:-7])
-    elif filename.endswith('.tgz'):
-        return basename(filename[:-4])
-    elif filename.endswith('.tar.bz2'):
-        return basename(filename[:-8])
-    elif filename.endswith('.tbz2'):
-        return basename(filename[:-5])
-    elif filename.endswith('.zip'):
-        return basename(filename[:-4])
-    info('Unknown file extension for {}'.format(filename))
-    exit(1)
