@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
+from pythonforandroid.toolchain import Bootstrap, current_directory, info, info_main, shprint
 from os.path import join, exists, curdir, abspath
 from os import walk
 import glob

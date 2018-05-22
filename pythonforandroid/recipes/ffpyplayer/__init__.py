@@ -1,9 +1,6 @@
-from pythonforandroid.toolchain import Recipe, CythonRecipe, shprint, current_directory, ArchARM
-from os.path import exists, join, realpath
-from os import uname
-import glob
-import sh
-import os
+from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.toolchain import Recipe
+from os.path import join
 
 
 class FFPyPlayerRecipe(CythonRecipe):

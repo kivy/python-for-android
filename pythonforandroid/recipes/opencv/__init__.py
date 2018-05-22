@@ -1,10 +1,8 @@
 import os
 import sh
+from pythonforandroid.recipe import NDKRecipe
 from pythonforandroid.toolchain import (
-    NDKRecipe,
-    Recipe,
     current_directory,
-    info,
     shprint,
 )
 from multiprocessing import cpu_count

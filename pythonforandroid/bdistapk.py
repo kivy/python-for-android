@@ -1,6 +1,5 @@
 from __future__ import print_function
 from setuptools import Command
-from pythonforandroid import toolchain
 
 import sys
 from os.path import realpath, join, exists, dirname, curdir, basename, split

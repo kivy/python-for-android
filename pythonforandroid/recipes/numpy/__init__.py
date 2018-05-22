@@ -1,5 +1,5 @@
-
-from pythonforandroid.toolchain import CompiledComponentsPythonRecipe, warning
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.toolchain import warning
 
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):

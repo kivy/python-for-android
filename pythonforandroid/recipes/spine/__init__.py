@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import CythonRecipe
+from pythonforandroid.recipe import CythonRecipe
 
 
 class SpineCython(CythonRecipe):

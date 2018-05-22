@@ -1,5 +1,3 @@
-import os
-import sh
 from pythonforandroid.recipe import CythonRecipe
 
 

@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe
+from pythonforandroid.recipe import BootstrapNDKRecipe
 from pythonforandroid.patching import is_arch
 
 

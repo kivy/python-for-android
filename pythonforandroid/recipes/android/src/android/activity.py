@@ -1,4 +1,4 @@
-from jnius import PythonJavaClass, java_method, autoclass, cast
+from jnius import PythonJavaClass, autoclass, java_method
 from android.config import JAVA_NAMESPACE, JNI_NAMESPACE
 
 _activity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity

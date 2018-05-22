@@ -1,6 +1,6 @@
-
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, info
-from pythonforandroid.patching import will_build, check_any
+from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.toolchain import shprint, current_directory, info
+from pythonforandroid.patching import will_build
 import sh
 from os.path import join
 

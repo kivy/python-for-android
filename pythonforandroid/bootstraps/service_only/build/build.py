@@ -6,12 +6,10 @@ from os.path import dirname, join, isfile, realpath, relpath, split, exists
 from os import makedirs
 import os
 import tarfile
-import time
 import subprocess
 import shutil
 from zipfile import ZipFile
 import sys
-import re
 import shlex
 
 from fnmatch import fnmatch

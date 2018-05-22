@@ -1,5 +1,5 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe
-from os.path import exists
+from pythonforandroid.recipe import BootstrapNDKRecipe
+
 
 class LibSDL2TTF(BootstrapNDKRecipe):
     version = '2.0.14'
