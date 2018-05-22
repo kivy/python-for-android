@@ -196,10 +196,10 @@ class Sound(object):
         self.serial = str(sound_serial)
         sound_serial += 1
 
-        if isinstance(what, file):
+        if isinstance(what, file):  # noqa F821
             self.file = what
         else:
-            self.file = file(os.path.abspath(what), "rb")
+            self.file = file(os.path.abspath(what), "rb")  # noqa F821
 
         sounds[self.serial] = self
 
