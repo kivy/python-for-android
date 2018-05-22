@@ -1,5 +1,5 @@
 import os
-from pythonforandroid.toolchain import CompiledComponentsPythonRecipe
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 
 class GeventRecipe(CompiledComponentsPythonRecipe):

@@ -1,5 +1,5 @@
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
-from os.path import dirname, join
+from os.path import join
 
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
     name = 'cryptography'

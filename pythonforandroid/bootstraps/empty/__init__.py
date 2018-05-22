@@ -1,8 +1,4 @@
 from pythonforandroid.toolchain import Bootstrap
-from os.path import join, exists
-from os import walk
-import glob
-import sh
 
 
 class EmptyBootstrap(Bootstrap):

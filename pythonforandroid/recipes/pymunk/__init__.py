@@ -1,9 +1,5 @@
-from pythonforandroid.toolchain import PythonRecipe
-from pythonforandroid.toolchain import CythonRecipe
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
-from pythonforandroid.logger import info
 
-import os.path
 
 class PymunkRecipe(CompiledComponentsPythonRecipe):
     name = "pymunk"

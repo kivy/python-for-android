@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe
+from pythonforandroid.recipe import BootstrapNDKRecipe
 
 
 class LibSDL2Mixer(BootstrapNDKRecipe):

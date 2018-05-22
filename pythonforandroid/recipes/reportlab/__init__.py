@@ -1,7 +1,9 @@
 import os, sh
-from pythonforandroid.toolchain import CompiledComponentsPythonRecipe, warning
-from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
-from pythonforandroid.logger import (logger, info, warning, error, debug, shprint, info_main)
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.util import (current_directory, ensure_dir)
+from pythonforandroid.logger import (info, shprint)
+
+
 class ReportLabRecipe(CompiledComponentsPythonRecipe):
     version = 'c088826211ca'
     url = 'https://bitbucket.org/rptlab/reportlab/get/{version}.tar.gz'

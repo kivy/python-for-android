@@ -1,5 +1,5 @@
-
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
+from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.toolchain import current_directory, shprint
 from os.path import exists, join, basename
 import sh
 import glob

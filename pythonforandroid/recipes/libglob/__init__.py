@@ -2,11 +2,12 @@
     android libglob
     available via '-lglob' LDFLAG
 """
-from os.path import exists, join, dirname
-from pythonforandroid.toolchain import (CompiledComponentsPythonRecipe,
-                                        current_directory)
-from pythonforandroid.logger import shprint, info, warning, info_main
+from os.path import exists, join
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.toolchain import current_directory
+from pythonforandroid.logger import info, shprint
 import sh
+
 
 class LibGlobRecipe(CompiledComponentsPythonRecipe):
     """Make a glob.h and glob.so for the python_install_dir()"""

@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 class FeedparserPyRecipe(PythonRecipe):
     version = '5.2.1'

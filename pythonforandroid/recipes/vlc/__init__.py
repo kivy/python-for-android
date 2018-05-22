@@ -3,7 +3,6 @@ from pythonforandroid.logger import info, debug, shprint, warning
 from os.path import join, isdir, isfile
 from os import environ
 import sh
-from colorama import Fore, Style
 
 class VlcRecipe(Recipe):
     version = '3.0.0'

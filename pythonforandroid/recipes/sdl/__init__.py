@@ -1,6 +1,8 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, ArchARM, current_directory, info
+from pythonforandroid.recipe import BootstrapNDKRecipe
+from pythonforandroid.toolchain import current_directory, info, shprint
 from os.path import exists, join
 import sh
+
 
 class LibSDLRecipe(BootstrapNDKRecipe):
     version = "1.2.14"

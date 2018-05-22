@@ -1,7 +1,5 @@
-
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe, Recipe
 from pythonforandroid.toolchain import (
-    CompiledComponentsPythonRecipe,
-    Recipe,
     current_directory,
     info,
     shprint,

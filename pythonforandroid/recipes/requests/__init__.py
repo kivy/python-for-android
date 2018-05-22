@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 class RequestsRecipe(PythonRecipe):
     version = '2.13.0'

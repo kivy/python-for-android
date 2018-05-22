@@ -1,7 +1,9 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory, shprint, info
+from pythonforandroid.recipe import BootstrapNDKRecipe
+from pythonforandroid.toolchain import current_directory, shprint, info
 from os.path import exists, join
 import sh
 import glob
+
 
 class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
     version = 'master'

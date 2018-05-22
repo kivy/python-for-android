@@ -81,14 +81,11 @@ from appdirs import user_data_dir
 import logging
 from distutils.version import LooseVersion
 
-from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
-                                     CompiledComponentsPythonRecipe,
-                                     BootstrapNDKRecipe, NDKRecipe)
-from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
+from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import (logger, info, warning, setup_color,
-                                     Out_Style, Out_Fore, Err_Style, Err_Fore,
+                                     Out_Style, Out_Fore,
                                      info_notify, info_main, shprint, error)
-from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.util import current_directory
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.graph import get_recipe_order_and_bootstrap

@@ -3,9 +3,9 @@
 from os.path import join, exists
 import sh
 from pythonforandroid.logger import info, shprint
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.toolchain import current_directory
 
-from pythonforandroid.toolchain import (CompiledComponentsPythonRecipe,
-                                        current_directory)
 
 class IFAddrRecipe(CompiledComponentsPythonRecipe):
     version = 'master'
