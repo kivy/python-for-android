@@ -24,6 +24,6 @@ class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
                 shprint(sh.mv, dirn, './')
         info('Unpacking was successful, deleting original container dir')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
-        
+
 
 recipe = PygameJNIComponentsRecipe()

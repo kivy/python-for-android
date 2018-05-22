@@ -11,9 +11,9 @@ class LibmysqlclientRecipe(Recipe):
     url = 'https://github.com/0x-ff/libmysql-android/archive/{version}.zip'
     # version = '5.5.47'
     # url = 'http://dev.mysql.com/get/Downloads/MySQL-5.5/mysql-{version}.tar.gz'
-    # 
+    #
     # depends = ['ncurses']
-    # 
+    #
 
     # patches = ['add-custom-platform.patch']
 
@@ -47,7 +47,7 @@ class LibmysqlclientRecipe(Recipe):
     #   env['CURSES_INCLUDE_PATH'] = join(ncurses.get_build_dir(arch.arch),
     #                                     'include')
     #   return env
-    # 
+    #
     # def build_arch(self, arch):
     #   env = self.get_recipe_env(arch)
     #   with current_directory(self.get_build_dir(arch.arch)):
@@ -60,7 +60,7 @@ class LibmysqlclientRecipe(Recipe):
     #       shprint(sh.cmake, '.', '-DCURSES_LIBRARY=' + env['CURSES_LIBRARY'],
     #               '-DCURSES_INCLUDE_PATH=' + env['CURSES_INCLUDE_PATH'], _env=env)
     #       shprint(sh.make, _env=env)
-    # 
+    #
     #       self.install_libs(arch, 'libmysqlclient.so')
 
 

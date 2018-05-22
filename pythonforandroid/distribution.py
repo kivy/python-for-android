@@ -41,7 +41,7 @@ class Distribution(object):
         return str(self)
 
     @classmethod
-    def get_distribution(cls, ctx, name=None, recipes=[], 
+    def get_distribution(cls, ctx, name=None, recipes=[],
                          force_build=False,
                          extra_dist_dirs=[],
                          require_perfect_match=False):

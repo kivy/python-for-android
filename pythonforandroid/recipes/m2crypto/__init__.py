@@ -24,8 +24,7 @@ class M2CryptoRecipe(PythonRecipe):
                     'build_ext',
                     '-p' + arch.arch,
                     '-c' + 'unix',
-                    '--openssl=' + openssl_dir
-            , _env=env)
+                    '--openssl=' + openssl_dir, _env=env)
         # Install M2Crypto
         super(M2CryptoRecipe, self).build_arch(arch)
 
@@ -44,5 +43,6 @@ class M2CryptoRecipe(PythonRecipe):
                           ' -lssl' + r.version + \
                           ' -lcrypto' + r.version
         return env
+
 
 recipe = M2CryptoRecipe()

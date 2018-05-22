@@ -52,4 +52,5 @@ class KivyRecipe(CythonRecipe):
 
         return env
 
+
 recipe = KivyRecipe()

@@ -1,6 +1,7 @@
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from os.path import join
 
+
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
     name = 'cryptography'
     version = '1.3'
@@ -23,5 +24,6 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
                           ' -lssl' + r.version + \
                           ' -lcrypto' + r.version
         return env
+
 
 recipe = CryptographyRecipe()

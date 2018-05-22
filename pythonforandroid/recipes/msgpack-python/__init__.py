@@ -7,4 +7,5 @@ class MsgPackRecipe(CythonRecipe):
     depends = [('python2', 'python3crystax'), "setuptools"]
     call_hostpython_via_targetpython = False
 
+
 recipe = MsgPackRecipe()

@@ -8,4 +8,5 @@ class GeventWebsocketRecipe(PythonRecipe):
     site_packages_name = 'geventwebsocket'
     call_hostpython_via_targetpython = False
 
+
 recipe = GeventWebsocketRecipe()

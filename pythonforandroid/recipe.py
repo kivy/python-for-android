@@ -798,7 +798,6 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
 
-
             if self.ctx.python_recipe.from_crystax:
                 hpenv = env.copy()
                 shprint(hostpython, 'setup.py', 'install', '-O2',
@@ -880,6 +879,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
                 *self.setup_extra_args)
 
+
 class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
     """ Extensions that require the cxx-stl """
     call_hostpython_via_targetpython = False
@@ -902,20 +902,17 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
                 " -lpython2.7" \
                 " -lgnustl_shared".format(**keys)
 
-
         return env
 
-    def build_compiled_components(self,arch):
+    def build_compiled_components(self, arch):
         super(CppCompiledComponentsPythonRecipe, self).build_compiled_components(arch)
 
         # Copy libgnustl_shared.so
         with current_directory(self.get_build_dir(arch.arch)):
             sh.cp(
-                "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx,arch=arch),
+                "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx, arch=arch),
                 self.ctx.get_libs_dir(arch.arch)
             )
-
-
 
 
 class CythonRecipe(PythonRecipe):

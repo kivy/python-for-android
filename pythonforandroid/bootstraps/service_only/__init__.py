@@ -114,7 +114,6 @@ class ServiceOnlyBootstrap(Bootstrap):
                 site_packages_dir = join(abspath(curdir),
                                          site_packages_dir)
 
-
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
         super(ServiceOnlyBootstrap, self).run_distribute()

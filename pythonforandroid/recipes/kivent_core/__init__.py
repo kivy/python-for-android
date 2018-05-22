@@ -8,7 +8,7 @@ class KiventCoreRecipe(CythonRecipe):
     name = 'kivent_core'
 
     depends = ['kivy']
-    
+
     subbuilddir = False
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
@@ -24,7 +24,7 @@ class KiventCoreRecipe(CythonRecipe):
             return join(builddir, 'modules', 'core')
         else:
             return builddir
-    
+
     def build_arch(self, arch):
         self.subbuilddir = True
         super(KiventCoreRecipe, self).build_arch(arch)

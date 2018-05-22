@@ -2,13 +2,14 @@
 from pythonforandroid.recipe import PythonRecipe
 from os.path import join
 
+
 class ZopeRecipe(PythonRecipe):
     name = 'zope'
     version = '4.1.3'
     url = 'http://pypi.python.org/packages/source/z/zope.interface/zope.interface-{version}.tar.gz'
 
     depends = ['python2']
-    
+
     def get_recipe_env(self, arch):
         env = super(ZopeRecipe, self).get_recipe_env(arch)
 
@@ -21,5 +22,6 @@ class ZopeRecipe(PythonRecipe):
         super(ZopeRecipe, self).postbuild_arch(arch)
 
         # Should do some deleting here
+
 
 recipe = ZopeRecipe()

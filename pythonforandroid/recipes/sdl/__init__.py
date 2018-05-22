@@ -6,7 +6,7 @@ import sh
 
 class LibSDLRecipe(BootstrapNDKRecipe):
     version = "1.2.14"
-    url = None  
+    url = None
     name = 'sdl'
     depends = ['python2', 'pygame_bootstrap_components']
     conflicts = ['sdl2']
@@ -16,7 +16,7 @@ class LibSDLRecipe(BootstrapNDKRecipe):
         if exists(join(self.ctx.libs_dir, 'libsdl.so')):
             info('libsdl.so already exists, skipping sdl build.')
             return
-        
+
         env = self.get_recipe_env(arch)
 
         with current_directory(self.get_jni_dir()):

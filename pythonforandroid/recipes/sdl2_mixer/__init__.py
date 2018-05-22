@@ -8,4 +8,5 @@ class LibSDL2Mixer(BootstrapNDKRecipe):
 
     patches = ['toggle_modplug_mikmod_smpeg_ogg.patch']
 
+
 recipe = LibSDL2Mixer()

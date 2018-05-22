@@ -28,4 +28,5 @@ class LibX264Recipe(Recipe):
             shprint(sh.make, '-j4', _env=env)
             shprint(sh.make, 'install', _env=env)
 
+
 recipe = LibX264Recipe()
