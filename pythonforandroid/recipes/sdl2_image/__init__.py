@@ -12,4 +12,5 @@ class LibSDL2Image(BootstrapNDKRecipe):
                'extra_cflags.patch',
                'fix_with_ndk_15_plus.patch']
 
+
 recipe = LibSDL2Image()

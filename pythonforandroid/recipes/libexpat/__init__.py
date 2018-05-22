@@ -1,4 +1,4 @@
- 
+
 import sh
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
 from os.path import exists, join

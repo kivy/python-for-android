@@ -47,12 +47,10 @@ class ProtobufCppRecipe(PythonRecipe):
             shprint(hostpython,
                     'setup.py',
                     'build_ext',
-                    '--cpp_implementation'
-                    , _env=env)
+                    '--cpp_implementation', _env=env)
 
         # Install python bindings
         self.install_python_package(arch)
-
 
     def install_python_package(self, arch):
         env = self.get_recipe_env(arch)
@@ -83,7 +81,6 @@ class ProtobufCppRecipe(PythonRecipe):
                         '--install-lib=lib/python2.7/site-packages',
                         '--cpp_implementation',
                         _env=hpenv, *self.setup_extra_args)
-
 
     def get_recipe_env(self, arch):
         env = super(ProtobufCppRecipe, self).get_recipe_env(arch)

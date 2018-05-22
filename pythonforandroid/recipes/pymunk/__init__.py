@@ -18,4 +18,5 @@ class PymunkRecipe(CompiledComponentsPythonRecipe):
             ctx=self.ctx, arch_noeabi=arch_noeabi)
         return env
 
+
 recipe = PymunkRecipe()

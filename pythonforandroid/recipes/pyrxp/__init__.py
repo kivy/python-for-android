@@ -7,4 +7,5 @@ class PyRXPURecipe(CompiledComponentsPythonRecipe):
     depends = ['python2']
     patches = []
 
+
 recipe = PyRXPURecipe()

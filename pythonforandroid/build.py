@@ -44,7 +44,7 @@ class Context(object):
 
     recipe_build_order = None  # Will hold the list of all built recipes
 
-    symlink_java_src = False # If True, will symlink instead of copying during build
+    symlink_java_src = False  # If True, will symlink instead of copying during build
 
     java_build_tool = 'auto'
 

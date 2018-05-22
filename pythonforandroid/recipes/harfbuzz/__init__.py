@@ -28,4 +28,5 @@ class HarfbuzzRecipe(Recipe):
 
             shprint(sh.cp, '-L', join('src', '.libs', 'libharfbuzz.so'), self.ctx.libs_dir)
 
+
 recipe = HarfbuzzRecipe()

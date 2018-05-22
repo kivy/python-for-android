@@ -7,4 +7,5 @@ class SimpleCryptRecipe(PythonRecipe):
     depends = [('python2', 'python3crystax'), 'pycrypto']
     site_packages_name = 'simplecrypt'
 
+
 recipe = SimpleCryptRecipe()

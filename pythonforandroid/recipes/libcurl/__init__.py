@@ -36,4 +36,5 @@ class LibcurlRecipe(Recipe):
                                 self.ctx.get_libs_dir(arch.arch),
                                 'libcurl.so'))
 
+
 recipe = LibcurlRecipe()

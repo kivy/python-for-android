@@ -55,4 +55,5 @@ skip_check_zmq = True
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
 
+
 recipe = PyZMQRecipe()

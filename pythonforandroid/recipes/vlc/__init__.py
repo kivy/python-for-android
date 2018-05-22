@@ -4,6 +4,7 @@ from os.path import join, isdir, isfile
 from os import environ
 import sh
 
+
 class VlcRecipe(Recipe):
     version = '3.0.0'
     url = None
@@ -14,7 +15,7 @@ class VlcRecipe(Recipe):
     port_git = 'http://git.videolan.org/git/vlc-ports/android.git'
 #    vlc_git = 'http://git.videolan.org/git/vlc.git'
     ENV_LIBVLC_AAR = 'LIBVLC_AAR'
-    aars = {} # for future use of multiple arch
+    aars = {}  # for future use of multiple arch
 
     def prebuild_arch(self, arch):
         super(VlcRecipe, self).prebuild_arch(arch)
@@ -69,5 +70,6 @@ class VlcRecipe(Recipe):
                 shprint(sh.Command('./compile-libvlc.sh'), _env=env,
                             _tail=50, _critical=True)
         shprint(sh.cp, '-a', aar, self.ctx.aars_dir)
+
 
 recipe = VlcRecipe()
