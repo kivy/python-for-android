@@ -33,4 +33,3 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
 
 recipe = LibSDL2Recipe()
-

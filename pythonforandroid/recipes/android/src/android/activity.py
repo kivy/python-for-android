@@ -7,6 +7,7 @@ _callbacks = {
     'on_new_intent': [],
     'on_activity_result': [] }
 
+
 class NewIntentListener(PythonJavaClass):
     __javainterfaces__ = [JNI_NAMESPACE + '/PythonActivity$NewIntentListener']
     __javacontext__ = 'app'
@@ -46,6 +47,7 @@ def bind(**kwargs):
             _activity.registerActivityResultListener(listener)
             _callbacks[event].append(listener)
 
+
 def unbind(**kwargs):
     for event, callback in kwargs.items():
         if event not in _callbacks:
@@ -58,4 +60,3 @@ def unbind(**kwargs):
                         _activity.unregisterNewIntentListener(listener)
                     elif event == 'on_activity_result':
                         _activity.unregisterActivityResultListener(listener)
-

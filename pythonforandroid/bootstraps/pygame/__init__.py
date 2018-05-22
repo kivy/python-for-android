@@ -64,7 +64,7 @@ class PygameBootstrap(Bootstrap):
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
 
             shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
-            shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
+            shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
             info('Removing some unwanted files')
             shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
@@ -91,8 +91,8 @@ class PygameBootstrap(Bootstrap):
                 shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
                 shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
-
         self.strip_libraries(arch)
         super(PygameBootstrap, self).run_distribute()
+
 
 bootstrap = PygameBootstrap()

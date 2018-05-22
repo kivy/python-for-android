@@ -39,4 +39,5 @@ class Psycopg2Recipe(PythonRecipe):
                     '--root={}'.format(self.ctx.get_python_install_dir()),
                     '--install-lib=lib/python2.7/site-packages', _env=env)
 
+
 recipe = Psycopg2Recipe()

@@ -10,12 +10,13 @@ prebuilt_download_locations = {
     '3.6': ('https://github.com/inclement/crystax_python_builds/'
             'releases/download/0.1/crystax_python_3.6_armeabi_armeabi-v7a.tar.gz')}
 
+
 class Python3Recipe(TargetPythonRecipe):
     version = '3.5'
     url = ''
     name = 'python3crystax'
 
-    depends = ['hostpython3crystax']  
+    depends = ['hostpython3crystax']
     conflicts = ['python2', 'python3']
 
     from_crystax = True
@@ -71,5 +72,6 @@ class Python3Recipe(TargetPythonRecipe):
         # user's Python for now. They must have the right version
         # available. Using e.g. pyenv makes this easy.
         self.ctx.hostpython = 'python{}'.format(self.version)
+
 
 recipe = Python3Recipe()

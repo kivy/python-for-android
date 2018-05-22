@@ -8,7 +8,7 @@ class PyLevelDBRecipe(CompiledComponentsPythonRecipe):
     url = 'https://pypi.python.org/packages/source/l/leveldb/leveldb-{version}.tar.gz'
     depends = ['snappy', 'leveldb', 'hostpython2', 'python2', 'setuptools']
     patches = ['bindings-only.patch']
-    call_hostpython_via_targetpython = False # Due to setuptools
+    call_hostpython_via_targetpython = False  # Due to setuptools
     site_packages_name = 'leveldb'
 
     def build_arch(self, arch):
@@ -32,5 +32,6 @@ class PyLevelDBRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += ' -lpython2.7' + \
                           ' -lleveldb'
         return env
+
 
 recipe = PyLevelDBRecipe()

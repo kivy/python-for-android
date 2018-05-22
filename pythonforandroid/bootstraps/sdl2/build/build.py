@@ -296,7 +296,7 @@ main.py that loads it.''')
     if args.intent_filters:
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
-    
+
     args.add_activity = args.add_activity or []
 
     args.activity_launch_mode = args.activity_launch_mode or ''
@@ -355,7 +355,6 @@ main.py that loads it.''')
                                   key=LooseVersion)
     build_tools_version = build_tools_versions[-1]
 
-
     render(
         'AndroidManifest.tmpl.xml',
         'src/main/AndroidManifest.xml',
@@ -371,7 +370,6 @@ main.py that loads it.''')
         remove('AndroidManifest.xml')
     shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
                 'AndroidManifest.xml')
-        
 
     render(
         'strings.tmpl.xml',
@@ -402,12 +400,12 @@ main.py that loads it.''')
         'custom_rules.xml',
         args=args)
 
-
     if args.sign:
         render('build.properties', 'build.properties')
     else:
         if exists('build.properties'):
             os.remove('build.properties')
+
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON

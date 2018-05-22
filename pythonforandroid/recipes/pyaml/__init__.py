@@ -8,4 +8,5 @@ class PyamlRecipe(PythonRecipe):
     site_packages_name = 'yaml'
     call_hostpython_via_targetpython = False
 
+
 recipe = PyamlRecipe()

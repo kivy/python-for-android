@@ -10,4 +10,3 @@ class PngRecipe(NDKRecipe):
 
 
 recipe = PngRecipe()
-

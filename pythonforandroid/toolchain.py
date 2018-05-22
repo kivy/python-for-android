@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from pythonforandroid import __version__
 
+
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
     # before the imports because otherwise they're imported elsewhere.
@@ -201,6 +202,7 @@ def split_argument_list(l):
         return []
     return re.split(r'[ ,]+', l)
 
+
 class NoAbbrevParser(argparse.ArgumentParser):
     '''We want to disable argument abbreviation so as not to interfere
     with passing through arguments to build.py, but in python2 argparse
@@ -211,6 +213,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
     '''
     def _get_option_tuples(self, option_string):
         return []
+
 
 class ToolchainCL(object):
 
@@ -598,7 +601,6 @@ class ToolchainCL(object):
                     'recognised'.format(component)))
             component_clean_methods[component](args)
 
-
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
         bootstrap builds and distributions.'''
@@ -939,7 +941,6 @@ class ToolchainCL(object):
             sys.stdout.write(line)
             sys.stdout.flush()
 
-
     def build_status(self, args):
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
               'already built:{Style.RESET_ALL}'.format(Style=Out_Style))
@@ -970,6 +971,7 @@ class ToolchainCL(object):
 
 def main():
     ToolchainCL()
+
 
 if __name__ == "__main__":
     main()

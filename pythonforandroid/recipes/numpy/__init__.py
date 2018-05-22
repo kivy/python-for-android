@@ -3,7 +3,7 @@ from pythonforandroid.toolchain import warning
 
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):
-    
+
     version = '1.9.2'
     url = 'https://pypi.python.org/packages/source/n/numpy/numpy-{version}.tar.gz'
     site_packages_name= 'numpy'
@@ -16,7 +16,7 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
                'patches/lib.patch']
 
     def get_recipe_env(self, arch):
-        """ looks like numpy has no proper -L flags. Code copied and adapted from 
+        """ looks like numpy has no proper -L flags. Code copied and adapted from
             https://github.com/frmdstryr/p4a-numpy/
         """
 
@@ -28,7 +28,7 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
             py_ver = '2.7'
 
         py_so = '2.7' if py_ver == '2.7' else '3.5m'
-    
+
         api_ver = self.ctx.android_api
 
         platform = 'arm' if 'arm' in arch.arch else arch.arch

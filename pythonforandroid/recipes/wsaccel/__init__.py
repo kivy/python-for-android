@@ -7,4 +7,5 @@ class WSAccellRecipe(CythonRecipe):
     depends = [('python2', 'python3crystax')]
     call_hostpython_via_targetpython = False
 
+
 recipe = WSAccellRecipe()

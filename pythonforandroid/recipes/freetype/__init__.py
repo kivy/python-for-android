@@ -3,6 +3,7 @@ from pythonforandroid.toolchain import Recipe, current_directory, shprint
 from os.path import exists, join, realpath
 import sh
 
+
 class FreetypeRecipe(Recipe):
 
     version = '2.5.5'

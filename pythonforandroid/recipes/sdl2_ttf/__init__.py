@@ -6,4 +6,5 @@ class LibSDL2TTF(BootstrapNDKRecipe):
     url = 'https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-{version}.tar.gz'
     dir_name = 'SDL2_ttf'
 
+
 recipe = LibSDL2TTF()

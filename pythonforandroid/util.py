@@ -19,6 +19,7 @@ IS_PY3 = sys.version_info[0] >= 3
 class WgetDownloader(FancyURLopener):
     version = ('Wget/1.17.1')
 
+
 urlretrieve = WgetDownloader().retrieve
 
 

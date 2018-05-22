@@ -25,7 +25,6 @@ class AudiostreamRecipe(CythonRecipe):
                               sdl_include = sdl_include,
                               sdl_mixer_include = sdl_mixer_include)
         return env
-        
 
 
 recipe = AudiostreamRecipe()

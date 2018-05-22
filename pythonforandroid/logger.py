@@ -42,6 +42,7 @@ class LevelDifferentiatingFormatter(logging.Formatter):
                 Err_Style.RESET_ALL) + record.msg
         return super(LevelDifferentiatingFormatter, self).format(record)
 
+
 logger = logging.getLogger('p4a')
 if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
                                     # this, which would add a second
@@ -70,6 +71,7 @@ class colorama_shim(object):
 
     def enable(self, enable):
         self._enabled = enable
+
 
 Out_Style = colorama_shim(Colo_Style)
 Out_Fore = colorama_shim(Colo_Fore)

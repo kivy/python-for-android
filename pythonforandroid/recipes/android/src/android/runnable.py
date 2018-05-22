@@ -39,6 +39,7 @@ class Runnable(PythonJavaClass):
 
         Runnable.__runnables__.remove(self)
 
+
 def run_on_ui_thread(f):
     '''Decorator to create automatically a :class:`Runnable` object with the
     function. The function will be delayed and call into the Activity thread.
