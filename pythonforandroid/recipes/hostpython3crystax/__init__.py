@@ -4,9 +4,7 @@ import sh
 
 
 class Hostpython3Recipe(Recipe):
-    version = '3.5'
-    # url = 'http://python.org/ftp/python/{version}/Python-{version}.tgz'
-    # url = 'https://github.com/crystax/android-vendor-python-3-5/archive/master.zip'
+    version = 'auto'  # the version is taken from the python3crystax recipe
     name = 'hostpython3crystax'
 
     conflicts = ['hostpython2']
@@ -36,6 +34,10 @@ class Hostpython3Recipe(Recipe):
         shprint(sh.mkdir, '-p', sub_build_dir)
         python3crystax = self.get_recipe('python3crystax', self.ctx)
         system_python = sh.which("python" + python3crystax.version)
+        if system_python is None:
+            raise OSError(
+                ('Trying to use python3crystax=={} but this Python version '
+                 'is not installed locally.').format(python3crystax.version))
         link_dest = join(self.get_build_dir(), 'hostpython')
         shprint(sh.ln, '-sf', system_python, link_dest)
 
