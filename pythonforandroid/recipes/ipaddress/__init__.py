@@ -6,7 +6,7 @@ class IpaddressRecipe(PythonRecipe):
     version = '1.0.16'
     url = 'https://pypi.python.org/packages/source/i/ipaddress/ipaddress-{version}.tar.gz'
 
-    depends = ['python2']
+    depends = [('python2', 'python3crystax')]
 
 
 recipe = IpaddressRecipe()
