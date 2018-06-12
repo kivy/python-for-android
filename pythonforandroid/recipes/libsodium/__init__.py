@@ -6,7 +6,7 @@ import sh
 class LibsodiumRecipe(Recipe):
     version = '1.0.8'
     url = 'https://github.com/jedisct1/libsodium/releases/download/{version}/libsodium-{version}.tar.gz'
-    depends = ['python2']
+    depends = [('python2', 'python3crystax')]
 
     def should_build(self, arch):
         super(LibsodiumRecipe, self).should_build(arch)
