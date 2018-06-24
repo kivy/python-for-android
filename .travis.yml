@@ -14,6 +14,7 @@ env:
   # overrides requirements to skip `peewee` pure python module, see:
   # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
   - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/android-ndk --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
+  - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/android-ndk --bootstrap sdl2 --requirements python2,numpy'
   - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/crystax-ndk'
   - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/crystax-ndk --requirements python3crystax,setuptools,android'
 
