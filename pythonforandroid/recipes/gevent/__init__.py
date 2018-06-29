@@ -1,4 +1,5 @@
-import os
+import re
+from pythonforandroid.logger import info
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 
@@ -7,21 +8,27 @@ class GeventRecipe(CompiledComponentsPythonRecipe):
     url = 'https://pypi.python.org/packages/source/g/gevent/gevent-{version}.tar.gz'
     depends = [('python2', 'python3crystax'), 'greenlet']
     patches = ["gevent.patch"]
+    call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+        """
+        - Moves all -I<inc> -D<macro> from CFLAGS to CPPFLAGS environment.
+        - Moves all -l<lib> from LDFLAGS to LIBS environment.
+        - Fixes linker name (use cross compiler)  and flags (appends LIBS)
+        """
         env = super(GeventRecipe, self).get_recipe_env(arch, with_flags_in_cc)
-        # sets linker to use the correct gcc (cross compiler)
-        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         # CFLAGS may only be used to specify C compiler flags, for macro definitions use CPPFLAGS
-        env['CPPFLAGS'] = env['CFLAGS'] + ' -I{}/sources/python/3.5/include/python/'.format(self.ctx.ndk_dir)
-        env['CFLAGS'] = ''
+        regex = re.compile('\s*-[DI][\S]+')
+        env['CPPFLAGS'] = ''.join(re.findall(regex, env['CFLAGS'])).strip()
+        env['CFLAGS'] = re.sub(regex, '', env['CFLAGS'])
+        info('Moved "{}" from CFLAGS to CPPFLAGS.'.format(env['CPPFLAGS']))
         # LDFLAGS may only be used to specify linker flags, for libraries use LIBS
-        env['LDFLAGS'] = env['LDFLAGS'].replace('-lm', '').replace('-lcrystax', '')
-        env['LDFLAGS'] += ' -L{}'.format(os.path.join(self.ctx.bootstrap.build_dir, 'libs', arch.arch))
-        env['LIBS'] = ' -lm'
-        if self.ctx.ndk == 'crystax':
-            env['LIBS'] += ' -lcrystax -lpython{}m'.format(self.ctx.python_recipe.version[0:3])
-        env['LDSHARED'] += env['LIBS']
+        regex = re.compile('\s*-l[\w\.]+')
+        env['LIBS'] = ''.join(re.findall(regex, env['LDFLAGS'])).strip()
+        env['LDFLAGS'] = re.sub(regex, '', env['LDFLAGS'])
+        info('Moved "{}" from LDFLAGS to LIBS.'.format(env['LIBS']))
+        # linker to use the correct gcc (cross compiler) plus additional libs
+        env['LDSHARED'] = '{} -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions {}'.format(env['CC'], env['LIBS'])
         return env
 
 
