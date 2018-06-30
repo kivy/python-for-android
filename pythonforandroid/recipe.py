@@ -758,6 +758,34 @@ class PythonRecipe(Recipe):
         env['PYTHONNOUSERSITE'] = '1'
 
         if not self.call_hostpython_via_targetpython:
+            # sets python headers/linkages...depending on python's recipe
+            python_version = self.ctx.python_recipe.version
+            python_short_version = '.'.join(python_version.split('.')[:2])
+            if 'python2' in self.ctx.recipe_build_order:
+                env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
+                env['CFLAGS'] += ' -I' + env[
+                    'PYTHON_ROOT'] + '/include/python2.7'
+                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
+                                  ' -lpython2.7'
+            elif self.ctx.python_recipe.from_crystax:
+                ndk_dir_python = join(self.ctx.ndk_dir, 'sources',
+                                      'python', python_version)
+                env['CFLAGS'] += ' -I{} '.format(
+                    join(ndk_dir_python, 'include',
+                         'python'))
+                env['LDFLAGS'] += ' -L{}'.format(
+                    join(ndk_dir_python, 'libs', arch.arch))
+                env['LDFLAGS'] += ' -lpython{}m'.format(python_short_version)
+            elif 'python3' in self.ctx.recipe_build_order:
+                # This headers are unused cause python3 recipe was removed
+                # TODO: should be reviewed when python3 recipe added
+                env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
+                env['CFLAGS'] += ' -I' + env[
+                    'PYTHON_ROOT'] + '/include/python{}m'.format(
+                    python_short_version)
+                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
+                                  ' -lpython{}m'.format(
+                                      python_short_version)
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
@@ -889,17 +917,14 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
         keys = dict(
             ctx=self.ctx,
             arch=arch,
-            arch_noeabi=arch.arch.replace('eabi', ''),
-            pyroot=self.ctx.get_python_install_dir()
+            arch_noeabi=arch.arch.replace('eabi', '')
         )
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['CFLAGS'] += " -I{pyroot}/include/python2.7 " \
-                        " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
+        env['CFLAGS'] += " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
                         " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" \
                         " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys)
         env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
         env['LDFLAGS'] += " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" \
-                " -lpython2.7" \
                 " -lgnustl_shared".format(**keys)
 
         return env
@@ -919,6 +944,7 @@ class CythonRecipe(PythonRecipe):
     pre_build_ext = False
     cythonize = True
     cython_args = []
+    call_hostpython_via_targetpython = False
 
     def __init__(self, *args, **kwargs):
         super(CythonRecipe, self).__init__(*args, **kwargs)
@@ -1041,21 +1067,6 @@ class CythonRecipe(PythonRecipe):
                             'objects_{}'.format(self.name))
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
-
-        if self.ctx.python_recipe.from_crystax:
-            env['CFLAGS'] = '-I{} '.format(
-                join(self.ctx.ndk_dir, 'sources', 'python',
-                     self.ctx.python_recipe.version, 'include',
-                     'python')) + env['CFLAGS']
-
-            # Temporarily hardcode the -lpython3.x as this does not
-            # get applied automatically in some environments.  This
-            # will need generalising, along with the other hardcoded
-            # py3.5 references, to support other python3 or crystax
-            # python versions.
-            python3_version = self.ctx.python_recipe.version
-            python3_version = '.'.join(python3_version.split('.')[:2])
-            env['LDFLAGS'] = env['LDFLAGS'] + ' -lpython{}m'.format(python3_version)
 
         return env
 

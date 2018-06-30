@@ -1,47 +1,42 @@
-from pythonforandroid.recipe import PythonRecipe
-from pythonforandroid.toolchain import current_directory, shprint
-from os.path import join
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.toolchain import current_directory
+from pythonforandroid.logger import shprint, info
+import glob
 import sh
 
 
-class M2CryptoRecipe(PythonRecipe):
+class M2CryptoRecipe(CompiledComponentsPythonRecipe):
     version = '0.24.0'
     url = 'https://pypi.python.org/packages/source/M/M2Crypto/M2Crypto-{version}.tar.gz'
-    #md5sum = '89557730e245294a6cab06de8ad4fb42'
+    # md5sum = '89557730e245294a6cab06de8ad4fb42'
     depends = ['openssl', 'hostpython2', 'python2', 'setuptools']
     site_packages_name = 'M2Crypto'
     call_hostpython_via_targetpython = False
 
-    def build_arch(self, arch):
+    def build_compiled_components(self, arch):
+        info('Building compiled components in {}'.format(self.name))
+
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             # Build M2Crypto
             hostpython = sh.Command(self.hostpython_location)
-            r = self.get_recipe('openssl', self.ctx)
-            openssl_dir = r.get_build_dir(arch.arch)
-            shprint(hostpython,
-                    'setup.py',
-                    'build_ext',
+            if self.install_in_hostpython:
+                shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
+            shprint(hostpython, 'setup.py', self.build_cmd,
                     '-p' + arch.arch,
                     '-c' + 'unix',
-                    '--openssl=' + openssl_dir, _env=env)
-        # Install M2Crypto
-        super(M2CryptoRecipe, self).build_arch(arch)
+                    '-o' + env['OPENSSL_BUILD_PATH'],
+                    '-L' + env['OPENSSL_BUILD_PATH'],
+                    _env=env, *self.setup_extra_args)
+            build_dir = glob.glob('build/lib.*')[0]
+            shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
+                    env['STRIP'], '{}', ';', _env=env)
 
     def get_recipe_env(self, arch):
         env = super(M2CryptoRecipe, self).get_recipe_env(arch)
-        r = self.get_recipe('openssl', self.ctx)
-        openssl_dir = r.get_build_dir(arch.arch)
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7' + \
-                         ' -I' + join(openssl_dir, 'include')
+        env['OPENSSL_BUILD_PATH'] = self.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
         # Set linker to use the correct gcc
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                          ' -L' + openssl_dir + \
-                          ' -lpython2.7' + \
-                          ' -lssl' + r.version + \
-                          ' -lcrypto' + r.version
         return env
 
 

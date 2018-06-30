@@ -25,12 +25,9 @@ class PyLevelDBRecipe(CompiledComponentsPythonRecipe):
         env = super(PyLevelDBRecipe, self).get_recipe_env(arch)
         # Copy environment from leveldb recipe
         env.update(self.get_recipe('leveldb', self.ctx).get_recipe_env(arch))
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
         # Set linker to use the correct gcc
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['LDFLAGS'] += ' -lpython2.7' + \
-                          ' -lleveldb'
+        env['LDFLAGS'] += ' -lleveldb'
         return env
 
 
