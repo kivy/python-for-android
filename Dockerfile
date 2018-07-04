@@ -36,21 +36,24 @@ ENV ANDROID_NDK_DL_URL="https://dl.google.com/android/repository/${ANDROID_NDK_A
 
 # install system dependencies
 RUN apt update -qq && apt install -qq --yes --no-install-recommends \
-	python virtualenv python-pip wget curl lbzip2 patch bsdtar
+	python virtualenv python-pip wget curl lbzip2 patch bsdtar && \
+    rm -rf /var/lib/apt/lists/*
 
 # build dependencies
 # https://buildozer.readthedocs.io/en/latest/installation.html#android-on-ubuntu-16-04-64bit
 RUN dpkg --add-architecture i386 &&  apt update -qq && apt install -qq --yes --no-install-recommends \
 	build-essential ccache git libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 \
 	libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 python2.7 python2.7-dev \
-	openjdk-8-jdk unzip zlib1g-dev zlib1g:i386
+	openjdk-8-jdk unzip zlib1g-dev zlib1g:i386 && \
+    rm -rf /var/lib/apt/lists/*
 RUN	pip install --quiet --upgrade cython==0.21
 
 # download and install Android NDK
 RUN curl --location --progress-bar "${ANDROID_NDK_DL_URL}" --output "${ANDROID_NDK_ARCHIVE}" && \
     mkdir --parents "${ANDROID_NDK_HOME_V}" && \
     unzip -q "${ANDROID_NDK_ARCHIVE}" -d "${ANDROID_HOME}" && \
-	ln -sfn "${ANDROID_NDK_HOME_V}" "${ANDROID_NDK_HOME}"
+	ln -sfn "${ANDROID_NDK_HOME_V}" "${ANDROID_NDK_HOME}" && \
+    rm -rf "${ANDROID_NDK_ARCHIVE}"
 
 # download and install CrystaX NDK
 # added `gnutls_handshake` flag to workaround random `gnutls_handshake()` issues
@@ -64,12 +67,14 @@ RUN curl --location --progress-bar "${CRYSTAX_NDK_DL_URL}" --output "${CRYSTAX_N
     --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/llvm-* \
     --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/aarch64-* \
     --exclude=crystax-ndk-${CRYSTAX_NDK_VERSION}/toolchains/mips64el-* && \
-	ln -sfn "${CRYSTAX_NDK_HOME_V}" "${CRYSTAX_NDK_HOME}"
+	ln -sfn "${CRYSTAX_NDK_HOME_V}" "${CRYSTAX_NDK_HOME}" && \
+    rm -rf "${CRYSTAX_NDK_ARCHIVE}"
 
 # download and install Android SDK
 RUN curl --location --progress-bar "${ANDROID_SDK_TOOLS_DL_URL}" --output "${ANDROID_SDK_TOOLS_ARCHIVE}" && \
     mkdir --parents "${ANDROID_SDK_HOME}" && \
-    unzip -q "${ANDROID_SDK_TOOLS_ARCHIVE}" -d "${ANDROID_SDK_HOME}"
+    unzip -q "${ANDROID_SDK_TOOLS_ARCHIVE}" -d "${ANDROID_SDK_HOME}" && \
+    rm -rf "${ANDROID_SDK_TOOLS_ARCHIVE}"
 
 # update Android SDK, install Android API, Build Tools...
 RUN mkdir --parents "${ANDROID_SDK_HOME}/.android/" && \
