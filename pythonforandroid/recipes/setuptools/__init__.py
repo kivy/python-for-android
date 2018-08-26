@@ -2,7 +2,7 @@ from pythonforandroid.recipe import PythonRecipe
 
 
 class SetuptoolsRecipe(PythonRecipe):
-    version = '18.3.1'
+    version = '40.0.0'
     url = 'https://pypi.python.org/packages/source/s/setuptools/setuptools-{version}.zip'
 
     depends = [('python2', 'python3crystax')]
