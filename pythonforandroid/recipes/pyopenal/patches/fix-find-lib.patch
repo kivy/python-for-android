@@ -1,0 +1,13 @@
+diff --git a/openal/library_loader.py b/openal/library_loader.py
+index be2485c..e8c6cd2 100644
+--- a/openal/library_loader.py
++++ b/openal/library_loader.py
+@@ -56,7 +56,7 @@ class ExternalLibrary:
+                         except:
+                             pass
+         else:
+-            for path in [os.getcwd(), _here]:
++            for path in [os.path.join(os.environ['ANDROID_PRIVATE'], '..', 'lib')]:
+                 for style in ExternalLibrary.other_styles:
+                     candidate = os.path.join(path, style.format(name))
+                     if os.path.exists(candidate) and os.path.isfile(candidate):
