@@ -9,6 +9,7 @@ class Hostpython2Recipe(Recipe):
     version = '2.7.2'
     url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'hostpython2'
+    patches = ['fix-segfault-pygchead.patch']
 
     conflicts = ['hostpython3']
 

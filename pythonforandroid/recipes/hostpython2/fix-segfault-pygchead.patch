@@ -1,0 +1,12 @@
+diff -Naur Python-2.7.2.orig/Include/objimpl.h Python-2.7.2/Include/objimpl.h
+--- Python-2.7.2.orig/Include/objimpl.h	2011-06-11 17:46:23.000000000 +0200
++++ Python-2.7.2/Include/objimpl.h	2018-09-04 17:33:09.254654565 +0200
+@@ -255,7 +255,7 @@
+         union _gc_head *gc_prev;
+         Py_ssize_t gc_refs;
+     } gc;
+-    long double dummy;  /* force worst-case alignment */
++    double dummy;  /* force worst-case alignment */
+ } PyGC_Head;
+ 
+ extern PyGC_Head *_PyGC_generation0;
