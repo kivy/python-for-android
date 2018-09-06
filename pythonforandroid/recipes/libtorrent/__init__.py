@@ -1,10 +1,12 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from os.path import join, exists
+from os.path import join
 import sh
 
 # This recipe builds libtorrent with Python bindings
 # It depends on Boost.Build and the source of several Boost libraries present in BOOST_ROOT,
 # which is all provided by the boost recipe
+
+
 class LibtorrentRecipe(Recipe):
     version = '1.0.9'
     # Don't forget to change the URL when changing the version
@@ -40,8 +42,7 @@ class LibtorrentRecipe(Recipe):
                     'boost=source',
                     'encryption=openssl' if 'openssl' in recipe.ctx.recipe_build_order else '',
                     '--prefix=' + env['CROSSHOME'],
-                    'release'
-            , _env=env)
+                    'release', _env=env)
         # Common build directories
         build_subdirs = 'gcc-arm/release/boost-link-shared/boost-source'
         if 'openssl' in recipe.ctx.recipe_build_order:
@@ -69,5 +70,6 @@ class LibtorrentRecipe(Recipe):
             env['OPENSSL_BUILD_PATH'] = r.get_build_dir(arch.arch)
             env['OPENSSL_VERSION'] = r.version
         return env
+
 
 recipe = LibtorrentRecipe()

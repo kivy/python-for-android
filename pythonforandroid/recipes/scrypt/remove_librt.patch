@@ -1,7 +1,6 @@
-diff -r 91d194b6a6bd setup.py
---- a/setup.py	Sat Sep 17 15:29:49 2016 +0200
-+++ b/setup.py	Mon May 29 07:30:24 2017 +0000
-@@ -13,7 +13,6 @@
+--- a/setup.py	2018-05-06 23:25:08.757522119 +0200
++++ b/setup.py	2018-05-06 23:25:30.269797365 +0200
+@@ -15,7 +15,6 @@
  
  if sys.platform.startswith('linux'):
      define_macros = [('HAVE_CLOCK_GETTIME', '1'),
@@ -9,11 +8,12 @@ diff -r 91d194b6a6bd setup.py
                       ('HAVE_POSIX_MEMALIGN', '1'),
                       ('HAVE_STRUCT_SYSINFO', '1'),
                       ('HAVE_STRUCT_SYSINFO_MEM_UNIT', '1'),
-@@ -21,7 +20,7 @@
+@@ -23,8 +22,7 @@
                       ('HAVE_SYSINFO', '1'),
                       ('HAVE_SYS_SYSINFO_H', '1'),
                       ('_FILE_OFFSET_BITS', '64')]
 -    libraries = ['crypto', 'rt']
+-    includes = ['/usr/local/include', '/usr/include']
 +    libraries = ['crypto']
      CFLAGS.append('-O2')
  elif sys.platform.startswith('win32'):

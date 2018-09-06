@@ -1,4 +1,4 @@
-from jnius import PythonJavaClass, java_method, autoclass, cast
+from jnius import PythonJavaClass, autoclass, java_method
 from android.config import JAVA_NAMESPACE, JNI_NAMESPACE
 
 _activity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
@@ -6,6 +6,7 @@ _activity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
 _callbacks = {
     'on_new_intent': [],
     'on_activity_result': [] }
+
 
 class NewIntentListener(PythonJavaClass):
     __javainterfaces__ = [JNI_NAMESPACE + '/PythonActivity$NewIntentListener']
@@ -46,6 +47,7 @@ def bind(**kwargs):
             _activity.registerActivityResultListener(listener)
             _callbacks[event].append(listener)
 
+
 def unbind(**kwargs):
     for event, callback in kwargs.items():
         if event not in _callbacks:
@@ -58,4 +60,3 @@ def unbind(**kwargs):
                         _activity.unregisterNewIntentListener(listener)
                     elif event == 'on_activity_result':
                         _activity.unregisterActivityResultListener(listener)
-

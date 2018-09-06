@@ -1,18 +1,16 @@
-
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, ArchARM
+from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.toolchain import current_directory, shprint
 from os.path import exists, join, basename
 import sh
 import glob
 
 
 class KivyRecipe(CythonRecipe):
-    version = '1.10.0'
+    version = '1.10.1'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
     depends = [('sdl2', 'pygame'), 'pyjnius']
-
-    # patches = ['setargv.patch']
 
     def cythonize_build(self, env, build_dir='.'):
         super(KivyRecipe, self).cythonize_build(env, build_dir=build_dir)
@@ -51,5 +49,6 @@ class KivyRecipe(CythonRecipe):
                 ])
 
         return env
+
 
 recipe = KivyRecipe()

@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 class NdgHttpsClientRecipe(PythonRecipe):
     version = '0.4.0'

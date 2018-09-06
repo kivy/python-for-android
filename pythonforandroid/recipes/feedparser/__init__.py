@@ -1,4 +1,5 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
+
 
 class FeedparserPyRecipe(PythonRecipe):
     version = '5.2.1'
@@ -6,5 +7,6 @@ class FeedparserPyRecipe(PythonRecipe):
     depends = ['hostpython2', 'setuptools']
     site_packages_name = 'feedparser'
     call_hostpython_via_targetpython = False
+
 
 recipe = FeedparserPyRecipe()

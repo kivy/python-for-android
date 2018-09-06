@@ -1,8 +1,6 @@
 
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, info
-import sh
-import glob
-from os.path import join, exists
+from pythonforandroid.recipe import CythonRecipe
+from os.path import join
 
 
 class AudiostreamRecipe(CythonRecipe):
@@ -27,7 +25,6 @@ class AudiostreamRecipe(CythonRecipe):
                               sdl_include = sdl_include,
                               sdl_mixer_include = sdl_mixer_include)
         return env
-        
 
 
 recipe = AudiostreamRecipe()

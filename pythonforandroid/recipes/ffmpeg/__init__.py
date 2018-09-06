@@ -1,10 +1,6 @@
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
+from pythonforandroid.toolchain import Recipe, current_directory, shprint
 from os.path import exists, join, realpath
-from os import uname
-import glob
 import sh
-import os
-import shutil
 
 
 class FFMpegRecipe(Recipe):
@@ -36,7 +32,7 @@ class FFMpegRecipe(Recipe):
 
             if 'openssl' in self.ctx.recipe_build_order:
                 flags += [
-                    '--enable-openssl', 
+                    '--enable-openssl',
                     '--enable-nonfree',
                     '--enable-protocol=https,tls_openssl',
                 ]
@@ -44,7 +40,7 @@ class FFMpegRecipe(Recipe):
                 cflags += ['-I' + build_dir + '/include/']
                 ldflags += ['-L' + build_dir]
 
-            if 'ffpyplayer_codecs' in self.ctx.recipe_build_order:                
+            if 'ffpyplayer_codecs' in self.ctx.recipe_build_order:
                 # libx264
                 flags += ['--enable-libx264']
                 build_dir = Recipe.get_recipe('libx264', self.ctx).get_build_dir(arch.arch)
@@ -103,16 +99,16 @@ class FFMpegRecipe(Recipe):
 
             # android:
             flags += [
-                '--target-os=android', 
-                '--cross-prefix=arm-linux-androideabi-', 
+                '--target-os=android',
+                '--cross-prefix=arm-linux-androideabi-',
                 '--arch=arm',
                 '--sysroot=' + self.ctx.ndk_platform,
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]
             cflags += [
-                '-mfpu=vfpv3-d16', 
-                '-mfloat-abi=softfp', 
+                '-mfpu=vfpv3-d16',
+                '-mfloat-abi=softfp',
                 '-fPIC',
             ]
 
@@ -125,5 +121,6 @@ class FFMpegRecipe(Recipe):
             shprint(sh.make, 'install', _env=env)
             # copy libs:
             sh.cp('-a', sh.glob('./lib/lib*.so'), self.ctx.get_libs_dir(arch.arch))
+
 
 recipe = FFMpegRecipe()

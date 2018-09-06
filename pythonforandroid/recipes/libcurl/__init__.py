@@ -1,7 +1,6 @@
 import sh
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from pythonforandroid.util import ensure_dir
-from os.path import exists, join, abspath
+from os.path import exists, join
 from multiprocessing import cpu_count
 
 
@@ -36,5 +35,6 @@ class LibcurlRecipe(Recipe):
                             join(
                                 self.ctx.get_libs_dir(arch.arch),
                                 'libcurl.so'))
+
 
 recipe = LibcurlRecipe()

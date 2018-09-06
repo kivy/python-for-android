@@ -1,10 +1,13 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
+
 
 class DecoratorPyRecipe(PythonRecipe):
-    version = '4.0.9'
+    version = '4.2.1'
     url = 'https://pypi.python.org/packages/source/d/decorator/decorator-{version}.tar.gz'
-    depends = ['hostpython2', 'setuptools']
+    url = 'https://github.com/micheles/decorator/archive/{version}.tar.gz'
+    depends = [('python2', 'python3crystax'), 'setuptools']
     site_packages_name = 'decorator'
     call_hostpython_via_targetpython = False
+
 
 recipe = DecoratorPyRecipe()

@@ -2,9 +2,10 @@
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory, ensure_dir
 from pythonforandroid.logger import debug, shprint, info, warning
-from os.path import exists, join
+from os.path import join
 import sh
 import glob
+
 
 class PygameRecipe(Recipe):
     name = 'pygame'
@@ -37,10 +38,10 @@ class PygameRecipe(Recipe):
             return
         shprint(sh.cp, join(self.get_recipe_dir(), 'Setup'),
                 join(self.get_build_dir(arch.arch), 'Setup'))
-        
+
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
-        
+
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/jpeg'.format(
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
         env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/sdl/include -I{jni_path}/sdl_mixer'.format(
@@ -49,7 +50,6 @@ class PygameRecipe(Recipe):
             jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
         debug('pygame cflags', env['CFLAGS'])
 
-        
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{libs_path} -L{src_path}/obj/local/{arch} -lm -lz'.format(
             libs_path=self.ctx.libs_dir, src_path=self.ctx.bootstrap.build_dir, arch=env['ARCH'])
 

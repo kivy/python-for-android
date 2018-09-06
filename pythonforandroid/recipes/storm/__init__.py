@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe, current_directory, shprint
+from pythonforandroid.recipe import PythonRecipe, current_directory, shprint
 import sh
 
 

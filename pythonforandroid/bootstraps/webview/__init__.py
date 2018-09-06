@@ -1,8 +1,9 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
+from pythonforandroid.toolchain import Bootstrap, current_directory, info, info_main, shprint
 from os.path import join, exists, curdir, abspath
 from os import walk
 import glob
 import sh
+
 
 class WebViewBootstrap(Bootstrap):
     name = 'webview'
@@ -59,7 +60,7 @@ class WebViewBootstrap(Bootstrap):
 
                 if exists(join('libs', arch.arch, 'libpymodules.so')):
                     shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
-                shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
+                shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
                 info('Removing some unwanted files')
                 shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
@@ -110,9 +111,9 @@ class WebViewBootstrap(Bootstrap):
                 site_packages_dir = join(abspath(curdir),
                                          site_packages_dir)
 
-
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
         super(WebViewBootstrap, self).run_distribute()
+
 
 bootstrap = WebViewBootstrap()
