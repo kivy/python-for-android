@@ -12,7 +12,7 @@ prebuilt_download_locations = {
 
 
 class Python3Recipe(TargetPythonRecipe):
-    version = '3.5'
+    version = '3.6'
     url = ''
     name = 'python3crystax'
 
