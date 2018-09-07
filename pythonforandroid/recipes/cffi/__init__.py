@@ -14,6 +14,14 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
     # call_hostpython_via_targetpython = False
     install_in_hostpython = True
 
+    def get_hostrecipe_env(self, arch=None):
+        # fixes missing ffi.h on some host systems (e.g. gentoo)
+        env = super(CffiRecipe, self).get_hostrecipe_env(arch)
+        libffi = self.get_recipe('libffi', self.ctx)
+        includes = libffi.get_include_dirs(arch)
+        env['FFI_INC'] = ",".join(includes)
+        return env
+
     def get_recipe_env(self, arch=None):
         env = super(CffiRecipe, self).get_recipe_env(arch)
         # sets linker to use the correct gcc (cross compiler)
