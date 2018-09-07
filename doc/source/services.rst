@@ -70,9 +70,9 @@ python-for-android creates for each one, as follows::
 
 Here, ``your.package.name`` refers to the package identifier of your
 APK as set by the ``--package`` argument to python-for-android, and
-the name of the service is ``ServiceYourservicename``, in which
-``Yourservicename`` is the identifier passed to the ``--service``
-argument with the first letter upper case. You must also pass the
+the name of the service is ``ServiceMyservice``, in which ``Myservice``
+is the identifier that was previously passed to the ``--service``
+argument, but with the first letter upper case. You must also pass the
 ``argument`` parameter even if (as here) it is an empty string. If you
 do pass it, the service can make use of this argument.
 
