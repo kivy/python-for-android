@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 from os.path import (
-    dirname, join, isfile, realpath, relpath, split, exists, basename)
+    dirname, join, isfile, isdir, realpath, relpath, split, exists, basename)
 from os import makedirs, remove, listdir
 import os
 import tarfile
@@ -313,6 +313,12 @@ main.py that loads it.''')
         args.extra_source_dirs = esd
     else:
         args.extra_source_dirs = []
+    
+    for fullpath, project in args.extra_source_dirs:
+        if "*" not in project and isdir(join(realpath(args.private), project)):
+            if isdir(join(realpath("."), project)):
+                shutil.rmtree(join(realpath("."), project))
+            shutil.copytree(join(realpath(args.private), project), join(realpath("."), project))
 
     service = False
     if args.private:
@@ -388,6 +394,12 @@ main.py that loads it.''')
         jars=jars,
         android_api=android_api,
         build_tools_version=build_tools_version)
+
+    if args.extra_source_dirs:
+        render(
+            'settings.tmpl.gradle',
+            'settings.gradle',
+            args=args)
 
     ## ant build templates
     render(

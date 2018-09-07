@@ -75,4 +75,10 @@ dependencies {
 	compile '{{ depend }}'
 	{%- endfor %}
 	{%- endif %}
+    
+    {%- if args.extra_source_dirs -%}
+    {%- for abspath, proj in args.extra_source_dirs %}
+    compile project(':{{proj}}')
+    {%- endfor %}
+    {%- endif %}
 }
