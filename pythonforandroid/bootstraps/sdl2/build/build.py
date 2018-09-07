@@ -313,7 +313,7 @@ main.py that loads it.''')
         args.extra_source_dirs = esd
     else:
         args.extra_source_dirs = []
-    
+
     for fullpath, project in args.extra_source_dirs:
         if "*" not in project and isdir(join(realpath(args.private), project)):
             if isdir(join(realpath("."), project)):
