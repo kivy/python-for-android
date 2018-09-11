@@ -112,8 +112,12 @@ class Arch(object):
         env['AR'] = '{}-ar'.format(command_prefix)
         env['RANLIB'] = '{}-ranlib'.format(command_prefix)
         env['LD'] = '{}-ld'.format(command_prefix)
-        # env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
-        # env['LDSHARED'] = env['LD']
+        env['LDSHARED'] = env["CC"] + " -pthread -shared " +\
+            "-Wl,-O1 -Wl,-Bsymbolic-functions "
+        if self.ctx.python_recipe and self.ctx.python_recipe.from_crystax:
+            # For crystax python, we can't use the host python headers:
+            env["CFLAGS"] += ' -I{}/sources/python/{}/include/python/'.\
+                format(self.ctx.ndk_dir, self.ctx.python_recipe.version[0:3])
         env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(command_prefix)
