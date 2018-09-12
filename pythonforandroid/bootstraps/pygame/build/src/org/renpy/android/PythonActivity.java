@@ -351,6 +351,7 @@ public class PythonActivity extends Activity implements Runnable {
         String filesDirectory = PythonActivity.mActivity.mPath.getAbsolutePath();
         serviceIntent.putExtra("androidPrivate", argument);
         serviceIntent.putExtra("androidArgument", filesDirectory);
+        serviceIntent.putExtra("pythonName", "python");
         serviceIntent.putExtra("pythonHome", argument);
         serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
         serviceIntent.putExtra("serviceTitle", serviceTitle);
