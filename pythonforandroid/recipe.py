@@ -12,6 +12,7 @@ import shutil
 import fnmatch
 from os import listdir, unlink, environ, mkdir, curdir, walk
 from sys import stdout
+import time
 try:
     from urlparse import urlparse
 except ImportError:
@@ -145,7 +146,19 @@ class Recipe(with_metaclass(RecipeMeta)):
             if exists(target):
                 unlink(target)
 
-            urlretrieve(url, target, report_hook)
+            # Download item with multiple attempts (for bad connections):
+            attempts = 0
+            while True:
+                try:
+                    urlretrieve(url, target, report_hook)
+                except OSError as e:
+                    attempts += 1
+                    if attempts >= 5:
+                        raise e
+                    stdout.write('Download failed retrying in a second...')
+                    time.sleep(1)
+                    continue
+                break
             return target
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
