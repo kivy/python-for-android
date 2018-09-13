@@ -350,6 +350,7 @@ public class PythonActivity extends SDLActivity {
         serviceIntent.putExtra("androidPrivate", argument);
         serviceIntent.putExtra("androidArgument", app_root_dir);
         serviceIntent.putExtra("serviceEntrypoint", "service/main.pyo");
+        serviceIntent.putExtra("pythonName", "python");
         serviceIntent.putExtra("pythonHome", app_root_dir);
         serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
         serviceIntent.putExtra("serviceTitle", serviceTitle);
