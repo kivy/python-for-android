@@ -137,7 +137,7 @@ class SDL2GradleBootstrap(Bootstrap):
 
             python3_build_dir = join(Recipe.get_recipe('python3', self.ctx).get_build_dir(arch.arch),
                                      'Android', 'build',
-                                     'python3.7-android-{}-armv7'.format(self.ctx.android_api))
+                                     'python3.7-android-{}-armv7'.format(self.ctx.ndk_target_api))
             shprint(sh.cp, join(python3_build_dir, 'libpython3.7m.so'), 'libs/{}'.format(arch.arch))
             shprint(sh.cp, join(python3_build_dir, 'libpython3.7m.so.1.0'), 'libs/{}'.format(arch.arch))
 

@@ -20,7 +20,7 @@ class Python3Recipe(TargetPythonRecipe):
     def build_arch(self, arch):
 
         # If already built, don't build again
-        if not exists(join(self.get_build_dir(arch.arch), 'Android', 'build', 'python3.7-android-23-armv7', 'libpython3.7m.so')):
+        if not exists(join(self.get_build_dir(arch.arch), 'Android', 'build', 'python3.7-android-{}-armv7'.format(self.ctx.ndk_target_api), 'libpython3.7m.so')):
             self.do_python_build(arch)
 
         # if not exists(self.ctx.get_python_install_dir()):
@@ -43,7 +43,7 @@ class Python3Recipe(TargetPythonRecipe):
         recipe_dir = self.get_build_dir(arch.arch)
         shprint(sh.cp,
                 join(recipe_dir, 'Android', 'build',
-                     'python3.7-android-{}-armv7'.format(self.ctx.android_api),
+                     'python3.7-android-{}-armv7'.format(self.ctx.ndk_target_api),
                      'pyconfig.h'),
                 join(recipe_dir, 'Include'))
                 
@@ -55,7 +55,7 @@ class Python3Recipe(TargetPythonRecipe):
         env = os.environ
 
         env.update({'ANDROID_NDK_ROOT': self.ctx.ndk_dir,
-                    'ANDROID_API': str(self.ctx.android_api),
+                    'ANDROID_API': str(self.ctx.ndk_target_api),
                     'ANDROID_ARCH': 'armv7'})
 
         with current_directory(join(self.get_build_dir(arch.arch), 'Android')):

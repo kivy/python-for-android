@@ -106,6 +106,8 @@ class Context(object):
         ensure_dir(join(self.build_dir, 'bootstrap_builds'))
         ensure_dir(join(self.build_dir, 'other_builds'))
 
+    ndk_target_api = 21
+
     @property
     def android_api(self):
         '''The Android API being targeted.'''

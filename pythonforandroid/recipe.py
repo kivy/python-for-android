@@ -780,7 +780,7 @@ class PythonRecipe(Recipe):
                 env['PYTHON_ROOT'] = Recipe.get_recipe('python3', self.ctx).get_build_dir(arch.arch)
                 print('python root is', env['PYTHON_ROOT'])
                 env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/Include'
-                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/Android/build/python3.7-android-23-armv7/' + \
+                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/Android/build/python3.7-android-{}-armv7/'.format(self.ctx.ndk_target_api) + \
                                   ' -lpython{}m'.format(
                                       python_short_version)
                 del env['PYTHON_ROOT']
