@@ -130,6 +130,16 @@ public class PythonService extends Service implements Runnable {
         Process.killProcess(Process.myPid());
     }
 
+    /**
+     * Stops the task gracefully when killed.
+     * Calling stopSelf() will trigger a onDestroy() call from the system.
+     */
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        stopSelf();
+    }
+
     @Override
     public void run(){
         String app_root =  getFilesDir().getAbsolutePath() + "/app";
