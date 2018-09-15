@@ -245,7 +245,7 @@ class Bootstrap(object):
 
     def strip_libraries(self, arch):
         info('Stripping libraries')
-        if self.ctx.python_recipe.from_crystax:
+        if self.ctx.python_recipe.from_crystax or True:
             info('Python was loaded from CrystaX, skipping strip')
             return
         env = arch.get_env()

@@ -45,6 +45,7 @@ public class PythonUtil {
         addLibraryIfExists(libsList, "crypto.*", libsDir);
         libsList.add("python2.7");
         libsList.add("python3.5m");
+        libsList.add("python3.7m");
         libsList.add("main");
         return libsList;
     }

@@ -112,8 +112,16 @@ int main(int argc, char *argv[]) {
   char crystax_python_dir[256];
   snprintf(crystax_python_dir, 256,
            "%s/crystax_python", getenv("ANDROID_UNPACK"));
+  char stdlib[256];
+  snprintf(stdlib, 256,
+           "%s/crystax_python/stdlib.zip", getenv("ANDROID_UNPACK"));
   if (dir_exists(crystax_python_dir)) {
     LOGP("crystax_python exists");
+    if (file_exists(stdlib)) {
+        LOGP("stdlib.zip exists");
+    } else {
+        LOGP("no stdlib.zip exists");
+    }
     char paths[256];
     snprintf(paths, 256,
              "%s/stdlib.zip:%s/modules",
@@ -137,13 +145,13 @@ int main(int argc, char *argv[]) {
     LOGP("crystax_python does not exist");
   }
 
+  LOGP("Calling Py_Initialize");
   Py_Initialize();
+  LOGP("Py_Initialize returned successfully");
 
 #if PY_MAJOR_VERSION < 3
   PySys_SetArgv(argc, argv);
 #endif
-
-  LOGP("Initialized python");
 
   /* ensure threads will work.
    */

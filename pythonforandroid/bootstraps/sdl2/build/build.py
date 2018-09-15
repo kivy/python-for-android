@@ -410,7 +410,7 @@ main.py that loads it.''')
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
-    default_android_api = 12
+    default_android_api = 19
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.

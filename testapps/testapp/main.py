@@ -11,6 +11,8 @@ print('contents of this dir', os.listdir('./'))
 import sys
 print('pythonpath is', sys.path)
 
+print('python version is', sys.version)
+
 import kivy
 print('imported kivy')
 print('file is', kivy.__file__)
@@ -58,6 +60,14 @@ ScrollView:
             text_size: self.size[0], None
             markup: True
             text: '[b]Kivy[/b] on [b]SDL2[/b] on [b]Android[/b]!'
+            halign: 'center'
+        Label:
+            height: self.texture_size[1]
+            size_hint_y: None
+            font_size: 100
+            text_size: self.size[0], None
+            markup: True
+            text: 'Built [b]without CrystaX[/b]'
             halign: 'center'
         Label:
             height: self.texture_size[1]

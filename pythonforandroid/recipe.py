@@ -777,15 +777,13 @@ class PythonRecipe(Recipe):
                     join(ndk_dir_python, 'libs', arch.arch))
                 env['LDFLAGS'] += ' -lpython{}m'.format(python_short_version)
             elif 'python3' in self.ctx.recipe_build_order:
-                # This headers are unused cause python3 recipe was removed
-                # TODO: should be reviewed when python3 recipe added
-                env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-                env['CFLAGS'] += ' -I' + env[
-                    'PYTHON_ROOT'] + '/include/python{}m'.format(
-                    python_short_version)
-                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
+                env['PYTHON_ROOT'] = Recipe.get_recipe('python3', self.ctx).get_build_dir(arch.arch)
+                print('python root is', env['PYTHON_ROOT'])
+                env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/Include'
+                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/Android/build/python3.7-android-23-armv7/' + \
                                   ' -lpython{}m'.format(
                                       python_short_version)
+                del env['PYTHON_ROOT']
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
@@ -826,7 +824,7 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
 
-            if self.ctx.python_recipe.from_crystax:
+            if self.ctx.python_recipe.from_crystax or True:
                 hpenv = env.copy()
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
@@ -949,7 +947,7 @@ class CythonRecipe(PythonRecipe):
     def __init__(self, *args, **kwargs):
         super(CythonRecipe, self).__init__(*args, **kwargs)
         depends = self.depends
-        depends.append(('python2', 'python3crystax'))
+        depends.append(('python2', 'python3crystax', 'python3'))
         depends = list(set(depends))
         self.depends = depends
 
@@ -966,7 +964,7 @@ class CythonRecipe(PythonRecipe):
 
         env = self.get_recipe_env(arch)
 
-        if self.ctx.python_recipe.from_crystax:
+        if self.ctx.python_recipe.from_crystax or True: 
             command = sh.Command('python{}'.format(self.ctx.python_recipe.version))
             site_packages_dirs = command(
                 '-c', 'import site; print("\\n".join(site.getsitepackages()))')
@@ -1006,7 +1004,7 @@ class CythonRecipe(PythonRecipe):
                 shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                         env['STRIP'], '{}', ';', _env=env)
 
-            if 'python3crystax' in self.ctx.recipe_build_order:
+            if 'python3crystax' in self.ctx.recipe_build_order or True:
                 info('Stripping object files')
                 shprint(sh.find, '.', '-iname', '*.so', '-exec',
                         '/usr/bin/echo', '{}', ';', _env=env)
@@ -1027,7 +1025,7 @@ class CythonRecipe(PythonRecipe):
             del cyenv['PYTHONPATH']
         if 'PYTHONNOUSERSITE' in cyenv:
             cyenv.pop('PYTHONNOUSERSITE')
-        cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
+        cython = 'cython'
         cython_command = sh.Command(cython)
         shprint(cython_command, filename, *self.cython_args, _env=cyenv)
 
@@ -1051,7 +1049,7 @@ class CythonRecipe(PythonRecipe):
             env['LDFLAGS'] = (env['LDFLAGS'] +
                               ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
             # ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
-        if self.ctx.python_recipe.from_crystax:
+        if self.ctx.python_recipe.from_crystax or True:
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
             env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink.sh')
