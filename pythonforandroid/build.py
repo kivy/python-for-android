@@ -37,6 +37,8 @@ class Context(object):
     cython = None  # the cython interpreter name
 
     ndk_platform = None  # the ndk platform directory
+    toolchain_path = None  # toolchain with gcc bin and platform includes
+    toolchain_include_path = None  # toolchain's platform-specific includes
 
     dist_name = None  # should be deprecated in favour of self.dist.dist_name
     bootstrap = None
@@ -408,8 +410,30 @@ class Context(object):
                 toolchain_prefix))
             ok = False
 
+        # Get toolchain-specific folders:
         self.toolchain_prefix = toolchain_prefix
         self.toolchain_version = toolchain_version
+        self.toolchain_path = None
+        self.toolchain_include_path = None
+        if self.ndk == "crystax":
+            self.toolchain_path = (self.ndk_dir + "/toolchains/" +
+                toolchain_prefix + "-" + toolchain_version +
+                "/prebuilt/" + py_platform + "-x86_64/")
+
+            # Find exact include path for gcc-specific files:
+            self.toolchain_include_path = os.path.join(
+                self.toolchain_path, "lib", "gcc",
+                toolchain_prefix)
+            folder_pick = ""
+            for folder in os.listdir(self.toolchain_include_path):
+                if folder.startswith(toolchain_version) and \
+                        (folder_pick is None or folder > folder_pick) and \
+                        os.path.exists(os.path.join(
+                        self.toolchain_include_path, folder, "include")):
+                    folder_pick = folder
+            self.toolchain_include_path = os.path.join(
+                self.toolchain_include_path, folder_pick, "include")
+
         # Modify the path so that sh finds modules appropriately
         environ['PATH'] = (
             '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
