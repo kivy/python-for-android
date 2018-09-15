@@ -1,4 +1,4 @@
-import os, sh
+import os, sh, sys
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from pythonforandroid.util import (current_directory, ensure_dir)
 from pythonforandroid.logger import (info, shprint)
@@ -7,7 +7,29 @@ from pythonforandroid.logger import (info, shprint)
 class ReportLabRecipe(CompiledComponentsPythonRecipe):
     version = 'c088826211ca'
     url = 'https://bitbucket.org/rptlab/reportlab/get/{version}.tar.gz'
-    depends = ['python2', 'freetype']
+    depends = [['python3crystax', 'python2'], 'freetype']
+
+    def get_recipe_env(self, arch=None):
+        env = super(ReportLabRecipe, self).get_recipe_env(arch)
+
+        if self.ctx.ndk == "crystax":
+            # Prevent gcc from picking up host stdlib:
+            cflags = " -nostdinc "
+
+            # Get toolchain dir and crystax ndk base dir:
+            ndk_platform_dir = self.ctx.ndk_platform
+            ndk_dir = self.ctx.ndk_dir
+
+            # Add includes to ndk's /usr/include and toolchain include path
+            # (no idea why latter is necessary, but without it, things like
+            # stdarg.h are missing)
+            cflags += (
+                " -I" + os.path.join(ndk_platform_dir, "usr", "include") +
+                " -I" + os.path.join(self.ctx.toolchain_include_path)
+                )
+            if cflags not in env['CFLAGS']:
+                env['CFLAGS'] += cflags
+        return env
 
     def prebuild_arch(self, arch):
         if not self.is_patched(arch):
@@ -33,8 +55,18 @@ class ReportLabRecipe(CompiledComponentsPythonRecipe):
                     sh.wget("http://www.reportlab.com/ftp/pfbfer-20070710.zip", "-O", pfbfile)
                 sh.unzip("-u", "-d", os.path.join(recipe_dir, "src", "reportlab", "fonts"), pfbfile)
                 if os.path.isfile("setup.py"):
-                    with open('setup.py', 'rb') as f:
-                        text = f.read().replace('_FT_LIB_', ft_lib_dir).replace('_FT_INC_', ft_inc_dir)
+                    if sys.version_info[0] < 3:
+                        with open('setup.py', 'rb') as f:
+                            text = f.read().replace('_FT_LIB_', ft_lib_dir).replace('_FT_INC_', ft_inc_dir)
+                    else:
+                        with open('setup.py', 'rb') as f:
+                            text = f.read().replace(
+                                    b'_FT_LIB_',
+                                    ft_lib_dir.encode("utf-8", "replace")
+                                ).replace(
+                                    b'_FT_INC_',
+                                    ft_inc_dir.encode("utf-8", "replace")
+                                )
                     with open('setup.py', 'wb') as f:
                         f.write(text)
 
