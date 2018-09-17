@@ -7,7 +7,7 @@ class PyusbRecipe(PythonRecipe):
     url = 'https://pypi.python.org/packages/source/p/pyusb/pyusb-{version}.tar.gz'
     depends = [('python2', 'python3crystax')]
     site_packages_name = 'usb'
-    
+
     patches = ['fix-android.patch']
 
 

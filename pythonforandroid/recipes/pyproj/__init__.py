@@ -7,5 +7,5 @@ class PyProjRecipe(CythonRecipe):
     depends = ['python2', 'setuptools']
     call_hostpython_via_targetpython = False
 
-    
+
 recipe = PyProjRecipe()

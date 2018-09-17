@@ -1,7 +1,6 @@
-
 from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory, info
-from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
+from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
 import sh
@@ -14,8 +13,8 @@ class Python2Recipe(TargetPythonRecipe):
 
     depends = ['hostpython2']
     conflicts = ['python3crystax', 'python3']
-    opt_depends = ['openssl','sqlite3']
-    
+    opt_depends = ['openssl', 'sqlite3']
+
     patches = ['patches/Python-{version}-xcompile.patch',
                'patches/Python-{version}-ctypes-disable-wchar.patch',
                'patches/disable-modules.patch',
@@ -56,7 +55,6 @@ class Python2Recipe(TargetPythonRecipe):
         if not exists(join(self.ctx.get_libs_dir(arch.arch), 'libpython2.7.so')):
             shprint(sh.cp, join(self.get_build_dir(arch.arch), 'libpython2.7.so'), self.ctx.get_libs_dir(arch.arch))
 
-
         # # if exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
         # if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
         #     info('libpython2.7.so already exists, skipping python build.')
@@ -76,7 +74,6 @@ class Python2Recipe(TargetPythonRecipe):
         hostpgen = join(self.get_build_dir(arch.arch), 'hostpython')
 
         with current_directory(self.get_build_dir(arch.arch)):
-
 
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
@@ -139,7 +136,6 @@ class Python2Recipe(TargetPythonRecipe):
             except sh.ErrorReturnCode_2:
                 print('First python2 make failed. This is expected, trying again.')
 
-
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')
             shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
@@ -163,7 +159,6 @@ class Python2Recipe(TargetPythonRecipe):
                 shprint(sh.rm, '-rf', join('python-install',
                                            'lib', 'python2.7', dir_name))
 
-
             # info('Copying python-install to dist-dependent location')
             # shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
 
@@ -171,8 +166,6 @@ class Python2Recipe(TargetPythonRecipe):
             # shprint(sh.cp, self.ctx.hostpython,
             #         join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
             # self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
-
-
 
         # print('python2 build done, exiting for debug')
         # exit(1)

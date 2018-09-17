@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 
 class PyamlRecipe(PythonRecipe):
@@ -7,5 +7,6 @@ class PyamlRecipe(PythonRecipe):
     depends = [('python2', 'python3crystax'), "setuptools"]
     site_packages_name = 'yaml'
     call_hostpython_via_targetpython = False
+
 
 recipe = PyamlRecipe()

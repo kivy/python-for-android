@@ -1,17 +1,18 @@
-diff -Naur cffi-1.4.2/setup.py b/setup.py
---- cffi-1.4.2/setup.py	2015-12-21 12:09:47.000000000 -0600
-+++ b/setup.py	2015-12-23 10:20:40.590622524 -0600
-@@ -5,8 +5,7 @@
+diff --git a/setup.py b/setup.py
+index c1db368..57311c3 100644
+--- a/setup.py
++++ b/setup.py
+@@ -5,8 +5,7 @@ import errno
  
  sources = ['c/_cffi_backend.c']
  libraries = ['ffi']
 -include_dirs = ['/usr/include/ffi',
 -                '/usr/include/libffi']    # may be changed by pkg-config
-+include_dirs = []
++include_dirs = os.environ['FFI_INC'].split(",") if 'FFI_INC' in os.environ else []
  define_macros = []
  library_dirs = []
  extra_compile_args = []
-@@ -67,14 +66,7 @@
+@@ -67,14 +66,7 @@ def ask_supports_thread():
          sys.stderr.write("The above error message can be safely ignored\n")
  
  def use_pkg_config():

@@ -1,11 +1,44 @@
---- a/numpy/distutils/unixccompiler.py	2015-02-01 17:38:21.000000000 +0100
-+++ b/numpy/distutils/unixccompiler.py	2015-07-08 17:21:05.742468485 +0200
-@@ -82,6 +82,8 @@
-             pass
-         self.mkpath(os.path.dirname(output_filename))
-         tmp_objects = objects + self.objects
-+        from os import environ
-+        self.archiver[0] = 'arm-linux-androideabi-ar'
+diff --git a/numpy/core/code_generators/generate_umath.py b/numpy/core/code_generators/generate_umath.py
+index 632bcb4..c1e0dd5 100644
+--- a/numpy/core/code_generators/generate_umath.py
++++ b/numpy/core/code_generators/generate_umath.py
+@@ -970,6 +970,7 @@ def make_arrays(funcdict):
+                 funclist.append('%s_%s' % (tname, name))
+                 if t.simd is not None:
+                     for vt in t.simd:
++                        continue
+                         code2list.append(textwrap.dedent("""\
+                         #ifdef HAVE_ATTRIBUTE_TARGET_{ISA}
+                         if (npy_cpu_supports("{isa}")) {{
+diff --git a/numpy/distutils/ccompiler.py b/numpy/distutils/ccompiler.py
+index b03fb96..f9e6cd0 100644
+--- a/numpy/distutils/ccompiler.py
++++ b/numpy/distutils/ccompiler.py
+@@ -275,6 +275,7 @@ def CCompiler_compile(self, sources, output_dir=None, macros=None,
+             self._setup_compile(output_dir, macros, include_dirs, sources,
+                                 depends, extra_postargs)
+     cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
++    cc_args += os.environ['CFLAGS'].split()
+     display = "compile options: '%s'" % (' '.join(cc_args))
+     if extra_postargs:
+         display += "\nextra options: '%s'" % (' '.join(extra_postargs))
+diff --git a/numpy/distutils/unixccompiler.py b/numpy/distutils/unixccompiler.py
+index 11b2cce..f6dde79 100644
+--- a/numpy/distutils/unixccompiler.py
++++ b/numpy/distutils/unixccompiler.py
+@@ -54,6 +54,7 @@ def UnixCCompiler__compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts
+         deps = []
+ 
+     try:
++        self.linker_so = [os.environ['LD']+" "+os.environ['LDFLAGS']]
+         self.spawn(self.compiler_so + cc_args + [src, '-o', obj] + deps +
+                    extra_postargs, display = display)
+     except DistutilsExecError:
+@@ -111,6 +112,7 @@ def UnixCCompiler_create_static_lib(self, objects, output_libname,
          while tmp_objects:
              objects = tmp_objects[:50]
              tmp_objects = tmp_objects[50:]
++            self.archiver[0] = 'arm-linux-androideabi-ar'
+             display = '%s: adding %d object files to %s' % (
+                            os.path.basename(self.archiver[0]),
+                            len(objects), output_filename)

@@ -232,6 +232,7 @@ main.py that loads it.''')
     # Delete the old assets.
     try_unlink('src/main/assets/public.mp3')
     try_unlink('src/main/assets/private.mp3')
+    ensure_dir('src/main/assets')
 
     # In order to speedup import and initial depack,
     # construct a python27.zip
@@ -257,10 +258,12 @@ main.py that loads it.''')
     # Prepare some variables for templating process
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
+    ensure_dir('src/main/res/drawable')
     shutil.copy(args.icon or default_icon, 'src/main/res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash,
                 'src/main/res/drawable/presplash.jpg')
 
+    jars = []
     # If extra Java jars were requested, copy them into the libs directory
     if args.add_jar:
         for jarname in args.add_jar:
@@ -268,7 +271,7 @@ main.py that loads it.''')
                 print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
             shutil.copy(jarname, 'src/main/libs')
-
+            jars.append(basename(jarname))
     # if extra aar were requested, copy them into the libs directory
     aars = []
     if args.add_aar:
@@ -293,6 +296,10 @@ main.py that loads it.''')
     if args.intent_filters:
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
+
+    args.add_activity = args.add_activity or []
+
+    args.activity_launch_mode = args.activity_launch_mode or ''
 
     if args.extra_source_dirs:
         esd = []
@@ -343,11 +350,11 @@ main.py that loads it.''')
     sdk_dir = sdk_dir[8:]
 
     # Try to build with the newest available build tools
-    build_tools_versions = listdir(join(sdk_dir, 'build-tools'))
+    ignored = {".DS_Store", ".ds_store"}
+    build_tools_versions = [x for x in listdir(join(sdk_dir, 'build-tools')) if x not in ignored]
     build_tools_versions = sorted(build_tools_versions,
                                   key=LooseVersion)
     build_tools_version = build_tools_versions[-1]
-
 
     render(
         'AndroidManifest.tmpl.xml',
@@ -364,7 +371,6 @@ main.py that loads it.''')
         remove('AndroidManifest.xml')
     shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
                 'AndroidManifest.xml')
-        
 
     render(
         'strings.tmpl.xml',
@@ -379,6 +385,7 @@ main.py that loads it.''')
         'build.gradle',
         args=args,
         aars=aars,
+        jars=jars,
         android_api=android_api,
         build_tools_version=build_tools_version)
 
@@ -394,12 +401,12 @@ main.py that loads it.''')
         'custom_rules.xml',
         args=args)
 
-
     if args.sign:
         render('build.properties', 'build.properties')
     else:
         if exists('build.properties'):
             os.remove('build.properties')
+
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
@@ -508,6 +515,10 @@ tools directory of the Android SDK.
     ap.add_argument('--sign', action='store_true',
                     help=('Try to sign the APK with your credentials. You must set '
                           'the appropriate environment variables.'))
+    ap.add_argument('--add-activity', dest='add_activity', action='append',
+                    help='Add this Java class as an Activity to the manifest.')
+    ap.add_argument('--activity-launch-mode', dest='activity_launch_mode',
+                    help='Set the launch mode of the main activity in the manifest.')
 
     if args is None:
         args = sys.argv[1:]

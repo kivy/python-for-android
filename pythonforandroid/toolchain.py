@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from pythonforandroid import __version__
 
+
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
     # before the imports because otherwise they're imported elsewhere.
@@ -81,14 +82,11 @@ from appdirs import user_data_dir
 import logging
 from distutils.version import LooseVersion
 
-from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
-                                     CompiledComponentsPythonRecipe,
-                                     BootstrapNDKRecipe, NDKRecipe)
-from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
+from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import (logger, info, warning, setup_color,
-                                     Out_Style, Out_Fore, Err_Style, Err_Fore,
+                                     Out_Style, Out_Fore,
                                      info_notify, info_main, shprint, error)
-from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.util import current_directory
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
@@ -204,6 +202,7 @@ def split_argument_list(l):
         return []
     return re.split(r'[ ,]+', l)
 
+
 class NoAbbrevParser(argparse.ArgumentParser):
     '''We want to disable argument abbreviation so as not to interfere
     with passing through arguments to build.py, but in python2 argparse
@@ -214,6 +213,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
     '''
     def _get_option_tuples(self, option_string):
         return []
+
 
 class ToolchainCL(object):
 
@@ -601,7 +601,6 @@ class ToolchainCL(object):
                     'recognised'.format(component)))
             component_clean_methods[component](args)
 
-
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
         bootstrap builds and distributions.'''
@@ -942,7 +941,6 @@ class ToolchainCL(object):
             sys.stdout.write(line)
             sys.stdout.flush()
 
-
     def build_status(self, args):
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
               'already built:{Style.RESET_ALL}'.format(Style=Out_Style))
@@ -973,6 +971,7 @@ class ToolchainCL(object):
 
 def main():
     ToolchainCL()
+
 
 if __name__ == "__main__":
     main()

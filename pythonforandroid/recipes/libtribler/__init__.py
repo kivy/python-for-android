@@ -1,10 +1,12 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 """
 Privacy with BitTorrent and resilient to shut down
 
 http://www.tribler.org
 """
+
+
 class LibTriblerRecipe(PythonRecipe):
 
     version = 'devel'

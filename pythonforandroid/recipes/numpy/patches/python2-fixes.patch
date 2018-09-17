@@ -1,0 +1,69 @@
+diff --git a/numpy/core/src/multiarray/common.c b/numpy/core/src/multiarray/common.c
+index c70f852..695efd5 100644
+--- a/numpy/core/src/multiarray/common.c
++++ b/numpy/core/src/multiarray/common.c
+@@ -852,3 +852,12 @@ _may_have_objects(PyArray_Descr *dtype)
+     return (PyDataType_HASFIELDS(base) ||
+             PyDataType_FLAGCHK(base, NPY_ITEM_HASOBJECT) );
+ }
++
++/*
++ * Dummy to fix android NDK problem with missing reference.
++ */
++void *
++__emutls_get_address(struct __emutls_object *obj)
++{
++    return NULL;
++}
+diff --git a/numpy/distutils/exec_command.py b/numpy/distutils/exec_command.py
+index 8118e2f..b586442 100644
+--- a/numpy/distutils/exec_command.py
++++ b/numpy/distutils/exec_command.py
+@@ -260,7 +260,7 @@ def _exec_command(command, use_shell=None, use_tee = None, **env):
+         return 127, ''
+ 
+     text, err = proc.communicate()
+-    text = text.decode(locale.getpreferredencoding(False),
++    text = text.decode('UTF-8',
+                        errors='replace')
+ 
+     text = text.replace('\r\n', '\n')
+diff --git a/numpy/distutils/misc_util.py b/numpy/distutils/misc_util.py
+index f2d677a..758b1ed 100644
+--- a/numpy/distutils/misc_util.py
++++ b/numpy/distutils/misc_util.py
+@@ -9,7 +9,6 @@ import atexit
+ import tempfile
+ import subprocess
+ import shutil
+-import multiprocessing
+ 
+ import distutils
+ from distutils.errors import DistutilsError
+@@ -93,10 +92,7 @@ def get_num_build_jobs():
+ 
+     """
+     from numpy.distutils.core import get_distribution
+-    try:
+-        cpu_count = len(os.sched_getaffinity(0))
+-    except AttributeError:
+-        cpu_count = multiprocessing.cpu_count()
++    cpu_count = 1
+     envjobs = int(os.environ.get("NPY_NUM_BUILD_JOBS", cpu_count))
+     dist = get_distribution()
+     # may be None during configuration
+diff --git a/setup.py b/setup.py
+index fed178e..b0266eb 100755
+--- a/setup.py
++++ b/setup.py
+@@ -377,9 +377,8 @@ def setup_package():
+         # Raise errors for unsupported commands, improve help output, etc.
+         run_build = parse_setuppy_commands()
+ 
+-    from setuptools import setup
++    from numpy.distutils.core import setup
+     if run_build:
+-        from numpy.distutils.core import setup
+         cwd = os.path.abspath(os.path.dirname(__file__))
+         if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
+             # Generate Cython sources, unless building from source release

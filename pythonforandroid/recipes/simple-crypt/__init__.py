@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 
 class SimpleCryptRecipe(PythonRecipe):
@@ -6,5 +6,6 @@ class SimpleCryptRecipe(PythonRecipe):
     url = 'https://pypi.python.org/packages/source/s/simple-crypt/simple-crypt-{version}.tar.gz'
     depends = [('python2', 'python3crystax'), 'pycrypto']
     site_packages_name = 'simplecrypt'
+
 
 recipe = SimpleCryptRecipe()

@@ -1,12 +1,10 @@
-from pythonforandroid.toolchain import Recipe, shprint, current_directory, ArchARM
+from pythonforandroid.toolchain import Recipe, current_directory, shprint
 from os.path import exists, join, realpath
-from os import uname
-import glob
 import sh
 
 
 class LibX264Recipe(Recipe):
-    version = 'x264-snapshot-20170826-2245-stable'  # using mirror url since can't use ftp
+    version = 'x264-snapshot-20171218-2245-stable'  # using mirror url since can't use ftp
     url = 'http://mirror.yandex.ru/mirrors/ftp.videolan.org/x264/snapshots/{version}.tar.bz2'
 
     def should_build(self, arch):
@@ -29,5 +27,6 @@ class LibX264Recipe(Recipe):
                     _env=env)
             shprint(sh.make, '-j4', _env=env)
             shprint(sh.make, 'install', _env=env)
+
 
 recipe = LibX264Recipe()

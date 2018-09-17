@@ -1,6 +1,7 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from os.path import join, exists
+from os.path import join
 import sh
+
 
 class LevelDBRecipe(Recipe):
     version = '1.18'
@@ -41,5 +42,6 @@ class LevelDBRecipe(Recipe):
         env['LDFLAGS'] += ' -L' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + \
                           ' -lgnustl_shared'
         return env
+
 
 recipe = LevelDBRecipe()

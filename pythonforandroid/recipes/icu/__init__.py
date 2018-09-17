@@ -2,7 +2,7 @@ import sh
 import os
 from os.path import join, isdir
 from pythonforandroid.recipe import NDKRecipe
-from pythonforandroid.toolchain import shprint, info
+from pythonforandroid.toolchain import shprint
 from pythonforandroid.util import current_directory, ensure_dir
 
 

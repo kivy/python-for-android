@@ -1,6 +1,8 @@
-from pythonforandroid.toolchain import NDKRecipe, shprint, shutil, current_directory
-from os.path import join, exists
+from pythonforandroid.recipe import NDKRecipe
+from pythonforandroid.toolchain import shutil
+from os.path import join
 import sh
+
 
 class Sqlite3Recipe(NDKRecipe):
     version = '3.15.1'
@@ -28,5 +30,6 @@ class Sqlite3Recipe(NDKRecipe):
         env = super(Sqlite3Recipe, self).get_recipe_env(arch)
         env['NDK_PROJECT_PATH'] = self.get_build_dir(arch.arch)
         return env
+
 
 recipe = Sqlite3Recipe()

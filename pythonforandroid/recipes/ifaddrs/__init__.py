@@ -3,9 +3,9 @@
 from os.path import join, exists
 import sh
 from pythonforandroid.logger import info, shprint
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.toolchain import current_directory
 
-from pythonforandroid.toolchain import (CompiledComponentsPythonRecipe,
-                                        current_directory)
 
 class IFAddrRecipe(CompiledComponentsPythonRecipe):
     version = 'master'
@@ -64,5 +64,6 @@ class IFAddrRecipe(CompiledComponentsPythonRecipe):
                    )
             include_path = join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include')
             shprint(sh.cp, "ifaddrs.h", include_path)
+
 
 recipe = IFAddrRecipe()

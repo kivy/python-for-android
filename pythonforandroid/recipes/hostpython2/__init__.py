@@ -1,7 +1,6 @@
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory, info, warning
 from os.path import join, exists
-from os import chdir
 import os
 import sh
 
@@ -10,6 +9,7 @@ class Hostpython2Recipe(Recipe):
     version = '2.7.2'
     url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'hostpython2'
+    patches = ['fix-segfault-pygchead.patch']
 
     conflicts = ['hostpython3']
 
@@ -36,7 +36,7 @@ class Hostpython2Recipe(Recipe):
                 self.ctx.hostpgen = join(self.get_build_dir(),
                                            'hostpgen')
                 return
-            
+
             if 'LIBS' in os.environ:
                 os.environ.pop('LIBS')
             configure = sh.Command('./configure')

@@ -1,4 +1,3 @@
-
 import logging
 import os
 import re
@@ -16,7 +15,7 @@ if not six.PY3:
     stderr = codecs.getwriter('utf8')(stderr)
 
 if six.PY2:
-    unistr = unicode
+    unistr = unicode  # noqa F821
 else:
     unistr = str
 
@@ -42,6 +41,7 @@ class LevelDifferentiatingFormatter(logging.Formatter):
                 Err_Style.BRIGHT, Err_Fore.LIGHTBLACK_EX, Err_Fore.RESET,
                 Err_Style.RESET_ALL) + record.msg
         return super(LevelDifferentiatingFormatter, self).format(record)
+
 
 logger = logging.getLogger('p4a')
 if not hasattr(logger, 'touched'):  # Necessary as importlib reloads
@@ -71,6 +71,7 @@ class colorama_shim(object):
 
     def enable(self, enable):
         self._enabled = enable
+
 
 Out_Style = colorama_shim(Colo_Style)
 Out_Fore = colorama_shim(Colo_Fore)
