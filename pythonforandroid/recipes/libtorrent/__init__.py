@@ -16,7 +16,7 @@ class LibtorrentRecipe(Recipe):
     patches = ['disable-so-version.patch', 'use-soname-python.patch', 'setup-lib-name.patch']
 
     def should_build(self, arch):
-        return not ( self.has_libs(arch, 'libboost_python.so', 'libboost_system.so', 'libtorrent_rasterbar.so')
+        return not (self.has_libs(arch, 'libboost_python.so', 'libboost_system.so', 'libtorrent_rasterbar.so')
                      and self.ctx.has_package('libtorrent', arch.arch) )
 
     def prebuild_arch(self, arch):

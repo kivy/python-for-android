@@ -31,7 +31,7 @@ class LibGlobRecipe(CompiledComponentsPythonRecipe):
     def prebuild_arch(self, arch):
         """Make the build and target directories"""
         path = self.get_build_dir(arch.arch)
-        if not  exists(path):
+        if not exists(path):
             info("creating {}".format(path))
             shprint(sh.mkdir, '-p', path)
 
@@ -42,7 +42,7 @@ class LibGlobRecipe(CompiledComponentsPythonRecipe):
             join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Lib'),
             join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include'),
                     ):
-            if not  exists(path):
+            if not exists(path):
                 info("creating {}".format(path))
                 shprint(sh.mkdir, '-p', path)
         cli = env['CC'].split()
