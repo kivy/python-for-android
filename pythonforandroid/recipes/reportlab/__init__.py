@@ -7,8 +7,8 @@ from pythonforandroid.logger import (info, shprint)
 class ReportLabRecipe(CompiledComponentsPythonRecipe):
     version = 'c088826211ca'
     url = 'https://bitbucket.org/rptlab/reportlab/get/{version}.tar.gz'
-    depends = [['python3crystax', 'python2'], 'freetype']
-
+    depends = [('python2', 'python3crystax'), 'freetype']
+    
     def get_recipe_env(self, arch=None):
         env = super(ReportLabRecipe, self).get_recipe_env(arch)
 

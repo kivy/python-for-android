@@ -11,7 +11,7 @@
 # TODO:
 #	- delete archives to keep small the container small
 #	- setup caching (for apt, pip, ndk, sdk and p4a recipes downloads)
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 
 # get the latest version from https://developer.android.com/ndk/downloads/index.html

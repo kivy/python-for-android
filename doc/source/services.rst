@@ -8,9 +8,14 @@ possible to use normal multiprocessing on Android. Services are also
 the only way to run code when your app is not currently opened by the user.
 
 Services must be declared when building your APK. Each one
-will have its own main.py file with the Python script to be run. You
-can communicate with the service process from your app using e.g. `osc
-<https://pypi.python.org/pypi/python-osc>`__ or (a heavier option)
+will have its own main.py file with the Python script to be run.
+Please note that python-for-android explicitly runs services as separated
+processes by having a colon ":" in the beginning of the name assigned to
+the ``android:process`` attribute of the ``AndroidManifest.xml`` file.
+This is not the default behavior, see `Android service documentation
+<https://developer.android.com/guide/topics/manifest/service-element>`__.
+You can communicate with the service process from your app using e.g.
+`osc <https://pypi.python.org/pypi/python-osc>`__ or (a heavier option)
 `twisted <https://twistedmatrix.com/trac/>`__.
 
 Service creation
@@ -87,3 +92,14 @@ documented here but all accessible via calling other methods of the
     your service folder you must use e.g.  ``import service.module``
     instead of ``import module``, if the service file is in the
     ``service/`` folder.
+
+Service auto-restart
+~~~~~~~~~~~~~~~~~~~~
+
+It is possible to make services restart automatically when they exit by
+calling ``setAutoRestartService(True)`` on the service object.
+The call to this method should be done within the service code::
+
+    from jnius import autoclass
+    PythonService = autoclass('org.kivy.android.PythonService')
+    PythonService.mService.setAutoRestartService(True)
