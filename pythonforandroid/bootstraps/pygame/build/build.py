@@ -183,7 +183,6 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
-#         print('%s: %s' % (tfn, fn))
         dn = dirname(afn)
         if dn not in dirs:
             # create every dirs first if not exist yet

@@ -61,7 +61,7 @@ def fadeout(time):
 
 
 # A map from channel number to Channel object.
-channels = { }
+channels = {}
 
 
 def set_num_channels(count):
@@ -80,7 +80,7 @@ def set_reserved(count):
 
 def find_channel(force=False):
 
-    busy = [ ]
+    busy = []
 
     for i in range(reserved_channels, num_channels):
         c = Channel(i)
@@ -195,7 +195,7 @@ def Channel(n):
 
 
 sound_serial = 0
-sounds = { }
+sounds = {}
 
 
 class Sound(object):

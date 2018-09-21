@@ -54,7 +54,7 @@ class PygameBootstrap(Bootstrap):
             if not exists('python-install'):
                 shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
-            self.distribute_libs(arch, [join(self.build_dir, 'libs', arch.arch), self.ctx.get_libs_dir(arch.arch)]);
+            self.distribute_libs(arch, [join(self.build_dir, 'libs', arch.arch), self.ctx.get_libs_dir(arch.arch)])
             self.distribute_aars(arch)
             self.distribute_javaclasses(self.ctx.javaclass_dir)
 
