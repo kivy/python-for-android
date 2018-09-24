@@ -1,0 +1,22 @@
+--- Python-2.7.2.orig/Modules/posixmodule.c	2018-09-24 15:49:14.041368116 +0200
++++ Python-2.7.2/Modules/posixmodule.c	2018-09-24 16:15:02.537201532 +0200
+@@ -1615,17 +1615,8 @@
+ static PyObject *
+ posix_ctermid(PyObject *self, PyObject *noargs)
+ {
+-    char *ret;
+-    char buffer[L_ctermid];
+-
+-#ifdef USE_CTERMID_R
+-    ret = ctermid_r(buffer);
+-#else
+-    ret = ctermid(buffer);
+-#endif
+-    if (ret == NULL)
+-        return posix_error();
+-    return PyString_FromString(buffer);
++    PyErr_SetString(PyExc_NotImplementedError, "ctermid not implemented for this build");
++    return NULL;
+ }
+ #endif
+ 
