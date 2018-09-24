@@ -1,7 +1,5 @@
-
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe, Recipe
 from pythonforandroid.toolchain import (
-    CompiledComponentsPythonRecipe,
-    Recipe,
     current_directory,
     info,
     shprint,
@@ -40,5 +38,6 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
                     '--prefix={}'.format(self.ctx.get_python_install_dir()),
                     '--enable-shared', _env=env)
         super(PyCryptoRecipe, self).build_compiled_components(arch)
+
 
 recipe = PyCryptoRecipe()

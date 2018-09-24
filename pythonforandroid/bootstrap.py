@@ -1,5 +1,5 @@
-from os.path import (join, dirname, isdir, splitext, basename, realpath)
-from os import listdir, mkdir
+from os.path import (join, dirname, isdir, splitext, basename)
+from os import listdir
 import sh
 import glob
 import json
@@ -27,7 +27,7 @@ class Bootstrap(object):
     dist_name = None
     distribution = None
 
-    recipe_depends = []
+    recipe_depends = ['sdl2']
 
     can_be_chosen_automatically = True
     '''Determines whether the bootstrap can be chosen as one that
@@ -150,9 +150,14 @@ class Bootstrap(object):
                         ok = False
                         break
                 for recipe in recipes:
-                    recipe = Recipe.get_recipe(recipe, ctx)
+                    try:
+                        recipe = Recipe.get_recipe(recipe, ctx)
+                    except IOError:
+                        conflicts = []
+                    else:
+                        conflicts = recipe.conflicts
                     if any([conflict in possible_dependencies
-                            for conflict in recipe.conflicts]):
+                            for conflict in conflicts]):
                         ok = False
                         break
                 if ok:
@@ -173,8 +178,6 @@ class Bootstrap(object):
         This is the only way you should access a bootstrap class, as
         it sets the bootstrap directory correctly.
         '''
-        # AND: This method will need to check user dirs, and access
-        # bootstraps in a slightly different way
         if name is None:
             return None
         if not hasattr(cls, 'bootstraps'):
@@ -190,20 +193,21 @@ class Bootstrap(object):
         bootstrap.ctx = ctx
         return bootstrap
 
-    def distribute_libs(self, arch, src_dirs, wildcard='*'):
+    def distribute_libs(self, arch, src_dirs, wildcard='*', dest_dir="libs"):
         '''Copy existing arch libs from build dirs to current dist dir.'''
         info('Copying libs')
-        tgt_dir = join('libs', arch.arch)
+        tgt_dir = join(dest_dir, arch.arch)
         ensure_dir(tgt_dir)
         for src_dir in src_dirs:
             for lib in glob.glob(join(src_dir, wildcard)):
                 shprint(sh.cp, '-a', lib, tgt_dir)
 
-    def distribute_javaclasses(self, javaclass_dir):
+    def distribute_javaclasses(self, javaclass_dir, dest_dir="src"):
         '''Copy existing javaclasses from build dir to current dist dir.'''
         info('Copying java files')
+        ensure_dir(dest_dir)
         for filename in glob.glob(javaclass_dir):
-            shprint(sh.cp, '-a', filename, 'src')
+            shprint(sh.cp, '-a', filename, dest_dir)
 
     def distribute_aars(self, arch):
         '''Process existing .aar bundles and copy to current dist dir.'''

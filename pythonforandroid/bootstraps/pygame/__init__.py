@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
+from pythonforandroid.toolchain import Bootstrap, current_directory, info, info_main, shprint
 from os.path import join, exists
 from os import walk
 import glob
@@ -46,7 +46,6 @@ class PygameBootstrap(Bootstrap):
 
             info('Copying python distribution')
             hostpython = sh.Command(self.ctx.hostpython)
-            # AND: This *doesn't* need to be in arm env?
             try:
                 shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir(),
                         _tail=10, _filterout="^Listing")
@@ -55,7 +54,7 @@ class PygameBootstrap(Bootstrap):
             if not exists('python-install'):
                 shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
-            self.distribute_libs(arch, [join(self.build_dir, 'libs', arch.arch), self.ctx.get_libs_dir(arch.arch)]);
+            self.distribute_libs(arch, [join(self.build_dir, 'libs', arch.arch), self.ctx.get_libs_dir(arch.arch)])
             self.distribute_aars(arch)
             self.distribute_javaclasses(self.ctx.javaclass_dir)
 
@@ -64,9 +63,8 @@ class PygameBootstrap(Bootstrap):
                 shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
             shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
 
-            # AND: Copylibs stuff should go here
             shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
-            shprint(sh.cp, join('python-install', 'include' , 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
+            shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
 
             info('Removing some unwanted files')
             shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
@@ -93,8 +91,8 @@ class PygameBootstrap(Bootstrap):
                 shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
                 shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
 
-
         self.strip_libraries(arch)
         super(PygameBootstrap, self).run_distribute()
+
 
 bootstrap = PygameBootstrap()

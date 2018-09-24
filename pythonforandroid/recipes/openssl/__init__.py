@@ -26,6 +26,7 @@ class OpenSSLRecipe(Recipe):
         env['OPENSSL_VERSION'] = self.version
         env['CFLAGS'] += ' ' + env['LDFLAGS']
         env['CC'] += ' ' + env['LDFLAGS']
+        env['MAKE'] = 'make'  # This removes the '-j5', which isn't safe
         return env
 
     def select_build_arch(self, arch):
@@ -36,6 +37,8 @@ class OpenSSLRecipe(Recipe):
             return 'android-armv7'
         if 'arm' in aname:
             return 'android'
+        if 'x86' in aname:
+            return 'android-x86'
         return 'linux-armv4'
 
     def build_arch(self, arch):
@@ -59,5 +62,6 @@ class OpenSSLRecipe(Recipe):
 
             self.install_libs(arch, 'libssl' + self.version + '.so',
                               'libcrypto' + self.version + '.so')
+
 
 recipe = OpenSSLRecipe()

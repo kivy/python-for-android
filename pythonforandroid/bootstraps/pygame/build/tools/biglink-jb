@@ -25,7 +25,7 @@ blacklist_libs = (
 )
 
 found_libs = []
-sofiles = [ ]
+sofiles = []
 
 for directory in sys.argv[2:]:
 

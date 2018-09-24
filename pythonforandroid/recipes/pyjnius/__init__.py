@@ -1,6 +1,6 @@
-
-from pythonforandroid.toolchain import CythonRecipe, shprint, current_directory, info
-from pythonforandroid.patching import will_build, check_any
+from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.toolchain import shprint, current_directory, info
+from pythonforandroid.patching import will_build
 import sh
 from os.path import join
 
@@ -9,7 +9,7 @@ class PyjniusRecipe(CythonRecipe):
     version = 'master'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
-    depends = [('python2', 'python3crystax'), ('sdl2', 'sdl', 'genericndkbuild'), 'six']
+    depends = [('python2', 'python3crystax'), ('genericndkbuild', 'sdl2', 'sdl'), 'six']
     site_packages_name = 'jnius'
 
     patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')),

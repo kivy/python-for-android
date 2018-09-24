@@ -1,7 +1,9 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe, current_directory, shprint, info
+from pythonforandroid.recipe import BootstrapNDKRecipe
+from pythonforandroid.toolchain import current_directory, shprint, info
 from os.path import exists, join
 import sh
 import glob
+
 
 class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
     version = 'master'
@@ -22,6 +24,6 @@ class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
                 shprint(sh.mv, dirn, './')
         info('Unpacking was successful, deleting original container dir')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
-        
+
 
 recipe = PygameJNIComponentsRecipe()

@@ -2,7 +2,6 @@ import os
 import sh
 from os.path import join
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
-from pythonforandroid.util import current_directory
 from pythonforandroid.toolchain import shprint, info
 
 

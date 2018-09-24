@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe
+from pythonforandroid.recipe import BootstrapNDKRecipe
 from pythonforandroid.patching import is_arch
 
 
@@ -9,6 +9,8 @@ class LibSDL2Image(BootstrapNDKRecipe):
 
     patches = ['toggle_jpg_png_webp.patch',
                ('disable_jpg.patch', is_arch('x86')),
-               'extra_cflags.patch']
+               'extra_cflags.patch',
+               'fix_with_ndk_15_plus.patch']
+
 
 recipe = LibSDL2Image()

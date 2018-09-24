@@ -7,6 +7,8 @@ This module defines the entry point for command line and programmatic use.
 """
 
 from __future__ import print_function
+from pythonforandroid import __version__
+
 
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
@@ -64,7 +66,7 @@ check_python_dependencies()
 
 import sys
 from sys import platform
-from os.path import (join, dirname, realpath, exists, expanduser)
+from os.path import (join, dirname, realpath, exists, expanduser, basename)
 import os
 import glob
 import shutil
@@ -78,15 +80,13 @@ import sh
 import imp
 from appdirs import user_data_dir
 import logging
+from distutils.version import LooseVersion
 
-from pythonforandroid.recipe import (Recipe, PythonRecipe, CythonRecipe,
-                                     CompiledComponentsPythonRecipe,
-                                     BootstrapNDKRecipe, NDKRecipe)
-from pythonforandroid.archs import (ArchARM, ArchARMv7_a, Archx86)
+from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import (logger, info, warning, setup_color,
-                                     Out_Style, Out_Fore, Err_Style, Err_Fore,
+                                     Out_Style, Out_Fore,
                                      info_notify, info_main, shprint, error)
-from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.util import current_directory
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
@@ -157,7 +157,6 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
-        extra_dist_dirs=split_argument_list(args.extra_dist_dirs),
         require_perfect_match=args.require_perfect_match)
 
 
@@ -182,6 +181,8 @@ def build_dist_from_args(ctx, dist, args):
     bs.distribution = dist
     info_notify('Dist will have name {} and recipes ({})'.format(
         dist.name, ', '.join(dist.recipes)))
+    info('Dist will also contain modules ({}) installed from pip'.format(
+        ', '.join(ctx.python_modules)))
 
     ctx.dist_name = bs.distribution.name
     ctx.prepare_bootstrap(bs)
@@ -201,6 +202,7 @@ def split_argument_list(l):
         return []
     return re.split(r'[ ,]+', l)
 
+
 class NoAbbrevParser(argparse.ArgumentParser):
     '''We want to disable argument abbreviation so as not to interfere
     with passing through arguments to build.py, but in python2 argparse
@@ -211,6 +213,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
     '''
     def _get_option_tuples(self, option_string):
         return []
+
 
 class ToolchainCL(object):
 
@@ -275,8 +278,6 @@ class ToolchainCL(object):
             help=('Primary storage directory for downloads and builds '
                   '(default: {})'.format(default_storage_dir)))
 
-        # AND: This option doesn't really fit in the other categories, the
-        # arg structure needs a rethink
         generic_parser.add_argument(
             '--arch',
             help='The archs to build for, separated by commas.',
@@ -309,11 +310,6 @@ class ToolchainCL(object):
             default=False,
             description='Whether to force compilation of a new distribution:')
 
-        generic_parser.add_argument(
-            '--extra-dist-dirs', '--extra_dist_dirs',
-            dest='extra_dist_dirs', default='',
-            help='Directories in which to look for distributions')
-
         add_boolean_option(
             generic_parser, ["require-perfect-match"],
             default=False,
@@ -324,6 +320,13 @@ class ToolchainCL(object):
             '--local-recipes', '--local_recipes',
             dest='local_recipes', default='./p4a-recipes',
             help='Directory to look for local recipes')
+
+        generic_parser.add_argument(
+            '--java-build-tool',
+            dest='java_build_tool', default='auto',
+            choices=['auto', 'ant', 'gradle'],
+            help=('The java build tool to use when packaging the APK, defaults '
+                  'to automatically selecting an appropriate tool.'))
 
         add_boolean_option(
             generic_parser, ['copy-libs'],
@@ -462,10 +465,16 @@ class ToolchainCL(object):
             help='Print some debug information about current built components',
             parents=[generic_parser])
 
+        parser.add_argument('-v', '--version', action='version', version=__version__)
+
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
 
         self.args = args
+
+        if args.subparser_name is None:
+            parser.print_help()
+            exit(1)
 
         setup_color(args.color)
 
@@ -492,14 +501,9 @@ class ToolchainCL(object):
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
         self.ctx.symlink_java_src = args.symlink_java_src
+        self.ctx.java_build_tool = args.java_build_tool
 
         self._archs = split_argument_list(args.arch)
-
-        # AND: Fail nicely if the args aren't handled yet
-        if args.extra_dist_dirs:
-            warning('Received --extra_dist_dirs but this arg currently is not '
-                    'handled, exiting.')
-            exit(1)
 
         self.ctx.local_recipes = args.local_recipes
         self.ctx.copy_libs = args.copy_libs
@@ -549,6 +553,11 @@ class ToolchainCL(object):
                     recipe = Recipe.get_recipe(name, ctx)
                 except IOError:
                     warning('Recipe "{}" could not be loaded'.format(name))
+                except SyntaxError:
+                    import traceback
+                    traceback.print_exc()
+                    warning(('Recipe "{}" could not be loaded due to a '
+                             'syntax error').format(name))
                 version = str(recipe.version)
                 print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
                       '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
@@ -591,7 +600,6 @@ class ToolchainCL(object):
                     'Asked to clean "{}" but this argument is not '
                     'recognised'.format(component)))
             component_clean_methods[component](args)
-            
 
     def clean_all(self, args):
         '''Delete all build components; the package cache, package builds,
@@ -741,18 +749,70 @@ class ToolchainCL(object):
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
+            os.environ["ANDROID_API"] = str(self.ctx.android_api)
             build_args = build.parse_args(args.unknown_args)
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
 
-            try:
-                ant = sh.Command('ant')
-            except sh.CommandNotFound:
-                error('Could not find ant binary, please install it and make '
-                      'sure it is in your $PATH.')
-                exit(1)
+            build_type = ctx.java_build_tool
+            if build_type == 'auto':
+                info('Selecting java build tool:')
 
-            output = shprint(ant, args.build_mode, _tail=20, _critical=True, _env=env)
+                build_tools_versions = os.listdir(join(ctx.sdk_dir, 'build-tools'))
+                build_tools_versions = sorted(build_tools_versions,
+                                              key=LooseVersion)
+                build_tools_version = build_tools_versions[-1]
+                info(('Detected highest available build tools '
+                      'version to be {}').format(build_tools_version))
+
+                if build_tools_version >= '25.0' and exists('gradlew'):
+                    build_type = 'gradle'
+                    info('    Building with gradle, as gradle executable is present')
+                else:
+                    build_type = 'ant'
+                    if build_tools_version < '25.0':
+                        info(('    Building with ant, as the highest '
+                              'build-tools-version is only {}').format(build_tools_version))
+                    else:
+                        info('    Building with ant, as no gradle executable detected')
+
+            if build_type == 'gradle':
+                # gradle-based build
+                env["ANDROID_NDK_HOME"] = self.ctx.ndk_dir
+                env["ANDROID_HOME"] = self.ctx.sdk_dir
+
+                gradlew = sh.Command('./gradlew')
+                if args.build_mode == "debug":
+                    gradle_task = "assembleDebug"
+                elif args.build_mode == "release":
+                    gradle_task = "assembleRelease"
+                else:
+                    error("Unknown build mode {} for apk()".format(
+                        args.build_mode))
+                    exit(1)
+                output = shprint(gradlew, gradle_task, _tail=20,
+                                 _critical=True, _env=env)
+
+                # gradle output apks somewhere else
+                # and don't have version in file
+                apk_dir = join(dist.dist_dir, "build", "outputs", "apk")
+                apk_glob = "*-{}.apk"
+                apk_add_version = True
+
+            else:
+                # ant-based build
+                try:
+                    ant = sh.Command('ant')
+                except sh.CommandNotFound:
+                    error('Could not find ant binary, please install it '
+                          'and make sure it is in your $PATH.')
+                    exit(1)
+                output = shprint(ant, args.build_mode, _tail=20,
+                                 _critical=True, _env=env)
+                apk_dir = join(dist.dist_dir, "bin")
+                apk_glob = "*-*-{}.apk"
+                apk_add_version = False
+
             self.hook("after_apk_assemble")
 
         info_main('# Copying APK to current directory')
@@ -767,19 +827,31 @@ class ToolchainCL(object):
 
         if not apk_file:
             info_main('# APK filename not found in build output, trying to guess')
-            suffix = args.build_mode
-            if suffix == 'release' and not args.keystore:
-                suffix = suffix + '-unsigned'
-            apks = glob.glob(join(dist.dist_dir, 'bin', '*-*-{}.apk'.format(suffix)))
-            if len(apks) == 0:
+            if args.build_mode == "release":
+                suffixes = ("release", "release-unsigned")
+            else:
+                suffixes = ("debug", )
+            for suffix in suffixes:
+                apks = glob.glob(join(apk_dir, apk_glob.format(suffix)))
+                if apks:
+                    if len(apks) > 1:
+                        info('More than one built APK found... guessing you '
+                             'just built {}'.format(apks[-1]))
+                    apk_file = apks[-1]
+                    break
+            else:
                 raise ValueError('Couldn\'t find the built APK')
-            if len(apks) > 1:
-                info('More than one built APK found...guessing you '
-                     'just built {}'.format(apks[-1]))
-            apk_file = apks[-1]
 
         info_main('# Found APK file: {}'.format(apk_file))
-        shprint(sh.cp, apk_file, './')
+        if apk_add_version:
+            info('# Add version number to APK')
+            apk_name, apk_suffix = basename(apk_file).split("-", 1)
+            apk_file_dest = "{}-{}-{}".format(
+                apk_name, build_args.version, apk_suffix)
+            info('# APK renamed to {}'.format(apk_file_dest))
+            shprint(sh.cp, apk_file, apk_file_dest)
+        else:
+            shprint(sh.cp, apk_file, './')
 
     @require_prebuilt_dist
     def create(self, args):
@@ -869,7 +941,6 @@ class ToolchainCL(object):
             sys.stdout.write(line)
             sys.stdout.flush()
 
-
     def build_status(self, args):
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
               'already built:{Style.RESET_ALL}'.format(Style=Out_Style))
@@ -900,6 +971,7 @@ class ToolchainCL(object):
 
 def main():
     ToolchainCL()
+
 
 if __name__ == "__main__":
     main()

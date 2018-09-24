@@ -1,6 +1,5 @@
 
-from pythonforandroid.toolchain import PythonRecipe, shprint
-import sh
+from pythonforandroid.recipe import PythonRecipe
 
 
 class FlaskRecipe(PythonRecipe):
@@ -9,7 +8,7 @@ class FlaskRecipe(PythonRecipe):
                         # 0.10.1 at least for now
     url = 'https://github.com/pallets/flask/archive/{version}.zip'
 
-    depends = [('python2', 'python3crystax'), 'setuptools']
+    depends = [('python2', 'python3crystax'), 'setuptools', 'genericndkbuild']
 
     python_depends = ['jinja2', 'werkzeug', 'markupsafe', 'itsdangerous', 'click']
 

@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from os.path import (join, realpath, dirname, expanduser, exists,
                      split, isdir)
-from os import environ, listdir
+from os import environ
 import os
 import glob
 import sys
@@ -11,9 +11,8 @@ import sh
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
-                                     Err_Fore, Err_Style, info_main,
-                                     shprint)
-from pythonforandroid.archs import ArchARM, ArchARMv7_a, Archx86, Archx86_64, ArchAarch_64
+                                     Err_Fore, info_main, shprint)
+from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86
 from pythonforandroid.recipe import Recipe
 
 DEFAULT_ANDROID_API = 15
@@ -45,7 +44,9 @@ class Context(object):
 
     recipe_build_order = None  # Will hold the list of all built recipes
 
-    symlink_java_src = False # If True, will symlink instead of copying during build
+    symlink_java_src = False  # If True, will symlink instead of copying during build
+
+    java_build_tool = 'auto'
 
     @property
     def packages_path(self):
@@ -171,8 +172,6 @@ class Context(object):
         if self._build_env_prepared:
             return
 
-        # AND: This needs revamping to carefully check each dependency
-        # in turn
         ok = True
 
         # Work out where the Android SDK is
@@ -184,7 +183,7 @@ class Context(object):
         if sdk_dir is None:  # This seems used more conventionally
             sdk_dir = environ.get('ANDROID_HOME', None)
         if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
-            #                # for debug tests of p4a
+                             # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
             possible_dirs = [d for d in possible_dirs if not
@@ -226,8 +225,16 @@ class Context(object):
             error('You probably want to build with --arch=armeabi-v7a instead')
             exit(1)
 
-        android = sh.Command(join(sdk_dir, 'tools', 'android'))
-        targets = android('list').stdout.decode('utf-8').split('\n')
+        if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
+            avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
+            targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+        elif exists(join(sdk_dir, 'tools', 'android')):
+            android = sh.Command(join(sdk_dir, 'tools', 'android'))
+            targets = android('list').stdout.decode('utf-8').split('\n')
+        else:
+            error('Could not find `android` or `sdkmanager` binaries in '
+                  'Android SDK. Exiting.')
+            exit(1)
         apis = [s for s in targets if re.match(r'^ *API level: ', s)]
         apis = [re.findall(r'[0-9]+', s) for s in apis]
         apis = [int(s[0]) for s in apis if s]
@@ -316,8 +323,9 @@ class Context(object):
                     warning('If the NDK dir result is correct, you don\'t '
                             'need to manually set the NDK ver.')
         if ndk_ver is None:
-            warning('Android NDK version could not be found, exiting.')
-            exit(1)
+            warning('Android NDK version could not be found. This probably'
+                    'won\'t cause any problems, but if necessary you can'
+                    'set it with `--ndk-version=...`.')
         self.ndk_ver = ndk_ver
 
         info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
@@ -352,7 +360,7 @@ class Context(object):
             ok = False
             warning("Missing requirement: cython is not installed")
 
-        # AND: need to change if supporting multiple archs at once
+        # This would need to be changed if supporting multiarch APKs
         arch = self.archs[0]
         platform_dir = arch.platform_dir
         toolchain_prefix = arch.toolchain_prefix
@@ -373,7 +381,7 @@ class Context(object):
 
         toolchain_versions = []
         toolchain_path = join(self.ndk_dir, 'toolchains')
-        if os.path.isdir(toolchain_path):
+        if isdir(toolchain_path):
             toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
                                                             toolchain_prefix))
             toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
@@ -489,7 +497,7 @@ class Context(object):
         dir.
         '''
 
-        # AND: This *must* be replaced with something more general in
+        # This needs to be replaced with something more general in
         # order to support multiple python versions and/or multiple
         # archs.
         if self.python_recipe.from_crystax:
@@ -568,7 +576,6 @@ def build_recipes(build_order, python_modules, ctx):
                      .format(recipe.name))
 
         # 4) biglink everything
-        # AND: Should make this optional
         info_main('# Biglinking object files')
         if not ctx.python_recipe or not ctx.python_recipe.from_crystax:
             biglink(ctx, arch)
@@ -659,12 +666,17 @@ def biglink(ctx, arch):
     info('target {}'.format(join(ctx.get_libs_dir(arch.arch),
                                  'libpymodules.so')))
     do_biglink = copylibs_function if ctx.copy_libs else biglink_function
-    do_biglink(
-        join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
-        obj_dir.split(' '),
-        extra_link_dirs=[join(ctx.bootstrap.build_dir,
-                              'obj', 'local', arch.arch)],
-        env=env)
+
+    # Move to the directory containing crtstart_so.o and crtend_so.o
+    # This is necessary with newer NDKs? A gcc bug?
+    with current_directory(join(ctx.ndk_platform, 'usr', 'lib')):
+        do_biglink(
+            join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
+            obj_dir.split(' '),
+            extra_link_dirs=[join(ctx.bootstrap.build_dir,
+                                  'obj', 'local', arch.arch),
+                             os.path.abspath('.')],
+            env=env)
 
 
 def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):

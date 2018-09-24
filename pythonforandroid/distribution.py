@@ -41,7 +41,7 @@ class Distribution(object):
         return str(self)
 
     @classmethod
-    def get_distribution(cls, ctx, name=None, recipes=[], 
+    def get_distribution(cls, ctx, name=None, recipes=[],
                          force_build=False,
                          extra_dist_dirs=[],
                          require_perfect_match=False):
@@ -69,10 +69,6 @@ class Distribution(object):
             If True, will only match distributions with precisely the
             correct set of recipes.
         '''
-
-        # AND: This whole function is a bit hacky, it needs checking
-        # properly to make sure it follows logically correct
-        # possibilities
 
         existing_dists = Distribution.get_distributions(ctx)
 

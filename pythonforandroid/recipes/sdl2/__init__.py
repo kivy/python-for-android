@@ -1,5 +1,5 @@
-from pythonforandroid.toolchain import BootstrapNDKRecipe, shprint, current_directory, info
-from os.path import exists, join
+from pythonforandroid.recipe import BootstrapNDKRecipe
+from pythonforandroid.toolchain import current_directory, shprint
 import sh
 
 
@@ -21,6 +21,8 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env['PYTHON2_NAME'] = py2.get_dir_name()
         if 'python2' in self.ctx.recipe_build_order:
             env['EXTRA_LDLIBS'] = ' -lpython2.7'
+
+        env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
 
     def build_arch(self, arch):
@@ -31,4 +33,3 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
 
 recipe = LibSDL2Recipe()
-

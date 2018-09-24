@@ -1,7 +1,6 @@
-
 from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory, info
-from pythonforandroid.patching import (is_linux, is_darwin, is_api_gt,
+from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
 import sh
@@ -9,13 +8,13 @@ import sh
 
 class Python2Recipe(TargetPythonRecipe):
     version = "2.7.2"
-    url = 'http://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
+    url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
     name = 'python2'
 
     depends = ['hostpython2']
     conflicts = ['python3crystax', 'python3']
-    opt_depends = ['openssl','sqlite3']
-    
+    opt_depends = ['openssl', 'sqlite3']
+
     patches = ['patches/Python-{version}-xcompile.patch',
                'patches/Python-{version}-ctypes-disable-wchar.patch',
                'patches/disable-modules.patch',
@@ -56,7 +55,6 @@ class Python2Recipe(TargetPythonRecipe):
         if not exists(join(self.ctx.get_libs_dir(arch.arch), 'libpython2.7.so')):
             shprint(sh.cp, join(self.get_build_dir(arch.arch), 'libpython2.7.so'), self.ctx.get_libs_dir(arch.arch))
 
-
         # # if exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
         # if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
         #     info('libpython2.7.so already exists, skipping python build.')
@@ -77,15 +75,11 @@ class Python2Recipe(TargetPythonRecipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
 
-
             hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
             env = arch.get_env()
 
-            # AND: Should probably move these to get_recipe_env for
-            # neatness, but the whole recipe needs tidying along these
-            # lines
             env['HOSTARCH'] = 'arm-eabi'
             env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
@@ -112,8 +106,9 @@ class Python2Recipe(TargetPythonRecipe):
                 f = 'LDFLAGS'
                 env[f] = env[f] + l if f in env else l
 
+            # NDK has langinfo.h but doesn't define nl_langinfo()
+            env['ac_cv_header_langinfo_h'] = 'no'
             configure = sh.Command('./configure')
-            # AND: OFLAG isn't actually set, should it be?
             shprint(configure,
                     '--host={}'.format(env['HOSTARCH']),
                     '--build={}'.format(env['BUILDARCH']),
@@ -124,7 +119,7 @@ class Python2Recipe(TargetPythonRecipe):
                     '--disable-framework',
                     _env=env)
 
-            # AND: tito left this comment in the original source. It's still true!
+            # tito left this comment in the original source. It's still true!
             # FIXME, the first time, we got a error at:
             # python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
         # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
@@ -141,7 +136,6 @@ class Python2Recipe(TargetPythonRecipe):
                         _env=env)
             except sh.ErrorReturnCode_2:
                 print('First python2 make failed. This is expected, trying again.')
-
 
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')
@@ -166,7 +160,6 @@ class Python2Recipe(TargetPythonRecipe):
                 shprint(sh.rm, '-rf', join('python-install',
                                            'lib', 'python2.7', dir_name))
 
-
             # info('Copying python-install to dist-dependent location')
             # shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
 
@@ -174,8 +167,6 @@ class Python2Recipe(TargetPythonRecipe):
             # shprint(sh.cp, self.ctx.hostpython,
             #         join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
             # self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
-
-
 
         # print('python2 build done, exiting for debug')
         # exit(1)

@@ -183,7 +183,6 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
-#         print('%s: %s' % (tfn, fn))
         dn = dirname(afn)
         if dn not in dirs:
             # create every dirs first if not exist yet
@@ -241,6 +240,7 @@ def make_package(args):
     # Annoying fixups.
     args.name = args.name.replace('\'', '\\\'')
     args.icon_name = args.icon_name.replace('\'', '\\\'')
+    args.add_activity = args.add_activity or []
 
     # Figure out versions of the private and public data.
     private_version = str(time.time())
@@ -369,6 +369,7 @@ main.py that loads it.''')
         print('Did you install ant on your system ?')
         sys.exit(-1)
 
+
 def parse_args(args=None):
     import argparse
 
@@ -475,6 +476,8 @@ tools directory of the Android SDK.
                     help='Custom key=value to add in strings.xml resource file')
     ap.add_argument('--manifest-extra', dest='manifest_extra', action='append',
                     help='Custom file to add at the end of the manifest')
+    ap.add_argument('--add-activity', dest='add_activity', action='append',
+                    help='Add this Java class as an Activity to the manifest.')
 
     if args is None:
         args = sys.argv[1:]

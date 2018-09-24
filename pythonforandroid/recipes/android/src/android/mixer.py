@@ -8,35 +8,44 @@ import os
 
 condition = threading.Condition()
 
+
 def periodic():
     for i in range(0, num_channels):
         if i in channels:
             channels[i].periodic()
 
+
 num_channels = 8
 reserved_channels = 0
+
 
 def init(frequency=22050, size=-16, channels=2, buffer=4096):
     return None
 
+
 def pre_init(frequency=22050, size=-16, channels=2, buffersize=4096):
     return None
+
 
 def quit():
     stop()
     return None
 
+
 def stop():
     for i in range(0, num_channels):
         sound.stop(i)
+
 
 def pause():
     for i in range(0, num_channels):
         sound.pause(i)
 
+
 def unpause():
     for i in range(0, num_channels):
         sound.unpause(i)
+
 
 def get_busy():
     for i in range(0, num_channels):
@@ -45,28 +54,33 @@ def get_busy():
 
     return False
 
+
 def fadeout(time):
     # Fadeout doesn't work - it just immediately stops playback.
     stop()
 
 
 # A map from channel number to Channel object.
-channels = { }
+channels = {}
+
 
 def set_num_channels(count):
     global num_channels
     num_channels = count
 
+
 def get_num_channels(count):
     return num_channels
+
 
 def set_reserved(count):
     global reserved_channels
     reserved_channels = count
 
+
 def find_channel(force=False):
 
-    busy = [ ]
+    busy = []
 
     for i in range(reserved_channels, num_channels):
         c = Channel(i)
@@ -79,9 +93,10 @@ def find_channel(force=False):
     if not force:
         return None
 
-    busy.sort(key=lambda x : x.play_time)
+    busy.sort(key=lambda x: x.play_time)
 
     return busy[0]
+
 
 class ChannelImpl(object):
 
@@ -100,7 +115,6 @@ class ChannelImpl(object):
 
         if self.loop is not None and sound.queue_depth(self.id) < 2:
             self.queue(self.loop, loops=1)
-
 
     def play(self, s, loops=0, maxtime=0, fade_ms=0):
         if loops:
@@ -181,7 +195,8 @@ def Channel(n):
 
 
 sound_serial = 0
-sounds = { }
+sounds = {}
+
 
 class Sound(object):
 
@@ -196,10 +211,10 @@ class Sound(object):
         self.serial = str(sound_serial)
         sound_serial += 1
 
-        if isinstance(what, file):
+        if isinstance(what, file):  # noqa F821
             self.file = what
         else:
-            self.file = file(os.path.abspath(what), "rb")
+            self.file = file(os.path.abspath(what), "rb")  # noqa F821
 
         sounds[self.serial] = self
 
@@ -213,7 +228,6 @@ class Sound(object):
         channel.set_volume(self._volume)
         channel.play(self, loops=loops)
         return channel
-
 
     def stop(self):
         for i in range(0, num_channels):
@@ -244,8 +258,10 @@ class Sound(object):
     def get_length(self):
         return 1.0
 
+
 music_channel = Channel(256)
 music_sound = None
+
 
 class music(object):
 
@@ -306,6 +322,3 @@ class music(object):
     @staticmethod
     def queue(filename):
         return music_channel.queue(Sound(filename))
-
-
-

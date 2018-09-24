@@ -6,12 +6,10 @@ from os.path import dirname, join, isfile, realpath, relpath, split, exists
 from os import makedirs
 import os
 import tarfile
-import time
 import subprocess
 import shutil
 from zipfile import ZipFile
 import sys
-import re
 import shlex
 
 from fnmatch import fnmatch
@@ -39,7 +37,7 @@ BLACKLIST_PATTERNS = [
 
     # pyc/py
     '*.pyc',
-    # '*.py',  # AND: Need to fix this to add it back
+    # '*.py',
 
     # temp files
     '~',
@@ -54,6 +52,7 @@ python_files = []
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
+
 
 def render(template, dest, **kwargs):
     '''Using jinja2, render `template` to the filename `dest`, supplying the
@@ -106,6 +105,7 @@ def listfiles(d):
         for fn in listfiles(subdir):
             yield fn
 
+
 def make_python_zip():
     '''
     Search for all the python related files, and construct the pythonXX.zip
@@ -121,7 +121,6 @@ def make_python_zip():
 
     global python_files
     d = realpath(join('private', 'lib', 'python2.7'))
-
 
     def select(fn):
         if is_blacklist(fn):
@@ -148,6 +147,7 @@ def make_python_zip():
         afn = fn[len(d):]
         zf.write(fn, afn)
     zf.close()
+
 
 def make_tar(tfn, source_dirs, ignore_path=[]):
     '''
@@ -178,7 +178,6 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
-#        print('%s: %s' % (tfn, fn))
         dn = dirname(afn)
         if dn not in dirs:
             # create every dirs first if not exist yet
@@ -204,7 +203,7 @@ def compile_dir(dfn):
     Compile *.py in directory `dfn` to *.pyo
     '''
 
-    return  # AND: Currently leaving out the compile to pyo step because it's somehow broken
+    return  # Currently leaving out the compile to pyo step because it's somehow broken
     # -OO = strip docstrings
     subprocess.call([PYTHON, '-OO', '-m', 'compileall', '-f', dfn])
 
@@ -230,8 +229,7 @@ def make_package(args):
     # construct a python27.zip
     make_python_zip()
 
-    # Package up the private and public data.
-    # AND: Just private for now
+    # Package up the private data (public not supported).
     tar_dirs = [args.private]
     if exists('private'):
         tar_dirs.append('private')
@@ -245,7 +243,6 @@ def make_package(args):
     # if args.dir:
     #     make_tar('assets/public.mp3', [args.dir], args.ignore_path)
 
-
     # # Build.
     # try:
     #     for arg in args.command:
@@ -254,7 +251,6 @@ def make_package(args):
     #     print 'An error occured while calling', ANT
     #     print 'Did you install ant on your system ?'
     #     sys.exit(-1)
-
 
     # Prepare some variables for templating process
 

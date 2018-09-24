@@ -2,7 +2,7 @@ import glob
 from os import walk
 from os.path import join, exists, curdir, abspath
 import sh
-from pythonforandroid.toolchain import Bootstrap, shprint, current_directory, info, warning, ArchARM, info_main
+from pythonforandroid.toolchain import Bootstrap, current_directory, info, info_main, shprint
 
 
 class ServiceOnlyBootstrap(Bootstrap):
@@ -61,7 +61,6 @@ class ServiceOnlyBootstrap(Bootstrap):
                     shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
                 shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
 
-                # AND: Copylibs stuff should go here
                 if exists(join('libs', arch.arch, 'libpymodules.so')):
                     shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
                 shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
@@ -114,7 +113,6 @@ class ServiceOnlyBootstrap(Bootstrap):
                     shprint(sh.mv, filen, filen.split('.')[0] + '.so')
                 site_packages_dir = join(abspath(curdir),
                                          site_packages_dir)
-
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)

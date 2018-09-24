@@ -22,4 +22,5 @@ class LibpqRecipe(Recipe):
             shprint(sh.cp, '-a', 'src/interfaces/libpq/libpq.a',
                     self.ctx.get_libs_dir(arch.arch))
 
+
 recipe = LibpqRecipe()

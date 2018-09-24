@@ -1,0 +1,13 @@
+diff --git a/src/PIL/__init__.py b/src/PIL/__init__.py
+index a07280e..6b9fe99 100644
+--- a/src/PIL/__init__.py
++++ b/src/PIL/__init__.py
+@@ -24,7 +24,7 @@ PILLOW_VERSION = __version__ = _version.__version__
+ 
+ del _version
+ 
+-__doc__ = __doc__.format(__version__)  # include version in docstring
++__doc__ = ''
+ 
+ 
+ _plugins = ['BlpImagePlugin',

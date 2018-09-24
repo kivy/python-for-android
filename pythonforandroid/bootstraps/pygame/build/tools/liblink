@@ -6,8 +6,8 @@ import subprocess
 from os import environ
 from os.path import basename, join
 
-libs = [ ]
-objects = [ ]
+libs = []
+objects = []
 output = None
 
 
