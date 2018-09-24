@@ -1,0 +1,32 @@
+--- Python-2.7.2.orig/Modules/pwdmodule.c	2018-09-24 15:49:14.053368267 +0200
++++ Python-2.7.2/Modules/pwdmodule.c	2018-09-24 16:28:09.083420986 +0200
+@@ -146,27 +146,8 @@
+ static PyObject *
+ pwd_getpwall(PyObject *self)
+ {
+-    PyObject *d;
+-    struct passwd *p;
+-    if ((d = PyList_New(0)) == NULL)
+-        return NULL;
+-#if defined(PYOS_OS2) && defined(PYCC_GCC)
+-    if ((p = getpwuid(0)) != NULL) {
+-#else
+-    setpwent();
+-    while ((p = getpwent()) != NULL) {
+-#endif
+-        PyObject *v = mkpwent(p);
+-        if (v == NULL || PyList_Append(d, v) != 0) {
+-            Py_XDECREF(v);
+-            Py_DECREF(d);
+-            endpwent();
+-            return NULL;
+-        }
+-        Py_DECREF(v);
+-    }
+-    endpwent();
+-    return d;
++    PyErr_SetString(PyExc_NotImplementedError, "getpwall not implemented for this build");
++    return NULL;
+ }
+ #endif
+ 
