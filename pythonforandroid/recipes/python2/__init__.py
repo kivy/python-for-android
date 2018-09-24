@@ -30,6 +30,8 @@ class Python2Recipe(TargetPythonRecipe):
                'patches/fix-dlfcn.patch',
                'patches/parsetuple.patch',
                'patches/ctypes-find-library-updated.patch',
+               'patches/disable-ctermid.patch',
+               'patches/disable-getpwall.patch',
                ('patches/fix-configure-darwin.patch', is_darwin),
                ('patches/fix-distutils-darwin.patch', is_darwin),
                ('patches/fix-ftime-removal.patch', is_api_gt(19)),
