@@ -3,9 +3,19 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
     name = 'cryptography'
-    version = '1.3'
+    version = '2.3.1'
     url = 'https://github.com/pyca/cryptography/archive/{version}.tar.gz'
-    depends = [('python2', 'python3crystax'), 'openssl', 'idna', 'pyasn1', 'six', 'setuptools', 'enum34', 'ipaddress', 'cffi']
+
+    # install requires
+    #   * six
+    #   * cffi
+    #   * idna
+    #   * asn1crypto
+    # py 2 additional install requires, define manually if you want to install in python 2
+    #   * enum34
+    #   * ipaddress
+    depends = [('python2', 'python3crystax'), 'openssl', 'setuptools', 'six', 'cffi', 'idna', 'asn1crypto']
+
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
@@ -17,6 +27,7 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += ' -L' + openssl_dir + \
                           ' -lssl' + r.version + \
                           ' -lcrypto' + r.version
+        env['CFLAGS'] += ' -I{}/include'.format(openssl_dir)
         return env
 
 

@@ -5,7 +5,7 @@ import sh
 
 
 class OpenSSLRecipe(Recipe):
-    version = '1.0.2h'
+    version = '1.0.2p'
     url = 'https://www.openssl.org/source/openssl-{version}.tar.gz'
 
     def should_build(self, arch):

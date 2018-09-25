@@ -85,7 +85,6 @@ class Python2Recipe(TargetPythonRecipe):
             env['HOSTARCH'] = 'arm-eabi'
             env['BUILDARCH'] = shprint(sh.gcc, '-dumpmachine').stdout.decode('utf-8').split('\n')[0]
             env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DNO_MALLINFO'])
-            # env['CFLAGS'] = ' '.join([env['CFLAGS'], '-DHAVE_GETSID=0'])
 
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
