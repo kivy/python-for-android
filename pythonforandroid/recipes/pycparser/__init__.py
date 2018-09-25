@@ -3,7 +3,7 @@ from pythonforandroid.recipe import PythonRecipe
 
 class PycparserRecipe(PythonRecipe):
     name = 'pycparser'
-    version = '2.14'
+    version = '2.18'
     url = 'https://pypi.python.org/packages/source/p/pycparser/pycparser-{version}.tar.gz'
 
     depends = [('python2', 'python3crystax'), 'setuptools']
