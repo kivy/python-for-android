@@ -10,13 +10,15 @@ ctx = Context()
 
 name_sets = [['python2'],
              ['kivy']]
+# TODO sdl2 -> common (for now)
 bootstraps = [None,
               Bootstrap.get_bootstrap('pygame', ctx),
-              Bootstrap.get_bootstrap('sdl2', ctx)]
+              Bootstrap.get_bootstrap('common', ctx)]
 valid_combinations = list(product(name_sets, bootstraps))
+# TODO sdl2 -> common (for now)
 valid_combinations.extend(
-    [(['python3crystax'], Bootstrap.get_bootstrap('sdl2', ctx)),
-     (['kivy', 'python3crystax'], Bootstrap.get_bootstrap('sdl2', ctx))])
+    [(['python3crystax'], Bootstrap.get_bootstrap('common', ctx)),
+     (['kivy', 'python3crystax'], Bootstrap.get_bootstrap('common', ctx))])
 invalid_combinations = [[['python2', 'python3crystax'], None]]
 
 
@@ -45,4 +47,4 @@ def test_bootstrap_dependency_addition2():
 
 if __name__ == "__main__":
     get_recipe_order_and_bootstrap(ctx, ['python3'],
-                                   Bootstrap.get_bootstrap('sdl2', ctx))
+                                   Bootstrap.get_bootstrap('common', ctx))
