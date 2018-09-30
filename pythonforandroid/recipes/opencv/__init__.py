@@ -34,16 +34,17 @@ class OpenCVRecipe(NDKRecipe):
             lib_dir = os.path.join(self.ctx.get_python_install_dir(), "lib")
 
             shprint(sh.cmake,
-                '-DP4A=ON', '-DANDROID_ABI={}'.format(arch.arch),
-                '-DCMAKE_TOOLCHAIN_FILE={}/platforms/android/android.toolchain.cmake'.format(cvsrc),
-                '-DPYTHON_INCLUDE_PATH={}/include/python2.7'.format(env['PYTHON_ROOT']),
-                '-DPYTHON_LIBRARY={}/lib/libpython2.7.so'.format(env['PYTHON_ROOT']),
-                '-DPYTHON_NUMPY_INCLUDE_DIR={}/numpy/core/include'.format(env['SITEPACKAGES_PATH']),
-                '-DANDROID_EXECUTABLE={}/tools/android'.format(env['ANDROID_SDK']),
-                '-DBUILD_TESTS=OFF', '-DBUILD_PERF_TESTS=OFF', '-DBUILD_EXAMPLES=OFF', '-DBUILD_ANDROID_EXAMPLES=OFF',
-                '-DPYTHON_PACKAGES_PATH={}'.format(env['SITEPACKAGES_PATH']),
-                cvsrc,
-            _env=env)
+                    '-DP4A=ON', '-DANDROID_ABI={}'.format(arch.arch),
+                    '-DCMAKE_TOOLCHAIN_FILE={}/platforms/android/android.toolchain.cmake'.format(cvsrc),
+                    '-DPYTHON_INCLUDE_PATH={}/include/python2.7'.format(env['PYTHON_ROOT']),
+                    '-DPYTHON_LIBRARY={}/lib/libpython2.7.so'.format(env['PYTHON_ROOT']),
+                    '-DPYTHON_NUMPY_INCLUDE_DIR={}/numpy/core/include'.format(env['SITEPACKAGES_PATH']),
+                    '-DANDROID_EXECUTABLE={}/tools/android'.format(env['ANDROID_SDK']),
+                    '-DBUILD_TESTS=OFF', '-DBUILD_PERF_TESTS=OFF',
+                    '-DBUILD_EXAMPLES=OFF', '-DBUILD_ANDROID_EXAMPLES=OFF',
+                    '-DPYTHON_PACKAGES_PATH={}'.format(env['SITEPACKAGES_PATH']),
+                    cvsrc,
+                    _env=env)
             shprint(sh.make, '-j', str(cpu_count()), 'opencv_python')
             shprint(sh.cmake, '-DCOMPONENT=python', '-P', './cmake_install.cmake')
             sh.cp('-a', sh.glob('./lib/{}/lib*.so'.format(arch.arch)), lib_dir)

@@ -133,10 +133,10 @@ def make_pythonzip():
         fn = realpath(fn)
         assert(fn.startswith(d))
         fn = fn[len(d):]
-        if (fn.startswith('/site-packages/') or
-            fn.startswith('/config/') or
-            fn.startswith('/lib-dynload/') or
-            fn.startswith('/libpymodules.so')):
+        if (fn.startswith('/site-packages/')
+                or fn.startswith('/config/')
+                or fn.startswith('/lib-dynload/')
+                or fn.startswith('/libpymodules.so')):
             return False
         return fn
 

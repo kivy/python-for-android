@@ -23,14 +23,19 @@ class Context(object):
     will be instantiated and used to hold all the build state.'''
 
     env = environ.copy()
-    root_dir = None     # the filepath of toolchain.py
-    storage_dir = None  # the root dir where builds and dists will be stored
+    # the filepath of toolchain.py
+    root_dir = None
+    # the root dir where builds and dists will be stored
+    storage_dir = None
 
-    build_dir = None  # in which bootstraps are copied for building
-                      # and recipes are built
-    dist_dir = None  # the Android project folder where everything ends up
-    libs_dir = None  # where Android libs are cached after build but
-                     # before being placed in dists
+    # in which bootstraps are copied for building
+    # and recipes are built
+    build_dir = None
+    # the Android project folder where everything ends up
+    dist_dir = None
+    # where Android libs are cached after build
+    # but before being placed in dists
+    libs_dir = None
     aars_dir = None
 
     ccache = None  # whether to use ccache
@@ -178,12 +183,14 @@ class Context(object):
         sdk_dir = None
         if user_sdk_dir:
             sdk_dir = user_sdk_dir
-        if sdk_dir is None:  # This is the old P4A-specific var
+        # This is the old P4A-specific var
+        if sdk_dir is None:
             sdk_dir = environ.get('ANDROIDSDK', None)
-        if sdk_dir is None:  # This seems used more conventionally
+        # This seems used more conventionally
+        if sdk_dir is None:
             sdk_dir = environ.get('ANDROID_HOME', None)
-        if sdk_dir is None:  # Checks in the buildozer SDK dir, useful
-                             # for debug tests of p4a
+        # Checks in the buildozer SDK dir, useful for debug tests of p4a
+        if sdk_dir is None:
             possible_dirs = glob.glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
             possible_dirs = [d for d in possible_dirs if not
@@ -842,8 +849,8 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=[], env=None):
                         if needso:
                             lib = needso.group(1)
                             if (lib not in needed_libs
-                                and lib not in found_libs
-                                and lib not in blacklist_libs):
+                                    and lib not in found_libs
+                                    and lib not in blacklist_libs):
                                 needed_libs.append(needso.group(1))
 
                 sofiles += found_sofiles

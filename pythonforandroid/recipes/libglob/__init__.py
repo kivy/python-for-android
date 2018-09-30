@@ -38,10 +38,10 @@ class LibGlobRecipe(CompiledComponentsPythonRecipe):
     def build_arch(self, arch):
         """simple shared compile"""
         env = self.get_recipe_env(arch, with_flags_in_cc=False)
-        for path in (self.get_build_dir(arch.arch),
-            join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Lib'),
-            join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include'),
-                    ):
+        for path in (
+                self.get_build_dir(arch.arch),
+                join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Lib'),
+                join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include')):
             if not exists(path):
                 info("creating {}".format(path))
                 shprint(sh.mkdir, '-p', path)
