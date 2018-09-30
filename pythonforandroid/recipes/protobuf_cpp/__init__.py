@@ -29,16 +29,17 @@ class ProtobufCppRecipe(PythonRecipe):
                 shprint(sh.Command('./autogen.sh'), _env=env)
 
             shprint(sh.Command('./configure'),
-                                '--host={}'.format(env['HOSTARCH']),
-                                '--enable-shared',
-                                _env=env)
+                    '--host={}'.format(env['HOSTARCH']),
+                    '--enable-shared',
+                    _env=env)
 
             with current_directory(join(self.get_build_dir(arch.arch), 'src')):
                 shprint(sh.make, 'libprotobuf.la', '-j'+str(cpu_count()), _env=env)
                 shprint(sh.cp, '.libs/libprotobuf.a', join(self.ctx.get_libs_dir(arch.arch), 'libprotobuf.a'))
 
-        # Copy stl library
-                shutil.copyfile(self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + '/libgnustl_shared.so',
+                # Copy stl library
+                shutil.copyfile(
+                    self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + '/libgnustl_shared.so',
                     join(self.ctx.get_libs_dir(arch.arch), 'libgnustl_shared.so'))
 
         # Build python bindings and _message.so
@@ -87,16 +88,22 @@ class ProtobufCppRecipe(PythonRecipe):
         env['PROTOC'] = '/home/fipo/soft/protobuf-3.1.0/src/protoc'
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['TARGET_OS'] = 'OS_ANDROID_CROSSCOMPILE'
-        env['CFLAGS'] += ' -I' + self.ctx.ndk_dir + '/platforms/android-' + str(
-            self.ctx.android_api) + '/arch-' + arch.arch.replace('eabi', '') + '/usr/include' + \
-                         ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/include' + \
-                         ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + '/include' + \
-                         ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
+        env['CFLAGS'] += (
+            ' -I' + self.ctx.ndk_dir + '/platforms/android-' +
+            str(self.ctx.android_api) +
+            '/arch-' + arch.arch.replace('eabi', '') + '/usr/include' +
+            ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' +
+            self.ctx.toolchain_version + '/include' +
+            ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' +
+            self.ctx.toolchain_version + '/libs/' + arch.arch + '/include' +
+            ' -I' + env['PYTHON_ROOT'] + '/include/python2.7')
         env['CXXFLAGS'] = env['CFLAGS']
         env['CXXFLAGS'] += ' -frtti'
         env['CXXFLAGS'] += ' -fexceptions'
-        env['LDFLAGS'] += ' -L' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version + '/libs/' + arch.arch + \
-                          ' -lgnustl_shared -lpython2.7'
+        env['LDFLAGS'] += (
+            ' -L' + self.ctx.ndk_dir +
+            '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version +
+            '/libs/' + arch.arch + ' -lgnustl_shared -lpython2.7')
 
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         return env
