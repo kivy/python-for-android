@@ -651,8 +651,8 @@ class HelpFormatter(object):
 
     def _fill_text(self, text, width, indent):
         text = self._whitespace_matcher.sub(' ', text).strip()
-        return _textwrap.fill(text, width, initial_indent=indent,
-                                           subsequent_indent=indent)
+        return _textwrap.fill(
+            text, width, initial_indent=indent, subsequent_indent=indent)
 
     def _get_help_string(self, action):
         return action.help
@@ -2070,8 +2070,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
 
         # if multiple actions match, the option string was ambiguous
         if len(option_tuples) > 1:
-            options = ', '.join([option_string
-                for action, option_string, explicit_arg in option_tuples])
+            options = ', '.join(
+                    [option_string for action, option_string, explicit_arg in option_tuples])
             tup = arg_string, options
             self.error(_('ambiguous option: %s could match %s') % tup)
 

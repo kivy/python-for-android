@@ -31,10 +31,8 @@ class Hostpython2Recipe(Recipe):
 
             if exists('hostpython'):
                 info('hostpython already exists, skipping build')
-                self.ctx.hostpython = join(self.get_build_dir(),
-                                           'hostpython')
-                self.ctx.hostpgen = join(self.get_build_dir(),
-                                           'hostpgen')
+                self.ctx.hostpython = join(self.get_build_dir(), 'hostpython')
+                self.ctx.hostpgen = join(self.get_build_dir(), 'hostpgen')
                 return
 
             if 'LIBS' in os.environ:
