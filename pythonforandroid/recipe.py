@@ -952,7 +952,7 @@ class CythonRecipe(PythonRecipe):
     def __init__(self, *args, **kwargs):
         super(CythonRecipe, self).__init__(*args, **kwargs)
         depends = self.depends
-        depends.append(('python2', 'python3crystax'))
+        depends.append(('python2', 'python3', 'python3crystax'))
         depends = list(set(depends))
         self.depends = depends
 
