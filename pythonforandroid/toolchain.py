@@ -747,12 +747,14 @@ class ToolchainCL(object):
                 env['P4A_RELEASE_KEYALIAS_PASSWD'] = args.keystorepw
 
         build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
+        print('now')
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
             os.environ["ANDROID_API"] = str(self.ctx.android_api)
             build_args = build.parse_args(args.unknown_args)
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
+            print('foo')
 
             build_type = ctx.java_build_tool
             if build_type == 'auto':
