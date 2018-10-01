@@ -27,11 +27,11 @@ class VorbisRecipe(NDKRecipe):
             configure = sh.Command('./configure')
             shprint(configure, *flags, _env=env)
             shprint(sh.make, _env=env)
-            self.install_libs(arch,
+            self.install_libs(
+                arch,
                 join('lib', '.libs', 'libvorbis.so'),
                 join('lib', '.libs', 'libvorbisfile.so'),
-                join('lib', '.libs', 'libvorbisenc.so')
-            )
+                join('lib', '.libs', 'libvorbisenc.so'))
 
 
 recipe = VorbisRecipe()

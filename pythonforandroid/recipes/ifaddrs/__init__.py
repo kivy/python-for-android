@@ -18,10 +18,9 @@ class IFAddrRecipe(CompiledComponentsPythonRecipe):
 
     def should_build(self, arch):
         """It's faster to build than check"""
-        return not (exists(join(self.ctx.libs_dir, arch.arch, 'libifaddrs.so'))
-                    and exists(join(self.ctx.get_python_install_dir(), 'lib'
-                        "libifaddrs.so"))
-                    )
+        return not (
+            exists(join(self.ctx.libs_dir, arch.arch, 'libifaddrs.so'))
+            and exists(join(self.ctx.get_python_install_dir(), 'lib' "libifaddrs.so")))
 
     def prebuild_arch(self, arch):
         """Make the build and target directories"""
@@ -33,10 +32,10 @@ class IFAddrRecipe(CompiledComponentsPythonRecipe):
     def build_arch(self, arch):
         """simple shared compile"""
         env = self.get_recipe_env(arch, with_flags_in_cc=False)
-        for path in (self.get_build_dir(arch.arch),
-            join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Lib'),
-            join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include'),
-                    ):
+        for path in (
+                self.get_build_dir(arch.arch),
+                join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Lib'),
+                join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include')):
             if not exists(path):
                 info("creating {}".format(path))
                 shprint(sh.mkdir, '-p', path)
@@ -56,12 +55,12 @@ class IFAddrRecipe(CompiledComponentsPythonRecipe):
             shprint(sh.cp, 'libifaddrs.so', self.ctx.get_libs_dir(arch.arch))
             shprint(sh.cp, "libifaddrs.so", join(self.ctx.get_python_install_dir(), 'lib'))
             # drop header in to the Python include directory
-            shprint(sh.cp, "ifaddrs.h", join(self.ctx.get_python_install_dir(),
-                                          'include/python{}'.format(
-                                              self.ctx.python_recipe.version[0:3]
-                                          )
-                                         )
-                   )
+            python_version = self.ctx.python_recipe.version[0:3]
+            shprint(sh.cp, "ifaddrs.h",
+                    join(
+                        self.ctx.get_python_install_dir(),
+                        'include/python{}'.format(python_version))
+           )
             include_path = join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include')
             shprint(sh.cp, "ifaddrs.h", include_path)
 
