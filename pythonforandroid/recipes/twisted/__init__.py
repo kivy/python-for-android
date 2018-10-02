@@ -5,6 +5,7 @@ class TwistedRecipe(CythonRecipe):
     version = '17.9.0'
     url = 'https://github.com/twisted/twisted/archive/twisted-{version}.tar.gz'
 
+    # in order to use TLS in twisted, you need to depend on service_identity
     depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']
 
     call_hostpython_via_targetpython = False
