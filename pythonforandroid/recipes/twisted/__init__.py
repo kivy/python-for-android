@@ -6,9 +6,10 @@ class TwistedRecipe(CythonRecipe):
     url = 'https://github.com/twisted/twisted/archive/twisted-{version}.tar.gz'
 
     depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']
+    patches = ['incremental.patch']
 
     call_hostpython_via_targetpython = False
-    install_in_hostpython = True
+    install_in_hostpython = False
 
     def prebuild_arch(self, arch):
         super(TwistedRecipe, self).prebuild_arch(arch)

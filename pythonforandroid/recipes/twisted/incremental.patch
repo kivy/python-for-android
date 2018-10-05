@@ -1,0 +1,18 @@
+diff -Naur twisted-twisted-17.9.0/src/twisted/python/_setup.py twisted-twisted-17.9.0_patched/src/twisted/python/_setup.py
+--- twisted-twisted-17.9.0/src/twisted/python/_setup.py	2017-09-23 07:56:08.000000000 +0200
++++ twisted-twisted-17.9.0_patched/src/twisted/python/_setup.py	2018-10-05 11:06:23.305860722 +0200
+@@ -227,14 +227,11 @@
+         requirements = ["zope.interface >= 3.6.0"]
+ 
+     requirements.append("constantly >= 15.1")
+-    requirements.append("incremental >= 16.10.1")
+     requirements.append("Automat >= 0.3.0")
+     requirements.append("hyperlink >= 17.1.1")
+ 
+     arguments.update(dict(
+         packages=find_packages("src"),
+-        use_incremental=True,
+-        setup_requires=["incremental >= 16.10.1"],
+         install_requires=requirements,
+         entry_points={
+             'console_scripts': _CONSOLE_SCRIPTS
