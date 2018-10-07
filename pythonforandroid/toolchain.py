@@ -71,7 +71,6 @@ import os
 import glob
 import shutil
 import re
-import imp
 import shlex
 from functools import wraps
 
@@ -125,12 +124,11 @@ def add_boolean_option(parser, names, no_names=None,
 
 
 def require_prebuilt_dist(func):
-    '''Decorator for ToolchainCL methods. If present, the method will
+    """Decorator for ToolchainCL methods. If present, the method will
     automatically make sure a dist has been built before continuing
     or, if no dists are present or can be obtained, will raise an
     error.
-
-    '''
+    """
 
     @wraps(func)
     def wrapper_func(self, args):
@@ -150,9 +148,9 @@ def require_prebuilt_dist(func):
 
 
 def dist_from_args(ctx, args):
-    '''Parses out any distribution-related arguments, and uses them to
+    """Parses out any distribution-related arguments, and uses them to
     obtain a Distribution class instance for the build.
-    '''
+    """
     return Distribution.get_distribution(
         ctx,
         name=args.dist_name,
@@ -161,8 +159,8 @@ def dist_from_args(ctx, args):
 
 
 def build_dist_from_args(ctx, dist, args):
-    '''Parses out any bootstrap related arguments, and uses them to build
-    a dist.'''
+    """Parses out any bootstrap related arguments, and uses them to build
+    a dist."""
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
     build_order, python_modules, bs \
         = get_recipe_order_and_bootstrap(ctx, dist.recipes, bs)
@@ -204,13 +202,13 @@ def split_argument_list(l):
 
 
 class NoAbbrevParser(argparse.ArgumentParser):
-    '''We want to disable argument abbreviation so as not to interfere
+    """We want to disable argument abbreviation so as not to interfere
     with passing through arguments to build.py, but in python2 argparse
     doesn't have this option.
 
     This subclass alternative is follows the suggestion at
     https://bugs.python.org/issue14910.
-    '''
+    """
     def _get_option_tuples(self, option_string):
         return []
 
@@ -225,24 +223,22 @@ class ToolchainCL(object):
         # This fix will be removed once a fixed buildozer is released
         if (len(argv) > 2 and
             argv[1].startswith('--color') and
-            argv[2].startswith('--storage-dir')):
+                argv[2].startswith('--storage-dir')):
             argv.append(argv.pop(1))  # the --color arg
             argv.append(argv.pop(1))  # the --storage-dir arg
 
         parser = NoAbbrevParser(
-            description=('A packaging tool for turning Python scripts and apps '
-                         'into Android APKs'))
+            description='A packaging tool for turning Python scripts and apps '
+                        'into Android APKs')
 
         generic_parser = argparse.ArgumentParser(
             add_help=False,
-            description=('Generic arguments applied to all commands'))
-        dist_parser = argparse.ArgumentParser(
-            add_help=False,
-            description=('Arguments for dist building'))
+            description='Generic arguments applied to all commands')
+        argparse.ArgumentParser(
+            add_help=False, description='Arguments for dist building')
 
         generic_parser.add_argument(
-            '--debug', dest='debug', action='store_true',
-            default=False,
+            '--debug', dest='debug', action='store_true', default=False,
             help='Display debug output and all build info')
         generic_parser.add_argument(
             '--color', dest='color', choices=['always', 'never', 'auto'],
@@ -254,40 +250,35 @@ class ToolchainCL(object):
             '--ndk-dir', '--ndk_dir', dest='ndk_dir', default='',
             help='The filepath where the Android NDK is installed')
         generic_parser.add_argument(
-            '--android-api', '--android_api', dest='android_api', default=0, type=int,
-            help='The Android API level to build against.')
+            '--android-api', '--android_api', dest='android_api', default=0,
+            type=int, help='The Android API level to build against.')
         generic_parser.add_argument(
             '--ndk-version', '--ndk_version', dest='ndk_version', default='',
-            help=('The version of the Android NDK. This is optional, '
+            help=('The version of the Android NDK. This is optional: '
                   'we try to work it out automatically from the ndk_dir.'))
         generic_parser.add_argument(
-            '--symlink-java-src', '--symlink_java_src',
-            action='store_true',
-            dest='symlink_java_src',
-            default=False,
+            '--symlink-java-src', '--symlink_java_src', action='store_true',
+            dest='symlink_java_src', default=False,
             help=('If True, symlinks the java src folder during build and dist '
-                  'creation. This is useful for development only, it could also '
-                  'cause weird problems.'))
+                  'creation. This is useful for development only, it could also'
+                  ' cause weird problems.'))
 
         default_storage_dir = user_data_dir('python-for-android')
         if ' ' in default_storage_dir:
             default_storage_dir = '~/.python-for-android'
         generic_parser.add_argument(
-            '--storage-dir', dest='storage_dir',
-            default=default_storage_dir,
+            '--storage-dir', dest='storage_dir', default=default_storage_dir,
             help=('Primary storage directory for downloads and builds '
                   '(default: {})'.format(default_storage_dir)))
 
         generic_parser.add_argument(
-            '--arch',
-            help='The archs to build for, separated by commas.',
+            '--arch', help='The archs to build for, separated by commas.',
             default='armeabi')
 
         # Options for specifying the Distribution
         generic_parser.add_argument(
             '--dist-name', '--dist_name',
-            help='The name of the distribution to use or create',
-            default='')
+            help='The name of the distribution to use or create', default='')
 
         generic_parser.add_argument(
             '--requirements',
@@ -297,18 +288,19 @@ class ToolchainCL(object):
 
         generic_parser.add_argument(
             '--bootstrap',
-            help='The bootstrap to build with. Leave unset to choose automatically.',
+            help='The bootstrap to build with. Leave unset to choose '
+                 'automatically.',
             default=None)
 
         generic_parser.add_argument(
             '--hook',
-            help='Filename to a module that contain python-for-android hooks',
+            help='Filename to a module that contains python-for-android hooks',
             default=None)
 
         add_boolean_option(
             generic_parser, ["force-build"],
             default=False,
-            description='Whether to force compilation of a new distribution:')
+            description='Whether to force compilation of a new distribution')
 
         add_boolean_option(
             generic_parser, ["require-perfect-match"],
@@ -331,7 +323,8 @@ class ToolchainCL(object):
         add_boolean_option(
             generic_parser, ['copy-libs'],
             default=False,
-            description='Copy libraries instead of using biglink (Android 4.3+)')
+            description='Copy libraries instead of using biglink (Android 4.3+)'
+        )
 
         self._read_configuration()
 
@@ -339,44 +332,44 @@ class ToolchainCL(object):
                                            help='The command to run')
 
         def add_parser(subparsers, *args, **kwargs):
-            '''
+            """
             argparse in python2 doesn't support the aliases option,
             so we just don't provide the aliases there.
-            '''
+            """
             if 'aliases' in kwargs and sys.version_info.major < 3:
                 kwargs.pop('aliases')
             return subparsers.add_parser(*args, **kwargs)
 
-        parser_recipes = add_parser(subparsers,
-            'recipes',
+        parser_recipes = add_parser(
+            subparsers, 'recipes',
             parents=[generic_parser],
             help='List the available recipes')
         parser_recipes.add_argument(
-                "--compact", action="store_true", default=False,
-                help="Produce a compact list suitable for scripting")
-
-        parser_bootstraps = add_parser(
+            "--compact",
+            action="store_true", default=False,
+            help="Produce a compact list suitable for scripting")
+        add_parser(
             subparsers, 'bootstraps',
             help='List the available bootstraps',
             parents=[generic_parser])
-        parser_clean_all = add_parser(
+        add_parser(
             subparsers, 'clean_all',
             aliases=['clean-all'],
             help='Delete all builds, dists and caches',
             parents=[generic_parser])
-        parser_clean_dists = add_parser(
-            subparsers,
-            'clean_dists', aliases=['clean-dists'],
+        add_parser(
+            subparsers, 'clean_dists',
+            aliases=['clean-dists'],
             help='Delete all dists',
             parents=[generic_parser])
-        parser_clean_bootstrap_builds = add_parser(
-            subparsers,
-            'clean_bootstrap_builds', aliases=['clean-bootstrap-builds'],
+        add_parser(
+            subparsers, 'clean_bootstrap_builds',
+            aliases=['clean-bootstrap-builds'],
             help='Delete all bootstrap builds',
             parents=[generic_parser])
-        parser_clean_builds = add_parser(
-            subparsers,
-            'clean_builds', aliases=['clean-builds'],
+        add_parser(
+            subparsers, 'clean_builds',
+            aliases=['clean-builds'],
             help='Delete all builds',
             parents=[generic_parser])
 
@@ -389,83 +382,112 @@ class ToolchainCL(object):
                   'number of arguments from "all", "builds", "dists", '
                   '"distributions", "bootstrap_builds", "downloads".'))
 
-        parser_clean_recipe_build = add_parser(subparsers,
-            'clean_recipe_build', aliases=['clean-recipe-build'],
+        parser_clean_recipe_build = add_parser(
+            subparsers, 'clean_recipe_build',
+            aliases=['clean-recipe-build'],
             help=('Delete the build components of the given recipe. '
                   'By default this will also delete built dists'),
             parents=[generic_parser])
         parser_clean_recipe_build.add_argument('recipe', help='The recipe name')
-        parser_clean_recipe_build.add_argument('--no-clean-dists', default=False,
-                                               dest='no_clean_dists',
-                                               action='store_true',
-                                               help='If passed, do not delete existing dists')
+        parser_clean_recipe_build.add_argument(
+            '--no-clean-dists',
+            default=False,
+            dest='no_clean_dists',
+            action='store_true',
+            help='If passed, do not delete existing dists')
 
-        parser_clean_download_cache= add_parser(subparsers,
-            'clean_download_cache', aliases=['clean-download-cache'],
+        parser_clean_download_cache = add_parser(
+            subparsers, 'clean_download_cache',
+            aliases=['clean-download-cache'],
             help='Delete cached downloads for requirement builds',
             parents=[generic_parser])
         parser_clean_download_cache.add_argument(
-            'recipes', nargs='*',
-            help=('The recipes to clean (space-separated). If no recipe name is '
-                  'provided, the entire cache is cleared.'))
+            'recipes',
+            nargs='*',
+            help='The recipes to clean (space-separated). If no recipe name is'
+                  ' provided, the entire cache is cleared.')
 
-        parser_export_dist = add_parser(subparsers,
-            'export_dist', aliases=['export-dist'],
+        parser_export_dist = add_parser(
+            subparsers, 'export_dist',
+            aliases=['export-dist'],
             help='Copy the named dist to the given path',
             parents=[generic_parser])
-        parser_export_dist.add_argument('output_dir', help=('The output dir to copy to'))
-        parser_export_dist.add_argument('--symlink', action='store_true',
-                                        help=('Symlink the dist instead of copying'))
+        parser_export_dist.add_argument('output_dir',
+                                        help='The output dir to copy to')
+        parser_export_dist.add_argument(
+            '--symlink',
+            action='store_true',
+            help='Symlink the dist instead of copying')
 
-        parser_apk = add_parser(subparsers,
-            'apk', help='Build an APK',
+        parser_apk = add_parser(
+            subparsers, 'apk',
+            help='Build an APK',
             parents=[generic_parser])
-        parser_apk.add_argument('--release', dest='build_mode', action='store_const',
-                        const='release', default='debug',
-                        help='Build the PARSER_APK. in Release mode')
-        parser_apk.add_argument('--keystore', dest='keystore', action='store', default=None,
-                        help=('Keystore for JAR signing key, will use jarsigner '
-                              'default if not specified (release build only)'))
-        parser_apk.add_argument('--signkey', dest='signkey', action='store', default=None,
-                        help='Key alias to sign PARSER_APK. with (release build only)')
-        parser_apk.add_argument('--keystorepw', dest='keystorepw', action='store', default=None,
-                        help='Password for keystore')
-        parser_apk.add_argument('--signkeypw', dest='signkeypw', action='store', default=None,
-                        help='Password for key alias')
+        parser_apk.add_argument(
+            '--release',
+            dest='build_mode', action='store_const',
+            const='release', default='debug',
+            help='Build the PARSER_APK. in Release mode')
+        parser_apk.add_argument(
+            '--keystore',
+            dest='keystore', action='store', default=None,
+            help='Keystore for JAR signing key, will use jarsigner '
+                 'by default if not specified (release build only)')
+        parser_apk.add_argument(
+            '--signkey',
+            dest='signkey', action='store', default=None,
+            help='Key alias to sign PARSER_APK. with (release build only)')
+        parser_apk.add_argument(
+            '--keystorepw',
+            dest='keystorepw', action='store', default=None,
+            help='Password for keystore')
+        parser_apk.add_argument(
+            '--signkeypw',
+            dest='signkeypw', action='store', default=None,
+            help='Password for key alias')
 
-        parser_create = add_parser(subparsers,
-            'create', help='Compile a set of requirements into a dist',
+        add_parser(
+            subparsers, 'create',
+            help='Compile a set of requirements into a dist',
             parents=[generic_parser])
-        parser_archs = add_parser(subparsers,
-            'archs', help='List the available target architectures',
+        add_parser(
+            subparsers, 'archs',
+            help='List the available target architectures',
             parents=[generic_parser])
-        parser_distributions = add_parser(subparsers,
-            'distributions', aliases=['dists'],
+        add_parser(
+            subparsers, 'distributions',
+            aliases=['dists'],
             help='List the currently available (compiled) dists',
             parents=[generic_parser])
-        parser_delete_dist = add_parser(subparsers,
-            'delete_dist', aliases=['delete-dist'], help='Delete a compiled dist',
+        add_parser(
+            subparsers, 'delete_dist',
+            aliases=['delete-dist'], help='Delete a compiled dist',
             parents=[generic_parser])
 
-        parser_sdk_tools = add_parser(subparsers,
-            'sdk_tools', aliases=['sdk-tools'],
-            help='Run the given binary from the SDK tools dis',
+        parser_sdk_tools = add_parser(
+            subparsers, 'sdk_tools',
+            aliases=['sdk-tools'],
+            help='Run the given binary from the SDK tools dist',
             parents=[generic_parser])
         parser_sdk_tools.add_argument(
-            'tool', help=('The tool binary name to run'))
+            'tool', help='The binary tool name to run')
 
-        parser_adb = add_parser(subparsers,
-            'adb', help='Run adb from the given SDK',
+        add_parser(
+            subparsers, 'adb',
+            help='Run adb from the given SDK',
             parents=[generic_parser])
-        parser_logcat = add_parser(subparsers,
-            'logcat', help='Run logcat from the given SDK',
+        add_parser(
+            subparsers, 'logcat',
+            help='Run logcat from the given SDK',
             parents=[generic_parser])
-        parser_build_status = add_parser(subparsers,
-            'build_status', aliases=['build-status'],
+        add_parser(
+            subparsers, 'build_status',
+            aliases=['build-status'],
             help='Print some debug information about current built components',
             parents=[generic_parser])
 
-        parser.add_argument('-v', '--version', action='version', version=__version__)
+        parser.add_argument('-v', '--version', action='version',
+                            version=__version__)
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
@@ -516,7 +538,8 @@ class ToolchainCL(object):
             return
         if not hasattr(self, "hook_module"):
             # first time, try to load the hook module
-            self.hook_module = imp.load_source("pythonforandroid.hook", self.args.hook)
+            self.hook_module = imp.load_source("pythonforandroid.hook",
+                                               self.args.hook)
         if hasattr(self.hook_module, name):
             info("Hook: execute {}".format(name))
             getattr(self.hook_module, name)(self)
@@ -530,7 +553,8 @@ class ToolchainCL(object):
             udd = '~/.python-for-android'
         return udd
 
-    def _read_configuration(self):
+    @staticmethod
+    def _read_configuration():
         # search for a .p4a configuration file in the current directory
         if not exists(".p4a"):
             return
@@ -575,8 +599,8 @@ class ToolchainCL(object):
                           '{recipe.opt_depends}{Fore.RESET}'
                           .format(recipe=recipe, Fore=Out_Fore))
 
-    def bootstraps(self, args):
-        '''List all the bootstraps available to build with.'''
+    def bootstraps(self, _args):
+        """List all the bootstraps available to build with."""
         for bs in Bootstrap.list_bootstraps():
             bs = Bootstrap.get_bootstrap(bs, self.ctx)
             print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'
@@ -587,12 +611,13 @@ class ToolchainCL(object):
     def clean(self, args):
         components = args.component
 
-        component_clean_methods = {'all': self.clean_all,
-                                   'dists': self.clean_dists,
-                                   'distributions': self.clean_dists,
-                                   'builds': self.clean_builds,
-                                   'bootstrap_builds': self.clean_bootstrap_builds,
-                                   'downloads': self.clean_download_cache}
+        component_clean_methods = {
+            'all': self.clean_all,
+            'dists': self.clean_dists,
+            'distributions': self.clean_dists,
+            'builds': self.clean_builds,
+            'bootstrap_builds': self.clean_bootstrap_builds,
+            'downloads': self.clean_download_cache}
 
         for component in components:
             if component not in component_clean_methods:
@@ -602,21 +627,21 @@ class ToolchainCL(object):
             component_clean_methods[component](args)
 
     def clean_all(self, args):
-        '''Delete all build components; the package cache, package builds,
-        bootstrap builds and distributions.'''
+        """Delete all build components; the package cache, package builds,
+        bootstrap builds and distributions."""
         self.clean_dists(args)
         self.clean_builds(args)
         self.clean_download_cache(args)
 
-    def clean_dists(self, args):
-        '''Delete all compiled distributions in the internal distribution
-        directory.'''
+    def clean_dists(self, _args):
+        """Delete all compiled distributions in the internal distribution
+        directory."""
         ctx = self.ctx
         if exists(ctx.dist_dir):
             shutil.rmtree(ctx.dist_dir)
 
-    def clean_bootstrap_builds(self, args):
-        '''Delete all the bootstrap builds.'''
+    def clean_bootstrap_builds(self, _args):
+        """Delete all the bootstrap builds."""
         if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
             shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
         # for bs in Bootstrap.list_bootstraps():
@@ -625,17 +650,15 @@ class ToolchainCL(object):
         #         info('Cleaning build for {} bootstrap.'.format(bs.name))
         #         shutil.rmtree(bs.build_dir)
 
-    def clean_builds(self, args):
-        '''Delete all build caches for each recipe, python-install, java code
+    def clean_builds(self, _args):
+        """Delete all build caches for each recipe, python-install, java code
         and compiled libs collection.
 
         This does *not* delete the package download cache or the final
         distributions.  You can also use clean_recipe_build to delete the build
         of a specific recipe.
-        '''
+        """
         ctx = self.ctx
-        # if exists(ctx.dist_dir):
-        #     shutil.rmtree(ctx.dist_dir)
         if exists(ctx.build_dir):
             shutil.rmtree(ctx.build_dir)
         if exists(ctx.python_installs_dir):
@@ -645,14 +668,14 @@ class ToolchainCL(object):
             shutil.rmtree(libs_dir)
 
     def clean_recipe_build(self, args):
-        '''Deletes the build files of the given recipe.
+        """Deletes the build files of the given recipe.
 
-        This is intended for debug purposes, you may experience
-        strange behaviour or problems with some recipes (if their
-        build has done unexpected state changes). If this happens, run
+        This is intended for debug purposes. You may experience
+        strange behaviour or problems with some recipes if their
+        build has made unexpected state changes. If this happens, run
         clean_builds, or attempt to clean other recipes until things
         work again.
-        '''
+        """
         recipe = Recipe.get_recipe(args.recipe, self.ctx)
         info('Cleaning build for {} recipe.'.format(recipe.name))
         recipe.clean_build()
@@ -660,14 +683,13 @@ class ToolchainCL(object):
             self.clean_dists(args)
 
     def clean_download_cache(self, args):
-        '''
-        Deletes a download cache for recipes stated as arguments. If no
-        argument is passed, it'll delete *all* downloaded cache. ::
+        """ Deletes a download cache for recipes passed as arguments. If no
+        argument is passed, it'll delete *all* downloaded caches. ::
 
             p4a clean_download_cache kivy,pyjnius
 
         This does *not* delete the build caches or final distributions.
-        '''
+        """
         ctx = self.ctx
         if hasattr(args, 'recipes') and args.recipes:
             for package in args.recipes:
@@ -676,7 +698,8 @@ class ToolchainCL(object):
                     shutil.rmtree(remove_path)
                     info('Download cache removed for: "{}"'.format(package))
                 else:
-                    warning('No download cache found for "{}", skipping'.format(package))
+                    warning('No download cache found for "{}", skipping'.format(
+                        package))
         else:
             if exists(ctx.packages_path):
                 shutil.rmtree(ctx.packages_path)
@@ -686,12 +709,12 @@ class ToolchainCL(object):
 
     @require_prebuilt_dist
     def export_dist(self, args):
-        '''Copies a created dist to an output dir.
+        """Copies a created dist to an output dir.
 
         This makes it easy to navigate to the dist to investigate it
         or call build.py, though you do not in general need to do this
         and can use the apk command instead.
-        '''
+        """
         ctx = self.ctx
         dist = dist_from_args(ctx, args)
         if dist.needs_build:
@@ -712,7 +735,7 @@ class ToolchainCL(object):
 
     @require_prebuilt_dist
     def apk(self, args):
-        '''Create an APK using the given distribution.'''
+        """Create an APK using the given distribution."""
 
         ctx = self.ctx
         dist = self._dist
@@ -728,8 +751,8 @@ class ToolchainCL(object):
             argx = arg.split('=')
             if argx[0] in fix_args:
                 if len(argx) > 1:
-                    unknown_args[i] = '='.join((argx[0],
-                                        realpath(expanduser(argx[1]))))
+                    unknown_args[i] = '='.join(
+                        (argx[0], realpath(expanduser(argx[1]))))
                 else:
                     unknown_args[i+1] = realpath(expanduser(unknown_args[i+1]))
 
@@ -758,7 +781,8 @@ class ToolchainCL(object):
             if build_type == 'auto':
                 info('Selecting java build tool:')
 
-                build_tools_versions = os.listdir(join(ctx.sdk_dir, 'build-tools'))
+                build_tools_versions = os.listdir(join(ctx.sdk_dir,
+                                                       'build-tools'))
                 build_tools_versions = sorted(build_tools_versions,
                                               key=LooseVersion)
                 build_tools_version = build_tools_versions[-1]
@@ -767,14 +791,17 @@ class ToolchainCL(object):
 
                 if build_tools_version >= '25.0' and exists('gradlew'):
                     build_type = 'gradle'
-                    info('    Building with gradle, as gradle executable is present')
+                    info('    Building with gradle, as gradle executable is '
+                         'present')
                 else:
                     build_type = 'ant'
                     if build_tools_version < '25.0':
                         info(('    Building with ant, as the highest '
-                              'build-tools-version is only {}').format(build_tools_version))
+                              'build-tools-version is only {}').format(
+                            build_tools_version))
                     else:
-                        info('    Building with ant, as no gradle executable detected')
+                        info('    Building with ant, as no gradle executable '
+                             'detected')
 
             if build_type == 'gradle':
                 # gradle-based build
@@ -826,7 +853,7 @@ class ToolchainCL(object):
                 break
 
         if not apk_file:
-            info_main('# APK filename not found in build output, trying to guess')
+            info_main('# APK filename not found in build output. Guessing...')
             if args.build_mode == "release":
                 suffixes = ("release", "release-unsigned")
             else:
@@ -855,25 +882,25 @@ class ToolchainCL(object):
 
     @require_prebuilt_dist
     def create(self, args):
-        '''Create a distribution directory if it doesn't already exist, run
+        """Create a distribution directory if it doesn't already exist, run
         any recipes if necessary, and build the apk.
-        '''
+        """
         pass  # The decorator does everything
 
-    def archs(self, args):
-        '''List the target architectures available to be built for.'''
+    def archs(self, _args):
+        """List the target architectures available to be built for."""
         print('{Style.BRIGHT}Available target architectures are:'
               '{Style.RESET_ALL}'.format(Style=Out_Style))
         for arch in self.ctx.archs:
             print('    {}'.format(arch.arch))
 
     def dists(self, args):
-        '''The same as :meth:`distributions`.'''
+        """The same as :meth:`distributions`."""
         self.distributions(args)
 
-    def distributions(self, args):
-        '''Lists all distributions currently available (i.e. that have already
-        been built).'''
+    def distributions(self, _args):
+        """Lists all distributions currently available (i.e. that have already
+        been built)."""
         ctx = self.ctx
         dists = Distribution.get_distributions(ctx)
 
@@ -885,7 +912,7 @@ class ToolchainCL(object):
             print('{Style.BRIGHT}There are no dists currently built.'
                   '{Style.RESET_ALL}'.format(Style=Out_Style))
 
-    def delete_dist(self, args):
+    def delete_dist(self, _args):
         dist = self._dist
         if dist.needs_build:
             info('No dist exists that matches your specifications, '
@@ -893,12 +920,12 @@ class ToolchainCL(object):
         shutil.rmtree(dist.dist_dir)
 
     def sdk_tools(self, args):
-        '''Runs the android binary from the detected SDK directory, passing
+        """Runs the android binary from the detected SDK directory, passing
         all arguments straight to it. This binary is used to install
         e.g. platform-tools for different API level targets. This is
         intended as a convenience function if android is not in your
         $PATH.
-        '''
+        """
         ctx = self.ctx
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
@@ -912,20 +939,20 @@ class ToolchainCL(object):
             sys.stdout.flush()
 
     def adb(self, args):
-        '''Runs the adb binary from the detected SDK directory, passing all
+        """Runs the adb binary from the detected SDK directory, passing all
         arguments straight to it. This is intended as a convenience
         function if adb is not in your $PATH.
-        '''
+        """
         self._adb(args.unknown_args)
 
     def logcat(self, args):
-        '''Runs ``adb logcat`` using the adb binary from the detected SDK
-        directory. All extra args are passed as arguments to logcat.'''
+        """Runs ``adb logcat`` using the adb binary from the detected SDK
+        directory. All extra args are passed as arguments to logcat."""
         self._adb(['logcat'] + args.unknown_args)
 
     def _adb(self, commands):
-        '''Call the adb executable from the SDK, passing the given commands as
-        arguments.'''
+        """Call the adb executable from the SDK, passing the given commands as
+        arguments."""
         ctx = self.ctx
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
@@ -941,7 +968,8 @@ class ToolchainCL(object):
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def build_status(self, args):
+    def build_status(self, _args):
+        """Print the status of the specified build. """
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
               'already built:{Style.RESET_ALL}'.format(Style=Out_Style))
 
