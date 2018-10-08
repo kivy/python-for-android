@@ -1,0 +1,3 @@
+{%- for abspath, proj in args.extra_source_dirs %}
+include ':{{proj}}'
+{%- endfor %}
