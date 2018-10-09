@@ -136,7 +136,7 @@ def _set_user_options():
     for i, arg in enumerate(sys.argv):
         if arg.startswith('--'):
             if ('=' in arg or
-                (i < (len(sys.argv) - 1) and not sys.argv[i+1].startswith('-'))):
+                    (i < (len(sys.argv) - 1) and not sys.argv[i+1].startswith('-'))):
                 user_options.append((arg[2:].split('=')[0] + '=', None, None))
             else:
                 user_options.append((arg[2:], None, None))

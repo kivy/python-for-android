@@ -221,9 +221,9 @@ class ToolchainCL(object):
         # Buildozer used to pass these arguments in a now-invalid order
         # If that happens, apply this fix
         # This fix will be removed once a fixed buildozer is released
-        if (len(argv) > 2 and
-            argv[1].startswith('--color') and
-                argv[2].startswith('--storage-dir')):
+        if (len(argv) > 2
+                and argv[1].startswith('--color')
+                and argv[2].startswith('--storage-dir')):
             argv.append(argv.pop(1))  # the --color arg
             argv.append(argv.pop(1))  # the --storage-dir arg
 
@@ -341,7 +341,8 @@ class ToolchainCL(object):
             return subparsers.add_parser(*args, **kwargs)
 
         parser_recipes = add_parser(
-            subparsers, 'recipes',
+            subparsers,
+            'recipes',
             parents=[generic_parser],
             help='List the available recipes')
         parser_recipes.add_argument(
@@ -373,9 +374,10 @@ class ToolchainCL(object):
             help='Delete all builds',
             parents=[generic_parser])
 
-        parser_clean = add_parser(subparsers, 'clean',
-                                  help='Delete build components.',
-                                  parents=[generic_parser])
+        parser_clean = add_parser(
+            subparsers, 'clean',
+            help='Delete build components.',
+            parents=[generic_parser])
         parser_clean.add_argument(
             'component', nargs='+',
             help=('The build component(s) to delete. You can pass any '
@@ -383,22 +385,22 @@ class ToolchainCL(object):
                   '"distributions", "bootstrap_builds", "downloads".'))
 
         parser_clean_recipe_build = add_parser(
-            subparsers, 'clean_recipe_build',
-            aliases=['clean-recipe-build'],
+            subparsers,
+            'clean_recipe_build', aliases=['clean-recipe-build'],
             help=('Delete the build components of the given recipe. '
                   'By default this will also delete built dists'),
             parents=[generic_parser])
-        parser_clean_recipe_build.add_argument('recipe', help='The recipe name')
         parser_clean_recipe_build.add_argument(
-            '--no-clean-dists',
-            default=False,
+            'recipe', help='The recipe name')
+        parser_clean_recipe_build.add_argument(
+            '--no-clean-dists', default=False,
             dest='no_clean_dists',
             action='store_true',
             help='If passed, do not delete existing dists')
 
-        parser_clean_download_cache = add_parser(
-            subparsers, 'clean_download_cache',
-            aliases=['clean-download-cache'],
+        parser_clean_download_cache= add_parser(
+            subparsers,
+            'clean_download_cache', aliases=['clean-download-cache'],
             help='Delete cached downloads for requirement builds',
             parents=[generic_parser])
         parser_clean_download_cache.add_argument(
@@ -408,8 +410,8 @@ class ToolchainCL(object):
                   ' provided, the entire cache is cleared.')
 
         parser_export_dist = add_parser(
-            subparsers, 'export_dist',
-            aliases=['export-dist'],
+            subparsers,
+            'export_dist', aliases=['export-dist'],
             help='Copy the named dist to the given path',
             parents=[generic_parser])
         parser_export_dist.add_argument('output_dir',
@@ -420,69 +422,65 @@ class ToolchainCL(object):
             help='Symlink the dist instead of copying')
 
         parser_apk = add_parser(
-            subparsers, 'apk',
-            help='Build an APK',
+
+            subparsers,
+            'apk', help='Build an APK',
             parents=[generic_parser])
         parser_apk.add_argument(
-            '--release',
-            dest='build_mode', action='store_const',
+            '--release', dest='build_mode', action='store_const',
             const='release', default='debug',
             help='Build the PARSER_APK. in Release mode')
         parser_apk.add_argument(
-            '--keystore',
-            dest='keystore', action='store', default=None,
-            help='Keystore for JAR signing key, will use jarsigner '
-                 'by default if not specified (release build only)')
+            '--keystore', dest='keystore', action='store', default=None,
+            help=('Keystore for JAR signing key, will use jarsigner '
+                  'default if not specified (release build only)'))
         parser_apk.add_argument(
-            '--signkey',
-            dest='signkey', action='store', default=None,
+            '--signkey', dest='signkey', action='store', default=None,
             help='Key alias to sign PARSER_APK. with (release build only)')
         parser_apk.add_argument(
-            '--keystorepw',
-            dest='keystorepw', action='store', default=None,
+            '--keystorepw', dest='keystorepw', action='store', default=None,
             help='Password for keystore')
         parser_apk.add_argument(
-            '--signkeypw',
-            dest='signkeypw', action='store', default=None,
+            '--signkeypw', dest='signkeypw', action='store', default=None,
             help='Password for key alias')
 
-        add_parser(
-            subparsers, 'create',
-            help='Compile a set of requirements into a dist',
+        parser_create = add_parser(
+            subparsers,
+            'create', help='Compile a set of requirements into a dist',
             parents=[generic_parser])
-        add_parser(
-            subparsers, 'archs',
-            help='List the available target architectures',
+        parser_archs = add_parser(
+            subparsers,
+            'archs', help='List the available target architectures',
             parents=[generic_parser])
-        add_parser(
-            subparsers, 'distributions',
-            aliases=['dists'],
+        parser_distributions = add_parser(
+            subparsers,
+            'distributions', aliases=['dists'],
             help='List the currently available (compiled) dists',
             parents=[generic_parser])
-        add_parser(
-            subparsers, 'delete_dist',
-            aliases=['delete-dist'], help='Delete a compiled dist',
+        parser_delete_dist = add_parser(
+            subparsers,
+            'delete_dist', aliases=['delete-dist'], help='Delete a compiled dist',
             parents=[generic_parser])
 
         parser_sdk_tools = add_parser(
-            subparsers, 'sdk_tools',
-            aliases=['sdk-tools'],
-            help='Run the given binary from the SDK tools dist',
+            subparsers,
+            'sdk_tools', aliases=['sdk-tools'],
+            help='Run the given binary from the SDK tools dis',
             parents=[generic_parser])
         parser_sdk_tools.add_argument(
             'tool', help='The binary tool name to run')
 
-        add_parser(
-            subparsers, 'adb',
-            help='Run adb from the given SDK',
+        parser_adb = add_parser(
+            subparsers,
+            'adb', help='Run adb from the given SDK',
             parents=[generic_parser])
-        add_parser(
-            subparsers, 'logcat',
-            help='Run logcat from the given SDK',
+        parser_logcat = add_parser(
+            subparsers,
+            'logcat', help='Run logcat from the given SDK',
             parents=[generic_parser])
-        add_parser(
-            subparsers, 'build_status',
-            aliases=['build-status'],
+        parser_build_status = add_parser(
+            subparsers,
+            'build_status', aliases=['build-status'],
             help='Print some debug information about current built components',
             parents=[generic_parser])
 

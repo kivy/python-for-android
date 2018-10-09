@@ -10,7 +10,7 @@ Add the ``--debug`` option to any python-for-android command to see
 full debug output including the output of all the external tools used
 in the compilation and packaging steps.
 
-If reporting a problem by email or irc, it is usually helpful to
+If reporting a problem by email or Discord, it is usually helpful to
 include this full log, via e.g. a `pastebin
 <http://paste.ubuntu.com/>`_ or `Github gist
 <https://gist.github.com/>`_.
@@ -23,7 +23,7 @@ get help with any problems using the same channels as Kivy itself:
 
 - by email to the `kivy-users Google group
   <https://groups.google.com/forum/#!forum/kivy-users>`_
-- by irc in the #kivy room at irc.freenode.net
+- on `#support Discord channel <https://chat.kivy.org/>`_
   
 If you find a bug, you can also post an issue on the
 `python-for-android Github page

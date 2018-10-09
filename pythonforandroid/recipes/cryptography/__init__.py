@@ -1,4 +1,5 @@
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from os.path import join
 
 
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
@@ -14,9 +15,11 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         openssl_dir = r.get_build_dir(arch.arch)
         # Set linker to use the correct gcc
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
+        env['CFLAGS'] += ' -I' + join(openssl_dir, 'include')
         env['LDFLAGS'] += ' -L' + openssl_dir + \
                           ' -lssl' + r.version + \
                           ' -lcrypto' + r.version
+
         return env
 
 

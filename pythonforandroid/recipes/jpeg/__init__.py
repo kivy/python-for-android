@@ -8,7 +8,7 @@ import sh
 class JpegRecipe(NDKRecipe):
     name = 'jpeg'
     version = 'linaro-android'
-    url = 'git://git.linaro.org/people/tomgall/libjpeg-turbo/libjpeg-turbo.git'
+    url = 'git+https://git.linaro.org/people/tomgall/libjpeg-turbo/libjpeg-turbo'
 
     patches = ['build-static.patch']
 

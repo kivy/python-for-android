@@ -4,7 +4,7 @@ from os.path import join
 
 
 class AudiostreamRecipe(CythonRecipe):
-    version  = 'master'
+    version = 'master'
     url = 'https://github.com/kivy/audiostream/archive/{version}.zip'
     name = 'audiostream'
     depends = ['python2', ('sdl', 'sdl2'), 'pyjnius']
@@ -21,9 +21,9 @@ class AudiostreamRecipe(CythonRecipe):
             env['SDL2_INCLUDE_DIR'] = '/home/kivy/.buildozer/android/platform/android-ndk-r9c/sources/android/support/include'
 
         env['CFLAGS'] += ' -I{jni_path}/{sdl_include}/include -I{jni_path}/{sdl_mixer_include}'.format(
-                              jni_path = join(self.ctx.bootstrap.build_dir, 'jni'),
-                              sdl_include = sdl_include,
-                              sdl_mixer_include = sdl_mixer_include)
+                              jni_path=join(self.ctx.bootstrap.build_dir, 'jni'),
+                              sdl_include=sdl_include,
+                              sdl_mixer_include=sdl_mixer_include)
         return env
 
 

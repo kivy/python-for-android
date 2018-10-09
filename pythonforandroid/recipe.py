@@ -367,7 +367,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                             debug('* Expected md5sum: {}'.format(expected_md5))
                             raise ValueError(
                                 ('Generated md5sum does not match expected md5sum '
-                                'for {} recipe').format(self.name))
+                                 'for {} recipe').format(self.name))
             else:
                 info('{} download already cached, skipping'.format(self.name))
 
@@ -410,10 +410,11 @@ class Recipe(with_metaclass(RecipeMeta)):
                         try:
                             sh.unzip(extraction_filename)
                         except (sh.ErrorReturnCode_1, sh.ErrorReturnCode_2):
-                            pass  # return code 1 means unzipping had
-                                  # warnings but did complete,
-                                  # apparently happens sometimes with
-                                  # github zips
+                            # return code 1 means unzipping had
+                            # warnings but did complete,
+                            # apparently happens sometimes with
+                            # github zips
+                            pass
                         import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
@@ -765,8 +766,8 @@ class PythonRecipe(Recipe):
                 env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
                 env['CFLAGS'] += ' -I' + env[
                     'PYTHON_ROOT'] + '/include/python2.7'
-                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                                  ' -lpython2.7'
+                env['LDFLAGS'] += (
+                    ' -L' + env['PYTHON_ROOT'] + '/lib' + ' -lpython2.7')
             elif self.ctx.python_recipe.from_crystax:
                 ndk_dir_python = join(self.ctx.ndk_dir, 'sources',
                                       'python', python_version)
@@ -783,9 +784,9 @@ class PythonRecipe(Recipe):
                 env['CFLAGS'] += ' -I' + env[
                     'PYTHON_ROOT'] + '/include/python{}m'.format(
                     python_short_version)
-                env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                                  ' -lpython{}m'.format(
-                                      python_short_version)
+                env['LDFLAGS'] += (
+                    ' -L' + env['PYTHON_ROOT'] + '/lib' +
+                    ' -lpython{}m'.format(python_short_version))
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
@@ -920,12 +921,14 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
             arch_noeabi=arch.arch.replace('eabi', '')
         )
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['CFLAGS'] += " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" \
-                        " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" \
-                        " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys)
+        env['CFLAGS'] += (
+            " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" +
+            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" +
+            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys))
         env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
-        env['LDFLAGS'] += " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" \
-                " -lgnustl_shared".format(**keys)
+        env['LDFLAGS'] += (
+            " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" +
+            " -lgnustl_shared".format(**keys))
 
         return env
 
