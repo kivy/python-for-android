@@ -36,7 +36,7 @@ class Arch(object):
         env['CFLAGS'] = ' '.join([
             '-DANDROID', '-mandroid', '-fomit-frame-pointer'
             ' -D__ANDROID_API__={}'.format(self.ctx._android_api),
-           ])
+            ])
         env['LDFLAGS'] = ' '
 
         sysroot = join(self.ctx._ndk_dir, 'sysroot')
