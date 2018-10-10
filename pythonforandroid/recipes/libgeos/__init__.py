@@ -6,7 +6,7 @@ from multiprocessing import cpu_count
 
 class LibgeosRecipe(Recipe):
     version = '3.5'
-    #url = 'http://download.osgeo.org/geos/geos-{version}.tar.bz2'
+    # url = 'http://download.osgeo.org/geos/geos-{version}.tar.bz2'
     url = 'https://github.com/libgeos/libgeos/archive/svn-{version}.zip'
     depends = ['python2']
 
@@ -23,7 +23,7 @@ class LibgeosRecipe(Recipe):
             bash = sh.Command('bash')
             print("If this fails make sure you have autoconf and libtool installed")
             shprint(bash, 'autogen.sh')  # Requires autoconf and libtool
-            shprint(bash, 'configure',  '--host=arm-linux-androideabi', '--enable-shared', '--prefix={}'.format(dst_dir), _env=env)
+            shprint(bash, 'configure', '--host=arm-linux-androideabi', '--enable-shared', '--prefix={}'.format(dst_dir), _env=env)
             shprint(sh.make, '-j', str(cpu_count()), _env=env)
             shprint(sh.make, 'install', _env=env)
             shutil.copyfile('{}/lib/libgeos_c.so'.format(dst_dir), join(self.ctx.get_libs_dir(arch.arch), 'libgeos_c.so'))

@@ -11,7 +11,7 @@ from multiprocessing import cpu_count
 class OpenCVRecipe(NDKRecipe):
     version = '2.4.10.1'
     url = 'https://github.com/Itseez/opencv/archive/{version}.zip'
-    #md5sum = '2ddfa98e867e6611254040df841186dc'
+    # md5sum = '2ddfa98e867e6611254040df841186dc'
     depends = ['numpy']
     patches = ['patches/p4a_build-2.4.10.1.patch']
     generated_libraries = ['cv2.so']

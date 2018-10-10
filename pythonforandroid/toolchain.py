@@ -398,7 +398,7 @@ class ToolchainCL(object):
             action='store_true',
             help='If passed, do not delete existing dists')
 
-        parser_clean_download_cache= add_parser(
+        parser_clean_download_cache = add_parser(
             subparsers,
             'clean_download_cache', aliases=['clean-download-cache'],
             help='Delete cached downloads for requirement builds',
@@ -584,8 +584,8 @@ class ToolchainCL(object):
                 print('{Fore.BLUE}{Style.BRIGHT}{recipe.name:<12} '
                       '{Style.RESET_ALL}{Fore.LIGHTBLUE_EX}'
                       '{version:<8}{Style.RESET_ALL}'.format(
-                        recipe=recipe, Fore=Out_Fore, Style=Out_Style,
-                        version=version))
+                            recipe=recipe, Fore=Out_Fore, Style=Out_Style,
+                            version=version))
                 print('    {Fore.GREEN}depends: {recipe.depends}'
                       '{Fore.RESET}'.format(recipe=recipe, Fore=Out_Fore))
                 if recipe.conflicts:

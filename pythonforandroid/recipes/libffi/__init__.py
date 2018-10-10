@@ -40,8 +40,8 @@ class LibffiRecipe(Recipe):
                     '--host=' + arch.toolchain_prefix,
                     '--prefix=' + self.ctx.get_python_install_dir(),
                     '--enable-shared', _env=env)
-            #'--with-sysroot={}'.format(self.ctx.ndk_platform),
-            #'--target={}'.format(arch.toolchain_prefix),
+            # '--with-sysroot={}'.format(self.ctx.ndk_platform),
+            # '--target={}'.format(arch.toolchain_prefix),
 
             # ndk 15 introduces unified headers required --sysroot and
             # -isysroot for libraries and headers. libtool's head explodes

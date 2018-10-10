@@ -87,23 +87,23 @@ class Python2Recipe(TargetPythonRecipe):
             # TODO need to add a should_build that checks if optional
             # dependencies have changed (possibly in a generic way)
             if 'openssl' in self.ctx.recipe_build_order:
-                r = Recipe.get_recipe('openssl', self.ctx)
-                openssl_build_dir = r.get_build_dir(arch.arch)
+                recipe = Recipe.get_recipe('openssl', self.ctx)
+                openssl_build_dir = recipe.get_build_dir(arch.arch)
                 setuplocal = join('Modules', 'Setup.local')
                 shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
                 shprint(sh.sed, '-i.backup', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
-                env['OPENSSL_VERSION'] = r.version
+                env['OPENSSL_VERSION'] = recipe.version
 
             if 'sqlite3' in self.ctx.recipe_build_order:
                 # Include sqlite3 in python2 build
-                r = Recipe.get_recipe('sqlite3', self.ctx)
-                i = ' -I' + r.get_build_dir(arch.arch)
-                l = ' -L' + r.get_lib_dir(arch) + ' -lsqlite3'
+                recipe = Recipe.get_recipe('sqlite3', self.ctx)
+                include = ' -I' + recipe.get_build_dir(arch.arch)
+                lib = ' -L' + recipe.get_lib_dir(arch) + ' -lsqlite3'
                 # Insert or append to env
-                f = 'CPPFLAGS'
-                env[f] = env[f] + i if f in env else i
-                f = 'LDFLAGS'
-                env[f] = env[f] + l if f in env else l
+                flag = 'CPPFLAGS'
+                env[flag] = env[flag] + include if flag in env else include
+                flag = 'LDFLAGS'
+                env[flag] = env[flag] + lib if flag in env else lib
 
             # NDK has langinfo.h but doesn't define nl_langinfo()
             env['ac_cv_header_langinfo_h'] = 'no'
