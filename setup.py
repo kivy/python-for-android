@@ -16,7 +16,8 @@ package_data = {'': ['*.tmpl',
 data_files = []
 
 
-install_reqs = ['appdirs', 'colorama>=0.3.3', 'jinja2', 'six', 'enum34']
+install_reqs = ['appdirs', 'colorama>=0.3.3', 'jinja2', 'six',
+    'enum34;python_version<"3.4"']
 if os.name != 'nt':
     install_reqs.append('sh>=1.10')
 
