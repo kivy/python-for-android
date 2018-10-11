@@ -3,7 +3,7 @@ from pythonforandroid.recipe import PythonRecipe
 
 class BabelRecipe(PythonRecipe):
     name = 'babel'
-    version = '2.1.1'
+    version = '2.2.0'
     url = 'https://pypi.python.org/packages/source/B/Babel/Babel-{version}.tar.gz'
 
     depends = [('python2', 'python3crystax'), 'setuptools', 'pytz']
