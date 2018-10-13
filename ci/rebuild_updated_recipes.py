@@ -25,44 +25,8 @@ Current limitations:
 """
 import sh
 import os
-from enum import Enum
 from pythonforandroid.toolchain import current_directory
-
-
-class TargetPython(Enum):
-    python2 = 0
-    python3crystax = 1
-
-
-# recipes that currently break the build
-# a recipe could be broken for a target Python and not for the other,
-# hence we're maintaining one list per Python target
-BROKEN_RECIPES_PYTHON2 = set([])
-BROKEN_RECIPES_PYTHON3_CRYSTAX = set([
-    # not yet python3crystax compatible
-    'apsw', 'atom', 'boost', 'brokenrecipe', 'cdecimal', 'cherrypy',
-    'coverage',
-    # https://github.com/kivy/python-for-android/issues/550
-    'audiostream',
-    # enum34 is not compatible with Python 3.6 standard library
-    # https://stackoverflow.com/a/45716067/185510
-    'enum34',
-    # https://github.com/kivy/python-for-android/issues/1398
-    'ifaddrs',
-    # https://github.com/kivy/python-for-android/issues/1399
-    'libglob',
-    # cannot find -lcrystax
-    'cffi',
-])
-BROKEN_RECIPES = {
-    TargetPython.python2: BROKEN_RECIPES_PYTHON2,
-    TargetPython.python3crystax: BROKEN_RECIPES_PYTHON3_CRYSTAX,
-}
-# recipes that are were already built
-CORE_RECIPES = set([
-    'pyjnius', 'kivy', 'openssl', 'requests', 'sqlite3', 'setuptools',
-    'numpy', 'android',
-])
+from ci.constants import TargetPython, CORE_RECIPES, BROKEN_RECIPES
 
 
 def modified_recipes(branch='origin/master'):
