@@ -106,14 +106,5 @@ class Python3Recipe(TargetPythonRecipe):
             ipdb.set_trace()
 
             shprint(sh.make, 'all', _env=env)
-
-            exit(1)
             
-
-        #     if not exists('config.status'):
-                
-
-        #     shprint(sh.make, '-C', build_dir)
-            
-
 recipe = Python3Recipe()
