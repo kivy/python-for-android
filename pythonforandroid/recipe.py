@@ -742,6 +742,9 @@ class PythonRecipe(Recipe):
             return join(
                 Recipe.get_recipe('hostpython3crystax', self.ctx).get_build_dir(),
                 'hostpython')
+        elif 'hostpython3' in self.ctx.recipe_build_order:
+            return join(Recipe.get_recipe('hostpython3', self.ctx).get_build_dir(),
+                        'native-build', 'python')
         else:
             python_recipe = self.ctx.python_recipe
             return 'python{}'.format(python_recipe.version)
@@ -785,15 +788,15 @@ class PythonRecipe(Recipe):
                     join(ndk_dir_python, 'libs', arch.arch))
                 env['LDFLAGS'] += ' -lpython{}m'.format(python_short_version)
             elif 'python3' in self.ctx.recipe_build_order:
-                # This headers are unused cause python3 recipe was removed
-                # TODO: should be reviewed when python3 recipe added
-                env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-                env['CFLAGS'] += ' -I' + env[
-                    'PYTHON_ROOT'] + '/include/python{}m'.format(
-                    python_short_version)
+                # TODO: Make the recipe env get these details from the
+                # python recipe instead of hardcoding
+                env['PYTHON_ROOT'] = Recipe.get_recipe('python3', self.ctx).get_build_dir(arch.arch)
+                env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/Include'
                 env['LDFLAGS'] += (
-                    ' -L' + env['PYTHON_ROOT'] + '/lib' +
-                    ' -lpython{}m'.format(python_short_version))
+                    ' -L' +
+                    join(env['PYTHON_ROOT'], 'android-build') +
+                    ' -lpython3.7m')
+
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
@@ -834,7 +837,8 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
 
-            if self.ctx.python_recipe.from_crystax:
+            if (self.ctx.python_recipe.from_crystax or
+                self.ctx.python_recipe.name == 'python3'):
                 hpenv = env.copy()
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
@@ -1016,7 +1020,7 @@ class CythonRecipe(PythonRecipe):
                 shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                         env['STRIP'], '{}', ';', _env=env)
 
-            if 'python3crystax' in self.ctx.recipe_build_order:
+            else:  # python3crystax or python3
                 info('Stripping object files')
                 shprint(sh.find, '.', '-iname', '*.so', '-exec',
                         '/usr/bin/echo', '{}', ';', _env=env)
@@ -1060,8 +1064,8 @@ class CythonRecipe(PythonRecipe):
         if self.ctx.python_recipe.from_crystax:
             env['LDFLAGS'] = (env['LDFLAGS'] +
                               ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
-            # ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
-        if self.ctx.python_recipe.from_crystax:
+
+        if self.ctx.python_recipe.from_crystax or self.ctx.python_recipe.name == 'python3':
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
             env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink.sh')

@@ -355,7 +355,7 @@ class Context(object):
         if not self.ccache:
             info('ccache is missing, the build will not be optimized in the '
                  'future.')
-        for cython_fn in ("cython2", "cython-2.7", "cython"):
+        for cython_fn in ("cython", "cython3", "cython2", "cython-2.7"):
             cython = sh.which(cython_fn)
             if cython:
                 self.cython = cython

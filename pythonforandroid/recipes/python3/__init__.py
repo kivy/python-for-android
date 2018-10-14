@@ -80,11 +80,6 @@ class Python3Recipe(TargetPythonRecipe):
 
             env['SYSROOT'] = sysroot
 
-            print('CPPflags', env['CPPFLAGS'])
-            print('LDFLAGS', env['LDFLAGS'])
-
-            print('LD is', env['LD'])
-
             if not exists('config.status'):
                 shprint(sh.Command(join(recipe_build_dir, 'configure')),
                         *(' '.join(('--host={android_host}',
@@ -102,9 +97,11 @@ class Python3Recipe(TargetPythonRecipe):
                                         prefix=sys_prefix,
                                         exec_prefix=sys_exec_prefix)).split(' '), _env=env)
 
-            import ipdb
-            ipdb.set_trace()
+            if not exists('python'):
+                shprint(sh.make, 'all', _env=env)
 
-            shprint(sh.make, 'all', _env=env)
+            # TODO: Look into passing the path to pyconfig.h in a
+            # better way, although this is probably acceptable
+            sh.cp('pyconfig.h', join(recipe_build_dir, 'Include'))
             
 recipe = Python3Recipe()
