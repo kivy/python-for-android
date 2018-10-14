@@ -2,6 +2,7 @@ from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
+from pythonforandroid.logger import logger
 from pythonforandroid.util import ensure_dir
 from os.path import exists, join, realpath
 from os import environ
@@ -33,11 +34,10 @@ class Python3Recipe(TargetPythonRecipe):
         with current_directory(build_dir):
             env = environ.copy()
 
-
             # TODO: Get this information from p4a's arch system
             android_host = 'arm-linux-androideabi'
             android_build = sh.Command(join(recipe_build_dir, 'config.guess'))().stdout.strip().decode('utf-8')
-            platform_dir = join(self.ctx.ndk_dir, 'platforms', 'android-19', 'arch-arm')
+            platform_dir = join(self.ctx.ndk_dir, 'platforms', 'android-21', 'arch-arm')
             toolchain = '{android_host}-4.9'.format(android_host=android_host)
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
             CC = '{clang} -target {target} -gcc-toolchain {toolchain}'.format(
@@ -58,34 +58,57 @@ class Python3Recipe(TargetPythonRecipe):
             env['READELF'] = READELF
             env['STRIP'] = STRIP
 
-            ndk_flags = '--sysroot={ndk_sysroot} -D__ANDROID_API__=19 -isystem {ndk_android_host}'.format(
+            ndk_flags = '--sysroot={ndk_sysroot} -D__ANDROID_API__=21 -isystem {ndk_android_host}'.format(
                 ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
                 ndk_android_host=join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host))
-            sysroot = join(self.ctx.ndk_dir, 'platforms', 'android-19', 'arch-arm')
+            sysroot = join(self.ctx.ndk_dir, 'platforms', 'android-21', 'arch-arm')
             env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
             env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
-            env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -march=armv7-a -Wl,--fix-cortex-a8'.format(sysroot)
+            env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(sysroot, join(sysroot, 'usr', 'lib'))
+
+            # Manually add the libs directory, and copy some object
+            # files to the current directory otherwise they aren't
+            # picked up. This seems necessary because the --sysroot
+            # setting in LDFLAGS is overridden by the other flags.
+            # TODO: Work out why this doesn't happen in the original
+            # bpo-30386 Makefile system.
+            logger.warning('Doing some hacky stuff to link properly')
+            lib_dir = join(sysroot, 'usr', 'lib')
+            env['LDFLAGS'] += ' -L{}'.format(lib_dir)
+            shprint(sh.cp, join(lib_dir, 'crtbegin_so.o'), './')
+            shprint(sh.cp, join(lib_dir, 'crtend_so.o'), './')
+
+            env['SYSROOT'] = sysroot
 
             print('CPPflags', env['CPPFLAGS'])
             print('LDFLAGS', env['LDFLAGS'])
 
             print('LD is', env['LD'])
 
-            shprint(sh.Command(join(recipe_build_dir, 'configure')),
-                    *(' '.join(('--host={android_host}',
-                                '--build={android_build}',
-                                '--enable-shared',
-                                '--disable-ipv6',
-                                'ac_cv_file__dev_ptmx=yes',
-                                'ac_cv_file__dev_ptc=no',
-                                '--without-ensurepip',
-                                'ac_cv_little_endian_double=yes',
-                                '--prefix={prefix}',
-                                '--exec-prefix={exec_prefix}')).format(
-                                    android_host=android_host,
-                                    android_build=android_build,
-                                    prefix=sys_prefix,
-                                    exec_prefix=sys_exec_prefix)).split(' '), _env=env)
+            if not exists('config.status'):
+                shprint(sh.Command(join(recipe_build_dir, 'configure')),
+                        *(' '.join(('--host={android_host}',
+                                    '--build={android_build}',
+                                    '--enable-shared',
+                                    '--disable-ipv6',
+                                    'ac_cv_file__dev_ptmx=yes',
+                                    'ac_cv_file__dev_ptc=no',
+                                    '--without-ensurepip',
+                                    'ac_cv_little_endian_double=yes',
+                                    '--prefix={prefix}',
+                                    '--exec-prefix={exec_prefix}')).format(
+                                        android_host=android_host,
+                                        android_build=android_build,
+                                        prefix=sys_prefix,
+                                        exec_prefix=sys_exec_prefix)).split(' '), _env=env)
+
+            import ipdb
+            ipdb.set_trace()
+
+            shprint(sh.make, 'all', _env=env)
+
+            exit(1)
+            
 
         #     if not exists('config.status'):
                 
