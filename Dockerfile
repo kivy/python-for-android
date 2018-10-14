@@ -14,6 +14,10 @@
 FROM ubuntu:18.04
 
 
+ENV USER="user"
+ENV HOME_DIR="/home/${USER}"
+ENV WORK_DIR="${HOME_DIR}" \
+    PATH="${HOME_DIR}/.local/bin:${PATH}"
 # get the latest version from https://developer.android.com/ndk/downloads/index.html
 ENV ANDROID_NDK_VERSION="16b"
 # get the latest version from https://www.crystax.net/en/download
@@ -36,7 +40,7 @@ ENV ANDROID_NDK_DL_URL="https://dl.google.com/android/repository/${ANDROID_NDK_A
 
 # install system dependencies
 RUN apt update -qq && apt install -qq --yes --no-install-recommends \
-	python virtualenv python-pip wget curl lbzip2 patch bsdtar && \
+	python virtualenv python-pip wget curl lbzip2 patch bsdtar sudo && \
     rm -rf /var/lib/apt/lists/*
 
 # build dependencies
@@ -46,7 +50,6 @@ RUN dpkg --add-architecture i386 &&  apt update -qq && apt install -qq --yes --n
 	libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 python2.7 python2.7-dev \
 	openjdk-8-jdk unzip zlib1g-dev zlib1g:i386 && \
     rm -rf /var/lib/apt/lists/*
-RUN	pip install --quiet --upgrade cython==0.21
 
 # download and install Android NDK
 RUN curl --location --progress-bar "${ANDROID_NDK_DL_URL}" --output "${ANDROID_NDK_ARCHIVE}" && \
@@ -80,10 +83,20 @@ RUN curl --location --progress-bar "${ANDROID_SDK_TOOLS_DL_URL}" --output "${AND
 RUN mkdir --parents "${ANDROID_SDK_HOME}/.android/" && \
 	echo '### User Sources for Android SDK Manager' > "${ANDROID_SDK_HOME}/.android/repositories.cfg"
 RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" --licenses
-RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-19"
-RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;26.0.2"
+RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-19" && \
+    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;26.0.2" && \
+    chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
 
+# prepare non root env
+RUN useradd --create-home --shell /bin/bash ${USER}
+# with sudo access and no password
+RUN usermod -append --groups sudo ${USER}
+RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN pip install --quiet --upgrade cython==0.21
+WORKDIR ${WORK_DIR}
+COPY . ${WORK_DIR}
+# user needs ownership/write access to these directories
+RUN chown --recursive ${USER} ${WORK_DIR} ${ANDROID_SDK_HOME}
+USER ${USER}
 # install python-for-android from current branch
-WORKDIR /app
-COPY . /app
 RUN virtualenv --python=python venv && . venv/bin/activate && pip install --quiet -e .
