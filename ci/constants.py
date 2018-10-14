@@ -9,7 +9,57 @@ class TargetPython(Enum):
 # recipes that currently break the build
 # a recipe could be broken for a target Python and not for the other,
 # hence we're maintaining one list per Python target
-BROKEN_RECIPES_PYTHON2 = set([])
+BROKEN_RECIPES_PYTHON2 = set([
+    # pythonhelpers.h:12:18: fatal error: string: No such file or directory
+    'atom',
+    # https://github.com/kivy/python-for-android/issues/550
+    'audiostream',
+    'brokenrecipe',
+    # https://github.com/kivy/python-for-android/issues/1409
+    'enaml',
+    'evdev',
+    # distutils.errors.DistutilsError
+    # Could not find suitable distribution for Requirement.parse('cython')
+    'ffpyplayer',
+    'flask',
+    'groestlcoin_hash',
+    'hostpython3crystax',
+    # https://github.com/kivy/python-for-android/issues/1398
+    'ifaddrs',
+    # https://github.com/kivy/python-for-android/issues/1354
+    'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
+    'kiwisolver',
+    # system dependencies autoconf, libtool
+    'libexpat',
+    'libgeos',
+    # https://github.com/kivy/python-for-android/issues/1399
+    'libglob',
+    # system dependencies cmake and compile error
+    'libmysqlclient',
+    'libsecp256k1',
+    'libtribler',
+    # system dependencies gettext, pkg-config
+    'libzbar',
+    'ndghttpsclient',
+    'm2crypto',
+    'netifaces',
+    'Pillow',
+    # https://github.com/kivy/python-for-android/issues/1405
+    'psycopg2',
+    'pygame',
+    # most likely some setup in the Docker container, because it works in host
+    'pyjnius', 'pyopenal',
+    'pyproj',
+    'pysdl2',
+    'pyzmq',
+    'secp256k1',
+    'shapely',
+    'twisted',
+    'vlc',
+    'websocket-client',
+    'zeroconf',
+    'zope',
+])
 BROKEN_RECIPES_PYTHON3_CRYSTAX = set([
     # not yet python3crystax compatible
     'apsw', 'atom', 'boost', 'brokenrecipe', 'cdecimal', 'cherrypy',
@@ -39,7 +89,8 @@ BROKEN_RECIPES_PYTHON3_CRYSTAX = set([
     'icu',
     # https://github.com/kivy/python-for-android/issues/1354
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
-    'kivy',
+    # system dependencies autoconf, libtool
+    'libexpat',
     # https://github.com/kivy/python-for-android/issues/1405
     'libpq', 'psycopg2',
     'netifaces',
