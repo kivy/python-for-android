@@ -712,6 +712,13 @@ class PythonRecipe(Recipe):
     setup_extra_args = []
     '''List of extra arugments to pass to setup.py'''
 
+    def __init__(self, *args, **kwargs):
+        super(PythonRecipe, self).__init__(*args, **kwargs)
+        depends = self.depends
+        depends.append(('python2', 'python3', 'python3crystax'))
+        depends = list(set(depends))
+        self.depends = depends
+
     def clean_build(self, arch=None):
         super(PythonRecipe, self).clean_build(arch=arch)
         name = self.folder_name
