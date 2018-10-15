@@ -3,6 +3,7 @@ from pythonforandroid.toolchain import (
 from pythonforandroid.util import ensure_dir
 from os.path import join, exists, curdir, abspath
 from os import walk
+import os
 import glob
 import sh
 
@@ -11,7 +12,7 @@ EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
 
 class SDL2GradleBootstrap(Bootstrap):
-    name = 'sdl2_gradle'
+    name = 'sdl2'
 
     recipe_depends = ['sdl2', ('python2', 'python3', 'python3crystax')]
 
@@ -23,6 +24,8 @@ class SDL2GradleBootstrap(Bootstrap):
         from_crystax = self.ctx.python_recipe.from_crystax
         crystax_python_dir = join("crystax_python", "crystax_python")
 
+        python_bundle_dir = join('_python_bundle', '_python_bundle')
+
         if len(self.ctx.archs) > 1:
             raise ValueError("SDL2/gradle support only one arch")
 
@@ -30,29 +33,32 @@ class SDL2GradleBootstrap(Bootstrap):
         shprint(sh.rm, "-rf", self.dist_dir)
         shprint(sh.cp, "-r", self.build_dir, self.dist_dir)
 
-        # either the build use environemnt variable (ANDROID_HOME)
+        # either the build use environment variable (ANDROID_HOME)
         # or the local.properties if exists
         with current_directory(self.dist_dir):
             with open('local.properties', 'w') as fileh:
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
+        # TODO: Move the packaged python building to the python recipes
         with current_directory(self.dist_dir):
             info("Copying Python distribution")
 
-            if not exists("private") and not from_crystax:
+            if 'python2' in self.ctx.recipe_build_order:
                 ensure_dir("private")
-            if not exists("crystax_python") and from_crystax:
+            elif not exists("crystax_python") and from_crystax:
                 ensure_dir(crystax_python_dir)
+            elif 'python3' in self.ctx.recipe_build_order:
+                ensure_dir(python_bundle_dir)
 
             hostpython = sh.Command(self.ctx.hostpython)
-            if not from_crystax:
+            if self.ctx.python_recipe.name == 'python2':
                 try:
                     shprint(hostpython, '-OO', '-m', 'compileall',
                             python_install_dir,
                             _tail=10, _filterout="^Listing")
                 except sh.ErrorReturnCode:
                     pass
-                if not exists('python-install'):
+                if 'python2' in self.ctx.recipe_build_order and not exists('python-install'):
                     shprint(
                         sh.cp, '-a', python_install_dir, './python-install')
 
@@ -60,7 +66,7 @@ class SDL2GradleBootstrap(Bootstrap):
             self.distribute_javaclasses(self.ctx.javaclass_dir,
                                         dest_dir=join("src", "main", "java"))
 
-            if not from_crystax:
+            if self.ctx.python_recipe.name == 'python2':
                 info("Filling private directory")
                 if not exists(join("private", "lib")):
                     info("private/lib does not exist, making")
@@ -100,7 +106,55 @@ class SDL2GradleBootstrap(Bootstrap):
                         shprint(sh.rm, '-f', filename)
                     shprint(sh.rm, '-rf', 'config/python.o')
 
-            else:  # Python *is* loaded from crystax
+            elif self.ctx.python_recipe.name == 'python3':
+                ndk_dir = self.ctx.ndk_dir
+                py_recipe = self.ctx.python_recipe
+
+                ## Build the python bundle:
+
+                # Bundle compiled python modules to a folder
+                modules_dir = join(python_bundle_dir, 'modules')
+                ensure_dir(modules_dir)
+                
+                modules_build_dir = join(
+                    self.ctx.python_recipe.get_build_dir(arch.arch),
+                    'android-build',
+                    'lib.linux-arm-3.7')
+                module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
+                                 glob.glob(join(modules_build_dir, '*.py')))
+                for filen in module_filens:
+                    shprint(sh.cp, filen, modules_dir)
+
+                # zip up the standard library
+                stdlib_zip = join(self.dist_dir, python_bundle_dir, 'stdlib.zip')
+                with current_directory(
+                        join(self.ctx.python_recipe.get_build_dir(arch.arch),
+                             'Lib')):
+                    shprint(sh.zip, '-r', stdlib_zip, *os.listdir())
+                    
+                # copy the site-packages into place
+                shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
+                        join(python_bundle_dir, 'site-packages'))
+
+                # copy the python .so files into place
+                python_build_dir = join(py_recipe.get_build_dir(arch.arch),
+                                        'android-build')
+                shprint(sh.cp, join(python_build_dir, 'libpython3.7m.so'),
+                        'libs/{}'.format(arch.arch))
+                shprint(sh.cp, join(python_build_dir, 'libpython3.7m.so.1.0'),
+                        'libs/{}'.format(arch.arch))
+                
+                info('Renaming .so files to reflect cross-compile')
+                site_packages_dir = join(python_bundle_dir, 'site-packages')
+                py_so_files = shprint(sh.find, site_packages_dir, '-iname', '*.so')
+                filens = py_so_files.stdout.decode('utf-8').split('\n')[:-1]
+                for filen in filens:
+                    parts = filen.split('.')
+                    if len(parts) <= 2:
+                        continue
+                    shprint(sh.mv, filen, parts[0] + '.so')
+                
+            elif self.ctx.python_recipe.from_crystax:  # Python *is* loaded from crystax
                 ndk_dir = self.ctx.ndk_dir
                 py_recipe = self.ctx.python_recipe
                 python_dir = join(ndk_dir, 'sources', 'python',
@@ -129,7 +183,7 @@ class SDL2GradleBootstrap(Bootstrap):
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
         self.strip_libraries(arch)
-        self.fry_eggs(site_packages_dir)
+        # self.fry_eggs(site_packages_dir)  # TODO uncomment this and make it work with python3
         super(SDL2GradleBootstrap, self).run_distribute()
 
 
