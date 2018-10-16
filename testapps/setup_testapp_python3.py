@@ -6,7 +6,7 @@ options = {'apk': {'debug': None,
                    'requirements': 'sdl2,pyjnius,kivy,python3',
                    'android-api': 19,
                    'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.2',
-                   'dist-name': 'bdisttest_python3',
+                   'dist-name': 'bdisttest_python3_googlendk',
                    'ndk-version': '10.3.2',
                    'arch': 'armeabi-v7a',
                    'permission': 'VIBRATE',
@@ -20,7 +20,7 @@ packages = find_packages()
 print('packages are', packages)
 
 setup(
-    name='testapp_python3',
+    name='testapp_python3_googlendk',
     version='1.1',
     description='p4a setup.py test',
     author='Alexander Taylor',

@@ -125,7 +125,7 @@ def make_python_zip():
 
     if not exists('private'):
         print('No compiled python is present to zip, skipping.')
-        print('this should only be the case if you are using the CrystaX python')
+        print('this should only be the case if you are using the CrystaX python or python3')
         return
 
     global python_files
@@ -243,6 +243,8 @@ main.py that loads it.''')
         tar_dirs.append('private')
     if exists('crystax_python'):
         tar_dirs.append('crystax_python')
+    if exists('_python_bundle'):
+        tar_dirs.append('_python_bundle')
 
     if args.private:
         make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)

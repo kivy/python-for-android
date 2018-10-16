@@ -119,6 +119,7 @@ class SDL2GradleBootstrap(Bootstrap):
                 modules_build_dir = join(
                     self.ctx.python_recipe.get_build_dir(arch.arch),
                     'android-build',
+                    'build',
                     'lib.linux-arm-3.7')
                 module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
                                  glob.glob(join(modules_build_dir, '*.py')))
