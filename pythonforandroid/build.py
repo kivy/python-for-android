@@ -163,8 +163,12 @@ class Context(object):
     def ndk_dir(self, value):
         self._ndk_dir = value
 
-    def prepare_build_environment(self, user_sdk_dir, user_ndk_dir,
-                                  user_android_api, user_ndk_ver):
+    def prepare_build_environment(self,
+                                  user_sdk_dir,
+                                  user_ndk_dir,
+                                  user_android_api,
+                                  user_ndk_ver,
+                                  user_ndk_api):
         '''Checks that build dependencies exist and sets internal variables
         for the Android SDK etc.
 
@@ -334,6 +338,8 @@ class Context(object):
                     'won\'t cause any problems, but if necessary you can'
                     'set it with `--ndk-version=...`.')
         self.ndk_ver = ndk_ver
+
+        self.ndk_api = user_ndk_api
 
         info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
 

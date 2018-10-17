@@ -277,7 +277,8 @@ class Recipe(with_metaclass(RecipeMeta)):
         alternative or optional dependencies are being built.
         '''
         dir_name = self.get_dir_name()
-        return join(self.ctx.build_dir, 'other_builds', dir_name, arch)
+        return join(self.ctx.build_dir, 'other_builds',
+                    dir_name, '{}__ndk_target_{}'.format(arch, self.ctx.ndk_api))
 
     def get_dir_name(self):
         choices = self.check_recipe_choices()
@@ -1084,7 +1085,6 @@ class CythonRecipe(PythonRecipe):
 
         return env
 
-
 class TargetPythonRecipe(Recipe):
     '''Class for target python recipes. Sets ctx.python_recipe to point to
     itself, so as to know later what kind of Python was built or used.'''
@@ -1104,6 +1104,13 @@ class TargetPythonRecipe(Recipe):
                   'using the CrystaX NDK. Exiting.'.format(self.name))
             exit(1)
         self.ctx.python_recipe = self
+
+    def include_root(self, arch):
+        '''The root directory from which to include headers.'''
+        raise NotImplementedError('Not implemented in TargetPythonRecipe')
+
+    def link_root(self):
+        raise NotImplementedError('Not implemented in TargetPythonRecipe')
 
     # @property
     # def ctx(self):

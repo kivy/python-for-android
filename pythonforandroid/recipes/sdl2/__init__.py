@@ -17,10 +17,19 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
     def get_recipe_env(self, arch=None):
         env = super(LibSDL2Recipe, self).get_recipe_env(arch)
+
         py2 = self.get_recipe('python2', arch.ctx)
         env['PYTHON2_NAME'] = py2.get_dir_name()
+        py3 = self.get_recipe('python3', arch.ctx)
+
+        env['PYTHON_INCLUDE_ROOT'] = self.ctx.python_recipe.include_root(arch.arch)
+        env['PYTHON_LINK_ROOT'] = self.ctx.python_recipe.link_root(arch.arch)
+
         if 'python2' in self.ctx.recipe_build_order:
             env['EXTRA_LDLIBS'] = ' -lpython2.7'
+
+        if 'python3' in self.ctx.recipe_build_order:
+            env['EXTRA_LDLIBS'] = ' -lpython3.7m'  # TODO: don't hardcode the python version
 
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env

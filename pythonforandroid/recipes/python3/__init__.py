@@ -103,5 +103,13 @@ class Python3Recipe(TargetPythonRecipe):
             # TODO: Look into passing the path to pyconfig.h in a
             # better way, although this is probably acceptable
             sh.cp('pyconfig.h', join(recipe_build_dir, 'Include'))
+
+    def include_root(self, arch_name):
+        return join(self.get_build_dir(arch_name),
+                    'Include')
+
+    def link_root(self, arch_name):
+        return join(self.get_build_dir(arch_name),
+                    'android-build')
             
 recipe = Python3Recipe()
