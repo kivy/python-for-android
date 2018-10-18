@@ -11,7 +11,7 @@ import sh
 
 class Python3Recipe(TargetPythonRecipe):
     version = '3.7.0'
-    url = 'https://www.python.org/ftp/python/3.7.0/Python-{version}.tgz'
+    url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
     depends = ['hostpython3']

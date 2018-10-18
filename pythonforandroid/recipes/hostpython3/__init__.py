@@ -7,7 +7,7 @@ import sh
 
 class Hostpython3Recipe(Recipe):
     version = '3.7.0'
-    url = 'https://www.python.org/ftp/python/3.7.0/Python-{version}.tgz'
+    url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'hostpython3'
 
     conflicts = ['hostpython2']
