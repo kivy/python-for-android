@@ -6,8 +6,8 @@ import sh
 
 
 class Hostpython3Recipe(Recipe):
-    version = 'bpo-30386'
-    url = 'https://github.com/inclement/cpython/archive/{version}.zip'
+    version = '3.7.0'
+    url = 'https://www.python.org/ftp/python/3.7.0/Python-{version}.tgz'
     name = 'hostpython3'
 
     conflicts = ['hostpython2']
