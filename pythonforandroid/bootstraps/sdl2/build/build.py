@@ -8,6 +8,7 @@ from os import makedirs, remove, listdir
 import os
 import tarfile
 import time
+import json
 import subprocess
 import shutil
 from zipfile import ZipFile
@@ -497,6 +498,10 @@ tools directory of the Android SDK.
                     help=('Minimum Android SDK version to use. Default to '
                           'the value of ANDROIDAPI, or {} if not set'
                           .format(default_android_api)))
+    ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
+                    action='store_true',
+                    help=('Allow the --minsdk argument to be different from '
+                          'the discovered ndk_api in the dist'))
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
@@ -531,8 +536,27 @@ tools directory of the Android SDK.
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
 
-    # if args.sdk_version == -1:
-    #     args.sdk_version = args.min_sdk_version
+    with open('dist_info.json', 'r') as fileh:
+        info = json.load(fileh)
+        if 'ndk_api' not in info:
+            print('Failed to read ndk_api from dist info')
+            ndk_api = args.min_sdk_version
+        else:
+            ndk_api = info['ndk_api']
+        if ndk_api != args.min_sdk_version:
+            print(('WARNING: --minsdk argument does not match the api that is '
+                   'compiled against. Only proceed if you know what you are '
+                   'doing, otherwise use --minsdk={} or recompile against api '
+                   '{}').format(ndk_api, args.min_sdk_version))
+            if not args.allow_minsdk_ndkapi_mismatch:
+                print('You must pass --allow-minsdk-ndkapi-mismatch to build '
+                      'with --minsdk different to the target NDK api from the '
+                      'build step')
+                exit(1)
+            else:
+                print('Proceeding with --minsdk not matching build target api')
+            
+
 
     if args.sdk_version != -1:
         print('WARNING: Received a --sdk argument, but this argument is '
