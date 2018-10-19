@@ -4,7 +4,7 @@ from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from pythonforandroid.logger import logger
 from pythonforandroid.util import ensure_dir
-from os.path import exists, join, realpath, split
+from os.path import exists, join, realpath
 from os import environ, listdir
 import glob
 import sh
@@ -154,14 +154,7 @@ class Python3Recipe(TargetPythonRecipe):
                 'libs/{}'.format(arch.arch))
 
         info('Renaming .so files to reflect cross-compile')
-        site_packages_dir = join(dirn, 'site-packages')
-        py_so_files = shprint(sh.find, site_packages_dir, '-iname', '*.so')
-        filens = py_so_files.stdout.decode('utf-8').split('\n')[:-1]
-        for filen in filens:
-            file_dirname, file_basename = split(filen)
-            parts = file_basename.split('.')
-            if len(parts) <= 2:
-                continue
-            shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
-            
+        self.reduce_object_file_names(join(dirn, 'site-packages'))
+
+
 recipe = Python3Recipe()

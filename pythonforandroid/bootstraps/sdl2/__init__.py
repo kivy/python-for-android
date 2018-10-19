@@ -110,30 +110,11 @@ class SDL2GradleBootstrap(Bootstrap):
                 self.ctx.python_recipe.create_python_bundle(
                     join(self.dist_dir, python_bundle_dir), arch)
                 
-            elif self.ctx.python_recipe.from_crystax:  # Python *is* loaded from crystax
-                ndk_dir = self.ctx.ndk_dir
-                py_recipe = self.ctx.python_recipe
-                python_dir = join(ndk_dir, 'sources', 'python',
-                                  py_recipe.version, 'libs', arch.arch)
-                shprint(sh.cp, '-r', join(python_dir,
-                                          'stdlib.zip'), crystax_python_dir)
-                shprint(sh.cp, '-r', join(python_dir,
-                                          'modules'), crystax_python_dir)
-                shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
-                        join(crystax_python_dir, 'site-packages'))
+            elif self.ctx.python_recipe.from_crystax:
+                self.ctx.python_recipe.create_python_bundle(
+                    join(self.dist_dir, python_bundle_dir), arch)
+                # TODO: Also set site_packages_dir again so fry_eggs can work
 
-                info('Renaming .so files to reflect cross-compile')
-                site_packages_dir = join(crystax_python_dir, "site-packages")
-                find_ret = shprint(
-                    sh.find, site_packages_dir, '-iname', '*.so')
-                filenames = find_ret.stdout.decode('utf-8').split('\n')[:-1]
-                for filename in filenames:
-                    parts = filename.split('.')
-                    if len(parts) <= 2:
-                        continue
-                    shprint(sh.mv, filename, filename.split('.')[0] + '.so')
-                site_packages_dir = join(abspath(curdir),
-                                         site_packages_dir)
             if 'sqlite3' not in self.ctx.recipe_build_order:
                 with open('blacklist.txt', 'a') as fileh:
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')

@@ -1,4 +1,4 @@
-from os.path import basename, dirname, exists, isdir, isfile, join, realpath
+from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import importlib
 import glob
 from shutil import rmtree
@@ -1124,6 +1124,20 @@ class TargetPythonRecipe(Recipe):
         place.
         """
         raise NotImplementedError('{} does not implement create_python_bundle'.format(self))
+
+    def reduce_object_file_names(self, dirn):
+        """Recursively renames all files named XXX.cpython-...-linux-gnu.so"
+        to "XXX.so", i.e. removing the erroneous architecture name
+        coming from the local system.
+        """
+        py_so_files = shprint(sh.find, dirn, '-iname', '*.so')
+        filens = py_so_files.stdout.decode('utf-8').split('\n')[:-1]
+        for filen in filens:
+            file_dirname, file_basename = split(filen)
+            parts = file_basename.split('.')
+            if len(parts) <= 2:
+                continue
+            shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
 
 def md5sum(filen):
