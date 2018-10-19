@@ -16,8 +16,9 @@ package_data = {'': ['*.tmpl',
 data_files = []
 
 
-install_reqs = ['appdirs', 'colorama>=0.3.3', 'jinja2', 'six',
-    'enum34;python_version<"3.4"']
+# must be a single statement since buildozer is currently parsing it, refs:
+# https://github.com/kivy/buildozer/issues/722
+install_reqs = ['appdirs', 'colorama>=0.3.3', 'jinja2', 'six', 'enum34;python_version<"3.4"']
 if os.name != 'nt':
     install_reqs.append('sh>=1.10')
 
