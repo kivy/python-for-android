@@ -1112,14 +1112,18 @@ class TargetPythonRecipe(Recipe):
     def link_root(self):
         raise NotImplementedError('Not implemented in TargetPythonRecipe')
 
-    # @property
-    # def ctx(self):
-    #     return self._ctx
+    @property
+    def major_minor_version_string(self):
+        from distutils.version import LooseVersion
+        return '.'.join([str(v) for v in LooseVersion(self.version).version[:2]])
 
-    # @ctx.setter
-    # def ctx(self, ctx):
-    #     self._ctx = ctx
-    #     ctx.python_recipe = self
+    def create_python_bundle(self, dirn, arch):
+        """
+        Create a packaged python bundle in the target directory, by
+        copying all the modules and standard library to the right
+        place.
+        """
+        raise NotImplementedError('{} does not implement create_python_bundle'.format(self))
 
 
 def md5sum(filen):

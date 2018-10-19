@@ -107,53 +107,8 @@ class SDL2GradleBootstrap(Bootstrap):
                     shprint(sh.rm, '-rf', 'config/python.o')
 
             elif self.ctx.python_recipe.name == 'python3':
-                ndk_dir = self.ctx.ndk_dir
-                py_recipe = self.ctx.python_recipe
-
-                ## Build the python bundle:
-
-                # Bundle compiled python modules to a folder
-                modules_dir = join(python_bundle_dir, 'modules')
-                ensure_dir(modules_dir)
-                
-                modules_build_dir = join(
-                    self.ctx.python_recipe.get_build_dir(arch.arch),
-                    'android-build',
-                    'build',
-                    'lib.linux-arm-3.7')
-                module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
-                                 glob.glob(join(modules_build_dir, '*.py')))
-                for filen in module_filens:
-                    shprint(sh.cp, filen, modules_dir)
-
-                # zip up the standard library
-                stdlib_zip = join(self.dist_dir, python_bundle_dir, 'stdlib.zip')
-                with current_directory(
-                        join(self.ctx.python_recipe.get_build_dir(arch.arch),
-                             'Lib')):
-                    shprint(sh.zip, '-r', stdlib_zip, *os.listdir())
-                    
-                # copy the site-packages into place
-                shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
-                        join(python_bundle_dir, 'site-packages'))
-
-                # copy the python .so files into place
-                python_build_dir = join(py_recipe.get_build_dir(arch.arch),
-                                        'android-build')
-                shprint(sh.cp, join(python_build_dir, 'libpython3.7m.so'),
-                        'libs/{}'.format(arch.arch))
-                shprint(sh.cp, join(python_build_dir, 'libpython3.7m.so.1.0'),
-                        'libs/{}'.format(arch.arch))
-                
-                info('Renaming .so files to reflect cross-compile')
-                site_packages_dir = join(python_bundle_dir, 'site-packages')
-                py_so_files = shprint(sh.find, site_packages_dir, '-iname', '*.so')
-                filens = py_so_files.stdout.decode('utf-8').split('\n')[:-1]
-                for filen in filens:
-                    parts = filen.split('.')
-                    if len(parts) <= 2:
-                        continue
-                    shprint(sh.mv, filen, parts[0] + '.so')
+                self.ctx.python_recipe.create_python_bundle(
+                    join(self.dist_dir, python_bundle_dir), arch)
                 
             elif self.ctx.python_recipe.from_crystax:  # Python *is* loaded from crystax
                 ndk_dir = self.ctx.ndk_dir

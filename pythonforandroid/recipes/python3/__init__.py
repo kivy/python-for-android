@@ -4,8 +4,9 @@ from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from pythonforandroid.logger import logger
 from pythonforandroid.util import ensure_dir
-from os.path import exists, join, realpath
-from os import environ
+from os.path import exists, join, realpath, split
+from os import environ, listdir
+import glob
 import sh
 
 
@@ -111,5 +112,56 @@ class Python3Recipe(TargetPythonRecipe):
     def link_root(self, arch_name):
         return join(self.get_build_dir(arch_name),
                     'android-build')
+
+    def create_python_bundle(self, dirn, arch):
+        ndk_dir = self.ctx.ndk_dir
+
+        # Bundle compiled python modules to a folder
+        modules_dir = join(dirn, 'modules')
+        ensure_dir(modules_dir)
+
+        modules_build_dir = join(
+            self.get_build_dir(arch.arch),
+            'android-build',
+            'build',
+            'lib.linux-arm-3.7')
+        module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
+                            glob.glob(join(modules_build_dir, '*.py')))
+        for filen in module_filens:
+            shprint(sh.cp, filen, modules_dir)
+
+        # zip up the standard library
+        stdlib_zip = join(dirn, 'stdlib.zip')
+        with current_directory(
+                join(self.get_build_dir(arch.arch),
+                        'Lib')):
+            shprint(sh.zip, '-r', stdlib_zip, *listdir('.'))
+
+        # copy the site-packages into place
+        shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
+                join(dirn, 'site-packages'))
+
+        # copy the python .so files into place
+        python_build_dir = join(self.get_build_dir(arch.arch),
+                                'android-build')
+        shprint(sh.cp,
+                join(python_build_dir,
+                     'libpython{}m.so'.format(self.major_minor_version_string)),
+                'libs/{}'.format(arch.arch))
+        shprint(sh.cp,
+                join(python_build_dir,
+                     'libpython{}m.so.1.0'.format(self.major_minor_version_string)),
+                'libs/{}'.format(arch.arch))
+
+        info('Renaming .so files to reflect cross-compile')
+        site_packages_dir = join(dirn, 'site-packages')
+        py_so_files = shprint(sh.find, site_packages_dir, '-iname', '*.so')
+        filens = py_so_files.stdout.decode('utf-8').split('\n')[:-1]
+        for filen in filens:
+            file_dirname, file_basename = split(filen)
+            parts = file_basename.split('.')
+            if len(parts) <= 2:
+                continue
+            shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
             
 recipe = Python3Recipe()
