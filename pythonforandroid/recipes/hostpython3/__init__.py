@@ -10,7 +10,7 @@ class Hostpython3Recipe(Recipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'hostpython3'
 
-    conflicts = ['hostpython2']
+    conflicts = ['hostpython2', 'hostpython3crystax']
 
     def get_build_container_dir(self, arch=None):
         choices = self.check_recipe_choices()

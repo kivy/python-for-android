@@ -509,14 +509,13 @@ class Context(object):
         '''Returns the location of site-packages in the python-install build
         dir.
         '''
+        if self.python_recipe.name == 'python2':
+            return join(self.get_python_install_dir(),
+                        'lib', 'python2.7', 'site-packages')
 
-        # This needs to be replaced with something more general in
-        # order to support multiple python versions and/or multiple
-        # archs.
-        if self.python_recipe.from_crystax:
-            return self.get_python_install_dir()
-        return join(self.get_python_install_dir(),
-                    'lib', 'python2.7', 'site-packages')
+        # Only python2 is a special case, other python recipes use the
+        # python install dir
+        return self.get_python_install_dir()
 
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
@@ -621,7 +620,9 @@ def run_pymodules_install(ctx, modules):
 
     venv = sh.Command(ctx.virtualenv)
     with current_directory(join(ctx.build_dir)):
-        shprint(venv, '--python=python2.7', 'venv')
+        shprint(venv,
+                '--python=python{}'.format(ctx.python_recipe.major_minor_version_string()),
+                'venv')
 
         info('Creating a requirements.txt file for the Python modules')
         with open('requirements.txt', 'w') as fileh:
