@@ -68,15 +68,23 @@ code), you must use PyJNIus to interact with the java class
 python-for-android creates for each one, as follows::
 
     from jnius import autoclass
-    service = autoclass('your.package.name.ServiceMyservice')
+    service = autoclass('your.package.domain.package.name.ServiceMyservice')
     mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
     argument = ''
     service.start(mActivity, argument)
 
-Here, ``your.package.name`` refers to the package identifier of your
-APK as set by the ``--package`` argument to python-for-android, and
-the name of the service is ``ServiceMyservice``, in which ``Myservice``
-is the identifier that was previously passed to the ``--service``
+Here, ``your.package.domain.package.name`` refers to the package identifier
+of your APK. 
+
+If you are using buildozer, the identifier is set by the ``package.name``
+and ``package.domain`` values in your buildozer.spec file.
+The name of the service is ``ServiceMyservice``, where ``Myservice``
+is the name specied by one of the ``services`` values, but with the first
+letter upper case. 
+
+If you are using python-for-android directly, the identifier is set by the ``--package``
+argument to python-for-android. The name of the service is ``ServiceMyservice``,
+where ``Myservice`` is the identifier that was previously passed to the ``--service``
 argument, but with the first letter upper case. You must also pass the
 ``argument`` parameter even if (as here) it is an empty string. If you
 do pass it, the service can make use of this argument.

@@ -5,7 +5,8 @@ _activity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
 
 _callbacks = {
     'on_new_intent': [],
-    'on_activity_result': [] }
+    'on_activity_result': [],
+}
 
 
 class NewIntentListener(PythonJavaClass):

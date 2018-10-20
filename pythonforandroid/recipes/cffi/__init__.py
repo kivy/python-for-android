@@ -3,6 +3,9 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 
 class CffiRecipe(CompiledComponentsPythonRecipe):
+    """
+    Extra system dependencies: autoconf, automake and libtool.
+    """
     name = 'cffi'
     version = '1.11.5'
     url = 'https://pypi.python.org/packages/source/c/cffi/cffi-{version}.tar.gz'

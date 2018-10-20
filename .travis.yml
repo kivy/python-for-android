@@ -6,18 +6,27 @@ services:
   - docker
 
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq python2.7 python3
+  - sudo apt update -qq
+  - sudo apt install -qq python2.7 python3
   - sudo pip install tox>=2.0
+  # https://github.com/travis-ci/travis-ci/issues/6069#issuecomment-266546552
+  - git remote set-branches --add origin master
+  - git fetch
 
 env:
-  - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/android-ndk'
-  # overrides requirements to skip `peewee` pure python module, see:
-  # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
-  - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/android-ndk --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
-  - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/android-ndk --bootstrap sdl2 --requirements python2,numpy'
-  - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/crystax-ndk'
-  - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir /opt/android/android-sdk --ndk-dir /opt/android/crystax-ndk --requirements python3crystax,setuptools,android'
+  global:
+    - ANDROID_SDK_HOME=/opt/android/android-sdk
+    - ANDROID_NDK_HOME=/opt/android/android-ndk
+    - CRYSTAX_NDK_HOME=/opt/android/crystax-ndk
+  matrix:
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME'
+    # overrides requirements to skip `peewee` pure python module, see:
+    # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --bootstrap sdl2 --requirements python2,numpy'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $CRYSTAX_NDK_HOME --requirements python3crystax,setuptools,android,sdl2,pyjnius,kivy'
+    # builds only the recipes that moved
+    - COMMAND='. venv/bin/activate && ./ci/rebuild_updated_recipes.py'
 
 before_script:
   # we want to fail fast on tox errors without having to `docker build` first

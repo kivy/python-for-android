@@ -1,4 +1,5 @@
-import os, sh
+import os
+import sh
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from pythonforandroid.util import (current_directory, ensure_dir)
 from pythonforandroid.logger import (info, shprint)

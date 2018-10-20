@@ -7,9 +7,10 @@ class TwistedRecipe(CythonRecipe):
 
     # in order to use TLS in twisted, you need to depend on service_identity
     depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']
+    patches = ['incremental.patch']
 
     call_hostpython_via_targetpython = False
-    install_in_hostpython = True
+    install_in_hostpython = False
 
     def prebuild_arch(self, arch):
         super(TwistedRecipe, self).prebuild_arch(arch)
