@@ -6,7 +6,7 @@ import sh
 
 
 class Hostpython3Recipe(Recipe):
-    version = '3.7.0'
+    version = '3.7.1'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'hostpython3'
 

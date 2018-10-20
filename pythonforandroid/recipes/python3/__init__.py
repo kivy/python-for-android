@@ -11,7 +11,7 @@ import sh
 
 
 class Python3Recipe(TargetPythonRecipe):
-    version = '3.7.0'
+    version = '3.7.1'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
