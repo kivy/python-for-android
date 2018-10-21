@@ -92,7 +92,7 @@ do pass it, the service can make use of this argument.
 The service argument is made available to your service via the
 'PYTHON_SERVICE_ARGUMENT' environment variable. It is exposed as a simple
 string, so if you want to pass in multiple values, we would recommend using
-the json module to encode and decode mode complex data.
+the json module to encode and decode more complex data.
 ::
 
     from os import environ
