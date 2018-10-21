@@ -74,7 +74,7 @@ python-for-android creates for each one, as follows::
     service.start(mActivity, argument)
 
 Here, ``your.package.domain.package.name`` refers to the package identifier
-of your APK. 
+of your APK.
 
 If you are using buildozer, the identifier is set by the ``package.name``
 and ``package.domain`` values in your buildozer.spec file.
@@ -88,6 +88,15 @@ where ``Myservice`` is the identifier that was previously passed to the ``--serv
 argument, but with the first letter upper case. You must also pass the
 ``argument`` parameter even if (as here) it is an empty string. If you
 do pass it, the service can make use of this argument.
+
+The service argument is made available to your service via the
+'PYTHON_SERVICE_ARGUMENT' environment variable. It is exposed as a simple
+string, so if you want to pass in multiple values, we would recommend using
+the json module to encode and decode mode complex data.
+::
+
+    from os import environ
+    argument = environ.get('PYTHON_SERVICE_ARGUMENT', '')
 
 Services support a range of options and interactions not yet
 documented here but all accessible via calling other methods of the
