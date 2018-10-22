@@ -38,7 +38,7 @@ Installation
 Installing p4a
 ~~~~~~~~~~~~~~
 
-p4a is now available on on Pypi, so you can install it using pip::
+p4a is now available on Pypi, so you can install it using pip::
 
     pip install python-for-android
 
@@ -195,8 +195,8 @@ Getting help
 
 If something goes wrong and you don't know how to fix it, add the
 ``--debug`` option and post the output log to the `kivy-users Google
-group <https://groups.google.com/forum/#!forum/kivy-users>`__ or irc
-channel #kivy at irc.freenode.net .
+group <https://groups.google.com/forum/#!forum/kivy-users>`__ or the
+kivy `#support Discord channel <https://chat.kivy.org/>`_.
 
 See :doc:`troubleshooting` for more information.
 
