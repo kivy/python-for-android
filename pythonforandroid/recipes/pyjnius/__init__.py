@@ -6,7 +6,7 @@ from os.path import join
 
 
 class PyjniusRecipe(CythonRecipe):
-    version = 'master'
+    version = '1.1.2'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
     depends = [('python2', 'python3crystax'), ('genericndkbuild', 'sdl2', 'sdl'), 'six']
