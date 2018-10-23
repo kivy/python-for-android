@@ -381,7 +381,7 @@ class Context(object):
         self.ndk_platform = join(
             self.ndk_dir,
             'platforms',
-            'android-{}'.format(self.android_api),
+            'android-{}'.format(self.ndk_api),
             platform_dir)
         if not exists(self.ndk_platform):
             warning('ndk_platform doesn\'t exist: {}'.format(
