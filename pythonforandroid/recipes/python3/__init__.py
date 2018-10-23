@@ -1,13 +1,32 @@
 from pythonforandroid.recipe import TargetPythonRecipe, Recipe
-from pythonforandroid.toolchain import shprint, current_directory, info
+from pythonforandroid.toolchain import shprint, current_directory
 from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
-from pythonforandroid.logger import logger
+from pythonforandroid.logger import logger, info, debug
 from pythonforandroid.util import ensure_dir
-from os.path import exists, join, realpath
-from os import environ, listdir
+from os.path import exists, join, realpath, basename
+from os import environ, listdir, walk
 import glob
+from fnmatch import fnmatch
 import sh
+
+
+STDLIB_DIR_BLACKLIST = {
+    '__pycache__',
+    'test',
+    'tests',
+    'lib2to3',
+    'ensurepip',
+    'idlelib',
+    'tkinter',
+    }
+
+STDLIB_FILEN_BLACKLIST = [
+    '*.pyc',
+    '*.exe',
+    '*.whl',
+    ]
+
 
 
 class Python3Recipe(TargetPythonRecipe):
@@ -126,16 +145,15 @@ class Python3Recipe(TargetPythonRecipe):
             'build',
             'lib.linux-arm-3.7')
         module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
-                            glob.glob(join(modules_build_dir, '*.py')))
+                         glob.glob(join(modules_build_dir, '*.py')))
         for filen in module_filens:
             shprint(sh.cp, filen, modules_dir)
 
         # zip up the standard library
         stdlib_zip = join(dirn, 'stdlib.zip')
-        with current_directory(
-                join(self.get_build_dir(arch.arch),
-                        'Lib')):
-            shprint(sh.zip, '-r', stdlib_zip, *listdir('.'))
+        with current_directory(join(self.get_build_dir(arch.arch), 'Lib')):
+            stdlib_filens = self.get_stdlib_filens('.')
+            shprint(sh.zip, stdlib_zip, *stdlib_filens)
 
         # copy the site-packages into place
         shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
@@ -155,6 +173,25 @@ class Python3Recipe(TargetPythonRecipe):
 
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(join(dirn, 'site-packages'))
+
+    def get_stdlib_filens(self, basedir):
+        return_filens = []
+        for dirn, subdirs, filens in walk(basedir):
+            if basename(dirn) in STDLIB_DIR_BLACKLIST:
+                debug('stdlib.zip ignoring directory {}'.format(dirn))
+                while subdirs:
+                    subdirs.pop()
+                continue
+            for filen in filens:
+                for pattern in STDLIB_FILEN_BLACKLIST:
+                    if fnmatch(filen, pattern):
+                        debug('stdlib.zip ignoring file {}'.format(join(dirn, filen)))
+                        break
+                else:
+                    return_filens.append(join(dirn, filen))
+        return return_filens
+                    
+                
 
 
 recipe = Python3Recipe()
