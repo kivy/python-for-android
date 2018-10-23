@@ -88,5 +88,12 @@ class Python3Recipe(TargetPythonRecipe):
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(self, join(dirn, "site-packages"))
 
+    def include_root(self, arch_name):
+        return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string(),
+                    'include', 'python')
+
+    def link_root(self, arch_name):
+        return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string(),
+                    'libs', arch_name)
 
 recipe = Python3Recipe()
