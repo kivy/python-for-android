@@ -2,12 +2,11 @@ from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory
 from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
-from pythonforandroid.logger import logger, info, debug
-from pythonforandroid.util import ensure_dir
+from pythonforandroid.logger import logger, info
+from pythonforandroid.util import ensure_dir, walk_valid_filens
 from os.path import exists, join, realpath, basename
 from os import environ, listdir, walk
 import glob
-from fnmatch import fnmatch
 import sh
 
 
@@ -152,7 +151,7 @@ class Python3Recipe(TargetPythonRecipe):
         # zip up the standard library
         stdlib_zip = join(dirn, 'stdlib.zip')
         with current_directory(join(self.get_build_dir(arch.arch), 'Lib')):
-            stdlib_filens = self.get_stdlib_filens('.')
+            stdlib_filens = walk_valid_filens('.', STDLIB_DIR_BLACKLIST, STDLIB_FILEN_BLACKLIST)
             shprint(sh.zip, stdlib_zip, *stdlib_filens)
 
         # copy the site-packages into place
@@ -173,25 +172,6 @@ class Python3Recipe(TargetPythonRecipe):
 
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(join(dirn, 'site-packages'))
-
-    def get_stdlib_filens(self, basedir):
-        return_filens = []
-        for dirn, subdirs, filens in walk(basedir):
-            if basename(dirn) in STDLIB_DIR_BLACKLIST:
-                debug('stdlib.zip ignoring directory {}'.format(dirn))
-                while subdirs:
-                    subdirs.pop()
-                continue
-            for filen in filens:
-                for pattern in STDLIB_FILEN_BLACKLIST:
-                    if fnmatch(filen, pattern):
-                        debug('stdlib.zip ignoring file {}'.format(join(dirn, filen)))
-                        break
-                else:
-                    return_filens.append(join(dirn, filen))
-        return return_filens
-                    
-                
 
 
 recipe = Python3Recipe()
