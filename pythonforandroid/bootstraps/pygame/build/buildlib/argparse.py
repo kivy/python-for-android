@@ -2201,8 +2201,8 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
 
         # when nargs='*' on a positional, if there were no command-line
         # args, use the default if it is anything other than None
-        elif (not arg_strings and action.nargs == ZERO_OR_MORE and
-              not action.option_strings):
+        elif (not arg_strings and action.nargs == ZERO_OR_MORE
+              and not action.option_strings):
             if action.default is not None:
                 value = action.default
             else:

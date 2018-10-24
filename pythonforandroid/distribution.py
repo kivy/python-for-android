@@ -2,8 +2,7 @@ from os.path import exists, join
 import glob
 import json
 
-from pythonforandroid.logger import (info, info_notify, warning,
-                                     Err_Style, Err_Fore)
+from pythonforandroid.logger import info, info_notify, warning, Err_Style, Err_Fore
 from pythonforandroid.util import current_directory
 
 
@@ -15,6 +14,7 @@ class Distribution(object):
     concerned with building and populating the dist directory, whereas
     the dist itself could also come from e.g. a binary download.
     '''
+
     ctx = None
 
     name = None  # A name identifying the dist. May not be None.
@@ -35,16 +35,23 @@ class Distribution(object):
     def __str__(self):
         return '<Distribution: name {} with recipes ({})>'.format(
             # self.name, ', '.join([recipe.name for recipe in self.recipes]))
-            self.name, ', '.join(self.recipes))
+            self.name,
+            ', '.join(self.recipes),
+        )
 
     def __repr__(self):
         return str(self)
 
     @classmethod
-    def get_distribution(cls, ctx, name=None, recipes=[],
-                         force_build=False,
-                         extra_dist_dirs=[],
-                         require_perfect_match=False):
+    def get_distribution(
+        cls,
+        ctx,
+        name=None,
+        recipes=[],
+        force_build=False,
+        extra_dist_dirs=[],
+        require_perfect_match=False,
+    ):
         '''Takes information about the distribution, and decides what kind of
         distribution it will be.
 
@@ -91,8 +98,10 @@ class Distribution(object):
         possible_dists = _possible_dists
 
         if possible_dists:
-            info('Of the existing distributions, the following meet '
-                 'the given requirements:')
+            info(
+                'Of the existing distributions, the following meet '
+                'the given requirements:'
+            )
             pretty_log_dists(possible_dists)
         else:
             info('No existing dists meet the given requirements!')
@@ -101,20 +110,22 @@ class Distribution(object):
         for dist in possible_dists:
             if force_build:
                 continue
-            if (set(dist.recipes) == set(recipes) or
-                (set(recipes).issubset(set(dist.recipes)) and
-                 not require_perfect_match)):
-                info_notify('{} has compatible recipes, using this one'
-                            .format(dist.name))
+            if set(dist.recipes) == set(recipes) or (
+                set(recipes).issubset(set(dist.recipes)) and not require_perfect_match
+            ):
+                info_notify('{} has compatible recipes, using this one'.format(dist.name))
                 return dist
 
         assert len(possible_dists) < 2
 
         if not name and possible_dists:
-            info('Asked for dist with name {} with recipes ({}), but a dist '
-                 'with this name already exists and has incompatible recipes '
-                 '({})'.format(name, ', '.join(recipes),
-                               ', '.join(possible_dists[0].recipes)))
+            info(
+                'Asked for dist with name {} with recipes ({}), but a dist '
+                'with this name already exists and has incompatible recipes '
+                '({})'.format(
+                    name, ', '.join(recipes), ', '.join(possible_dists[0].recipes)
+                )
+            )
             info('No compatible dist found, so exiting.')
             exit(1)
 
@@ -159,8 +170,9 @@ class Distribution(object):
     def get_distributions(cls, ctx, extra_dist_dirs=[]):
         '''Returns all the distributions found locally.'''
         if extra_dist_dirs:
-            warning('extra_dist_dirs argument to get_distributions '
-                    'is not yet implemented')
+            warning(
+                'extra_dist_dirs argument to get_distributions ' 'is not yet implemented'
+            )
             exit(1)
         dist_dir = ctx.dist_dir
         folders = glob.glob(join(dist_dir, '*'))
@@ -189,10 +201,14 @@ class Distribution(object):
         with current_directory(self.dist_dir):
             info('Saving distribution info')
             with open('dist_info.json', 'w') as fileh:
-                json.dump({'dist_name': self.name,
-                           'archs': [arch.arch for arch in self.ctx.archs],
-                           'recipes': self.ctx.recipe_build_order},
-                          fileh)
+                json.dump(
+                    {
+                        'dist_name': self.name,
+                        'archs': [arch.arch for arch in self.ctx.archs],
+                        'recipes': self.ctx.recipe_build_order,
+                    },
+                    fileh,
+                )
 
     def load_info(self):
         '''Load information about the dist from the info file that p4a
@@ -209,13 +225,18 @@ class Distribution(object):
 def pretty_log_dists(dists, log_func=info):
     infos = []
     for dist in dists:
-        infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
-                     'includes recipes ({Fore.GREEN}{recipes}'
-                     '{Style.RESET_ALL}), built for archs ({Fore.BLUE}'
-                     '{archs}{Style.RESET_ALL})'.format(
-                         name=dist.name, recipes=', '.join(dist.recipes),
-                         archs=', '.join(dist.archs) if dist.archs else 'UNKNOWN',
-                         Fore=Err_Fore, Style=Err_Style))
+        infos.append(
+            '{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
+            'includes recipes ({Fore.GREEN}{recipes}'
+            '{Style.RESET_ALL}), built for archs ({Fore.BLUE}'
+            '{archs}{Style.RESET_ALL})'.format(
+                name=dist.name,
+                recipes=', '.join(dist.recipes),
+                archs=', '.join(dist.archs) if dist.archs else 'UNKNOWN',
+                Fore=Err_Fore,
+                Style=Err_Style,
+            )
+        )
 
     for line in infos:
         log_func('\t' + line)

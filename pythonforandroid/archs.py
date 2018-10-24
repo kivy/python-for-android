@@ -1,4 +1,4 @@
-from os.path import (exists, join, dirname)
+from os.path import exists, join, dirname
 from os import environ, uname
 import sys
 from distutils.spawn import find_executable
@@ -25,18 +25,21 @@ class Arch(object):
     @property
     def include_dirs(self):
         return [
-            "{}/{}".format(
-                self.ctx.include_dir,
-                d.format(arch=self))
-            for d in self.ctx.include_dirs]
+            "{}/{}".format(self.ctx.include_dir, d.format(arch=self))
+            for d in self.ctx.include_dirs
+        ]
 
     def get_env(self, with_flags_in_cc=True):
         env = {}
 
-        env['CFLAGS'] = ' '.join([
-            '-DANDROID', '-mandroid', '-fomit-frame-pointer'
-            ' -D__ANDROID_API__={}'.format(self.ctx._android_api),
-            ])
+        env['CFLAGS'] = ' '.join(
+            [
+                '-DANDROID',
+                '-mandroid',
+                '-fomit-frame-pointer'
+                ' -D__ANDROID_API__={}'.format(self.ctx._android_api),
+            ]
+        )
         env['LDFLAGS'] = ' '
 
         sysroot = join(self.ctx._ndk_dir, 'sysroot')
@@ -44,15 +47,16 @@ class Arch(object):
             # post-15 NDK per
             # https://android.googlesource.com/platform/ndk/+/ndk-r15-release/docs/UnifiedHeaders.md
             env['CFLAGS'] += ' -isystem {}/sysroot/usr/include/{}'.format(
-                self.ctx.ndk_dir, self.ctx.toolchain_prefix)
+                self.ctx.ndk_dir, self.ctx.toolchain_prefix
+            )
         else:
             sysroot = self.ctx.ndk_platform
             env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk_platform)
         env['CFLAGS'] += ' -isysroot {} '.format(sysroot)
-        env['CFLAGS'] += '-I' + join(self.ctx.get_python_install_dir(),
-                                     'include/python{}'.format(
-                                         self.ctx.python_recipe.version[0:3])
-                                    )
+        env['CFLAGS'] += '-I' + join(
+            self.ctx.get_python_install_dir(),
+            'include/python{}'.format(self.ctx.python_recipe.version[0:3]),
+        )
 
         env['LDFLAGS'] += '--sysroot {} '.format(self.ctx.ndk_platform)
 
@@ -61,7 +65,9 @@ class Arch(object):
         env["LDFLAGS"] += " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
 
         if self.ctx.ndk == 'crystax':
-            env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
+            env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(
+                self.ctx.ndk_dir, self.arch
+            )
 
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
@@ -82,42 +88,46 @@ class Arch(object):
             env['NDK_CCACHE'] = self.ctx.ccache
             env.update({k: v for k, v in environ.items() if k.startswith('CCACHE_')})
 
-        cc = find_executable('{command_prefix}-gcc'.format(
-            command_prefix=command_prefix), path=environ['PATH'])
+        cc = find_executable(
+            '{command_prefix}-gcc'.format(command_prefix=command_prefix),
+            path=environ['PATH'],
+        )
         if cc is None:
             print('Searching path are: {!r}'.format(environ['PATH']))
-            warning('Couldn\'t find executable for CC. This indicates a '
-                    'problem locating the {} executable in the Android '
-                    'NDK, not that you don\'t have a normal compiler '
-                    'installed. Exiting.')
+            warning(
+                'Couldn\'t find executable for CC. This indicates a '
+                'problem locating the {} executable in the Android '
+                'NDK, not that you don\'t have a normal compiler '
+                'installed. Exiting.'
+            )
             exit(1)
 
         if with_flags_in_cc:
             env['CC'] = '{ccache}{command_prefix}-gcc {cflags}'.format(
-                command_prefix=command_prefix,
-                ccache=ccache,
-                cflags=env['CFLAGS'])
+                command_prefix=command_prefix, ccache=ccache, cflags=env['CFLAGS']
+            )
             env['CXX'] = '{ccache}{command_prefix}-g++ {cxxflags}'.format(
-                command_prefix=command_prefix,
-                ccache=ccache,
-                cxxflags=env['CXXFLAGS'])
+                command_prefix=command_prefix, ccache=ccache, cxxflags=env['CXXFLAGS']
+            )
         else:
             env['CC'] = '{ccache}{command_prefix}-gcc'.format(
-                command_prefix=command_prefix,
-                ccache=ccache)
+                command_prefix=command_prefix, ccache=ccache
+            )
             env['CXX'] = '{ccache}{command_prefix}-g++'.format(
-                command_prefix=command_prefix,
-                ccache=ccache)
+                command_prefix=command_prefix, ccache=ccache
+            )
 
         env['AR'] = '{}-ar'.format(command_prefix)
         env['RANLIB'] = '{}-ranlib'.format(command_prefix)
         env['LD'] = '{}-ld'.format(command_prefix)
-        env['LDSHARED'] = env["CC"] + " -pthread -shared " +\
-            "-Wl,-O1 -Wl,-Bsymbolic-functions "
+        env['LDSHARED'] = (
+            env["CC"] + " -pthread -shared " + "-Wl,-O1 -Wl,-Bsymbolic-functions "
+        )
         if self.ctx.python_recipe and self.ctx.python_recipe.from_crystax:
             # For crystax python, we can't use the host python headers:
-            env["CFLAGS"] += ' -I{}/sources/python/{}/include/python/'.\
-                format(self.ctx.ndk_dir, self.ctx.python_recipe.version[0:3])
+            env["CFLAGS"] += ' -I{}/sources/python/{}/include/python/'.format(
+                self.ctx.ndk_dir, self.ctx.python_recipe.version[0:3]
+            )
         env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(command_prefix)
@@ -128,7 +138,9 @@ class Arch(object):
         # This hardcodes python version 2.7, needs fixing
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
+            'build',
+            'lib.linux-{}-2.7'.format(uname()[-1]),
+        )
 
         env['PATH'] = environ['PATH']
 
@@ -152,9 +164,9 @@ class ArchARMv7_a(ArchARM):
 
     def get_env(self, with_flags_in_cc=True):
         env = super(ArchARMv7_a, self).get_env(with_flags_in_cc)
-        env['CFLAGS'] = (env['CFLAGS'] +
-                         (' -march=armv7-a -mfloat-abi=softfp '
-                          '-mfpu=vfp -mthumb'))
+        env['CFLAGS'] = env['CFLAGS'] + (
+            ' -march=armv7-a -mfloat-abi=softfp ' '-mfpu=vfp -mthumb'
+        )
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 
@@ -167,8 +179,9 @@ class Archx86(Arch):
 
     def get_env(self, with_flags_in_cc=True):
         env = super(Archx86, self).get_env(with_flags_in_cc)
-        env['CFLAGS'] = (env['CFLAGS'] +
-                         ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32')
+        env['CFLAGS'] = (
+            env['CFLAGS'] + ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32'
+        )
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 
@@ -181,8 +194,9 @@ class Archx86_64(Arch):
 
     def get_env(self, with_flags_in_cc=True):
         env = super(Archx86_64, self).get_env(with_flags_in_cc)
-        env['CFLAGS'] = (env['CFLAGS'] +
-                         ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel')
+        env['CFLAGS'] = (
+            env['CFLAGS'] + ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel'
+        )
         env['CXXFLAGS'] = env['CFLAGS']
         return env
 

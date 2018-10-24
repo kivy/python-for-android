@@ -2,8 +2,7 @@
 # coding: utf-8
 
 from __future__ import print_function
-from os.path import (
-    dirname, join, isfile, realpath, relpath, split, exists, basename)
+from os.path import dirname, join, isfile, realpath, relpath, split, exists, basename
 from os import makedirs, remove, listdir
 import os
 import tarfile
@@ -23,7 +22,9 @@ curdir = dirname(__file__)
 # Try to find a host version of Python that matches our ARM version.
 PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
 if not exists(PYTHON):
-    print('Could not find hostpython, will not compile to .pyo (this is normal with python3)')
+    print(
+        'Could not find hostpython, will not compile to .pyo (this is normal with python3)'
+    )
     PYTHON = None
 
 BLACKLIST_PATTERNS = [
@@ -32,10 +33,8 @@ BLACKLIST_PATTERNS = [
     '^*.git/*',
     '^*.bzr/*',
     '^*.svn/*',
-
     # pyc/py
     '*.pyc',
-
     # temp files
     '~',
     '*.bak',
@@ -44,13 +43,14 @@ BLACKLIST_PATTERNS = [
 if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
 
-WHITELIST_PATTERNS = ['pyconfig.h', ]
+WHITELIST_PATTERNS = ['pyconfig.h']
 
 python_files = []
 
 
-environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
-    join(curdir, 'templates')))
+environment = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(join(curdir, 'templates'))
+)
 
 
 def try_unlink(fn):
@@ -135,12 +135,14 @@ def make_python_zip():
         if is_blacklist(fn):
             return False
         fn = realpath(fn)
-        assert(fn.startswith(d))
+        assert fn.startswith(d)
         fn = fn[len(d):]
-        if (fn.startswith('/site-packages/')
-                or fn.startswith('/config/')
-                or fn.startswith('/lib-dynload/')
-                or fn.startswith('/libpymodules.so')):
+        if (
+            fn.startswith('/site-packages/')
+            or fn.startswith('/config/')
+            or fn.startswith('/lib-dynload/')
+            or fn.startswith('/libpymodules.so')
+        ):
             return False
         return fn
 
@@ -180,8 +182,7 @@ def make_tar(tfn, source_dirs, ignore_path=[]):
     for sd in source_dirs:
         sd = realpath(sd)
         compile_dir(sd)
-        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd)
-                  if select(x)]
+        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd) if select(x)]
 
     # create tar.gz of thoses files
     tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
@@ -220,12 +221,16 @@ def compile_dir(dfn):
 def make_package(args):
     # Ignore warning if the launcher is in args
     if not args.launcher:
-        if not (exists(join(realpath(args.private), 'main.py')) or
-                exists(join(realpath(args.private), 'main.pyo'))):
-            print('''BUILD FAILURE: No main.py(o) found in your app directory. This
+        if not (
+            exists(join(realpath(args.private), 'main.py'))
+            or exists(join(realpath(args.private), 'main.pyo'))
+        ):
+            print(
+                '''BUILD FAILURE: No main.py(o) found in your app directory. This
 file must exist to act as the entry point for you app. If your app is
 started by a file with a different name, rename it to main.py or add a
-main.py that loads it.''')
+main.py that loads it.'''
+            )
             exit(1)
 
     # Delete the old assets.
@@ -259,8 +264,9 @@ main.py that loads it.''')
     default_presplash = 'templates/kivy-presplash.jpg'
     ensure_dir('src/main/res/drawable')
     shutil.copy(args.icon or default_icon, 'src/main/res/drawable/icon.png')
-    shutil.copy(args.presplash or default_presplash,
-                'src/main/res/drawable/presplash.jpg')
+    shutil.copy(
+        args.presplash or default_presplash, 'src/main/res/drawable/presplash.jpg'
+    )
 
     jars = []
     # If extra Java jars were requested, copy them into the libs directory
@@ -282,8 +288,7 @@ main.py that loads it.''')
             shutil.copy(aarname, 'libs')
             aars.append(basename(aarname).rsplit('.', 1)[0])
 
-    versioned_name = (args.name.replace(' ', '').replace('\'', '') +
-                      '-' + args.version)
+    versioned_name = args.name.replace(' ', '').replace('\'', '') + '-' + args.version
 
     version_code = 0
     if not args.numeric_version:
@@ -332,13 +337,16 @@ main.py that loads it.''')
         service_names.append(name)
         render(
             'Service.tmpl.java',
-            'src/main/java/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
+            'src/main/java/{}/Service{}.java'.format(
+                args.package.replace(".", "/"), name.capitalize()
+            ),
             name=name,
             entrypoint=entrypoint,
             args=args,
             foreground=foreground,
             sticky=sticky,
-            service_id=sid + 1)
+            service_id=sid + 1,
+        )
 
     # Find the SDK directory and target API
     with open('project.properties', 'r') as fileh:
@@ -350,9 +358,10 @@ main.py that loads it.''')
 
     # Try to build with the newest available build tools
     ignored = {".DS_Store", ".ds_store"}
-    build_tools_versions = [x for x in listdir(join(sdk_dir, 'build-tools')) if x not in ignored]
-    build_tools_versions = sorted(build_tools_versions,
-                                  key=LooseVersion)
+    build_tools_versions = [
+        x for x in listdir(join(sdk_dir, 'build-tools')) if x not in ignored
+    ]
+    build_tools_versions = sorted(build_tools_versions, key=LooseVersion)
     build_tools_version = build_tools_versions[-1]
 
     render(
@@ -362,21 +371,22 @@ main.py that loads it.''')
         service=service,
         service_names=service_names,
         android_api=android_api,
-        url_scheme=url_scheme)
+        url_scheme=url_scheme,
+    )
 
     # Copy the AndroidManifest.xml to the dist root dir so that ant
     # can also use it
     if exists('AndroidManifest.xml'):
         remove('AndroidManifest.xml')
-    shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
-                'AndroidManifest.xml')
+    shutil.copy(join('src', 'main', 'AndroidManifest.xml'), 'AndroidManifest.xml')
 
     render(
         'strings.tmpl.xml',
         'src/main/res/values/strings.xml',
         args=args,
         url_scheme=url_scheme,
-        private_version=str(time.time()))
+        private_version=str(time.time()),
+    )
 
     # gradle build templates
     render(
@@ -386,19 +396,13 @@ main.py that loads it.''')
         aars=aars,
         jars=jars,
         android_api=android_api,
-        build_tools_version=build_tools_version)
+        build_tools_version=build_tools_version,
+    )
 
     # ant build templates
-    render(
-        'build.tmpl.xml',
-        'build.xml',
-        args=args,
-        versioned_name=versioned_name)
+    render('build.tmpl.xml', 'build.xml', args=args, versioned_name=versioned_name)
 
-    render(
-        'custom_rules.tmpl.xml',
-        'custom_rules.xml',
-        args=args)
+    render('custom_rules.tmpl.xml', 'custom_rules.xml', args=args)
 
     if args.sign:
         render('build.properties', 'build.properties')
@@ -411,113 +415,227 @@ def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
     default_android_api = 12
     import argparse
-    ap = argparse.ArgumentParser(description='''\
+
+    ap = argparse.ArgumentParser(
+        description='''\
 Package a Python application for Android.
 
 For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
-''')
+'''
+    )
 
     # `required=True` for launcher, crashes in make_package
     # if not mentioned (and the check is there anyway)
-    ap.add_argument('--private', dest='private',
-                    help='the dir of user files')
-    ap.add_argument('--package', dest='package',
-                    help=('The name of the java package the project will be'
-                          ' packaged under.'),
-                    required=True)
-    ap.add_argument('--name', dest='name',
-                    help=('The human-readable name of the project.'),
-                    required=True)
-    ap.add_argument('--numeric-version', dest='numeric_version',
-                    help=('The numeric version number of the project. If not '
-                          'given, this is automatically computed from the '
-                          'version.'))
-    ap.add_argument('--version', dest='version',
-                    help=('The version number of the project. This should '
-                          'consist of numbers and dots, and should have the '
-                          'same number of groups of numbers as previous '
-                          'versions.'),
-                    required=True)
-    ap.add_argument('--orientation', dest='orientation', default='portrait',
-                    help=('The orientation that the game will display in. '
-                          'Usually one of "landscape", "portrait", '
-                          '"sensor", or "user" (the same as "sensor" but '
-                          'obeying the user\'s Android rotation setting). '
-                          'The full list of options is given under '
-                          'android_screenOrientation at '
-                          'https://developer.android.com/guide/topics/manifest/'
-                          'activity-element.html'))
-    ap.add_argument('--launcher', dest='launcher', action='store_true',
-                    help=('Provide this argument to build a multi-app '
-                          'launcher, rather than a single app.'))
-    ap.add_argument('--icon', dest='icon',
-                    help='A png file to use as the icon for the application.')
-    ap.add_argument('--permission', dest='permissions', action='append',
-                    help='The permissions to give this app.', nargs='+')
-    ap.add_argument('--meta-data', dest='meta_data', action='append',
-                    help='Custom key=value to add in application metadata')
-    ap.add_argument('--presplash', dest='presplash',
-                    help=('A jpeg file to use as a screen while the '
-                          'application is loading.'))
-    ap.add_argument('--presplash-color', dest='presplash_color', default='#000000',
-                    help=('A string to set the loading screen background color. '
-                          'Supported formats are: #RRGGBB #AARRGGBB or color names '
-                          'like red, green, blue, etc.'))
-    ap.add_argument('--wakelock', dest='wakelock', action='store_true',
-                    help=('Indicate if the application needs the device '
-                          'to stay on'))
-    ap.add_argument('--window', dest='window', action='store_true',
-                    help='Indicate if the application will be windowed')
-    ap.add_argument('--blacklist', dest='blacklist',
-                    default=join(curdir, 'blacklist.txt'),
-                    help=('Use a blacklist file to match unwanted file in '
-                          'the final APK'))
-    ap.add_argument('--whitelist', dest='whitelist',
-                    default=join(curdir, 'whitelist.txt'),
-                    help=('Use a whitelist file to prevent blacklisting of '
-                          'file in the final APK'))
-    ap.add_argument('--add-jar', dest='add_jar', action='append',
-                    help=('Add a Java .jar to the libs, so you can access its '
-                          'classes with pyjnius. You can specify this '
-                          'argument more than once to include multiple jars'))
-    ap.add_argument('--add-aar', dest='add_aar', action='append',
-                    help=('Add an aar dependency manually'))
-    ap.add_argument('--depend', dest='depends', action='append',
-                    help=('Add a external dependency '
-                          '(eg: com.android.support:appcompat-v7:19.0.1)'))
+    ap.add_argument('--private', dest='private', help='the dir of user files')
+    ap.add_argument(
+        '--package',
+        dest='package',
+        help=('The name of the java package the project will be' ' packaged under.'),
+        required=True,
+    )
+    ap.add_argument(
+        '--name',
+        dest='name',
+        help=('The human-readable name of the project.'),
+        required=True,
+    )
+    ap.add_argument(
+        '--numeric-version',
+        dest='numeric_version',
+        help=(
+            'The numeric version number of the project. If not '
+            'given, this is automatically computed from the '
+            'version.'
+        ),
+    )
+    ap.add_argument(
+        '--version',
+        dest='version',
+        help=(
+            'The version number of the project. This should '
+            'consist of numbers and dots, and should have the '
+            'same number of groups of numbers as previous '
+            'versions.'
+        ),
+        required=True,
+    )
+    ap.add_argument(
+        '--orientation',
+        dest='orientation',
+        default='portrait',
+        help=(
+            'The orientation that the game will display in. '
+            'Usually one of "landscape", "portrait", '
+            '"sensor", or "user" (the same as "sensor" but '
+            'obeying the user\'s Android rotation setting). '
+            'The full list of options is given under '
+            'android_screenOrientation at '
+            'https://developer.android.com/guide/topics/manifest/'
+            'activity-element.html'
+        ),
+    )
+    ap.add_argument(
+        '--launcher',
+        dest='launcher',
+        action='store_true',
+        help=(
+            'Provide this argument to build a multi-app '
+            'launcher, rather than a single app.'
+        ),
+    )
+    ap.add_argument(
+        '--icon', dest='icon', help='A png file to use as the icon for the application.'
+    )
+    ap.add_argument(
+        '--permission',
+        dest='permissions',
+        action='append',
+        help='The permissions to give this app.',
+        nargs='+',
+    )
+    ap.add_argument(
+        '--meta-data',
+        dest='meta_data',
+        action='append',
+        help='Custom key=value to add in application metadata',
+    )
+    ap.add_argument(
+        '--presplash',
+        dest='presplash',
+        help=('A jpeg file to use as a screen while the ' 'application is loading.'),
+    )
+    ap.add_argument(
+        '--presplash-color',
+        dest='presplash_color',
+        default='#000000',
+        help=(
+            'A string to set the loading screen background color. '
+            'Supported formats are: #RRGGBB #AARRGGBB or color names '
+            'like red, green, blue, etc.'
+        ),
+    )
+    ap.add_argument(
+        '--wakelock',
+        dest='wakelock',
+        action='store_true',
+        help=('Indicate if the application needs the device ' 'to stay on'),
+    )
+    ap.add_argument(
+        '--window',
+        dest='window',
+        action='store_true',
+        help='Indicate if the application will be windowed',
+    )
+    ap.add_argument(
+        '--blacklist',
+        dest='blacklist',
+        default=join(curdir, 'blacklist.txt'),
+        help=('Use a blacklist file to match unwanted file in ' 'the final APK'),
+    )
+    ap.add_argument(
+        '--whitelist',
+        dest='whitelist',
+        default=join(curdir, 'whitelist.txt'),
+        help=('Use a whitelist file to prevent blacklisting of ' 'file in the final APK'),
+    )
+    ap.add_argument(
+        '--add-jar',
+        dest='add_jar',
+        action='append',
+        help=(
+            'Add a Java .jar to the libs, so you can access its '
+            'classes with pyjnius. You can specify this '
+            'argument more than once to include multiple jars'
+        ),
+    )
+    ap.add_argument(
+        '--add-aar',
+        dest='add_aar',
+        action='append',
+        help=('Add an aar dependency manually'),
+    )
+    ap.add_argument(
+        '--depend',
+        dest='depends',
+        action='append',
+        help=(
+            'Add a external dependency ' '(eg: com.android.support:appcompat-v7:19.0.1)'
+        ),
+    )
     # The --sdk option has been removed, it is ignored in favour of
     # --android-api handled by toolchain.py
-    ap.add_argument('--sdk', dest='sdk_version', default=-1,
-                    type=int, help=('Deprecated argument, does nothing'))
-    ap.add_argument('--minsdk', dest='min_sdk_version',
-                    default=default_android_api, type=int,
-                    help=('Minimum Android SDK version to use. Default to '
-                          'the value of ANDROIDAPI, or {} if not set'
-                          .format(default_android_api)))
-    ap.add_argument('--intent-filters', dest='intent_filters',
-                    help=('Add intent-filters xml rules to the '
-                          'AndroidManifest.xml file. The argument is a '
-                          'filename containing xml. The filename should be '
-                          'located relative to the python-for-android '
-                          'directory'))
-    ap.add_argument('--service', dest='services', action='append',
-                    help='Declare a new service entrypoint: '
-                         'NAME:PATH_TO_PY[:foreground]')
-    ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
-                    help='Include additional source dirs in Java build')
-    ap.add_argument('--try-system-python-compile', dest='try_system_python_compile',
-                    action='store_true',
-                    help='Use the system python during compileall if possible.')
-    ap.add_argument('--no-compile-pyo', dest='no_compile_pyo', action='store_true',
-                    help='Do not optimise .py files to .pyo.')
-    ap.add_argument('--sign', action='store_true',
-                    help=('Try to sign the APK with your credentials. You must set '
-                          'the appropriate environment variables.'))
-    ap.add_argument('--add-activity', dest='add_activity', action='append',
-                    help='Add this Java class as an Activity to the manifest.')
-    ap.add_argument('--activity-launch-mode', dest='activity_launch_mode',
-                    help='Set the launch mode of the main activity in the manifest.')
+    ap.add_argument(
+        '--sdk',
+        dest='sdk_version',
+        default=-1,
+        type=int,
+        help=('Deprecated argument, does nothing'),
+    )
+    ap.add_argument(
+        '--minsdk',
+        dest='min_sdk_version',
+        default=default_android_api,
+        type=int,
+        help=(
+            'Minimum Android SDK version to use. Default to '
+            'the value of ANDROIDAPI, or {} if not set'.format(default_android_api)
+        ),
+    )
+    ap.add_argument(
+        '--intent-filters',
+        dest='intent_filters',
+        help=(
+            'Add intent-filters xml rules to the '
+            'AndroidManifest.xml file. The argument is a '
+            'filename containing xml. The filename should be '
+            'located relative to the python-for-android '
+            'directory'
+        ),
+    )
+    ap.add_argument(
+        '--service',
+        dest='services',
+        action='append',
+        help='Declare a new service entrypoint: ' 'NAME:PATH_TO_PY[:foreground]',
+    )
+    ap.add_argument(
+        '--add-source',
+        dest='extra_source_dirs',
+        action='append',
+        help='Include additional source dirs in Java build',
+    )
+    ap.add_argument(
+        '--try-system-python-compile',
+        dest='try_system_python_compile',
+        action='store_true',
+        help='Use the system python during compileall if possible.',
+    )
+    ap.add_argument(
+        '--no-compile-pyo',
+        dest='no_compile_pyo',
+        action='store_true',
+        help='Do not optimise .py files to .pyo.',
+    )
+    ap.add_argument(
+        '--sign',
+        action='store_true',
+        help=(
+            'Try to sign the APK with your credentials. You must set '
+            'the appropriate environment variables.'
+        ),
+    )
+    ap.add_argument(
+        '--add-activity',
+        dest='add_activity',
+        action='append',
+        help='Add this Java class as an Activity to the manifest.',
+    )
+    ap.add_argument(
+        '--activity-launch-mode',
+        dest='activity_launch_mode',
+        help='Set the launch mode of the main activity in the manifest.',
+    )
 
     if args is None:
         args = sys.argv[1:]
@@ -531,8 +649,10 @@ tools directory of the Android SDK.
     #     args.sdk_version = args.min_sdk_version
 
     if args.sdk_version != -1:
-        print('WARNING: Received a --sdk argument, but this argument is '
-              'deprecated and does nothing.')
+        print(
+            'WARNING: Received a --sdk argument, but this argument is '
+            'deprecated and does nothing.'
+        )
 
     if args.permissions is None:
         args.permissions = []
@@ -564,14 +684,20 @@ tools directory of the Android SDK.
 
     if args.blacklist:
         with open(args.blacklist) as fd:
-            patterns = [x.strip() for x in fd.read().splitlines()
-                        if x.strip() and not x.strip().startswith('#')]
+            patterns = [
+                x.strip()
+                for x in fd.read().splitlines()
+                if x.strip() and not x.strip().startswith('#')
+            ]
         BLACKLIST_PATTERNS += patterns
 
     if args.whitelist:
         with open(args.whitelist) as fd:
-            patterns = [x.strip() for x in fd.read().splitlines()
-                        if x.strip() and not x.strip().startswith('#')]
+            patterns = [
+                x.strip()
+                for x in fd.read().splitlines()
+                if x.strip() and not x.strip().startswith('#')
+            ]
         WHITELIST_PATTERNS += patterns
 
     make_package(args)

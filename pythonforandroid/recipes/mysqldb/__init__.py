@@ -10,8 +10,7 @@ class MysqldbRecipe(CompiledComponentsPythonRecipe):
 
     depends = ['python2', 'setuptools', 'libmysqlclient']
 
-    patches = ['override-mysql-config.patch',
-               'disable-zip.patch']
+    patches = ['override-mysql-config.patch', 'disable-zip.patch']
 
     # call_hostpython_via_targetpython = False
 
@@ -33,9 +32,11 @@ class MysqldbRecipe(CompiledComponentsPythonRecipe):
 
         hostpython = self.get_recipe('hostpython2', self.ctx)
         # TODO: fix hardcoded path
-        env['PYTHONPATH'] = (join(hostpython.get_build_dir(arch.arch),
-                                  'build', 'lib.linux-x86_64-2.7') +
-                             ':' + env.get('PYTHONPATH', ''))
+        env['PYTHONPATH'] = (
+            join(hostpython.get_build_dir(arch.arch), 'build', 'lib.linux-x86_64-2.7')
+            + ':'
+            + env.get('PYTHONPATH', '')
+        )
 
         libmysql = self.get_recipe('libmysqlclient', self.ctx)
         mydir = join(libmysql.get_build_dir(arch.arch), 'libmysqlclient')
@@ -43,8 +44,7 @@ class MysqldbRecipe(CompiledComponentsPythonRecipe):
         # env['LDFLAGS'] += ' -L' + join(mydir)
         libdir = self.ctx.get_libs_dir(arch.arch)
         env['MYSQL_libs'] = env['MYSQL_libs_r'] = '-L' + libdir + ' -lmysql'
-        env['MYSQL_cflags'] = env['MYSQL_include'] = '-I' + join(mydir,
-                                                                 'include')
+        env['MYSQL_cflags'] = env['MYSQL_include'] = '-I' + join(mydir, 'include')
 
         return env
 

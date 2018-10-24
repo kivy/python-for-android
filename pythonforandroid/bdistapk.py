@@ -58,8 +58,10 @@ class BdistAPK(Command):
 
         if not argv_contains('--package'):
             package = 'org.test.{}'.format(self.name.lower().replace(' ', ''))
-            print('WARNING: You did not supply an Android package '
-                  'identifier, trying {} instead.'.format(package))
+            print(
+                'WARNING: You did not supply an Android package '
+                'identifier, trying {} instead.'.format(package)
+            )
             print('         This may fail if this is not a valid identifier')
             sys.argv.append('--package={}'.format(package))
 
@@ -77,16 +79,18 @@ class BdistAPK(Command):
         self.prepare_build_dir()
 
         from pythonforandroid.toolchain import main
+
         sys.argv[1] = 'apk'
         main()
 
     def prepare_build_dir(self):
 
         if argv_contains('--private') and not argv_contains('--launcher'):
-            print('WARNING: Received --private argument when this would '
-                  'normally be generated automatically.')
-            print('         This is probably bad unless you meant to do '
-                  'that.')
+            print(
+                'WARNING: Received --private argument when this would '
+                'normally be generated automatically.'
+            )
+            print('         This is probably bad unless you meant to do ' 'that.')
 
         bdist_dir = 'build/bdist.android-{}'.format(self.arch)
         if exists(bdist_dir):
@@ -124,19 +128,22 @@ class BdistAPK(Command):
         main_py_dirs = sorted(main_py_dirs, key=lambda j: len(split(j)))
 
         if not argv_contains('--launcher'):
-            sys.argv.append('--private={}'.format(
-                join(realpath(curdir), bdist_dir, dirname(main_py_dirs[0])))
+            sys.argv.append(
+                '--private={}'.format(
+                    join(realpath(curdir), bdist_dir, dirname(main_py_dirs[0]))
+                )
             )
 
 
 def _set_user_options():
     # This seems like a silly way to do things, but not sure if there's a
     # better way to pass arbitrary options onwards to p4a
-    user_options = [('requirements=', None, None), ]
+    user_options = [('requirements=', None, None)]
     for i, arg in enumerate(sys.argv):
         if arg.startswith('--'):
-            if ('=' in arg or
-                    (i < (len(sys.argv) - 1) and not sys.argv[i+1].startswith('-'))):
+            if '=' in arg or (
+                i < (len(sys.argv) - 1) and not sys.argv[i + 1].startswith('-')
+            ):
                 user_options.append((arg[2:].split('=')[0] + '=', None, None))
             else:
                 user_options.append((arg[2:], None, None))
