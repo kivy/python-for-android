@@ -107,15 +107,7 @@ class Bootstrap(object):
 
     def run_distribute(self):
         # TODO: Move this to Distribution.save_info
-        with current_directory(self.dist_dir):
-            info('Saving distribution info')
-            with open('dist_info.json', 'w') as fileh:
-                json.dump({'dist_name': self.ctx.dist_name,
-                           'bootstrap': self.ctx.bootstrap.name,
-                           'archs': [arch.arch for arch in self.ctx.archs],
-                           'ndk_api': self.ctx.ndk_api,
-                           'recipes': self.ctx.recipe_build_order + self.ctx.python_modules},
-                          fileh)
+        self.distribution.save_info(self.dist_dir)
 
     @classmethod
     def list_bootstraps(cls):

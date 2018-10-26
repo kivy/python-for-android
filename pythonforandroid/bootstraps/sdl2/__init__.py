@@ -63,14 +63,13 @@ class SDL2GradleBootstrap(Bootstrap):
 
             site_packages_dir = self.ctx.python_recipe.create_python_bundle(
                 join(self.dist_dir, python_bundle_dir), arch)
-                # TODO: Also set site_packages_dir again so fry_eggs can work
 
             if 'sqlite3' not in self.ctx.recipe_build_order:
                 with open('blacklist.txt', 'a') as fileh:
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
         self.strip_libraries(arch)
-        self.fry_eggs(site_packages_dir)  # TODO uncomment this and make it work with python3
+        self.fry_eggs(site_packages_dir)
         super(SDL2GradleBootstrap, self).run_distribute()
 
 

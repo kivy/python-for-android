@@ -182,29 +182,19 @@ class Distribution(object):
                 dists.append(dist)
         return dists
 
-    # def save_info(self):
-    #     '''
-    #     Save information about the distribution in its dist_dir.
-    #     '''
-    #     with current_directory(self.dist_dir):
-    #         info('Saving distribution info')
-    #         with open('dist_info.json', 'w') as fileh:
-    #             json.dump({'dist_name': self.name,
-    #                        'archs': [arch.arch for arch in self.ctx.archs],
-    #                        'ndk_api': self.ctx.ndk_api,
-    #                        'recipes': self.ctx.recipe_build_order},
-    #                       fileh)
-
-    # def load_info(self):
-    #     '''Load information about the dist from the info file that p4a
-    #     automatically creates.'''
-    #     with current_directory(self.dist_dir):
-    #         filen = 'dist_info.json'
-    #         if not exists(filen):
-    #             return None
-    #         with open('dist_info.json', 'r') as fileh:
-    #             dist_info = json.load(fileh)
-    #     return dist_info
+    def save_info(self, dirn):
+        '''
+        Save information about the distribution in its dist_dir.
+        '''
+        with current_directory(dirn):
+            info('Saving distribution info')
+            with open('dist_info.json', 'w') as fileh:
+                json.dump({'dist_name': self.ctx.dist_name,
+                           'bootstrap': self.ctx.bootstrap.name,
+                           'archs': [arch.arch for arch in self.ctx.archs],
+                           'ndk_api': self.ctx.ndk_api,
+                           'recipes': self.ctx.recipe_build_order + self.ctx.python_modules},
+                          fileh)
 
 
 def pretty_log_dists(dists, log_func=info):
