@@ -57,13 +57,15 @@ class Python3Recipe(TargetPythonRecipe):
 
         # Skipping "Ensure that nl_langinfo is broken" from the original bpo-30386
 
+        platform_name = 'android-{}'.format(self.ctx.ndk_api)
+
         with current_directory(build_dir):
             env = environ.copy()
 
             # TODO: Get this information from p4a's arch system
             android_host = 'arm-linux-androideabi'
             android_build = sh.Command(join(recipe_build_dir, 'config.guess'))().stdout.strip().decode('utf-8')
-            platform_dir = join(self.ctx.ndk_dir, 'platforms', 'android-21', 'arch-arm')
+            platform_dir = join(self.ctx.ndk_dir, 'platforms', platform_name, 'arch-arm')
             toolchain = '{android_host}-4.9'.format(android_host=android_host)
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
             CC = '{clang} -target {target} -gcc-toolchain {toolchain}'.format(
@@ -84,10 +86,13 @@ class Python3Recipe(TargetPythonRecipe):
             env['READELF'] = READELF
             env['STRIP'] = STRIP
 
-            ndk_flags = '--sysroot={ndk_sysroot} -D__ANDROID_API__=21 -isystem {ndk_android_host}'.format(
-                ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
-                ndk_android_host=join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host))
-            sysroot = join(self.ctx.ndk_dir, 'platforms', 'android-21', 'arch-arm')
+            ndk_flags = ('--sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
+                         '-isystem {ndk_android_host}').format(
+                             ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
+                             android_api=self.ctx.ndk_api,
+                             ndk_android_host=join(
+                                 self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host))
+            sysroot = join(self.ctx.ndk_dir, 'platforms', platform_name, 'arch-arm')
             env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
             env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
             env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(sysroot, join(sysroot, 'usr', 'lib'))
