@@ -1049,7 +1049,7 @@ class TargetPythonRecipe(Recipe):
 
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
-        if elf.from_crystax and self.ctx.ndk != 'crystax':
+        if self.from_crystax and self.ctx.ndk != 'crystax':
             error('The {} recipe can only be built when '
                   'using the CrystaX NDK. Exiting.'.format(self.name))
             exit(1)

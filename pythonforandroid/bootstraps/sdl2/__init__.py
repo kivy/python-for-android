@@ -61,7 +61,7 @@ class SDL2GradleBootstrap(Bootstrap):
                 python_bundle_dir = 'private'
             ensure_dir(python_bundle_dir)
 
-            self.ctx.python_recipe.create_python_bundle(
+            site_packages_dir = self.ctx.python_recipe.create_python_bundle(
                 join(self.dist_dir, python_bundle_dir), arch)
                 # TODO: Also set site_packages_dir again so fry_eggs can work
 
@@ -70,7 +70,7 @@ class SDL2GradleBootstrap(Bootstrap):
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
         self.strip_libraries(arch)
-        # self.fry_eggs(site_packages_dir)  # TODO uncomment this and make it work with python3
+        self.fry_eggs(site_packages_dir)  # TODO uncomment this and make it work with python3
         super(SDL2GradleBootstrap, self).run_distribute()
 
 

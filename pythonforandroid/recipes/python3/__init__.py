@@ -187,5 +187,7 @@ class Python3Recipe(TargetPythonRecipe):
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(join(dirn, 'site-packages'))
 
+        return join(dirn, 'site-packages')
+
 
 recipe = Python3Recipe()

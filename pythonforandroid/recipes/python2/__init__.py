@@ -210,6 +210,8 @@ class Python2Recipe(TargetPythonRecipe):
                 shprint(sh.rm, '-f', filename)
             shprint(sh.rm, '-rf', 'config/python.o')
 
+        return site_packages_dir
+
     def include_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'python-install', 'include', 'python2.7')
 
