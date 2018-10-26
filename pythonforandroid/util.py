@@ -140,7 +140,6 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
 
     """ 
 
-    return_filens = []
     for dirn, subdirs, filens in walk(base_dir):
 
         # Remove invalid subdirs so that they will not be walked

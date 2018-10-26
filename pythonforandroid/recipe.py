@@ -789,14 +789,10 @@ class PythonRecipe(Recipe):
                     join(ndk_dir_python, 'libs', arch.arch))
                 env['LDFLAGS'] += ' -lpython{}m'.format(python_short_version)
             elif 'python3' in self.ctx.recipe_build_order:
-                # TODO: Make the recipe env get these details from the
-                # python recipe instead of hardcoding
-                env['PYTHON_ROOT'] = Recipe.get_recipe('python3', self.ctx).get_build_dir(arch.arch)
-                env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/Include'
-                env['LDFLAGS'] += (
-                    ' -L' +
-                    join(env['PYTHON_ROOT'], 'android-build') +
-                    ' -lpython3.7m')
+                env['CFLAGS'] += ' -I{}'.format(self.ctx.python_recipe.include_root(arch.arch))
+                env['LDFLAGS'] += ' -L{} -lpython{}m'.format(
+                    self.ctx.python_recipe.link_root(arch.arch),
+                    self.ctx.python_recipe.major_minor_version_string)
 
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))

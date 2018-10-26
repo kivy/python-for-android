@@ -4,7 +4,7 @@ from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from pythonforandroid.logger import logger, info
 from pythonforandroid.util import ensure_dir, walk_valid_filens
-from os.path import exists, join, realpath, basename
+from os.path import exists, join, realpath, dirname
 from os import environ, listdir, walk
 import glob
 import sh
@@ -18,14 +18,21 @@ STDLIB_DIR_BLACKLIST = {
     'ensurepip',
     'idlelib',
     'tkinter',
-    }
+}
 
 STDLIB_FILEN_BLACKLIST = [
     '*.pyc',
     '*.exe',
     '*.whl',
-    ]
+]
 
+# TODO: Move to a generic location so all recipes use the same blacklist
+SITE_PACKAGES_DIR_BLACKLIST = {
+    '__pycache__',
+    'tests'
+}
+
+SITE_PACKAGES_FILEN_BLACKLIST = []
 
 
 class Python3Recipe(TargetPythonRecipe):
@@ -151,12 +158,19 @@ class Python3Recipe(TargetPythonRecipe):
         # zip up the standard library
         stdlib_zip = join(dirn, 'stdlib.zip')
         with current_directory(join(self.get_build_dir(arch.arch), 'Lib')):
-            stdlib_filens = walk_valid_filens('.', STDLIB_DIR_BLACKLIST, STDLIB_FILEN_BLACKLIST)
+            stdlib_filens = walk_valid_filens(
+                '.', STDLIB_DIR_BLACKLIST, STDLIB_FILEN_BLACKLIST)
             shprint(sh.zip, stdlib_zip, *stdlib_filens)
 
         # copy the site-packages into place
-        shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
-                join(dirn, 'site-packages'))
+        ensure_dir(join(dirn, 'site-packages'))
+        # TODO: Improve the API around walking and copying the files
+        with current_directory(self.ctx.get_python_install_dir()):
+            filens = list(walk_valid_filens(
+                '.', SITE_PACKAGES_DIR_BLACKLIST, SITE_PACKAGES_FILEN_BLACKLIST))
+            for filen in filens:
+                ensure_dir(join(dirn, 'site-packages', dirname(filen)))
+                sh.cp(filen, join(dirn, 'site-packages', filen))
 
         # copy the python .so files into place
         python_build_dir = join(self.get_build_dir(arch.arch),

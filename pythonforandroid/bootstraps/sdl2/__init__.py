@@ -36,7 +36,6 @@ class SDL2GradleBootstrap(Bootstrap):
             with open('local.properties', 'w') as fileh:
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
-        # TODO: Move the packaged python building to the python recipes
         with current_directory(self.dist_dir):
             info("Copying Python distribution")
 
