@@ -29,7 +29,8 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
             env['EXTRA_LDLIBS'] = ' -lpython2.7'
 
         if 'python3' in self.ctx.recipe_build_order:
-            env['EXTRA_LDLIBS'] = ' -lpython3.7m'  # TODO: don't hardcode the python version
+            env['EXTRA_LDLIBS'] = ' -lpython{}m'.format(
+                self.ctx.python_recipe.major_minor_version_string)
 
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
