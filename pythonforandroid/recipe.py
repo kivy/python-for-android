@@ -20,8 +20,6 @@ from pythonforandroid.logger import (logger, info, warning, error, debug, shprin
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
 # this import is necessary to keep imp.load_source from complaining :)
-
-
 if PY2:
     import imp
     import_recipe = imp.load_source
@@ -167,20 +165,6 @@ class Recipe(with_metaclass(RecipeMeta)):
                         shprint(sh.git, 'submodule', 'update', '--recursive')
             return target
 
-    # def get_archive_rootdir(self, filename):
-    #     if filename.endswith(".tgz") or filename.endswith(".tar.gz") or \
-    #         filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
-    #         archive = tarfile.open(filename)
-    #         root = archive.next().path.split("/")
-    #         return root[0]
-    #     elif filename.endswith(".zip"):
-    #         with zipfile.ZipFile(filename) as zf:
-    #             return dirname(zf.namelist()[0])
-    #     else:
-    #         print("Error: cannot detect root directory")
-    #         print("Unrecognized extension for {}".format(filename))
-    #         raise Exception()
-
     def apply_patch(self, filename, arch):
         """
         Apply a patch from the current recipe directory into the current
@@ -206,41 +190,11 @@ class Recipe(with_metaclass(RecipeMeta)):
         with open(dest, "ab") as fd:
             fd.write(data)
 
-    # def has_marker(self, marker):
-    #     """
-    #     Return True if the current build directory has the marker set
-    #     """
-    #     return exists(join(self.build_dir, ".{}".format(marker)))
-
-    # def set_marker(self, marker):
-    #     """
-    #     Set a marker info the current build directory
-    #     """
-    #     with open(join(self.build_dir, ".{}".format(marker)), "w") as fd:
-    #         fd.write("ok")
-
-    # def delete_marker(self, marker):
-    #     """
-    #     Delete a specific marker
-    #     """
-    #     try:
-    #         unlink(join(self.build_dir, ".{}".format(marker)))
-    #     except:
-    #         pass
-
     @property
     def name(self):
         '''The name of the recipe, the same as the folder containing it.'''
         modname = self.__class__.__module__
         return modname.split(".", 2)[-1]
-
-    # @property
-    # def archive_fn(self):
-    #     bfn = basename(self.url.format(version=self.version))
-    #     fn = "{}/{}-{}".format(
-    #         self.ctx.cache_dir,
-    #         self.name, bfn)
-    #     return fn
 
     @property
     def filtered_archs(self):
@@ -1095,7 +1049,7 @@ class TargetPythonRecipe(Recipe):
 
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
-        if self.from_crystax and self.ctx.ndk != 'crystax':
+        if elf.from_crystax and self.ctx.ndk != 'crystax':
             error('The {} recipe can only be built when '
                   'using the CrystaX NDK. Exiting.'.format(self.name))
             exit(1)
