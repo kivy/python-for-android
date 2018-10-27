@@ -102,11 +102,9 @@ class Bootstrap(object):
                 fileh.write('target=android-{}'.format(self.ctx.android_api))
 
     def prepare_dist_dir(self, name):
-        # self.dist_dir = self.get_dist_dir(name)
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):
-        # TODO: Move this to Distribution.save_info
         self.distribution.save_info(self.dist_dir)
 
     @classmethod

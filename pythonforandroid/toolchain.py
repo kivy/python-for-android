@@ -155,6 +155,7 @@ def dist_from_args(ctx, args):
     return Distribution.get_distribution(
         ctx,
         name=args.dist_name,
+        ndk_api=args.ndk_api,
         recipes=split_argument_list(args.requirements),
         require_perfect_match=args.require_perfect_match)
 
