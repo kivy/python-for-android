@@ -123,8 +123,6 @@ int main(int argc, char *argv[]) {
         snprintf(paths, 256,
                 "%s/stdlib.zip:%s/modules",
                 crystax_python_dir, crystax_python_dir);
-        LOGP("calculated paths to be...");
-        LOGP(paths);
     }
 
     if (dir_exists(python_bundle_dir)) {
@@ -132,9 +130,10 @@ int main(int argc, char *argv[]) {
         snprintf(paths, 256,
                 "%s/stdlib.zip:%s/modules",
                 python_bundle_dir, python_bundle_dir);
-        LOGP("calculated paths to be...");
-        LOGP(paths);
     }
+
+    LOGP("calculated paths to be...");
+    LOGP(paths);
 
 
     #if PY_MAJOR_VERSION >= 3
@@ -148,7 +147,10 @@ int main(int argc, char *argv[]) {
 
         LOGP("set wchar paths...");
   } else {
-      LOGP("crystax_python does not exist");
+      // We do not expect to see crystax_python any more, so no point
+      // reminding the user about it. If it does exist, we'll have
+      // logged it earlier.
+      LOGP("_python_bundle does not exist");
   }
 
   Py_Initialize();

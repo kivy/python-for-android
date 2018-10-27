@@ -27,7 +27,6 @@ class Hostpython3Recipe(Recipe):
         Creates expected build and symlinks system Python version.
         """
         self.ctx.hostpython = '/usr/bin/false'
-        self.ctx.hostpgen = '/usr/bin/false'
         # creates the sub buildir (used by other recipes)
         # https://github.com/kivy/python-for-android/issues/1154
         sub_build_dir = join(self.get_build_dir(), 'build')

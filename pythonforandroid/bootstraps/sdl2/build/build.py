@@ -240,12 +240,9 @@ main.py that loads it.''')
 
     # Package up the private data (public not supported).
     tar_dirs = [args.private]
-    if exists('private'):
-        tar_dirs.append('private')
-    if exists('crystax_python'):
-        tar_dirs.append('crystax_python')
-    if exists('_python_bundle'):
-        tar_dirs.append('_python_bundle')
+    for python_bundle_dir in ('private', 'crystax_python', '_python_bundle'):
+        if exists(python_bundle_dir):
+            tar_dirs.append(python_bundle_Dir)
 
     if args.private:
         make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
@@ -413,14 +410,14 @@ main.py that loads it.''')
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
-    # Get the default minsdk, equal to the NDK API that this dist it built against
+    # Get the default minsdk, equal to the NDK API that this dist is built against
     with open('dist_info.json', 'r') as fileh:
         info = json.load(fileh)
         if 'ndk_api' not in info:
-            print('Failed to read ndk_api from dist info')
-            default_android_api = 12  # The old default before ndk_api was introduced
+            print('WARNING: Failed to read ndk_api from dist info, defaulting to 12')
+            default_min_api = 12  # The old default before ndk_api was introduced
         else:
-            default_android_api = info['ndk_api']
+            default_min_api = info['ndk_api']
             ndk_api = info['ndk_api']
 
     import argparse
@@ -504,9 +501,9 @@ tools directory of the Android SDK.
     ap.add_argument('--sdk', dest='sdk_version', default=-1,
                     type=int, help=('Deprecated argument, does nothing'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
-                    default=default_android_api, type=int,
+                    default=default_min_api, type=int,
                     help=('Minimum Android SDK version that the app supports. '
-                          'Defaults to {}.'.format(default_android_api)))
+                          'Defaults to {}.'.format(default_min_api)))
     ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
                     action='store_true',
                     help=('Allow the --minsdk argument to be different from '

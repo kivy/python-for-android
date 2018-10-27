@@ -209,8 +209,7 @@ class Python2Recipe(TargetPythonRecipe):
             # To quote the original distribute.sh, 'well...'
             shprint(sh.rm, '-rf', 'lib2to3')
             shprint(sh.rm, '-rf', 'idlelib')
-            for filename in glob.glob('config/libpython*.a'):
-                shprint(sh.rm, '-f', filename)
+            shprint(sh.rm, '-f', *glob.glob('config/libpython*.a'))
             shprint(sh.rm, '-rf', 'config/python.o')
 
         return site_packages_dir
