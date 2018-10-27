@@ -340,6 +340,12 @@ class Context(object):
         self.ndk_ver = ndk_ver
 
         self.ndk_api = user_ndk_api
+        if self.ndk_api > self.android_api:
+            error('Target NDK API is {}, higher than the target Android API {}.'.format(
+                self.ndk_api, self.android_api))
+            error('The NDK API is a minimum supported API number and must be lower '
+                  'than the target Android API')
+            exit(1)
 
         info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
 

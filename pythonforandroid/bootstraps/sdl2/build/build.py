@@ -412,7 +412,17 @@ main.py that loads it.''')
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
-    default_android_api = 21
+
+    # Get the default minsdk, equal to the NDK API that this dist it built against
+    with open('dist_info.json', 'r') as fileh:
+        info = json.load(fileh)
+        if 'ndk_api' not in info:
+            print('Failed to read ndk_api from dist info')
+            default_android_api = 12  # The old default before ndk_api was introduced
+        else:
+            default_android_api = info['ndk_api']
+            ndk_api = info['ndk_api']
+
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -495,9 +505,8 @@ tools directory of the Android SDK.
                     type=int, help=('Deprecated argument, does nothing'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
                     default=default_android_api, type=int,
-                    help=('Minimum Android SDK version to use. Default to '
-                          'the value of ANDROIDAPI, or {} if not set'
-                          .format(default_android_api)))
+                    help=('Minimum Android SDK version that the app supports. '
+                          'Defaults to {}.'.format(default_android_api)))
     ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
                     action='store_true',
                     help=('Allow the --minsdk argument to be different from '
@@ -536,25 +545,18 @@ tools directory of the Android SDK.
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
 
-    with open('dist_info.json', 'r') as fileh:
-        info = json.load(fileh)
-        if 'ndk_api' not in info:
-            print('Failed to read ndk_api from dist info')
-            ndk_api = args.min_sdk_version
+    if ndk_api != args.min_sdk_version:
+        print(('WARNING: --minsdk argument does not match the api that is '
+                'compiled against. Only proceed if you know what you are '
+                'doing, otherwise use --minsdk={} or recompile against api '
+                '{}').format(ndk_api, args.min_sdk_version))
+        if not args.allow_minsdk_ndkapi_mismatch:
+            print('You must pass --allow-minsdk-ndkapi-mismatch to build '
+                    'with --minsdk different to the target NDK api from the '
+                    'build step')
+            exit(1)
         else:
-            ndk_api = info['ndk_api']
-        if ndk_api != args.min_sdk_version:
-            print(('WARNING: --minsdk argument does not match the api that is '
-                   'compiled against. Only proceed if you know what you are '
-                   'doing, otherwise use --minsdk={} or recompile against api '
-                   '{}').format(ndk_api, args.min_sdk_version))
-            if not args.allow_minsdk_ndkapi_mismatch:
-                print('You must pass --allow-minsdk-ndkapi-mismatch to build '
-                      'with --minsdk different to the target NDK api from the '
-                      'build step')
-                exit(1)
-            else:
-                print('Proceeding with --minsdk not matching build target api')
+            print('Proceeding with --minsdk not matching build target api')
             
 
 

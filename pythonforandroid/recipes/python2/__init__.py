@@ -9,7 +9,6 @@ import sh
 
 EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
-
 class Python2Recipe(TargetPythonRecipe):
     version = "2.7.2"
     url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
