@@ -242,7 +242,7 @@ main.py that loads it.''')
     tar_dirs = [args.private]
     for python_bundle_dir in ('private', 'crystax_python', '_python_bundle'):
         if exists(python_bundle_dir):
-            tar_dirs.append(python_bundle_Dir)
+            tar_dirs.append(python_bundle_dir)
 
     if args.private:
         make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
