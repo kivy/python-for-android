@@ -1,0 +1,8 @@
+venv/
+.buildozer/
+**/.pytest_cache/
+.tox/
+bin/
+*.pyc
+**/__pycache__
+*.egg-info/
