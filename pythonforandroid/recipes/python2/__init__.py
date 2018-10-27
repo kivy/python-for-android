@@ -3,7 +3,11 @@ from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
+from os import walk
+import glob
 import sh
+
+EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
 
 class Python2Recipe(TargetPythonRecipe):

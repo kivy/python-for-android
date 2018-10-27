@@ -4,11 +4,7 @@ from pythonforandroid.util import ensure_dir
 from os.path import join, exists, curdir, abspath
 from os import walk
 import os
-import glob
 import sh
-
-
-EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
 
 class SDL2GradleBootstrap(Bootstrap):
