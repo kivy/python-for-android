@@ -355,20 +355,29 @@ main.py that loads it.''')
                                   key=LooseVersion)
     build_tools_version = build_tools_versions[-1]
 
-    render(
-        'AndroidManifest.tmpl.xml',
-        'src/main/AndroidManifest.xml',
-        args=args,
-        service=service,
-        service_names=service_names,
-        android_api=android_api,
-        url_scheme=url_scheme)
+    manifest_path = join('src', 'main', 'AndroidManifest.xml'
+
+    if args.load_manifest:
+        shutil.copy(args.load_manifest, manifest_path)
+
+    else:
+        render(
+            'AndroidManifest.tmpl.xml',
+            manifest_path,
+            args=args,
+            service=service,
+            service_names=service_names,
+            android_api=android_api,
+            url_scheme=url_scheme)
+
+        if args.save_manifest:
+            shutil.copy(manifest_path, args.save_manifest)
 
     # Copy the AndroidManifest.xml to the dist root dir so that ant
     # can also use it
     if exists('AndroidManifest.xml'):
         remove('AndroidManifest.xml')
-    shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
+    shutil.copy(manifest_path),
                 'AndroidManifest.xml')
 
     render(
@@ -518,6 +527,10 @@ tools directory of the Android SDK.
                     help='Add this Java class as an Activity to the manifest.')
     ap.add_argument('--activity-launch-mode', dest='activity_launch_mode',
                     help='Set the launch mode of the main activity in the manifest.')
+    ap.add_argument('--save-manifest', dest='save_manifest', default='',
+                    help="If set to a path, the created manifest will be saved to this path.")
+    ap.add_argument('--load-manifest', dest='load_manifest', default='',
+                    help="If set to a path, the manifest will be loaded from this path.")
 
     if args is None:
         args = sys.argv[1:]
