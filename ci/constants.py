@@ -47,6 +47,11 @@ BROKEN_RECIPES_PYTHON2 = set([
     # requires autoconf system dependency on host
     # https://api.travis-ci.org/v3/job/450538715/log.txt
     'protobuf_cpp',
+    'xeddsa',
+    'x3dh',
+    'pynacl',
+    'doubleratchet',
+    'omemo',
     # https://github.com/kivy/python-for-android/issues/1405
     'psycopg2',
     'pygame',
