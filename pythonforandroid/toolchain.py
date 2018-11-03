@@ -167,13 +167,6 @@ def build_dist_from_args(ctx, dist, args):
     ctx.recipe_build_order = build_order
     ctx.python_modules = python_modules
 
-    if python_modules and hasattr(sys, 'real_prefix'):
-        error('virtualenv is needed to install pure-Python modules, but')
-        error('virtualenv does not support nesting, and you are running')
-        error('python-for-android in one. Please run p4a outside of a')
-        error('virtualenv instead.')
-        exit(1)
-
     info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
     bs.distribution = dist
