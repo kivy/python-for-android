@@ -635,8 +635,8 @@ def run_pymodules_install(ctx, modules):
         # This bash method is what old-p4a used
         # It works but should be replaced with something better
         shprint(sh.bash, '-c', (
-            "source venv/bin/activate && env CC=/bin/false CXX=/bin/false "
-            "PYTHONPATH={0} pip install --target '{0}' --no-deps -r requirements.txt"
+            "env CC=/bin/false CXX=/bin/false "
+            "PYTHONPATH={0} venv/bin/pip install --target '{0}' --no-deps -r requirements.txt"
         ).format(ctx.get_site_packages_dir()))
 
 
