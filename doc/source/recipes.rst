@@ -13,8 +13,7 @@ be compiled for Android with the correct architecture.
 
 python-for-android comes with many recipes for popular modules. No
 recipe is necessary for Python modules which have no
-compiled components; these are installed automaticaly via pip.
-
+compiled components; these are installed automatically via pip.
 If you are new to building recipes, it is recommended that you first
 read all of this page, at least up to the Recipe reference
 documentation. The different recipe sections include a number of
