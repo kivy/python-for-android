@@ -1,12 +1,13 @@
 from pythonforandroid.toolchain import Recipe, shutil
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
-from os.path import exists, join, dirname
+from os.path import exists, join
+from os import listdir
 
 
 class LXMLRecipe(CompiledComponentsPythonRecipe):
     version = "3.6.0"
     url = "https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz"
-    depends = ["python2", "libxml2", "libxslt"]
+    depends = [("python2", "python3crystax"), "libxml2", "libxslt"]
     name = "lxml"
 
     call_hostpython_via_targetpython = False  # Due to setuptools
@@ -18,13 +19,28 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
 
     def build_arch(self, arch):
         super(LXMLRecipe, self).build_arch(arch)
+
+        def get_lib_build_dir_name():
+            for f in listdir(join(self.get_build_dir(arch.arch), "build")):
+                if f.startswith("lib.linux-x86_64"):
+                    return f
+            return None
+
+        def get_so_name(so_target, dirpath):
+            for f in listdir(dirpath):
+                if f.startswith(so_target.partition(".")[0] + ".") and \
+                        f.endswith(".so"):
+                    return join(dirpath, f)
+            return None
+
+        so_origin_dir = "%s/build/%s/lxml/" % (self.get_build_dir(arch.arch),
+                                               get_lib_build_dir_name())
         shutil.copyfile(
-            "%s/build/lib.linux-x86_64-2.7/lxml/etree.so" % self.get_build_dir(arch.arch),
+            join(so_origin_dir, get_so_name("etree.so", so_origin_dir)),
             join(self.ctx.get_libs_dir(arch.arch), "etree.so"),
         )
         shutil.copyfile(
-            "%s/build/lib.linux-x86_64-2.7/lxml/objectify.so"
-            % self.get_build_dir(arch.arch),
+            join(so_origin_dir, get_so_name("objectify.so", so_origin_dir)),
             join(self.ctx.get_libs_dir(arch.arch), "objectify.so"),
         )
 
@@ -32,13 +48,10 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         env = super(LXMLRecipe, self).get_recipe_env(arch)
         libxslt_recipe = Recipe.get_recipe("libxslt", self.ctx).get_build_dir(arch.arch)
         libxml2_recipe = Recipe.get_recipe("libxml2", self.ctx).get_build_dir(arch.arch)
-        targetpython = "%s/include/python2.7/" % dirname(dirname(self.ctx.hostpython))
-        env["CC"] += " -I%s/include -I%s -I%s" % (
+        env["CC"] += " -I%s/include -I%s " % (
             libxml2_recipe,
             libxslt_recipe,
-            targetpython,
         )
-        env["LDSHARED"] = "%s -nostartfiles -shared -fPIC -lpython2.7" % env["CC"]
         return env
 
 
