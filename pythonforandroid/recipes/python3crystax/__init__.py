@@ -11,7 +11,7 @@ prebuilt_download_locations = {
             'releases/download/0.1/crystax_python_3.6_armeabi_armeabi-v7a.tar.gz')}
 
 
-class Python3Recipe(TargetPythonRecipe):
+class Python3CrystaXRecipe(TargetPythonRecipe):
     version = '3.6'
     url = ''
     name = 'python3crystax'
@@ -86,16 +86,16 @@ class Python3Recipe(TargetPythonRecipe):
                 join(dirn, 'site-packages'))
 
         info('Renaming .so files to reflect cross-compile')
-        self.reduce_object_file_names(self, join(dirn, "site-packages"))
+        self.reduce_object_file_names(join(dirn, "site-packages"))
 
         return join(dirn, 'site-packages')
 
     def include_root(self, arch_name):
-        return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string(),
+        return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string,
                     'include', 'python')
 
     def link_root(self, arch_name):
-        return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string(),
+        return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string,
                     'libs', arch_name)
 
-recipe = Python3Recipe()
+recipe = Python3CrystaXRecipe()

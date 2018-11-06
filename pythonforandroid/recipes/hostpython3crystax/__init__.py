@@ -3,7 +3,7 @@ from os.path import join
 import sh
 
 
-class Hostpython3Recipe(Recipe):
+class Hostpython3CrystaXRecipe(Recipe):
     version = 'auto'  # the version is taken from the python3crystax recipe
     name = 'hostpython3crystax'
 
@@ -41,4 +41,4 @@ class Hostpython3Recipe(Recipe):
         shprint(sh.ln, '-sf', system_python, link_dest)
 
 
-recipe = Hostpython3Recipe()
+recipe = Hostpython3CrystaXRecipe()
