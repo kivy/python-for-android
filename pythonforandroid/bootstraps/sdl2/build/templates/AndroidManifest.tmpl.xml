@@ -53,7 +53,7 @@
     -->
     <application android:label="@string/app_name"
                  android:icon="@drawable/icon"
-                 android:allowBackup="true"
+                 android:allowBackup="{{ args.allow_backup }}"
                  android:theme="@android:style/Theme.NoTitleBar{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true" >
 

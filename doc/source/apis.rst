@@ -97,7 +97,7 @@ platform-specific APIs. It supports Android as well as iOS and desktop
 operating systems, though plyer is a work in progress and not all
 platforms support all Plyer calls yet. 
 
-Plyer does not support all APIs yet, but you can always Pyjnius to
+Plyer does not support all APIs yet, but you can always use Pyjnius to
 call anything that is currently missing.
 
 You can include Plyer in your APKs by adding the `Plyer` recipe to
@@ -136,13 +136,13 @@ code::
     from jnius import autoclass
 
     def open_url(url):
-    Intent = autoclass('android.content.Intent')
-    Uri = autoclass('android.net.Uri')
-    browserIntent = Intent()
-    browserIntent.setAction(Intent.ACTION_VIEW)
-    browserIntent.setData(Uri.parse(url))
-    currentActivity = cast('android.app.Activity', mActivity)
-    currentActivity.startActivity(browserIntent)
+        Intent = autoclass('android.content.Intent')
+        Uri = autoclass('android.net.Uri')
+        browserIntent = Intent()
+        browserIntent.setAction(Intent.ACTION_VIEW)
+        browserIntent.setData(Uri.parse(url))
+        currentActivity = cast('android.app.Activity', mActivity)
+        currentActivity.startActivity(browserIntent)
 
     class AndroidBrowser(object):
         def open(self, url, new=0, autoraise=True):
@@ -167,7 +167,7 @@ immediately when your app has finished loading, due to a limitation
 with the way we check if the app has properly started. In this case,
 the splash screen overlaps the app gui for a short time.
 
-You can dismiss the splash screen as follows. Run this code from your
+You can dismiss the splash screen by running this code from your
 app build method (or use ``kivy.clock.Clock.schedule_once`` to run it
 in the following frame)::
 

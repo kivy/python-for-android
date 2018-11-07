@@ -85,7 +85,7 @@ The sdl2 bootstrap supports the following additional command line
 options (this list may not be exhaustive):
 
 - ``--private``: The directory containing your project files.
-- ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
+- ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
 - ``--orientation``: Usually one of ``portait``, ``landscape``,
@@ -145,7 +145,7 @@ started), it will instead display a loading screen until the server is
 ready.
 
 - ``--private``: The directory containing your project files.
-- ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
+- ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
 - ``--orientation``: Usually one of ``portait``, ``landscape``,
@@ -206,7 +206,7 @@ options (this list may not be exhaustive):
 - ``--dir``: The directory containing your project files if you want
   them to be unpacked to the external storage directory rather than
   the app private directory.
-- ``--package``: The Java package name for your project. Choose e.g. ``org.example.yourapp``.
+- ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
 - ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``

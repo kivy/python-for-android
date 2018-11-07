@@ -38,7 +38,7 @@ Installation
 Installing p4a
 ~~~~~~~~~~~~~~
 
-p4a is now available on on Pypi, so you can install it using pip::
+p4a is now available on Pypi, so you can install it using pip::
 
     pip install python-for-android
 
@@ -114,7 +114,7 @@ Then, you can edit your ``~/.bashrc`` or other favorite shell to include new env
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-21"
     export ANDROIDNDK="$HOME/Documents/android-ndk-r10e"
-    export ANDROIDAPI="19"  # Minimum API version your application require
+    export ANDROIDAPI="19"  # Target API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 
 You have the possibility to configure on any command the PATH to the SDK, NDK and Android API using:
@@ -195,8 +195,8 @@ Getting help
 
 If something goes wrong and you don't know how to fix it, add the
 ``--debug`` option and post the output log to the `kivy-users Google
-group <https://groups.google.com/forum/#!forum/kivy-users>`__ or irc
-channel #kivy at irc.freenode.net .
+group <https://groups.google.com/forum/#!forum/kivy-users>`__ or the
+kivy `#support Discord channel <https://chat.kivy.org/>`_.
 
 See :doc:`troubleshooting` for more information.
 

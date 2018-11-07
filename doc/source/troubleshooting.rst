@@ -11,7 +11,7 @@ full debug output including the output of all the external tools used
 in the compilation and packaging steps.
 
 If reporting a problem by email or Discord, it is usually helpful to
-include this full log, via e.g. a `pastebin
+include this full log, e.g. via a `pastebin
 <http://paste.ubuntu.com/>`_ or `Github gist
 <https://gist.github.com/>`_.
 

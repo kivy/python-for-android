@@ -35,7 +35,7 @@ The Android package name uses ``org.test.lowercaseappname``
 if not set explicitly.
 
 The ``--private`` argument is set automatically using the
-package_data, you should *not* set this manually.
+package_data. You should *not* set this manually.
 
 The target architecture defaults to ``--armeabi``.
 

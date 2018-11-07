@@ -4,7 +4,7 @@ Launcher
 ========
 
 The Kivy Launcher is an Android application that can run any Kivy app
-stored in `kivy` folder on SD Card. You can download the latest stable
+stored in the `kivy` folder on the SD Card. You can download the latest stable
 version for your android device from the
 `Play Store <https://play.google.com/store/apps/details?id=org.kivy.pygame>`_.
 
@@ -13,7 +13,7 @@ permissions, usually listed in the description in the store. Those
 aren't always enough for an application to run or even launch if you
 work with other dependencies that are not packaged.
 
-The Kivy Launcher is intended for quick and simple testing, for
+The Kivy Launcher is intended for quick and simple testing. For
 anything more advanced we recommend building your own APK with
 python-for-android.
 
@@ -22,7 +22,7 @@ Building
 
 The Kivy Launcher is built using python-for-android. To get the most recent
 versions of packages you need to clean them first, so that the packager won't
-grab an old (cached) package instead of fresh one.
+grab an old (cached) package instead of a fresh one.
 
 .. highlight:: none
 
@@ -78,8 +78,8 @@ to change other settings.
 After you set your `android.txt` file, you can now run the launcher
 and start any available app from the list.
 
-To differentiate between apps in ``/sdcard/kivy`` you can include an icon
-named ``icon.png`` to the folder. The icon should be a square.
+To differentiate between apps in ``/sdcard/kivy``, you can include an icon
+named ``icon.png`` in the folder. The icon should be a square.
 
 Release on the market
 ---------------------

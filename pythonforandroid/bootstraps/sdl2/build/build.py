@@ -518,6 +518,8 @@ tools directory of the Android SDK.
                     help='Add this Java class as an Activity to the manifest.')
     ap.add_argument('--activity-launch-mode', dest='activity_launch_mode',
                     help='Set the launch mode of the main activity in the manifest.')
+    ap.add_argument('--allow-backup', dest='allow_backup', default='true',
+                    help="if set to 'false', then android won't backup the application.")
 
     if args is None:
         args = sys.argv[1:]

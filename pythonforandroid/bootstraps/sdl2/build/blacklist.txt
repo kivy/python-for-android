@@ -69,7 +69,6 @@ multiprocessing/dummy*
 lib-dynload/termios.so
 lib-dynload/_lsprof.so
 lib-dynload/*audioop.so
-lib-dynload/mmap.so
 lib-dynload/_hotshot.so
 lib-dynload/_heapq.so
 lib-dynload/_json.so
