@@ -16,10 +16,10 @@ index 740510f..0c8e55f 100644
 +++ b/setup.py
 @@ -53,7 +53,7 @@ except ImportError:
  
- if PLATFORM == 'android':
+ if platform == 'android':
      # for android, we use SDL...
--    LIBRARIES = ['sdl', 'log']
-+    LIBRARIES = ['main', 'log']
-     LIBRARY_DIRS = ['libs/' + getenv('ARCH')]
- elif PLATFORM == 'darwin':
+-    libraries = ['sdl', 'log']
++    libraries = ['main', 'log']
+     library_dirs = ['libs/' + getenv('ARCH')]
+ elif platform == 'darwin':
      import subprocess
