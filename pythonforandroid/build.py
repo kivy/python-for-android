@@ -125,6 +125,19 @@ class Context(object):
         self._android_api = value
 
     @property
+    def ndk_api(self):
+        '''The API number compile against'''
+        if self._ndk_api is None:
+            raise ValueError('Tried to access ndk_api_api but it has not '
+                             'been set - this should not happen, something '
+                             'went wrong!')
+        return self._ndk_api
+
+    @ndk_api.setter
+    def ndk_api(self, value):
+        self._ndk_api = value
+
+    @property
     def ndk_ver(self):
         '''The version of the NDK being used for compilation.'''
         if self._ndk_ver is None:
@@ -461,6 +474,7 @@ class Context(object):
         self._sdk_dir = None
         self._ndk_dir = None
         self._android_api = None
+        self._ndk_api = None
         self._ndk_ver = None
         self.ndk = None
 
