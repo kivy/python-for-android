@@ -126,6 +126,7 @@ def which(program, path_env):
 
     return None
 
+
 def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
     """Recursively walks all the files and directories in ``dirn``,
     ignoring directories that match any pattern in ``invalid_dirns``
@@ -138,7 +139,7 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
 
     File and directory paths are evaluated as full paths relative to ``dirn``.
 
-    """ 
+    """
 
     for dirn, subdirs, filens in walk(base_dir):
 

@@ -1,7 +1,6 @@
-from pythonforandroid.toolchain import Recipe, shprint, info, warning
+from pythonforandroid.toolchain import Recipe, shprint, info
 from pythonforandroid.util import ensure_dir, current_directory
 from os.path import join, exists
-import os
 import sh
 
 
@@ -44,5 +43,6 @@ class Hostpython3Recipe(Recipe):
             info('Skipping hostpython3 build as it has already been completed')
 
         self.ctx.hostpython = join(build_dir, 'python')
+
 
 recipe = Hostpython3Recipe()

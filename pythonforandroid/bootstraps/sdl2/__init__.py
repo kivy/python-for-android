@@ -1,9 +1,7 @@
 from pythonforandroid.toolchain import (
     Bootstrap, shprint, current_directory, info, info_main)
 from pythonforandroid.util import ensure_dir
-from os.path import join, exists, curdir, abspath
-from os import walk
-import os
+from os.path import join, exists
 import sh
 
 

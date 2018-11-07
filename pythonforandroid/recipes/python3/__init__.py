@@ -1,14 +1,11 @@
-from pythonforandroid.recipe import TargetPythonRecipe, Recipe
+from pythonforandroid.recipe import TargetPythonRecipe
 from pythonforandroid.toolchain import shprint, current_directory
-from pythonforandroid.patching import (is_darwin, is_api_gt,
-                                       check_all, is_api_lt, is_ndk)
 from pythonforandroid.logger import logger, info
 from pythonforandroid.util import ensure_dir, walk_valid_filens
-from os.path import exists, join, realpath, dirname
-from os import environ, listdir, walk
+from os.path import exists, join, dirname
+from os import environ
 import glob
 import sh
-
 
 STDLIB_DIR_BLACKLIST = {
     '__pycache__',
@@ -46,7 +43,7 @@ class Python3Recipe(TargetPythonRecipe):
 
     def build_arch(self, arch):
         recipe_build_dir = self.get_build_dir(arch.arch)
-        
+
         # Create a subdirectory to actually perform the build
         build_dir = join(recipe_build_dir, 'android-build')
         ensure_dir(build_dir)

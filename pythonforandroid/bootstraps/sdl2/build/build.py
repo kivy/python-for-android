@@ -544,18 +544,16 @@ tools directory of the Android SDK.
 
     if ndk_api != args.min_sdk_version:
         print(('WARNING: --minsdk argument does not match the api that is '
-                'compiled against. Only proceed if you know what you are '
-                'doing, otherwise use --minsdk={} or recompile against api '
-                '{}').format(ndk_api, args.min_sdk_version))
+               'compiled against. Only proceed if you know what you are '
+               'doing, otherwise use --minsdk={} or recompile against api '
+               '{}').format(ndk_api, args.min_sdk_version))
         if not args.allow_minsdk_ndkapi_mismatch:
             print('You must pass --allow-minsdk-ndkapi-mismatch to build '
-                    'with --minsdk different to the target NDK api from the '
-                    'build step')
+                  'with --minsdk different to the target NDK api from the '
+                  'build step')
             exit(1)
         else:
             print('Proceeding with --minsdk not matching build target api')
-            
-
 
     if args.sdk_version != -1:
         print('WARNING: Received a --sdk argument, but this argument is '

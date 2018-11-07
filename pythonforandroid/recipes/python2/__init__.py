@@ -9,6 +9,7 @@ import sh
 
 EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
+
 class Python2Recipe(TargetPythonRecipe):
     version = "2.7.2"
     url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
@@ -187,7 +188,7 @@ class Python2Recipe(TargetPythonRecipe):
             shprint(sh.mv, libpymodules_fn, dirn)
         shprint(sh.cp,
                 join('python-install', 'include',
-                        'python2.7', 'pyconfig.h'),
+                     'python2.7', 'pyconfig.h'),
                 join(dirn, 'include', 'python2.7/'))
 
         info('Removing some unwanted files')
@@ -219,5 +220,6 @@ class Python2Recipe(TargetPythonRecipe):
 
     def link_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'python-install', 'lib')
+
 
 recipe = Python2Recipe()

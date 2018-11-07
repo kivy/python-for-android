@@ -1035,6 +1035,7 @@ class CythonRecipe(PythonRecipe):
 
         return env
 
+
 class TargetPythonRecipe(Recipe):
     '''Class for target python recipes. Sets ctx.python_recipe to point to
     itself, so as to know later what kind of Python was built or used.'''

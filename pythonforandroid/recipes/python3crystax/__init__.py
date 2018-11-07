@@ -22,7 +22,7 @@ class Python3CrystaXRecipe(TargetPythonRecipe):
     from_crystax = True
 
     def get_dir_name(self):
-        name = super(Python3Recipe, self).get_dir_name()
+        name = super(Python3CrystaXRecipe, self).get_dir_name()
         name += '-version{}'.format(self.version)
         return name
 
@@ -77,11 +77,11 @@ class Python3CrystaXRecipe(TargetPythonRecipe):
         ndk_dir = self.ctx.ndk_dir
         py_recipe = self.ctx.python_recipe
         python_dir = join(ndk_dir, 'sources', 'python',
-                            py_recipe.version, 'libs', arch.arch)
+                          py_recipe.version, 'libs', arch.arch)
         shprint(sh.cp, '-r', join(python_dir,
-                                    'stdlib.zip'), dirn)
+                                  'stdlib.zip'), dirn)
         shprint(sh.cp, '-r', join(python_dir,
-                                    'modules'), dirn)
+                                  'modules'), dirn)
         shprint(sh.cp, '-r', self.ctx.get_python_install_dir(),
                 join(dirn, 'site-packages'))
 
@@ -97,5 +97,6 @@ class Python3CrystaXRecipe(TargetPythonRecipe):
     def link_root(self, arch_name):
         return join(self.ctx.ndk_dir, 'sources', 'python', self.major_minor_version_string,
                     'libs', arch_name)
+
 
 recipe = Python3CrystaXRecipe()
