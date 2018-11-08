@@ -14,14 +14,13 @@ CRYSTAX_NDK_HOME=~/.buildozer/crystax-ndk
 ```
 
 Current limitations:
-- handle the case with conflicting requirements
+- will fail on conflicting requirements
   e.g. https://travis-ci.org/AndreMiras/python-for-android/builds/438840800
-  the list was huge and result was:
+  the list of recipes was huge and result was:
   [ERROR]:   Didn't find any valid dependency graphs.
   [ERROR]:   This means that some of your requirements pull in conflicting dependencies.
-- currently only builds on target python3crystax (even though python2 is supported)
-- comprehensive list of working/broken recipes is not yet known
 - only rebuilds on sdl2 bootstrap
+- supports mainly python3crystax with fallback to python2, but no python3 support
 """
 import sh
 import os
