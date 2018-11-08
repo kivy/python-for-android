@@ -17,6 +17,8 @@ from pythonforandroid.recipe import Recipe
 
 DEFAULT_ANDROID_API = 15
 
+DEFAULT_NDK_API = 21
+
 
 class Context(object):
     '''A build context. If anything will be built, an instance this class
@@ -352,7 +354,23 @@ class Context(object):
                     'set it with `--ndk-version=...`.')
         self.ndk_ver = ndk_ver
 
-        self.ndk_api = user_ndk_api
+        ndk_api = None
+        if user_ndk_api:
+            ndk_api = user_ndk_api
+            if ndk_api is not None:
+                info('Getting NDK API version (i.e. minimum supported API) from user argument')
+        if ndk_api is None:
+            ndk_api = environ.get('NDKAPI', None)
+            if ndk_api is not None:
+                info('Found Android API target in $NDKAPI')
+        if ndk_api is None:
+            ndk_api = min(self.android_api, DEFAULT_NDK_API)
+            warning('NDK API target was not set manually, using '
+                    'the default of {} = min(android-api={}, default ndk-api={})'.format(
+                        ndk_api, self.android_api, DEFAULT_NDK_API))
+        ndk_api = int(ndk_api)
+        self.ndk_api = ndk_api
+
         if self.ndk_api > self.android_api:
             error('Target NDK API is {}, higher than the target Android API {}.'.format(
                 self.ndk_api, self.android_api))
