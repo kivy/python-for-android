@@ -231,13 +231,11 @@ class Context(object):
         android_api = None
         if user_android_api:
             android_api = user_android_api
-            if android_api is not None:
-                info('Getting Android API version from user argument')
-        if android_api is None:
-            android_api = environ.get('ANDROIDAPI', None)
-            if android_api is not None:
-                info('Found Android API target in $ANDROIDAPI')
-        if android_api is None:
+            info('Getting Android API version from user argument')
+        elif 'ANDROIDAPI' in environ:
+            android_api = environ['ANDROIDAPI']
+            info('Found Android API target in $ANDROIDAPI')
+        else:
             info('Android API target was not set manually, using '
                  'the default of {}'.format(DEFAULT_ANDROID_API))
             android_api = DEFAULT_ANDROID_API
@@ -357,11 +355,10 @@ class Context(object):
         if user_ndk_api:
             ndk_api = user_ndk_api
             info('Getting NDK API version (i.e. minimum supported API) from user argument')
-        if ndk_api is None:
+        elif 'NDKAPI' in environ:
             ndk_api = environ.get('NDKAPI', None)
-            if ndk_api is not None:
-                info('Found Android API target in $NDKAPI')
-        if ndk_api is None:
+            info('Found Android API target in $NDKAPI')
+        else:
             ndk_api = min(self.android_api, DEFAULT_NDK_API)
             warning('NDK API target was not set manually, using '
                     'the default of {} = min(android-api={}, default ndk-api={})'.format(
