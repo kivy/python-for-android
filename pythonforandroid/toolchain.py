@@ -8,6 +8,7 @@ This module defines the entry point for command line and programmatic use.
 
 from __future__ import print_function
 from pythonforandroid import __version__
+from pythonforandroid.build import DEFAULT_NDK_API, DEFAULT_ANDROID_API
 
 
 def check_python_dependencies():
@@ -252,8 +253,13 @@ class ToolchainCL(object):
             '--ndk-dir', '--ndk_dir', dest='ndk_dir', default='',
             help='The filepath where the Android NDK is installed')
         generic_parser.add_argument(
-            '--android-api', '--android_api', dest='android_api', default=0,
-            type=int, help='The Android API level to build against.')
+            '--android-api',
+            '--android_api',
+            dest='android_api',
+            default=0,
+            type=int,
+            help=('The Android API level to build against defaults to {} if '
+                  'not specified.').format(DEFAULT_ANDROID_API))
         generic_parser.add_argument(
             '--ndk-version', '--ndk_version', dest='ndk_version', default='',
             help=('The version of the Android NDK. This is optional: '
@@ -261,7 +267,8 @@ class ToolchainCL(object):
         generic_parser.add_argument(
             '--ndk-api', type=int, default=0,
             help=('The Android API level to compile against. This should be your '
-                  '*minimal supported* API, not normally the same as your --android-api.'))
+                  '*minimal supported* API, not normally the same as your --android-api. '
+                  'Defaults to min(ANDROID_API, {}) if not specified.').format(DEFAULT_NDK_API))
         generic_parser.add_argument(
             '--symlink-java-src', '--symlink_java_src',
             action='store_true',

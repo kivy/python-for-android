@@ -280,8 +280,7 @@ class Context(object):
         ndk_dir = None
         if user_ndk_dir:
             ndk_dir = user_ndk_dir
-            if ndk_dir is not None:
-                info('Getting NDK dir from from user argument')
+            info('Getting NDK dir from from user argument')
         if ndk_dir is None:  # The old P4A-specific dir
             ndk_dir = environ.get('ANDROIDNDK', None)
             if ndk_dir is not None:
@@ -357,8 +356,7 @@ class Context(object):
         ndk_api = None
         if user_ndk_api:
             ndk_api = user_ndk_api
-            if ndk_api is not None:
-                info('Getting NDK API version (i.e. minimum supported API) from user argument')
+            info('Getting NDK API version (i.e. minimum supported API) from user argument')
         if ndk_api is None:
             ndk_api = environ.get('NDKAPI', None)
             if ndk_api is not None:
