@@ -548,8 +548,8 @@ class Recipe(with_metaclass(RecipeMeta)):
         if exists(base_dir):
             dirs.append(base_dir)
         if not dirs:
-            warning(('Attempted to clean build for {} but found no existing '
-                     'build dirs').format(self.name))
+            warning('Attempted to clean build for {} but found no existing '
+                    'build dirs'.format(self.name))
 
         for directory in dirs:
             if exists(directory):
@@ -924,11 +924,11 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
         env['CFLAGS'] += (
             " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" +
             " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" +
-            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys))
+            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include").format(**keys)
         env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
         env['LDFLAGS'] += (
             " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" +
-            " -lgnustl_shared".format(**keys))
+            " -lgnustl_shared").format(**keys)
 
         return env
 
