@@ -548,8 +548,8 @@ class Recipe(with_metaclass(RecipeMeta)):
         if exists(base_dir):
             dirs.append(base_dir)
         if not dirs:
-            warning(('Attempted to clean build for {} but found no existing '
-                     'build dirs').format(self.name))
+            warning('Attempted to clean build for {} but found no existing '
+                    'build dirs'.format(self.name))
 
         for directory in dirs:
             if exists(directory):
