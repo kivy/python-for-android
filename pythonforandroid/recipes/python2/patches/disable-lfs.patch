@@ -1,0 +1,11 @@
+--- Python-2.7.2.orig/configure	2018-11-09 14:38:57.114986961 +0100
++++ Python-2.7.2/configure	2018-11-09 14:50:36.484048078 +0100
+@@ -6486,7 +6486,7 @@
+ # structures (such as rlimit64) without declaring them. As a
+ # work-around, disable LFS on such configurations
+ 
+-use_lfs=yes
++use_lfs=no
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking Solaris LFS bug" >&5
+ $as_echo_n "checking Solaris LFS bug... " >&6; }
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
