@@ -217,7 +217,8 @@ class Context(object):
         if android_api is None:
             android_api = environ.get('ANDROIDAPI', None)
             if android_api is not None:
-                info('Found Android API target in $ANDROIDAPI')
+                info('Found Android API target in $ANDROIDAPI:'
+                     ' it is {}'.format(android_api))
         if android_api is None:
             info('Android API target was not set manually, using '
                  'the default of {}'.format(DEFAULT_ANDROID_API))
@@ -266,15 +267,18 @@ class Context(object):
         if ndk_dir is None:  # The old P4A-specific dir
             ndk_dir = environ.get('ANDROIDNDK', None)
             if ndk_dir is not None:
-                info('Found NDK dir in $ANDROIDNDK')
+                info('Found NDK dir in $ANDROIDNDK:'
+                     ' it is {}'.format(ndk_dir))
         if ndk_dir is None:  # Apparently the most common convention
             ndk_dir = environ.get('NDK_HOME', None)
             if ndk_dir is not None:
-                info('Found NDK dir in $NDK_HOME')
+                info('Found NDK dir in $NDK_HOME:'
+                     ' it is {}'.format(ndk_dir))
         if ndk_dir is None:  # Another convention (with maven?)
             ndk_dir = environ.get('ANDROID_NDK_HOME', None)
             if ndk_dir is not None:
-                info('Found NDK dir in $ANDROID_NDK_HOME')
+                info('Found NDK dir in $ANDROID_NDK_HOME:'
+                     ' it is {}'.format(ndk_dir))
         if ndk_dir is None:  # Checks in the buildozer NDK dir, useful
             #                # for debug tests of p4a
             possible_dirs = glob.glob(expanduser(join(
@@ -298,11 +302,13 @@ class Context(object):
         if user_ndk_ver:
             ndk_ver = user_ndk_ver
             if ndk_dir is not None:
-                info('Got NDK version from from user argument')
+                info('Got NDK version from from user argument:'
+                     ' it is {}'.format(ndk_ver))
         if ndk_ver is None:
             ndk_ver = environ.get('ANDROIDNDKVER', None)
             if ndk_dir is not None:
-                info('Got NDK version from $ANDROIDNDKVER')
+                info('Got NDK version from $ANDROIDNDKVER:'
+                     ' it is {}'.format(ndk_ver))
 
         self.ndk = 'google'
 
