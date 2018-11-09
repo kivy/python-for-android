@@ -924,11 +924,11 @@ class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
         env['CFLAGS'] += (
             " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" +
             " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" +
-            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include".format(**keys))
+            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include").format(**keys)
         env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
         env['LDFLAGS'] += (
             " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" +
-            " -lgnustl_shared".format(**keys))
+            " -lgnustl_shared").format(**keys)
 
         return env
 
