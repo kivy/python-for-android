@@ -754,7 +754,7 @@ class ToolchainCL(object):
         fix_args = ('--dir', '--private', '--add-jar', '--add-source',
                     '--whitelist', '--blacklist', '--presplash', '--icon')
         unknown_args = args.unknown_args
-        for i, arg in enumerate(unknown_args[:-1]):
+        for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
             if argx[0] in fix_args:
                 if len(argx) > 1:
