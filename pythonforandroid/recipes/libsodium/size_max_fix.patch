@@ -1,0 +1,12 @@
+diff -urN libsodium-1.0.16.ori/src/libsodium/include/sodium/export.h libsodium-1.0.16/src/libsodium/include/sodium/export.h
+--- libsodium-1.0.16.ori/src/libsodium/include/sodium/export.h	2017-12-12 00:03:07.000000000 +0100
++++ libsodium-1.0.16/src/libsodium/include/sodium/export.h	2018-10-31 09:46:06.051189444 +0100
+@@ -47,6 +47,8 @@
+ # endif
+ #endif
+ 
++#include <limits.h>
++
+ #define SODIUM_MIN(A, B) ((A) < (B) ? (A) : (B))
+ #define SODIUM_SIZE_MAX SODIUM_MIN(UINT64_MAX, SIZE_MAX)
+ 
