@@ -84,6 +84,7 @@ RUN mkdir --parents "${ANDROID_SDK_HOME}/.android/" && \
 	echo '### User Sources for Android SDK Manager' > "${ANDROID_SDK_HOME}/.android/repositories.cfg"
 RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" --licenses
 RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-19" && \
+    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" && \
     "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;26.0.2" && \
     chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
 

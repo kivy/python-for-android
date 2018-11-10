@@ -3,7 +3,11 @@ from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
 from os.path import exists, join, realpath
+from os import walk
+import glob
 import sh
+
+EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
 
 class Python2Recipe(TargetPythonRecipe):
@@ -169,6 +173,53 @@ class Python2Recipe(TargetPythonRecipe):
 
         # print('python2 build done, exiting for debug')
         # exit(1)
+
+    def create_python_bundle(self, dirn, arch):
+        info("Filling private directory")
+        if not exists(join(dirn, "lib")):
+            info("lib dir does not exist, making")
+            shprint(sh.cp, "-a",
+                    join("python-install", "lib"), dirn)
+        shprint(sh.mkdir, "-p",
+                join(dirn, "include", "python2.7"))
+
+        libpymodules_fn = join("libs", arch.arch, "libpymodules.so")
+        if exists(libpymodules_fn):
+            shprint(sh.mv, libpymodules_fn, dirn)
+        shprint(sh.cp,
+                join('python-install', 'include',
+                     'python2.7', 'pyconfig.h'),
+                join(dirn, 'include', 'python2.7/'))
+
+        info('Removing some unwanted files')
+        shprint(sh.rm, '-f', join(dirn, 'lib', 'libpython2.7.so'))
+        shprint(sh.rm, '-rf', join(dirn, 'lib', 'pkgconfig'))
+
+        libdir = join(dirn, 'lib', 'python2.7')
+        site_packages_dir = join(libdir, 'site-packages')
+        with current_directory(libdir):
+            removes = []
+            for dirname, root, filenames in walk("."):
+                for filename in filenames:
+                    for suffix in EXCLUDE_EXTS:
+                        if filename.endswith(suffix):
+                            removes.append(filename)
+            shprint(sh.rm, '-f', *removes)
+
+            info('Deleting some other stuff not used on android')
+            # To quote the original distribute.sh, 'well...'
+            shprint(sh.rm, '-rf', 'lib2to3')
+            shprint(sh.rm, '-rf', 'idlelib')
+            shprint(sh.rm, '-f', *glob.glob('config/libpython*.a'))
+            shprint(sh.rm, '-rf', 'config/python.o')
+
+        return site_packages_dir
+
+    def include_root(self, arch_name):
+        return join(self.get_build_dir(arch_name), 'python-install', 'include', 'python2.7')
+
+    def link_root(self, arch_name):
+        return join(self.get_build_dir(arch_name), 'python-install', 'lib')
 
 
 recipe = Python2Recipe()

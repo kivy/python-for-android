@@ -13,7 +13,8 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     src_filename = 'src'
 
-    depends = [('pygame', 'sdl2', 'genericndkbuild'), ('python2', 'python3crystax')]
+    depends = [('pygame', 'sdl2', 'genericndkbuild'),
+               ('python2', 'python3crystax', 'python3')]
 
     config_env = {}
 

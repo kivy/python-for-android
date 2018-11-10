@@ -19,12 +19,11 @@ env:
     - ANDROID_NDK_HOME=/opt/android/android-ndk
     - CRYSTAX_NDK_HOME=/opt/android/crystax-ndk
   matrix:
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME'
     # overrides requirements to skip `peewee` pure python module, see:
     # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
     - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
     - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --bootstrap sdl2 --requirements python2,numpy'
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $CRYSTAX_NDK_HOME --requirements python3crystax,setuptools,android,sdl2,pyjnius,kivy'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3crystax.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $CRYSTAX_NDK_HOME --requirements python3crystax,setuptools,android,sdl2,pyjnius,kivy'
     # builds only the recipes that moved
     - COMMAND='. venv/bin/activate && ./ci/rebuild_updated_recipes.py'
 

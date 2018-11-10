@@ -1,4 +1,4 @@
-from os.path import basename, dirname, exists, isdir, isfile, join, realpath
+from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import importlib
 import glob
 from shutil import rmtree
@@ -20,8 +20,6 @@ from pythonforandroid.logger import (logger, info, warning, error, debug, shprin
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
 
 # this import is necessary to keep imp.load_source from complaining :)
-
-
 if PY2:
     import imp
     import_recipe = imp.load_source
@@ -167,20 +165,6 @@ class Recipe(with_metaclass(RecipeMeta)):
                         shprint(sh.git, 'submodule', 'update', '--recursive')
             return target
 
-    # def get_archive_rootdir(self, filename):
-    #     if filename.endswith(".tgz") or filename.endswith(".tar.gz") or \
-    #         filename.endswith(".tbz2") or filename.endswith(".tar.bz2"):
-    #         archive = tarfile.open(filename)
-    #         root = archive.next().path.split("/")
-    #         return root[0]
-    #     elif filename.endswith(".zip"):
-    #         with zipfile.ZipFile(filename) as zf:
-    #             return dirname(zf.namelist()[0])
-    #     else:
-    #         print("Error: cannot detect root directory")
-    #         print("Unrecognized extension for {}".format(filename))
-    #         raise Exception()
-
     def apply_patch(self, filename, arch):
         """
         Apply a patch from the current recipe directory into the current
@@ -206,41 +190,11 @@ class Recipe(with_metaclass(RecipeMeta)):
         with open(dest, "ab") as fd:
             fd.write(data)
 
-    # def has_marker(self, marker):
-    #     """
-    #     Return True if the current build directory has the marker set
-    #     """
-    #     return exists(join(self.build_dir, ".{}".format(marker)))
-
-    # def set_marker(self, marker):
-    #     """
-    #     Set a marker info the current build directory
-    #     """
-    #     with open(join(self.build_dir, ".{}".format(marker)), "w") as fd:
-    #         fd.write("ok")
-
-    # def delete_marker(self, marker):
-    #     """
-    #     Delete a specific marker
-    #     """
-    #     try:
-    #         unlink(join(self.build_dir, ".{}".format(marker)))
-    #     except:
-    #         pass
-
     @property
     def name(self):
         '''The name of the recipe, the same as the folder containing it.'''
         modname = self.__class__.__module__
         return modname.split(".", 2)[-1]
-
-    # @property
-    # def archive_fn(self):
-    #     bfn = basename(self.url.format(version=self.version))
-    #     fn = "{}/{}-{}".format(
-    #         self.ctx.cache_dir,
-    #         self.name, bfn)
-    #     return fn
 
     @property
     def filtered_archs(self):
@@ -277,7 +231,8 @@ class Recipe(with_metaclass(RecipeMeta)):
         alternative or optional dependencies are being built.
         '''
         dir_name = self.get_dir_name()
-        return join(self.ctx.build_dir, 'other_builds', dir_name, arch)
+        return join(self.ctx.build_dir, 'other_builds',
+                    dir_name, '{}__ndk_target_{}'.format(arch, self.ctx.ndk_api))
 
     def get_dir_name(self):
         choices = self.check_recipe_choices()
@@ -712,6 +667,13 @@ class PythonRecipe(Recipe):
     setup_extra_args = []
     '''List of extra arugments to pass to setup.py'''
 
+    def __init__(self, *args, **kwargs):
+        super(PythonRecipe, self).__init__(*args, **kwargs)
+        depends = self.depends
+        depends.append(('python2', 'python3', 'python3crystax'))
+        depends = list(set(depends))
+        self.depends = depends
+
     def clean_build(self, arch=None):
         super(PythonRecipe, self).clean_build(arch=arch)
         name = self.folder_name
@@ -735,6 +697,9 @@ class PythonRecipe(Recipe):
             return join(
                 Recipe.get_recipe('hostpython3crystax', self.ctx).get_build_dir(),
                 'hostpython')
+        elif 'hostpython3' in self.ctx.recipe_build_order:
+            return join(Recipe.get_recipe('hostpython3', self.ctx).get_build_dir(),
+                        'native-build', 'python')
         else:
             python_recipe = self.ctx.python_recipe
             return 'python{}'.format(python_recipe.version)
@@ -778,15 +743,11 @@ class PythonRecipe(Recipe):
                     join(ndk_dir_python, 'libs', arch.arch))
                 env['LDFLAGS'] += ' -lpython{}m'.format(python_short_version)
             elif 'python3' in self.ctx.recipe_build_order:
-                # This headers are unused cause python3 recipe was removed
-                # TODO: should be reviewed when python3 recipe added
-                env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-                env['CFLAGS'] += ' -I' + env[
-                    'PYTHON_ROOT'] + '/include/python{}m'.format(
-                    python_short_version)
-                env['LDFLAGS'] += (
-                    ' -L' + env['PYTHON_ROOT'] + '/lib' +
-                    ' -lpython{}m'.format(python_short_version))
+                env['CFLAGS'] += ' -I{}'.format(self.ctx.python_recipe.include_root(arch.arch))
+                env['LDFLAGS'] += ' -L{} -lpython{}m'.format(
+                    self.ctx.python_recipe.link_root(arch.arch),
+                    self.ctx.python_recipe.major_minor_version_string)
+
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
@@ -827,7 +788,8 @@ class PythonRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.hostpython_location)
 
-            if self.ctx.python_recipe.from_crystax:
+            if (self.ctx.python_recipe.from_crystax or
+                self.ctx.python_recipe.name == 'python3'):
                 hpenv = env.copy()
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),
@@ -952,7 +914,7 @@ class CythonRecipe(PythonRecipe):
     def __init__(self, *args, **kwargs):
         super(CythonRecipe, self).__init__(*args, **kwargs)
         depends = self.depends
-        depends.append(('python2', 'python3crystax'))
+        depends.append(('python2', 'python3', 'python3crystax'))
         depends = list(set(depends))
         self.depends = depends
 
@@ -1009,7 +971,7 @@ class CythonRecipe(PythonRecipe):
                 shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                         env['STRIP'], '{}', ';', _env=env)
 
-            if 'python3crystax' in self.ctx.recipe_build_order:
+            else:  # python3crystax or python3
                 info('Stripping object files')
                 shprint(sh.find, '.', '-iname', '*.so', '-exec',
                         '/usr/bin/echo', '{}', ';', _env=env)
@@ -1053,8 +1015,8 @@ class CythonRecipe(PythonRecipe):
         if self.ctx.python_recipe.from_crystax:
             env['LDFLAGS'] = (env['LDFLAGS'] +
                               ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
-            # ' -L/home/asandy/.local/share/python-for-android/build/bootstrap_builds/sdl2/libs/armeabi '
-        if self.ctx.python_recipe.from_crystax:
+
+        if self.ctx.python_recipe.from_crystax or self.ctx.python_recipe.name == 'python3':
             env['LDSHARED'] = env['CC'] + ' -shared'
         else:
             env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink.sh')
@@ -1094,14 +1056,39 @@ class TargetPythonRecipe(Recipe):
             exit(1)
         self.ctx.python_recipe = self
 
-    # @property
-    # def ctx(self):
-    #     return self._ctx
+    def include_root(self, arch):
+        '''The root directory from which to include headers.'''
+        raise NotImplementedError('Not implemented in TargetPythonRecipe')
 
-    # @ctx.setter
-    # def ctx(self, ctx):
-    #     self._ctx = ctx
-    #     ctx.python_recipe = self
+    def link_root(self):
+        raise NotImplementedError('Not implemented in TargetPythonRecipe')
+
+    @property
+    def major_minor_version_string(self):
+        from distutils.version import LooseVersion
+        return '.'.join([str(v) for v in LooseVersion(self.version).version[:2]])
+
+    def create_python_bundle(self, dirn, arch):
+        """
+        Create a packaged python bundle in the target directory, by
+        copying all the modules and standard library to the right
+        place.
+        """
+        raise NotImplementedError('{} does not implement create_python_bundle'.format(self))
+
+    def reduce_object_file_names(self, dirn):
+        """Recursively renames all files named XXX.cpython-...-linux-gnu.so"
+        to "XXX.so", i.e. removing the erroneous architecture name
+        coming from the local system.
+        """
+        py_so_files = shprint(sh.find, dirn, '-iname', '*.so')
+        filens = py_so_files.stdout.decode('utf-8').split('\n')[:-1]
+        for filen in filens:
+            file_dirname, file_basename = split(filen)
+            parts = file_basename.split('.')
+            if len(parts) <= 2:
+                continue
+            shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
 
 def md5sum(filen):

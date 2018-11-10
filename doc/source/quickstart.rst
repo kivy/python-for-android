@@ -114,15 +114,17 @@ Then, you can edit your ``~/.bashrc`` or other favorite shell to include new env
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-21"
     export ANDROIDNDK="$HOME/Documents/android-ndk-r10e"
-    export ANDROIDAPI="19"  # Target API version of your application
+    export ANDROIDAPI="26"  # Target API version of your application
+    export NDKAPI="19"  # Minimum supported API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 
 You have the possibility to configure on any command the PATH to the SDK, NDK and Android API using:
 
-- :code:`--sdk_dir PATH` as an equivalent of `$ANDROIDSDK`
-- :code:`--ndk_dir PATH` as an equivalent of `$ANDROIDNDK`
-- :code:`--android_api VERSION` as an equivalent of `$ANDROIDAPI`
-- :code:`--ndk_version VERSION` as an equivalent of `$ANDROIDNDKVER`
+- :code:`--sdk-dir PATH` as an equivalent of `$ANDROIDSDK`
+- :code:`--ndk-dir PATH` as an equivalent of `$ANDROIDNDK`
+- :code:`--android-api VERSION` as an equivalent of `$ANDROIDAPI`
+- :code:`--ndk-api VERSION` as an equivalent of `$NDKAPI`
+- :code:`--ndk-version VERSION` as an equivalent of `$ANDROIDNDKVER`
 
 
 Usage
