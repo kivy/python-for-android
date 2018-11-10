@@ -332,7 +332,7 @@ class AndroidBrowser(object):
         return open_url(url)
     
 import webbrowser
-webbrowser.register('android', AndroidBrowser, None, -1)
+webbrowser.register('android', AndroidBrowser)
 
 cdef extern void android_start_service(char *, char *, char *)
 def start_service(title=None, description=None, arg=None):

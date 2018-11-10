@@ -1,10 +1,11 @@
 import contextlib
-from os.path import exists
-from os import getcwd, chdir, makedirs
+from os.path import exists, join
+from os import getcwd, chdir, makedirs, walk
 import io
 import json
 import shutil
 import sys
+from fnmatch import fnmatch
 from tempfile import mkdtemp
 try:
     from urllib.request import FancyURLopener
@@ -124,3 +125,33 @@ def which(program, path_env):
                 return exe_file
 
     return None
+
+
+def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
+    """Recursively walks all the files and directories in ``dirn``,
+    ignoring directories that match any pattern in ``invalid_dirns``
+    and files that patch any pattern in ``invalid_filens``.
+
+    ``invalid_dirns`` and ``invalid_filens`` should both be lists of
+    strings to match. ``invalid_dir_patterns`` expects a list of
+    invalid directory names, while ``invalid_file_patterns`` expects a
+    list of glob patterns compared against the full filepath.
+
+    File and directory paths are evaluated as full paths relative to ``dirn``.
+
+    """
+
+    for dirn, subdirs, filens in walk(base_dir):
+
+        # Remove invalid subdirs so that they will not be walked
+        for i in reversed(range(len(subdirs))):
+            subdir = subdirs[i]
+            if subdir in invalid_dir_names:
+                subdirs.pop(i)
+
+        for filen in filens:
+            for pattern in invalid_file_patterns:
+                if fnmatch(filen, pattern):
+                    break
+            else:
+                yield join(dirn, filen)

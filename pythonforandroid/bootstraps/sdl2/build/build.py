@@ -8,6 +8,7 @@ from os import makedirs, remove, listdir
 import os
 import tarfile
 import time
+import json
 import subprocess
 import shutil
 from zipfile import ZipFile
@@ -125,7 +126,7 @@ def make_python_zip():
 
     if not exists('private'):
         print('No compiled python is present to zip, skipping.')
-        print('this should only be the case if you are using the CrystaX python')
+        print('this should only be the case if you are using the CrystaX python or python3')
         return
 
     global python_files
@@ -239,10 +240,9 @@ main.py that loads it.''')
 
     # Package up the private data (public not supported).
     tar_dirs = [args.private]
-    if exists('private'):
-        tar_dirs.append('private')
-    if exists('crystax_python'):
-        tar_dirs.append('crystax_python')
+    for python_bundle_dir in ('private', 'crystax_python', '_python_bundle'):
+        if exists(python_bundle_dir):
+            tar_dirs.append(python_bundle_dir)
 
     if args.private:
         make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
@@ -409,7 +409,17 @@ main.py that loads it.''')
 
 def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
-    default_android_api = 12
+
+    # Get the default minsdk, equal to the NDK API that this dist is built against
+    with open('dist_info.json', 'r') as fileh:
+        info = json.load(fileh)
+        if 'ndk_api' not in info:
+            print('WARNING: Failed to read ndk_api from dist info, defaulting to 12')
+            default_min_api = 12  # The old default before ndk_api was introduced
+        else:
+            default_min_api = info['ndk_api']
+            ndk_api = info['ndk_api']
+
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android.
@@ -491,10 +501,13 @@ tools directory of the Android SDK.
     ap.add_argument('--sdk', dest='sdk_version', default=-1,
                     type=int, help=('Deprecated argument, does nothing'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
-                    default=default_android_api, type=int,
-                    help=('Minimum Android SDK version to use. Default to '
-                          'the value of ANDROIDAPI, or {} if not set'
-                          .format(default_android_api)))
+                    default=default_min_api, type=int,
+                    help=('Minimum Android SDK version that the app supports. '
+                          'Defaults to {}.'.format(default_min_api)))
+    ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
+                    action='store_true',
+                    help=('Allow the --minsdk argument to be different from '
+                          'the discovered ndk_api in the dist'))
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
@@ -529,8 +542,18 @@ tools directory of the Android SDK.
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
 
-    # if args.sdk_version == -1:
-    #     args.sdk_version = args.min_sdk_version
+    if ndk_api != args.min_sdk_version:
+        print(('WARNING: --minsdk argument does not match the api that is '
+               'compiled against. Only proceed if you know what you are '
+               'doing, otherwise use --minsdk={} or recompile against api '
+               '{}').format(ndk_api, args.min_sdk_version))
+        if not args.allow_minsdk_ndkapi_mismatch:
+            print('You must pass --allow-minsdk-ndkapi-mismatch to build '
+                  'with --minsdk different to the target NDK api from the '
+                  'build step')
+            exit(1)
+        else:
+            print('Proceeding with --minsdk not matching build target api')
 
     if args.sdk_version != -1:
         print('WARNING: Received a --sdk argument, but this argument is '
