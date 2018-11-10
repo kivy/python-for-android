@@ -29,25 +29,15 @@ BROKEN_RECIPES_PYTHON2 = set([
     # https://github.com/kivy/python-for-android/issues/1354
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
     'kiwisolver',
-    # system dependencies autoconf, libtool
-    'libexpat',
-    'libgeos',
     # https://github.com/kivy/python-for-android/issues/1399
     'libglob',
-    # system dependencies cmake and compile error
     'libmysqlclient',
     'libsecp256k1',
     'libtribler',
-    # system dependencies gettext, pkg-config
-    'libzbar',
     'ndghttpsclient',
     'm2crypto',
     'netifaces',
     'Pillow',
-    # requires autoconf system dependency on host
-    # https://api.travis-ci.org/v3/job/450538715/log.txt
-    'protobuf_cpp',
-    'cffi',
     # https://github.com/kivy/python-for-android/issues/1405
     'psycopg2',
     'pygame',
@@ -93,8 +83,6 @@ BROKEN_RECIPES_PYTHON3_CRYSTAX = set([
     'icu',
     # https://github.com/kivy/python-for-android/issues/1354
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
-    # system dependencies autoconf, libtool
-    'libexpat',
     # https://github.com/kivy/python-for-android/issues/1405
     'libpq', 'psycopg2',
     'netifaces',

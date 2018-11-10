@@ -789,7 +789,7 @@ class PythonRecipe(Recipe):
             hostpython = sh.Command(self.hostpython_location)
 
             if (self.ctx.python_recipe.from_crystax or
-                self.ctx.python_recipe.name == 'python3'):
+                    self.ctx.python_recipe.name == 'python3'):
                 hpenv = env.copy()
                 shprint(hostpython, 'setup.py', 'install', '-O2',
                         '--root={}'.format(self.ctx.get_python_install_dir()),

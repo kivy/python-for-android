@@ -6,6 +6,12 @@ import sh
 
 
 class LibffiRecipe(Recipe):
+    """
+    Requires additional system dependencies on Ubuntu:
+        - `automake` for the `aclocal` binary
+        - `autoconf` for the `autoreconf` binary
+        - `libltdl-dev` which defines the `LT_SYS_SYMBOL_USCORE` macro
+    """
     name = 'libffi'
     version = 'v3.2.1'
     url = 'https://github.com/atgreen/libffi/archive/{version}.zip'
