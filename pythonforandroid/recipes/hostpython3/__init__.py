@@ -3,6 +3,8 @@ from pythonforandroid.util import ensure_dir, current_directory
 from os.path import join, exists
 import sh
 
+BUILD_SUBDIR = 'native-build'
+
 
 class Hostpython3Recipe(Recipe):
     version = '3.7.1'
@@ -20,11 +22,14 @@ class Hostpython3Recipe(Recipe):
         # Unlike other recipes, the hostpython build dir doesn't depend on the target arch
         return join(self.get_build_container_dir(), self.name)
 
+    def get_path_to_python(self):
+        return join(self.get_build_dir(), BUILD_SUBDIR)
+
     def build_arch(self, arch):
         recipe_build_dir = self.get_build_dir(arch.arch)
 
         # Create a subdirectory to actually perform the build
-        build_dir = join(recipe_build_dir, 'native-build')
+        build_dir = join(recipe_build_dir, BUILD_SUBDIR)
         ensure_dir(build_dir)
 
         if not exists(join(build_dir, 'python')):
