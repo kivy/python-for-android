@@ -44,7 +44,7 @@ RUN apt update -qq && apt install -qq --yes --no-install-recommends \
 RUN dpkg --add-architecture i386 && apt update -qq && apt install -qq --yes --no-install-recommends \
     build-essential ccache git libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 \
     libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 python2.7 python2.7-dev \
-    openjdk-8-jdk unzip zlib1g-dev zlib1g:i386
+    openjdk-8-jdk zip unzip zlib1g-dev zlib1g:i386
 
 # specific recipes dependencies (e.g. libffi requires autoreconf binary)
 RUN apt install -qq --yes --no-install-recommends \
@@ -93,7 +93,7 @@ RUN useradd --create-home --shell /bin/bash ${USER}
 # with sudo access and no password
 RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-RUN pip install --quiet --upgrade Cython==0.28.6
+RUN pip install --quiet --upgrade cython==0.28.6
 WORKDIR ${WORK_DIR}
 COPY . ${WORK_DIR}
 # user needs ownership/write access to these directories
