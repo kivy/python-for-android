@@ -57,6 +57,8 @@ BROKEN_RECIPES_PYTHON2 = set([
     'pyzmq',
     'secp256k1',
     'shapely',
+    # mpmath package with a version >= 0.19 required
+    'sympy',
     'twisted',
     'vlc',
     'websocket-client',
@@ -93,6 +95,8 @@ BROKEN_RECIPES_PYTHON3_CRYSTAX = set([
     'pyjnius', 'pyopenal',
     # SyntaxError: invalid syntax (Python2)
     'storm',
+    # mpmath package with a version >= 0.19 required
+    'sympy',
     'vlc',
 ])
 # to be created via https://github.com/kivy/python-for-android/issues/1514
