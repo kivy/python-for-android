@@ -35,7 +35,7 @@ class Arch(object):
 
         env['CFLAGS'] = ' '.join([
             '-DANDROID', '-mandroid', '-fomit-frame-pointer'
-            ' -D__ANDROID_API__={}'.format(self.ctx._android_api),
+            ' -D__ANDROID_API__={}'.format(self.ctx.ndk_api),
             ])
         env['LDFLAGS'] = ' '
 
@@ -133,6 +133,7 @@ class Arch(object):
         env['PATH'] = environ['PATH']
 
         env['ARCH'] = self.arch
+        env['NDK_API'] = 'android-{}'.format(str(self.ctx.ndk_api))
 
         if self.ctx.python_recipe and self.ctx.python_recipe.from_crystax:
             env['CRYSTAX_PYTHON_VERSION'] = self.ctx.python_recipe.version

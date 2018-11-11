@@ -76,10 +76,9 @@ int main(int argc, char *argv[]) {
   int ret = 0;
   FILE *fd;
 
-  /* AND: Several filepaths are hardcoded here, these must be made
-     configurable */
-  /* AND: P4A uses env vars...not sure what's best */
-  LOGP("Initialize Python for Android");
+  setenv("P4A_BOOTSTRAP", "SDL2", 1);  // env var to identify p4a to applications
+
+  LOGP("Initializing Python for Android");
   env_argument = getenv("ANDROID_ARGUMENT");
   setenv("ANDROID_APP_PATH", env_argument, 1);
   env_entrypoint = getenv("ANDROID_ENTRYPOINT");
@@ -109,32 +108,49 @@ int main(int argc, char *argv[]) {
 
   LOGP("Preparing to initialize python");
 
+  // Set up the python path
+  char paths[256];
+
   char crystax_python_dir[256];
   snprintf(crystax_python_dir, 256,
            "%s/crystax_python", getenv("ANDROID_UNPACK"));
-  if (dir_exists(crystax_python_dir)) {
-    LOGP("crystax_python exists");
-    char paths[256];
-    snprintf(paths, 256,
-             "%s/stdlib.zip:%s/modules",
-             crystax_python_dir, crystax_python_dir);
-    /* snprintf(paths, 256, "%s/stdlib.zip:%s/modules", env_argument,
-     * env_argument); */
+  char python_bundle_dir[256];
+  snprintf(python_bundle_dir, 256,
+           "%s/_python_bundle", getenv("ANDROID_UNPACK"));
+  if (dir_exists(crystax_python_dir) || dir_exists(python_bundle_dir)) {
+    if (dir_exists(crystax_python_dir)) {
+        LOGP("crystax_python exists");
+        snprintf(paths, 256,
+                "%s/stdlib.zip:%s/modules",
+                crystax_python_dir, crystax_python_dir);
+    }
+
+    if (dir_exists(python_bundle_dir)) {
+        LOGP("_python_bundle dir exists");
+        snprintf(paths, 256,
+                "%s/stdlib.zip:%s/modules",
+                python_bundle_dir, python_bundle_dir);
+    }
+
     LOGP("calculated paths to be...");
     LOGP(paths);
 
-#if PY_MAJOR_VERSION >= 3
-    wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
-    Py_SetPath(wchar_paths);
-#else
-    char *wchar_paths = paths;
-    LOGP("Can't Py_SetPath in python2, so crystax python2 doesn't work yet");
-    exit(1);
-#endif
 
-    LOGP("set wchar paths...");
+    #if PY_MAJOR_VERSION >= 3
+        wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
+        Py_SetPath(wchar_paths);
+    #else
+        char *wchar_paths = paths;
+        LOGP("Can't Py_SetPath in python2, so crystax python2 doesn't work yet");
+        exit(1);
+    #endif
+
+        LOGP("set wchar paths...");
   } else {
-    LOGP("crystax_python does not exist");
+      // We do not expect to see crystax_python any more, so no point
+      // reminding the user about it. If it does exist, we'll have
+      // logged it earlier.
+      LOGP("_python_bundle does not exist");
   }
 
   Py_Initialize();
@@ -174,11 +190,24 @@ int main(int argc, char *argv[]) {
                        "    argument ]\n");
   }
 
+  char add_site_packages_dir[256];
   if (dir_exists(crystax_python_dir)) {
-    char add_site_packages_dir[256];
     snprintf(add_site_packages_dir, 256,
              "sys.path.append('%s/site-packages')",
              crystax_python_dir);
+
+    PyRun_SimpleString("import sys\n"
+                       "sys.argv = ['notaninterpreterreally']\n"
+                       "from os.path import realpath, join, dirname");
+    PyRun_SimpleString(add_site_packages_dir);
+    /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
+    PyRun_SimpleString("sys.path = ['.'] + sys.path");
+  }
+
+  if (dir_exists(python_bundle_dir)) {
+    snprintf(add_site_packages_dir, 256,
+             "sys.path.append('%s/site-packages')",
+             python_bundle_dir);
 
     PyRun_SimpleString("import sys\n"
                        "sys.argv = ['notaninterpreterreally']\n"
@@ -317,6 +346,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   setenv("PYTHONHOME", python_home, 1);
   setenv("PYTHONPATH", python_path, 1);
   setenv("PYTHON_SERVICE_ARGUMENT", arg, 1);
+  setenv("P4A_BOOTSTRAP", "SDL2", 1);
 
   char *argv[] = {"."};
   /* ANDROID_ARGUMENT points to service subdir,

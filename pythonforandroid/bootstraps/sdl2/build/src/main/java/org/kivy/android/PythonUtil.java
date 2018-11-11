@@ -45,6 +45,8 @@ public class PythonUtil {
         addLibraryIfExists(libsList, "crypto.*", libsDir);
         libsList.add("python2.7");
         libsList.add("python3.5m");
+        libsList.add("python3.6m");
+        libsList.add("python3.7m");
         libsList.add("main");
         return libsList;
     }
@@ -66,7 +68,7 @@ public class PythonUtil {
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.6") && !foundPython) {
+                if (lib.startsWith("python3.7") && !foundPython) {
                     throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;

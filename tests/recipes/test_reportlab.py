@@ -16,6 +16,8 @@ class TestReportLabRecipe(unittest.TestCase):
         Setups recipe and context.
         """
         self.context = Context()
+        self.context.ndk_api = 21
+        self.context.android_api = 27
         self.arch = ArchARMv7_a(self.context)
         self.recipe = Recipe.get_recipe('reportlab', self.context)
         self.recipe.ctx = self.context
