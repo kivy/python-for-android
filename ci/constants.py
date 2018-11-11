@@ -38,6 +38,7 @@ BROKEN_RECIPES_PYTHON2 = set([
     'm2crypto',
     'netifaces',
     'Pillow',
+    'cryptography',
     # https://github.com/kivy/python-for-android/issues/1405
     'psycopg2',
     'pygame',
