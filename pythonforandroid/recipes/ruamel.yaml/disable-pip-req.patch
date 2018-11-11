@@ -1,0 +1,11 @@
+--- setup.py        2018-11-11 18:27:31.936424140 +0100
++++ b/setup.py    2018-11-11 18:28:19.873507071 +0100
+@@ -396,7 +396,7 @@
+                 sys.exit(0)
+             if not os.environ.get('RUAMEL_NO_PIP_INSTALL_CHECK', False):
+                 print('error: you have to install with "pip install ."')
+-                sys.exit(1)
++                # sys.exit(1)
+         # If you only support an extension module on Linux, Windows thinks it
+         # is pure. That way you would get pure python .whl files that take
+         # precedence for downloading on Linux over source with compilable C code
