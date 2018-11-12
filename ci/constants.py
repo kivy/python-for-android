@@ -38,6 +38,13 @@ BROKEN_RECIPES_PYTHON2 = set([
     'm2crypto',
     'netifaces',
     'Pillow',
+    # depends on cffi that still seems to have compilation issues
+    'protobuf_cpp',
+    'xeddsa',
+    'x3dh',
+    'pynacl',
+    'doubleratchet',
+    'omemo',
     'cryptography',
     # https://github.com/kivy/python-for-android/issues/1405
     'psycopg2',
