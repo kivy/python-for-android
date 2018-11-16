@@ -72,7 +72,7 @@ class LibtorrentRecipe(Recipe):
         if 'openssl' in recipe.ctx.recipe_build_order:
             r = self.get_recipe('openssl', self.ctx)
             env['OPENSSL_BUILD_PATH'] = r.get_build_dir(arch.arch)
-            env['OPENSSL_VERSION'] = r.version
+            env['OPENSSL_VERSION'] = r.lib_version
         return env
 
 

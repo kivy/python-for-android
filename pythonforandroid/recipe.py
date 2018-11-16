@@ -406,12 +406,12 @@ class Recipe(with_metaclass(RecipeMeta)):
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
 
-    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True, clang=False):
         """Return the env specialized for the recipe
         """
         if arch is None:
             arch = self.filtered_archs[0]
-        return arch.get_env(with_flags_in_cc=with_flags_in_cc)
+        return arch.get_env(with_flags_in_cc=with_flags_in_cc, clang=clang)
 
     def prebuild_arch(self, arch):
         '''Run any pre-build tasks for the Recipe. By default, this checks if

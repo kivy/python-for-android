@@ -9,12 +9,12 @@ IF BOOTSTRAP == 'pygame':
 
     def check_pause():
         return SDL_ANDROID_CheckPause()
-    
+
     def wait_for_resume():
         android_accelerometer_enable(False)
         SDL_ANDROID_WaitForResume()
         android_accelerometer_enable(accelerometer_enabled)
-    
+
     def map_key(scancode, keysym):
         SDL_ANDROID_MapKey(scancode, keysym)
 
@@ -300,16 +300,16 @@ IF IS_PYGAME:
             j_chooser_title = <bytes>chooser_title
         android_action_send(j_mimetype, j_filename, j_subject, j_text,
                 j_chooser_title)
-    
+
     cdef extern int android_checkstop()
     cdef extern void android_ackstop()
-    
+
     def check_stop():
         return android_checkstop()
-    
+
     def ack_stop():
         android_ackstop()
-    
+
 # -------------------------------------------------------------------
 # URL Opening.
 def open_url(url):
@@ -330,7 +330,7 @@ class AndroidBrowser(object):
         return open_url(url)
     def open_new_tab(self, url):
         return open_url(url)
-    
+
 import webbrowser
 webbrowser.register('android', AndroidBrowser)
 
@@ -381,5 +381,3 @@ class AndroidService(object):
         '''Stop the service.
         '''
         stop_service()
-
-

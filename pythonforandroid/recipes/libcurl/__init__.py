@@ -10,6 +10,7 @@ class LibcurlRecipe(Recipe):
     depends = ['openssl']
 
     def should_build(self, arch):
+        return True
         super(LibcurlRecipe, self).should_build(arch)
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libcurl.so'))
 
@@ -19,6 +20,10 @@ class LibcurlRecipe(Recipe):
 
         r = self.get_recipe('openssl', self.ctx)
         openssl_dir = r.get_build_dir(arch.arch)
+
+        # with-ssl assume the libcrypto is in lib/ subdirectory
+        # but it will be within the openssl_dir directory directly.
+        env["LDFLAGS"] += " -L{}".format(openssl_dir)
 
         with current_directory(self.get_build_dir(arch.arch)):
             dst_dir = join(self.get_build_dir(arch.arch), 'dist')

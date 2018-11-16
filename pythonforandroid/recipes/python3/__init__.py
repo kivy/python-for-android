@@ -39,6 +39,7 @@ class Python3Recipe(TargetPythonRecipe):
 
     depends = ['hostpython3']
     conflicts = ['python3crystax', 'python2']
+    opt_depends = ['openssl', 'sqlite3']
 
     # This recipe can be built only against API 21+
     MIN_NDK_API = 21
@@ -104,6 +105,26 @@ class Python3Recipe(TargetPythonRecipe):
             env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
             env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
             env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(sysroot, join(sysroot, 'usr', 'lib'))
+
+            if 'openssl' in self.ctx.recipe_build_order:
+                recipe = Recipe.get_recipe('openssl', self.ctx)
+                openssl_build_dir = recipe.get_build_dir(arch.arch)
+                ensure_dir('Modules')
+                setuplocal = join('Modules', 'Setup.local')
+                shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
+                shprint(sh.sed, '-i.backup', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
+                env['OPENSSL_VERSION'] = recipe.lib_version
+
+            if 'sqlite3' in self.ctx.recipe_build_order:
+                # Include sqlite3 in python2 build
+                recipe = Recipe.get_recipe('sqlite3', self.ctx)
+                include = ' -I' + recipe.get_build_dir(arch.arch)
+                lib = ' -L' + recipe.get_lib_dir(arch) + ' -lsqlite3'
+                # Insert or append to env
+                flag = 'CPPFLAGS'
+                env[flag] = env[flag] + include if flag in env else include
+                flag = 'LDFLAGS'
+                env[flag] = env[flag] + lib if flag in env else lib
 
             # Manually add the libs directory, and copy some object
             # files to the current directory otherwise they aren't

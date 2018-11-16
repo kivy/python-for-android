@@ -17,8 +17,8 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         env['CFLAGS'] += ' -I' + join(openssl_dir, 'include')
         env['LDFLAGS'] += ' -L' + openssl_dir + \
-                          ' -lssl' + r.version + \
-                          ' -lcrypto' + r.version
+                          ' -lssl' + r.lib_version + \
+                          ' -lcrypto' + r.lib_version
 
         return env
 
