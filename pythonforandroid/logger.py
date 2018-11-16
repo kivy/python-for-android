@@ -148,8 +148,10 @@ def shprint(command, *args, **kwargs):
     kwargs["_bg"] = True
     is_critical = kwargs.pop('_critical', False)
     tail_n = kwargs.pop('_tail', None)
+    full_debug = False
     if "P4A_FULL_DEBUG" in os.environ:
         tail_n = 0
+        full_debug = True
     filter_in = kwargs.pop('_filter', None)
     filter_out = kwargs.pop('_filterout', None)
     if len(logger.handlers) > 1:
@@ -177,6 +179,10 @@ def shprint(command, *args, **kwargs):
             if isinstance(line, bytes):
                 line = line.decode('utf-8', errors='replace')
             if logger.level > logging.DEBUG:
+                if full_debug:
+                    stdout.write(line)
+                    stdout.flush()
+                    continue
                 msg = line.replace(
                     '\n', ' ').replace(
                         '\t', ' ').replace(
