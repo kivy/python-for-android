@@ -73,7 +73,7 @@ class Python3Recipe(TargetPythonRecipe):
             recipe = Recipe.get_recipe('libffi', self.ctx)
             include = ' -I' + ' -I'.join(recipe.get_include_dirs(arch))
             ldflag = ' -L' + join(recipe.get_build_dir(arch.arch),
-                                   recipe.get_host(arch), '.libs') + ' -lffi'
+                                  recipe.get_host(arch), '.libs') + ' -lffi'
             add_flags(include, ldflag)
             # libffi needs some extra configurations
             env['LIBFFI_CFLAGS'] = env.get('CFLAGS', '') + include
