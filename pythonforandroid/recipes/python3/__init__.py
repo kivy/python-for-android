@@ -1,4 +1,4 @@
-from pythonforandroid.recipe import TargetPythonRecipe
+from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory
 from pythonforandroid.logger import logger, info
 from pythonforandroid.util import ensure_dir, walk_valid_filens
@@ -33,13 +33,53 @@ SITE_PACKAGES_FILEN_BLACKLIST = []
 
 
 class Python3Recipe(TargetPythonRecipe):
+    '''
+    .. note::
+        In order to build certain python modules, we need to add some extra
+        recipes to our build requirements:
+
+            - ctypes: you must add the recipe for ``libffi``.
+    '''
     version = '3.7.1'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
     depends = ['hostpython3']
     conflicts = ['python3crystax', 'python2']
-    # opt_depends = ['openssl', 'sqlite3']
+    opt_depends = ['libffi']  # 'openssl', 'sqlite3'
+
+    configure_args = (
+        '--host={android_host}',
+        '--build={android_build}',
+        '--enable-shared',
+        '--disable-ipv6',
+        'ac_cv_file__dev_ptmx=yes',
+        'ac_cv_file__dev_ptc=no',
+        '--without-ensurepip',
+        'ac_cv_little_endian_double=yes',
+        '--prefix={prefix}',
+        '--exec-prefix={exec_prefix}')
+
+    def set_libs_flags(self, env, arch):
+        '''Takes care to properly link libraries with python depending on our
+        requirements and the attribute :attr:`opt_depends`.
+        '''
+        def add_flags(include_flags, link_flags):
+            env['CPPFLAGS'] = env.get('CPPFLAGS', '') + include_flags
+            env['LDFLAGS'] = env.get('LDFLAGS', '') + link_flags
+
+        if 'libffi' in self.ctx.recipe_build_order:
+            info('Activating flags for libffi')
+            recipe = Recipe.get_recipe('libffi', self.ctx)
+            include = ' -I' + ' -I'.join(recipe.get_include_dirs(arch))
+            ldflag = ' -L' + join(recipe.get_build_dir(arch.arch),
+                                   recipe.get_host(arch), '.libs') + ' -lffi'
+            add_flags(include, ldflag)
+            # libffi needs some extra configurations
+            env['LIBFFI_CFLAGS'] = env.get('CFLAGS', '') + include
+            env['LIBFFI_LIBS'] = ldflag
+            self.configure_args += ('--with-system-ffi',)
+        return env
 
     def build_arch(self, arch):
         recipe_build_dir = self.get_build_dir(arch.arch)
@@ -112,22 +152,15 @@ class Python3Recipe(TargetPythonRecipe):
 
             env['SYSROOT'] = sysroot
 
+            env = self.set_libs_flags(env, arch)
+
             if not exists('config.status'):
                 shprint(sh.Command(join(recipe_build_dir, 'configure')),
-                        *(' '.join(('--host={android_host}',
-                                    '--build={android_build}',
-                                    '--enable-shared',
-                                    '--disable-ipv6',
-                                    'ac_cv_file__dev_ptmx=yes',
-                                    'ac_cv_file__dev_ptc=no',
-                                    '--without-ensurepip',
-                                    'ac_cv_little_endian_double=yes',
-                                    '--prefix={prefix}',
-                                    '--exec-prefix={exec_prefix}')).format(
-                                        android_host=android_host,
-                                        android_build=android_build,
-                                        prefix=sys_prefix,
-                                        exec_prefix=sys_exec_prefix)).split(' '), _env=env)
+                        *(' '.join(self.configure_args).format(
+                            android_host=android_host,
+                            android_build=android_build,
+                            prefix=sys_prefix,
+                            exec_prefix=sys_exec_prefix)).split(' '), _env=env)
 
             if not exists('python'):
                 shprint(sh.make, 'all', _env=env)
