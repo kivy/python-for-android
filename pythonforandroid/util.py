@@ -12,7 +12,7 @@ try:
 except ImportError:
     from urllib import FancyURLopener
 
-from pythonforandroid.logger import (logger, Err_Fore)
+from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
 IS_PY3 = sys.version_info[0] >= 3
 
@@ -155,3 +155,21 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
                     break
             else:
                 yield join(dirn, filen)
+
+
+class BuildInterruptingException(Exception):
+    def __init__(self, message, instructions=None):
+        super(BuildInterruptingException, self).__init__(message, instructions)
+        self.message = message
+        self.instructions = instructions
+
+
+def handle_build_exception(exception):
+    """
+    Handles a raised BuildInterruptingException by printing its error
+    message and associated instructions, if any, then exiting.
+    """
+    error('Build failed: {}'.format(exception.message))
+    if exception.instructions is not None:
+        info('Instructions: {}'.format(exception.instructions))
+    exit(1)

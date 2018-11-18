@@ -1,10 +1,10 @@
 from copy import deepcopy
 from itertools import product
-from sys import exit
 
-from pythonforandroid.logger import (info, warning, error)
+from pythonforandroid.logger import (info, warning)
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.bootstrap import Bootstrap
+from pythonforandroid.util import BuildInterruptingException
 
 
 class RecipeOrder(dict):
@@ -133,11 +133,10 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
                     key=lambda order: -('python2' in order) - ('sdl2' in order))
 
     if not orders:
-        error('Didn\'t find any valid dependency graphs.')
-        error('This means that some of your requirements pull in '
-              'conflicting dependencies.')
-        error('Exiting.')
-        exit(1)
+        raise BuildInterruptingException(
+            'Didn\'t find any valid dependency graphs. This means that some of your '
+            'requirements pull in conflicting dependencies.')
+
     # It would be better to check against possible orders other
     # than the first one, but in practice clashes will be rare,
     # and can be resolved by specifying more parameters

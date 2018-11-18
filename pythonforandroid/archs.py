@@ -3,8 +3,8 @@ from os import environ, uname
 import sys
 from distutils.spawn import find_executable
 
-from pythonforandroid.logger import warning
 from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import BuildInterruptingException
 
 
 class Arch(object):
@@ -86,11 +86,11 @@ class Arch(object):
             command_prefix=command_prefix), path=environ['PATH'])
         if cc is None:
             print('Searching path are: {!r}'.format(environ['PATH']))
-            warning('Couldn\'t find executable for CC. This indicates a '
-                    'problem locating the {} executable in the Android '
-                    'NDK, not that you don\'t have a normal compiler '
-                    'installed. Exiting.')
-            exit(1)
+            raise BuildInterruptingException(
+                'Couldn\'t find executable for CC. This indicates a '
+                'problem locating the {} executable in the Android '
+                'NDK, not that you don\'t have a normal compiler '
+                'installed. Exiting.')
 
         if with_flags_in_cc:
             env['CC'] = '{ccache}{command_prefix}-gcc {cflags}'.format(

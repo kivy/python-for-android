@@ -16,8 +16,9 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from pythonforandroid.logger import (logger, info, warning, error, debug, shprint, info_main)
-from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir)
+from pythonforandroid.logger import (logger, info, warning, debug, shprint, info_main)
+from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir,
+                                   BuildInterruptingException)
 
 # this import is necessary to keep imp.load_source from complaining :)
 if PY2:
@@ -582,8 +583,8 @@ class IncludedFilesBehaviour(object):
 
     def prepare_build_dir(self, arch):
         if self.src_filename is None:
-            print('IncludedFilesBehaviour failed: no src_filename specified')
-            exit(1)
+            raise BuildInterruptingException(
+                'IncludedFilesBehaviour failed: no src_filename specified')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
         shprint(sh.cp, '-a', join(self.get_recipe_dir(), self.src_filename),
                 self.get_build_dir(arch))
@@ -1051,9 +1052,9 @@ class TargetPythonRecipe(Recipe):
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
         if self.from_crystax and self.ctx.ndk != 'crystax':
-            error('The {} recipe can only be built when '
-                  'using the CrystaX NDK. Exiting.'.format(self.name))
-            exit(1)
+            raise BuildInterruptingException(
+                'The {} recipe can only be built when '
+                'using the CrystaX NDK. Exiting.'.format(self.name))
         self.ctx.python_recipe = self
 
     def include_root(self, arch):
