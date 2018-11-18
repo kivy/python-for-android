@@ -1,6 +1,6 @@
 from pythonforandroid.recipe import TargetPythonRecipe
 from pythonforandroid.toolchain import shprint, current_directory
-from pythonforandroid.logger import logger, info
+from pythonforandroid.logger import logger, info, error
 from pythonforandroid.util import ensure_dir, walk_valid_filens
 from os.path import exists, join, dirname
 from os import environ
@@ -39,9 +39,16 @@ class Python3Recipe(TargetPythonRecipe):
 
     depends = ['hostpython3']
     conflicts = ['python3crystax', 'python2']
-    # opt_depends = ['openssl', 'sqlite3']
+
+    # This recipe can be built only against API 21+
+    MIN_NDK_API = 21
 
     def build_arch(self, arch):
+        if self.ctx.ndk_api < self.MIN_NDK_API:
+            error('Target ndk-api is {}, but the python3 recipe supports only {}+'.format(
+                self.ctx.ndk_api, self.MIN_NDK_API))
+            exit(1)
+
         recipe_build_dir = self.get_build_dir(arch.arch)
 
         # Create a subdirectory to actually perform the build
