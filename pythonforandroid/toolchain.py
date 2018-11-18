@@ -816,6 +816,14 @@ class ToolchainCL(object):
                 env["ANDROID_HOME"] = self.ctx.sdk_dir
 
                 gradlew = sh.Command('./gradlew')
+                if exists('/usr/bin/dos2unix'):
+                    # .../dists/bdisttest_python3/gradlew
+                    # .../build/bootstrap_builds/sdl2-python3crystax/gradlew
+                    # if docker on windows, gradle contains CRLF
+                    output = shprint(
+                        sh.Command('dos2unix'), gradlew._path,
+                        _tail=20, _critical=True, _env=env
+                    )
                 if args.build_mode == "debug":
                     gradle_task = "assembleDebug"
                 elif args.build_mode == "release":
