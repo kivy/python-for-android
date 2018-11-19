@@ -130,7 +130,7 @@ class Context(object):
     def ndk_api(self):
         '''The API number compile against'''
         if self._ndk_api is None:
-            raise ValueError('Tried to access ndk_api_api but it has not '
+            raise ValueError('Tried to access ndk_api but it has not '
                              'been set - this should not happen, something '
                              'went wrong!')
         return self._ndk_api
