@@ -197,6 +197,15 @@ def split_argument_list(l):
     return re.split(r'[ ,]+', l)
 
 
+def select_ndk_api(user_ndk_api, user_android_api):
+    ndk_api = min(DEFAULT_NDK_API, user_android_api)
+    if user_ndk_api == 0:
+        warning(('No valid --ndk-api received, using the default of {} = '
+                 'min(android-api={}, default ndk-api={})').format(
+                     user_ndk_api, user_android_api, DEFAULT_NDK_API))
+    return min(21, user_android_api)
+
+
 class NoAbbrevParser(argparse.ArgumentParser):
     """We want to disable argument abbreviation so as not to interfere
     with passing through arguments to build.py, but in python2 argparse
@@ -528,7 +537,9 @@ class ToolchainCL(object):
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
         self.ndk_version = args.ndk_version
+        args.ndk_api = select_ndk_api(args.ndk_api, args.android_api)
         self.ndk_api = args.ndk_api
+
         self.ctx.symlink_java_src = args.symlink_java_src
         self.ctx.java_build_tool = args.java_build_tool
 

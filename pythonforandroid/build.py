@@ -350,20 +350,7 @@ class Context(object):
                     'set it with `--ndk-version=...`.')
         self.ndk_ver = ndk_ver
 
-        ndk_api = None
-        if user_ndk_api:
-            ndk_api = user_ndk_api
-            info('Getting NDK API version (i.e. minimum supported API) from user argument')
-        elif 'NDKAPI' in environ:
-            ndk_api = environ.get('NDKAPI', None)
-            info('Found Android API target in $NDKAPI')
-        else:
-            ndk_api = min(self.android_api, DEFAULT_NDK_API)
-            warning('NDK API target was not set manually, using '
-                    'the default of {} = min(android-api={}, default ndk-api={})'.format(
-                        ndk_api, self.android_api, DEFAULT_NDK_API))
-        ndk_api = int(ndk_api)
-        self.ndk_api = ndk_api
+        self.ndk_api = user_ndk_api
 
         if self.ndk_api > self.android_api:
             error('Target NDK API is {}, higher than the target Android API {}.'.format(
