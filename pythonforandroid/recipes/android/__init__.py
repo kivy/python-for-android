@@ -30,7 +30,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         th = '#define {} {}\n'
         tpy = '{} = {}\n'
 
-        bootstrap = bootstrap_name = self.ctx.bootstrap.name
+        bootstrap = bootstrap_name = self.ctx.bootstrap.name.decode('utf-8')
         is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3', 'sdl2_gradle')
         is_pygame = bootstrap_name in ('pygame',)
         is_webview = bootstrap_name in ('webview',)
@@ -38,8 +38,8 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         if is_sdl2 or is_webview:
             if is_sdl2:
                 bootstrap = 'sdl2'
-            java_ns = 'org.kivy.android'
-            jni_ns = 'org/kivy/android'
+            java_ns = u'org.kivy.android'
+            jni_ns = u'org/kivy/android'
         elif is_pygame:
             java_ns = 'org.renpy.android'
             jni_ns = 'org/renpy/android'

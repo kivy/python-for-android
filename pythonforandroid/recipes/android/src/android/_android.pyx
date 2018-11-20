@@ -175,13 +175,13 @@ api_version = autoclass('android.os.Build$VERSION').SDK_INT
 version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
-python_act = autoclass(JAVA_NAMESPACE + '.PythonActivity')
-Rect = autoclass('android.graphics.Rect')
+python_act = autoclass(JAVA_NAMESPACE + u'.PythonActivity')
+Rect = autoclass(u'android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
     # PyGame backend already has the listener so adding
     # one here leads to a crash/too much cpu usage.
-    # SDL2 now does noe need the listener so there is
+    # SDL2 now does not need the listener so there is
     # no point adding a processor intensive layout listenere here.
     height = 0
     def get_keyboard_height():
