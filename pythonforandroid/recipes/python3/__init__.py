@@ -106,7 +106,7 @@ class Python3Recipe(TargetPythonRecipe):
                              android_api=self.ctx.ndk_api,
                              ndk_android_host=join(
                                  self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host))
-            sysroot = join(self.ctx.ndk_dir, 'platforms', platform_name, 'arch-arm')
+            sysroot = join(self.ctx.ndk_dir, 'platforms', platform_name, arch.platform_dir)
             env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
             env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
             env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(sysroot, join(sysroot, 'usr', 'lib'))
