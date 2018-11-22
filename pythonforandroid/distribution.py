@@ -126,21 +126,21 @@ class Distribution(object):
 
         assert len(possible_dists) < 2
 
-        # If there was a name match but we didn't already choose it,
-        # then the existing dist is incompatible with the requested
-        # configuration and the build cannot continue
-        if name_match_dist is not None and not allow_replace_dist:
-            error('Asked for dist with name {name} with recipes ({req_recipes}) and '
-                  'NDK API {req_ndk_api}, but a dist '
-                  'with this name already exists and has either incompatible recipes '
-                  '({dist_recipes}) or NDK API {dist_ndk_api}'.format(
-                      name=name,
-                      req_ndk_api=ndk_api,
-                      dist_ndk_api=name_match_dist.ndk_api,
-                      req_recipes=', '.join(recipes),
-                      dist_recipes=', '.join(name_match_dist.recipes)))
-            error('No compatible dist found, so exiting.')
-            exit(1)
+        # # If there was a name match but we didn't already choose it,
+        # # then the existing dist is incompatible with the requested
+        # # configuration and the build cannot continue
+        # if name_match_dist is not None:
+        #     error('Asked for dist with name {name} with recipes ({req_recipes}) and '
+        #           'NDK API {req_ndk_api}, but a dist '
+        #           'with this name already exists and has either incompatible recipes '
+        #           '({dist_recipes}) or NDK API {dist_ndk_api}'.format(
+        #               name=name,
+        #               req_ndk_api=ndk_api,
+        #               dist_ndk_api=name_match_dist.ndk_api,
+        #               req_recipes=', '.join(recipes),
+        #               dist_recipes=', '.join(name_match_dist.recipes)))
+        #     error('No compatible dist found, so exiting.')
+        #     exit(1)
 
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)

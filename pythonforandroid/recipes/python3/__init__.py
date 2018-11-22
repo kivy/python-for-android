@@ -1,4 +1,4 @@
-from pythonforandroid.recipe import TargetPythonRecipe
+from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory
 from pythonforandroid.logger import logger, info, error
 from pythonforandroid.util import ensure_dir, walk_valid_filens

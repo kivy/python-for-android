@@ -10,7 +10,6 @@ class LibcurlRecipe(Recipe):
     depends = ['openssl']
 
     def should_build(self, arch):
-        return True
         super(LibcurlRecipe, self).should_build(arch)
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libcurl.so'))
 
