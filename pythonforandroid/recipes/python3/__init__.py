@@ -67,14 +67,20 @@ class Python3Recipe(TargetPythonRecipe):
             env = environ.copy()
 
             # TODO: Get this information from p4a's arch system
-            android_host = 'arm-linux-androideabi'
+            android_host = arch.toolchain_prefix
             android_build = sh.Command(join(recipe_build_dir, 'config.guess'))().stdout.strip().decode('utf-8')
-            platform_dir = join(self.ctx.ndk_dir, 'platforms', platform_name, 'arch-arm')
+            platform_dir = join(self.ctx.ndk_dir, 'platforms', platform_name, arch.platform_dir)
             toolchain = '{android_host}-4.9'.format(android_host=android_host)
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
+            
+            target_data = arch.command_prefix.split('-')
+            if targetData[0] == 'arm':
+                targetData[0] = 'armv7a'
+            target = '-'.join([targetData[0], 'none', targetData[1], targetData[2]])
+    
             CC = '{clang} -target {target} -gcc-toolchain {toolchain}'.format(
                 clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt', 'linux-x86_64', 'bin', 'clang'),
-                target='armv7-none-linux-androideabi',
+                target=target,
                 toolchain=toolchain)
 
             AR = join(toolchain, 'bin', android_host) + '-ar'
