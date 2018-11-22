@@ -67,7 +67,7 @@ class Python3Recipe(TargetPythonRecipe):
             env = environ.copy()
 
             # TODO: Get this information from p4a's arch system
-            android_host = arch.toolchain_prefix
+            android_host = arch.command_prefix
             android_build = sh.Command(join(recipe_build_dir, 'config.guess'))().stdout.strip().decode('utf-8')
             platform_dir = join(self.ctx.ndk_dir, 'platforms', platform_name, arch.platform_dir)
             toolchain = '{android_host}-4.9'.format(android_host=android_host)
