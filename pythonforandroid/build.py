@@ -317,7 +317,7 @@ class Context(object):
                 info('Got NDK version from from user argument: {}'.format(ndk_ver))
         if ndk_ver is None:
             ndk_ver = environ.get('ANDROIDNDKVER', None)
-            if ndk_dir is not None:
+            if ndk_ver is not None:
                 info('Got NDK version from $ANDROIDNDKVER: {}'.format(ndk_ver))
 
         self.ndk = 'google'
