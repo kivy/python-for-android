@@ -119,6 +119,8 @@ class Python3Recipe(TargetPythonRecipe):
             # bpo-30386 Makefile system.
             logger.warning('Doing some hacky stuff to link properly')
             lib_dir = join(sysroot, 'usr', 'lib')
+            if arch.arch == 'x86_64':
+                lib_dir = join(sysroot, 'usr', 'lib64')
             env['LDFLAGS'] += ' -L{}'.format(lib_dir)
             shprint(sh.cp, join(lib_dir, 'crtbegin_so.o'), './')
             shprint(sh.cp, join(lib_dir, 'crtend_so.o'), './')
