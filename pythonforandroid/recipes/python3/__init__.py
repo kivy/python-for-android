@@ -74,9 +74,9 @@ class Python3Recipe(TargetPythonRecipe):
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
             
             target_data = arch.command_prefix.split('-')
-            if targetData[0] == 'arm':
-                targetData[0] = 'armv7a'
-            target = '-'.join([targetData[0], 'none', targetData[1], targetData[2]])
+            if target_data[0] == 'arm':
+                target_data[0] = 'armv7a'
+            target = '-'.join([target_data[0], 'none', target_data[1], target_data[2]])
     
             CC = '{clang} -target {target} -gcc-toolchain {toolchain}'.format(
                 clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt', 'linux-x86_64', 'bin', 'clang'),
