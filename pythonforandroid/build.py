@@ -3,6 +3,7 @@ from __future__ import print_function
 from os.path import (join, realpath, dirname, expanduser, exists,
                      split, isdir)
 from os import environ
+import copy
 import os
 import glob
 import sys
@@ -13,7 +14,7 @@ import subprocess
 from pythonforandroid.util import (ensure_dir, current_directory, BuildInterruptingException)
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
-from pythonforandroid.recipe import Recipe
+from pythonforandroid.recipe import CythonRecipe, Recipe
 
 DEFAULT_ANDROID_API = 15
 
@@ -682,17 +683,51 @@ def run_pymodules_install(ctx, modules):
                     line = '{}\n'.format(module)
                 fileh.write(line)
 
-        info('Installing Python modules with pip')
-        info('If this fails with a message about /bin/false, this '
-             'probably means the package cannot be installed with '
-             'pip as it needs a compilation recipe.')
+        base_env = copy.copy(os.environ)
+        base_env["PYTHONPATH"] = ctx.get_site_packages_dir()
 
-        # This bash method is what old-p4a used
-        # It works but should be replaced with something better
+        info('Upgrade pip to latest version')
         shprint(sh.bash, '-c', (
-            "env CC=/bin/false CXX=/bin/false "
-            "PYTHONPATH={0} venv/bin/pip install --target '{0}' --no-deps -r requirements.txt"
-        ).format(ctx.get_site_packages_dir()))
+            "source venv/bin/activate && pip install -U pip"
+        ), _env=copy.copy(base_env))
+
+        info('Install Cython in case one of the modules needs it to build')
+        shprint(sh.bash, '-c', (
+            "venv/bin/pip install Cython"
+        ), _env=copy.copy(base_env))
+
+        # Get environment variables for build (with CC/compiler set):
+        standard_recipe = CythonRecipe()
+        standard_recipe.ctx = ctx
+        # (note: following line enables explicit -lpython... linker options)
+        standard_recipe.call_hostpython_via_targetpython = False
+        recipe_env = standard_recipe.get_recipe_env(ctx.archs[0])
+        env = copy.copy(base_env)
+        env.update(recipe_env)
+
+        info('Installing Python modules with pip')
+        info('IF THIS FAILS, THE MODULES MAY NEED A RECIPE. '
+             'A reason for this is often modules compiling '
+             'native code that is unaware of Android cross-compilation '
+             'and does not work without additional '
+             'changes / workarounds.')
+
+        # Make sure our build package dir is available, and the virtualenv
+        # site packages come FIRST (for the proper pip version):
+        env["PYTHONPATH"] += ":" + ctx.get_site_packages_dir()
+        env["PYTHONPATH"] = os.path.abspath(join(
+            ctx.build_dir, "venv", "lib",
+            "python" + ctx.python_recipe.major_minor_version_string,
+            "site-packages")) + ":" + env["PYTHONPATH"]
+        shprint(sh.bash, '-c', (
+            "source venv/bin/activate && " +
+            "pip install -v --target '{0}' --no-deps -r requirements.txt"
+        ).format(ctx.get_site_packages_dir().replace("'", "'\"'\"'")),
+                _env=copy.copy(env))
+
+        # Strip object files after potential Cython or native code builds:
+        standard_recipe.strip_object_files(ctx.archs[0], env,
+                                           build_dir=ctx.build_dir)
 
 
 def biglink(ctx, arch):

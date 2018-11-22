@@ -779,12 +779,14 @@ class PythonRecipe(Recipe):
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
             hppath.append(join(hppath[0], 'site-packages'))
             builddir = join(dirname(self.hostpython_location), 'build')
-            hppath += [join(builddir, d) for d in listdir(builddir)
-                       if isdir(join(builddir, d))]
-            if 'PYTHONPATH' in env:
-                env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
-            else:
-                env['PYTHONPATH'] = ':'.join(hppath)
+            if exists(builddir):
+                hppath += [join(builddir, d) for d in listdir(builddir)
+                           if isdir(join(builddir, d))]
+            if len(hppath) > 0:
+                if 'PYTHONPATH' in env:
+                    env['PYTHONPATH'] = ':'.join(hppath + [env['PYTHONPATH']])
+                else:
+                    env['PYTHONPATH'] = ':'.join(hppath)
         return env
 
     def should_build(self, arch):
@@ -955,16 +957,6 @@ class CythonRecipe(PythonRecipe):
 
         env = self.get_recipe_env(arch)
 
-        if self.ctx.python_recipe.from_crystax:
-            command = sh.Command('python{}'.format(self.ctx.python_recipe.version))
-            site_packages_dirs = command(
-                '-c', 'import site; print("\\n".join(site.getsitepackages()))')
-            site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
-            if 'PYTHONPATH' in env:
-                env['PYTHONPATH'] = env['PYTHONPATH'] + ':{}'.format(':'.join(site_packages_dirs))
-            else:
-                env['PYTHONPATH'] = ':'.join(site_packages_dirs)
-
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
@@ -989,8 +981,15 @@ class CythonRecipe(PythonRecipe):
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
 
+            self.strip_object_files(arch, env)
+
+    def strip_object_files(self, arch, env, build_dir=None):
+        if build_dir is None:
+            build_dir = self.get_build_dir(arch.arch)
+        with current_directory(build_dir):
             info('Stripping object files')
             if self.ctx.python_recipe.name == 'python2legacy':
+                info('Stripping object files')
                 build_lib = glob.glob('./build/lib*')
                 shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                         env['STRIP'], '{}', ';', _env=env)
@@ -1054,6 +1053,24 @@ class CythonRecipe(PythonRecipe):
                             'objects_{}'.format(self.name))
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
+
+        # Add crystax-specific site packages:
+        if self.ctx.python_recipe.from_crystax:
+            command = sh.Command('python{}'.format(self.ctx.python_recipe.version))
+            site_packages_dirs = command(
+                '-c', 'import site; print("\\n".join(site.getsitepackages()))')
+            site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
+            if 'PYTHONPATH' in env:
+                env['PYTHONPATH'] = env['PYTHONPATH'] +\
+                    ':{}'.format(':'.join(site_packages_dirs))
+            else:
+                env['PYTHONPATH'] = ':'.join(site_packages_dirs)
+            while env['PYTHONPATH'].find("::") > 0:
+                env['PYTHONPATH'] = env['PYTHONPATH'].replace("::", ":")
+            if env['PYTHONPATH'].endswith(":"):
+                env['PYTHONPATH'] = env['PYTHONPATH'][:-1]
+            if env['PYTHONPATH'].startswith(":"):
+                env['PYTHONPATH'] = env['PYTHONPATH'][1:]
 
         return env
 
