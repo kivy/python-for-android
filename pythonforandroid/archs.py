@@ -176,7 +176,7 @@ class Archx86(Arch):
 
 class Archx86_64(Arch):
     arch = 'x86_64'
-    toolchain_prefix = 'x86'
+    toolchain_prefix = 'x86_64'
     command_prefix = 'x86_64-linux-android'
     platform_dir = 'arch-x86'
 
