@@ -100,7 +100,7 @@ class Python3Recipe(TargetPythonRecipe):
                 hostpython_dir=self.get_recipe('hostpython3', self.ctx).get_path_to_python(),
                 old_path=env['PATH'])
 
-            ndk_flags = ('--sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
+            ndk_flags = ('-fPIC --sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
                          '-isystem {ndk_android_host}').format(
                              ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
                              android_api=self.ctx.ndk_api,
