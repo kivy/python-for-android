@@ -37,7 +37,6 @@ class Arch(object):
             '-DANDROID',
             '-fomit-frame-pointer',
             '-D__ANDROID_API__={}'.format(self.ctx.ndk_api)]
-            # '-D__ANDROID_API__={}'.format(self.ctx._android_api)]
         if not clang:
             cflags += ['-mandroid']
         else:
