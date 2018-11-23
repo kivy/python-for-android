@@ -261,7 +261,7 @@ class ToolchainCL(object):
             help=('The version of the Android NDK. This is optional: '
                   'we try to work it out automatically from the ndk_dir.'))
         generic_parser.add_argument(
-            '--ndk-api', type=int, default=0,
+            '--ndk-api', type=int, default=None,
             help=('The Android API level to compile against. This should be your '
                   '*minimal supported* API, not normally the same as your --android-api. '
                   'Defaults to min(ANDROID_API, {}) if not specified.').format(DEFAULT_NDK_API))
