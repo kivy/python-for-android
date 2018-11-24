@@ -1,5 +1,5 @@
 from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from os.path import exists, join, dirname
+from os.path import exists, join
 import sh
 
 
@@ -22,10 +22,8 @@ class LibxsltRecipe(Recipe):
             # If the build is done with /bin/sh things blow up,
             # try really hard to use bash
             env["CC"] += " -I%s" % self.get_build_dir(arch.arch)
-            libxml = (
-                dirname(dirname(self.get_build_container_dir(arch.arch)))
-                + "/libxml2/%s/libxml2" % arch.arch
-            )
+            libxml = Recipe.get_recipe(
+                'libxml2', self.ctx).get_build_dir(arch.arch)
             shprint(
                 sh.Command("./configure"),
                 "--build=i686-pc-linux-gnu",
