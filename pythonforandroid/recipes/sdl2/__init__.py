@@ -15,21 +15,9 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
     patches = ['add_nativeSetEnv.patch']
 
-    def get_recipe_env(self, arch=None):
-        env = super(LibSDL2Recipe, self).get_recipe_env(arch)
-
-        py2 = self.get_recipe('python2', arch.ctx)
-        env['PYTHON2_NAME'] = py2.get_dir_name()
-
-        env['PYTHON_INCLUDE_ROOT'] = self.ctx.python_recipe.include_root(arch.arch)
-        env['PYTHON_LINK_ROOT'] = self.ctx.python_recipe.link_root(arch.arch)
-
-        if self.ctx.python_recipe.name in ('python2', 'python3'):
-            env['EXTRA_LDLIBS'] = ' -lpython{}'.format(
-                self.ctx.python_recipe.major_minor_version_string)
-            if 'python3' in self.ctx.recipe_build_order:
-                env['EXTRA_LDLIBS'] += 'm'
-
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True, with_python=True):
+        env = super(LibSDL2Recipe, self).get_recipe_env(
+            arch=arch, with_flags_in_cc=with_flags_in_cc, with_python=with_python)
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
 
