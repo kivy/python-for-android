@@ -145,12 +145,13 @@ class Arch(object):
         env['READELF'] = '{}-readelf'.format(command_prefix)
         env['NM'] = '{}-nm'.format(command_prefix)
 
-        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
-
-        # This hardcodes python version 2.7, needs fixing
+        hostpython_recipe = Recipe.get_recipe(
+            'host' + self.ctx.python_recipe.name, self.ctx)
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
+            'build', 'lib.linux-{}-{}'.format(
+                uname()[-1], self.ctx.python_recipe.major_minor_version_string)
+        )
 
         env['PATH'] = environ['PATH']
 
