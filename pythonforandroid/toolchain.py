@@ -830,7 +830,7 @@ class ToolchainCL(object):
                     # .../build/bootstrap_builds/sdl2-python3crystax/gradlew
                     # if docker on windows, gradle contains CRLF
                     output = shprint(
-                        sh.Command('dos2unix'), gradlew._path,
+                        sh.Command('dos2unix'), gradlew._path.decode('utf8'),
                         _tail=20, _critical=True, _env=env
                     )
                 if args.build_mode == "debug":
