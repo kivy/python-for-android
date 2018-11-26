@@ -190,7 +190,18 @@ class Distribution(object):
                 dist.recipes = dist_info['recipes']
                 if 'archs' in dist_info:
                     dist.archs = dist_info['archs']
-                dist.ndk_api = dist_info.get('ndk_api', 0)
+                if 'ndk_api' in dist_info:
+                    dist.ndk_api = dist_info['ndk_api']
+                else:
+                    dist.ndk_api = 0
+                    warning(
+                        "Distribution {distname}: (distdir) has been "
+                        "built with an unknown api target, ignoring it, "
+                        "you might want to delete it".format(
+                            distname=dist.name,
+                            distdir=dist.dist_dir
+                        )
+                    )
                 dists.append(dist)
         return dists
 
