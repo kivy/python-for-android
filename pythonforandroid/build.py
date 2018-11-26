@@ -8,6 +8,7 @@ import glob
 import sys
 import re
 import sh
+import subprocess
 
 from pythonforandroid.util import (ensure_dir, current_directory)
 from pythonforandroid.logger import (info, warning, error, info_notify,
@@ -559,6 +560,30 @@ class Context(object):
         return exists(join(self.get_libs_dir(arch), lib))
 
     def has_package(self, name, arch=None):
+        # If this is a file path, it'll need special handling:
+        if (name.find("/") >= 0 or name.find("\\") >= 0) and \
+                name.find("://") < 0:  # (:// would indicate an url)
+            if not os.path.exists(name):
+                # Non-existing dir, cannot look this up.
+                return False
+            if os.path.exists(os.path.join(name, "setup.py")):
+                # Get name from setup.py:
+                name = subprocess.check_output([
+                    sys.executable, "setup.py", "--name"],
+                    cwd=name)
+                try:
+                    name = name.decode('utf-8', 'replace')
+                except AttributeError:
+                    pass
+                name = name.strip()
+                if len(name) == 0:
+                    # Failed to look up any meaningful name.
+                    return False
+            else:
+                # A folder with whatever, cannot look this up.
+                return False
+
+        # Try to look up recipe by name:
         try:
             recipe = Recipe.get_recipe(name, self)
         except IOError:
