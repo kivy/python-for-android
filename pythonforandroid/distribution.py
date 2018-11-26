@@ -190,7 +190,7 @@ class Distribution(object):
                 dist.recipes = dist_info['recipes']
                 if 'archs' in dist_info:
                     dist.archs = dist_info['archs']
-                dist.ndk_api = dist_info['ndk_api']
+                dist.ndk_api = dist_info.get('ndk_api', 0)
                 dists.append(dist)
         return dists
 
