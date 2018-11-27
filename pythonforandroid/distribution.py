@@ -195,7 +195,7 @@ class Distribution(object):
                 else:
                     dist.ndk_api = None
                     warning(
-                        "Distribution {distname}: (distdir) has been "
+                        "Distribution {distname}: ({distdir}) has been "
                         "built with an unknown api target, ignoring it, "
                         "you might want to delete it".format(
                             distname=dist.name,
