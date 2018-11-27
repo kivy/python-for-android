@@ -193,7 +193,7 @@ class Distribution(object):
                 if 'ndk_api' in dist_info:
                     dist.ndk_api = dist_info['ndk_api']
                 else:
-                    dist.ndk_api = 0
+                    dist.ndk_api = None
                     warning(
                         "Distribution {distname}: (distdir) has been "
                         "built with an unknown api target, ignoring it, "
