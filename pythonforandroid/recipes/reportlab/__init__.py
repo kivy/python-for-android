@@ -13,8 +13,20 @@ class ReportLabRecipe(CompiledComponentsPythonRecipe):
     def prebuild_arch(self, arch):
         if not self.is_patched(arch):
             super(ReportLabRecipe, self).prebuild_arch(arch)
-            self.apply_patch('patches/fix-setup.patch', arch.arch)
             recipe_dir = self.get_build_dir(arch.arch)
+
+            # Some versions of reportlab ship with a GPL-licensed font.
+            # Remove it, since this is problematic in .apks unless the
+            # entire app is GPL:
+            font_dir = os.path.join(recipe_dir,
+                                    "src", "reportlab", "fonts")
+            if os.path.exists(font_dir):
+                for l in os.listdir(font_dir):
+                    if l.lower().startswith('darkgarden'):
+                        os.remove(os.path.join(font_dir, l))
+
+            # Apply patches:
+            self.apply_patch('patches/fix-setup.patch', arch.arch)
             shprint(sh.touch, os.path.join(recipe_dir, '.patched'))
             ft = self.get_recipe('freetype', self.ctx)
             ft_dir = ft.get_build_dir(arch.arch)
