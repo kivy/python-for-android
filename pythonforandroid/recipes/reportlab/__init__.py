@@ -19,7 +19,7 @@ class ReportLabRecipe(CompiledComponentsPythonRecipe):
             # Remove it, since this is problematic in .apks unless the
             # entire app is GPL:
             font_dir = os.path.join(recipe_dir,
-                "src", "reportlab", "fonts")
+                                    "src", "reportlab", "fonts")
             if os.path.exists(font_dir):
                 for l in os.listdir(font_dir):
                     if l.lower().startswith('darkgarden'):
