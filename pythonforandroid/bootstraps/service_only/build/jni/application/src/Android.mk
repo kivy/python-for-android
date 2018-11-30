@@ -7,13 +7,13 @@ LOCAL_MODULE := main
 # Add your application source files here...
 LOCAL_SRC_FILES := start.c pyjniusjni.c
 
-LOCAL_CFLAGS += -I$(LOCAL_PATH)/../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/include/python2.7 $(EXTRA_CFLAGS)
+LOCAL_CFLAGS += -I$(LOCAL_PATH)/../../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/include/python2.7 $(EXTRA_CFLAGS)
 
 LOCAL_SHARED_LIBRARIES := python_shared
 
 LOCAL_LDLIBS := -llog $(EXTRA_LDLIBS)
 
-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
+LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../../other_builds/$(PYTHON2_NAME)/$(ARCH)/python2/python-install/lib $(APPLICATION_ADDITIONAL_LDFLAGS)
 
 include $(BUILD_SHARED_LIBRARY)
 
