@@ -1,4 +1,4 @@
-from os.path import (join, dirname, isdir, splitext, basename)
+from os.path import (join, dirname, isdir, normpath, splitext, basename)
 from os import listdir, walk, sep
 import sh
 import glob
@@ -16,8 +16,8 @@ from pythonforandroid.recipe import Recipe
 def copy_files(src_root, dest_root, override=True):
     for root, dirnames, filenames in walk(src_root):
         for filename in filenames:
-            subdir = root.replace(src_root, "")
-            if subdir.startswith(sep):
+            subdir = normpath(root.replace(src_root, ""))
+            if subdir.startswith(sep):  # ensure it is relative
                 subdir = subdir[1:]
             dest_dir = join(dest_root, subdir)
             if not os.path.exists(dest_dir):
