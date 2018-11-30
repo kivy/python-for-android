@@ -1,14 +1,36 @@
 from os.path import (join, dirname, isdir, splitext, basename)
-from os import listdir
+from os import listdir, walk, sep
 import sh
 import glob
 import importlib
+import os
+import shutil
 
 from pythonforandroid.logger import (warning, shprint, info, logger,
                                      debug)
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    temp_directory, which)
 from pythonforandroid.recipe import Recipe
+
+
+def copy_files(src_root, dest_root, override=True):
+    for root, dirnames, filenames in walk(src_root):
+        for filename in filenames:
+            subdir = root.replace(src_root, "")
+            if subdir.startswith(sep):
+                subdir = subdir[1:]
+            dest_dir = join(dest_root, subdir)
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+            src_file = join(root, filename)
+            dest_file = join(dest_dir, filename)
+            if os.path.isfile(src_file):
+                if override and os.path.exists(dest_file):
+                    os.unlink(dest_file)
+                if not os.path.exists(dest_file):
+                    shutil.copy(src_file, dest_file)
+            else:
+                os.makedirs(dest_file)
 
 
 class Bootstrap(object):
@@ -77,6 +99,9 @@ class Bootstrap(object):
     def get_dist_dir(self, name):
         return join(self.ctx.dist_dir, name)
 
+    def get_common_dir(self):
+        return os.path.abspath(join(self.bootstrap_dir, "..", 'common'))
+
     @property
     def name(self):
         modname = self.__class__.__module__
@@ -86,9 +111,10 @@ class Bootstrap(object):
         '''Ensure that a build dir exists for the recipe. This same single
         dir will be used for building all different archs.'''
         self.build_dir = self.get_build_dir()
-        shprint(sh.cp, '-r',
-                join(self.bootstrap_dir, 'build'),
-                self.build_dir)
+        self.common_dir = self.get_common_dir()
+        copy_files(join(self.bootstrap_dir, 'build'), self.build_dir)
+        copy_files(join(self.common_dir, 'build'), self.build_dir,
+                   override=False)
         if self.ctx.symlink_java_src:
             info('Symlinking java src instead of copying')
             shprint(sh.rm, '-r', join(self.build_dir, 'src'))
@@ -109,7 +135,7 @@ class Bootstrap(object):
     @classmethod
     def list_bootstraps(cls):
         '''Find all the available bootstraps and return them.'''
-        forbidden_dirs = ('__pycache__', )
+        forbidden_dirs = ('__pycache__', 'common')
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
         for name in listdir(bootstraps_dir):
             if name in forbidden_dirs:

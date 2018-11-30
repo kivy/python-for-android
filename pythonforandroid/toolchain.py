@@ -141,6 +141,9 @@ def require_prebuilt_dist(func):
                                       user_ndk_ver=self.ndk_version,
                                       user_ndk_api=self.ndk_api)
         dist = self._dist
+        bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
+        # recipes rarely change, but during dev, bootstraps can change from
+        # build to build, so run prepare_bootstrap even if needs_build is false
         if dist.needs_build:
             if dist.folder_exists():  # possible if the dist is being replaced
                 dist.delete()
@@ -183,7 +186,8 @@ def build_dist_from_args(ctx, dist, args):
 
     ctx.dist_name = bs.distribution.name
     ctx.prepare_bootstrap(bs)
-    ctx.prepare_dist(ctx.dist_name)
+    if dist.needs_build:
+        ctx.prepare_dist(ctx.dist_name)
 
     build_recipes(build_order, python_modules, ctx)
 
