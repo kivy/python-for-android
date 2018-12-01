@@ -25,7 +25,7 @@ class AudiostreamRecipe(CythonRecipe):
                               sdl_include=sdl_include,
                               sdl_mixer_include=sdl_mixer_include)
         env['NDKPLATFORM'] = self.ctx.ndk_platform
-        env['LIBLINK'] = 'NOTNONE'
+        env['LIBLINK'] = 'NOTNONE'  # Hacky fix. Needed by audiostream setup.py
         return env
 
 
