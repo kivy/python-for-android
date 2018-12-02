@@ -72,6 +72,38 @@ int file_exists(const char *filename) {
   return 0;
 }
 
+/* Helper function to escape all occurrences of ' as \', and all
+ * occurrences of \n and \r with \\n and \\r for inline string literals.
+ * (Unix paths can contain line breaks, so to be super safe, we need this).
+ * NOTE: return value needs to be free()'d after use by the caller!!
+ */
+char *escape_quotes_of_inline_string(const char* inline_code_arg) {
+  char *result_buf = malloc(strlen(inline_code_arg) * 2 + 1);
+  // (buffer size is large enough for worst case of every char escaped)
+  int targetoffset = 0;
+  int sourceoffset = 0;
+  while (sourceoffset <= strlen(inline_code_arg)) {
+    if (inline_code_arg[sourceoffset] == '\'') {
+      result_buf[targetoffset] = '\\';
+      targetoffset++;
+      result_buf[targetoffset] = '\'';
+    } else if (inline_code_arg[sourceoffset] == '\n') {
+      result_buf[targetoffset] = '\\';
+      targetoffset++;
+      result_buf[targetoffset] = 'n';
+    } else if (inline_code_arg[sourceoffset] == '\r') {
+      result_buf[targetoffset] = '\\';
+      targetoffset++;
+      result_buf[targetoffset] = 'r';
+    } else {
+      result_buf[targetoffset] = inline_code_arg[sourceoffset];
+    }
+    sourceoffset++;
+    targetoffset++;
+  }
+  return result_buf;
+}
+
 /* int main(int argc, char **argv) { */
 int main(int argc, char *argv[]) {
 
@@ -243,8 +275,75 @@ int main(int argc, char *argv[]) {
 #if PY_MAJOR_VERSION < 3
   PyRun_SimpleString("import site; print site.getsitepackages()\n");
 #endif
-
   LOGP("AND: Ran string");
+
+#if PY_MAJOR_VERSION >= 3
+  /* Workaround crash in ctypes.find_library() which is caused by its
+   * internal use of /bin/sh, and looking in the wrong folders on Android.
+   *
+   * The code needs 'env_argument' as baked path, so we need to insert this:
+   */
+  LOGP("ctypes workaround insert");
+  char code_with_placeholder[] = (""
+    "orig_func = None\n"
+    "try:\n"
+    "    import ctypes.util\n"
+    "    orig_func = ctypes.util.find_library\n"
+    "except ImportError:\n"
+    "    print('Could not import ctypes, build your app with '\n"
+    "          'libffi if you want ctypes to be present')\n"
+    "def create_closure(orig_func):\n"
+    "    def android_find_library_hack(*args):\n"
+    "        import os\n"
+    "        name = args[0]\n"
+    "        \n"
+    "        # Truncate ending for easier comparison:\n"
+    "        if name.find('.so.') >= 0:\n"
+    "            name = name.partition('.so.')[0]\n"
+    "        if name.endswith('.so'):\n"
+    "            name = name[:-len('.so')]\n"
+    "        if not name.endswith('.'):\n"
+    "            name += '.'\n"
+    "        \n"
+    "        # Helper function to check lib name:\n"
+    "        def check_name(lib_name, search_name):\n"
+    "            if filename.endswith('.so') and (\n"
+    "                    filename.startswith('lib' + search_name) or\n"
+    "                    filename.startswith(search_name)):\n"
+    "                return True\n"
+    "            return False\n"
+    "        \n"
+    "        # Check the user app lib dir and system dir:\n"
+    "        app_root = os.path.normpath(os.path.abspath(os.path.join(\n"
+    "            '%s', '..', '..', 'lib')))\n"
+    "        app_root_arm = os.path.join(app_root,\n"
+    "                                    'arm')  # fixme: other archs?\n"
+    "        sys_dir = '/system/lib'\n"
+    "        for lib_search in [app_root, app_root_arm, sys_dir]:\n"
+    "            if not os.path.exists(lib_search):\n"
+    "                continue\n"
+    "            for filename in os.listdir(lib_search):\n"
+    "                if check_name(filename, name):\n"
+    "                    return os.path.join(lib_search, filename)\n"
+    "        try:\n"
+    "            return orig_func(*args)\n"
+    "        except OSError:\n"  // catch bogus error about missing "sh"
+    "            return None\n"
+    "    return lambda *args: android_find_library_hack(*args)\n"
+    "if orig_func is not None:\n"
+    "    ctypes.util.find_library = create_closure(orig_func)\n"
+    "del(orig_func)\n"
+    "del(create_closure)\n");
+  char *escaped_path_arg = escape_quotes_of_inline_string(env_argument);
+  int final_code_buf_size = (strlen(code_with_placeholder) +
+    strlen(escaped_path_arg) + 1);  // slightly too large, but good enough
+  char *final_ctypes_code = malloc(final_code_buf_size);
+  snprintf(final_ctypes_code, final_code_buf_size, code_with_placeholder,
+    escaped_path_arg);
+  free(escaped_path_arg);
+  PyRun_SimpleString(final_ctypes_code);
+  free(final_ctypes_code);
+#endif
 
   /* run it !
    */
