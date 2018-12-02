@@ -14,9 +14,15 @@
 #include <sys/types.h>
 #include <errno.h>
 
+#include "bootstrap_name.h"
+#ifndef BOOTSTRAP_USES_NO_SDL_HEADERS
 #include "SDL.h"
-#include "android/log.h"
 #include "SDL_opengles2.h"
+#endif
+#ifdef BOOTSTRAP_NAME_PYGAME
+#include "jniwrapperstuff.h"
+#endif
+#include "android/log.h"
 
 #define ENTRYPOINT_MAXLEN 128
 #define LOG(n, x) __android_log_write(ANDROID_LOG_INFO, (n), (x))
@@ -76,7 +82,7 @@ int main(int argc, char *argv[]) {
   int ret = 0;
   FILE *fd;
 
-  setenv("P4A_BOOTSTRAP", "SDL2", 1);  // env var to identify p4a to applications
+  setenv("P4A_BOOTSTRAP", bootstrap_name, 1);  // env var to identify p4a to applications
 
   LOGP("Initializing Python for Android");
   env_argument = getenv("ANDROID_ARGUMENT");
@@ -135,7 +141,6 @@ int main(int argc, char *argv[]) {
     LOGP("calculated paths to be...");
     LOGP(paths);
 
-
     #if PY_MAJOR_VERSION >= 3
         wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
         Py_SetPath(wchar_paths);
@@ -179,7 +184,7 @@ int main(int argc, char *argv[]) {
   PyRun_SimpleString("import sys, posix\n");
   if (dir_exists("lib")) {
     /* If we built our own python, set up the paths correctly */
-    LOGP("Setting up python from ANDROID_PRIVATE");
+    LOGP("Setting up python from ANDROID_APP_PATH");
     PyRun_SimpleString("private = posix.environ['ANDROID_APP_PATH']\n"
                        "argument = posix.environ['ANDROID_ARGUMENT']\n"
                        "sys.path[:] = [ \n"
@@ -318,19 +323,30 @@ int main(int argc, char *argv[]) {
 }
 
 JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
-    JNIEnv *env, jobject thiz, jstring j_android_private,
-    jstring j_android_argument, jstring j_service_entrypoint,
-    jstring j_python_name, jstring j_python_home, jstring j_python_path,
+    JNIEnv *env,
+    jobject thiz,
+    jstring j_android_private,
+    jstring j_android_argument,
+#if (!defined(BOOTSTRAP_NAME_PYGAME))
+    jstring j_service_entrypoint,
+    jstring j_python_name,
+#endif
+    jstring j_python_home,
+    jstring j_python_path,
     jstring j_arg) {
   jboolean iscopy;
   const char *android_private =
       (*env)->GetStringUTFChars(env, j_android_private, &iscopy);
   const char *android_argument =
       (*env)->GetStringUTFChars(env, j_android_argument, &iscopy);
+#if (!defined(BOOTSTRAP_NAME_PYGAME))
   const char *service_entrypoint =
       (*env)->GetStringUTFChars(env, j_service_entrypoint, &iscopy);
   const char *python_name =
       (*env)->GetStringUTFChars(env, j_python_name, &iscopy);
+#else
+  const char python_name[] = "python2";
+#endif
   const char *python_home =
       (*env)->GetStringUTFChars(env, j_python_home, &iscopy);
   const char *python_path =
@@ -340,13 +356,16 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   setenv("ANDROID_PRIVATE", android_private, 1);
   setenv("ANDROID_ARGUMENT", android_argument, 1);
   setenv("ANDROID_APP_PATH", android_argument, 1);
+
+#if (!defined(BOOTSTRAP_NAME_PYGAME))
   setenv("ANDROID_ENTRYPOINT", service_entrypoint, 1);
+#endif
   setenv("PYTHONOPTIMIZE", "2", 1);
   setenv("PYTHON_NAME", python_name, 1);
   setenv("PYTHONHOME", python_home, 1);
   setenv("PYTHONPATH", python_path, 1);
   setenv("PYTHON_SERVICE_ARGUMENT", arg, 1);
-  setenv("P4A_BOOTSTRAP", "SDL2", 1);
+  setenv("P4A_BOOTSTRAP", bootstrap_name, 1);
 
   char *argv[] = {"."};
   /* ANDROID_ARGUMENT points to service subdir,
@@ -354,5 +373,47 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
    */
   main(1, argv);
 }
+
+#ifdef BOOTSTRAP_NAME_WEBVIEW
+// Webview uses some more functions:
+
+void Java_org_kivy_android_PythonActivity_nativeSetEnv(
+                                    JNIEnv* env, jclass jcls,
+                                    jstring j_name, jstring j_value)
+/* JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_nativeSetEnv( */
+/*                                     JNIEnv* env, jclass jcls, */
+/*                                     jstring j_name, jstring j_value) */
+{
+    jboolean iscopy;
+    const char *name = (*env)->GetStringUTFChars(env, j_name, &iscopy);
+    const char *value = (*env)->GetStringUTFChars(env, j_value, &iscopy);
+    setenv(name, value, 1);
+    (*env)->ReleaseStringUTFChars(env, j_name, name);
+    (*env)->ReleaseStringUTFChars(env, j_value, value);
+}
+
+
+void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
+{
+  /* This nativeInit follows SDL2 */
+
+  /* This interface could expand with ABI negotiation, calbacks, etc. */
+  /* SDL_Android_Init(env, cls); */
+
+  /* SDL_SetMainReady(); */
+
+  /* Run the application code! */
+  int status;
+  char *argv[2];
+  argv[0] = "Python_app";
+  argv[1] = NULL;
+  /* status = SDL_main(1, argv); */
+
+  main(1, argv);
+
+  /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
+  /* exit(status); */
+}
+#endif
 
 #endif
