@@ -95,7 +95,9 @@ class Distribution(object):
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
         for dist in possible_dists:
-            if ndk_api is not None and dist.ndk_api != ndk_api:
+             if (
+                ndk_api is not None and dist.ndk_api != ndk_api
+            ) or dist.ndk_api is None:
                 continue
             for recipe in recipes:
                 if recipe not in dist.recipes:
