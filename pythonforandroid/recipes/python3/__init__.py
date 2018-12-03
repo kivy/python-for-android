@@ -67,14 +67,20 @@ class Python3Recipe(TargetPythonRecipe):
             env = environ.copy()
 
             # TODO: Get this information from p4a's arch system
-            android_host = 'arm-linux-androideabi'
+            android_host = arch.command_prefix
             android_build = sh.Command(join(recipe_build_dir, 'config.guess'))().stdout.strip().decode('utf-8')
-            platform_dir = join(self.ctx.ndk_dir, 'platforms', platform_name, 'arch-arm')
-            toolchain = '{android_host}-4.9'.format(android_host=android_host)
+            platform_dir = join(self.ctx.ndk_dir, 'platforms', platform_name, arch.platform_dir)
+            toolchain = '{android_host}-4.9'.format(android_host=arch.toolchain_prefix)
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
+
+            target_data = arch.command_prefix.split('-')
+            if target_data[0] == 'arm':
+                target_data[0] = 'armv7a'
+            target = '-'.join([target_data[0], 'none', target_data[1], target_data[2]])
+
             CC = '{clang} -target {target} -gcc-toolchain {toolchain}'.format(
                 clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt', 'linux-x86_64', 'bin', 'clang'),
-                target='armv7-none-linux-androideabi',
+                target=target,
                 toolchain=toolchain)
 
             AR = join(toolchain, 'bin', android_host) + '-ar'
@@ -94,13 +100,13 @@ class Python3Recipe(TargetPythonRecipe):
                 hostpython_dir=self.get_recipe('hostpython3', self.ctx).get_path_to_python(),
                 old_path=env['PATH'])
 
-            ndk_flags = ('--sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
+            ndk_flags = ('-fPIC --sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
                          '-isystem {ndk_android_host}').format(
                              ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
                              android_api=self.ctx.ndk_api,
                              ndk_android_host=join(
                                  self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host))
-            sysroot = join(self.ctx.ndk_dir, 'platforms', platform_name, 'arch-arm')
+            sysroot = join(self.ctx.ndk_dir, 'platforms', platform_name, arch.platform_dir)
             env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
             env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
             env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(sysroot, join(sysroot, 'usr', 'lib'))
@@ -113,6 +119,8 @@ class Python3Recipe(TargetPythonRecipe):
             # bpo-30386 Makefile system.
             logger.warning('Doing some hacky stuff to link properly')
             lib_dir = join(sysroot, 'usr', 'lib')
+            if arch.arch == 'x86_64':
+                lib_dir = join(sysroot, 'usr', 'lib64')
             env['LDFLAGS'] += ' -L{}'.format(lib_dir)
             shprint(sh.cp, join(lib_dir, 'crtbegin_so.o'), './')
             shprint(sh.cp, join(lib_dir, 'crtend_so.o'), './')
