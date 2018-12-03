@@ -496,6 +496,9 @@ tools directory of the Android SDK.
                         if x.strip() and not x.strip().startswith('#')]
         WHITELIST_PATTERNS += patterns
 
+    if args.private is None:
+        print('Need --private directory with app files to package for .apk')
+        exit(1)
     make_package(args)
 
     return args
