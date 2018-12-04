@@ -18,12 +18,13 @@ env:
     - ANDROID_SDK_HOME=/opt/android/android-sdk
     - ANDROID_NDK_HOME=/opt/android/android-ndk
   matrix:
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python3,numpy'
     # overrides requirements to skip `peewee` pure python module, see:
     # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
     - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools'
     - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --bootstrap sdl2 --requirements python2,numpy'
+    # test webview and service_only bootstraps (plus numpy)
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_flask.py apk --dist-name bdisttest_python3_flask_webview --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements python3,flask,pyjnius,numpy'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_service.py apk --dist-name bdisttest_python2_service --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements python2,genericndkbuild,numpy'
     # builds only the recipes that moved
     - COMMAND='. venv/bin/activate && ./ci/rebuild_updated_recipes.py'
 
