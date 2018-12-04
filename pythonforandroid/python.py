@@ -87,7 +87,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
     '''The file extensions from site packages dir that we don't want to be
     included in our python bundle.'''
 
-    opt_depends = ['libffi']
+    opt_depends = ['sqlite3', 'libffi']
     '''The optional libraries which we would like to get our python linked'''
 
     def __init__(self, *args, **kwargs):
@@ -173,14 +173,23 @@ class GuestPythonRecipe(TargetPythonRecipe):
         '''Takes care to properly link libraries with python depending on our
         requirements and the attribute :attr:`opt_depends`.
         '''
+        def add_flags(include_flags, link_flags):
+            env['CPPFLAGS'] = env.get('CPPFLAGS', '') + include_flags
+            env['LDFLAGS'] = env.get('LDFLAGS', '') + link_flags
+
+        if 'sqlite3' in self.ctx.recipe_build_order:
+            info('Activating flags for sqlite3')
+            recipe = Recipe.get_recipe('sqlite3', self.ctx)
+            add_flags(' -I' + recipe.get_build_dir(arch.arch),
+                      ' -L' + recipe.get_lib_dir(arch) + ' -lsqlite3')
+
         if 'libffi' in self.ctx.recipe_build_order:
             info('Activating flags for libffi')
             recipe = Recipe.get_recipe('libffi', self.ctx)
-            include = ' -I' + ' -I'.join(recipe.get_include_dirs(arch))
-            ldflag = ' -L' + join(recipe.get_build_dir(arch.arch),
-                                  recipe.get_host(arch), '.libs') + ' -lffi'
-            env['CPPFLAGS'] = env.get('CPPFLAGS', '') + include
-            env['LDFLAGS'] = env.get('LDFLAGS', '') + ldflag
+            add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
+                      ' -L' + join(recipe.get_build_dir(arch.arch),
+                                   recipe.get_host(arch), '.libs') + ' -lffi')
+
         return env
 
     def prebuild_arch(self, arch):
