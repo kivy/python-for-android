@@ -1,5 +1,9 @@
+from os.path import join, exists
+from pythonforandroid.recipe import Recipe
 from pythonforandroid.python import GuestPythonRecipe
 # from pythonforandroid.patching import is_api_lt
+from pythonforandroid.logger import shprint
+import sh
 
 
 class Python2Recipe(GuestPythonRecipe):
@@ -43,6 +47,22 @@ class Python2Recipe(GuestPythonRecipe):
                       'ac_cv_header_langinfo_h=no',
                       '--prefix={prefix}',
                       '--exec-prefix={exec_prefix}')
+
+    def prebuild_arch(self, arch):
+        super(Python2Recipe, self).prebuild_arch(arch)
+        patch_mark = join(self.get_build_dir(arch.arch), '.openssl-patched')
+        if 'openssl' in self.ctx.recipe_build_order and not exists(patch_mark):
+            self.apply_patch(join('patches', 'enable-openssl.patch'), arch.arch)
+            shprint(sh.touch, patch_mark)
+
+    def set_libs_flags(self, env, arch):
+        env = super(Python2Recipe, self).set_libs_flags(env, arch)
+        if 'openssl' in self.ctx.recipe_build_order:
+            recipe = Recipe.get_recipe('openssl', self.ctx)
+            openssl_build = recipe.get_build_dir(arch.arch)
+            env['OPENSSL_BUILD'] = openssl_build
+            env['OPENSSL_VERSION'] = recipe.version
+        return env
 
 
 recipe = Python2Recipe()

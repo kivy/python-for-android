@@ -87,7 +87,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
     '''The file extensions from site packages dir that we don't want to be
     included in our python bundle.'''
 
-    opt_depends = ['sqlite3', 'libffi']
+    opt_depends = ['sqlite3', 'libffi', 'openssl']
     '''The optional libraries which we would like to get our python linked'''
 
     def __init__(self, *args, **kwargs):
@@ -138,12 +138,12 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
         ndk_flags = (
             '-fPIC --sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
-            '-isystem {ndk_android_host}').format(
+            '-isystem {ndk_android_host} -I{ndk_include}').format(
                 ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
                 android_api=self.ctx.ndk_api,
                 ndk_android_host=join(
-                    self.ctx.ndk_dir, 'sysroot', 'usr', 'include',
-                    android_host))
+                    self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host),
+                ndk_include=join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include'))
         sysroot = join(self.ctx.ndk_dir, 'platforms',
                        platform_name, 'arch-arm')
         env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
@@ -190,6 +190,10 @@ class GuestPythonRecipe(TargetPythonRecipe):
                       ' -L' + join(recipe.get_build_dir(arch.arch),
                                    recipe.get_host(arch), '.libs') + ' -lffi')
 
+        if 'openssl' in self.ctx.recipe_build_order:
+            info('Activating flags for openssl')
+            recipe = Recipe.get_recipe('openssl', self.ctx)
+            add_flags(recipe.include_flags(arch), recipe.link_flags(arch))
         return env
 
     def prebuild_arch(self, arch):

@@ -1,4 +1,5 @@
 from pythonforandroid.python import GuestPythonRecipe
+from pythonforandroid.recipe import Recipe
 
 
 class Python3Recipe(GuestPythonRecipe):
@@ -34,6 +35,14 @@ class Python3Recipe(GuestPythonRecipe):
         'ac_cv_little_endian_double=yes',
         '--prefix={prefix}',
         '--exec-prefix={exec_prefix}')
+
+    def set_libs_flags(self, env, arch):
+        env = super(Python3Recipe, self).set_libs_flags(env, arch)
+        if 'openssl' in self.ctx.recipe_build_order:
+            recipe = Recipe.get_recipe('openssl', self.ctx)
+            self.configure_args += \
+                ('--with-openssl=' + recipe.get_build_dir(arch.arch),)
+        return env
 
 
 recipe = Python3Recipe()
