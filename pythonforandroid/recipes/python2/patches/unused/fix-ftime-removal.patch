@@ -1,0 +1,10 @@
+--- Python-2.7.15/Modules/timemodule.c.orig	2017-12-29 11:52:46.674588000 +0100
++++ Python-2.7.15/Modules/timemodule.c	2017-12-29 11:53:34.028526305 +0100
+@@ -27,6 +27,7 @@
+ #include <io.h>
+ #endif
+ 
++#undef HAVE_FTIME
+ #ifdef HAVE_FTIME
+ #include <sys/timeb.h>
+ #if !defined(MS_WINDOWS) && !defined(PYOS_OS2)

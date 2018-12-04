@@ -1,0 +1,120 @@
+diff -Naurp Python-2.7.15/Modules/Setup.dist.orig Python-2.7.15/Modules/Setup.dist
+--- Python-2.7.15/Modules/Setup.dist.orig	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/Setup.dist	2018-11-17 20:40:20.153518694 +0100
+@@ -464,7 +464,7 @@
+ # Andrew Kuchling's zlib module.
+ # This require zlib 1.1.3 (or later).
+ # See http://www.gzip.org/zlib/
+-#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
++zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
+
+ # Interface to the Expat XML parser
+ #
+diff -Naurp Python-2.7.15.orig/Makefile.pre.in Python-2.7.15/Makefile.pre.in
+--- Python-2.7.15.orig/Makefile.pre.in	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Makefile.pre.in	2018-11-18 00:43:58.777379280 +0100
+@@ -20,6 +20,7 @@
+ 
+ # === Variables set by makesetup ===
+ 
++MODNAMES=       _MODNAMES_
+ MODOBJS=        _MODOBJS_
+ MODLIBS=        _MODLIBS_
+ 
+diff -Naurp Python-2.7.15.orig/Modules/_ctypes/libffi/src/arm/sysv.S Python-2.7.15/Modules/_ctypes/libffi/src/arm/sysv.S
+--- Python-2.7.15.orig/Modules/_ctypes/libffi/src/arm/sysv.S	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/_ctypes/libffi/src/arm/sysv.S	2018-11-17 22:28:50.925456603 +0100
+@@ -396,7 +396,7 @@ LSYM(Lbase_args):
+ 	beq	LSYM(Lepilogue_vfp)
+ 
+ 	cmp	r3, #FFI_TYPE_SINT64
+-	stmeqia	r2, {r0, r1}
++	stmiaeq	r2, {r0, r1}
+ 	beq	LSYM(Lepilogue_vfp)
+ 
+ 	cmp	r3, #FFI_TYPE_FLOAT
+diff -Naurp Python-2.7.15.orig/Modules/makesetup Python-2.7.15/Modules/makesetup
+--- Python-2.7.15.orig/Modules/makesetup	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/makesetup	2018-11-18 00:43:10.289379743 +0100
+@@ -110,6 +110,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
+ # Rules appended by makedepend
+ " >$rulesf
+ 	DEFS=
++	NAMES=
+ 	MODS=
+ 	SHAREDMODS=
+ 	OBJS=
+@@ -181,7 +182,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
+ 			*.*)		echo 1>&2 "bad word $arg in $line"
+ 					exit 1;;
+ 			-u)		skip=libs; libs="$libs -u";;
+-			[a-zA-Z_]*)	mods="$mods $arg";;
++			[a-zA-Z_]*)	NAMES="$NAMES $arg"; mods="$mods $arg";;
+ 			*)		echo 1>&2 "bad word $arg in $line"
+ 					exit 1;;
+ 			esac
+@@ -284,6 +285,7 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
+ 		echo "1i\\" >$sedf
+ 		str="# Generated automatically from $makepre by makesetup."
+ 		echo "$str" >>$sedf
++		echo "s%_MODNAMES_%$NAMES%" >>$sedf
+ 		echo "s%_MODOBJS_%$OBJS%" >>$sedf
+ 		echo "s%_MODLIBS_%$LIBS%" >>$sedf
+ 		echo "/Definitions added by makesetup/a$NL$NL$DEFS" >>$sedf
+diff -Naurp Python-2.7.15.orig/setup.py Python-2.7.15/setup.py
+--- Python-2.7.15.orig/setup.py	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/setup.py	2018-11-18 00:40:50.021381080 +0100
+@@ -217,7 +217,11 @@ class PyBuildExt(build_ext):
+         # Python header files
+         headers = [sysconfig.get_config_h_filename()]
+         headers += glob(os.path.join(sysconfig.get_path('include'), "*.h"))
+-        for ext in self.extensions[:]:
++        # The sysconfig variable built by makesetup, listing the already
++        # built modules as configured by the Setup files.
++        modnames = sysconfig.get_config_var('MODNAMES').split()
++        removed_modules = []
++        for ext in self.extensions:
+             ext.sources = [ find_module_file(filename, moddirlist)
+                             for filename in ext.sources ]
+             if ext.depends is not None:
+@@ -231,10 +235,10 @@ class PyBuildExt(build_ext):
+             # platform specific include directories
+             ext.include_dirs.extend(incdirlist)
+ 
+-            # If a module has already been built statically,
+-            # don't build it here
+-            if ext.name in sys.builtin_module_names:
+-                self.extensions.remove(ext)
++            # If a module has already been built by the Makefile,
++            # don't build it here.
++            if ext.name in modnames:
++                removed_modules.append(ext)
+ 
+         # Parse Modules/Setup and Modules/Setup.local to figure out which
+         # modules are turned on in the file.
+@@ -249,8 +253,9 @@ class PyBuildExt(build_ext):
+             input.close()
+ 
+         for ext in self.extensions[:]:
+-            if ext.name in remove_modules:
+-                self.extensions.remove(ext)
++            if removed_modules:
++                self.extensions = [x for x in self.extensions if x not in
++                                   removed_modules]
+ 
+         # When you run "make CC=altcc" or something similar, you really want
+         # those environment variables passed into the setup.py phase.  Here's
+@@ -290,6 +295,13 @@ class PyBuildExt(build_ext):
+                    " detect_modules() for the module's name.")
+             print
+ 
++        if removed_modules:
++            print("The following modules found by detect_modules() in"
++                  " setup.py, have been")
++            print("built by the Makefile instead, as configured by the"
++                  " Setup files:")
++            print_three_column([ext.name for ext in removed_modules])
++
+         if self.failed:
+             failed = self.failed[:]
+             print
