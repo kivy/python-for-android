@@ -1,0 +1,68 @@
+diff -u -r boost_1_68_0.orig/boost/config/user.hpp boost_1_68_0/boost/config/user.hpp
+--- boost_1_68_0.orig/boost/config/user.hpp	2018-08-01 22:50:46.000000000 +0200
++++ boost_1_68_0/boost/config/user.hpp	2018-08-27 15:43:38.000000000 +0200
+@@ -13,6 +13,12 @@
+ //  configuration policy:
+ //
+ 
++// Android defines
++// There is problem with std::atomic on android (and some other platforms).
++// See this link for more info:
++// https://code.google.com/p/android/issues/detail?id=42735#makechanges
++#define BOOST_ASIO_DISABLE_STD_ATOMIC 1
++
+ // define this to locate a compiler config file:
+ // #define BOOST_COMPILER_CONFIG <myheader>
+ 
+diff -u -r boost_1_68_0.orig/boost/asio/detail/config.hpp boost_1_68_0/boost/asio/detail/config.hpp
+--- boost_1_68_0.orig/boost/asio/detail/config.hpp  2018-08-01 22:50:46.000000000 +0200
++++ boost_1_68_0/boost/asio/detail/config.hpp   2018-09-19 12:39:56.000000000 +0200
+@@ -804,7 +804,11 @@
+ #  if defined(__clang__)
+ #   if (__cplusplus >= 201402)
+ #    if __has_include(<experimental/string_view>)
+-#     define BOOST_ASIO_HAS_STD_EXPERIMENTAL_STRING_VIEW 1
++#     if __clang_major__ >= 7
++#      undef BOOST_ASIO_HAS_STD_EXPERIMENTAL_STRING_VIEW
++#     else
++#      define BOOST_ASIO_HAS_STD_EXPERIMENTAL_STRING_VIEW 1
++#     endif // __clang_major__ >= 7
+ #    endif // __has_include(<experimental/string_view>)
+ #   endif // (__cplusplus >= 201402)
+ #  endif // defined(__clang__)
+diff -u -r boost_1_68_0.orig/boost/system/error_code.hpp boost_1_68_0/boost/system/error_code.hpp
+--- boost_1_68_0.orig/boost/system/error_code.hpp	2018-08-01 22:50:53.000000000 +0200
++++ boost_1_68_0/boost/system/error_code.hpp	2018-08-27 15:44:29.000000000 +0200
+@@ -17,6 +17,7 @@
+ #include <boost/assert.hpp>
+ #include <boost/noncopyable.hpp>
+ #include <boost/utility/enable_if.hpp>
++#include <stdio.h>
+ #include <ostream>
+ #include <string>
+ #include <stdexcept>
+diff -u -r boost_1_68_0.orig/libs/filesystem/src/operations.cpp boost_1_68_0/libs/filesystem/src/operations.cpp
+--- boost_1_68_0.orig/libs/filesystem/src/operations.cpp	2018-08-01 22:50:47.000000000 +0200
++++ boost_1_68_0/libs/filesystem/src/operations.cpp	2018-08-27 15:47:15.000000000 +0200
+@@ -232,6 +232,21 @@
+ 
+ # if defined(BOOST_POSIX_API)
+ 
++#  if defined(__ANDROID__)
++#  define truncate libboost_truncate_wrapper
++// truncate() is present in Android libc only starting from ABI 21, so here's a simple wrapper
++static int libboost_truncate_wrapper(const char *path, off_t length)
++{
++  int fd = open(path, O_WRONLY);
++  if (fd == -1) {
++    return -1;
++  }
++  int status = ftruncate(fd, length);
++  close(fd);
++  return status;
++}
++#  endif
++
+ typedef int err_t;
+ 
+ //  POSIX uses a 0 return to indicate success

@@ -1,20 +1,20 @@
---- libtorrent/bindings/python/setup.py	2016-02-28 08:28:49.000000000 +0100
-+++ patch/bindings/python/setup.py	2016-07-12 12:03:05.256455888 +0200
-@@ -97,7 +97,7 @@
- 	source_list = os.listdir(os.path.join(os.path.dirname(__file__), "src"))
- 	source_list = [os.path.join("src", s) for s in source_list if s.endswith(".cpp")]
- 
--	ext = [Extension('libtorrent',
-+	ext = [Extension('libtorrent_rasterbar',
- 		sources = source_list,
- 		language='c++',
- 		include_dirs = parse_cmd(extra_cmd, '-I'),
-@@ -107,7 +107,7 @@
- 			+ target_specific(),
- 		libraries = ['torrent-rasterbar'] + parse_cmd(extra_cmd, '-l'))]
- 
--setup(name = 'python-libtorrent',
-+setup(name = 'libtorrent',
- 	version = '1.0.9',
- 	author = 'Arvid Norberg',
- 	author_email = 'arvid@libtorrent.org',
+--- libtorrent/bindings/python/setup.py.orig	2018-11-26 22:21:48.772142135 +0100
++++ libtorrent/bindings/python/setup.py	2018-11-26 22:23:23.092141235 +0100
+@@ -167,7 +167,7 @@
+         extra_compile = flags.parse(extra_cmd)
+
+         ext = [Extension(
+-            'libtorrent',
++            'libtorrent_rasterbar',
+             sources=sorted(source_list),
+             language='c++',
+             include_dirs=flags.include_dirs,
+@@ -178,7 +178,7 @@
+         ]
+
+ setup(
+-    name='python-libtorrent',
++    name='libtorrent',
+     version='1.2.0',
+     author='Arvid Norberg',
+     author_email='arvid@libtorrent.org',

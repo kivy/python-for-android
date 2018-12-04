@@ -1,0 +1,27 @@
+--- Python-2.7.15/Modules/_localemodule.c.orig	2017-12-29 05:32:50.000000000 +0200
++++ Python-2.7.15/Modules/_localemodule.c	2017-12-29 21:33:42.241092717 +0200
+@@ -20,6 +20,8 @@ This software comes with no warranty. Us
+ #include <errno.h>
+ #endif
+ 
++#define ANDROID
++
+ #ifdef HAVE_LANGINFO_H
+ #include <langinfo.h>
+ #endif
+@@ -206,6 +208,7 @@ PyDoc_STRVAR(localeconv__doc__,
+ static PyObject*
+ PyLocale_localeconv(PyObject* self)
+ {
++    #ifndef ANDROID
+     PyObject* result;
+     struct lconv *l;
+     PyObject *x;
+@@ -266,6 +269,7 @@ PyLocale_localeconv(PyObject* self)
+   failed:
+     Py_XDECREF(result);
+     Py_XDECREF(x);
++    #endif // ANDROID
+     return NULL;
+ }
+ 

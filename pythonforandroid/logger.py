@@ -146,6 +146,7 @@ def shprint(command, *args, **kwargs):
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
     kwargs["_bg"] = True
+    minimal_log = kwargs.pop('_minimal_log', False)
     is_critical = kwargs.pop('_critical', False)
     tail_n = kwargs.pop('_tail', None)
     full_debug = False
@@ -172,9 +173,18 @@ def shprint(command, *args, **kwargs):
 
     need_closing_newline = False
     try:
+        n_line = 0
         msg_hdr = '           working: '
         msg_width = columns - len(msg_hdr) - 1
         output = command(*args, **kwargs)
+        if minimal_log:
+            stdout.write('Running command: {command}({args}, {kwargs})'.format(
+                command=command_string, args='' if not args else ', '.join(args),
+                kwargs='' if not kwargs else ', '.join(
+                    ['{}={}'.format(k, v) for k, v in kwargs.items()])))
+            stdout.write(u'{}\r{}{:<{width}}'.format(
+                Err_Style.RESET_ALL, msg_hdr,
+                'wait...', width=msg_width))
         for line in output:
             if isinstance(line, bytes):
                 line = line.decode('utf-8', errors='replace')
@@ -187,14 +197,21 @@ def shprint(command, *args, **kwargs):
                     '\n', ' ').replace(
                         '\t', ' ').replace(
                             '\b', ' ').rstrip()
-                if msg:
+                if msg and not minimal_log:
                     stdout.write(u'{}\r{}{:<{width}}'.format(
                         Err_Style.RESET_ALL, msg_hdr,
                         shorten_string(msg, msg_width), width=msg_width))
                     stdout.flush()
                     need_closing_newline = True
+                elif msg and n_line % 200 == 0:
+                    stdout.write(u'{}\r{}{:<{width}}'.format(
+                        Err_Style.RESET_ALL, msg_hdr,
+                        'wait...', width=msg_width))
+                    stdout.flush()
+                    need_closing_newline = True
             else:
                 logger.debug(''.join(['\t', line.rstrip()]))
+            n_line += 1
         if need_closing_newline:
             stdout.write('{}\r{:>{width}}\r'.format(
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))

@@ -3,61 +3,51 @@ package org.kivy.android;
 import java.io.File;
 
 import android.util.Log;
+import android.app.Activity;
+import android.content.res.AssetManager;
+
 import java.util.ArrayList;
-import java.io.FilenameFilter;
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class PythonUtil {
 	private static final String TAG = "pythonutil";
 
-    protected static void addLibraryIfExists(ArrayList<String> libsList, String pattern, File libsDir) {
-        // pattern should be the name of the lib file, without the
-        // preceding "lib" or suffix ".so", for instance "ssl.*" will
-        // match files of the form "libssl.*.so".
-        File [] files = libsDir.listFiles();
+    protected static ArrayList<String> getLibraries(Activity activity) {
+        AssetManager assets = activity.getAssets();
 
-        pattern = "lib" + pattern + "\\.so";
-        Pattern p = Pattern.compile(pattern);
-        for (int i = 0; i < files.length; ++i) {
-            File file = files[i];
-            String name = file.getName();
-            Log.v(TAG, "Checking pattern " + pattern + " against " + name);
-            if (p.matcher(name).matches()) {
-                Log.v(TAG, "Pattern " + pattern + " matched file " + name);
-                libsList.add(name.substring(3, name.length() - 3));
+        StringBuilder sb = new StringBuilder();
+        ArrayList<String> libsList = new ArrayList<String>();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(
+                new InputStreamReader(assets.open("libraries_to_load.txt")));
+            String mLine;
+            while ((mLine = reader.readLine()) != null) {
+                libsList.add(mLine);
+             }
+        } catch (IOException e) {
+            Log.v(TAG, "Error reading Libraries file...no libs will be added");
+        } finally {
+            if (reader != null) {
+                 try {
+                     reader.close();
+                 } catch (IOException e) {
+                    Log.v(TAG, "Error on closing libraries file...going on");
+                 }
             }
         }
-    }
-
-    protected static ArrayList<String> getLibraries(File filesDir) {
-
-        String libsDirPath = filesDir.getParentFile().getParentFile().getAbsolutePath() + "/lib/";
-        File libsDir = new File(libsDirPath);
-
-        ArrayList<String> libsList = new ArrayList<String>();
-        addLibraryIfExists(libsList, "crystax", libsDir);
-        addLibraryIfExists(libsList, "sqlite3", libsDir);
-        addLibraryIfExists(libsList, "ffi", libsDir);
-        libsList.add("SDL2");
-        libsList.add("SDL2_image");
-        libsList.add("SDL2_mixer");
-        libsList.add("SDL2_ttf");
-        addLibraryIfExists(libsList, "ssl.*", libsDir);
-        addLibraryIfExists(libsList, "crypto.*", libsDir);
-        libsList.add("python2.7");
-        libsList.add("python3.5m");
-        libsList.add("python3.6m");
-        libsList.add("python3.7m");
         libsList.add("main");
         return libsList;
     }
 
-    public static void loadLibraries(File filesDir) {
+    public static void loadLibraries(Activity activity) {
 
-        String filesDirPath = filesDir.getAbsolutePath();
         boolean foundPython = false;
 
-		for (String lib : getLibraries(filesDir)) {
+		for (String lib : getLibraries(activity)) {
             Log.v(TAG, "Loading library: " + lib);
 		    try {
                 System.loadLibrary(lib);
@@ -78,20 +68,6 @@ public class PythonUtil {
                     throw e;
                 }
             }
-        }
-
-        try {
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_io.so");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/unicodedata.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load _io.so or unicodedata.so...but that's okay.");
-        }
-        
-        try {
-            // System.loadLibrary("ctypes");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_ctypes.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Unsatisfied linker when loading ctypes");
         }
 
         Log.v(TAG, "Loaded everything!");

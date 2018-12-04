@@ -25,12 +25,7 @@ class ZBarRecipe(PythonRecipe):
         libzbar_dir = libzbar.get_build_dir(arch.arch)
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['CFLAGS'] += ' -I' + os.path.join(libzbar_dir, 'include')
-        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7'
-        # TODO
-        env['LDSHARED'] = env['CC'] + \
-            ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        # TODO: hardcoded Python version
-        env['LDFLAGS'] += " -landroid -lpython2.7 -lzbar"
+        env['LDFLAGS'] += " -landroid -lzbar"
         return env
 
 

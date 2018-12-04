@@ -74,9 +74,7 @@ public class PythonActivity extends SDLActivity {
     }
 
     public void loadLibraries() {
-        String app_root = new String(getAppRoot());
-        File app_root_file = new File(app_root);
-        PythonUtil.loadLibraries(app_root_file);
+        PythonUtil.loadLibraries(this);
     }
 
     public void recursiveDelete(File f) {

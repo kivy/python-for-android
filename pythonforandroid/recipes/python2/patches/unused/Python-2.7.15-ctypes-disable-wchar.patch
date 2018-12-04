@@ -1,0 +1,76 @@
+--- Python-2.7.15/Lib/ctypes/__init__.py.orig	2017-12-29 16:59:33.000000000 +0100
++++ Python-2.7.15/Lib/ctypes/__init__.py	2017-12-29 17:00:15.636079979 +0100
+@@ -265,7 +265,7 @@
+     if _os.name in ("nt", "ce"):
+         _win_functype_cache.clear()
+     # _SimpleCData.c_wchar_p_from_param
+-    POINTER(c_wchar).from_param = c_wchar_p.from_param
++    # POINTER(c_wchar).from_param = c_wchar_p.from_param
+     # _SimpleCData.c_char_p_from_param
+     POINTER(c_char).from_param = c_char_p.from_param
+     _pointer_type_cache[None] = c_void_p
+@@ -285,29 +285,34 @@
+     else:
+         set_conversion_mode("ascii", "strict")
+ 
+-    class c_wchar_p(_SimpleCData):
+-        _type_ = "Z"
+-
+-    class c_wchar(_SimpleCData):
+-        _type_ = "u"
+-
+-    def create_unicode_buffer(init, size=None):
+-        """create_unicode_buffer(aString) -> character array
+-        create_unicode_buffer(anInteger) -> character array
+-        create_unicode_buffer(aString, anInteger) -> character array
+-        """
+-        if isinstance(init, (str, unicode)):
+-            if size is None:
+-                size = len(init)+1
+-            buftype = c_wchar * size
+-            buf = buftype()
+-            buf.value = init
+-            return buf
+-        elif isinstance(init, (int, long)):
+-            buftype = c_wchar * init
+-            buf = buftype()
+-            return buf
+-        raise TypeError(init)
++# The wchar stuff causes a crash on Android (the bionic C library doesn't
++# implement wchar_t anyway)
++#
++#    class c_wchar_p(_SimpleCData):
++#        _type_ = "Z"
++#
++#    class c_wchar(_SimpleCData):
++#        _type_ = "u"
++#
++#    POINTER(c_wchar).from_param = c_wchar_p.from_param #_SimpleCData.c_wchar_p_from_param
++#
++#    def create_unicode_buffer(init, size=None):
++#        """create_unicode_buffer(aString) -> character array
++#        create_unicode_buffer(anInteger) -> character array
++#        create_unicode_buffer(aString, anInteger) -> character array
++#        """
++#        if isinstance(init, (str, unicode)):
++#            if size is None:
++#                size = len(init)+1
++#            buftype = c_wchar * size
++#            buf = buftype()
++#            buf.value = init
++#            return buf
++#        elif isinstance(init, (int, long)):
++#            buftype = c_wchar * init
++#            buf = buftype()
++#            return buf
++#        raise TypeError(init)
+ 
+ # XXX Deprecated
+ def SetPointerType(pointer, cls):
+@@ -553,4 +558,4 @@
+     elif sizeof(kind) == 8: c_uint64 = kind
+ del(kind)
+ 
+-_reset_cache()
++_reset_cache()
+\ No hay ningún carácter de nueva línea al final del fichero

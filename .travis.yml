@@ -18,11 +18,16 @@ env:
     - ANDROID_SDK_HOME=/opt/android/android-sdk
     - ANDROID_NDK_HOME=/opt/android/android-ndk
   matrix:
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python3'
+    # test encryption recipes
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python_encryption.py apk --dist-name bdisttest_python3_encryption --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements python3,libffi,openssl,sdl2,pyjnius,kivy,cryptography,pycrypto,scrypt,m2crypto,pysha3,pycryptodome,libtorrent'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python_encryption.py apk --dist-name bdisttest_python2_encryption --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME'
     # overrides requirements to skip `peewee` pure python module, see:
     # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools'
     - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --bootstrap sdl2 --requirements python2,numpy'
+    # test webview and service_only bootstraps (plus numpy)
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_flask.py apk --dist-name bdisttest_python3_flask_webview --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements python3,flask,pyjnius,numpy'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_service.py apk --dist-name bdisttest_python2_service --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements python2,genericndkbuild,numpy'
     # builds only the recipes that moved
     - COMMAND='. venv/bin/activate && ./ci/rebuild_updated_recipes.py'
 
@@ -31,5 +36,14 @@ before_script:
   - tox
 
 script:
-  - docker build --tag=p4a --file Dockerfile.py2 .
-  - docker run p4a /bin/sh -c "$COMMAND"
+  # Capture any error we got while doing our builds
+  - trap "echo \"Error...last docker's log build lines:\" & tail -500 build.log & echo \"Error last tests log lines:\" &tail -1000 tests.log" ERR
+  # The Docker image build
+  - while sleep 1m; do echo "=====[ $SECONDS seconds, docker image still building... ]====="; done & PING_LOOP1_PID=$!
+  - docker build --tag=p4a --file Dockerfile.py3 . > build.log 2>&1
+  - kill ${PING_LOOP1_PID}
+  # The Tests build
+  - while sleep 1m; do echo "=====[ $SECONDS seconds, tests still building... ]====="; done & PING_LOOP2_PID=$!
+  - docker run p4a /bin/sh -c "$COMMAND" > tests.log 2>&1
+  - kill ${PING_LOOP2_PID}
+  - echo "All operations performed...last build log lines are:" & tail -500 tests.log

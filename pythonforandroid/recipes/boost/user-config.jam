@@ -1,28 +1,61 @@
 import os ;
 
-local ANDROIDNDK = [ os.environ ANDROIDNDK ] ;
-local ANDROIDAPI = [ os.environ ANDROIDAPI ] ;
-local TOOLCHAIN_VERSION = [ os.environ TOOLCHAIN_VERSION ] ;
-local TOOLCHAIN_PREFIX = [ os.environ TOOLCHAIN_PREFIX ] ;
 local ARCH = [ os.environ ARCH ] ;
+local CROSSHOME = [ os.environ CROSSHOME ] ;
+local PYTHON_HOST = [ os.environ PYTHON_HOST ] ;
 local PYTHON_ROOT = [ os.environ PYTHON_ROOT ] ;
+local PYTHON_INCLUDE = [ os.environ PYTHON_INCLUDE ] ;
+local PYTHON_LINK_VERSION = [ os.environ PYTHON_LINK_VERSION ] ;
+local PYTHON_MAJOR_MINOR = [ os.environ PYTHON_MAJOR_MINOR ] ;
 
-using gcc : $(ARCH) : $(TOOLCHAIN_PREFIX)-g++ :
+using clang : $(ARCH) : $(CROSSHOME)/bin/arm-linux-androideabi-clang++ :
+<archiver>$(CROSSHOME)/bin/arm-linux-androideabi-ar
+<root>$(CROSSHOME)/sysroot
 <architecture>$(ARCH)
-<archiver>$(TOOLCHAIN_PREFIX)-ar
-<compileflags>-DBOOST_SP_USE_PTHREADS
-<compileflags>-DBOOST_AC_USE_PTHREADS
-<cxxflags>-DBOOST_SP_USE_PTHREADS
-<cxxflags>-DBOOST_AC_USE_PTHREADS
-<cxxflags>-frtti
-<cxxflags>-fexceptions
-<compileflags>-I$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-$(ARCH)/usr/include
-<compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/include
-<compileflags>-I$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)/include
-<compileflags>-I$(PYTHON_ROOT)/include/python2.7
-<linkflags>--sysroot=$(ANDROIDNDK)/platforms/android-$(ANDROIDAPI)/arch-$(ARCH)
-<linkflags>-L$(ANDROIDNDK)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(ARCH)
-<linkflags>-L$(PYTHON_ROOT)/lib
-<linkflags>-lgnustl_shared
-<linkflags>-lpython2.7
+<compileflags>-fexceptions
+<compileflags>-frtti
+<compileflags>-fpic
+<compileflags>-ffunction-sections
+<compileflags>-funwind-tables
+<compileflags>-march=armv7-a
+<compileflags>-msoft-float
+<compileflags>-mfpu=neon
+<compileflags>-mthumb
+<linkflags>-march=armv7-a
+<linkflags>-Wl,--fix-cortex-a8
+<compileflags>-Os
+<compileflags>-fomit-frame-pointer
+<compileflag>-fno-strict-aliasing
+<compileflags>-DANDROID
+<compileflags>-D__ANDROID__
+<compileflags>-DANDROID_TOOLCHAIN=clang
+<compileflags>-DANDROID_ABI=armv7-a
+<compileflags>-DANDROID_STL=c++_shared
+<compileflags>-DBOOST_ALL_NO_LIB
+#<compileflags>-DNDEBUG
+<compileflags>-O2
+<compileflags>-g
+<compileflags>-fvisibility=hidden
+<compileflags>-fvisibility-inlines-hidden
+<compileflags>-fdata-sections
+<cxxflags>-D__arm__
+<cxxflags>-D_REENTRANT
+<cxxflags>-D_GLIBCXX__PTHREADS
+<compileflags>-Wno-long-long
+<compileflags>-Wno-missing-field-initializers
+<compileflags>-Wno-unused-variable
+<linkflags>-Wl,-z,relro
+<linkflags>-Wl,-z,now
+<linkflags>-lc++_shared
+<linkflags>-L$(PYTHON_ROOT)
+<linkflags>-lpython$(PYTHON_LINK_VERSION)
+<linkflags>-Wl,-O1
+<linkflags>-Wl,-Bsymbolic-functions
+;
+
+using python : $(PYTHON_MAJOR_MINOR)
+    : $(PYTHON_host)
+    : $(PYTHON_ROOT) $(PYTHON_INCLUDE)
+    : $(PYTHON_ROOT)/libpython$(PYTHON_LINK_VERSION).so
+    : #<define>BOOST_ALL_DYN_LINK
 ;

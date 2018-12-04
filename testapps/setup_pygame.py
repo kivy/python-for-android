@@ -4,11 +4,13 @@ from setuptools import find_packages
 
 options = {'apk': {'debug': None,
                    'requirements': 'pygame,pyjnius,kivy,python2,android',
-                   'android-api': 19,
+                   'android-api': 27,
+                   'ndk-api': 19,
                    'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.2',
                    'dist-name': 'bdisttest_pygame',
                    'orientation': 'portrait',
                    'ndk-version': '10.3.2',
+                   'arch': 'armeabi-v7a',
                    'permission': 'VIBRATE',
                    }}
 
@@ -27,5 +29,5 @@ setup(
     author_email='alexanderjohntaylor@gmail.com',
     packages=find_packages(),
     options=options,
-    package_data={'testapp_pygame': ['*.py', '*.png']}
+    package_data={'testapp': ['*.py', '*.png']}
 )

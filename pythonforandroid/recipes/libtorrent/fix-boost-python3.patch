@@ -1,0 +1,26 @@
+--- libtorrent/bindings/python/Jamfile.orig	2018-11-19 00:15:33.000000000 +0100
++++ libtorrent/bindings/python/Jamfile	2018-12-07 17:02:03.451830278 +0100
+@@ -31,6 +31,14 @@
+ # copied from boost 1.63's boost python jamfile
+ rule find-py3-version
+ {
++	local BOOST_VERSION_TAG = [ modules.peek boostcpp : BOOST_VERSION_TAG ] ;
++	if $(BOOST_VERSION_TAG) >= 1_67
++	{
++		# starting with boost 1.67.0 boost python no longer define a separate
++		# target for python3 (boost_python3) so then we just use the regular
++		# boost_python target
++		return ;
++	}
+     local versions = [ feature.values python ] ;
+     local py3ver ;
+     for local v in $(versions)
+@@ -53,7 +61,7 @@
+ 	}
+ 	else
+ 	{
+-		alias boost_python3 ;
++		alias boost_python3 : boost_python ;
+ 	}
+ }
+ else
