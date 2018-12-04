@@ -5,13 +5,20 @@ import os
 import sh
 
 
-class Hostpython2Recipe(Recipe):
+class Hostpython2LegacyRecipe(Recipe):
+    '''
+    .. warning:: This recipe is the original one created by @tito
+        and, for now, it is unusable.
+
+    .. versionchanged:: 0.6.0
+        This was the original hostpython2's recipe moved to hostpython2legacy.
+    '''
     version = '2.7.2'
     url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
-    name = 'hostpython2'
+    name = 'hostpython2legacy'
     patches = ['fix-segfault-pygchead.patch']
 
-    conflicts = ['hostpython3']
+    conflicts = ['hostpython3', 'hostpython3crystax', 'hostpython2']
 
     def get_build_container_dir(self, arch=None):
         choices = self.check_recipe_choices()
@@ -57,4 +64,4 @@ class Hostpython2Recipe(Recipe):
         self.ctx.hostpgen = join(self.get_build_dir(), 'hostpgen')
 
 
-recipe = Hostpython2Recipe()
+recipe = Hostpython2LegacyRecipe()
