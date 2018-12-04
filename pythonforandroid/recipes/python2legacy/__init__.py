@@ -10,13 +10,20 @@ import sh
 EXCLUDE_EXTS = (".py", ".pyc", ".so.o", ".so.a", ".so.libs", ".pyx")
 
 
-class Python2Recipe(TargetPythonRecipe):
+class Python2LegacyRecipe(TargetPythonRecipe):
+    '''
+    .. warning:: This python2 recipe is the original one created by @tito and,
+        for now, it is unusable.
+
+    .. versionchanged:: 0.6.0
+        This was the original python2's recipe moved to python2legacy.
+    '''
     version = "2.7.2"
     url = 'https://python.org/ftp/python/{version}/Python-{version}.tar.bz2'
-    name = 'python2'
+    name = 'python2legacy'
 
-    depends = ['hostpython2']
-    conflicts = ['python3crystax', 'python3']
+    depends = ['hostpython2legacy']
+    conflicts = ['python3', 'python3crystax', 'python2']
     opt_depends = ['openssl', 'sqlite3']
 
     patches = ['patches/Python-{version}-xcompile.patch',
@@ -71,7 +78,6 @@ class Python2Recipe(TargetPythonRecipe):
 
     def do_python_build(self, arch):
 
-        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
         shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
         shprint(sh.cp, self.ctx.hostpgen, self.get_build_dir(arch.arch))
         hostpython = join(self.get_build_dir(arch.arch), 'hostpython')
@@ -79,7 +85,7 @@ class Python2Recipe(TargetPythonRecipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
 
-            hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
+            hostpython_recipe = Recipe.get_recipe('hostpython2legacy', self.ctx)
             shprint(sh.cp, join(hostpython_recipe.get_recipe_dir(), 'Setup'), 'Modules')
 
             env = arch.get_env()
@@ -99,7 +105,7 @@ class Python2Recipe(TargetPythonRecipe):
                 env['OPENSSL_VERSION'] = recipe.version
 
             if 'sqlite3' in self.ctx.recipe_build_order:
-                # Include sqlite3 in python2 build
+                # Include sqlite3 in python2legacy build
                 recipe = Recipe.get_recipe('sqlite3', self.ctx)
                 include = ' -I' + recipe.get_build_dir(arch.arch)
                 lib = ' -L' + recipe.get_lib_dir(arch) + ' -lsqlite3'
@@ -124,9 +130,10 @@ class Python2Recipe(TargetPythonRecipe):
 
             # tito left this comment in the original source. It's still true!
             # FIXME, the first time, we got a error at:
-            # python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h
-        # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")
-            # because at this time, python is arm, not x86. even that, why /usr/include/netinet/in.h is used ?
+            # python$EXE ../../Tools/scripts/h2py.py -i '(u_long)' /usr/include/netinet/in.h  # noqa
+            # /home/tito/code/python-for-android/build/python/Python-2.7.2/python: 1: Syntax error: word unexpected (expecting ")")  # noqa
+            # because at this time, python is arm, not x86. even that,
+            # why /usr/include/netinet/in.h is used ?
             # check if we can avoid this part.
 
             make = sh.Command(env['MAKE'].split(' ')[0])
@@ -171,7 +178,7 @@ class Python2Recipe(TargetPythonRecipe):
             #         join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
             # self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
 
-        # print('python2 build done, exiting for debug')
+        # print('python2legacy build done, exiting for debug')
         # exit(1)
 
     def create_python_bundle(self, dirn, arch):
@@ -222,4 +229,4 @@ class Python2Recipe(TargetPythonRecipe):
         return join(self.get_build_dir(arch_name), 'python-install', 'lib')
 
 
-recipe = Python2Recipe()
+recipe = Python2LegacyRecipe()
