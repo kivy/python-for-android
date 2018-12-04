@@ -283,6 +283,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
         # copy the site-packages into place
         ensure_dir(join(dirn, 'site-packages'))
+        ensure_dir(self.ctx.get_python_install_dir())
         # TODO: Improve the API around walking and copying the files
         with current_directory(self.ctx.get_python_install_dir()):
             filens = list(walk_valid_filens(
