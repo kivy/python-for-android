@@ -1,14 +1,22 @@
 package org.kivy.android;
 
-import android.app.PendingIntent;
+import android.os.Build;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
 import android.os.Process;
-import android.support.v4.app.NotificationCompat;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.util.Log;
+import java.io.File;
+
+import org.kivy.android.PythonUtil;
+
+import org.renpy.android.Hardware;
 
 public abstract class PythonService extends Service implements Runnable {
     private static String TAG = PythonService.class.getSimpleName();
@@ -47,9 +55,6 @@ public abstract class PythonService extends Service implements Runnable {
      */
     @Override
     public void onCreate() {
-        Log.v(TAG, "Device: " + android.os.Build.DEVICE);
-        Log.v(TAG, "Model: " + android.os.Build.MODEL);
-        AssetExtract.extractAsset(getApplicationContext(), "private.mp3", getFilesDir());
         super.onCreate();
     }
 
@@ -91,21 +96,33 @@ public abstract class PythonService extends Service implements Runnable {
 
         String serviceTitle = extras.getString("serviceTitle", TAG);
         String serviceDescription = extras.getString("serviceDescription", "");
-        int serviceIconId = extras.getInt("serviceIconId", appInfo.icon);
 
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(serviceIconId)
-                        .setContentTitle(serviceTitle)
-                        .setContentText(serviceDescription);
-
-        int NOTIFICATION_ID = 1;
-
-        Intent targetIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(contentIntent);
-
-        startForeground(NOTIFICATION_ID, builder.build());
+        Notification notification;
+        Context context = getApplicationContext();
+        Intent contextIntent = new Intent(context, PythonActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            notification = new Notification(
+                context.getApplicationInfo().icon, serviceTitle, System.currentTimeMillis());
+            try {
+                // prevent using NotificationCompat, this saves 100kb on apk
+                Method func = notification.getClass().getMethod(
+                    "setLatestEventInfo", Context.class, CharSequence.class,
+                    CharSequence.class, PendingIntent.class);
+                func.invoke(notification, context, serviceTitle, serviceDescription, pIntent);
+            } catch (NoSuchMethodException | IllegalAccessException |
+                     IllegalArgumentException | InvocationTargetException e) {
+            }
+        } else {
+            Notification.Builder builder = new Notification.Builder(context);
+            builder.setContentTitle(serviceTitle);
+            builder.setContentText(serviceDescription);
+            builder.setContentIntent(pIntent);
+            builder.setSmallIcon(context.getApplicationInfo().icon);
+            notification = builder.build();
+        }
+        startForeground(1, notification);
     }
 
     /**
@@ -127,9 +144,14 @@ public abstract class PythonService extends Service implements Runnable {
      */
     @Override
     public void run() {
-        PythonUtil.loadLibraries(getFilesDir());
-        nativeStart(androidPrivate, androidArgument, serviceEntrypoint, pythonName, pythonHome,
-                pythonPath, pythonServiceArgument, androidUnpack);
+        String app_root =  getFilesDir().getAbsolutePath() + "/app";
+        File app_root_file = new File(app_root);
+        PythonUtil.loadLibraries(app_root_file);
+        nativeStart(
+            androidPrivate, androidArgument,
+            serviceEntrypoint, pythonName,
+            pythonHome, pythonPath,
+            pythonServiceArgument);
         stopSelf();
     }
 
@@ -142,8 +164,9 @@ public abstract class PythonService extends Service implements Runnable {
      * @param pythonPath            Python path
      * @param pythonServiceArgument Argument to pass to Python code
      */
-    public static native void nativeStart(String androidPrivate, String androidArgument,
-                                          String serviceEntrypoint, String pythonName,
-                                          String pythonHome, String pythonPath,
-                                          String pythonServiceArgument, String androidUnpack);
+    public static native void nativeStart(
+            String androidPrivate, String androidArgument,
+            String serviceEntrypoint, String pythonName,
+            String pythonHome, String pythonPath,
+            String pythonServiceArgument);
 }
