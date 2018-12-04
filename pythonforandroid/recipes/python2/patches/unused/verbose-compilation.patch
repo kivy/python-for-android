@@ -1,0 +1,17 @@
+--- Python-2.7.15.orig/Makefile.pre.in	2017-12-29 21:05:06.000000000 +0100
++++ Python-2.7.15/Makefile.pre.in	2017-12-29 23:26:13.094631704 +0100
+@@ -521,12 +521,12 @@ Modules/_math.o: Modules/_math.c Modules
+ # Under BSD make, MAKEFLAGS might be " -s -v x=y".
+ sharedmods: $(BUILDPYTHON) pybuilddir.txt Modules/_math.o
+ 	@case "$$MAKEFLAGS" in \
+-	    *\ -s*|s*) quiet="-q";; \
++	    *\ -s*|s*) quiet="";; \
+ 	    *) quiet="";; \
+ 	esac; \
+ 	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
+ 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
+-		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
++		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build -v
+
+ # Build static library
+ # avoid long command lines, same as LIBRARY_OBJS

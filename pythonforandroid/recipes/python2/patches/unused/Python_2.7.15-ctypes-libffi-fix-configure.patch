@@ -1,0 +1,33 @@
+diff -pruN Python-2.7.15.orig//Modules/_ctypes/libffi/configure.ac Python-2.7.15/Modules/_ctypes/libffi/configure.ac
+--- Python-2.7.15.orig//Modules/_ctypes/libffi/configure.ac      2017-12-29 22:01:18.000000000 +0200
++++ Python-2.7.15/Modules/_ctypes/libffi/configure.ac    2017-12-29 22:46:02.000000000 +0200
+@@ -621,7 +621,7 @@
+ 
+ AC_CONFIG_LINKS(include/ffitarget.h:src/$TARGETDIR/ffitarget.h)
+ 
+-AC_CONFIG_FILES(include/Makefile include/ffi.h Makefile testsuite/Makefile man/Makefile libffi.pc)
++AC_CONFIG_FILES(include/Makefile include/ffi.h Makefile )
+ 
+ AC_CONFIG_LINKS(include/ffi_common.h:include/ffi_common.h)
+ 
+diff -pruN Python-2.7.15.orig//Modules/_ctypes/libffi/Makefile.am Python-2.7.15/Modules/_ctypes/libffi/Makefile.am
+--- Python-2.7.15.orig//Modules/_ctypes/libffi/Makefile.am       2017-12-29 21:09:11.000000000 +0100
++++ Python-2.7.15/Modules/_ctypes/libffi/Makefile.am     2017-12-29 22:54:03.000000000 +0200
+@@ -4,7 +4,7 @@
+
+ ACLOCAL_AMFLAGS = -I m4
+
+-SUBDIRS = include testsuite man
++SUBDIRS = include
+
+ EXTRA_DIST = LICENSE ChangeLog.v1 ChangeLog.libgcj			\
+ 	 src/aarch64/ffi.c src/aarch64/ffitarget.h src/aarch64/sysv.S	\
+@@ -52,8 +52,6 @@
+	 libffi.xcodeproj/project.pbxproj src/arm/trampoline.S		\
+ 	 libtool-ldflags ChangeLog.libffi-3.1
+ 
+-info_TEXINFOS = doc/libffi.texi
+-
+ ## ################################################################
+ 
+ ##
