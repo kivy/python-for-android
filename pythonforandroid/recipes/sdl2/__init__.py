@@ -24,12 +24,11 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env['PYTHON_INCLUDE_ROOT'] = self.ctx.python_recipe.include_root(arch.arch)
         env['PYTHON_LINK_ROOT'] = self.ctx.python_recipe.link_root(arch.arch)
 
-        if 'python2' in self.ctx.recipe_build_order:
-            env['EXTRA_LDLIBS'] = ' -lpython2.7'
-
-        if 'python3' in self.ctx.recipe_build_order:
-            env['EXTRA_LDLIBS'] = ' -lpython{}m'.format(
+        if self.ctx.python_recipe.name in ('python2', 'python3'):
+            env['EXTRA_LDLIBS'] = ' -lpython{}'.format(
                 self.ctx.python_recipe.major_minor_version_string)
+            if 'python3' in self.ctx.recipe_build_order:
+                env['EXTRA_LDLIBS'] += 'm'
 
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
