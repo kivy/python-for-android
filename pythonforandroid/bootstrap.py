@@ -287,10 +287,10 @@ class Bootstrap(object):
         # c++_shared because in ndk r18 it will be the only stl available:
         # https://developer.android.com/ndk/guides/cpp-support
         stl_gnu_shared_recipes = (
-            'boost', 'icu', 'leveldb', 'libzmq', 'protobuf_cpp',
+            'icu', 'leveldb', 'libzmq', 'protobuf_cpp',
             # CppCompiledPythonRecipes depends on gnustl_shared so...
             'atom', 'kiwisolver',)
-        stl_cxx_shared_recipes = ()
+        stl_cxx_shared_recipes = ('boost',)
         for recipe_name in self.ctx.recipe_build_order:
             if 'c++_shared' not in libs_to_load and recipe_name in stl_cxx_shared_recipes:
                 libs_to_load.append('c++_shared')
@@ -321,6 +321,19 @@ class Bootstrap(object):
         if python_version[0] == '3':
             python_version += 'm'
         libs_to_load.append('python' + python_version)
+
+        # Add libs that should be loaded after python because depends on it
+        if 'boost' in self.ctx.recipe_build_order:
+            # Todo: check boost loading dependencies and create a proper
+            # loading order. For now it works for libtorrent's recipe, the only
+            # recipe that depends on boost...so...for now it's fine, but should
+            # be enhanced, maybe using similar method than
+            # `pythonforandroid.build.copylibs_function`?
+            for l in listdir(self.ctx.get_libs_dir(arch.arch)):
+                if l.startswith('libboost_'):
+                    libs_to_load.append(l[3:-3])
+        if 'libtorrent' in self.ctx.recipe_build_order:
+            libs_to_load.append('torrent_rasterbar')
 
         return libs_to_load
 
