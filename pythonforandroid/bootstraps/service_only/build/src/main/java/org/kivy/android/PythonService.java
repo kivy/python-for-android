@@ -14,9 +14,11 @@ import android.app.PendingIntent;
 import android.util.Log;
 import java.io.File;
 
+import org.kivy.android.PythonActivity;
 import org.kivy.android.PythonUtil;
 
 import org.renpy.android.Hardware;
+
 
 public abstract class PythonService extends Service implements Runnable {
     private static String TAG = PythonService.class.getSimpleName();
@@ -144,9 +146,7 @@ public abstract class PythonService extends Service implements Runnable {
      */
     @Override
     public void run() {
-        String app_root =  getFilesDir().getAbsolutePath() + "/app";
-        File app_root_file = new File(app_root);
-        PythonUtil.loadLibraries(app_root_file);
+        PythonUtil.loadLibraries(PythonActivity.mActivity);
         nativeStart(
             androidPrivate, androidArgument,
             serviceEntrypoint, pythonName,

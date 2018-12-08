@@ -36,6 +36,10 @@ def copy_files(src_root, dest_root, override=True):
 class Bootstrap(object):
     '''An Android project template, containing recipe stuff for
     compilation and templated fields for APK info.
+
+    .. versionchanged:: 0.6.0
+        Adds attribute :attr:`libraries_to_load` and method
+        :meth:`collect_libraries_to_load`.
     '''
     name = ''
     jni_subdir = '/jni'
@@ -55,6 +59,11 @@ class Bootstrap(object):
     satisfies user requirements. If False, it will not be returned
     from Bootstrap.get_bootstrap_from_recipes.
     '''
+
+    libraries_to_load = []
+    '''The list of libraries that should be loaded by android on python's app
+    initialization. This list will be dynamically created at
+    :meth:`collect_libraries_to_load` depending on the recipes build order.'''
 
     # Other things a Bootstrap might need to track (maybe separately):
     # ndk_main.c
@@ -256,6 +265,64 @@ class Bootstrap(object):
             so_files = glob.glob(join(so_src_dir, '*.so'))
             for f in so_files:
                 shprint(sh.cp, '-a', f, so_tgt_dir)
+
+    def collect_libraries_to_load(self, arch):
+        '''
+        Collect the shared libraries needed to load when apk initialises and
+        returns a list. This list will be used to create a file in our
+        distribution's assets folder which will be used by our java loading
+        mechanism to load those shared libraries at runtime.
+
+        .. warning:: the loading order matters, this cannot be arbitrary,
+            for example, if some lib has been build against our python, then
+            needs to be loaded after the python library has been loaded.
+        '''
+        info('Collect compiled shared libraries to load at runtime')
+
+        libs_to_load = []
+        # Add libs that should be loaded before bootstrap libs (here goes some
+        # special shared libs, like stl libs used at compile time or libs that
+        # the bootstrap may be dependant).
+        # Todo: All the recipes using gnustl_shared should be migrated to use
+        # c++_shared because in ndk r18 it will be the only stl available:
+        # https://developer.android.com/ndk/guides/cpp-support
+        stl_gnu_shared_recipes = (
+            'boost', 'icu', 'leveldb', 'libzmq', 'protobuf_cpp',
+            # CppCompiledPythonRecipes depends on gnustl_shared so...
+            'atom', 'kiwisolver',)
+        stl_cxx_shared_recipes = ()
+        for recipe_name in self.ctx.recipe_build_order:
+            if 'c++_shared' not in libs_to_load and recipe_name in stl_cxx_shared_recipes:
+                libs_to_load.append('c++_shared')
+            if 'gnustl_shared' not in libs_to_load and recipe_name in stl_gnu_shared_recipes:
+                libs_to_load.append('gnustl_shared')
+            if all(lib in libs_to_load for lib in ('c++_shared', 'gnustl_shared')):
+                break
+
+        # Add crystax if necessary
+        if self.ctx.python_recipe.from_crystax:
+            libs_to_load.append('crystax')
+
+        # Add libraries that python depends on
+        if 'sqlite3' in self.ctx.recipe_build_order:
+            libs_to_load.append('sqlite3')
+        if 'libffi' in self.ctx.recipe_build_order:
+            libs_to_load.append('ffi')
+        if 'openssl' in self.ctx.recipe_build_order:
+            recipe = Recipe.get_recipe('openssl', self.ctx)
+            libs_to_load.append('ssl' + recipe.version)
+            libs_to_load.append('crypto' + recipe.version)
+
+        # Add the bootstrap libs
+        [libs_to_load.append(i) for i in self.libraries_to_load]
+
+        # Add the corresponding python lib
+        python_version = self.ctx.python_recipe.major_minor_version_string
+        if python_version[0] == '3':
+            python_version += 'm'
+        libs_to_load.append('python' + python_version)
+
+        return libs_to_load
 
     def strip_libraries(self, arch):
         info('Stripping libraries')

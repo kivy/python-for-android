@@ -10,6 +10,8 @@ class SDL2GradleBootstrap(Bootstrap):
 
     recipe_depends = ['sdl2', ('python2', 'python3', 'python3crystax')]
 
+    libraries_to_load = ['SDL2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf']
+
     def run_distribute(self):
         info_main("# Creating Android project ({})".format(self.name))
 
@@ -46,6 +48,13 @@ class SDL2GradleBootstrap(Bootstrap):
             if 'sqlite3' not in self.ctx.recipe_build_order:
                 with open('blacklist.txt', 'a') as fileh:
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
+
+            # collect libs to load by android os at runtime
+            libs = self.collect_libraries_to_load(arch)
+            target_file = join('src', 'main', 'assets', 'libraries_to_load.txt')
+            with open(target_file, 'a') as libs_file:
+                for lib in libs:
+                    libs_file.write(lib + '\n')
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
