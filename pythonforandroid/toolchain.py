@@ -847,7 +847,9 @@ class ToolchainCL(object):
 
                 # gradle output apks somewhere else
                 # and don't have version in file
-                apk_dir = join(dist.dist_dir, "build", "outputs", "apk")
+                apk_dir = join(dist.dist_dir,
+                               "build", "outputs", "apk",
+                               args.build_mode)
                 apk_glob = "*-{}.apk"
                 apk_add_version = True
 
