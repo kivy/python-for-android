@@ -4,6 +4,7 @@ from pythonforandroid.patching import will_build
 from pythonforandroid import logger
 
 from os.path import join
+from sys import version_info
 
 
 class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
@@ -30,7 +31,8 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         th = '#define {} {}\n'
         tpy = '{} = {}\n'
 
-        bootstrap = bootstrap_name = self.ctx.bootstrap.name.decode('utf-8')
+        bootstrap = self.ctx.bootstrap.name
+        bootstrap = bootstrap_name = bootstrap if version_info >= (3, ) else bootstrap.decode('utf-8')
         is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3', 'sdl2_gradle')
         is_pygame = bootstrap_name in ('pygame',)
         is_webview = bootstrap_name in ('webview',)
