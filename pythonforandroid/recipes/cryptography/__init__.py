@@ -3,10 +3,10 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe, Recipe
 
 class CryptographyRecipe(CompiledComponentsPythonRecipe):
     name = 'cryptography'
-    version = '2.3.1'
+    version = '2.4.2'
     url = 'https://github.com/pyca/cryptography/archive/{version}.tar.gz'
-    depends = [('python2', 'python3crystax'), 'openssl', 'idna', 'asn1crypto',
-               'six', 'setuptools', 'enum34', 'ipaddress', 'cffi']
+    depends = ['openssl', 'idna', 'asn1crypto', 'six', 'setuptools',
+               'enum34', 'ipaddress', 'cffi']
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
