@@ -15,15 +15,13 @@ from pythonforandroid.toolchain import Recipe
 
 class WebSocketClient(Recipe):
 
-    url = 'https://github.com/debauchery1st/websocket-client/raw/master/websocket_client-0.40.0.tar.gz'
+    url = 'https://github.com/websocket-client/websocket-client/archive/v{version}.tar.gz'
 
     version = '0.40.0'
-    # md5sum = 'f1cf4cc7869ef97a98e5f4be25c30986'
 
     # patches = ['websocket.patch']  # Paths relative to the recipe dir
 
-    depends = ['kivy', 'python2', 'android', 'pyjnius',
-               'cryptography', 'pyasn1', 'pyopenssl']
+    depends = ['python2', 'android', 'pyjnius', 'cryptography', 'pyasn1', 'pyopenssl']
 
 
 recipe = WebSocketClient()
