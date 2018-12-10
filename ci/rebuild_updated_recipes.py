@@ -9,7 +9,6 @@ To run locally, set the environment variables before running:
 ```
 ANDROID_SDK_HOME=~/.buildozer/android/platform/android-sdk-20
 ANDROID_NDK_HOME=~/.buildozer/android/platform/android-ndk-r9c
-CRYSTAX_NDK_HOME=~/.buildozer/crystax-ndk
 ./ci/rebuild_update_recipes.py
 ```
 
@@ -20,7 +19,7 @@ Current limitations:
   [ERROR]:   Didn't find any valid dependency graphs.
   [ERROR]:   This means that some of your requirements pull in conflicting dependencies.
 - only rebuilds on sdl2 bootstrap
-- supports mainly python3crystax with fallback to python2, but no python3 support
+- supports mainly python3 with fallback to python2
 """
 import sh
 import os
@@ -56,9 +55,7 @@ def build(target_python, requirements):
     testapp = 'setup_testapp_python2.py'
     android_sdk_home = os.environ['ANDROID_SDK_HOME']
     android_ndk_home = os.environ['ANDROID_NDK_HOME']
-    crystax_ndk_home = os.environ['CRYSTAX_NDK_HOME']
-    if target_python == TargetPython.python3crystax:
-        android_ndk_home = crystax_ndk_home
+    if target_python == TargetPython.python3:
         testapp = 'setup_testapp_python3.py'
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
@@ -75,7 +72,7 @@ def build(target_python, requirements):
 
 
 def main():
-    target_python = TargetPython.python3crystax
+    target_python = TargetPython.python3
     recipes = modified_recipes()
     print('recipes modified:', recipes)
     recipes -= CORE_RECIPES
