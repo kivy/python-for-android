@@ -334,6 +334,10 @@ class Bootstrap(object):
                     libs_to_load.append(l[3:-3])
         if 'libtorrent' in self.ctx.recipe_build_order:
             libs_to_load.append('torrent_rasterbar')
+        if 'libiconv' in self.ctx.recipe_build_order:
+            libs_to_load.append('iconv')
+        if 'libzbar' in self.ctx.recipe_build_order:
+            libs_to_load.append('zbar')
 
         return libs_to_load
 
