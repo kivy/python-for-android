@@ -14,7 +14,8 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     src_filename = 'src'
 
-    depends = [('pygame', 'sdl2', 'genericndkbuild')]
+    depends = [('pygame', 'sdl2', 'genericndkbuild'),
+               'pyjnius']
 
     config_env = {}
 

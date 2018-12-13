@@ -7,33 +7,40 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.UnsatisfiedLinkError;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import android.view.ViewGroup;
-import android.view.SurfaceView;
 import android.app.Activity;
-import android.content.Intent;
-import android.util.Log;
-import android.widget.Toast;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.PowerManager;
-import android.graphics.PixelFormat;
-import android.view.SurfaceHolder;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
-import android.content.Intent;
-import android.widget.ImageView;
-import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.Manifest;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.PowerManager;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.Toast;
 
+import org.libsdl.app.SDL;
 import org.libsdl.app.SDLActivity;
 
 import org.kivy.android.PythonUtil;
@@ -51,16 +58,16 @@ public class PythonActivity extends SDLActivity {
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
+    private static boolean appliedWindowedModeHack = false;
 
     public String getAppRoot() {
         String app_root =  getFilesDir().getAbsolutePath() + "/app";
         return app_root;
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.v(TAG, "My oncreate running");
+        Log.v(TAG, "PythonActivity onCreate running");
         resourceManager = new ResourceManager(this);
 
         Log.v(TAG, "About to do super onCreate");
@@ -184,8 +191,8 @@ public class PythonActivity extends SDLActivity {
 
                 PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
                 if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
-                	mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
-                	mActivity.mWakeLock.acquire();
+                    mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+                    mActivity.mWakeLock.acquire();
                 }
                 if ( mActivity.mMetaData.getInt("surface.transparent") != 0 ) {
                     Log.v(TAG, "Surface will be transparent.");
@@ -195,6 +202,20 @@ public class PythonActivity extends SDLActivity {
                     Log.i(TAG, "Surface will NOT be transparent");
                 }
             } catch (PackageManager.NameNotFoundException e) {
+            }
+
+            // Launch app if that hasn't been done yet:
+            if (mActivity.mHasFocus && (
+                    // never went into proper resume state:
+                    mActivity.mCurrentNativeState == NativeState.INIT ||
+                    (
+                    // resumed earlier but wasn't ready yet
+                    mActivity.mCurrentNativeState == NativeState.RESUMED &&
+                    mActivity.mSDLThread == null
+                    ))) {
+                // Because sometimes the app will get stuck here and never
+                // actually run, ensure that it gets launched if we're active:
+                mActivity.onResume();
             }
         }
 
@@ -341,7 +362,7 @@ public class PythonActivity extends SDLActivity {
         }
     }
 
-	public static void start_service(String serviceTitle, String serviceDescription,
+    public static void start_service(String serviceTitle, String serviceDescription,
                 String pythonServiceArgument) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
@@ -364,118 +385,219 @@ public class PythonActivity extends SDLActivity {
         PythonActivity.mActivity.stopService(serviceIntent);
     }
 
-    /** Loading screen implementation
-    * keepActive() is a method plugged in pollInputDevices in SDLActivity.
-    * Once it's called twice, the loading screen will be removed.
-    * The first call happen as soon as the window is created, but no image has been
-    * displayed first. My tests showed that we can wait one more. This might delay
-    * the real available of few hundred milliseconds.
-    * The real deal is to know if a rendering has already happen. The previous
-    * python-for-android and kivy was having something for that, but this new version
-    * is not compatible, and would require a new kivy version.
-    * In case of, the method PythonActivty.mActivity.removeLoadingScreen() can be called.
-    */
+    /** Loading screen view **/
     public static ImageView mImageView = null;
-    int mLoadingCount = 2;
+    /** Whether main routine/actual app has started yet **/
+    protected boolean mAppConfirmedActive = false;
+    /** Timer for delayed loading screen removal. **/
+    protected Timer loadingScreenRemovalTimer = null; 
 
+    // Overridden since it's called often, to check whether to remove the
+    // loading screen:
     @Override
-    public void keepActive() {
-      if (this.mLoadingCount > 0) {
-        this.mLoadingCount -= 1;
-        if (this.mLoadingCount == 0) {
-          this.removeLoadingScreen();
+    protected boolean sendCommand(int command, Object data) {
+        boolean result = super.sendCommand(command, data);
+        considerLoadingScreenRemoval();
+        return result;
+    }
+   
+    /** Confirm that the app's main routine has been launched.
+     **/
+    @Override
+    public void appConfirmedActive() {
+        if (!mAppConfirmedActive) {
+            Log.v(TAG, "appConfirmedActive() -> preparing loading screen removal");
+            mAppConfirmedActive = true;
+            considerLoadingScreenRemoval();
         }
-      }
+    }
+
+    /** This is called from various places to check whether the app's main
+     *  routine has been launched already, and if it has, then the loading
+     *  screen will be removed.
+     **/
+    public void considerLoadingScreenRemoval() {
+        if (loadingScreenRemovalTimer != null)
+            return;
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (((PythonActivity)PythonActivity.mSingleton).mAppConfirmedActive &&
+                        loadingScreenRemovalTimer == null) {
+                    // Remove loading screen but with a delay.
+                    // (app can use p4a's android.loadingscreen module to
+                    // do it quicker if it wants to)
+                    // get a handler (call from main thread)
+                    // this will run when timer elapses
+                    TimerTask removalTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            // post a runnable to the handler
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    PythonActivity activity =
+                                        ((PythonActivity)PythonActivity.mSingleton);
+                                    if (activity != null)
+                                        activity.removeLoadingScreen();
+                                }
+                            });
+                        }
+                    };
+                    loadingScreenRemovalTimer = new Timer();
+                    loadingScreenRemovalTimer.schedule(removalTask, 5000);
+                }
+            }
+        });
     }
 
     public void removeLoadingScreen() {
-      runOnUiThread(new Runnable() {
-        public void run() {
-          if (PythonActivity.mImageView != null && 
-        		  PythonActivity.mImageView.getParent() != null) {
-            ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
-            PythonActivity.mImageView);
-            PythonActivity.mImageView = null;
-          }
-        }
-      });
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (PythonActivity.mImageView != null && 
+                        PythonActivity.mImageView.getParent() != null) {
+                    ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
+                        PythonActivity.mImageView);
+                    PythonActivity.mImageView = null;
+                }
+            }
+        });
     }
 
 
     protected void showLoadingScreen() {
-      // load the bitmap
-      // 1. if the image is valid and we don't have layout yet, assign this bitmap
-      // as main view.
-      // 2. if we have a layout, just set it in the layout.
-      // 3. If we have an mImageView already, then do nothing because it will have
-      // already been made the content view or added to the layout.
+        // load the bitmap
+        // 1. if the image is valid and we don't have layout yet, assign this bitmap
+        // as main view.
+        // 2. if we have a layout, just set it in the layout.
+        // 3. If we have an mImageView already, then do nothing because it will have
+        // already been made the content view or added to the layout.
 
-      if (mImageView == null) {
-        int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
-        InputStream is = this.getResources().openRawResource(presplashId);
-        Bitmap bitmap = null;
-        try {
-          bitmap = BitmapFactory.decodeStream(is);
-        } finally {
-          try {
-            is.close();
-          } catch (IOException e) {};
+        if (mImageView == null) {
+            int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
+            InputStream is = this.getResources().openRawResource(presplashId);
+            Bitmap bitmap = null;
+            try {
+                bitmap = BitmapFactory.decodeStream(is);
+            } finally {
+                try {
+                    is.close();
+                } catch (IOException e) {};
+            }
+
+            mImageView = new ImageView(this);
+            mImageView.setImageBitmap(bitmap);
+
+            /*
+             * Set the presplash loading screen background color
+             * https://developer.android.com/reference/android/graphics/Color.html
+             * Parse the color string, and return the corresponding color-int.
+             * If the string cannot be parsed, throws an IllegalArgumentException exception.
+             * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
+             * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
+             * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
+             * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
+             */
+            String backgroundColor = resourceManager.getString("presplash_color");
+            if (backgroundColor != null) {
+                try {
+                    mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
+                } catch (IllegalArgumentException e) {}
+            }   
+            mImageView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.FILL_PARENT,
+                ViewGroup.LayoutParams.FILL_PARENT));
+            mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
 
-        mImageView = new ImageView(this);
-        mImageView.setImageBitmap(bitmap);
-
-        /*
-	 * Set the presplash loading screen background color
-         * https://developer.android.com/reference/android/graphics/Color.html
-         * Parse the color string, and return the corresponding color-int.
-         * If the string cannot be parsed, throws an IllegalArgumentException exception.
-         * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
-         * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
-         * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
-         * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
-         */
-        String backgroundColor = resourceManager.getString("presplash_color");
-        if (backgroundColor != null) {
-          try {
-            mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
-          } catch (IllegalArgumentException e) {}
-        }   
-        mImageView.setLayoutParams(new ViewGroup.LayoutParams(
-        ViewGroup.LayoutParams.FILL_PARENT,
-        ViewGroup.LayoutParams.FILL_PARENT));
-        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-
-    }
-
-    if (mLayout == null) {
-      setContentView(mImageView);
-    } else if (PythonActivity.mImageView.getParent() == null){
-      mLayout.addView(mImageView);
-    }
-
+        try {
+            if (mLayout == null) {
+                setContentView(mImageView);
+            } else if (PythonActivity.mImageView.getParent() == null) {
+                mLayout.addView(mImageView);
+            }
+        } catch (IllegalStateException e) {
+            // The loading screen can be attempted to be applied twice if app
+            // is tabbed in/out, quickly.
+            // (Gives error "The specified child already has a parent.
+            // You must call removeView() on the child's parent first.")
+        }
     }
     
     @Override
     protected void onPause() {
-    	// fooabc
-        if ( this.mWakeLock != null &&  mWakeLock.isHeld()){
-        	this.mWakeLock.release();
+        if (this.mWakeLock != null && mWakeLock.isHeld()) {
+            this.mWakeLock.release();
         }
 
         Log.v(TAG, "onPause()");
-        super.onPause();
+        try {
+            super.onPause();
+        } catch (UnsatisfiedLinkError e) {
+            // Catch pause while still in loading screen failing to
+            // call native function (since it's not yet loaded)
+        }
     }
 
     @Override
     protected void onResume() {
-    	if ( this.mWakeLock != null){
-    		this.mWakeLock.acquire(); 
-    	}
-	    Log.v(TAG, "onResume()");
-	    super.onResume();
+        if (this.mWakeLock != null) {
+            this.mWakeLock.acquire();
+        }
+        Log.v(TAG, "onResume()");
+        try {
+            super.onResume();
+        } catch (UnsatisfiedLinkError e) {
+            // Catch resume while still in loading screen failing to
+            // call native function (since it's not yet loaded)
+        }
+        considerLoadingScreenRemoval();
     }
 
-    
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        try {
+            super.onWindowFocusChanged(hasFocus);
+        } catch (UnsatisfiedLinkError e) {
+            // Catch window focus while still in loading screen failing to
+            // call native function (since it's not yet loaded)
+        }
+        considerLoadingScreenRemoval();
+    }    
 
+    /**
+     * Used by android.permissions p4a module to check a permission
+     **/
+    public boolean checkCurrentPermission(String permission) {
+        if (android.os.Build.VERSION.SDK_INT < 23)
+            return true;
+
+        try {
+            java.lang.reflect.Method methodCheckPermission =
+                Activity.class.getMethod("checkSelfPermission", java.lang.String.class);  
+            Object resultObj = methodCheckPermission.invoke(this, permission);
+            int result = Integer.parseInt(resultObj.toString());   
+            if (result == PackageManager.PERMISSION_GRANTED) 
+                return true;
+        } catch (IllegalAccessException | NoSuchMethodException |
+                 InvocationTargetException e) {
+        }
+        return false;
+    }
+
+    /**
+     * Used by android.permissions p4a module to request a permission
+     **/
+    public void requestNewPermission(String permission) {
+        if (android.os.Build.VERSION.SDK_INT < 23)
+            return;
+
+        try {
+            java.lang.reflect.Method methodRequestPermission =
+                Activity.class.getMethod("requestPermissions",
+                java.lang.String[].class, int.class);  
+            methodRequestPermission.invoke(this, new String[] {permission}, 1);
+        } catch (IllegalAccessException | NoSuchMethodException |
+                 InvocationTargetException e) {
+        }
+    }
 }
