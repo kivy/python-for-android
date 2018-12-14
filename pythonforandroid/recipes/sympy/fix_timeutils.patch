@@ -1,0 +1,13 @@
+diff --git a/sympy/utilities/timeutils.py b/sympy/utilities/timeutils.py
+index 3770d85..c53594e 100644
+--- a/sympy/utilities/timeutils.py
++++ b/sympy/utilities/timeutils.py
+@@ -8,7 +8,7 @@ import math
+ from sympy.core.compatibility import range
+ 
+ _scales = [1e0, 1e3, 1e6, 1e9]
+-_units = [u's', u'ms', u'\N{GREEK SMALL LETTER MU}s', u'ns']
++_units = [u's', u'ms', u'mus', u'ns']
+ 
+ 
+ def timed(func, setup="pass", limit=None):
