@@ -1,23 +1,45 @@
 #!/usr/bin/env python2.7
-# coding: utf-8
 
 from __future__ import print_function
+
+import json
 from os.path import (
-    dirname, join, isfile, realpath, relpath, split, exists, basename)
-from os import makedirs, remove, listdir
+    dirname, join, isfile, realpath,
+    relpath, split, exists, basename
+)
+from os import listdir, makedirs, remove
 import os
+import shlex
+import shutil
+import subprocess
+import sys
 import tarfile
 import time
-import json
-import subprocess
-import shutil
 from zipfile import ZipFile
-import sys
+
 from distutils.version import LooseVersion
-
 from fnmatch import fnmatch
-
 import jinja2
+
+
+def get_bootstrap_name():
+    try:
+        with open(join(dirname(__file__), 'dist_info.json'), 'r') as fileh:
+            info = json.load(fileh)
+        bootstrap = str(info["bootstrap"])
+    except (OSError, KeyError) as e:
+        print("BUILD FAILURE: Couldn't extract bootstrap name " +
+              "from dist_info.json: " + str(e))
+        sys.exit(1)
+    return bootstrap
+
+
+if os.name == 'nt':
+    ANDROID = 'android.bat'
+    ANT = 'ant.bat'
+else:
+    ANDROID = 'android'
+    ANT = 'ant'
 
 curdir = dirname(__file__)
 
@@ -36,6 +58,7 @@ BLACKLIST_PATTERNS = [
 
     # pyc/py
     '*.pyc',
+    # '*.py',
 
     # temp files
     '~',
@@ -45,7 +68,9 @@ BLACKLIST_PATTERNS = [
 if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
 
-WHITELIST_PATTERNS = ['pyconfig.h', ]
+WHITELIST_PATTERNS = []
+if get_bootstrap_name() == "sdl2":
+    WHITELIST_PATTERNS.append("pyconfig.h")
 
 python_files = []
 
@@ -126,7 +151,7 @@ def make_python_zip():
 
     if not exists('private'):
         print('No compiled python is present to zip, skipping.')
-        print('this should only be the case if you are using the CrystaX python or python3')
+        print('this should only be the case if you are using the CrystaX python')
         return
 
     global python_files
@@ -212,6 +237,10 @@ def compile_dir(dfn):
     '''
     Compile *.py in directory `dfn` to *.pyo
     '''
+
+    if get_bootstrap_name() != "sdl2":
+        # HISTORICALLY DISABLED for other than sdl2. NEEDS REVIEW! -JonasT
+        return
     # -OO = strip docstrings
     if PYTHON is None:
         return
@@ -219,59 +248,73 @@ def compile_dir(dfn):
 
 
 def make_package(args):
-    # Ignore warning if the launcher is in args
-    if not args.launcher:
-        if not (exists(join(realpath(args.private), 'main.py')) or
-                exists(join(realpath(args.private), 'main.pyo'))):
+    # If no launcher is specified, require a main.py/main.pyo:
+    if (get_bootstrap_name() != "sdl" or args.launcher is None) and \
+            get_bootstrap_name() != "webview":
+        # (webview doesn't need an entrypoint, apparently)
+        if args.private is None or (
+                not exists(join(realpath(args.private), 'main.py')) and
+                not exists(join(realpath(args.private), 'main.pyo'))):
             print('''BUILD FAILURE: No main.py(o) found in your app directory. This
 file must exist to act as the entry point for you app. If your app is
 started by a file with a different name, rename it to main.py or add a
 main.py that loads it.''')
-            exit(1)
+            sys.exit(1)
+
+    assets_dir = "src/main/assets"
+    if get_bootstrap_name() != "sdl2":
+        assets_dir = "assets"
 
     # Delete the old assets.
-    try_unlink('src/main/assets/public.mp3')
-    try_unlink('src/main/assets/private.mp3')
-    ensure_dir('src/main/assets')
+    try_unlink(join(assets_dir, 'public.mp3'))
+    try_unlink(join(assets_dir, 'private.mp3'))
+    ensure_dir(assets_dir)
 
     # In order to speedup import and initial depack,
     # construct a python27.zip
     make_python_zip()
 
     # Package up the private data (public not supported).
-    tar_dirs = [args.private]
+    tar_dirs = []
+    if args.private:
+        tar_dirs.append(args.private)
     for python_bundle_dir in ('private', 'crystax_python', '_python_bundle'):
         if exists(python_bundle_dir):
             tar_dirs.append(python_bundle_dir)
-
+    if get_bootstrap_name() == "webview":
+        tar_dirs.append('webview_includes')
     if args.private:
-        make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
+        make_tar(join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path)
     elif args.launcher:
-        # clean 'None's as a result of main.py path absence
-        tar_dirs = [tdir for tdir in tar_dirs if tdir]
-        make_tar('src/main/assets/private.mp3', tar_dirs, args.ignore_path)
-
-    # folder name for launcher
-    url_scheme = 'kivy'
+        make_tar(join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path)
 
     # Prepare some variables for templating process
+    res_dir = "src/main/res"
+    if get_bootstrap_name() == "webview":
+        res_dir = "res"
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
-    ensure_dir('src/main/res/drawable')
-    shutil.copy(args.icon or default_icon, 'src/main/res/drawable/icon.png')
-    shutil.copy(args.presplash or default_presplash,
-                'src/main/res/drawable/presplash.jpg')
+    if get_bootstrap_name() != "service_only":
+        shutil.copy(
+            args.icon or default_icon,
+            join(res_dir, 'drawable/icon.png')
+        )
+        shutil.copy(
+            args.presplash or default_presplash,
+            join(res_dir, 'drawable/presplash.jpg')
+        )
 
-    jars = []
     # If extra Java jars were requested, copy them into the libs directory
+    jars = []
     if args.add_jar:
         for jarname in args.add_jar:
             if not exists(jarname):
                 print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
-            shutil.copy(jarname, 'src/main/libs')
+            shutil.copy(jarname, 'libs')
             jars.append(basename(jarname))
-    # if extra aar were requested, copy them into the libs directory
+
+    # If extra aar were requested, copy them into the libs directory
     aars = []
     if args.add_aar:
         ensure_dir("libs")
@@ -296,9 +339,9 @@ main.py that loads it.''')
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
-    args.add_activity = args.add_activity or []
-
-    args.activity_launch_mode = args.activity_launch_mode or ''
+    if get_bootstrap_name() == "sdl2":
+        args.add_activity = args.add_activity or []
+        args.activity_launch_mode = args.activity_launch_mode or ''
 
     if args.extra_source_dirs:
         esd = []
@@ -330,20 +373,40 @@ main.py that loads it.''')
         sticky = 'sticky' in options
 
         service_names.append(name)
+        service_target_path = ""
+        if get_bootstrap_name() != "sdl2":
+            service_target_path =\
+                'src/{}/Service{}.java'.format(args.package.replace(".", "/"),
+                                               name.capitalize())
+        else:
+            service_target_path =\
+                'src/main/java/{}/Service{}.java'.format(
+                    args.package.replace(".", "/"),
+                    name.capitalize()
+                )
         render(
             'Service.tmpl.java',
-            'src/main/java/{}/Service{}.java'.format(args.package.replace(".", "/"), name.capitalize()),
+            service_target_path,
             name=name,
             entrypoint=entrypoint,
             args=args,
             foreground=foreground,
             sticky=sticky,
-            service_id=sid + 1)
+            service_id=sid + 1,
+        )
 
     # Find the SDK directory and target API
     with open('project.properties', 'r') as fileh:
         target = fileh.read().strip()
     android_api = target.split('-')[1]
+    try:
+        android_api_int_test = int(android_api)
+    except (ValueError, TypeError):
+        raise ValueError(
+            "failed to extract the Android API level from " +
+            "build.properties. expected int, got: '" +
+            str(android_api) + "'"
+        )
     with open('local.properties', 'r') as fileh:
         sdk_dir = fileh.read().strip()
     sdk_dir = sdk_dir[8:]
@@ -355,50 +418,78 @@ main.py that loads it.''')
                                   key=LooseVersion)
     build_tools_version = build_tools_versions[-1]
 
+    # Folder name for launcher (used by SDL2 bootstrap)
+    url_scheme = 'kivy'
+
+    # Render out android manifest:
+    manifest_path = "src/main/AndroidManifest.xml"
+    if get_bootstrap_name() != "sdl2":
+        manifest_path = "AndroidManifest.xml"
+    render_args = {
+        "args": args,
+        "service": service,
+        "service_names": service_names,
+        "android_api": android_api
+    }
+    if get_bootstrap_name() == "sdl2":
+        render_args["url_scheme"] = url_scheme
     render(
         'AndroidManifest.tmpl.xml',
-        'src/main/AndroidManifest.xml',
-        args=args,
-        service=service,
-        service_names=service_names,
-        android_api=android_api,
-        url_scheme=url_scheme)
+        manifest_path,
+        **render_args)
 
     # Copy the AndroidManifest.xml to the dist root dir so that ant
     # can also use it
-    if exists('AndroidManifest.xml'):
-        remove('AndroidManifest.xml')
-    shutil.copy(join('src', 'main', 'AndroidManifest.xml'),
-                'AndroidManifest.xml')
-
-    render(
-        'strings.tmpl.xml',
-        'src/main/res/values/strings.xml',
-        args=args,
-        url_scheme=url_scheme,
-        private_version=str(time.time()))
+    if get_bootstrap_name() == "sdl2":
+        if exists('AndroidManifest.xml'):
+            remove('AndroidManifest.xml')
+        shutil.copy(manifest_path, 'AndroidManifest.xml')
 
     # gradle build templates
-    render(
-        'build.tmpl.gradle',
-        'build.gradle',
-        args=args,
-        aars=aars,
-        jars=jars,
-        android_api=android_api,
-        build_tools_version=build_tools_version)
+    if get_bootstrap_name() != "webview":
+        # HISTORICALLY NOT SUPPORTED FOR WEBVIEW. Needs review? -JonasT
+        render(
+            'build.tmpl.gradle',
+            'build.gradle',
+            args=args,
+            aars=aars,
+            jars=jars,
+            android_api=android_api,
+            build_tools_version=build_tools_version)
 
     # ant build templates
-    render(
-        'build.tmpl.xml',
-        'build.xml',
-        args=args,
-        versioned_name=versioned_name)
+    if get_bootstrap_name() != "service_only":
+        # Historically, service_only doesn't support ant anymore.
+        # Maybe we should also drop this for the others? -JonasT
+        render(
+            'build.tmpl.xml',
+            'build.xml',
+            args=args,
+            versioned_name=versioned_name)
 
-    render(
-        'custom_rules.tmpl.xml',
-        'custom_rules.xml',
-        args=args)
+    # String resources:
+    if get_bootstrap_name() != "service_only":
+        render_args = {
+            "args": args,
+            "private_version": str(time.time())
+        }
+        if get_bootstrap_name() == "sdl2":
+            render_args["url_scheme"] = url_scheme
+        render(
+            'strings.tmpl.xml',
+            join(res_dir, 'values/strings.xml'),
+            **render_args)
+
+    if exists("custom_rules.tmpl.xml"):
+        render(
+            'custom_rules.tmpl.xml',
+            'custom_rules.xml',
+            args=args)
+
+    if get_bootstrap_name() == "webview":
+        render('WebViewLoader.tmpl.java',
+               'src/org/kivy/android/WebViewLoader.java',
+               args=args)
 
     if args.sign:
         render('build.properties', 'build.properties')
@@ -411,27 +502,29 @@ def parse_args(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
     # Get the default minsdk, equal to the NDK API that this dist is built against
-    with open('dist_info.json', 'r') as fileh:
-        info = json.load(fileh)
-        if 'ndk_api' not in info:
-            print('WARNING: Failed to read ndk_api from dist info, defaulting to 12')
-            default_min_api = 12  # The old default before ndk_api was introduced
-        else:
-            default_min_api = info['ndk_api']
-            ndk_api = info['ndk_api']
+    try:
+        with open('dist_info.json', 'r') as fileh:
+            info = json.load(fileh)
+            default_min_api = int(info['ndk_api'])
+            ndk_api = default_min_api
+    except (OSError, KeyError, ValueError, TypeError):
+        print('WARNING: Failed to read ndk_api from dist info, defaulting to 12')
+        default_min_api = 12  # The old default before ndk_api was introduced
+        ndk_api = 12
 
     import argparse
     ap = argparse.ArgumentParser(description='''\
-Package a Python application for Android.
+Package a Python application for Android (using
+bootstrap ''' + get_bootstrap_name() + ''').
 
 For this to work, Java and Ant need to be in your path, as does the
 tools directory of the Android SDK.
 ''')
 
-    # `required=True` for launcher, crashes in make_package
-    # if not mentioned (and the check is there anyway)
+    # --private is required unless for sdl2, where there's also --launcher
     ap.add_argument('--private', dest='private',
-                    help='the dir of user files')
+                    help='the dir of user files',
+                    required=(get_bootstrap_name() != "sdl2"))
     ap.add_argument('--package', dest='package',
                     help=('The name of the java package the project will be'
                           ' packaged under.'),
@@ -449,36 +542,52 @@ tools directory of the Android SDK.
                           'same number of groups of numbers as previous '
                           'versions.'),
                     required=True)
-    ap.add_argument('--orientation', dest='orientation', default='portrait',
-                    help=('The orientation that the game will display in. '
-                          'Usually one of "landscape", "portrait", '
-                          '"sensor", or "user" (the same as "sensor" but '
-                          'obeying the user\'s Android rotation setting). '
-                          'The full list of options is given under '
-                          'android_screenOrientation at '
-                          'https://developer.android.com/guide/topics/manifest/'
-                          'activity-element.html'))
-    ap.add_argument('--launcher', dest='launcher', action='store_true',
-                    help=('Provide this argument to build a multi-app '
-                          'launcher, rather than a single app.'))
-    ap.add_argument('--icon', dest='icon',
-                    help='A png file to use as the icon for the application.')
+    if get_bootstrap_name() == "sdl2":
+        ap.add_argument('--launcher', dest='launcher', action='store_true',
+                        help=('Provide this argument to build a multi-app '
+                              'launcher, rather than a single app.'))
     ap.add_argument('--permission', dest='permissions', action='append',
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
-    ap.add_argument('--presplash', dest='presplash',
-                    help=('A jpeg file to use as a screen while the '
-                          'application is loading.'))
-    ap.add_argument('--presplash-color', dest='presplash_color', default='#000000',
-                    help=('A string to set the loading screen background color. '
-                          'Supported formats are: #RRGGBB #AARRGGBB or color names '
-                          'like red, green, blue, etc.'))
+    if get_bootstrap_name() != "service_only":
+        ap.add_argument('--presplash', dest='presplash',
+                        help=('A jpeg file to use as a screen while the '
+                              'application is loading.'))
+        ap.add_argument('--presplash-color',
+                        dest='presplash_color',
+                        default='#000000',
+                        help=('A string to set the loading screen '
+                              'background color. '
+                              'Supported formats are: '
+                              '#RRGGBB #AARRGGBB or color names '
+                              'like red, green, blue, etc.'))
+        ap.add_argument('--window', dest='window', action='store_true',
+                        default=False,
+                        help='Indicate if the application will be windowed')
+        ap.add_argument('--icon', dest='icon',
+                        help=('A png file to use as the icon for '
+                              'the application.'))
+        ap.add_argument('--orientation', dest='orientation',
+                        default='portrait',
+                        help=('The orientation that the game will '
+                              'display in. '
+                              'Usually one of "landscape", "portrait", '
+                              '"sensor", or "user" (the same as "sensor" '
+                              'but obeying the '
+                              'user\'s Android rotation setting). '
+                              'The full list of options is given under '
+                              'android_screenOrientation at '
+                              'https://developer.android.com/guide/'
+                              'topics/manifest/'
+                              'activity-element.html'))
+    else:
+        ap.add_argument('--service', dest='services', action='append',
+                        help='Declare a new service entrypoint: '
+                             'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
-    ap.add_argument('--window', dest='window', action='store_true',
-                    help='Indicate if the application will be windowed')
     ap.add_argument('--blacklist', dest='blacklist',
                     default=join(curdir, 'blacklist.txt'),
                     help=('Use a blacklist file to match unwanted file in '
@@ -504,21 +613,23 @@ tools directory of the Android SDK.
                     default=default_min_api, type=int,
                     help=('Minimum Android SDK version that the app supports. '
                           'Defaults to {}.'.format(default_min_api)))
-    ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
-                    action='store_true',
-                    help=('Allow the --minsdk argument to be different from '
-                          'the discovered ndk_api in the dist'))
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
+    ap.add_argument('--with-billing', dest='billing_pubkey',
+                    help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--service', dest='services', action='append',
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
                     help='Include additional source dirs in Java build')
+    if get_bootstrap_name() == "webview":
+        ap.add_argument('--port',
+                        help='The port on localhost that the WebView will access',
+                        default='5000')
     ap.add_argument('--try-system-python-compile', dest='try_system_python_compile',
                     action='store_true',
                     help='Use the system python during compileall if possible.')
@@ -534,8 +645,23 @@ tools directory of the Android SDK.
     ap.add_argument('--allow-backup', dest='allow_backup', default='true',
                     help="if set to 'false', then android won't backup the application.")
 
+    # Put together arguments, and add those from .p4a config file:
     if args is None:
         args = sys.argv[1:]
+
+    def _read_configuration():
+        if not exists(".p4a"):
+            return
+        print("Reading .p4a configuration")
+        with open(".p4a") as fd:
+            lines = fd.readlines()
+        lines = [shlex.split(line)
+                 for line in lines if not line.startswith("#")]
+        for line in lines:
+            for arg in line:
+                args.append(arg)
+    _read_configuration()
+
     args = ap.parse_args(args)
     args.ignore_path = []
 
@@ -551,13 +677,18 @@ tools directory of the Android SDK.
             print('You must pass --allow-minsdk-ndkapi-mismatch to build '
                   'with --minsdk different to the target NDK api from the '
                   'build step')
-            exit(1)
+            sys.exit(1)
         else:
             print('Proceeding with --minsdk not matching build target api')
 
-    if args.sdk_version != -1:
+    if args.billing_pubkey:
+        print('Billing not yet supported!')
+        sys.exit(1)
+
+    if args.sdk_version == -1:
         print('WARNING: Received a --sdk argument, but this argument is '
               'deprecated and does nothing.')
+        args.sdk_version = -1  # ensure it is not used
 
     if args.permissions is None:
         args.permissions = []
@@ -599,9 +730,14 @@ tools directory of the Android SDK.
                         if x.strip() and not x.strip().startswith('#')]
         WHITELIST_PATTERNS += patterns
 
-    if args.private is None:
-        print('Need --private directory with app files to package for .apk')
-        exit(1)
+    if args.private is None and (
+            get_bootstrap_name() != "sdl2" or
+            args.launcher is None
+            ):
+        print('Need --private directory or ' +
+              '--launcher (SDL2 bootstrap only)' +
+              'to have something to launch inside the .apk!')
+        sys.exit(1)
     make_package(args)
 
     return args
