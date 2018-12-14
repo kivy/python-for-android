@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from pythonforandroid import __version__
 from pythonforandroid.build import DEFAULT_NDK_API, DEFAULT_ANDROID_API
+from pythonforandroid.util import BuildInterruptingException, handle_build_exception
 
 
 def check_python_dependencies():
@@ -58,7 +59,7 @@ def check_python_dependencies():
                 ok = False
 
     if not ok:
-        print('python-for-android is exiting due to the errors above.')
+        print('python-for-android is exiting due to the errors logged above')
         exit(1)
 
 
@@ -85,7 +86,7 @@ from distutils.version import LooseVersion
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import (logger, info, warning, setup_color,
                                      Out_Style, Out_Fore,
-                                     info_notify, info_main, shprint, error)
+                                     info_notify, info_main, shprint)
 from pythonforandroid.util import current_directory
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
@@ -638,7 +639,7 @@ class ToolchainCL(object):
 
         for component in components:
             if component not in component_clean_methods:
-                raise ValueError((
+                raise BuildInterruptingException((
                     'Asked to clean "{}" but this argument is not '
                     'recognised'.format(component)))
             component_clean_methods[component](args)
@@ -735,10 +736,10 @@ class ToolchainCL(object):
         ctx = self.ctx
         dist = dist_from_args(ctx, args)
         if dist.needs_build:
-            info('You asked to export a dist, but there is no dist '
-                 'with suitable recipes available. For now, you must '
-                 ' create one first with the create argument.')
-            exit(1)
+            raise BuildInterruptingException(
+                'You asked to export a dist, but there is no dist '
+                'with suitable recipes available. For now, you must '
+                ' create one first with the create argument.')
         if args.symlink:
             shprint(sh.ln, '-s', dist.dist_dir, args.output_dir)
         else:
@@ -839,9 +840,8 @@ class ToolchainCL(object):
                 elif args.build_mode == "release":
                     gradle_task = "assembleRelease"
                 else:
-                    error("Unknown build mode {} for apk()".format(
-                        args.build_mode))
-                    exit(1)
+                    raise BuildInterruptingException(
+                        "Unknown build mode {} for apk()".format(args.build_mode))
                 output = shprint(gradlew, gradle_task, _tail=20,
                                  _critical=True, _env=env)
 
@@ -858,9 +858,9 @@ class ToolchainCL(object):
                 try:
                     ant = sh.Command('ant')
                 except sh.CommandNotFound:
-                    error('Could not find ant binary, please install it '
-                          'and make sure it is in your $PATH.')
-                    exit(1)
+                    raise BuildInterruptingException(
+                        'Could not find ant binary, please install it '
+                        'and make sure it is in your $PATH.')
                 output = shprint(ant, args.build_mode, _tail=20,
                                  _critical=True, _env=env)
                 apk_dir = join(dist.dist_dir, "bin")
@@ -894,7 +894,7 @@ class ToolchainCL(object):
                     apk_file = apks[-1]
                     break
             else:
-                raise ValueError('Couldn\'t find the built APK')
+                raise BuildInterruptingException('Couldn\'t find the built APK')
 
         info_main('# Found APK file: {}'.format(apk_file))
         if apk_add_version:
@@ -1028,7 +1028,10 @@ class ToolchainCL(object):
 
 
 def main():
-    ToolchainCL()
+    try:
+        ToolchainCL()
+    except BuildInterruptingException as exc:
+        handle_build_exception(exc)
 
 
 if __name__ == "__main__":

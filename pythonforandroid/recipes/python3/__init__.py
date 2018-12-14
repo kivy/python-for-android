@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory
-from pythonforandroid.logger import logger, info, error
-from pythonforandroid.util import ensure_dir, walk_valid_filens
+from pythonforandroid.logger import logger, info
+from pythonforandroid.util import ensure_dir, walk_valid_filens, BuildInterruptingException
 from os.path import exists, join, dirname
 from os import environ
 import glob
@@ -67,9 +67,9 @@ class Python3Recipe(TargetPythonRecipe):
 
     def build_arch(self, arch):
         if self.ctx.ndk_api < self.MIN_NDK_API:
-            error('Target ndk-api is {}, but the python3 recipe supports only {}+'.format(
-                self.ctx.ndk_api, self.MIN_NDK_API))
-            exit(1)
+            raise BuildInterruptingException(
+                'Target ndk-api is {}, but the python3 recipe supports only {}+'.format(
+                    self.ctx.ndk_api, self.MIN_NDK_API))
 
         recipe_build_dir = self.get_build_dir(arch.arch)
 
