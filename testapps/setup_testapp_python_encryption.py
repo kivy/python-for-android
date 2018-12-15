@@ -3,7 +3,8 @@ from distutils.core import setup
 from setuptools import find_packages
 
 options = {'apk': {'requirements': 'libffi,openssl,sdl2,pyjnius,kivy,python2,'
-                                   'cryptography,pycrypto,scrypt,libtorrent',
+                                   'cryptography,pycrypto,scrypt,m2crypto,'
+                                   'pysha3,pycryptodome,libtorrent',
                    'android-api': 27,
                    'ndk-api': 21,
                    'dist-name': 'bdisttest_encryption',
