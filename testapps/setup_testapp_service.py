@@ -12,7 +12,6 @@ options = {'apk': {'debug': None,
                    'bootstrap': 'service_only',
                    'permissions': ['INTERNET', 'VIBRATE'],
                    'arch': 'armeabi-v7a',
-                   'window': None,
                    }}
 
 package_data = {'': ['*.py']}
