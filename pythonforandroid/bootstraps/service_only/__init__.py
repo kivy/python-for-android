@@ -9,7 +9,7 @@ class ServiceOnlyBootstrap(Bootstrap):
 
     name = 'service_only'
 
-    recipe_depends = ['genericndkbuild', ('python2', 'python3crystax')]
+    recipe_depends = ['genericndkbuild', ('python2', 'python3', 'python3crystax')]
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(

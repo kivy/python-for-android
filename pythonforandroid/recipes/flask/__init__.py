@@ -9,7 +9,7 @@ class FlaskRecipe(PythonRecipe):
     version = '0.10.1'
     url = 'https://github.com/pallets/flask/archive/{version}.zip'
 
-    depends = [('python2', 'python3crystax'), 'setuptools', 'genericndkbuild']
+    depends = [('python2', 'python3', 'python3crystax'), 'setuptools', 'genericndkbuild']
 
     python_depends = ['jinja2', 'werkzeug', 'markupsafe', 'itsdangerous', 'click']
 
