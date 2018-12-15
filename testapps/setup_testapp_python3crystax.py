@@ -8,7 +8,6 @@ options = {'apk': {'requirements': 'sdl2,pyjnius,kivy,python3crystax',
                    'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.2',
                    'dist-name': 'bdisttest_python3',
                    'ndk-version': '10.3.2',
-                   'arch': 'armeabi-v7a',
                    'permission': 'VIBRATE',
                    }}
 

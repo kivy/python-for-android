@@ -3,7 +3,7 @@ from distutils.core import setup
 from setuptools import find_packages
 
 options = {'apk': {'requirements': 'sdl2,pyjnius,kivy,python2',
-                   'android-api': 19,
+                   'android-api': 27,
                    'ndk-api': 19,
                    'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.2',
                    'dist-name': 'bdisttest_python2',

@@ -98,10 +98,10 @@ the latest useable NDK version is r10e, which can be downloaded here:
 
 - `Legacy 32-bit Linux NDK r10e <http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86.bin>`_
 
-First, install a platform to target (you can also replace ``19`` with
+First, install a platform to target (you can also replace ``27`` with
 a different platform number, this will be used again later)::
 
-  $SDK_DIR/tools/bin/sdkmanager "platforms;android-19"
+  $SDK_DIR/tools/bin/sdkmanager "platforms;android-27"
 
 Second, install the build-tools. You can use
 ``$SDK_DIR/tools/bin/sdkmanager --list`` to see all the
@@ -112,9 +112,9 @@ possibilities, but 26.0.2 is the latest version at the time of writing::
 Then, you can edit your ``~/.bashrc`` or other favorite shell to include new environment variables necessary for building on android::
 
     # Adjust the paths!
-    export ANDROIDSDK="$HOME/Documents/android-sdk-21"
+    export ANDROIDSDK="$HOME/Documents/android-sdk-27"
     export ANDROIDNDK="$HOME/Documents/android-ndk-r10e"
-    export ANDROIDAPI="26"  # Target API version of your application
+    export ANDROIDAPI="27"  # Target API version of your application
     export NDKAPI="19"  # Minimum supported API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 
@@ -260,7 +260,7 @@ command line. For example, you can add the options you would always
 include such as::
 
     --dist_name my_example
-    --android_api 19
+    --android_api 27
     --requirements kivy,openssl
 
 
