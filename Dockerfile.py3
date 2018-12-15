@@ -15,7 +15,7 @@
 #     Use 'docker run' without '--rm' flag for keeping the container and use
 #     'docker commit <container hash> <new image>' to extend the original image
 
-FROM ubuntu:18.04
+FROM python:3.7-stretch
 
 ENV ANDROID_HOME="/opt/android"
 
