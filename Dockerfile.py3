@@ -85,7 +85,7 @@ ENV WORK_DIR="${HOME_DIR}" \
 # install system dependencies
 RUN apt -y update -qq \
     && apt -y install -qq --no-install-recommends \
-        python3 virtualenv python3-pip wget lbzip2 patch sudo \
+        python3 virtualenv python3-pip wget lbzip2 patch sudo swig \
     && apt -y autoremove \
     && apt -y clean
 
