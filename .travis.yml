@@ -36,5 +36,14 @@ before_script:
   - tox
 
 script:
-  - docker build --tag=p4a --file Dockerfile.py3 .
-  - docker run p4a /bin/sh -c "$COMMAND"
+  # Capture any error we got while doing our builds
+  - trap "echo \"Error...last docker's log build lines:\" & tail -500 build.log & echo \"Error last tests log lines:\" &tail -1000 tests.log" ERR
+  # The Docker image build
+  - while sleep 1m; do echo "=====[ $SECONDS seconds, docker image still building... ]====="; done & PING_LOOP1_PID=$!
+  - docker build --tag=p4a --file Dockerfile.py3 . > build.log 2>&1
+  - kill ${PING_LOOP1_PID}
+  # The Tests build
+  - while sleep 1m; do echo "=====[ $SECONDS seconds, tests still building... ]====="; done & PING_LOOP2_PID=$!
+  - docker run p4a /bin/sh -c "$COMMAND" > tests.log 2>&1
+  - kill ${PING_LOOP2_PID}
+  - echo "All operations performed...last build log lines are:" & tail -500 tests.log
