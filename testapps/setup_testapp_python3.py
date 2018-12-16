@@ -7,7 +7,6 @@ options = {'apk': {'requirements': 'libffi,sdl2,pyjnius,kivy,python3',
                    'ndk-api': 21,
                    'dist-name': 'bdisttest_python3_googlendk',
                    'ndk-version': '10.3.2',
-                   'arch': 'armeabi-v7a',
                    'permission': 'VIBRATE',
                    }}
 
