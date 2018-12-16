@@ -101,6 +101,9 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     archs = ['armeabi']  # Not currently implemented properly
 
+    hide_unpack_log = True
+    '''Control the log messages when unpacking archives'''
+
     @property
     def version(self):
         key = 'VERSION_' + self.name
@@ -384,7 +387,8 @@ class Recipe(with_metaclass(RecipeMeta)):
                           extraction_filename.endswith('.txz')):
                         sh.tar('xf', extraction_filename)
                         root_directory = shprint(
-                            sh.tar, 'tf', extraction_filename).stdout.decode(
+                            sh.tar, 'tf', extraction_filename,
+                            _minimal_log=self.hide_unpack_log).stdout.decode(
                                 'utf-8').split('\n')[0].split('/')[0]
                         if root_directory != directory_name:
                             shprint(sh.mv, root_directory, directory_name)
@@ -398,7 +402,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                         if entry not in ('.git',):
                             shprint(sh.cp, '-Rv',
                                     join(extraction_filename, entry),
-                                    directory_name)
+                                    directory_name, _minimal_log=self.hide_unpack_log)
                 else:
                     raise Exception(
                         'Given path is neither a file nor a directory: {}'
