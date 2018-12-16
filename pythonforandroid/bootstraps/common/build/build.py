@@ -616,6 +616,10 @@ tools directory of the Android SDK.
                     default=default_min_api, type=int,
                     help=('Minimum Android SDK version that the app supports. '
                           'Defaults to {}.'.format(default_min_api)))
+    ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
+                    action='store_true',
+                    help=('Allow the --minsdk argument to be different from '
+                          'the discovered ndk_api in the dist'))
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
