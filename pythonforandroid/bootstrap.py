@@ -8,8 +8,8 @@ import shutil
 
 from pythonforandroid.logger import (warning, shprint, info, logger,
                                      debug)
-from pythonforandroid.util import (current_directory, ensure_dir,
-                                   temp_directory, which)
+from pythonforandroid.util import (current_directory, ensure_dir, which,
+                                   temp_directory, BuildInterruptingException)
 from pythonforandroid.recipe import Recipe
 
 
@@ -286,16 +286,18 @@ class Bootstrap(object):
         # Todo: All the recipes using gnustl_shared should be migrated to use
         # c++_shared because in ndk r18 it will be the only stl available:
         # https://developer.android.com/ndk/guides/cpp-support
-        stl_gnu_shared_recipes = (
-            'icu', 'leveldb', 'libzmq', 'protobuf_cpp',
-            # CppCompiledPythonRecipes depends on gnustl_shared so...
-            'atom', 'kiwisolver',)
-        stl_cxx_shared_recipes = ('boost',)
         for recipe_name in self.ctx.recipe_build_order:
-            if 'c++_shared' not in libs_to_load and recipe_name in stl_cxx_shared_recipes:
-                libs_to_load.append('c++_shared')
-            if 'gnustl_shared' not in libs_to_load and recipe_name in stl_gnu_shared_recipes:
-                libs_to_load.append('gnustl_shared')
+            recipe = Recipe.get_recipe(recipe_name, self.ctx)
+            if recipe.stl_depends is None:
+                continue
+            if recipe.stl_depends not in ('c++_shared', 'gnustl_shared'):
+                raise BuildInterruptingException(
+                    'You have a non supported value in attribute stl_depends '
+                    '"{stl_lib}" for recipe "{recipe_name}". The'
+                    'value should be one of: "c++_shared" or "gnustl_shared"'.format(
+                        stl_lib=recipe.stl_depends, recipe_name=recipe.name))
+            if recipe.stl_depends not in libs_to_load:
+                libs_to_load.append(recipe.stl_depends)
             if all(lib in libs_to_load for lib in ('c++_shared', 'gnustl_shared')):
                 break
 

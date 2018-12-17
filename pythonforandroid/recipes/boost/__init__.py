@@ -29,6 +29,7 @@ class BoostRecipe(Recipe):
     url = 'http://downloads.sourceforge.net/project/boost/' \
           'boost/{version}/boost_{version_underscore}.tar.bz2'
     depends = [('python2', 'python3')]
+    stl_depends = 'c++_shared'
     patches = ['disable-so-version.patch',
                'use-android-libs.patch',
                'fix-android-issues.patch']

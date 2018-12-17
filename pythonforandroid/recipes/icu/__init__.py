@@ -12,6 +12,7 @@ class ICURecipe(NDKRecipe):
     url = 'http://download.icu-project.org/files/icu4c/57.1/icu4c-57_1-src.tgz'
 
     depends = [('python2', 'python3crystax'), 'hostpython2']  # installs in python
+    stl_depends = 'gnustl_shared'
     generated_libraries = [
         'libicui18n.so', 'libicuuc.so', 'libicudata.so', 'libicule.so']
 

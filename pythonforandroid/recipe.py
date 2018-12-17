@@ -99,6 +99,19 @@ class Recipe(with_metaclass(RecipeMeta)):
     list of pure-Python packages to install via pip. If you need these packages
     at build time, you must create a recipe.'''
 
+    stl_depends = None
+    '''This should be a string which could be two values: ``c++_shared`` or
+    ``gnustl_shared``. It will meant that we depend on one of those shared
+    libs, so it must be loaded at runtime when the apk initialises.
+
+    .. note:: if you write a new recipe you should use c++_shared because it
+        will be the only one stl lib available starting from android ndk r18.
+
+    .. warning:: keep in mind that you should do the copy of the shared lib
+        inside the recipe, except if you inherit from the class
+        :class:`pythonforandroid.recipe.CppCompiledComponentsPythonRecipe`.
+    '''
+
     archs = ['armeabi']  # Not currently implemented properly
 
     hide_unpack_log = True
@@ -888,6 +901,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
     """ Extensions that require the cxx-stl """
     call_hostpython_via_targetpython = False
+    stl_depends = 'gnustl_shared'
 
     def get_recipe_env(self, arch):
         env = super(CppCompiledComponentsPythonRecipe, self).get_recipe_env(arch)

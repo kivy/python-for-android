@@ -7,6 +7,7 @@ class LevelDBRecipe(Recipe):
     version = '1.18'
     url = 'https://github.com/google/leveldb/archive/v{version}.tar.gz'
     opt_depends = ['snappy']
+    stl_depends = 'gnustl_shared'
     patches = ['disable-so-version.patch', 'find-snappy.patch']
 
     def should_build(self, arch):

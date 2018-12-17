@@ -15,6 +15,7 @@ class ProtobufCppRecipe(PythonRecipe):
     url = 'https://github.com/google/protobuf/releases/download/v{version}/protobuf-python-{version}.tar.gz'
     call_hostpython_via_targetpython = False
     depends = ['cffi', 'setuptools']
+    stl_depends = 'gnustl_shared'
     site_packages_name = 'google/protobuf/pyext'
     protoc_dir = None
 
