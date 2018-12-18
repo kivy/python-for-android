@@ -35,6 +35,20 @@ issues and PRs relating to this branch are still accepted. However, the
 new toolchain contains all the same functionality via the built in
 pygame bootstrap.
 
+In the last quarter of 2018 the python recipes has been changed, the new recipe
+for python3 (3.7.1) has a new build system which has been applied to the ancient
+python recipe, allowing us to bump the python2 version number to 2.7.15. This
+change, unifies the build process for both python recipes, and probably solve
+some issues detected over the years, but unfortunately, this change breaks the
+pygame bootstrap (in a near future we will fix it or remove it). This also
+means that the ndk version to use in python-for-android should be at least the
+version r17c.
+
+This has been done this way to make easier the transition between python3 and
+python2. We will try to support python2, at least until the python team release
+the last python2 version (2020), but if you are using python2 in your projects
+you should consider to migrate it into python3.
+
 Documentation
 =============
 
