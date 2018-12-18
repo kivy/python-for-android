@@ -9,7 +9,7 @@ import glob
 import sh
 
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
-from pythonforandroid.logger import logger, info, error, shprint
+from pythonforandroid.logger import logger, info, shprint
 from pythonforandroid.util import (
     current_directory, ensure_dir, walk_valid_filens,
     BuildInterruptingException)
@@ -199,9 +199,9 @@ class GuestPythonRecipe(TargetPythonRecipe):
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
         if self.from_crystax and self.ctx.ndk != 'crystax':
-            error('The {} recipe can only be built when '
-                  'using the CrystaX NDK. Exiting.'.format(self.name))
-            exit(1)
+            raise BuildInterruptingException(
+                'The {} recipe can only be built when using the CrystaX NDK. '
+                'Exiting.'.format(self.name))
         self.ctx.python_recipe = self
 
     def build_arch(self, arch):
