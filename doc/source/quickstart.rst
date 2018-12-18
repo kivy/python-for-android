@@ -101,12 +101,6 @@ operating system. The minimal, and recommended, NDK version to use is r17c:
    installed, and then you can follow the described instructions from within
    your virtual machine.
 
-.. note::
-    Versions below r17 may cause troubles while compiling some recipes. Our
-    tests had been done against ndk versions r17b and r17c. Later versions of
-    the android ndk still are not proved to work with python-for-android, and
-    may work or not...so...better to stick to the recommended version (r17c).
-
 If you are using a 32-bit distribution (or hardware),
 the latest usable NDK version is r10e, which can be downloaded here:
 
