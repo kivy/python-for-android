@@ -40,14 +40,15 @@ for python3 (3.7.1) has a new build system which has been applied to the ancient
 python recipe, allowing us to bump the python2 version number to 2.7.15. This
 change, unifies the build process for both python recipes, and probably solve
 some issues detected over the years, but unfortunately, this change breaks the
-pygame bootstrap (in a near future we will fix it or remove it). This also
-means that the ndk version to use in python-for-android should be at least the
-version r17c.
+pygame bootstrap (in a near future we will fix it or remove it). All this work
+has been done using android ndk version r17c, and your build should success
+with that version...but be aware that the project is in constant development
+so...the ndk version will change at some time.
 
-This has been done this way to make easier the transition between python3 and
-python2. We will try to support python2, at least until the python team release
-the last python2 version (2020), but if you are using python2 in your projects
-you should consider to migrate it into python3.
+Those mentioned changes has been done this way to make easier the transition
+between python3 and python2. We will slowly phase out python2 support
+towards 2020...so...if you are using python2 in your projects you should
+consider to migrate it into python3.
 
 Documentation
 =============
