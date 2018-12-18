@@ -26,11 +26,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.graphics.PixelFormat;
 import android.view.SurfaceHolder;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ApplicationInfo;
 import android.content.Intent;
@@ -38,6 +40,7 @@ import android.widget.ImageView;
 import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 
 import android.widget.AbsoluteLayout;
 import android.view.ViewGroup.LayoutParams;
@@ -73,6 +76,11 @@ public class PythonActivity extends Activity {
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
 
+    public String getAppRoot() {
+        String app_root =  getFilesDir().getAbsolutePath() + "/app";
+        return app_root;
+    }
+
     public static void initialize() {
         // The static nature of the singleton and Android quirkyness force us to initialize everything here
         // Otherwise, when exiting the app and returning to it, these variables *keep* their pre exit values
@@ -87,13 +95,20 @@ public class PythonActivity extends Activity {
         resourceManager = new ResourceManager(this);
 
         Log.v(TAG, "Ready to unpack");
-        unpackData("private", getFilesDir());
+        File app_root_file = new File(getAppRoot());
+        unpackData("private", app_root_file);
+
+        Log.v(TAG, "About to do super onCreate");
+        super.onCreate(savedInstanceState);
+        Log.v(TAG, "Did super onCreate");
 
         this.mActivity = this;
-
+        //this.showLoadingScreen();
         Log.v("Python", "Device: " + android.os.Build.DEVICE);
         Log.v("Python", "Model: " + android.os.Build.MODEL);
-        super.onCreate(savedInstanceState);
+
+        //Log.v(TAG, "Ready to unpack");
+        //new UnpackFilesTask().execute(getAppRoot());
 
         PythonActivity.initialize();
 
@@ -134,10 +149,12 @@ public class PythonActivity extends Activity {
         }
 
         // Set up the webview
+        String app_root_dir = getAppRoot();
+
         mWebView = new WebView(this);
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setDomStorageEnabled(true);
-        mWebView.loadUrl("file:///" + mActivity.getFilesDir().getAbsolutePath() + "/_load.html");
+        mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
 
         mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         mWebView.setWebViewClient(new WebViewClient() {
@@ -147,30 +164,32 @@ public class PythonActivity extends Activity {
                     return false;
                 }
             });
-
         mLayout = new AbsoluteLayout(this);
         mLayout.addView(mWebView);
 
         setContentView(mLayout);
 
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
+
         Log.v(TAG, "Setting env vars for start.c and Python to use");
-        PythonActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-        PythonActivity.nativeSetEnv("ANDROID_ARGUMENT", mFilesDirectory);
-        PythonActivity.nativeSetEnv("ANDROID_APP_PATH", mFilesDirectory);
-        PythonActivity.nativeSetEnv("ANDROID_UNPACK", mFilesDirectory);
         PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
-        PythonActivity.nativeSetEnv("PYTHONHOME", mFilesDirectory);
-        PythonActivity.nativeSetEnv("PYTHONPATH", mFilesDirectory + ":" + mFilesDirectory + "/lib");
+        PythonActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
+        PythonActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
+        PythonActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
+        PythonActivity.nativeSetEnv("ANDROID_UNPACK", app_root_dir);
+        PythonActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
+        PythonActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+        PythonActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
 
         try {
             Log.v(TAG, "Access to our meta-data...");
-            this.mMetaData = this.mActivity.getPackageManager().getApplicationInfo(
-                    this.mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+            mActivity.mMetaData = mActivity.getPackageManager().getApplicationInfo(
+                    mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
 
-            PowerManager pm = (PowerManager) this.mActivity.getSystemService(Context.POWER_SERVICE);
-            if ( this.mMetaData.getInt("wakelock") == 1 ) {
-                this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+            PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
+            if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
+                mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+                mActivity.mWakeLock.acquire();
             }
         } catch (PackageManager.NameNotFoundException e) {
         }
@@ -181,19 +200,22 @@ public class PythonActivity extends Activity {
 
         final Thread wvThread = new Thread(new WebViewLoaderMain(), "WvThread");
         wvThread.start();
+
     }
 
     @Override
     public void onDestroy() {
         Log.i("Destroy", "end of app");
         super.onDestroy();
-        
+
         // make sure all child threads (python_thread) are stopped
         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     public void loadLibraries() {
-        PythonUtil.loadLibraries(getFilesDir());
+        String app_root = new String(getAppRoot());
+        File app_root_file = new File(app_root);
+        PythonUtil.loadLibraries(app_root_file);
     }
 
     public void recursiveDelete(File f) {
@@ -402,12 +424,13 @@ public class PythonActivity extends Activity {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
+        String app_root_dir = PythonActivity.mActivity.getAppRoot();
         serviceIntent.putExtra("androidPrivate", argument);
-        serviceIntent.putExtra("androidArgument", argument);
+        serviceIntent.putExtra("androidArgument", app_root_dir);
         serviceIntent.putExtra("serviceEntrypoint", "service/main.pyo");
         serviceIntent.putExtra("pythonName", "python");
-        serviceIntent.putExtra("pythonHome", argument);
-        serviceIntent.putExtra("pythonPath", argument + ":" + filesDirectory + "/lib");
+        serviceIntent.putExtra("pythonHome", app_root_dir);
+        serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
         serviceIntent.putExtra("serviceTitle", serviceTitle);
         serviceIntent.putExtra("serviceDescription", serviceDescription);
         serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
