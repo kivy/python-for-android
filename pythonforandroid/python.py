@@ -96,9 +96,8 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         if self.from_crystax:
-            return \
-                super(GuestPythonRecipe, self).get_recipe_env(
-                    arch=arch, with_flags_in_cc=with_flags_in_cc)
+            return super(GuestPythonRecipe, self).get_recipe_env(
+                arch=arch, with_flags_in_cc=with_flags_in_cc)
 
         env = environ.copy()
         platform_name = 'android-{}'.format(self.ctx.ndk_api)
@@ -116,8 +115,8 @@ class GuestPythonRecipe(TargetPythonRecipe):
         target = '-'.join(
             [target_data[0], 'none', target_data[1], target_data[2]])
 
-        env['CC'] = \
-            '{clang} -target {target} -gcc-toolchain {toolchain}'.format(
+        env['CC'] = (
+            '{clang} -target {target} -gcc-toolchain {toolchain}').format(
                 clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt',
                            'linux-x86_64', 'bin', 'clang'),
                 target=target,
@@ -126,12 +125,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
         env['LD'] = join(toolchain, 'bin', android_host) + '-ld'
         env['RANLIB'] = join(toolchain, 'bin', android_host) + '-ranlib'
         env['READELF'] = join(toolchain, 'bin', android_host) + '-readelf'
-        env['STRIP'] = \
-            join(toolchain, 'bin', android_host) + \
-            '-strip --strip-debug --strip-unneeded'
+        env['STRIP'] = join(toolchain, 'bin', android_host) + '-strip'
+        env['STRIP'] += ' --strip-debug --strip-unneeded'
 
-        env['PATH'] = \
-            '{hostpython_dir}:{old_path}'.format(
+        env['PATH'] = (
+            '{hostpython_dir}:{old_path}').format(
                 hostpython_dir=self.get_recipe(
                     'host' + self.name, self.ctx).get_path_to_python(),
                 old_path=env['PATH'])
