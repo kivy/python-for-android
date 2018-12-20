@@ -41,9 +41,9 @@ class Arch(object):
             cflags += ['-mandroid']
         else:
             cflags += ['-target armv7-none-linux-androideabi']
-            android_host = 'arm-linux-androideabi'
-            platform_dir = join(self.ctx.ndk_dir, 'platforms', 'android-{}'.format(self.ctx.ndk_api), 'arch-arm')
-            toolchain = '{android_host}-4.9'.format(android_host=android_host)
+            toolchain = '{android_host}-{toolchain_version}'.format(
+                android_host=self.ctx.toolchain_prefix,
+                toolchain_version=self.ctx.toolchain_version)
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
             cflags += ['-gcc-toolchain {}'.format(toolchain)]
 
