@@ -483,7 +483,7 @@ main.py that loads it.''')
             join(res_dir, 'values/strings.xml'),
             **render_args)
 
-    if exists("custom_rules.tmpl.xml"):
+    if exists(join("templates", "custom_rules.tmpl.xml")):
         render(
             'custom_rules.tmpl.xml',
             'custom_rules.xml',
