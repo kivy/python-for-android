@@ -100,12 +100,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
                 arch=arch, with_flags_in_cc=with_flags_in_cc)
 
         env = environ.copy()
-        platform_name = 'android-{}'.format(self.ctx.ndk_api)
 
-        # TODO: Get this information from p4a's arch system
-        android_host = env['HOSTARCH'] = 'arm-linux-androideabi'
-
-        toolchain = '{android_host}-4.9'.format(android_host=android_host)
+        android_host = env['HOSTARCH'] = self.ctx.toolchain_prefix
+        toolchain = '{toolchain_prefix}-{toolchain_version}'.format(
+            toolchain_prefix=self.ctx.toolchain_prefix,
+            toolchain_version=self.ctx.toolchain_version)
         toolchain = join(self.ctx.ndk_dir, 'toolchains',
                          toolchain, 'prebuilt', 'linux-x86_64')
 
@@ -142,8 +141,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
                 ndk_android_host=join(
                     self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host),
                 ndk_include=join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include'))
-        sysroot = join(self.ctx.ndk_dir, 'platforms',
-                       platform_name, 'arch-arm')
+        sysroot = self.ctx.ndk_platform
         env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
         env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
         env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(
