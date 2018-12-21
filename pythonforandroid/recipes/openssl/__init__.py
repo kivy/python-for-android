@@ -93,6 +93,8 @@ class OpenSSLRecipe(Recipe):
             return 'android-arm'
         if 'arm' in aname:
             return 'android'
+        if 'x86_64' in aname:
+            return 'android-x86_64'
         if 'x86' in aname:
             return 'android-x86'
         return 'linux-armv4'
