@@ -101,7 +101,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
         env = environ.copy()
 
-        android_host = env['HOSTARCH'] = self.ctx.toolchain_prefix
+        android_host = env['HOSTARCH'] = arch.command_prefix
         toolchain = '{toolchain_prefix}-{toolchain_version}'.format(
             toolchain_prefix=self.ctx.toolchain_prefix,
             toolchain_version=self.ctx.toolchain_version)
