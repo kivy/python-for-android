@@ -30,6 +30,12 @@ class Arch(object):
                 d.format(arch=self))
             for d in self.ctx.include_dirs]
 
+    @property
+    def target(self):
+        target_data = self.command_prefix.split('-')
+        return '-'.join(
+            [target_data[0], 'none', target_data[1], target_data[2]])
+
     def get_env(self, with_flags_in_cc=True, clang=False):
         env = {}
 
@@ -40,7 +46,7 @@ class Arch(object):
         if not clang:
             cflags += ['-mandroid']
         else:
-            cflags += ['-target armv7-none-linux-androideabi']
+            cflags += ['-target ' + self.target]
             toolchain = '{android_host}-{toolchain_version}'.format(
                 android_host=self.ctx.toolchain_prefix,
                 toolchain_version=self.ctx.toolchain_version)
@@ -169,6 +175,12 @@ class ArchARM(Arch):
     toolchain_prefix = 'arm-linux-androideabi'
     command_prefix = 'arm-linux-androideabi'
     platform_dir = 'arch-arm'
+
+    @property
+    def target(self):
+        target_data = self.command_prefix.split('-')
+        return '-'.join(
+            ['armv7a', 'none', target_data[1], target_data[2]])
 
 
 class ArchARMv7_a(ArchARM):

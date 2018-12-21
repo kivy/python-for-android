@@ -108,17 +108,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
         toolchain = join(self.ctx.ndk_dir, 'toolchains',
                          toolchain, 'prebuilt', 'linux-x86_64')
 
-        target_data = arch.command_prefix.split('-')
-        if target_data[0] == 'arm':
-            target_data[0] = 'armv7a'
-        target = '-'.join(
-            [target_data[0], 'none', target_data[1], target_data[2]])
-
         env['CC'] = (
             '{clang} -target {target} -gcc-toolchain {toolchain}').format(
                 clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt',
                            'linux-x86_64', 'bin', 'clang'),
-                target=target,
+                target=arch.target,
                 toolchain=toolchain)
         env['AR'] = join(toolchain, 'bin', android_host) + '-ar'
         env['LD'] = join(toolchain, 'bin', android_host) + '-ld'
