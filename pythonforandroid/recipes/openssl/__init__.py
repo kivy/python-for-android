@@ -54,16 +54,17 @@ class OpenSSLRecipe(Recipe):
     def include_flags(self, arch):
         '''Returns a string with the include folders'''
         openssl_includes = join(self.get_build_dir(arch.arch), 'include')
-        return ' -I' + openssl_includes + \
-               ' -I' + join(openssl_includes, 'internal') + \
-               ' -I' + join(openssl_includes, 'openssl')
+        return (' -I' + openssl_includes +
+                ' -I' + join(openssl_includes, 'internal') +
+                ' -I' + join(openssl_includes, 'openssl'))
 
     def link_flags(self, arch):
         '''Returns a string with the right link flags to compile against the
         openssl libraries'''
         build_dir = self.get_build_dir(arch.arch)
-        return ' -L' + build_dir + \
-               ' -lcrypto{version} -lssl{version}'.format(version=self.version)
+        return (' -L' + build_dir +
+                ' -lcrypto{version} -lssl{version}'.format(
+                    version=self.version))
 
     def should_build(self, arch):
         return not self.has_libs(arch, 'libssl' + self.version + '.so',
