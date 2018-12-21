@@ -66,16 +66,6 @@ class Python2LegacyRecipe(TargetPythonRecipe):
         if not exists(join(self.ctx.get_libs_dir(arch.arch), 'libpython2.7.so')):
             shprint(sh.cp, join(self.get_build_dir(arch.arch), 'libpython2.7.so'), self.ctx.get_libs_dir(arch.arch))
 
-        # # if exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
-        # if exists(join(self.ctx.libs_dir, 'libpython2.7.so')):
-        #     info('libpython2.7.so already exists, skipping python build.')
-        #     if not exists(join(self.ctx.get_python_install_dir(), 'libpython2.7.so')):
-        #         info('Copying python-install to dist-dependent location')
-        #         shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
-        #     self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
-
-        #     return
-
     def do_python_build(self, arch):
 
         shprint(sh.cp, self.ctx.hostpython, self.get_build_dir(arch.arch))
@@ -169,17 +159,6 @@ class Python2LegacyRecipe(TargetPythonRecipe):
                              'curses'):
                 shprint(sh.rm, '-rf', join('python-install',
                                            'lib', 'python2.7', dir_name))
-
-            # info('Copying python-install to dist-dependent location')
-            # shprint(sh.cp, '-a', 'python-install', self.ctx.get_python_install_dir())
-
-            # print('Copying hostpython binary to targetpython folder')
-            # shprint(sh.cp, self.ctx.hostpython,
-            #         join(self.ctx.get_python_install_dir(), 'bin', 'python.host'))
-            # self.ctx.hostpython = join(self.ctx.get_python_install_dir(), 'bin', 'python.host')
-
-        # print('python2legacy build done, exiting for debug')
-        # exit(1)
 
     def create_python_bundle(self, dirn, arch):
         info("Filling private directory")
