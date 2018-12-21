@@ -88,7 +88,7 @@ class OpenSSLRecipe(Recipe):
     def select_build_arch(self, arch):
         aname = arch.arch
         if 'arm64' in aname:
-            return 'linux-aarch64'
+            return 'android-arm64'
         if 'v7a' in aname:
             return 'android-arm'
         if 'arm' in aname:
