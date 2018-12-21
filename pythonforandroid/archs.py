@@ -62,6 +62,8 @@ class Arch(object):
             # https://android.googlesource.com/platform/ndk/+/ndk-r15-release/docs/UnifiedHeaders.md
             env['CFLAGS'] += ' -isystem {}/sysroot/usr/include/{}'.format(
                 self.ctx.ndk_dir, self.ctx.toolchain_prefix)
+            env['CFLAGS'] += ' -I{}/sysroot/usr/include/{}'.format(
+                self.ctx.ndk_dir, self.command_prefix)
         else:
             sysroot = self.ctx.ndk_platform
             env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk_platform)
