@@ -2,7 +2,7 @@ from os.path import exists, join
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import info, shprint
 from pythonforandroid.util import current_directory
-import glob
+from glob import glob
 import sh
 
 
@@ -62,22 +62,33 @@ class LibffiRecipe(Recipe):
                 info("make libffi.la failed as expected")
             cc = sh.Command(env['CC'].split()[0])
             cflags = env['CC'].split()[1:]
+            host_build = join(self.get_build_dir(arch.arch), self.get_host(arch))
 
-            src_arch = arch.toolchain_prefix.replace('-linux-android', '')
+            arch_flags = ''
+            if '-march=' in env['CFLAGS']:
+                arch_flags = '-march={}'.format(env['CFLAGS'].split('-march=')[1])
+
+            src_arch = arch.command_prefix.split('-')[0]
+            if src_arch == 'x86_64':
+                # libffi has not specific arch files for x86_64...so...using
+                # the ones from x86 which seems to build fine...
+                src_arch = 'x86'
+
+            cflags.extend(arch_flags.split())
             cflags.extend(['-shared', '-fPIC', '-DPIC'])
-            cflags.extend(glob.glob('src/.libs/*.o'))
-            cflags.extend(glob.glob('src/{}/.libs/ffi.o'.format(src_arch)))
+            cflags.extend(glob(join(host_build, 'src/.libs/*.o')))
+            cflags.extend(glob(join(host_build, 'src', src_arch, '.libs/*.o')))
 
             ldflags = env['LDFLAGS'].split()
             cflags.extend(ldflags)
             cflags.extend(['-Wl,-soname', '-Wl,libffi.so', '-o',
                            '.libs/libffi.so'])
 
-            with current_directory(self.get_host(arch)):
+            with current_directory(host_build):
                 shprint(cc, *cflags, _env=env)
 
             shprint(sh.cp, '-t', self.ctx.get_libs_dir(arch.arch),
-                    join(self.get_host(arch), '.libs', 'libffi.so'))
+                    join(host_build, '.libs', 'libffi.so'))
 
     def get_include_dirs(self, arch):
         return [join(self.get_build_dir(arch.arch), self.get_host(arch),
