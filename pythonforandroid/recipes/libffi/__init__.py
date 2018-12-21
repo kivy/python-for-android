@@ -2,6 +2,7 @@ from os.path import exists, join
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import info, shprint
 from pythonforandroid.util import current_directory
+import glob
 import sh
 
 
@@ -43,7 +44,7 @@ class LibffiRecipe(Recipe):
                 shprint(sh.Command('./autogen.sh'), _env=env)
             shprint(sh.Command('autoreconf'), '-vif', _env=env)
             shprint(sh.Command('./configure'),
-                    '--host=' + arch.toolchain_prefix,
+                    '--host=' + arch.command_prefix,
                     '--prefix=' + self.ctx.get_python_install_dir(),
                     '--enable-shared', _env=env)
             # '--with-sysroot={}'.format(self.ctx.ndk_platform),
@@ -52,7 +53,7 @@ class LibffiRecipe(Recipe):
             # ndk 15 introduces unified headers required --sysroot and
             # -isysroot for libraries and headers. libtool's head explodes
             # trying to weave them into it's own magic. The result is a link
-            # failure tryng to link libc. We call make to compile the bits
+            # failure trying to link libc. We call make to compile the bits
             # and manually link...
 
             try:
@@ -62,13 +63,10 @@ class LibffiRecipe(Recipe):
             cc = sh.Command(env['CC'].split()[0])
             cflags = env['CC'].split()[1:]
 
-            cflags.extend(['-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfp',
-                           '-mthumb', '-shared', '-fPIC', '-DPIC',
-                           'src/.libs/prep_cif.o', 'src/.libs/types.o',
-                           'src/.libs/raw_api.o', 'src/.libs/java_raw_api.o',
-                           'src/.libs/closures.o', 'src/arm/.libs/sysv.o',
-                           'src/arm/.libs/ffi.o', ]
-                         )
+            src_arch = arch.toolchain_prefix.replace('-linux-android', '')
+            cflags.extend(['-shared', '-fPIC', '-DPIC'])
+            cflags.extend(glob.glob('src/.libs/*.o'))
+            cflags.extend(glob.glob('src/{}/.libs/ffi.o'.format(src_arch)))
 
             ldflags = env['LDFLAGS'].split()
             cflags.extend(ldflags)
