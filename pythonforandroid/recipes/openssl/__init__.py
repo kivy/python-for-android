@@ -1,6 +1,4 @@
-import time
 from os.path import join
-from functools import partial
 
 from pythonforandroid.toolchain import Recipe, shprint, current_directory
 import sh
@@ -70,15 +68,6 @@ class OpenSSLRecipe(Recipe):
         return not self.has_libs(arch, 'libssl' + self.version + '.so',
                                  'libcrypto' + self.version + '.so')
 
-    def check_symbol(self, env, sofile, symbol):
-        nm = env.get('NM', 'nm')
-        syms = sh.sh('-c', "{} -gp {} | cut -d' ' -f3".format(
-                nm, sofile), _env=env).splitlines()
-        if symbol in syms:
-            return True
-        print('{} missing symbol {}; rebuilding'.format(sofile, symbol))
-        return False
-
     def get_recipe_env(self, arch=None):
         env = super(OpenSSLRecipe, self).get_recipe_env(arch, clang=True)
         env['OPENSSL_VERSION'] = self.version
@@ -118,14 +107,7 @@ class OpenSSLRecipe(Recipe):
                     _env=env)
             self.apply_patch('disable-sover.patch', arch.arch)
 
-            # check_ssl = partial(self.check_symbol, env, 'libssl' + self.version + '.so')
-            check_crypto = partial(self.check_symbol, env, 'libcrypto' + self.version + '.so')
-            while True:
-                shprint(sh.make, 'build_libs', _env=env)
-                if all(map(check_crypto, ('MD5_Transform', 'MD4_Init'))):
-                    break
-                time.sleep(3)
-                shprint(sh.make, 'clean', _env=env)
+            shprint(sh.make, 'build_libs', _env=env)
 
             self.install_libs(arch, 'libssl' + self.version + '.so',
                               'libcrypto' + self.version + '.so')
