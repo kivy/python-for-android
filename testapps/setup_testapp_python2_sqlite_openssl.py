@@ -13,9 +13,6 @@ options = {'apk': {'requirements': 'sdl2,pyjnius,kivy,python2,openssl,requests,p
                    'window': None,
                    }}
 
-packages = find_packages()
-print('packages are', packages)
-
 setup(
     name='testapp_python2_sqlite_openssl',
     version='1.1',

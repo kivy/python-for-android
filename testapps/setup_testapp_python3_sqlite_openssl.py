@@ -15,9 +15,6 @@ package_data = {'': ['*.py',
                      '*.png']
                 }
 
-packages = find_packages()
-print('packages are', packages)
-
 setup(
     name='testapp_python3_sqlite_openssl_googlendk',
     version='1.1',
