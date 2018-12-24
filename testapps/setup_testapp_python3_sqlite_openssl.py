@@ -2,7 +2,8 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-options = {'apk': {'requirements': 'libffi,openssl,sqlite3,requests,peewee,sdl2,pyjnius,kivy,python3',
+options = {'apk': {'requirements': 'libffi,openssl,sqlite3,requests,peewee,'
+                                   'sdl2,pyjnius,kivy,python3',
                    'android-api': 27,
                    'ndk-api': 21,
                    'dist-name': 'bdisttest_python3_sqlite_openssl_googlendk',
@@ -10,10 +11,6 @@ options = {'apk': {'requirements': 'libffi,openssl,sqlite3,requests,peewee,sdl2,
                    'arch': 'armeabi-v7a',
                    'permissions': ['INTERNET', 'VIBRATE'],
                    }}
-
-package_data = {'': ['*.py',
-                     '*.png']
-                }
 
 setup(
     name='testapp_python3_sqlite_openssl_googlendk',
