@@ -46,8 +46,6 @@ curdir = dirname(__file__)
 # Try to find a host version of Python that matches our ARM version.
 PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
 if not exists(PYTHON):
-    print('Could not find hostpython, will not compile to .pyo '
-          '(this is normal with python2 and python3)')
     PYTHON = None
 
 BLACKLIST_PATTERNS = [
