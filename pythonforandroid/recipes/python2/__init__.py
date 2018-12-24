@@ -1,7 +1,6 @@
 from os.path import join, exists
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.python import GuestPythonRecipe
-# from pythonforandroid.patching import is_api_lt
 from pythonforandroid.logger import shprint
 import sh
 
