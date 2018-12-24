@@ -44,14 +44,14 @@ class Arch(object):
             '-fomit-frame-pointer',
             '-D__ANDROID_API__={}'.format(self.ctx.ndk_api)]
         if not clang:
-            cflags += ['-mandroid']
+            cflags.append('-mandroid')
         else:
-            cflags += ['-target ' + self.target]
+            cflags.append('-target ' + self.target)
             toolchain = '{android_host}-{toolchain_version}'.format(
                 android_host=self.ctx.toolchain_prefix,
                 toolchain_version=self.ctx.toolchain_version)
             toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
-            cflags += ['-gcc-toolchain {}'.format(toolchain)]
+            cflags.append('-gcc-toolchain {}'.format(toolchain))
 
         env['CFLAGS'] = ' '.join(cflags)
         env['LDFLAGS'] = ' '
