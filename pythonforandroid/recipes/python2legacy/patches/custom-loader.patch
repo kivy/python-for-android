@@ -48,20 +48,3 @@
      if (fp != NULL) {
          int i;
          struct stat statb;
---- Python-2.7.2.orig/Python/pythonrun.c	2010-10-29 05:45:34.000000000 +0200
-+++ Python-2.7.2/Python/pythonrun.c	2011-04-20 17:52:12.000000000 +0200
-@@ -254,9 +254,13 @@
-     _PyGILState_Init(interp, tstate);
- #endif /* WITH_THREAD */
- 
-+    /* For PGS4A, we don't want to call initsite, as we won't have the
-+       library path set up until start.pyx finishes running. */
-+#if 0
-     if (!Py_NoSiteFlag)
-         initsite(); /* Module site */
--
-+#endif 
-+    
-     if ((p = Py_GETENV("PYTHONIOENCODING")) && *p != '\0') {
-         p = icodeset = codeset = strdup(p);
-         free_codeset = 1;

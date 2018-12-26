@@ -30,7 +30,6 @@ class Python2Recipe(GuestPythonRecipe):
                'patches/fix-missing-extensions.patch',
                'patches/fix-filesystem-default-encoding.patch',
                'patches/fix-locale.patch',
-               'patches/fix-init-site.patch',
                ]
 
     configure_args = ('--host={android_host}',

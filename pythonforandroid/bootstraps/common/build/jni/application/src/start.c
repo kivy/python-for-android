@@ -104,6 +104,10 @@ int main(int argc, char *argv[]) {
   LOGP(env_argument);
   chdir(env_argument);
 
+#if PY_MAJOR_VERSION < 3
+  Py_NoSiteFlag=1;
+#endif
+
   Py_SetProgramName(L"android_python");
 
 #if PY_MAJOR_VERSION >= 3
