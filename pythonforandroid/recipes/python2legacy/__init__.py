@@ -187,9 +187,8 @@ class Python2LegacyRecipe(TargetPythonRecipe):
             removes = []
             for dirname, root, filenames in walk("."):
                 for filename in filenames:
-                    for suffix in EXCLUDE_EXTS:
-                        if filename.endswith(suffix):
-                            removes.append(filename)
+                    if filename.endswith(EXCLUDE_EXTS):
+                        removes.append(filename)
             shprint(sh.rm, '-f', *removes)
 
             info('Deleting some other stuff not used on android')
