@@ -22,7 +22,7 @@ class Python3Recipe(GuestPythonRecipe):
     name = 'python3'
 
     depends = ['hostpython3']
-    conflicts = ['python3crystax', 'python2']
+    conflicts = ['python3crystax', 'python2', 'python2legacy']
 
     configure_args = (
         '--host={android_host}',
