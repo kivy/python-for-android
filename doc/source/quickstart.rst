@@ -95,8 +95,7 @@ the SDK packages needed.
 For Android NDK, note that modern releases will only work on a 64-bit
 operating system. The minimal, and recommended, NDK version to use is r17c:
 
- - `Linux (64-bits) <https://dl.google.com/android/repository/android-ndk-r17c-linux-x86_64.zip>`_
- - `Macos X (64-bits) <https://dl.google.com/android/repository/android-ndk-r17c-darwin-x86_64.zip>`_
+ - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
  - Windows users should create a virtual machine with an GNU Linux os
    installed, and then you can follow the described instructions from within
    your virtual machine.
