@@ -163,7 +163,10 @@ int main(int argc, char *argv[]) {
 #if PY_MAJOR_VERSION < 3
   // Can't Py_SetPath in python2 but we can set PySys_SetPath, which must
   // be applied after Py_Initialize rather than before like Py_SetPath
-  PySys_SetPath(paths);
+  #if PY_MICRO_VERSION >= 15
+    // Only for python native-build
+    PySys_SetPath(paths);
+  #endif
   PySys_SetArgv(argc, argv);
 #endif
 
@@ -185,6 +188,20 @@ int main(int argc, char *argv[]) {
    * replace sys.path with our path
    */
   PyRun_SimpleString("import sys, posix\n");
+  if (dir_exists("lib")) {
+    /* If we built our own python, set up the paths correctly.
+     * This is only the case if we are using the python2legacy recipe
+     */
+    LOGP("Setting up python from ANDROID_APP_PATH");
+    PyRun_SimpleString("private = posix.environ['ANDROID_APP_PATH']\n"
+                       "argument = posix.environ['ANDROID_ARGUMENT']\n"
+                       "sys.path[:] = [ \n"
+                       "    private + '/lib/python27.zip', \n"
+                       "    private + '/lib/python2.7/', \n"
+                       "    private + '/lib/python2.7/lib-dynload/', \n"
+                       "    private + '/lib/python2.7/site-packages/', \n"
+                       "    argument ]\n");
+  }
 
   char add_site_packages_dir[256];
   if (dir_exists(crystax_python_dir)) {

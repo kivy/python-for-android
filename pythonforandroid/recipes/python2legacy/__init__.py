@@ -163,6 +163,19 @@ class Python2LegacyRecipe(TargetPythonRecipe):
                 shprint(sh.rm, '-rf', join('python-install',
                                            'lib', 'python2.7', dir_name))
 
+    def create_python_install(self, dist_dir):
+        hostpython = sh.Command(self.ctx.hostpython)
+        install_dir = self.ctx.get_python_install_dir()
+        with current_directory(dist_dir):
+            try:
+                shprint(hostpython, '-OO', '-m', 'compileall',
+                        install_dir,
+                        _tail=10, _filterout="^Listing")
+            except sh.ErrorReturnCode:
+                pass
+            if not exists('python-install'):
+                shprint(sh.cp, '-a', install_dir, './python-install')
+
     def create_python_bundle(self, dirn, arch):
         info("Filling private directory")
         if not exists(join(dirn, "lib")):
