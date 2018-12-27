@@ -2,6 +2,7 @@ from pythonforandroid.recipe import TargetPythonRecipe, Recipe
 from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import (is_darwin, is_api_gt,
                                        check_all, is_api_lt, is_ndk)
+from multiprocessing import cpu_count
 from os.path import exists, join, realpath
 from os import walk
 import glob
@@ -129,7 +130,8 @@ class Python2LegacyRecipe(TargetPythonRecipe):
             make = sh.Command(env['MAKE'].split(' ')[0])
             print('First install (expected to fail...')
             try:
-                shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
+                shprint(make, '-j' + str(cpu_count()), 'install',
+                        'HOSTPYTHON={}'.format(hostpython),
                         'HOSTPGEN={}'.format(hostpgen),
                         'CROSS_COMPILE_TARGET=yes',
                         'INSTSONAME=libpython2.7.so',
@@ -139,7 +141,8 @@ class Python2LegacyRecipe(TargetPythonRecipe):
 
             print('Second install (expected to work)')
             shprint(sh.touch, 'python.exe', 'python')
-            shprint(make, '-j5', 'install', 'HOSTPYTHON={}'.format(hostpython),
+            shprint(make, '-j' + str(cpu_count()), 'install',
+                    'HOSTPYTHON={}'.format(hostpython),
                     'HOSTPGEN={}'.format(hostpgen),
                     'CROSS_COMPILE_TARGET=yes',
                     'INSTSONAME=libpython2.7.so',
