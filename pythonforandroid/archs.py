@@ -1,5 +1,6 @@
-from os.path import (exists, join, dirname)
+from os.path import (exists, join, dirname, split)
 from os import environ, uname
+from glob import glob
 import sys
 from distutils.spawn import find_executable
 
@@ -102,9 +103,10 @@ class Arch(object):
             env.update({k: v for k, v in environ.items() if k.startswith('CCACHE_')})
 
         if clang:
-            clang_path = join(
-                self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt',
-                'linux-x86_64', 'bin')
+            llvm_dirname = split(
+                glob(join(self.ctx.ndk_dir, 'toolchains', 'llvm*'))[-1])[-1]
+            clang_path = join(self.ctx.ndk_dir, 'toolchains', llvm_dirname,
+                              'prebuilt', 'linux-x86_64', 'bin')
             environ['PATH'] = '{clang_path}:{path}'.format(
                 clang_path=clang_path, path=environ['PATH'])
             exe = join(clang_path, 'clang')
