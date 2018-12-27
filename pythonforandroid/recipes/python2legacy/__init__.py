@@ -49,6 +49,13 @@ class Python2LegacyRecipe(TargetPythonRecipe):
 
     from_crystax = False
 
+    def prebuild_arch(self, arch):
+        super(Python2LegacyRecipe, self).prebuild_arch(arch)
+        patch_mark = join(self.get_build_dir(arch.arch), '.openssl-patched')
+        if 'openssl' in self.ctx.recipe_build_order and not exists(patch_mark):
+            self.apply_patch(join('patches', 'enable-openssl.patch'), arch.arch)
+            shprint(sh.touch, patch_mark)
+
     def build_arch(self, arch):
 
         if not exists(join(self.get_build_dir(arch.arch), 'libpython2.7.so')):
@@ -89,10 +96,8 @@ class Python2LegacyRecipe(TargetPythonRecipe):
             # dependencies have changed (possibly in a generic way)
             if 'openssl' in self.ctx.recipe_build_order:
                 recipe = Recipe.get_recipe('openssl', self.ctx)
-                openssl_build_dir = recipe.get_build_dir(arch.arch)
-                setuplocal = join('Modules', 'Setup.local')
-                shprint(sh.cp, join(self.get_recipe_dir(), 'Setup.local-ssl'), setuplocal)
-                shprint(sh.sed, '-i.backup', 's#^SSL=.*#SSL={}#'.format(openssl_build_dir), setuplocal)
+                openssl_build = recipe.get_build_dir(arch.arch)
+                env['OPENSSL_BUILD'] = openssl_build
                 env['OPENSSL_VERSION'] = recipe.version
 
             if 'sqlite3' in self.ctx.recipe_build_order:
