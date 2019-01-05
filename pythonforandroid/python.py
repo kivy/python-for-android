@@ -163,27 +163,29 @@ class GuestPythonRecipe(TargetPythonRecipe):
         '''Takes care to properly link libraries with python depending on our
         requirements and the attribute :attr:`opt_depends`.
         '''
-        def add_flags(include_flags, link_flags):
+        def add_flags(include_flags, link_dirs, link_libs):
             env['CPPFLAGS'] = env.get('CPPFLAGS', '') + include_flags
-            env['LDFLAGS'] = env.get('LDFLAGS', '') + link_flags
+            env['LDFLAGS'] = env.get('LDFLAGS', '') + link_dirs
+            env['LIBS'] = env.get('LIBS', '') + link_libs
 
         if 'sqlite3' in self.ctx.recipe_build_order:
             info('Activating flags for sqlite3')
             recipe = Recipe.get_recipe('sqlite3', self.ctx)
             add_flags(' -I' + recipe.get_build_dir(arch.arch),
-                      ' -L' + recipe.get_lib_dir(arch) + ' -lsqlite3')
+                      ' -L' + recipe.get_lib_dir(arch), ' -lsqlite3')
 
         if 'libffi' in self.ctx.recipe_build_order:
             info('Activating flags for libffi')
             recipe = Recipe.get_recipe('libffi', self.ctx)
             add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
                       ' -L' + join(recipe.get_build_dir(arch.arch),
-                                   recipe.get_host(arch), '.libs') + ' -lffi')
+                                   recipe.get_host(arch), '.libs'), ' -lffi')
 
         if 'openssl' in self.ctx.recipe_build_order:
             info('Activating flags for openssl')
             recipe = Recipe.get_recipe('openssl', self.ctx)
-            add_flags(recipe.include_flags(arch), recipe.link_flags(arch))
+            add_flags(recipe.include_flags(arch),
+                      recipe.link_dirs_flags(arch), recipe.link_libs_flags())
         return env
 
     def prebuild_arch(self, arch):

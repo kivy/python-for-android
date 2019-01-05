@@ -17,7 +17,8 @@ class OpenSSLRecipe(Recipe):
     ``libssl1.1.so``...so...to link your recipe with the openssl libs,
     remember to add the version at the end, e.g.:
     ``-lcrypto1.1 -lssl1.1``. Or better, you could do it dynamically
-    using the methods: :meth:`include_flags` and :meth:`link_flags`.
+    using the methods: :meth:`include_flags`, :meth:`link_dirs_flags` and
+    :meth:`link_libs_flags`.
 
     .. note:: the python2legacy version is too old to support openssl 1.1+, so
         we must use version 1.0.x. Also python3crystax is not building
@@ -89,13 +90,22 @@ class OpenSSLRecipe(Recipe):
                 ' -I' + join(openssl_includes, 'internal') +
                 ' -I' + join(openssl_includes, 'openssl'))
 
+    def link_dirs_flags(self, arch):
+        '''Returns a string with the appropriate `-L<lib directory>` to link
+        with the openssl libs. This string is usually added to the environment
+        variable `LDFLAGS`'''
+        return ' -L' + self.get_build_dir(arch.arch)
+
+    def link_libs_flags(self):
+        '''Returns a string with the appropriate `-l<lib>` flags to link with
+        the openssl libs. This string is usually added to the environment
+        variable `LIBS`'''
+        return ' -lcrypto{version} -lssl{version}'.format(version=self.version)
+
     def link_flags(self, arch):
-        '''Returns a string with the right link flags to compile against the
-        openssl libraries'''
-        build_dir = self.get_build_dir(arch.arch)
-        return (' -L' + build_dir +
-                ' -lcrypto{version} -lssl{version}'.format(
-                    version=self.version))
+        '''Returns a string with the flags to link with the openssl libraries
+        in the format: `-L<lib directory> -l<lib>`'''
+        return self.link_dirs_flags(arch) + self.link_libs_flags()
 
     def should_build(self, arch):
         return not self.has_libs(arch, 'libssl' + self.version + '.so',
