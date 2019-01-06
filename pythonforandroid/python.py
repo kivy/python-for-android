@@ -231,7 +231,12 @@ class GuestPythonRecipe(TargetPythonRecipe):
                     _env=env)
 
             if not exists('python'):
-                shprint(sh.make, 'all', _env=env)
+                py_version = self.major_minor_version_string
+                if self.major_minor_version_string[0] == '3':
+                    py_version += 'm'
+                shprint(sh.make, 'all',
+                        'INSTSONAME=libpython{version}.so'.format(
+                            version=py_version), _env=env)
 
             # TODO: Look into passing the path to pyconfig.h in a
             # better way, although this is probably acceptable
@@ -291,9 +296,8 @@ class GuestPythonRecipe(TargetPythonRecipe):
         python_lib_name = 'libpython' + self.major_minor_version_string
         if self.major_minor_version_string[0] == '3':
             python_lib_name += 'm'
-        for lib in [python_lib_name + '.so', python_lib_name + '.so.1.0']:
-            shprint(sh.cp, join(python_build_dir, lib),
-                    'libs/{}'.format(arch.arch))
+        shprint(sh.cp, join(python_build_dir, python_lib_name + '.so'),
+                'libs/{}'.format(arch.arch))
 
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(join(dirn, 'site-packages'))
