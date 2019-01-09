@@ -46,7 +46,6 @@ curdir = dirname(__file__)
 # Try to find a host version of Python that matches our ARM version.
 PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
 if not exists(PYTHON):
-    print('Could not find hostpython, will not compile to .pyo (this is normal with python3)')
     PYTHON = None
 
 BLACKLIST_PATTERNS = [
@@ -151,7 +150,6 @@ def make_python_zip():
 
     if not exists('private'):
         print('No compiled python is present to zip, skipping.')
-        print('this should only be the case if you are using the CrystaX python')
         return
 
     global python_files
