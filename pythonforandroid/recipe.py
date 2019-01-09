@@ -668,7 +668,13 @@ class NDKRecipe(Recipe):
 
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            shprint(sh.ndk_build, 'V=1', 'APP_ABI=' + arch.arch, *extra_args, _env=env)
+            shprint(
+                sh.ndk_build,
+                'V=1',
+                'APP_PLATFORM=android-' + str(self.ctx.ndk_api),
+                'APP_ABI=' + arch.arch,
+                *extra_args, _env=env
+            )
 
 
 class PythonRecipe(Recipe):
