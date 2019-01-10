@@ -1,5 +1,6 @@
-from os.path import (exists, join, dirname)
+from os.path import (exists, join, dirname, split)
 from os import environ, uname
+from glob import glob
 import sys
 from distutils.spawn import find_executable
 
@@ -30,13 +31,30 @@ class Arch(object):
                 d.format(arch=self))
             for d in self.ctx.include_dirs]
 
-    def get_env(self, with_flags_in_cc=True):
+    @property
+    def target(self):
+        target_data = self.command_prefix.split('-')
+        return '-'.join(
+            [target_data[0], 'none', target_data[1], target_data[2]])
+
+    def get_env(self, with_flags_in_cc=True, clang=False):
         env = {}
 
-        env['CFLAGS'] = ' '.join([
-            '-DANDROID', '-mandroid', '-fomit-frame-pointer'
-            ' -D__ANDROID_API__={}'.format(self.ctx.ndk_api),
-            ])
+        cflags = [
+            '-DANDROID',
+            '-fomit-frame-pointer',
+            '-D__ANDROID_API__={}'.format(self.ctx.ndk_api)]
+        if not clang:
+            cflags.append('-mandroid')
+        else:
+            cflags.append('-target ' + self.target)
+            toolchain = '{android_host}-{toolchain_version}'.format(
+                android_host=self.ctx.toolchain_prefix,
+                toolchain_version=self.ctx.toolchain_version)
+            toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
+            cflags.append('-gcc-toolchain {}'.format(toolchain))
+
+        env['CFLAGS'] = ' '.join(cflags)
         env['LDFLAGS'] = ' '
 
         sysroot = join(self.ctx._ndk_dir, 'sysroot')
@@ -45,6 +63,8 @@ class Arch(object):
             # https://android.googlesource.com/platform/ndk/+/ndk-r15-release/docs/UnifiedHeaders.md
             env['CFLAGS'] += ' -isystem {}/sysroot/usr/include/{}'.format(
                 self.ctx.ndk_dir, self.ctx.toolchain_prefix)
+            env['CFLAGS'] += ' -I{}/sysroot/usr/include/{}'.format(
+                self.ctx.ndk_dir, self.command_prefix)
         else:
             sysroot = self.ctx.ndk_platform
             env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk_platform)
@@ -82,8 +102,20 @@ class Arch(object):
             env['NDK_CCACHE'] = self.ctx.ccache
             env.update({k: v for k, v in environ.items() if k.startswith('CCACHE_')})
 
-        cc = find_executable('{command_prefix}-gcc'.format(
-            command_prefix=command_prefix), path=environ['PATH'])
+        if clang:
+            llvm_dirname = split(
+                glob(join(self.ctx.ndk_dir, 'toolchains', 'llvm*'))[-1])[-1]
+            clang_path = join(self.ctx.ndk_dir, 'toolchains', llvm_dirname,
+                              'prebuilt', 'linux-x86_64', 'bin')
+            environ['PATH'] = '{clang_path}:{path}'.format(
+                clang_path=clang_path, path=environ['PATH'])
+            exe = join(clang_path, 'clang')
+            execxx = join(clang_path, 'clang++')
+        else:
+            exe = '{command_prefix}-gcc'.format(command_prefix=command_prefix)
+            execxx = '{command_prefix}-g++'.format(command_prefix=command_prefix)
+
+        cc = find_executable(exe, path=environ['PATH'])
         if cc is None:
             print('Searching path are: {!r}'.format(environ['PATH']))
             raise BuildInterruptingException(
@@ -93,20 +125,20 @@ class Arch(object):
                 'installed. Exiting.')
 
         if with_flags_in_cc:
-            env['CC'] = '{ccache}{command_prefix}-gcc {cflags}'.format(
-                command_prefix=command_prefix,
+            env['CC'] = '{ccache}{exe} {cflags}'.format(
+                exe=exe,
                 ccache=ccache,
                 cflags=env['CFLAGS'])
-            env['CXX'] = '{ccache}{command_prefix}-g++ {cxxflags}'.format(
-                command_prefix=command_prefix,
+            env['CXX'] = '{ccache}{execxx} {cxxflags}'.format(
+                execxx=execxx,
                 ccache=ccache,
                 cxxflags=env['CXXFLAGS'])
         else:
-            env['CC'] = '{ccache}{command_prefix}-gcc'.format(
-                command_prefix=command_prefix,
+            env['CC'] = '{ccache}{exe}'.format(
+                exe=exe,
                 ccache=ccache)
-            env['CXX'] = '{ccache}{command_prefix}-g++'.format(
-                command_prefix=command_prefix,
+            env['CXX'] = '{ccache}{execxx}'.format(
+                execxx=execxx,
                 ccache=ccache)
 
         env['AR'] = '{}-ar'.format(command_prefix)
@@ -123,12 +155,13 @@ class Arch(object):
         env['READELF'] = '{}-readelf'.format(command_prefix)
         env['NM'] = '{}-nm'.format(command_prefix)
 
-        hostpython_recipe = Recipe.get_recipe('hostpython2', self.ctx)
-
-        # This hardcodes python version 2.7, needs fixing
+        hostpython_recipe = Recipe.get_recipe(
+            'host' + self.ctx.python_recipe.name, self.ctx)
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.linux-{}-2.7'.format(uname()[-1]))
+            'build', 'lib.linux-{}-{}'.format(
+                uname()[-1], self.ctx.python_recipe.major_minor_version_string)
+        )
 
         env['PATH'] = environ['PATH']
 
@@ -147,12 +180,18 @@ class ArchARM(Arch):
     command_prefix = 'arm-linux-androideabi'
     platform_dir = 'arch-arm'
 
+    @property
+    def target(self):
+        target_data = self.command_prefix.split('-')
+        return '-'.join(
+            ['armv7a', 'none', target_data[1], target_data[2]])
+
 
 class ArchARMv7_a(ArchARM):
     arch = 'armeabi-v7a'
 
-    def get_env(self, with_flags_in_cc=True):
-        env = super(ArchARMv7_a, self).get_env(with_flags_in_cc)
+    def get_env(self, with_flags_in_cc=True, clang=False):
+        env = super(ArchARMv7_a, self).get_env(with_flags_in_cc, clang=clang)
         env['CFLAGS'] = (env['CFLAGS'] +
                          (' -march=armv7-a -mfloat-abi=softfp '
                           '-mfpu=vfp -mthumb'))
@@ -166,8 +205,8 @@ class Archx86(Arch):
     command_prefix = 'i686-linux-android'
     platform_dir = 'arch-x86'
 
-    def get_env(self, with_flags_in_cc=True):
-        env = super(Archx86, self).get_env(with_flags_in_cc)
+    def get_env(self, with_flags_in_cc=True, clang=False):
+        env = super(Archx86, self).get_env(with_flags_in_cc, clang=clang)
         env['CFLAGS'] = (env['CFLAGS'] +
                          ' -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32')
         env['CXXFLAGS'] = env['CFLAGS']
@@ -180,8 +219,8 @@ class Archx86_64(Arch):
     command_prefix = 'x86_64-linux-android'
     platform_dir = 'arch-x86_64'
 
-    def get_env(self, with_flags_in_cc=True):
-        env = super(Archx86_64, self).get_env(with_flags_in_cc)
+    def get_env(self, with_flags_in_cc=True, clang=False):
+        env = super(Archx86_64, self).get_env(with_flags_in_cc, clang=clang)
         env['CFLAGS'] = (env['CFLAGS'] +
                          ' -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel')
         env['CXXFLAGS'] = env['CFLAGS']
@@ -194,8 +233,8 @@ class ArchAarch_64(Arch):
     command_prefix = 'aarch64-linux-android'
     platform_dir = 'arch-arm64'
 
-    def get_env(self, with_flags_in_cc=True):
-        env = super(ArchAarch_64, self).get_env(with_flags_in_cc)
+    def get_env(self, with_flags_in_cc=True, clang=False):
+        env = super(ArchAarch_64, self).get_env(with_flags_in_cc, clang=clang)
         incpath = ' -I' + join(dirname(__file__), 'includes', 'arm64-v8a')
         env['EXTRA_CFLAGS'] = incpath
         env['CFLAGS'] += incpath

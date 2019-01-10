@@ -8,7 +8,7 @@ from pythonforandroid.logger import (info, shprint)
 class ReportLabRecipe(CompiledComponentsPythonRecipe):
     version = 'c088826211ca'
     url = 'https://bitbucket.org/rptlab/reportlab/get/{version}.tar.gz'
-    depends = [('python2', 'python3crystax'), 'freetype']
+    depends = ['freetype']
 
     def prebuild_arch(self, arch):
         if not self.is_patched(arch):

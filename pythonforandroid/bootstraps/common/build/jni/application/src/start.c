@@ -104,6 +104,10 @@ int main(int argc, char *argv[]) {
   LOGP(env_argument);
   chdir(env_argument);
 
+#if PY_MAJOR_VERSION < 3
+  Py_NoSiteFlag=1;
+#endif
+
   Py_SetProgramName(L"android_python");
 
 #if PY_MAJOR_VERSION >= 3
@@ -144,10 +148,6 @@ int main(int argc, char *argv[]) {
     #if PY_MAJOR_VERSION >= 3
         wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
         Py_SetPath(wchar_paths);
-    #else
-        char *wchar_paths = paths;
-        LOGP("Can't Py_SetPath in python2, so crystax python2 doesn't work yet");
-        exit(1);
     #endif
 
         LOGP("set wchar paths...");
@@ -161,6 +161,12 @@ int main(int argc, char *argv[]) {
   Py_Initialize();
 
 #if PY_MAJOR_VERSION < 3
+  // Can't Py_SetPath in python2 but we can set PySys_SetPath, which must
+  // be applied after Py_Initialize rather than before like Py_SetPath
+  #if PY_MICRO_VERSION >= 15
+    // Only for python native-build
+    PySys_SetPath(paths);
+  #endif
   PySys_SetArgv(argc, argv);
 #endif
 
@@ -183,7 +189,9 @@ int main(int argc, char *argv[]) {
    */
   PyRun_SimpleString("import sys, posix\n");
   if (dir_exists("lib")) {
-    /* If we built our own python, set up the paths correctly */
+    /* If we built our own python, set up the paths correctly.
+     * This is only the case if we are using the python2legacy recipe
+     */
     LOGP("Setting up python from ANDROID_APP_PATH");
     PyRun_SimpleString("private = posix.environ['ANDROID_APP_PATH']\n"
                        "argument = posix.environ['ANDROID_ARGUMENT']\n"

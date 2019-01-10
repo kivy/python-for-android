@@ -13,7 +13,7 @@ diff -ur Python-2.7.2.orig/Lib/ctypes/util.py Python-2.7.2/Lib/ctypes/util.py
 +        """ hack to find librarys for kivy and android 
 +        split the path and get the first parts which will give us 
 +        the app path something like /data/data/org.app.foo/"""
-+        app_root = os.path.abspath('./').split(os.path.sep)[0:4]
++        app_root = os.path.abspath('../../').split(os.path.sep)
 +        lib_search = os.path.sep.join(app_root) + os.path.sep + 'lib'
 +        for filename in os.listdir(lib_search):
 +            if filename.endswith('.so') and name in filename:

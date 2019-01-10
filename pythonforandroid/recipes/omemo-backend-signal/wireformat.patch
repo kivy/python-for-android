@@ -1,6 +1,6 @@
-diff -urN OMEMO-0.7.1.ori/omemo/signal/wireformat/whispertextprotocol_pb2.py OMEMO-0.7.1/omemo/signal/wireformat/whispertextprotocol_pb2.py
---- OMEMO-0.7.1.ori/omemo/signal/wireformat/whispertextprotocol_pb2.py	2018-09-02 21:04:26.000000000 +0200
-+++ OMEMO-0.7.1/omemo/signal/wireformat/whispertextprotocol_pb2.py	2018-11-02 10:39:15.196715321 +0100
+diff -urN omemo-backend-signal-0.2.2.ori/omemo_backend_signal/whispertextprotocol_pb2.py omemo-backend-signal-0.2.2/omemo_backend_signal/whispertextprotocol_pb2.py
+--- omemo-backend-signal-0.2.2.ori/omemo_backend_signal/whispertextprotocol_pb2.py	2018-09-02 21:04:26.000000000 +0200
++++ omemo-backend-signal-0.2.2/omemo_backend_signal/whispertextprotocol_pb2.py	2018-11-02 10:39:15.196715321 +0100
 @@ -21,7 +21,6 @@
    syntax='proto2',
    serialized_pb=_b('\n\x19WhisperTextProtocol.proto\"R\n\rSignalMessage\x12\x16\n\x0e\x64h_ratchet_key\x18\x01 \x01(\x0c\x12\t\n\x01n\x18\x02 \x01(\r\x12\n\n\x02pn\x18\x03 \x01(\r\x12\x12\n\nciphertext\x18\x04 \x01(\x0c\"\x7f\n\x13PreKeySignalMessage\x12\x17\n\x0fregistration_id\x18\x05 \x01(\r\x12\x0f\n\x07otpk_id\x18\x01 \x01(\r\x12\x0e\n\x06spk_id\x18\x06 \x01(\r\x12\n\n\x02\x65k\x18\x02 \x01(\x0c\x12\n\n\x02ik\x18\x03 \x01(\x0c\x12\x16\n\x0esignal_message\x18\x04 \x01(\x0c')
