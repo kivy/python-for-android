@@ -93,15 +93,31 @@ named ``tools``, and you will need to run extra commands to install
 the SDK packages needed. 
 
 For Android NDK, note that modern releases will only work on a 64-bit
-operating system. If you are using a 32-bit distribution (or hardware),
-the latest useable NDK version is r10e, which can be downloaded here:
+operating system. The minimal, and recommended, NDK version to use is r17c:
+
+ - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
+ - Windows users should create a virtual machine with an GNU Linux os
+   installed, and then you can follow the described instructions from within
+   your virtual machine.
+
+If you are using a 32-bit distribution (or hardware),
+the latest usable NDK version is r10e, which can be downloaded here:
 
 - `Legacy 32-bit Linux NDK r10e <http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86.bin>`_
 
-First, install a platform to target (you can also replace ``19`` with
+.. warning::
+    **32-bit distributions**
+
+    Since the python2 recipe updated to version 2.7.15, the build system has
+    been changed and you should use an old release of python-for-android, which
+    contains the legacy python recipe (v2.7.2). The last python-for-android
+    release with the legacy version of python is version
+    `0.6.0 <https://github.com/kivy/python-for-android/archive/0.6.0.zip>`_.
+
+First, install a platform to target (you can also replace ``27`` with
 a different platform number, this will be used again later)::
 
-  $SDK_DIR/tools/bin/sdkmanager "platforms;android-19"
+  $SDK_DIR/tools/bin/sdkmanager "platforms;android-27"
 
 Second, install the build-tools. You can use
 ``$SDK_DIR/tools/bin/sdkmanager --list`` to see all the
@@ -112,8 +128,8 @@ possibilities, but 26.0.2 is the latest version at the time of writing::
 Then, you can edit your ``~/.bashrc`` or other favorite shell to include new environment variables necessary for building on android::
 
     # Adjust the paths!
-    export ANDROIDSDK="$HOME/Documents/android-sdk-21"
-    export ANDROIDNDK="$HOME/Documents/android-ndk-r10e"
+    export ANDROIDSDK="$HOME/Documents/android-sdk-27"
+    export ANDROIDNDK="$HOME/Documents/android-ndk-r17c"
     export ANDROIDAPI="26"  # Target API version of your application
     export NDKAPI="19"  # Minimum supported API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
@@ -260,7 +276,7 @@ command line. For example, you can add the options you would always
 include such as::
 
     --dist_name my_example
-    --android_api 19
+    --android_api 27
     --requirements kivy,openssl
 
 

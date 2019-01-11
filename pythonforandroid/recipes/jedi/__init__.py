@@ -1,13 +1,11 @@
-
 from pythonforandroid.recipe import PythonRecipe
 
 
 class JediRecipe(PythonRecipe):
-    # version = 'master'
     version = 'v0.9.0'
     url = 'https://github.com/davidhalter/jedi/archive/{version}.tar.gz'
 
-    depends = [('python2', 'python3crystax')]
+    depends = [('python2', 'python3crystax', 'python3')]
 
     patches = ['fix_MergedNamesDict_get.patch']
     # This apparently should be fixed in jedi 0.10 (not released to

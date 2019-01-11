@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from pythonforandroid import __version__
 from pythonforandroid.build import DEFAULT_NDK_API, DEFAULT_ANDROID_API
+from pythonforandroid.util import BuildInterruptingException, handle_build_exception
 
 
 def check_python_dependencies():
@@ -58,7 +59,7 @@ def check_python_dependencies():
                 ok = False
 
     if not ok:
-        print('python-for-android is exiting due to the errors above.')
+        print('python-for-android is exiting due to the errors logged above')
         exit(1)
 
 
@@ -85,7 +86,7 @@ from distutils.version import LooseVersion
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import (logger, info, warning, setup_color,
                                      Out_Style, Out_Fore,
-                                     info_notify, info_main, shprint, error)
+                                     info_notify, info_main, shprint)
 from pythonforandroid.util import current_directory
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution, pretty_log_dists
@@ -158,8 +159,9 @@ def dist_from_args(ctx, args):
     return Distribution.get_distribution(
         ctx,
         name=args.dist_name,
-        ndk_api=args.ndk_api,
         recipes=split_argument_list(args.requirements),
+        ndk_api=args.ndk_api,
+        force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
         allow_replace_dist=args.allow_replace_dist)
 
@@ -183,7 +185,8 @@ def build_dist_from_args(ctx, dist, args):
 
     ctx.dist_name = bs.distribution.name
     ctx.prepare_bootstrap(bs)
-    ctx.prepare_dist(ctx.dist_name)
+    if dist.needs_build:
+        ctx.prepare_dist(ctx.dist_name)
 
     build_recipes(build_order, python_modules, ctx)
 
@@ -284,7 +287,7 @@ class ToolchainCL(object):
 
         generic_parser.add_argument(
             '--arch', help='The archs to build for, separated by commas.',
-            default='armeabi')
+            default='armeabi-v7a')
 
         # Options for specifying the Distribution
         generic_parser.add_argument(
@@ -637,7 +640,7 @@ class ToolchainCL(object):
 
         for component in components:
             if component not in component_clean_methods:
-                raise ValueError((
+                raise BuildInterruptingException((
                     'Asked to clean "{}" but this argument is not '
                     'recognised'.format(component)))
             component_clean_methods[component](args)
@@ -734,10 +737,10 @@ class ToolchainCL(object):
         ctx = self.ctx
         dist = dist_from_args(ctx, args)
         if dist.needs_build:
-            info('You asked to export a dist, but there is no dist '
-                 'with suitable recipes available. For now, you must '
-                 ' create one first with the create argument.')
-            exit(1)
+            raise BuildInterruptingException(
+                'You asked to export a dist, but there is no dist '
+                'with suitable recipes available. For now, you must '
+                ' create one first with the create argument.')
         if args.symlink:
             shprint(sh.ln, '-s', dist.dist_dir, args.output_dir)
         else:
@@ -838,15 +841,16 @@ class ToolchainCL(object):
                 elif args.build_mode == "release":
                     gradle_task = "assembleRelease"
                 else:
-                    error("Unknown build mode {} for apk()".format(
-                        args.build_mode))
-                    exit(1)
+                    raise BuildInterruptingException(
+                        "Unknown build mode {} for apk()".format(args.build_mode))
                 output = shprint(gradlew, gradle_task, _tail=20,
                                  _critical=True, _env=env)
 
                 # gradle output apks somewhere else
                 # and don't have version in file
-                apk_dir = join(dist.dist_dir, "build", "outputs", "apk")
+                apk_dir = join(dist.dist_dir,
+                               "build", "outputs", "apk",
+                               args.build_mode)
                 apk_glob = "*-{}.apk"
                 apk_add_version = True
 
@@ -855,9 +859,9 @@ class ToolchainCL(object):
                 try:
                     ant = sh.Command('ant')
                 except sh.CommandNotFound:
-                    error('Could not find ant binary, please install it '
-                          'and make sure it is in your $PATH.')
-                    exit(1)
+                    raise BuildInterruptingException(
+                        'Could not find ant binary, please install it '
+                        'and make sure it is in your $PATH.')
                 output = shprint(ant, args.build_mode, _tail=20,
                                  _critical=True, _env=env)
                 apk_dir = join(dist.dist_dir, "bin")
@@ -891,7 +895,7 @@ class ToolchainCL(object):
                     apk_file = apks[-1]
                     break
             else:
-                raise ValueError('Couldn\'t find the built APK')
+                raise BuildInterruptingException('Couldn\'t find the built APK')
 
         info_main('# Found APK file: {}'.format(apk_file))
         if apk_add_version:
@@ -1025,7 +1029,10 @@ class ToolchainCL(object):
 
 
 def main():
-    ToolchainCL()
+    try:
+        ToolchainCL()
+    except BuildInterruptingException as exc:
+        handle_build_exception(exc)
 
 
 if __name__ == "__main__":

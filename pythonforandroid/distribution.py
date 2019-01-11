@@ -2,9 +2,8 @@ from os.path import exists, join
 import glob
 import json
 
-from pythonforandroid.logger import (info, info_notify, warning,
-                                     Err_Style, Err_Fore, error)
-from pythonforandroid.util import current_directory
+from pythonforandroid.logger import (info, info_notify, warning, Err_Style, Err_Fore)
+from pythonforandroid.util import current_directory, BuildInterruptingException
 from shutil import rmtree
 
 
@@ -95,7 +94,9 @@ class Distribution(object):
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
         for dist in possible_dists:
-            if ndk_api is not None and dist.ndk_api != ndk_api:
+            if (
+                ndk_api is not None and dist.ndk_api != ndk_api
+            ) or dist.ndk_api is None:
                 continue
             for recipe in recipes:
                 if recipe not in dist.recipes:
@@ -130,17 +131,16 @@ class Distribution(object):
         # then the existing dist is incompatible with the requested
         # configuration and the build cannot continue
         if name_match_dist is not None and not allow_replace_dist:
-            error('Asked for dist with name {name} with recipes ({req_recipes}) and '
-                  'NDK API {req_ndk_api}, but a dist '
-                  'with this name already exists and has either incompatible recipes '
-                  '({dist_recipes}) or NDK API {dist_ndk_api}'.format(
-                      name=name,
-                      req_ndk_api=ndk_api,
-                      dist_ndk_api=name_match_dist.ndk_api,
-                      req_recipes=', '.join(recipes),
-                      dist_recipes=', '.join(name_match_dist.recipes)))
-            error('No compatible dist found, so exiting.')
-            exit(1)
+            raise BuildInterruptingException(
+                'Asked for dist with name {name} with recipes ({req_recipes}) and '
+                'NDK API {req_ndk_api}, but a dist '
+                'with this name already exists and has either incompatible recipes '
+                '({dist_recipes}) or NDK API {dist_ndk_api}'.format(
+                    name=name,
+                    req_ndk_api=ndk_api,
+                    dist_ndk_api=name_match_dist.ndk_api,
+                    req_recipes=', '.join(recipes),
+                    dist_recipes=', '.join(name_match_dist.recipes)))
 
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)
@@ -170,9 +170,9 @@ class Distribution(object):
     def get_distributions(cls, ctx, extra_dist_dirs=[]):
         '''Returns all the distributions found locally.'''
         if extra_dist_dirs:
-            warning('extra_dist_dirs argument to get_distributions '
-                    'is not yet implemented')
-            exit(1)
+            raise BuildInterruptingException(
+                'extra_dist_dirs argument to get_distributions '
+                'is not yet implemented')
         dist_dir = ctx.dist_dir
         folders = glob.glob(join(dist_dir, '*'))
         for dir in extra_dist_dirs:
@@ -190,7 +190,18 @@ class Distribution(object):
                 dist.recipes = dist_info['recipes']
                 if 'archs' in dist_info:
                     dist.archs = dist_info['archs']
-                dist.ndk_api = dist_info['ndk_api']
+                if 'ndk_api' in dist_info:
+                    dist.ndk_api = dist_info['ndk_api']
+                else:
+                    dist.ndk_api = None
+                    warning(
+                        "Distribution {distname}: ({distdir}) has been "
+                        "built with an unknown api target, ignoring it, "
+                        "you might want to delete it".format(
+                            distname=dist.name,
+                            distdir=dist.dist_dir
+                        )
+                    )
                 dists.append(dist)
         return dists
 

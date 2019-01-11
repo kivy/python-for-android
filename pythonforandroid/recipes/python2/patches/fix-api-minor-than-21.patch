@@ -1,0 +1,229 @@
+diff -Naurp Python-2.7.15.orig/configure.ac Python-2.7.15/configure.ac
+--- Python-2.7.15.orig/configure.ac	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/configure.ac	2018-07-05 17:44:50.500985727 +0200
+@@ -1790,7 +1790,7 @@ fi
+ # structures (such as rlimit64) without declaring them. As a
+ # work-around, disable LFS on such configurations
+ 
+-use_lfs=yes
++use_lfs=no
+ AC_MSG_CHECKING(Solaris LFS bug)
+ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+ #define _LARGEFILE_SOURCE 1
+diff -Naurp Python-2.7.15.orig/Modules/mmapmodule.c Python-2.7.15/Modules/mmapmodule.c
+--- Python-2.7.15.orig/Modules/mmapmodule.c	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/mmapmodule.c	2018-07-05 16:18:40.953035027 +0200
+@@ -78,6 +78,12 @@ my_getpagesize(void)
+ #  define MAP_ANONYMOUS MAP_ANON
+ #endif
+ 
++//PMPP API<21
++#if defined(__ANDROID_API__) && __ANDROID_API__ < 21
++    extern void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
++#endif
++//PMPP API<21
++
+ static PyObject *mmap_module_error;
+ 
+ typedef enum
+diff -Naurp Python-2.7.15.orig/Modules/posixmodule.c Python-2.7.15/Modules/posixmodule.c
+--- Python-2.7.15.orig/Modules/posixmodule.c	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/posixmodule.c	2018-07-05 16:20:48.933033807 +0200
+@@ -9477,6 +9477,12 @@ all_ins(PyObject *d)
+ #define MODNAME "posix"
+ #endif
+ 
++//PMPP API<21
++#if defined(__ANDROID_API__) && __ANDROID_API__ < 21
++    extern ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);
++#endif
++//PMPP API<21
++
+ PyMODINIT_FUNC
+ INITFUNC(void)
+ {
+diff -Naurp Python-2.7.15.orig/Modules/signalmodule.c Python-2.7.15/Modules/signalmodule.c
+--- Python-2.7.15.orig/Modules/signalmodule.c	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/signalmodule.c	2018-07-05 16:40:46.601022385 +0200
+@@ -32,6 +32,13 @@
+ #include <process.h>
+ #endif
+ 
++//PMPP API<21
++#if defined(__ANDROID_API__) && __ANDROID_API__ < 21
++    #define SIGRTMIN 32
++    #define SIGRTMAX _NSIG
++#endif
++//PMPP API<21
++
+ #ifndef NSIG
+ # if defined(_NSIG)
+ #  define NSIG _NSIG            /* For BSD/SysV */
+diff -Naurp Python-2.7.15.orig/Modules/termios.c Python-2.7.15/Modules/termios.c
+--- Python-2.7.15.orig/Modules/termios.c	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/termios.c	2018-07-05 16:43:16.457020956 +0200
+@@ -357,7 +357,11 @@ static struct constant {
+ #endif
+ 
+     /* tcsetattr() constants */
++#if defined(__ANDROID_API__) && __ANDROID_API__ > 0
++    {"TCSANOW", TCSETS},     // https://github.com/android-ndk/ndk/issues/441
++#else
+     {"TCSANOW", TCSANOW},
++#endif
+     {"TCSADRAIN", TCSADRAIN},
+     {"TCSAFLUSH", TCSAFLUSH},
+ #ifdef TCSASOFT
+diff -Naurp Python-2.7.15.orig/Objects/obmalloc.c Python-2.7.15/Objects/obmalloc.c
+--- Python-2.7.15.orig/Objects/obmalloc.c	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Objects/obmalloc.c	2018-07-05 16:52:27.577015700 +0200
+@@ -1,5 +1,11 @@
+ #include "Python.h"
+ 
++//PMPP API<21
++#if __ANDROID_API__ < 21
++    extern void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
++#endif
++//PMPP API<21
++
+ #if defined(__has_feature)  /* Clang */
+  #if __has_feature(address_sanitizer)  /* is ASAN enabled? */
+   #define ATTRIBUTE_NO_ADDRESS_SAFETY_ANALYSIS \
+###############################################################
+######### ANDROID LOCALE PATCHES FOR ANDROID API < 21 #########
+###############################################################
+--- Python-2.7.15.orig/Modules/_localemodule.c	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Modules/_localemodule.c	2018-07-05 16:39:08.241023323 +0200
+@@ -170,6 +170,12 @@ PyLocale_setlocale(PyObject* self, PyObj
+         PyErr_SetString(Error, "invalid locale category");
+         return NULL;
+     }
++#else
++    #ifdef __ANDROID__
++        #if defined(__ANDROID_API__) && __ANDROID_API__ < 20
++            return PyUnicode_FromFormat("%s", "C");
++        #endif
++    #endif
+ #endif
+
+     if (locale) {
+@@ -215,7 +221,15 @@ PyLocale_localeconv(PyObject* self)
+         return NULL;
+
+     /* if LC_NUMERIC is different in the C library, use saved value */
+-    l = localeconv();
++    //PMPP API<21
++    #if defined(__ANDROID_API__) && __ANDROID_API__ < 21
++        /* Don't even try on Android's broken locale.h. */
++        goto failed;
++    #else
++         /* if LC_NUMERIC is different in the C library, use saved value */
++         l = localeconv(); //PATCHED
++    #endif
++    //PMPP API<21
+
+     /* hopefully, the localeconv result survives the C library calls
+        involved herein */
+@@ -215,7 +215,11 @@ PyLocale_localeconv(PyObject* self)
+         return NULL;
+
+     /* if LC_NUMERIC is different in the C library, use saved value */
++#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
+     l = localeconv();
++#else
++    decimal_point = ".";
++#endif
+
+     /* hopefully, the localeconv result survives the C library calls
+        involved herein */
+--- Python-2.7.15/Objects/stringlib/formatter.h.orig	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Objects/stringlib/formatter.h	2018-12-26 11:37:08.771315390 +0100
+@@ -640,11 +640,17 @@ get_locale_info(int type, LocaleInfo *lo
+ {
+     switch (type) {
+     case LT_CURRENT_LOCALE: {
++#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
++/* NDK version for SDK below 21 doesn't implement the whole C++11 standard in
++   the STL. locale.h header has stubs for localeconv() method, but the library
++   doesn't implement it. The closest Android SDK that implement localeconv()
++   is SDK 21*/
+         struct lconv *locale_data = localeconv();
+         locale_info->decimal_point = locale_data->decimal_point;
+         locale_info->thousands_sep = locale_data->thousands_sep;
+         locale_info->grouping = locale_data->grouping;
+         break;
++#endif
+     }
+     case LT_DEFAULT_LOCALE:
+         locale_info->decimal_point = ".";
+--- Python-2.7.15/Objects/stringlib/localeutil.h.orig	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Objects/stringlib/localeutil.h	2018-12-26 11:38:10.003314806 +0100
+@@ -202,9 +202,18 @@ _Py_InsertThousandsGroupingLocale(STRING
+                                   Py_ssize_t n_digits,
+                                   Py_ssize_t min_width)
+ {
++#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
++/* NDK version for SDK below 21 doesn't implement the whole C++11 standard in
++   the STL. locale.h header has stubs for localeconv() method, but the library
++   doesn't implement it. The closest Android SDK that implement localeconv()
++   is SDK 21*/
+         struct lconv *locale_data = localeconv();
+         const char *grouping = locale_data->grouping;
+         const char *thousands_sep = locale_data->thousands_sep;
++#else
++        const char *grouping = "\3\0";
++        const char *thousands_sep = ",";
++#endif
+
+         return _Py_InsertThousandsGrouping(buffer, n_buffer, digits, n_digits,
+                                            min_width, grouping, thousands_sep);
+--- Python-2.7.15/Python/pystrtod.c.orig	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/Python/pystrtod.c	2018-12-26 11:47:54.723309229 +0100
+@@ -126,7 +126,13 @@ _PyOS_ascii_strtod(const char *nptr, cha
+ {
+     char *fail_pos;
+     double val = -1.0;
++#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
++/* NDK version for SDK below 21 doesn't implement the whole C++11 standard in
++   the STL. locale.h header has stubs for localeconv() method, but the library
++   doesn't implement it. The closest Android SDK that implement localeconv()
++   is SDK 21*/
+     struct lconv *locale_data;
++#endif
+     const char *decimal_point;
+     size_t decimal_point_len;
+     const char *p, *decimal_point_pos;
+@@ -138,8 +144,16 @@ _PyOS_ascii_strtod(const char *nptr, cha
+
+     fail_pos = NULL;
+
++#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
++/* NDK version for SDK below 21 doesn't implement the whole C++11 standard in
++   the STL. locale.h header has stubs for localeconv() method, but the library
++   doesn't implement it. The closest Android SDK that implement localeconv()
++   is SDK 21*/
+     locale_data = localeconv();
+     decimal_point = locale_data->decimal_point;
++#else
++    decimal_point = ".";
++#endif
+     decimal_point_len = strlen(decimal_point);
+ 
+     assert(decimal_point_len != 0);
+@@ -375,8 +389,16 @@ PyOS_string_to_double(const char *s,
+ Py_LOCAL_INLINE(void)
+ change_decimal_from_locale_to_dot(char* buffer)
+ {
++#if defined(__ANDROID_API__) && __ANDROID_API__ >= 21
++/* NDK version for SDK below 21 doesn't implement the whole C++11 standard in
++   the STL. locale.h header has stubs for localeconv() method, but the library
++   doesn't implement it. The closest Android SDK that implement localeconv()
++   is SDK 21*/
+     struct lconv *locale_data = localeconv();
+     const char *decimal_point = locale_data->decimal_point;
++#else
++    decimal_point = ".";
++#endif
+
+     if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+         size_t decimal_point_len = strlen(decimal_point);

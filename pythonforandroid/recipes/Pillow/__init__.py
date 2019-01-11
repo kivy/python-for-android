@@ -10,7 +10,6 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
     url = 'https://github.com/python-pillow/Pillow/archive/{version}.tar.gz'
     site_packages_name = 'Pillow'
     depends = [
-        ('python2', 'python3crystax'),
         'png',
         'jpeg',
         'freetype',

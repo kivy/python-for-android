@@ -38,7 +38,7 @@ index 11b2cce..f6dde79 100644
          while tmp_objects:
              objects = tmp_objects[:50]
              tmp_objects = tmp_objects[50:]
-+            self.archiver[0] = 'arm-linux-androideabi-ar'
++            self.archiver[0] = os.environ['AR']
              display = '%s: adding %d object files to %s' % (
                             os.path.basename(self.archiver[0]),
                             len(objects), output_filename)

@@ -4,6 +4,7 @@ from enum import Enum
 class TargetPython(Enum):
     python2 = 0
     python3crystax = 1
+    python3 = 2
 
 
 # recipes that currently break the build
@@ -56,6 +57,8 @@ BROKEN_RECIPES_PYTHON2 = set([
     'pyzmq',
     'secp256k1',
     'shapely',
+    # mpmath package with a version >= 0.19 required
+    'sympy',
     'twisted',
     'vlc',
     'websocket-client',
@@ -92,11 +95,18 @@ BROKEN_RECIPES_PYTHON3_CRYSTAX = set([
     'pyjnius', 'pyopenal',
     # SyntaxError: invalid syntax (Python2)
     'storm',
+    # mpmath package with a version >= 0.19 required
+    'sympy',
     'vlc',
 ])
+# to be created via https://github.com/kivy/python-for-android/issues/1514
+BROKEN_RECIPES_PYTHON3 = set([
+])
+
 BROKEN_RECIPES = {
     TargetPython.python2: BROKEN_RECIPES_PYTHON2,
     TargetPython.python3crystax: BROKEN_RECIPES_PYTHON3_CRYSTAX,
+    TargetPython.python3: BROKEN_RECIPES_PYTHON3,
 }
 # recipes that were already built will be skipped
 CORE_RECIPES = set([

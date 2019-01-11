@@ -68,12 +68,11 @@ class BdistAPK(Command):
             sys.argv.append('--version={}'.format(version))
 
         if not argv_contains('--arch'):
-            arch = 'armeabi'
+            arch = 'armeabi-v7a'
             self.arch = arch
             sys.argv.append('--arch={}'.format(arch))
 
     def run(self):
-
         self.prepare_build_dir()
 
         from pythonforandroid.toolchain import main

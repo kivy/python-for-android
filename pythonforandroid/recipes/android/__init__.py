@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from pythonforandroid.recipe import CythonRecipe, IncludedFilesBehaviour
 from pythonforandroid.util import current_directory
 from pythonforandroid.patching import will_build
@@ -13,8 +14,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     src_filename = 'src'
 
-    depends = [('pygame', 'sdl2', 'genericndkbuild'),
-               ('python2', 'python3crystax', 'python3')]
+    depends = [('pygame', 'sdl2', 'genericndkbuild')]
 
     config_env = {}
 
@@ -25,12 +25,18 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     def prebuild_arch(self, arch):
         super(AndroidRecipe, self).prebuild_arch(arch)
+        ctx_bootstrap = self.ctx.bootstrap.name
 
+        # define macros for Cython, C, Python
         tpxi = 'DEF {} = {}\n'
         th = '#define {} {}\n'
         tpy = '{} = {}\n'
 
-        bootstrap = bootstrap_name = self.ctx.bootstrap.name.decode('utf-8')
+        # make sure bootstrap name is in unicode
+        if isinstance(ctx_bootstrap, bytes):
+            ctx_bootstrap = ctx_bootstrap.decode('utf-8')
+        bootstrap = bootstrap_name = ctx_bootstrap
+
         is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3', 'sdl2_gradle')
         is_pygame = bootstrap_name in ('pygame',)
         is_webview = bootstrap_name in ('webview',)
@@ -38,13 +44,16 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         if is_sdl2 or is_webview:
             if is_sdl2:
                 bootstrap = 'sdl2'
-            java_ns = u'org.kivy.android'
-            jni_ns = u'org/kivy/android'
+            java_ns = 'org.kivy.android'
+            jni_ns = 'org/kivy/android'
         elif is_pygame:
-            java_ns = 'org.renpy.android'
-            jni_ns = 'org/renpy/android'
+            java_ns = b'org.renpy.android'
+            jni_ns = b'org/renpy/android'
         else:
-            logger.error('unsupported bootstrap for android recipe: {}'.format(bootstrap_name))
+            logger.error((
+                'unsupported bootstrap for android recipe: {}'
+                ''.format(bootstrap_name)
+            ))
             exit(1)
 
         config = {
@@ -56,22 +65,28 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
             'JNI_NAMESPACE': jni_ns,
         }
 
+        # create config files for Cython, C and Python
         with (
                 current_directory(self.get_build_dir(arch.arch))), (
                 open(join('android', 'config.pxi'), 'w')) as fpxi, (
                 open(join('android', 'config.h'), 'w')) as fh, (
                 open(join('android', 'config.py'), 'w')) as fpy:
+
             for key, value in config.items():
                 fpxi.write(tpxi.format(key, repr(value)))
                 fpy.write(tpy.format(key, repr(value)))
-                fh.write(th.format(key,
-                                   value if isinstance(value, int)
-                                   else '"{}"'.format(value)))
+
+                fh.write(th.format(
+                    key,
+                    value if isinstance(value, int) else '"{}"'.format(value)
+                ))
                 self.config_env[key] = str(value)
 
             if is_sdl2:
                 fh.write('JNIEnv *SDL_AndroidGetJNIEnv(void);\n')
-                fh.write('#define SDL_ANDROID_GetJNIEnv SDL_AndroidGetJNIEnv\n')
+                fh.write(
+                    '#define SDL_ANDROID_GetJNIEnv SDL_AndroidGetJNIEnv\n'
+                )
             elif is_pygame:
                 fh.write('JNIEnv *SDL_ANDROID_GetJNIEnv(void);\n')
 

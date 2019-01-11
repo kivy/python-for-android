@@ -1,6 +1,7 @@
 from pythonforandroid.build import Context
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
 from pythonforandroid.bootstrap import Bootstrap
+from pythonforandroid.util import BuildInterruptingException
 from itertools import product
 
 import pytest
@@ -27,8 +28,12 @@ def test_valid_recipe_order_and_bootstrap(names, bootstrap):
 
 @pytest.mark.parametrize('names,bootstrap', invalid_combinations)
 def test_invalid_recipe_order_and_bootstrap(names, bootstrap):
-    with pytest.raises(SystemExit):
+    with pytest.raises(BuildInterruptingException) as e_info:
         get_recipe_order_and_bootstrap(ctx, names, bootstrap)
+    assert e_info.value.message == (
+        "Didn't find any valid dependency graphs. "
+        "This means that some of your requirements pull in conflicting dependencies."
+    )
 
 
 def test_bootstrap_dependency_addition():
