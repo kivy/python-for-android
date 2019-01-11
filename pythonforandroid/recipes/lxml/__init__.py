@@ -7,7 +7,7 @@ from os import listdir
 class LXMLRecipe(CompiledComponentsPythonRecipe):
     version = "3.6.0"
     url = "https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz"
-    depends = [("python2", "python3crystax"), "libxml2", "libxslt"]
+    depends = ["libxml2", "libxslt"]
     name = "lxml"
 
     call_hostpython_via_targetpython = False  # Due to setuptools
