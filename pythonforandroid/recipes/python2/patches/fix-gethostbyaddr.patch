@@ -1,0 +1,12 @@
+--- Python-2.7.15/Modules/socketmodule.c.orig	2017-12-29 01:40:09.915694810 +0100
++++ Python-2.7.15/Modules/socketmodule.c	2017-12-29 01:40:36.967694486 +0100
+@@ -156,6 +156,9 @@
+    On the other hand, not all Linux versions agree, so there the settings
+    computed by the configure script are needed! */
+
++/* Android hack, same reason are what is described above */
++#undef HAVE_GETHOSTBYNAME_R
++
+ #ifndef linux
+ # undef HAVE_GETHOSTBYNAME_R_3_ARG
+ # undef HAVE_GETHOSTBYNAME_R_5_ARG
