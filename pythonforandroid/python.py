@@ -4,6 +4,7 @@ build our python3 and python2 recipes and his corresponding hostpython recipes.
 '''
 
 from os.path import dirname, exists, join
+from shutil import copy2
 from os import environ
 import glob
 import sh
@@ -266,16 +267,19 @@ class GuestPythonRecipe(TargetPythonRecipe):
                 '2' if self.version[0] == '2' else '',
                 self.major_minor_version_string
             ))
-        module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
-                         glob.glob(join(modules_build_dir, '*.py')))
+        module_filens = list(glob.glob(join(modules_build_dir, '*.so')) +
+                             glob.glob(join(modules_build_dir, '*.py')))
+        info("Copy {} files into the bundle".format(len(module_filens)))
         for filen in module_filens:
-            shprint(sh.cp, filen, modules_dir)
+            info(" - copy {}".format(filen))
+            copy2(filen, modules_dir)
 
         # zip up the standard library
         stdlib_zip = join(dirn, 'stdlib.zip')
         with current_directory(join(self.get_build_dir(arch.arch), 'Lib')):
-            stdlib_filens = walk_valid_filens(
-                '.', self.stdlib_dir_blacklist, self.stdlib_filen_blacklist)
+            stdlib_filens = list(walk_valid_filens(
+                '.', self.stdlib_dir_blacklist, self.stdlib_filen_blacklist))
+            info("Zip {} files into the bundle".format(len(stdlib_filens)))
             shprint(sh.zip, stdlib_zip, *stdlib_filens)
 
         # copy the site-packages into place
@@ -286,9 +290,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
             filens = list(walk_valid_filens(
                 '.', self.site_packages_dir_blacklist,
                 self.site_packages_filen_blacklist))
+            info("Copy {} files into the site-packages".format(len(filens)))
             for filen in filens:
+                info(" - copy {}".format(filen))
                 ensure_dir(join(dirn, 'site-packages', dirname(filen)))
-                sh.cp(filen, join(dirn, 'site-packages', filen))
+                copy2(filen, join(dirn, 'site-packages', filen))
 
         # copy the python .so files into place
         python_build_dir = join(self.get_build_dir(arch.arch),
