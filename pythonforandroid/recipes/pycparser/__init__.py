@@ -6,7 +6,7 @@ class PycparserRecipe(PythonRecipe):
     version = '2.14'
     url = 'https://pypi.python.org/packages/source/p/pycparser/pycparser-{version}.tar.gz'
 
-    depends = [('python2', 'python3crystax'), 'setuptools']
+    depends = ['setuptools']
 
     call_hostpython_via_targetpython = False
 
