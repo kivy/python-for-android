@@ -336,9 +336,11 @@ main.py that loads it.''')
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
-    # if get_bootstrap_name() == "sdl2":
-    args.add_activity = args.add_activity or []
-    args.activity_launch_mode = args.activity_launch_mode or ''
+    if not args.add_activity:
+        args.add_activity = []
+
+    if not args.activity_launch_mode:
+        args.activity_launch_mode = ''
 
     if args.extra_source_dirs:
         esd = []
@@ -687,7 +689,7 @@ tools directory of the Android SDK.
     if args.meta_data is None:
         args.meta_data = []
 
-    if (not hasattr(args, 'services')) or args.services is None:
+    if getattr(args, 'services', None) is None:
         args.services = []
 
     if args.try_system_python_compile:
