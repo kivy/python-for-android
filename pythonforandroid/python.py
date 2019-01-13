@@ -267,8 +267,8 @@ class GuestPythonRecipe(TargetPythonRecipe):
                 '2' if self.version[0] == '2' else '',
                 self.major_minor_version_string
             ))
-        module_filens = list(glob.glob(join(modules_build_dir, '*.so')) +
-                             glob.glob(join(modules_build_dir, '*.py')))
+        module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
+                         glob.glob(join(modules_build_dir, '*.py')))
         info("Copy {} files into the bundle".format(len(module_filens)))
         for filen in module_filens:
             info(" - copy {}".format(filen))
