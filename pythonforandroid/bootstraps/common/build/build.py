@@ -68,8 +68,8 @@ if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
 
 WHITELIST_PATTERNS = []
-if get_bootstrap_name() == "sdl2":
-    WHITELIST_PATTERNS.append("pyconfig.h")
+if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
+    WHITELIST_PATTERNS.append('pyconfig.h')
 
 python_files = []
 
@@ -263,8 +263,6 @@ main.py that loads it.''')
             sys.exit(1)
 
     assets_dir = "src/main/assets"
-    if get_bootstrap_name() != "sdl2":
-        assets_dir = "assets"
 
     # Delete the old assets.
     try_unlink(join(assets_dir, 'public.mp3'))
@@ -291,15 +289,13 @@ main.py that loads it.''')
 
     # Prepare some variables for templating process
     res_dir = "src/main/res"
-    if get_bootstrap_name() == "webview":
-        res_dir = "res"
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
+    shutil.copy(
+        args.icon or default_icon,
+        join(res_dir, 'drawable/icon.png')
+    )
     if get_bootstrap_name() != "service_only":
-        shutil.copy(
-            args.icon or default_icon,
-            join(res_dir, 'drawable/icon.png')
-        )
         shutil.copy(
             args.presplash or default_presplash,
             join(res_dir, 'drawable/presplash.jpg')
@@ -340,9 +336,9 @@ main.py that loads it.''')
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
-    if get_bootstrap_name() == "sdl2":
-        args.add_activity = args.add_activity or []
-        args.activity_launch_mode = args.activity_launch_mode or ''
+    # if get_bootstrap_name() == "sdl2":
+    args.add_activity = args.add_activity or []
+    args.activity_launch_mode = args.activity_launch_mode or ''
 
     if args.extra_source_dirs:
         esd = []
@@ -374,17 +370,11 @@ main.py that loads it.''')
         sticky = 'sticky' in options
 
         service_names.append(name)
-        service_target_path = ""
-        if get_bootstrap_name() != "sdl2":
-            service_target_path =\
-                'src/{}/Service{}.java'.format(args.package.replace(".", "/"),
-                                               name.capitalize())
-        else:
-            service_target_path =\
-                'src/main/java/{}/Service{}.java'.format(
-                    args.package.replace(".", "/"),
-                    name.capitalize()
-                )
+        service_target_path =\
+            'src/main/java/{}/Service{}.java'.format(
+                args.package.replace(".", "/"),
+                name.capitalize()
+            )
         render(
             'Service.tmpl.java',
             service_target_path,
@@ -424,8 +414,6 @@ main.py that loads it.''')
 
     # Render out android manifest:
     manifest_path = "src/main/AndroidManifest.xml"
-    if get_bootstrap_name() != "sdl2":
-        manifest_path = "AndroidManifest.xml"
     render_args = {
         "args": args,
         "service": service,
@@ -441,45 +429,39 @@ main.py that loads it.''')
 
     # Copy the AndroidManifest.xml to the dist root dir so that ant
     # can also use it
-    if get_bootstrap_name() == "sdl2":
-        if exists('AndroidManifest.xml'):
-            remove('AndroidManifest.xml')
-        shutil.copy(manifest_path, 'AndroidManifest.xml')
+    if exists('AndroidManifest.xml'):
+        remove('AndroidManifest.xml')
+    shutil.copy(manifest_path, 'AndroidManifest.xml')
 
     # gradle build templates
-    if get_bootstrap_name() != "webview":
-        # HISTORICALLY NOT SUPPORTED FOR WEBVIEW. Needs review? -JonasT
-        render(
-            'build.tmpl.gradle',
-            'build.gradle',
-            args=args,
-            aars=aars,
-            jars=jars,
-            android_api=android_api,
-            build_tools_version=build_tools_version)
+    render(
+        'build.tmpl.gradle',
+        'build.gradle',
+        args=args,
+        aars=aars,
+        jars=jars,
+        android_api=android_api,
+        build_tools_version=build_tools_version
+        )
 
     # ant build templates
-    if get_bootstrap_name() != "service_only":
-        # Historically, service_only doesn't support ant anymore.
-        # Maybe we should also drop this for the others? -JonasT
-        render(
-            'build.tmpl.xml',
-            'build.xml',
-            args=args,
-            versioned_name=versioned_name)
+    render(
+        'build.tmpl.xml',
+        'build.xml',
+        args=args,
+        versioned_name=versioned_name)
 
     # String resources:
-    if get_bootstrap_name() != "service_only":
-        render_args = {
-            "args": args,
-            "private_version": str(time.time())
-        }
-        if get_bootstrap_name() == "sdl2":
-            render_args["url_scheme"] = url_scheme
-        render(
-            'strings.tmpl.xml',
-            join(res_dir, 'values/strings.xml'),
-            **render_args)
+    render_args = {
+        "args": args,
+        "private_version": str(time.time())
+    }
+    if get_bootstrap_name() == "sdl2":
+        render_args["url_scheme"] = url_scheme
+    render(
+        'strings.tmpl.xml',
+        join(res_dir, 'values/strings.xml'),
+        **render_args)
 
     if exists(join("templates", "custom_rules.tmpl.xml")):
         render(
@@ -489,7 +471,7 @@ main.py that loads it.''')
 
     if get_bootstrap_name() == "webview":
         render('WebViewLoader.tmpl.java',
-               'src/org/kivy/android/WebViewLoader.java',
+               'src/main/java/org/kivy/android/WebViewLoader.java',
                args=args)
 
     if args.sign:
@@ -551,6 +533,9 @@ tools directory of the Android SDK.
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append',
                     help='Custom key=value to add in application metadata')
+    ap.add_argument('--icon', dest='icon',
+                    help=('A png file to use as the icon for '
+                          'the application.'))
     if get_bootstrap_name() != "service_only":
         ap.add_argument('--presplash', dest='presplash',
                         help=('A jpeg file to use as a screen while the '
@@ -566,9 +551,6 @@ tools directory of the Android SDK.
         ap.add_argument('--window', dest='window', action='store_true',
                         default=False,
                         help='Indicate if the application will be windowed')
-        ap.add_argument('--icon', dest='icon',
-                        help=('A png file to use as the icon for '
-                              'the application.'))
         ap.add_argument('--orientation', dest='orientation',
                         default='portrait',
                         help=('The orientation that the game will '
@@ -626,9 +608,6 @@ tools directory of the Android SDK.
                           'directory'))
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
-    ap.add_argument('--service', dest='services', action='append',
-                    help='Declare a new service entrypoint: '
-                         'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
                     help='Include additional source dirs in Java build')
     if get_bootstrap_name() == "webview":
@@ -708,7 +687,7 @@ tools directory of the Android SDK.
     if args.meta_data is None:
         args.meta_data = []
 
-    if args.services is None:
+    if (not hasattr(args, 'services')) or args.services is None:
         args.services = []
 
     if args.try_system_python_compile:
@@ -739,10 +718,8 @@ tools directory of the Android SDK.
                         if x.strip() and not x.strip().startswith('#')]
         WHITELIST_PATTERNS += patterns
 
-    if args.private is None and (
-            get_bootstrap_name() != "sdl2" or
-            args.launcher is None
-            ):
+    if args.private is None and \
+            get_bootstrap_name() == 'sdl2' and args.launcher is None:
         print('Need --private directory or ' +
               '--launcher (SDL2 bootstrap only)' +
               'to have something to launch inside the .apk!')

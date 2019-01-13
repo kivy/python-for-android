@@ -1,17 +1,12 @@
 print('main.py was successfully called')
 print('this is the new main.py')
 
+import sys
+print('python version is: ' + sys.version)
+print('python path is', sys.path)
+
 import os
 print('imported os')
-
-try:
-    print('contents of ./lib/python2.7/site-packages/ etc.')
-    print(os.listdir('./lib'))
-    print(os.listdir('./lib/python2.7'))
-    print(os.listdir('./lib/python2.7/site-packages'))
-except OSError:
-    print('could not look in dirs')
-    print('this is expected on desktop')
 
 import flask
 print('flask1???')
@@ -20,9 +15,6 @@ print('contents of this dir', os.listdir('./'))
 
 import flask
 print('flask???')
-
-import sys
-print('pythonpath is', sys.path)
 
 
 from flask import Flask
