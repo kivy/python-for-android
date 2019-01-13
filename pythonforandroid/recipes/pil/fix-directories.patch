@@ -1,7 +1,6 @@
-diff -Naur pil/setup.py b/setup.py
---- pil/setup.py	2015-12-11 16:42:40.817701332 -0600
-+++ b/setup.py	2015-12-11 17:07:34.778477132 -0600
-@@ -34,10 +34,10 @@
+--- pil/setup.py.orig	2009-11-15 17:06:10.000000000 +0100
++++ pil/setup.py	2019-01-04 11:08:47.302974315 +0100
+@@ -34,10 +34,10 @@ def libinclude(root):
  # TIFF_ROOT = libinclude("/opt/tiff")
  
  TCL_ROOT = None
@@ -15,7 +14,7 @@ diff -Naur pil/setup.py b/setup.py
  LCMS_ROOT = None
  
  # FIXME: add mechanism to explicitly *disable* the use of a library
-@@ -127,29 +127,6 @@
+@@ -127,33 +127,10 @@ class pil_build_ext(build_ext):
  
          add_directory(include_dirs, "libImaging")
  
@@ -42,10 +41,17 @@ diff -Naur pil/setup.py b/setup.py
 -        add_directory(library_dirs, "/usr/local/lib")
 -        # FIXME: check /opt/stuff directories here?
 -
-         prefix = sysconfig.get_config_var("prefix")
+-        prefix = sysconfig.get_config_var("prefix")
++        prefix = os.environ.get('PYTHON_LINK_ROOT')
          if prefix:
-             add_directory(library_dirs, os.path.join(prefix, "lib"))
-@@ -199,22 +176,6 @@
+-            add_directory(library_dirs, os.path.join(prefix, "lib"))
+-            add_directory(include_dirs, os.path.join(prefix, "include"))
++            add_directory(library_dirs, os.environ.get('PYTHON_LINK_ROOT'))
++            add_directory(include_dirs, os.environ.get('PYTHON_INCLUDE_ROOT'))
+ 
+         #
+         # locate tkinter libraries
+@@ -199,22 +176,6 @@ class pil_build_ext(build_ext):
              add_directory(include_dirs, include_root)
  
          #
@@ -68,7 +74,7 @@ diff -Naur pil/setup.py b/setup.py
          # insert new dirs *before* default libs, to avoid conflicts
          # between Python PYD stub libs and real libraries
  
-@@ -299,8 +260,6 @@
+@@ -299,8 +260,6 @@ class pil_build_ext(build_ext):
              defs.append(("HAVE_LIBZ", None))
          if sys.platform == "win32":
              libs.extend(["kernel32", "user32", "gdi32"])

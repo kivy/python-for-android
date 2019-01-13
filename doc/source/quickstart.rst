@@ -63,6 +63,7 @@ p4a has several dependencies that must be installed:
 - ccache (optional)
 - autoconf (for ffpyplayer_codecs recipe)
 - libtool (for ffpyplayer_codecs recipe)
+- cmake (required for some native code recipes like jpeg's recipe)
 
 On recent versions of Ubuntu and its derivatives you may be able to
 install most of these with::
