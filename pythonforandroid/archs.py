@@ -122,7 +122,7 @@ class Arch(object):
                 'Couldn\'t find executable for CC. This indicates a '
                 'problem locating the {} executable in the Android '
                 'NDK, not that you don\'t have a normal compiler '
-                'installed. Exiting.')
+                'installed. Exiting.'.format(exe))
 
         if with_flags_in_cc:
             env['CC'] = '{ccache}{exe} {cflags}'.format(
