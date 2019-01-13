@@ -18,7 +18,7 @@ env:
     - ANDROID_SDK_HOME=/opt/android/android-sdk
     - ANDROID_NDK_HOME=/opt/android/android-ndk
   matrix:
-    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python3'
+    - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools'
     # overrides requirements to skip `peewee` pure python module, see:
     # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
     - COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'

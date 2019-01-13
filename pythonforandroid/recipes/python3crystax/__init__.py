@@ -17,7 +17,7 @@ class Python3CrystaXRecipe(TargetPythonRecipe):
     name = 'python3crystax'
 
     depends = ['hostpython3crystax']
-    conflicts = ['python2', 'python3']
+    conflicts = ['python3', 'python2', 'python2legacy']
 
     from_crystax = True
 

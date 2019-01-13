@@ -2,6 +2,7 @@ from os.path import exists, join
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import info, shprint
 from pythonforandroid.util import current_directory
+from glob import glob
 import sh
 
 
@@ -13,8 +14,8 @@ class LibffiRecipe(Recipe):
         - `libltdl-dev` which defines the `LT_SYS_SYMBOL_USCORE` macro
     """
     name = 'libffi'
-    version = 'v3.2.1'
-    url = 'https://github.com/atgreen/libffi/archive/{version}.zip'
+    version = '3.2.1'
+    url = 'https://github.com/libffi/libffi/archive/v{version}.tar.gz'
 
     patches = ['remove-version-info.patch']
 
@@ -43,7 +44,7 @@ class LibffiRecipe(Recipe):
                 shprint(sh.Command('./autogen.sh'), _env=env)
             shprint(sh.Command('autoreconf'), '-vif', _env=env)
             shprint(sh.Command('./configure'),
-                    '--host=' + arch.toolchain_prefix,
+                    '--host=' + arch.command_prefix,
                     '--prefix=' + self.ctx.get_python_install_dir(),
                     '--enable-shared', _env=env)
             # '--with-sysroot={}'.format(self.ctx.ndk_platform),
@@ -52,7 +53,7 @@ class LibffiRecipe(Recipe):
             # ndk 15 introduces unified headers required --sysroot and
             # -isysroot for libraries and headers. libtool's head explodes
             # trying to weave them into it's own magic. The result is a link
-            # failure tryng to link libc. We call make to compile the bits
+            # failure trying to link libc. We call make to compile the bits
             # and manually link...
 
             try:
@@ -61,25 +62,33 @@ class LibffiRecipe(Recipe):
                 info("make libffi.la failed as expected")
             cc = sh.Command(env['CC'].split()[0])
             cflags = env['CC'].split()[1:]
+            host_build = join(self.get_build_dir(arch.arch), self.get_host(arch))
 
-            cflags.extend(['-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfp',
-                           '-mthumb', '-shared', '-fPIC', '-DPIC',
-                           'src/.libs/prep_cif.o', 'src/.libs/types.o',
-                           'src/.libs/raw_api.o', 'src/.libs/java_raw_api.o',
-                           'src/.libs/closures.o', 'src/arm/.libs/sysv.o',
-                           'src/arm/.libs/ffi.o', ]
-                         )
+            arch_flags = ''
+            if '-march=' in env['CFLAGS']:
+                arch_flags = '-march={}'.format(env['CFLAGS'].split('-march=')[1])
+
+            src_arch = arch.command_prefix.split('-')[0]
+            if src_arch == 'x86_64':
+                # libffi has not specific arch files for x86_64...so...using
+                # the ones from x86 which seems to build fine...
+                src_arch = 'x86'
+
+            cflags.extend(arch_flags.split())
+            cflags.extend(['-shared', '-fPIC', '-DPIC'])
+            cflags.extend(glob(join(host_build, 'src/.libs/*.o')))
+            cflags.extend(glob(join(host_build, 'src', src_arch, '.libs/*.o')))
 
             ldflags = env['LDFLAGS'].split()
             cflags.extend(ldflags)
             cflags.extend(['-Wl,-soname', '-Wl,libffi.so', '-o',
                            '.libs/libffi.so'])
 
-            with current_directory(self.get_host(arch)):
+            with current_directory(host_build):
                 shprint(cc, *cflags, _env=env)
 
             shprint(sh.cp, '-t', self.ctx.get_libs_dir(arch.arch),
-                    join(self.get_host(arch), '.libs', 'libffi.so'))
+                    join(host_build, '.libs', 'libffi.so'))
 
     def get_include_dirs(self, arch):
         return [join(self.get_build_dir(arch.arch), self.get_host(arch),

@@ -1,57 +1,82 @@
-from pythonforandroid.toolchain import Recipe, shutil
-from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.recipe import Recipe, CompiledComponentsPythonRecipe
+from pythonforandroid.logger import shprint
 from os.path import exists, join
-from os import listdir
+from os import uname
+import sh
 
 
 class LXMLRecipe(CompiledComponentsPythonRecipe):
-    version = "3.6.0"
-    url = "https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz"
-    depends = [("python2", "python3crystax"), "libxml2", "libxslt"]
-    name = "lxml"
+    version = '4.2.5'
+    url = 'https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz'  # noqa
+    depends = ['libxml2', 'libxslt', 'setuptools']
+    name = 'lxml'
 
     call_hostpython_via_targetpython = False  # Due to setuptools
 
     def should_build(self, arch):
         super(LXMLRecipe, self).should_build(arch)
-        return True
-        return not exists(join(self.ctx.get_libs_dir(arch.arch), "etree.so"))
 
-    def build_arch(self, arch):
-        super(LXMLRecipe, self).build_arch(arch)
+        py_ver = self.ctx.python_recipe.major_minor_version_string
+        build_platform = '{system}-{machine}'.format(
+            system=uname()[0], machine=uname()[-1]).lower()
+        build_dir = join(self.get_build_dir(arch.arch), 'build',
+                         'lib.' + build_platform + '-' + py_ver, 'lxml')
+        py_libs = ['_elementpath.so', 'builder.so', 'etree.so', 'objectify.so']
 
-        def get_lib_build_dir_name():
-            for f in listdir(join(self.get_build_dir(arch.arch), "build")):
-                if f.startswith("lib.linux-x86_64"):
-                    return f
-            return None
+        return not all([exists(join(build_dir, lib)) for lib in py_libs])
 
-        def get_so_name(so_target, dirpath):
-            for f in listdir(dirpath):
-                if f.startswith(so_target.partition(".")[0] + ".") and \
-                        f.endswith(".so"):
-                    return join(dirpath, f)
-            return None
+    def build_compiled_components(self, arch):
+        # Hack to make it link properly to librt, inserted automatically by the
+        # installer (Note: the librt doesn't exist in android but it is
+        # integrated into libc, so we create a symbolic link which we will
+        # remove when our build finishes)
+        link_c = join(self.ctx.ndk_platform, 'usr', 'lib', 'libc')
+        link_rt = join(self.ctx.ndk_platform, 'usr', 'lib', 'librt')
+        shprint(sh.ln, '-sf', link_c + '.so', link_rt + '.so')
+        shprint(sh.ln, '-sf', link_c + '.a', link_rt + '.a')
 
-        so_origin_dir = "%s/build/%s/lxml/" % (self.get_build_dir(arch.arch),
-                                               get_lib_build_dir_name())
-        shutil.copyfile(
-            join(so_origin_dir, get_so_name("etree.so", so_origin_dir)),
-            join(self.ctx.get_libs_dir(arch.arch), "etree.so"),
-        )
-        shutil.copyfile(
-            join(so_origin_dir, get_so_name("objectify.so", so_origin_dir)),
-            join(self.ctx.get_libs_dir(arch.arch), "objectify.so"),
-        )
+        super(LXMLRecipe, self).build_compiled_components(arch)
+
+        shprint(sh.rm, '-r', link_rt + '.so')
+        shprint(sh.rm, '-r', link_rt + '.a')
 
     def get_recipe_env(self, arch):
         env = super(LXMLRecipe, self).get_recipe_env(arch)
-        libxslt_recipe = Recipe.get_recipe("libxslt", self.ctx).get_build_dir(arch.arch)
-        libxml2_recipe = Recipe.get_recipe("libxml2", self.ctx).get_build_dir(arch.arch)
-        env["CC"] += " -I%s/include -I%s " % (
-            libxml2_recipe,
-            libxslt_recipe,
-        )
+
+        # libxslt flags
+        libxslt_recipe = Recipe.get_recipe('libxslt', self.ctx)
+        libxslt_build_dir = libxslt_recipe.get_build_dir(arch.arch)
+
+        cflags = ' -I' + libxslt_build_dir
+        cflags += ' -I' + join(libxslt_build_dir, 'libxslt')
+        cflags += ' -I' + join(libxslt_build_dir, 'libexslt')
+
+        env['LDFLAGS'] += ' -L' + join(libxslt_build_dir, 'libxslt', '.libs')
+        env['LDFLAGS'] += ' -L' + join(libxslt_build_dir, 'libexslt', '.libs')
+        env['LIBS'] = '-lxslt -lexslt'
+
+        # libxml2 flags
+        libxml2_recipe = Recipe.get_recipe('libxml2', self.ctx)
+        libxml2_build_dir = libxml2_recipe.get_build_dir(arch.arch)
+        libxml2_libs_dir = join(libxml2_build_dir, '.libs')
+
+        cflags += ' -I' + libxml2_build_dir
+        cflags += ' -I' + join(libxml2_build_dir, 'include')
+        cflags += ' -I' + join(libxml2_build_dir, 'include', 'libxml')
+        cflags += ' -I' + self.get_build_dir(arch.arch)
+        env['LDFLAGS'] += ' -L' + libxml2_libs_dir
+        env['LIBS'] += ' -lxml2'
+
+        # android's ndk flags
+        ndk_lib_dir = join(self.ctx.ndk_platform, 'usr', 'lib')
+        ndk_include_dir = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        cflags += ' -I' + ndk_include_dir
+        env['LDFLAGS'] += ' -L' + ndk_lib_dir
+        env['LIBS'] += ' -lz -lm -lc'
+
+        if cflags not in env['CFLAGS']:
+            env['CFLAGS'] += cflags
+
         return env
 
 

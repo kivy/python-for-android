@@ -1,0 +1,46 @@
+--- Python-2.7.15.orig/setup.py	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/setup.py	2018-07-05 11:08:57.305125432 +0200
+@@ -812,18 +840,15 @@ class PyBuildExt(build_ext):
+                               '/usr/local/ssl/include',
+                               '/usr/contrib/ssl/include/'
+                              ]
+-        ssl_incs = find_file('openssl/ssl.h', inc_dirs,
+-                             search_for_ssl_incs_in
+-                             )
++        ssl_incs = [
++            os.path.join(os.environ["OPENSSL_BUILD"], 'include'),
++            os.path.join(os.environ["OPENSSL_BUILD"], 'include', 'openssl')]
+         if ssl_incs is not None:
+             krb5_h = find_file('krb5.h', inc_dirs,
+                                ['/usr/kerberos/include'])
+             if krb5_h:
+                 ssl_incs += krb5_h
+-        ssl_libs = find_library_file(self.compiler, 'ssl',lib_dirs,
+-                                     ['/usr/local/ssl/lib',
+-                                      '/usr/contrib/ssl/lib/'
+-                                     ] )
++        ssl_libs = [os.environ["OPENSSL_BUILD"]]
+
+         if (ssl_incs is not None and
+             ssl_libs is not None):
+@@ -841,8 +866,8 @@ class PyBuildExt(build_ext):
+             '^\s*#\s*define\s+OPENSSL_VERSION_NUMBER\s+(0x[0-9a-fA-F]+)' )
+
+         # look for the openssl version header on the compiler search path.
+-        opensslv_h = find_file('openssl/opensslv.h', [],
+-                inc_dirs + search_for_ssl_incs_in)
++        opensslv_h = [os.path.join(os.environ["OPENSSL_BUILD"], 'include'),
++                      os.path.join(os.environ["OPENSSL_BUILD"], 'include', 'openssl')]
+         if opensslv_h:
+             name = os.path.join(opensslv_h[0], 'openssl/opensslv.h')
+             if host_platform == 'darwin' and is_macosx_sdk_path(name):
+@@ -859,8 +884,7 @@ class PyBuildExt(build_ext):
+
+         min_openssl_ver = 0x00907000
+         have_any_openssl = ssl_incs is not None and ssl_libs is not None
+-        have_usable_openssl = (have_any_openssl and
+-                               openssl_ver >= min_openssl_ver)
++        have_usable_openssl = (have_any_openssl and True)
+
+         if have_any_openssl:
+             if have_usable_openssl:
