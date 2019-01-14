@@ -8,8 +8,8 @@ import sh
 class PygameBootstrap(Bootstrap):
     name = 'pygame'
 
-    recipe_depends = ['hostpython2', 'python2', 'pyjnius', 'sdl', 'pygame',
-                      'android', 'kivy']
+    recipe_depends = ['hostpython2legacy', 'python2legacy', 'pyjnius',
+                      'sdl', 'pygame', 'android', 'kivy']
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(

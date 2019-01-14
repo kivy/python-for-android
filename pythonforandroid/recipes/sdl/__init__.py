@@ -8,7 +8,7 @@ class LibSDLRecipe(BootstrapNDKRecipe):
     version = "1.2.14"
     url = None
     name = 'sdl'
-    depends = ['python2', 'pygame_bootstrap_components']
+    depends = ['python2legacy', 'pygame_bootstrap_components']
     conflicts = ['sdl2']
 
     def build_arch(self, arch):

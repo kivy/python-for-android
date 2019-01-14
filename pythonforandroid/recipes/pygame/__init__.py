@@ -12,7 +12,7 @@ class PygameRecipe(Recipe):
     version = '1.9.1'
     url = 'http://pygame.org/ftp/pygame-{version}release.tar.gz'
 
-    depends = ['python2', 'sdl']
+    depends = ['python2legacy', 'sdl']
     conflicts = ['sdl2']
 
     patches = ['patches/fix-surface-access.patch',
