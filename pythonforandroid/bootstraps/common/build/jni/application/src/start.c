@@ -17,7 +17,9 @@
 #include "bootstrap_name.h"
 #ifndef BOOTSTRAP_USES_NO_SDL_HEADERS
 #include "SDL.h"
+#ifndef BOOTSTRAP_NAME_PYGAME
 #include "SDL_opengles2.h"
+#endif
 #endif
 #ifdef BOOTSTRAP_NAME_PYGAME
 #include "jniwrapperstuff.h"
@@ -335,10 +337,8 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
     jobject thiz,
     jstring j_android_private,
     jstring j_android_argument,
-#if (!defined(BOOTSTRAP_NAME_PYGAME))
     jstring j_service_entrypoint,
     jstring j_python_name,
-#endif
     jstring j_python_home,
     jstring j_python_path,
     jstring j_arg) {
@@ -347,14 +347,10 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
       (*env)->GetStringUTFChars(env, j_android_private, &iscopy);
   const char *android_argument =
       (*env)->GetStringUTFChars(env, j_android_argument, &iscopy);
-#if (!defined(BOOTSTRAP_NAME_PYGAME))
   const char *service_entrypoint =
       (*env)->GetStringUTFChars(env, j_service_entrypoint, &iscopy);
   const char *python_name =
       (*env)->GetStringUTFChars(env, j_python_name, &iscopy);
-#else
-  const char python_name[] = "python2";
-#endif
   const char *python_home =
       (*env)->GetStringUTFChars(env, j_python_home, &iscopy);
   const char *python_path =
@@ -364,10 +360,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   setenv("ANDROID_PRIVATE", android_private, 1);
   setenv("ANDROID_ARGUMENT", android_argument, 1);
   setenv("ANDROID_APP_PATH", android_argument, 1);
-
-#if (!defined(BOOTSTRAP_NAME_PYGAME))
   setenv("ANDROID_ENTRYPOINT", service_entrypoint, 1);
-#endif
   setenv("PYTHONOPTIMIZE", "2", 1);
   setenv("PYTHON_NAME", python_name, 1);
   setenv("PYTHONHOME", python_home, 1);

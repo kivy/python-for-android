@@ -215,6 +215,7 @@ def make_package(args):
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
     default_ouya_icon = 'templates/kivy-ouya-icon.png'
+    default_ant_properties = 'templates/ant.properties'
     # Figure out the version code, if necessary.
     if not args.numeric_version:
         for i in args.version.split('.'):
@@ -344,6 +345,9 @@ main.py that loads it.''')
     shutil.copy(args.icon or default_icon, 'res/drawable/icon.png')
     shutil.copy(args.presplash or default_presplash,
                 'res/drawable/presplash.jpg')
+
+    # Copy over the ant.properties file.
+    shutil.copy(default_ant_properties, 'ant.properties')
 
     # If OUYA support was requested, copy over the OUYA icon
     if args.ouya_category:

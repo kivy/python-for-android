@@ -1,15 +1,14 @@
 from pythonforandroid.toolchain import Bootstrap, current_directory, info, info_main, shprint
+from pythonforandroid.util import ensure_dir
 from os.path import join, exists
-from os import walk
-import glob
 import sh
 
 
 class PygameBootstrap(Bootstrap):
     name = 'pygame'
 
-    recipe_depends = ['hostpython2', 'python2', 'pyjnius', 'sdl', 'pygame',
-                      'android', 'kivy']
+    recipe_depends = ['hostpython2legacy', 'python2legacy', 'pyjnius',
+                      'sdl', 'pygame', 'android', 'kivy']
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
@@ -45,53 +44,30 @@ class PygameBootstrap(Bootstrap):
                 fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
 
             info('Copying python distribution')
-            hostpython = sh.Command(self.ctx.hostpython)
-            try:
-                shprint(hostpython, '-OO', '-m', 'compileall', self.ctx.get_python_install_dir(),
-                        _tail=10, _filterout="^Listing")
-            except sh.ErrorReturnCode:
-                pass
-            if not exists('python-install'):
-                shprint(sh.cp, '-a', self.ctx.get_python_install_dir(), './python-install')
 
-            self.distribute_libs(arch, [join(self.build_dir, 'libs', arch.arch), self.ctx.get_libs_dir(arch.arch)])
+            python_bundle_dir = join('_python_bundle', '_python_bundle')
+            if 'python2legacy' in self.ctx.recipe_build_order:
+                # a special case with its own packaging location
+                python_bundle_dir = 'private'
+                # And also must had an install directory, make sure of that
+                self.ctx.python_recipe.create_python_install(self.dist_dir)
+
+            self.distribute_libs(
+                arch, [join(self.build_dir, 'libs', arch.arch),
+                       self.ctx.get_libs_dir(arch.arch)])
             self.distribute_aars(arch)
             self.distribute_javaclasses(self.ctx.javaclass_dir)
 
-            info('Filling private directory')
-            if not exists(join('private', 'lib')):
-                shprint(sh.cp, '-a', join('python-install', 'lib'), 'private')
-            shprint(sh.mkdir, '-p', join('private', 'include', 'python2.7'))
+            ensure_dir(python_bundle_dir)
+            site_packages_dir = self.ctx.python_recipe.create_python_bundle(
+                join(self.dist_dir, python_bundle_dir), arch)
 
-            shprint(sh.mv, join('libs', arch.arch, 'libpymodules.so'), 'private/')
-            shprint(sh.cp, join('python-install', 'include', 'python2.7', 'pyconfig.h'), join('private', 'include', 'python2.7/'))
-
-            info('Removing some unwanted files')
-            shprint(sh.rm, '-f', join('private', 'lib', 'libpython2.7.so'))
-            shprint(sh.rm, '-rf', join('private', 'lib', 'pkgconfig'))
-
-            with current_directory(join(self.dist_dir, 'private', 'lib', 'python2.7')):
-                # shprint(sh.xargs, 'rm', sh.grep('-E', '*\.(py|pyx|so\.o|so\.a|so\.libs)$', sh.find('.')))
-                removes = []
-                for dirname, something, filens in walk('.'):
-                    for filename in filens:
-                        for suffix in ('py', 'pyc', 'so.o', 'so.a', 'so.libs'):
-                            if filename.endswith(suffix):
-                                removes.append(filename)
-                shprint(sh.rm, '-f', *removes)
-
-                info('Deleting some other stuff not used on android')
-                # To quote the original distribute.sh, 'well...'
-                # shprint(sh.rm, '-rf', 'ctypes')
-                shprint(sh.rm, '-rf', 'lib2to3')
-                shprint(sh.rm, '-rf', 'idlelib')
-                for filename in glob.glob('config/libpython*.a'):
-                    shprint(sh.rm, '-f', filename)
-                shprint(sh.rm, '-rf', 'config/python.o')
-                shprint(sh.rm, '-rf', 'lib-dynload/_ctypes_test.so')
-                shprint(sh.rm, '-rf', 'lib-dynload/_testcapi.so')
+            if 'sqlite3' not in self.ctx.recipe_build_order:
+                with open('blacklist.txt', 'a') as fileh:
+                    fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
         self.strip_libraries(arch)
+        self.fry_eggs(site_packages_dir)
         super(PygameBootstrap, self).run_distribute()
 
 
