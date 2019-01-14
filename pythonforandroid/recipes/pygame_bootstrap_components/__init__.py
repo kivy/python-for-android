@@ -25,5 +25,11 @@ class PygameJNIComponentsRecipe(BootstrapNDKRecipe):
         info('Unpacking was successful, deleting original container dir')
         shprint(sh.rm, '-rf', self.get_build_dir(arch))
 
+        info('Applying jpeg assembler patch')
+        ndk_15_plus_patch = join(self.get_recipe_dir(), 'jpeg-ndk15-plus.patch')
+        shprint(sh.patch, '-t', '-d',
+                join(self.get_build_container_dir(arch), 'jpeg'), '-p1',
+                '-i', ndk_15_plus_patch, _tail=10)
+
 
 recipe = PygameJNIComponentsRecipe()
