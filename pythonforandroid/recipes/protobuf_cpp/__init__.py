@@ -134,7 +134,8 @@ class ProtobufCppRecipe(PythonRecipe):
         env['LDFLAGS'] += (
             ' -L' + self.ctx.ndk_dir +
             '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version +
-            '/libs/' + arch.arch + ' -lgnustl_shared -landroid -llog')
+            '/libs/' + arch.arch)
+        env['LIBS'] = env.get('LIBS', '') + ' -lgnustl_shared -landroid -llog'
 
         return env
 
