@@ -20,9 +20,10 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
         openssl_recipe = Recipe.get_recipe('openssl', self.ctx)
         env['CC'] = env['CC'] + openssl_recipe.include_flags(arch)
 
-        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
-            self.ctx.get_libs_dir(arch.arch) +
-            '-L{}'.format(self.ctx.libs_dir)) + openssl_recipe.link_flags(arch)
+        env['LDFLAGS'] += ' -L{}'.format(self.ctx.get_libs_dir(arch.arch))
+        env['LDFLAGS'] += ' -L{}'.format(self.ctx.libs_dir)
+        env['LDFLAGS'] += openssl_recipe.link_dirs_flags(arch)
+        env['LIBS'] = env.get('LIBS', '') + openssl_recipe.link_libs_flags()
 
         env['EXTRA_CFLAGS'] = '--host linux-armv'
         env['ac_cv_func_malloc_0_nonnull'] = 'yes'
