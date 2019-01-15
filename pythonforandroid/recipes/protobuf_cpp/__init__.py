@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe
 from pythonforandroid.logger import shprint, info_notify
 from pythonforandroid.util import current_directory, shutil
-from os.path import exists, join, dirname
+from os.path import exists, join
 import sh
 from multiprocessing import cpu_count
 from pythonforandroid.toolchain import info
@@ -11,7 +11,7 @@ import os
 
 class ProtobufCppRecipe(PythonRecipe):
     name = 'protobuf_cpp'
-    version = '3.5.1'
+    version = '3.6.1'
     url = 'https://github.com/google/protobuf/releases/download/v{version}/protobuf-python-{version}.tar.gz'
     call_hostpython_via_targetpython = False
     depends = ['cffi', 'setuptools']
@@ -20,6 +20,12 @@ class ProtobufCppRecipe(PythonRecipe):
 
     def prebuild_arch(self, arch):
         super(ProtobufCppRecipe, self).prebuild_arch(arch)
+
+        patch_mark = join(self.get_build_dir(arch.arch), '.protobuf-patched')
+        if self.ctx.python_recipe.name == 'python3' and not exists(patch_mark):
+            self.apply_patch('fix-python3-compatibility.patch', arch.arch)
+            shprint(sh.touch, patch_mark)
+
         # During building, host needs to transpile .proto files to .py
         # ideally with the same version as protobuf runtime, or with an older one.
         # Because protoc is compiled for target (i.e. Android), we need an other binary
@@ -100,34 +106,18 @@ class ProtobufCppRecipe(PythonRecipe):
         with current_directory(join(self.get_build_dir(arch.arch), 'python')):
             hostpython = sh.Command(self.hostpython_location)
 
-            if self.ctx.python_recipe.from_crystax:
-                hpenv = env.copy()
-                shprint(hostpython, 'setup.py', 'install', '-O2',
-                        '--root={}'.format(self.ctx.get_python_install_dir()),
-                        '--install-lib=.',
-                        '--cpp_implementation',
-                        _env=hpenv, *self.setup_extra_args)
-            else:
-                hppath = join(dirname(self.hostpython_location), 'Lib',
-                              'site-packages')
-                hpenv = env.copy()
-                if 'PYTHONPATH' in hpenv:
-                    hpenv['PYTHONPATH'] = ':'.join([hppath] +
-                                                   hpenv['PYTHONPATH'].split(':'))
-                else:
-                    hpenv['PYTHONPATH'] = hppath
-                shprint(hostpython, 'setup.py', 'install', '-O2',
-                        '--root={}'.format(self.ctx.get_python_install_dir()),
-                        '--install-lib=lib/python2.7/site-packages',
-                        '--cpp_implementation',
-                        _env=hpenv, *self.setup_extra_args)
+            hpenv = env.copy()
+            shprint(hostpython, 'setup.py', 'install', '-O2',
+                    '--root={}'.format(self.ctx.get_python_install_dir()),
+                    '--install-lib=.',
+                    '--cpp_implementation',
+                    _env=hpenv, *self.setup_extra_args)
 
     def get_recipe_env(self, arch):
         env = super(ProtobufCppRecipe, self).get_recipe_env(arch)
         if self.protoc_dir is not None:
             # we need protoc with binary for host platform
             env['PROTOC'] = join(self.protoc_dir, 'bin', 'protoc')
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['TARGET_OS'] = 'OS_ANDROID_CROSSCOMPILE'
         env['CFLAGS'] += (
             ' -I' + self.ctx.ndk_dir + '/platforms/android-' +
@@ -136,17 +126,17 @@ class ProtobufCppRecipe(PythonRecipe):
             ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' +
             self.ctx.toolchain_version + '/include' +
             ' -I' + self.ctx.ndk_dir + '/sources/cxx-stl/gnu-libstdc++/' +
-            self.ctx.toolchain_version + '/libs/' + arch.arch + '/include' +
-            ' -I' + env['PYTHON_ROOT'] + '/include/python2.7')
+            self.ctx.toolchain_version + '/libs/' + arch.arch + '/include')
+        env['CFLAGS'] += ' -std=gnu++11'
         env['CXXFLAGS'] = env['CFLAGS']
         env['CXXFLAGS'] += ' -frtti'
         env['CXXFLAGS'] += ' -fexceptions'
         env['LDFLAGS'] += (
             ' -L' + self.ctx.ndk_dir +
             '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version +
-            '/libs/' + arch.arch + ' -lgnustl_shared -lpython2.7 -landroid -llog')
+            '/libs/' + arch.arch)
+        env['LIBS'] = env.get('LIBS', '') + ' -lgnustl_shared -landroid -llog'
 
-        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         return env
 
 
