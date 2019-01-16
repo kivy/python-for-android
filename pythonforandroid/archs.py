@@ -5,7 +5,7 @@ import sys
 from distutils.spawn import find_executable
 
 from pythonforandroid.recipe import Recipe
-from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.util import BuildInterruptingException, build_platform
 
 
 class Arch(object):
@@ -51,7 +51,8 @@ class Arch(object):
             toolchain = '{android_host}-{toolchain_version}'.format(
                 android_host=self.ctx.toolchain_prefix,
                 toolchain_version=self.ctx.toolchain_version)
-            toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain, 'prebuilt', 'linux-x86_64')
+            toolchain = join(self.ctx.ndk_dir, 'toolchains', toolchain,
+                             'prebuilt', build_platform)
             cflags.append('-gcc-toolchain {}'.format(toolchain))
 
         env['CFLAGS'] = ' '.join(cflags)
@@ -106,7 +107,7 @@ class Arch(object):
             llvm_dirname = split(
                 glob(join(self.ctx.ndk_dir, 'toolchains', 'llvm*'))[-1])[-1]
             clang_path = join(self.ctx.ndk_dir, 'toolchains', llvm_dirname,
-                              'prebuilt', 'linux-x86_64', 'bin')
+                              'prebuilt', build_platform, 'bin')
             environ['PATH'] = '{clang_path}:{path}'.format(
                 clang_path=clang_path, path=environ['PATH'])
             exe = join(clang_path, 'clang')
