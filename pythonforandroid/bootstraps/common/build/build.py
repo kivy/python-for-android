@@ -253,11 +253,15 @@ def compile_dir(dfn, optimize_python=True):
     if get_bootstrap_name() != "sdl2":
         # HISTORICALLY DISABLED for other than sdl2. NEEDS REVIEW! -JonasT
         return
-    # -OO = strip docstrings
     if PYTHON is None:
         return
-    args = [PYTHON, '-m', 'compileall', '-f', dfn]
+
+    if int(PYTHON_VERSION[0]) >= 3:
+        args = [PYTHON, '-m', 'compileall', '-b', '-f', dfn]
+    else:
+        args = [PYTHON, '-m', 'compileall', '-f', dfn]
     if optimize_python:
+        # -OO = strip docstrings
         args.insert(1, '-OO')
     subprocess.call(args)
 
