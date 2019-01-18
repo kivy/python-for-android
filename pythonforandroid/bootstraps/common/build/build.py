@@ -23,16 +23,24 @@ from fnmatch import fnmatch
 import jinja2
 
 
-def get_bootstrap_name():
+def get_dist_info_for(key):
     try:
         with open(join(dirname(__file__), 'dist_info.json'), 'r') as fileh:
             info = json.load(fileh)
-        bootstrap = str(info["bootstrap"])
+        value = str(info[key])
     except (OSError, KeyError) as e:
-        print("BUILD FAILURE: Couldn't extract bootstrap name " +
+        print("BUILD FAILURE: Couldn't extract the key `" + key + "` " +
               "from dist_info.json: " + str(e))
         sys.exit(1)
-    return bootstrap
+    return value
+
+
+def get_hostpython():
+    return get_dist_info_for('hostpython')
+
+
+def get_bootstrap_name():
+    return get_dist_info_for('bootstrap')
 
 
 if os.name == 'nt':
@@ -44,9 +52,8 @@ else:
 
 curdir = dirname(__file__)
 
-# Try to find a host version of Python that matches our ARM version.
-PYTHON = join(curdir, 'python-install', 'bin', 'python.host')
-if not exists(PYTHON):
+PYTHON = get_hostpython()
+if PYTHON is not None and not exists(PYTHON):
     PYTHON = None
 
 BLACKLIST_PATTERNS = [
