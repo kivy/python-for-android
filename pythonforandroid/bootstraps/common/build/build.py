@@ -250,9 +250,6 @@ def compile_dir(dfn, optimize_python=True):
     Compile *.py in directory `dfn` to *.pyo
     '''
 
-    if get_bootstrap_name() != "sdl2":
-        # HISTORICALLY DISABLED for other than sdl2. NEEDS REVIEW! -JonasT
-        return
     if PYTHON is None:
         return
 
