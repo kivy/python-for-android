@@ -24,8 +24,10 @@ Current limitations:
 import sh
 import os
 from pythonforandroid.build import Context
+from pythonforandroid import logger
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
 from pythonforandroid.toolchain import current_directory
+from pythonforandroid.util import BuildInterruptingException
 from ci.constants import TargetPython, CORE_RECIPES, BROKEN_RECIPES
 
 
@@ -59,9 +61,10 @@ def build(target_python, requirements):
         testapp = 'setup_testapp_python3.py'
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
-    print('requirements:', requirements)
+    logger.info('requirements: {}'.format(requirements))
     with current_directory('testapps/'):
         try:
+            # iterates to stream the output
             for line in sh.python(
                     testapp, 'apk', '--sdk-dir', android_sdk_home,
                     '--ndk-dir', android_ndk_home, '--bootstrap', 'sdl2', '--requirements',
@@ -74,21 +77,24 @@ def build(target_python, requirements):
 def main():
     target_python = TargetPython.python3
     recipes = modified_recipes()
-    print('recipes modified:', recipes)
+    logger.info('recipes modified: {}'.format(recipes))
     recipes -= CORE_RECIPES
-    print('recipes to build:', recipes)
+    logger.info('recipes to build: {}'.format(recipes))
     context = Context()
-    build_order, python_modules, bs = get_recipe_order_and_bootstrap(
-        context, recipes, None)
-    # fallback to python2 if default target is not compatible
-    if target_python.name not in build_order:
-        print('incompatible with {}'.format(target_python.name))
+    # forces the default target
+    recipes_and_target = recipes | set([target_python.name])
+    try:
+        build_order, python_modules, bs = get_recipe_order_and_bootstrap(
+            context, recipes_and_target, None)
+    except BuildInterruptingException:
+        # fallback to python2 if default target is not compatible
+        logger.info('incompatible with {}'.format(target_python.name))
         target_python = TargetPython.python2
-        print('falling back to {}'.format(target_python.name))
+        logger.info('falling back to {}'.format(target_python.name))
     # removing the known broken recipe for the given target
     broken_recipes = BROKEN_RECIPES[target_python]
     recipes -= broken_recipes
-    print('recipes to build (no broken):', recipes)
+    logger.info('recipes to build (no broken): {}'.format(recipes))
     build(target_python, recipes)
 
 
