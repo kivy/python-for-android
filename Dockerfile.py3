@@ -47,6 +47,7 @@ ENV ANDROID_SDK_HOME="${ANDROID_HOME}/android-sdk"
 
 # get the latest version from https://developer.android.com/studio/index.html
 ENV ANDROID_SDK_TOOLS_VERSION="3859397"
+ENV ANDROID_SDK_BUILD_TOOLS_VERSION="26.0.2"
 ENV ANDROID_SDK_TOOLS_ARCHIVE="sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
 ENV ANDROID_SDK_TOOLS_DL_URL="https://dl.google.com/android/repository/${ANDROID_SDK_TOOLS_ARCHIVE}"
 
@@ -68,12 +69,12 @@ RUN apt -y update -qq \
     && apt -y install -qq --no-install-recommends openjdk-8-jdk \
     && apt -y autoremove \
     && apt -y clean
-RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" --licenses > /dev/null
+RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" > /dev/null
 
 # download platforms, API, build tools
 RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-19" && \
     "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" && \
-    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;26.0.2" && \
+    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" && \
     chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
 
 
