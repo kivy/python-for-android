@@ -1,10 +1,11 @@
-from pythonforandroid.recipe import PythonRecipe
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 
-class GreenletRecipe(PythonRecipe):
-    version = '0.4.9'
+class GreenletRecipe(CompiledComponentsPythonRecipe):
+    version = '0.4.15'
     url = 'https://pypi.python.org/packages/source/g/greenlet/greenlet-{version}.tar.gz'
-    depends = [('python2', 'python3crystax')]
+    depends = ['setuptools']
+    call_hostpython_via_targetpython = False
 
 
 recipe = GreenletRecipe()
