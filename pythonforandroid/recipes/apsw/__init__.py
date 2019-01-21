@@ -6,7 +6,7 @@ import sh
 class ApswRecipe(PythonRecipe):
     version = '3.15.0-r1'
     url = 'https://github.com/rogerbinns/apsw/archive/{version}.tar.gz'
-    depends = ['sqlite3', 'hostpython2', 'python2', 'setuptools']
+    depends = ['sqlite3', ('python2', 'python3'), 'setuptools']
     call_hostpython_via_targetpython = False
     site_packages_name = 'apsw'
 
@@ -24,14 +24,10 @@ class ApswRecipe(PythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(ApswRecipe, self).get_recipe_env(arch)
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
-        env['CFLAGS'] += ' -I' + env['PYTHON_ROOT'] + '/include/python2.7' + \
-                         ' -I' + self.get_recipe('sqlite3', self.ctx).get_build_dir(arch.arch)
-        # Set linker to use the correct gcc
-        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['LDFLAGS'] += ' -L' + env['PYTHON_ROOT'] + '/lib' + \
-                          ' -lpython2.7' + \
-                          ' -lsqlite3'
+        sqlite_recipe = self.get_recipe('sqlite3', self.ctx)
+        env['CFLAGS'] += ' -I' + sqlite_recipe.get_build_dir(arch.arch)
+        env['LDFLAGS'] += ' -L' + sqlite_recipe.get_lib_dir(arch)
+        env['LIBS'] = env.get('LIBS', '') + ' -lsqlite3'
         return env
 
 
