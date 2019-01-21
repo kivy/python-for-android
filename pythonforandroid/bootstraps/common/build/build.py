@@ -336,9 +336,11 @@ main.py that loads it.''')
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
-    # if get_bootstrap_name() == "sdl2":
-    args.add_activity = args.add_activity or []
-    args.activity_launch_mode = args.activity_launch_mode or ''
+    if not args.add_activity:
+        args.add_activity = []
+
+    if not args.activity_launch_mode:
+        args.activity_launch_mode = ''
 
     if args.extra_source_dirs:
         esd = []
@@ -536,6 +538,9 @@ tools directory of the Android SDK.
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
+    ap.add_argument('--service', dest='services', action='append',
+                    help='Declare a new service entrypoint: '
+                         'NAME:PATH_TO_PY[:foreground]')
     if get_bootstrap_name() != "service_only":
         ap.add_argument('--presplash', dest='presplash',
                         help=('A jpeg file to use as a screen while the '
@@ -564,10 +569,6 @@ tools directory of the Android SDK.
                               'https://developer.android.com/guide/'
                               'topics/manifest/'
                               'activity-element.html'))
-    else:
-        ap.add_argument('--service', dest='services', action='append',
-                        help='Declare a new service entrypoint: '
-                             'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
@@ -687,7 +688,7 @@ tools directory of the Android SDK.
     if args.meta_data is None:
         args.meta_data = []
 
-    if (not hasattr(args, 'services')) or args.services is None:
+    if args.services is None:
         args.services = []
 
     if args.try_system_python_compile:

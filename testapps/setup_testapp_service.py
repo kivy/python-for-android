@@ -3,7 +3,7 @@ from distutils.core import setup
 from setuptools import find_packages
 
 options = {'apk': {'debug': None,
-                   'requirements': 'python2,genericndkbuild',
+                   'requirements': 'python2,genericndkbuild,pyjnius',
                    'android-api': 27,
                    'ndk-api': 21,
                    'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.2',
@@ -12,6 +12,7 @@ options = {'apk': {'debug': None,
                    'bootstrap': 'service_only',
                    'permissions': ['INTERNET', 'VIBRATE'],
                    'arch': 'armeabi-v7a',
+                   'service': 'time:p4atime.py',
                    }}
 
 package_data = {'': ['*.py']}
@@ -21,7 +22,7 @@ print('packages are', packages)
 
 setup(
     name='testapp_service',
-    version='1.0',
+    version='1.1',
     description='p4a service testapp',
     author='Alexander Taylor',
     author_email='alexanderjohntaylor@gmail.com',
