@@ -6,10 +6,9 @@ import sh
 
 
 class M2CryptoRecipe(CompiledComponentsPythonRecipe):
-    version = '0.24.0'
+    version = '0.30.1'
     url = 'https://pypi.python.org/packages/source/M/M2Crypto/M2Crypto-{version}.tar.gz'
-    # md5sum = '89557730e245294a6cab06de8ad4fb42'
-    depends = ['openssl', 'hostpython2', 'python2', 'setuptools']
+    depends = [('python2', 'python3'), 'openssl', 'setuptools']
     site_packages_name = 'M2Crypto'
     call_hostpython_via_targetpython = False
 
@@ -35,8 +34,6 @@ class M2CryptoRecipe(CompiledComponentsPythonRecipe):
     def get_recipe_env(self, arch):
         env = super(M2CryptoRecipe, self).get_recipe_env(arch)
         env['OPENSSL_BUILD_PATH'] = self.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-        # Set linker to use the correct gcc
-        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         return env
 
 
