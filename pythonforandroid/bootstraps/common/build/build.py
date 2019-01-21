@@ -538,6 +538,9 @@ tools directory of the Android SDK.
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
+    ap.add_argument('--service', dest='services', action='append',
+                    help='Declare a new service entrypoint: '
+                         'NAME:PATH_TO_PY[:foreground]')
     if get_bootstrap_name() != "service_only":
         ap.add_argument('--presplash', dest='presplash',
                         help=('A jpeg file to use as a screen while the '
@@ -566,10 +569,6 @@ tools directory of the Android SDK.
                               'https://developer.android.com/guide/'
                               'topics/manifest/'
                               'activity-element.html'))
-    else:
-        ap.add_argument('--service', dest='services', action='append',
-                        help='Declare a new service entrypoint: '
-                             'NAME:PATH_TO_PY[:foreground]')
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
@@ -689,7 +688,7 @@ tools directory of the Android SDK.
     if args.meta_data is None:
         args.meta_data = []
 
-    if getattr(args, 'services', None) is None:
+    if args.services is None:
         args.services = []
 
     if args.try_system_python_compile:
