@@ -1,0 +1,10 @@
+--- a/configure.orig	2019-01-21 16:30:12.359453312 +0100
++++ b/configure	2019-01-21 16:31:07.481526333 +0100
+@@ -10246,6 +10246,7 @@
+ else
+     LIBFFI_INCLUDEDIR=""
+ fi
++LIBFFI_INCLUDEDIR=""
+ 
+ 
+ # Check for use of the system libmpdec library

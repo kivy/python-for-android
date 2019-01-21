@@ -24,6 +24,10 @@ class Python3Recipe(GuestPythonRecipe):
     depends = ['hostpython3']
     conflicts = ['python3crystax', 'python2', 'python2legacy']
 
+    patches = [
+        'patches/fix-ctypes-with-system-ffi.patch'
+    ]
+
     configure_args = (
         '--host={android_host}',
         '--build={android_build}',
