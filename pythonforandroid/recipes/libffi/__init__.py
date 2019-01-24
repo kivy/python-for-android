@@ -17,7 +17,11 @@ class LibffiRecipe(Recipe):
     version = '3.2.1'
     url = 'https://github.com/libffi/libffi/archive/v{version}.tar.gz'
 
-    patches = ['remove-version-info.patch']
+    patches = ['remove-version-info.patch',
+               # This patch below is already included into libffi's master
+               # branch and included in the pre-release 3.3rc0...so we should
+               # remove this when we update the version number for libffi
+               'fix-includedir.patch']
 
     def should_build(self, arch):
         return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libffi.so'))
@@ -30,7 +34,7 @@ class LibffiRecipe(Recipe):
             shprint(sh.Command('autoreconf'), '-vif', _env=env)
             shprint(sh.Command('./configure'),
                     '--host=' + arch.command_prefix,
-                    '--prefix=' + self.ctx.get_python_install_dir(),
+                    '--prefix=' + self.get_build_dir(arch.arch),
                     '--disable-builddir',
                     '--enable-shared', _env=env)
             # '--with-sysroot={}'.format(self.ctx.ndk_platform),
