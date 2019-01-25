@@ -56,6 +56,11 @@ class Python2Recipe(GuestPythonRecipe):
 
     def set_libs_flags(self, env, arch):
         env = super(Python2Recipe, self).set_libs_flags(env, arch)
+        if 'libffi' in self.ctx.recipe_build_order:
+            # For python2 we need to tell configure that we want to use our
+            # compiled libffi, this step is not necessary for python3.
+            self.configure_args += ('--with-system-ffi',)
+
         if 'openssl' in self.ctx.recipe_build_order:
             recipe = Recipe.get_recipe('openssl', self.ctx)
             openssl_build = recipe.get_build_dir(arch.arch)
