@@ -278,6 +278,8 @@ class Bootstrap(object):
 
         logger.info('Stripping libraries in private dir')
         for filen in filens.split('\n'):
+            if not filen:
+                continue  # skip the last ''
             try:
                 strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
