@@ -263,8 +263,9 @@ class GuestPythonRecipe(TargetPythonRecipe):
             self.get_build_dir(arch.arch),
             'android-build',
             'build',
-            'lib.linux{}-arm-{}'.format(
+            'lib.linux{}-{}-{}'.format(
                 '2' if self.version[0] == '2' else '',
+                arch.command_prefix.split('-')[0],
                 self.major_minor_version_string
             ))
         module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
