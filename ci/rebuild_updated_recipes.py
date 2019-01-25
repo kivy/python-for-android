@@ -48,7 +48,7 @@ def modified_recipes(branch='origin/master'):
     return recipes
 
 
-def build(target_python, requirements):
+def build(target_python, target_bootstrap, requirements):
     """
     Builds an APK given a target Python and a set of requirements.
     """
@@ -65,34 +65,64 @@ def build(target_python, requirements):
     with current_directory('testapps/'):
         # iterates to stream the output
         for line in sh.python(
-                testapp, 'apk', '--sdk-dir', android_sdk_home,
-                '--ndk-dir', android_ndk_home, '--bootstrap', 'sdl2', '--requirements',
-                requirements, _err_to_out=True, _iter=True):
+                testapp, 'apk',
+                '--sdk-dir', android_sdk_home,
+                '--ndk-dir', android_ndk_home,
+                '--bootstrap', target_bootstrap,
+                '--requirements', requirements,
+                _err_to_out=True, _iter=True):
             print(line)
 
 
+def get_bootstrap(recipes_and_target):
+    """
+    Finds the right bootstrap given a set of requirements with a defined
+    target python recipe inside this set.
+    """
+    context = Context()
+    bootstrap = None
+    try:
+        build_order, python_modules, bs = get_recipe_order_and_bootstrap(
+            context, recipes_and_target, None)
+        bootstrap = bs.name
+    except BuildInterruptingException:
+        pass
+    return bootstrap
+
+
 def main():
-    target_python = TargetPython.python3
+    target_python_priorities = [
+        TargetPython.python3,
+        TargetPython.python2
+    ]
+
     recipes = modified_recipes()
     logger.info('recipes modified: {}'.format(recipes))
     recipes -= CORE_RECIPES
     logger.info('recipes to build: {}'.format(recipes))
-    context = Context()
-    # forces the default target
-    recipes_and_target = recipes | set([target_python.name])
-    try:
-        build_order, python_modules, bs = get_recipe_order_and_bootstrap(
-            context, recipes_and_target, None)
-    except BuildInterruptingException:
-        # fallback to python2 if default target is not compatible
-        logger.info('incompatible with {}'.format(target_python.name))
-        target_python = TargetPython.python2
-        logger.info('falling back to {}'.format(target_python.name))
+
+    # iterate over `target_python_priorities` in order to find the
+    # python version that is compatible with the modified recipes
+    bootstrap = None
+    target_python = None
+    for target_python in target_python_priorities:
+        logger.info('trying to get a bootstrap forcing target python: {}'.
+                    format(target_python.name))
+        bootstrap = get_bootstrap(recipes | {target_python.name})
+        if bootstrap:
+            break
+    if not bootstrap:
+        logger.warning("we didn't find any valid combination of bootstrap and "
+                       "target python...rebuild updated recipes cancelled."
+                       "The recipes we couldn't rebuild are:\n\t-{}".format(
+                           "\n\t-".join(recipes)))
+        exit(1)
+
     # removing the known broken recipe for the given target
     broken_recipes = BROKEN_RECIPES[target_python]
     recipes -= broken_recipes
     logger.info('recipes to build (no broken): {}'.format(recipes))
-    build(target_python, recipes)
+    build(target_python, bootstrap, recipes)
 
 
 if __name__ == '__main__':
