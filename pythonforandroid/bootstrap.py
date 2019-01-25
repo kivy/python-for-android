@@ -263,11 +263,11 @@ class Bootstrap(object):
             info('Python was loaded from CrystaX, skipping strip')
             return
         env = arch.get_env()
-        strip = which('arm-linux-androideabi-strip', env['PATH'])
+        strip = env['STRIP'].split(' ')[0]
         if strip is None:
             warning('Can\'t find strip in PATH...')
             return
-        strip = sh.Command(strip)
+        strip = sh.Command(strip).bake('--strip-unneeded')
 
         libs_dir = join(self.dist_dir, '_python_bundle',
                         '_python_bundle', 'modules')
