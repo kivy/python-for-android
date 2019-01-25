@@ -178,6 +178,10 @@ class GuestPythonRecipe(TargetPythonRecipe):
         if 'libffi' in self.ctx.recipe_build_order:
             info('Activating flags for libffi')
             recipe = Recipe.get_recipe('libffi', self.ctx)
+            # In order to force the correct linkage for our libffi library, we
+            # set the following variable to point where is our libffi.pc file,
+            # because the python build system uses pkg-config to configure it.
+            env['PKG_CONFIG_PATH'] = recipe.get_build_dir(arch.arch)
             add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
                       ' -L' + join(recipe.get_build_dir(arch.arch), '.libs'),
                       ' -lffi')
