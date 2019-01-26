@@ -2,23 +2,29 @@ print('main.py was successfully called')
 
 import os
 print('imported os')
+import sys
+print('imported sys')
 
 from kivy import platform
 
 if platform == 'android':
-    print('contents of ./lib/python2.7/site-packages/ etc.')
-    print(os.listdir('./lib'))
-    print(os.listdir('./lib/python2.7'))
-    print(os.listdir('./lib/python2.7/site-packages'))
+    site_dir_path = './_python_bundle/site-packages'
+    if not os.path.exists(site_dir_path):
+        print('warning: site-packages dir not found: ' + site_dir_path)
+    else:
+        print('contents of ' + site_dir_path)
+        print(os.listdir(site_dir_path))
 
     print('this dir is', os.path.abspath(os.curdir))
 
     print('contents of this dir', os.listdir('./'))
 
-    with open('./lib/python2.7/site-packages/kivy/app.pyo', 'rb') as fileh:
-        print('app.pyo size is', len(fileh.read()))
+    if (os.path.exists(site_dir_path) and
+            os.path.exists(site_dir_path + '/kivy/app.pyo')
+            ):
+        with open(site_dir_path + '/kivy/app.pyo', 'rb') as fileh:
+            print('app.pyo size is', len(fileh.read()))
 
-import sys
 print('pythonpath is', sys.path)
 
 import kivy
