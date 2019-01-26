@@ -6,39 +6,144 @@ This page gives details on accessing Android APIs and managing other
 interactions on Android.
 
 
-Accessing Android APIs
-----------------------
+Runtime permissions
+-------------------
 
-When writing an Android application you may want to access the normal
-Android Java APIs, in order to control your application's appearance
-(fullscreen, orientation etc.), interact with other apps or use
-hardware like vibration and sensors.
+With API level >= 21, you will need to request runtime permissions
+to access the SD card, the camera, and other things.
 
-You can access these with `Pyjnius
-<http://pyjnius.readthedocs.org/en/latest/>`_, a Python library for
-automatically wrapping Java and making it callable from Python
-code. Pyjnius is fairly simple to use, but not very Pythonic and it
-inherits Java's verbosity. For this reason the Kivy organisation also
-created `Plyer <https://plyer.readthedocs.org/en/latest/>`_, which
-further wraps specific APIs in a Pythonic and cross-platform way; you
-can call the same code in Python but have it do the right thing also
-on platforms other than Android.
+This can be done through the `android` module, just add it to
+your `--requirements` (as `android`) and then use it in your app like this::
 
-Pyjnius and Plyer are independent projects whose documentation is
-linked above.  See below for some simple introductory examples, and
-explanation of how to include these modules in your APKs.
+      from android.permissions import request_permission, Permission
+      request_permission(Permission.WRITE_EXTERNAL_STORAGE)
 
-This page also documents the ``android`` module which you can include
-with p4a, but this is mostly replaced by Pyjnius and is not
-recommended for use in new applications.
+The available permissions are listed here:
+
+https://developer.android.com/reference/android/Manifest.permission
 
 
-Using Pyjnius
-~~~~~~~~~~~~~
+Other common tasks
+------------------
+
+Dismissing the splash screen
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the SDL2 bootstrap, the app's splash screen may be visible
+longer than necessary (with your app already being loaded) due to a
+limitation with the way we check if the app has properly started.
+In this case, the splash screen overlaps the app gui for a short time.
+
+To dismiss the loading screen explicitely in your code, add p4a's `android`
+module to your `--requirements` and use this::
+
+  from android import hide_loading_screen
+  hide_loading_screen()
+
+You can call it e.g. using ``kivy.clock.Clock.schedule_once`` to run it
+in the first active frame of your app, or use the app build method.
+
+
+Handling the back button
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Android phones always have a back button, which users expect to
+perform an appropriate in-app function. If you do not handle it, Kivy
+apps will actually shut down and appear to have crashed.
+
+In SDL2 bootstraps, the back button appears as the escape key (keycode
+27, codepoint 270). You can handle this key to perform actions when it
+is pressed.
+
+For instance, in your App class in Kivy::
+
+    from kivy.core.window import Window
+
+    class YourApp(App):
+
+       def build(self):
+          Window.bind(on_keyboard=self.key_input)
+          return Widget() # your root widget here as normal
+
+       def key_input(self, window, key, scancode, codepoint, modifier):
+          if key == 27:
+             return True  # override the default behaviour
+          else:           # the key now does nothing
+             return False
+
+
+Pausing the App
+~~~~~~~~~~~~~~~
+
+When the user leaves an App, it is automatically paused by Android,
+although it gets a few seconds to store data etc. if necessary. Once
+paused, there is no guarantee that your app will run again.
+
+With Kivy, add an ``on_pause`` method to your App class, which returns True::
+
+  def on_pause(self):
+      return True
+
+With the webview bootstrap, pausing should work automatically.
+
+Under SDL2, you can handle the `appropriate events <https://wiki.libsdl.org/SDL_EventType>`__ (see SDL_APP_WILLENTERBACKGROUND etc.).
+
+
+Advanced Android API use
+------------------------
+
+`android` for Android API access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As mentioned above, the ``android`` Python module provides a simple 
+wrapper around many native Android APIS, and it can be included by
+adding it to your requirements, e.g. :code:`--requirements=kivy,android`.
+It is not automatically included by Kivy unless you use the old (Pygame)
+bootstrap.
+
+The available functionality of this module is not separately documented.
+You can read the source `on
+Github
+<https://github.com/kivy/python-for-android/tree/master/pythonforandroid/recipes/android/src/android>`__.
+
+Also please note you can replicate most functionality without it using
+`pyjnius`. (see below)
+
+
+`Plyer` - a more comprehensive API wrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Plyer provides a more thorough wrapper than `android` for a much larger
+area of platform-specific APIs, supporting not only Android but also
+iOS and desktop operating systems.
+(Though plyer is a work in progress and not all
+platforms support all Plyer calls yet)
+
+Plyer does not support all APIs yet, but you can always use Pyjnius to
+call anything that is currently missing.
+
+You can include Plyer in your APKs by adding the `Plyer` recipe to
+your build requirements, e.g. :code:`--requirements=plyer`.
+
+You should check the `Plyer documentation <Plyer_>`_ for details of all supported
+facades (platform APIs), but as an example the following is how you
+would achieve vibration as described in the Pyjnius section above::
+
+    from plyer.vibrator import vibrate
+    vibrate(10)  # in Plyer, the argument is in seconds
+
+This is obviously *much* less verbose than with Pyjnius!
+
+
+`Pyjnius` - raw lowlevel API access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pyjnius lets you call the Android API directly from Python Pyjnius is
 works by dynamically wrapping Java classes, so you don't have to wait
 for any particular feature to be pre-supported.
+
+This is particularly useful when `android` and `plyer` don't already
+provide a convenient access to the API, or you need more control.
 
 You can include Pyjnius in your APKs by adding `pyjnius` to your build
 requirements, e.g. :code:`--requirements=flask,pyjnius`. It is
@@ -88,137 +193,3 @@ problems that Plyer, explained below, attempts to address.
 
 You can check the `Pyjnius documentation <Pyjnius_>`_ for further details.
 
-
-Using Plyer
-~~~~~~~~~~~
-
-Plyer provides a much less verbose, Pythonic wrapper to
-platform-specific APIs. It supports Android as well as iOS and desktop
-operating systems, though plyer is a work in progress and not all
-platforms support all Plyer calls yet. 
-
-Plyer does not support all APIs yet, but you can always use Pyjnius to
-call anything that is currently missing.
-
-You can include Plyer in your APKs by adding the `Plyer` recipe to
-your build requirements, e.g. :code:`--requirements=plyer`. 
-
-You should check the `Plyer documentation <Plyer_>`_ for details of all supported
-facades (platform APIs), but as an example the following is how you
-would achieve vibration as described in the Pyjnius section above::
-
-    from plyer.vibrator import vibrate
-    vibrate(10)  # in Plyer, the argument is in seconds
-
-This is obviously *much* less verbose than with Pyjnius!
-
-
-Using ``android``
-~~~~~~~~~~~~~~~~~
-
-This Cython module was used for Android API interaction with Kivy's old
-interface, but is now mostly replaced by Pyjnius.
-
-The ``android`` Python module can be included by adding it to your
-requirements, e.g. :code:`--requirements=kivy,android`. It is not
-automatically included by Kivy unless you use the old (Pygame)
-bootstrap.
-
-This module is not separately documented. You can read the source `on
-Github
-<https://github.com/kivy/python-for-android/tree/master/pythonforandroid/recipes/android/src/android>`__.
-
-One useful facility of this module is to make
-:code:`webbrowser.open()` work on Android. You can replicate this
-effect without using the android module via the following
-code::
-
-    from jnius import autoclass
-
-    def open_url(url):
-        Intent = autoclass('android.content.Intent')
-        Uri = autoclass('android.net.Uri')
-        browserIntent = Intent()
-        browserIntent.setAction(Intent.ACTION_VIEW)
-        browserIntent.setData(Uri.parse(url))
-        currentActivity = cast('android.app.Activity', mActivity)
-        currentActivity.startActivity(browserIntent)
-
-    class AndroidBrowser(object):
-        def open(self, url, new=0, autoraise=True):
-            open_url(url)
-        def open_new(self, url):
-            open_url(url)
-        def open_new_tab(self, url):
-            open_url(url)
-
-    import webbrowser
-    webbrowser.register('android', AndroidBrowser, None, -1)
-
-
-Working with the App lifecycle
-------------------------------
-
-Dismissing the splash screen
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-With the SDL2 bootstrap, the app's splash screen may not be dismissed
-immediately when your app has finished loading, due to a limitation
-with the way we check if the app has properly started. In this case,
-the splash screen overlaps the app gui for a short time.
-
-You can dismiss the splash screen by running this code from your
-app build method (or use ``kivy.clock.Clock.schedule_once`` to run it
-in the following frame)::
-
-  from jnius import autoclass
-  activity = autoclass('org.kivy.android.PythonActivity').mActivity
-  activity.removeLoadingScreen()
-
-This problem does not affect the Pygame bootstrap, as it uses a
-different splash screen method.
-
-
-Handling the back button
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Android phones always have a back button, which users expect to
-perform an appropriate in-app function. If you do not handle it, Kivy
-apps will actually shut down and appear to have crashed.
-
-In SDL2 bootstraps, the back button appears as the escape key (keycode
-27, codepoint 270). You can handle this key to perform actions when it
-is pressed.
-
-For instance, in your App class in Kivy::
-
-    from kivy.core.window import Window
-
-    class YourApp(App):
-
-       def build(self):
-          Window.bind(on_keyboard=self.key_input)
-          return Widget() # your root widget here as normal
-
-       def key_input(self, window, key, scancode, codepoint, modifier):
-          if key == 27:
-             return True  # override the default behaviour
-          else:           # the key now does nothing
-             return False
-
-
-Pausing the App
-~~~~~~~~~~~~~~~
-
-When the user leaves an App, it is automatically paused by Android,
-although it gets a few seconds to store data etc. if necessary. Once
-paused, there is no guarantee that your app will run again.
-
-With Kivy, add an ``on_pause`` method to your App class, which returns True::
-
-  def on_pause(self):
-      return True
-
-With the webview bootstrap, pausing should work automatically.
-
-Under SDL2, you can handle the `appropriate events <https://wiki.libsdl.org/SDL_EventType>`__ (see SDL_APP_WILLENTERBACKGROUND etc.).

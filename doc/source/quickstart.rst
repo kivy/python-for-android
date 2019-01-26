@@ -115,8 +115,10 @@ the latest usable NDK version is r10e, which can be downloaded here:
     release with the legacy version of python is version
     `0.6.0 <https://github.com/kivy/python-for-android/archive/0.6.0.zip>`_.
 
-First, install a platform to target (you can also replace ``27`` with
-a different platform number, this will be used again later)::
+First, install an API platform to target. You can replace ``27`` with
+a different platform number, but keep in mind **other API versions
+are less well-tested**, and older devices are still supported
+(down to the specified *minimum* API/NDK API level):
 
   $SDK_DIR/tools/bin/sdkmanager "platforms;android-27"
 
