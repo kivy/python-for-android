@@ -772,7 +772,7 @@ class ToolchainCL(object):
                 if len(argx) > 1:
                     unknown_args[i] = '='.join(
                         (argx[0], realpath(expanduser(argx[1]))))
-                else:
+                elif i + 1 < len(unknown_args):
                     unknown_args[i+1] = realpath(expanduser(unknown_args[i+1]))
 
         env = os.environ.copy()
