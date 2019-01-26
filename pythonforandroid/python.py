@@ -6,6 +6,7 @@ build our python3 and python2 recipes and his corresponding hostpython recipes.
 from os.path import dirname, exists, join
 from shutil import copy2
 from os import environ
+import subprocess
 import glob
 import sh
 
@@ -71,7 +72,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
     '''The directories that we want to omit for our python bundle'''
 
     stdlib_filen_blacklist = [
-        '*.pyc',
+        '*.py',
         '*.exe',
         '*.whl',
     ]
@@ -84,12 +85,22 @@ class GuestPythonRecipe(TargetPythonRecipe):
     '''The directories from site packages dir that we don't want to be included
     in our python bundle.'''
 
-    site_packages_filen_blacklist = []
+    site_packages_filen_blacklist = [
+        '*.py'
+    ]
     '''The file extensions from site packages dir that we don't want to be
     included in our python bundle.'''
 
     opt_depends = ['sqlite3', 'libffi', 'openssl']
     '''The optional libraries which we would like to get our python linked'''
+
+    compiled_extension = '.pyc'
+    '''the default extension for compiled python files.
+
+    .. note:: the default extension for compiled python files has been .pyo for
+        python 2.x-3.4 but as of Python 3.5, the .pyo filename extension is no
+        longer used and has been removed in favour of extension .pyc
+    '''
 
     def __init__(self, *args, **kwargs):
         self._ctx = None
@@ -253,15 +264,28 @@ class GuestPythonRecipe(TargetPythonRecipe):
     def link_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'android-build')
 
+    def compile_python_files(self, dir):
+        '''
+        Compile the python files (recursively) for the python files inside
+        a given folder.
+
+        .. note:: python2 compiles the files into extension .pyo, but in
+            python3, and as of Python 3.5, the .pyo filename extension is no
+            longer used...uses .pyc (https://www.python.org/dev/peps/pep-0488)
+        '''
+        args = [self.ctx.hostpython]
+        if self.ctx.python_recipe.name == 'python3':
+            args += ['-OO', '-m', 'compileall', '-b', '-f', dir]
+        else:
+            args += ['-OO', '-m', 'compileall', '-f', dir]
+        subprocess.call(args)
+
     def create_python_bundle(self, dirn, arch):
         """
         Create a packaged python bundle in the target directory, by
         copying all the modules and standard library to the right
         place.
         """
-        # Bundle compiled python modules to a folder
-        modules_dir = join(dirn, 'modules')
-        ensure_dir(modules_dir)
         # Todo: find a better way to find the build libs folder
         modules_build_dir = join(
             self.get_build_dir(arch.arch),
@@ -272,8 +296,20 @@ class GuestPythonRecipe(TargetPythonRecipe):
                 arch.command_prefix.split('-')[0],
                 self.major_minor_version_string
             ))
+
+        # Compile to *.pyc/*.pyo the python modules
+        self.compile_python_files(modules_build_dir)
+        # Compile to *.pyc/*.pyo the standard python library
+        self.compile_python_files(join(self.get_build_dir(arch.arch), 'Lib'))
+        # Compile to *.pyc/*.pyo the other python packages (site-packages)
+        self.compile_python_files(self.ctx.get_python_install_dir())
+
+        # Bundle compiled python modules to a folder
+        modules_dir = join(dirn, 'modules')
+        c_ext = self.compiled_extension
+        ensure_dir(modules_dir)
         module_filens = (glob.glob(join(modules_build_dir, '*.so')) +
-                         glob.glob(join(modules_build_dir, '*.py')))
+                         glob.glob(join(modules_build_dir, '*' + c_ext)))
         info("Copy {} files into the bundle".format(len(module_filens)))
         for filen in module_filens:
             info(" - copy {}".format(filen))
