@@ -81,6 +81,22 @@ public class PythonActivity extends Activity {
         return app_root;
     }
 
+    public String getEntryPoint(String search_dir) {
+        /* Get the main file (.pyc|.pyo|.py) depending on if we
+         * have a compiled version or not.
+        */
+        List<String> entryPoints = new ArrayList<String>();
+        entryPoints.add("main.pyo");  // python 2 compiled files
+        entryPoints.add("main.pyc");  // python 3 compiled files
+		for (String value : entryPoints) {
+            File mainFile = new File(search_dir + "/" + value);
+            if (mainFile.exists()) {
+                return value;
+            }
+        }
+        return "main.py";
+    }
+
     public static void initialize() {
         // The static nature of the singleton and Android quirkyness force us to initialize everything here
         // Otherwise, when exiting the app and returning to it, these variables *keep* their pre exit values
@@ -170,9 +186,10 @@ public class PythonActivity extends Activity {
         setContentView(mLayout);
 
         String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
+        String entry_point = getEntryPoint(app_root_dir);
 
         Log.v(TAG, "Setting env vars for start.c and Python to use");
-        PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
+        PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", entry_point);
         PythonActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
         PythonActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
         PythonActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
@@ -425,9 +442,10 @@ public class PythonActivity extends Activity {
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
+        String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
         serviceIntent.putExtra("androidPrivate", argument);
         serviceIntent.putExtra("androidArgument", app_root_dir);
-        serviceIntent.putExtra("serviceEntrypoint", "service/main.pyo");
+        serviceIntent.putExtra("serviceEntrypoint", "service/" + entry_point);
         serviceIntent.putExtra("pythonName", "python");
         serviceIntent.putExtra("pythonHome", app_root_dir);
         serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");

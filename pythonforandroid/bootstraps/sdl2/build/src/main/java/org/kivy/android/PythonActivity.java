@@ -150,7 +150,8 @@ public class PythonActivity extends SDLActivity {
                 File path = new File(getIntent().getData().getSchemeSpecificPart());
 
                 Project p = Project.scanDirectory(path);
-                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/main.py");
+                String entry_point = getEntryPoint(p.dir);
+                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/" + entry_point);
                 SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", p.dir);
                 SDLActivity.nativeSetEnv("ANDROID_APP_PATH", p.dir);
 
@@ -171,7 +172,8 @@ public class PythonActivity extends SDLActivity {
                     // pass
                 }
             } else {
-                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", "main.pyo");
+                String entry_point = getEntryPoint(app_root_dir);
+                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", entry_point);
                 SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
                 SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
             }
@@ -368,9 +370,10 @@ public class PythonActivity extends SDLActivity {
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
+        String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
         serviceIntent.putExtra("androidPrivate", argument);
         serviceIntent.putExtra("androidArgument", app_root_dir);
-        serviceIntent.putExtra("serviceEntrypoint", "service/main.pyo");
+        serviceIntent.putExtra("serviceEntrypoint", "service/" + entry_point);
         serviceIntent.putExtra("pythonName", "python");
         serviceIntent.putExtra("pythonHome", app_root_dir);
         serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
@@ -463,6 +466,21 @@ public class PythonActivity extends SDLActivity {
         });
     }
 
+    public String getEntryPoint(String search_dir) {
+        /* Get the main file (.pyc|.pyo|.py) depending on if we
+         * have a compiled version or not.
+        */
+        List<String> entryPoints = new ArrayList<String>();
+        entryPoints.add("main.pyo");  // python 2 compiled files
+        entryPoints.add("main.pyc");  // python 3 compiled files
+		for (String value : entryPoints) {
+            File mainFile = new File(search_dir + "/" + value);
+            if (mainFile.exists()) {
+                return value;
+            }
+        }
+        return "main.py";
+    }
 
     protected void showLoadingScreen() {
         // load the bitmap
