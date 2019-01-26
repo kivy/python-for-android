@@ -263,11 +263,8 @@ class Bootstrap(object):
             info('Python was loaded from CrystaX, skipping strip')
             return
         env = arch.get_env()
-        strip = env['STRIP'].split(' ')[0]
-        if strip is None:
-            warning('Can\'t find strip in PATH...')
-            return
-        strip = sh.Command(strip).bake('--strip-unneeded')
+        tokens = env['STRIP'].split(' ')
+        strip = reduce(lambda cmd, t: cmd.bake(t), tokens, sh.Command(tokens.pop(0)))
 
         libs_dir = join(self.dist_dir, '_python_bundle',
                         '_python_bundle', 'modules')
