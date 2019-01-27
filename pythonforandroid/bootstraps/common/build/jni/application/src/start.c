@@ -152,7 +152,11 @@ int main(int argc, char *argv[]) {
   Py_NoSiteFlag=1;
 #endif
 
+#if PY_MAJOR_VERSION < 3
+  Py_SetProgramName("android_python");
+#else
   Py_SetProgramName(L"android_python");
+#endif
 
 #if PY_MAJOR_VERSION >= 3
   /* our logging module for android
