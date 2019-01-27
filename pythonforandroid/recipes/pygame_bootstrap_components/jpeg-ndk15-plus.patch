@@ -2,8 +2,8 @@ The distributed jpeg has troubles to be build with newer ndks, starting from
 the introduction of the `unified headers` (ndk > 15). This patch allow us to
 build the distributed `external jpeg` in sdl package, got the solution in here:
 https://github.com/oNaiPs/droidVncServer/issues/53
---- jpeg/Android.mk.orig	2015-06-21 15:14:54.000000000 +0200
-+++ jpeg/Android.mk	2019-01-14 10:57:06.384806168 +0100
+--- jni/jpeg/Android.mk.orig	2015-06-21 15:14:54.000000000 +0200
++++ jni/jpeg/Android.mk	2019-01-14 10:57:06.384806168 +0100
 @@ -20,7 +20,7 @@
  endif
 
@@ -13,8 +13,8 @@ https://github.com/oNaiPs/droidVncServer/issues/53
 
  ifeq ($(strip $(ANDROID_JPEG_NO_ASSEMBLER)),true)
  LOCAL_SRC_FILES += jidctint.c jidctfst.c
- --- jpeg/jidctfst.S.orig	2019-01-14 11:00:38.000000000 +0100
-+++ jpeg/jidctfst.S	2019-01-14 11:00:56.844803970 +0100
+--- jni/jpeg/jidctfst.S.orig	2019-01-14 11:00:38.000000000 +0100
++++ jni/jpeg/jidctfst.S	2019-01-14 11:00:56.844803970 +0100
 @@ -63,7 +63,7 @@
 
 
