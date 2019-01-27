@@ -13,7 +13,7 @@ from pythonforandroid.recipe import Recipe, TargetPythonRecipe
 from pythonforandroid.logger import logger, info, shprint
 from pythonforandroid.util import (
     current_directory, ensure_dir, walk_valid_filens,
-    BuildInterruptingException)
+    BuildInterruptingException, build_platform)
 
 
 class GuestPythonRecipe(TargetPythonRecipe):
@@ -107,12 +107,12 @@ class GuestPythonRecipe(TargetPythonRecipe):
             toolchain_prefix=self.ctx.toolchain_prefix,
             toolchain_version=self.ctx.toolchain_version)
         toolchain = join(self.ctx.ndk_dir, 'toolchains',
-                         toolchain, 'prebuilt', 'linux-x86_64')
+                         toolchain, 'prebuilt', build_platform)
 
         env['CC'] = (
             '{clang} -target {target} -gcc-toolchain {toolchain}').format(
                 clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt',
-                           'linux-x86_64', 'bin', 'clang'),
+                           build_platform, 'bin', 'clang'),
                 target=arch.target,
                 toolchain=toolchain)
         env['AR'] = join(toolchain, 'bin', android_host) + '-ar'
