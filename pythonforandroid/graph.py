@@ -25,7 +25,7 @@ class RecipeOrder(dict):
         return False
 
 
-def recursively_collect_orders(name, ctx, orders=[]):
+def recursively_collect_orders(name, ctx, all_inputs, orders=[]):
     '''For each possible recipe ordering, try to add the new recipe name
     to that order. Recursively do the same thing with all the
     dependencies of each recipe.
@@ -40,6 +40,11 @@ def recursively_collect_orders(name, ctx, orders=[]):
             dependencies = [([dependency] if not isinstance(
                 dependency, (list, tuple))
                             else dependency) for dependency in recipe.depends]
+
+        # handle opt_depends: these impose requirements on the build
+        # order only if already present in the list of recipes to build
+        dependencies.extend([[d] for d in recipe.get_opt_depends_in_list(all_inputs)])
+
         if recipe.conflicts is None:
             conflicts = []
         else:
@@ -68,7 +73,7 @@ def recursively_collect_orders(name, ctx, orders=[]):
             dependency_new_orders = [new_order]
             for dependency in dependency_set:
                 dependency_new_orders = recursively_collect_orders(
-                    dependency, ctx, dependency_new_orders)
+                    dependency, ctx, all_inputs, dependency_new_orders)
 
             new_orders.extend(dependency_new_orders)
 
@@ -109,7 +114,7 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
         new_possible_orders = [RecipeOrder(ctx)]
         for name in name_set:
             new_possible_orders = recursively_collect_orders(
-                name, ctx, orders=new_possible_orders)
+                name, ctx, name_set, orders=new_possible_orders)
         possible_orders.extend(new_possible_orders)
 
     # turn each order graph into a linear list if possible

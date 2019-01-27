@@ -237,6 +237,12 @@ class Recipe(with_metaclass(RecipeMeta)):
                 recipes.append(recipe)
         return sorted(recipes)
 
+    def get_opt_depends_in_list(self, recipes):
+        '''Given a list of recipe names, returns those that are also in
+        self.opt_depends.
+        '''
+        return [recipe for recipe in recipes if recipe in self.opt_depends]
+
     def get_build_container_dir(self, arch):
         '''Given the arch name, returns the directory where it will be
         built.
