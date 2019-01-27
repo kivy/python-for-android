@@ -1,6 +1,7 @@
 from os.path import (join, dirname, isdir, normpath, splitext, basename)
 from os import listdir, walk, sep
 import sh
+import shlex
 import glob
 import importlib
 import os
@@ -263,8 +264,8 @@ class Bootstrap(object):
             info('Python was loaded from CrystaX, skipping strip')
             return
         env = arch.get_env()
-        tokens = env['STRIP'].split(' ')
-        strip = reduce(lambda cmd, t: cmd.bake(t), tokens, sh.Command(tokens.pop(0)))
+        tokens = shlex.split(env['STRIP'])
+        strip = sh.Command(tokens[0]).bake(tokens[1:])
 
         libs_dir = join(self.dist_dir, '_python_bundle',
                         '_python_bundle', 'modules')
