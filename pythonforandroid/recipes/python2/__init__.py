@@ -47,6 +47,8 @@ class Python2Recipe(GuestPythonRecipe):
                       '--prefix={prefix}',
                       '--exec-prefix={exec_prefix}')
 
+    compiled_extension = '.pyo'
+
     def prebuild_arch(self, arch):
         super(Python2Recipe, self).prebuild_arch(arch)
         patch_mark = join(self.get_build_dir(arch.arch), '.openssl-patched')

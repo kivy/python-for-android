@@ -305,6 +305,11 @@ int main(int argc, char *argv[]) {
   /* Get the entrypoint, search the .pyo then .py
    */
   char *dot = strrchr(env_entrypoint, '.');
+#if PY_MAJOR_VERSION > 2
+  char *ext = ".pyc";
+#else
+  char *ext = ".pyo";
+#endif
   if (dot <= 0) {
     LOGP("Invalid entrypoint, abort.");
     return -1;
@@ -313,14 +318,14 @@ int main(int argc, char *argv[]) {
       LOGP("Entrypoint path is too long, try increasing ENTRYPOINT_MAXLEN.");
       return -1;
   }
-  if (!strcmp(dot, ".pyo")) {
+  if (!strcmp(dot, ext)) {
     if (!file_exists(env_entrypoint)) {
       /* fallback on .py */
       strcpy(entrypoint, env_entrypoint);
       entrypoint[strlen(env_entrypoint) - 1] = '\0';
       LOGP(entrypoint);
       if (!file_exists(entrypoint)) {
-        LOGP("Entrypoint not found (.pyo, fallback on .py), abort");
+        LOGP("Entrypoint not found (.pyc/.pyo, fallback on .py), abort");
         return -1;
       }
     } else {
@@ -330,7 +335,11 @@ int main(int argc, char *argv[]) {
     /* if .py is passed, check the pyo version first */
     strcpy(entrypoint, env_entrypoint);
     entrypoint[strlen(env_entrypoint) + 1] = '\0';
+#if PY_MAJOR_VERSION > 2
+    entrypoint[strlen(env_entrypoint)] = 'c';
+#else
     entrypoint[strlen(env_entrypoint)] = 'o';
+#endif
     if (!file_exists(entrypoint)) {
       /* fallback on pure python version */
       if (!file_exists(env_entrypoint)) {
@@ -340,7 +349,7 @@ int main(int argc, char *argv[]) {
       strcpy(entrypoint, env_entrypoint);
     }
   } else {
-    LOGP("Entrypoint have an invalid extension (must be .py or .pyo), abort.");
+    LOGP("Entrypoint have an invalid extension (must be .py or .pyc/.pyo), abort.");
     return -1;
   }
   // LOGP("Entrypoint is:");
