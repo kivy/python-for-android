@@ -43,7 +43,6 @@ import android.widget.Toast;
 import org.libsdl.app.SDL;
 import org.libsdl.app.SDLActivity;
 
-import org.kivy.android.PythonUtil;
 import org.kivy.android.launcher.Project;
 
 import org.renpy.android.ResourceManager;
@@ -78,12 +77,6 @@ public class PythonActivity extends SDLActivity {
         this.showLoadingScreen();
 
         new UnpackFilesTask().execute(getAppRoot());
-    }
-
-    public void loadLibraries() {
-        String app_root = new String(getAppRoot());
-        File app_root_file = new File(app_root);
-        PythonUtil.loadLibraries(app_root_file);
     }
 
     public void recursiveDelete(File f) {
