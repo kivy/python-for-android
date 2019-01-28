@@ -7,7 +7,6 @@ class OmemoBackendSignalRecipe(PythonRecipe):
     url = 'https://pypi.python.org/packages/source/o/omemo-backend-signal/omemo-backend-signal-{version}.tar.gz'
     site_packages_name = 'omemo-backend-signal'
     depends = [
-        ('python2', 'python3crystax'),
         'setuptools',
         'protobuf_cpp',
         'x3dh',

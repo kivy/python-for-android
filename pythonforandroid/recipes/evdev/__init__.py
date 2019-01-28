@@ -6,7 +6,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
     version = 'v0.4.7'
     url = 'https://github.com/gvalkov/python-evdev/archive/{version}.zip'
 
-    depends = [('python2', 'python3crystax')]
+    depends = []
 
     build_cmd = 'build'
 

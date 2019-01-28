@@ -15,9 +15,7 @@ class ZBarRecipe(PythonRecipe):
 
     call_hostpython_via_targetpython = False
 
-    depends = [('hostpython2legacy', 'hostpython2'),
-               ('python2legacy', 'python2'),
-               'setuptools', 'libzbar']
+    depends = ['setuptools', 'libzbar']
 
     patches = ["zbar-0.10-python-crash.patch"]
 

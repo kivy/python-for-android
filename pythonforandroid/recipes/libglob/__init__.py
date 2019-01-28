@@ -21,7 +21,7 @@ class LibGlobRecipe(CompiledComponentsPythonRecipe):
     # and pushed in via patch
     name = 'libglob'
 
-    depends = [('hostpython2', 'hostpython3'), ('python2', 'python3crystax')]
+    depends = [('hostpython2', 'hostpython3')]
     patches = ['glob.patch']
 
     def should_build(self, arch):

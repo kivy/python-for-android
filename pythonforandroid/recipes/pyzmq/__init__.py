@@ -13,7 +13,7 @@ class PyZMQRecipe(CythonRecipe):
     version = 'master'
     url = 'https://github.com/zeromq/pyzmq/archive/{version}.zip'
     site_packages_name = 'zmq'
-    depends = ['python2', 'libzmq']
+    depends = ['libzmq']
     cython_args = ['-Izmq/utils',
                    '-Izmq/backend/cython',
                    '-Izmq/devices']
