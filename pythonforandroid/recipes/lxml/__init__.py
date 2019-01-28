@@ -1,14 +1,12 @@
 from pythonforandroid.recipe import Recipe, CompiledComponentsPythonRecipe
-from pythonforandroid.logger import shprint
 from os.path import exists, join
 from os import uname
-import sh
 
 
 class LXMLRecipe(CompiledComponentsPythonRecipe):
     version = '4.2.5'
     url = 'https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz'  # noqa
-    depends = ['libxml2', 'libxslt', 'setuptools']
+    depends = ['librt', 'libxml2', 'libxslt', 'setuptools']
     name = 'lxml'
 
     call_hostpython_via_targetpython = False  # Due to setuptools
@@ -24,21 +22,6 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         py_libs = ['_elementpath.so', 'builder.so', 'etree.so', 'objectify.so']
 
         return not all([exists(join(build_dir, lib)) for lib in py_libs])
-
-    def build_compiled_components(self, arch):
-        # Hack to make it link properly to librt, inserted automatically by the
-        # installer (Note: the librt doesn't exist in android but it is
-        # integrated into libc, so we create a symbolic link which we will
-        # remove when our build finishes)
-        link_c = join(self.ctx.ndk_platform, 'usr', 'lib', 'libc')
-        link_rt = join(self.ctx.ndk_platform, 'usr', 'lib', 'librt')
-        shprint(sh.ln, '-sf', link_c + '.so', link_rt + '.so')
-        shprint(sh.ln, '-sf', link_c + '.a', link_rt + '.a')
-
-        super(LXMLRecipe, self).build_compiled_components(arch)
-
-        shprint(sh.rm, '-r', link_rt + '.so')
-        shprint(sh.rm, '-r', link_rt + '.a')
 
     def get_recipe_env(self, arch):
         env = super(LXMLRecipe, self).get_recipe_env(arch)
