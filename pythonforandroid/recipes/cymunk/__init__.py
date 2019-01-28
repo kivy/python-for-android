@@ -6,7 +6,7 @@ class CymunkRecipe(CythonRecipe):
     url = 'https://github.com/tito/cymunk/archive/{version}.zip'
     name = 'cymunk'
 
-    depends = [('python2', 'python3crystax')]
+    depends = [('python2', 'python3crystax', 'python3')]
 
 
 recipe = CymunkRecipe()
