@@ -626,9 +626,7 @@ class BootstrapNDKRecipe(Recipe):
     :class:`~pythonforandroid.recipe.NDKRecipe`.
 
     To link with python, call the method :meth:`get_recipe_env`
-    with the kwarg *with_python=True*. If recipe contains android's mk files
-    which should be linked with python, you may want to use the env variables
-    MK_PYTHON_INCLUDE_ROOT and MK_PYTHON_LINK_ROOT set in there.
+    with the kwarg *with_python=True*.
     '''
 
     dir_name = None  # The name of the recipe build folder in the jni dir
@@ -657,16 +655,6 @@ class BootstrapNDKRecipe(Recipe):
             self.ctx.python_recipe.major_minor_version_string)
         if 'python3' in self.ctx.python_recipe.name:
             env['EXTRA_LDLIBS'] += 'm'
-
-        # set some env variables that may be needed to build some bootstrap ndk
-        # recipes that needs linking with our python via mk files, like
-        # recipes: sdl2, genericndkbuild or sdl
-        other_builds = join(self.ctx.build_dir, 'other_builds') + '/'
-        env['MK_PYTHON_INCLUDE_ROOT'] = \
-            self.ctx.python_recipe.include_root(arch.arch)[
-            len(other_builds):]
-        env['MK_PYTHON_LINK_ROOT'] = \
-            self.ctx.python_recipe.link_root(arch.arch)[len(other_builds):]
         return env
 
 

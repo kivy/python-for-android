@@ -18,7 +18,7 @@ LOCAL_CFLAGS := $(foreach D, $(APP_SUBDIRS), -I$(LOCAL_PATH)/$(D)) \
 				-I$(LOCAL_PATH)/../jpeg \
 				-I$(LOCAL_PATH)/../intl \
 				-I$(LOCAL_PATH)/.. \
-                -I$(LOCAL_PATH)/../../../../other_builds/$(MK_PYTHON_INCLUDE_ROOT)
+                -I$(PYTHON_INCLUDE_ROOT)
 
 
 LOCAL_CFLAGS += $(APPLICATION_ADDITIONAL_CFLAGS)
@@ -38,7 +38,7 @@ LOCAL_LDLIBS := -lpython2.7 -lGLESv1_CM -ldl -llog -lz
 
 # AND: Another hardcoded path that should be templated
 # AND: NOT TEMPALTED! We can use $ARCH
-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../../../../other_builds/$(MK_PYTHON_LINK_ROOT) $(APPLICATION_ADDITIONAL_LDFLAGS)
+LOCAL_LDFLAGS += -L$(PYTHON_LINK_ROOT) $(APPLICATION_ADDITIONAL_LDFLAGS)
 
 LIBS_WITH_LONG_SYMBOLS := $(strip $(shell \
 	for f in $(LOCAL_PATH)/../../libs/$ARCH/*.so ; do \
