@@ -1,30 +1,13 @@
 import re
-import os
-import sh
-from pythonforandroid.logger import info, shprint
+from pythonforandroid.logger import info
 from pythonforandroid.recipe import CythonRecipe
 
 
 class GeventRecipe(CythonRecipe):
     version = '1.3.7'
     url = 'https://pypi.python.org/packages/source/g/gevent/gevent-{version}.tar.gz'
-    depends = ['greenlet']
+    depends = ['librt', 'greenlet']
     patches = ["cross_compiling.patch"]
-
-    def build_cython_components(self, arch):
-        """
-        Hack to make it link properly to librt, inserted automatically by the
-        installer (Note: the librt doesn't exist in android but it is
-        integrated into libc, so we create a symbolic link which we will
-        remove when our build finishes)
-        """
-        link_c = os.path.join(self.ctx.ndk_platform, 'usr', 'lib', 'libc')
-        link_rt = os.path.join(self.ctx.ndk_platform, 'usr', 'lib', 'librt')
-        shprint(sh.ln, '-sf', link_c + '.so', link_rt + '.so')
-        shprint(sh.ln, '-sf', link_c + '.a', link_rt + '.a')
-        super(GeventRecipe, self).build_cython_components(arch)
-        shprint(sh.rm, link_rt + '.so')
-        shprint(sh.rm, link_rt + '.a')
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         """
