@@ -8,7 +8,7 @@ class LibgeosRecipe(Recipe):
     version = '3.5'
     # url = 'http://download.osgeo.org/geos/geos-{version}.tar.bz2'
     url = 'https://github.com/libgeos/libgeos/archive/svn-{version}.zip'
-    depends = ['python2']
+    depends = []
 
     def should_build(self, arch):
         super(LibgeosRecipe, self).should_build(arch)

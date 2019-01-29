@@ -7,7 +7,6 @@ class OmemoRecipe(PythonRecipe):
     url = 'https://pypi.python.org/packages/source/O/OMEMO/OMEMO-{version}.tar.gz'
     site_packages_name = 'omemo'
     depends = [
-        ('python2', 'python3crystax'),
         'setuptools',
         'x3dh',
         'cryptography',

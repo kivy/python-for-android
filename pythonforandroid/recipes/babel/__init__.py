@@ -6,7 +6,7 @@ class BabelRecipe(PythonRecipe):
     version = '2.2.0'
     url = 'https://pypi.python.org/packages/source/B/Babel/Babel-{version}.tar.gz'
 
-    depends = [('python2', 'python3crystax'), 'setuptools', 'pytz']
+    depends = ['setuptools', 'pytz']
 
     call_hostpython_via_targetpython = False
     install_in_hostpython = True

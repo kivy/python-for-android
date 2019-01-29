@@ -8,7 +8,7 @@ import sh
 class M2CryptoRecipe(CompiledComponentsPythonRecipe):
     version = '0.30.1'
     url = 'https://pypi.python.org/packages/source/M/M2Crypto/M2Crypto-{version}.tar.gz'
-    depends = [('python2', 'python3'), 'openssl', 'setuptools']
+    depends = ['openssl', 'setuptools']
     site_packages_name = 'M2Crypto'
     call_hostpython_via_targetpython = False
 

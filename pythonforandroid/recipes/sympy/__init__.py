@@ -6,7 +6,7 @@ class SympyRecipe(PythonRecipe):
     version = '1.1.1'
     url = 'https://github.com/sympy/sympy/releases/download/sympy-{version}/sympy-{version}.tar.gz'
 
-    depends = [('python2', 'python3crystax'), 'mpmath']
+    depends = ['mpmath']
 
     call_hostpython_via_targetpython = True
 

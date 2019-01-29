@@ -10,7 +10,7 @@ from pythonforandroid.toolchain import current_directory
 class IFAddrRecipe(CompiledComponentsPythonRecipe):
     version = 'master'
     url = 'git+https://github.com/morristech/android-ifaddrs.git'
-    depends = [('hostpython2', 'hostpython3'), ('python2', 'python3crystax')]
+    depends = [('hostpython2', 'hostpython3')]
 
     call_hostpython_via_targetpython = False
     site_packages_name = 'ifaddrs'

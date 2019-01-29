@@ -6,7 +6,7 @@ import sh
 class LibsodiumRecipe(Recipe):
     version = '1.0.16'
     url = 'https://github.com/jedisct1/libsodium/releases/download/{version}/libsodium-{version}.tar.gz'
-    depends = ['python2']
+    depends = []
     patches = ['size_max_fix.patch']
 
     def should_build(self, arch):

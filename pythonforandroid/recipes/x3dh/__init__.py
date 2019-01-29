@@ -7,7 +7,6 @@ class X3DHRecipe(PythonRecipe):
     url = 'https://pypi.python.org/packages/source/X/X3DH/X3DH-{version}.tar.gz'
     site_packages_name = 'x3dh'
     depends = [
-        ('python2', 'python3crystax'),
         'setuptools',
         'cryptography',
         'xeddsa',

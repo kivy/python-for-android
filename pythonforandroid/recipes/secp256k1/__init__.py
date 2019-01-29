@@ -9,8 +9,8 @@ class Secp256k1Recipe(PythonRecipe):
     call_hostpython_via_targetpython = False
 
     depends = [
-        'openssl', ('hostpython2', 'hostpython3crystax'),
-        ('python2', 'python3crystax'), 'setuptools',
+        'openssl', ('hostpython3', 'hostpython2', 'hostpython3crystax'),
+        ('python2', 'python3', 'python3crystax'), 'setuptools',
         'libffi', 'cffi', 'libsecp256k1']
 
     patches = [

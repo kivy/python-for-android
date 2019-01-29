@@ -8,7 +8,7 @@ class PILRecipe(CompiledComponentsPythonRecipe):
     name = 'pil'
     version = '1.1.7'
     url = 'http://effbot.org/downloads/Imaging-{version}.tar.gz'
-    depends = [('python2', 'python2legacy'), 'png', 'jpeg', 'setuptools']
+    depends = ['png', 'jpeg', 'setuptools']
     opt_depends = ['freetype']
     site_packages_name = 'PIL'
 

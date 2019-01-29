@@ -21,7 +21,7 @@ class WebSocketClient(Recipe):
 
     # patches = ['websocket.patch']  # Paths relative to the recipe dir
 
-    depends = ['python2', 'android', 'pyjnius', 'cryptography', 'pyasn1', 'pyopenssl']
+    depends = ['android', 'pyjnius', 'cryptography', 'pyasn1', 'pyopenssl']
 
 
 recipe = WebSocketClient()

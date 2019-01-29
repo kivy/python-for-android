@@ -7,7 +7,7 @@ import sh
 class LibZMQRecipe(Recipe):
     version = '4.1.4'
     url = 'http://download.zeromq.org/zeromq-{version}.tar.gz'
-    depends = ['python2']
+    depends = []
 
     def should_build(self, arch):
         super(LibZMQRecipe, self).should_build(arch)

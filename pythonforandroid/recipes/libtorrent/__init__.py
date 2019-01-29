@@ -11,7 +11,7 @@ class LibtorrentRecipe(Recipe):
     version = '1.0.9'
     # Don't forget to change the URL when changing the version
     url = 'https://github.com/arvidn/libtorrent/archive/libtorrent-1_0_9.tar.gz'
-    depends = ['boost', 'python2']
+    depends = ['boost']
     opt_depends = ['openssl']
     patches = ['disable-so-version.patch', 'use-soname-python.patch', 'setup-lib-name.patch']
 

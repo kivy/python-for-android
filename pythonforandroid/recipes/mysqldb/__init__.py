@@ -8,7 +8,7 @@ class MysqldbRecipe(CompiledComponentsPythonRecipe):
     url = 'https://pypi.python.org/packages/source/M/MySQL-python/MySQL-python-{version}.zip'
     site_packages_name = 'MySQLdb'
 
-    depends = ['python2', 'setuptools', 'libmysqlclient']
+    depends = ['setuptools', 'libmysqlclient']
 
     patches = ['override-mysql-config.patch',
                'disable-zip.patch']

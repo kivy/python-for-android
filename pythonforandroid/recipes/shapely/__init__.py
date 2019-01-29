@@ -4,7 +4,7 @@ from pythonforandroid.recipe import Recipe, CythonRecipe
 class ShapelyRecipe(CythonRecipe):
     version = '1.5'
     url = 'https://github.com/Toblerity/Shapely/archive/master.zip'
-    depends = ['python2', 'setuptools', 'libgeos']
+    depends = ['setuptools', 'libgeos']
     call_hostpython_via_targetpython = False
 
     patches = ['setup.patch']  # Patch to force setup to fail when C extention fails to build
