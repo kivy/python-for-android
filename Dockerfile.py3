@@ -95,7 +95,8 @@ ENV WORK_DIR="${HOME_DIR}" \
 
 # install system dependencies
 RUN ${RETRY} apt -y install -qq --no-install-recommends \
-        python3 virtualenv python3-pip wget lbzip2 patch sudo \
+        python3 virtualenv python3-pip python3-venv \
+        wget lbzip2 patch sudo \
     && apt -y autoremove
 
 # build dependencies

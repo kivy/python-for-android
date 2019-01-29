@@ -298,6 +298,14 @@ your own Kivy branch you might set::
 The specified directory will be copied into python-for-android instead
 of downloading from the normal url specified in the recipe.
 
+setup.py file (experimental)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your application is also packaged for desktop using `setup.py`,
+you may want to use your `setup.py` instead of the
+``--requirements`` option to avoid specifying things twice.
+For that purpose, check out :doc:`distutils`
+
 Going further
 ~~~~~~~~~~~~~
 

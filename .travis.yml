@@ -1,5 +1,7 @@
 sudo: required
 
+dist: xenial  # needed for more recent python 3 and python3-venv
+
 language: generic
 
 services:
@@ -7,7 +9,8 @@ services:
 
 before_install:
   - travis_retry sudo apt update -qq
-  - travis_retry sudo apt install -qq --no-install-recommends python2.7 python3
+  - travis_retry sudo apt install -qq --no-install-recommends python2.7 python3 python3-venv python3-virtualenv
+  # (venv/virtualenv are both used by tests/test_pythonpackage.py)
   - sudo pip install tox>=2.0
   # https://github.com/travis-ci/travis-ci/issues/6069#issuecomment-266546552
   - git remote set-branches --add origin master
@@ -28,7 +31,8 @@ env:
 
 before_script:
   # we want to fail fast on tox errors without having to `docker build` first
-  - tox
+  - tox -- tests/ --ignore tests/test_pythonpackage.py
+  # (we ignore test_pythonpackage.py since these run way too long!! test_pythonpackage_basic.py will still be run.)
 
 script:
   - docker build --tag=p4a --file Dockerfile.py3 .
