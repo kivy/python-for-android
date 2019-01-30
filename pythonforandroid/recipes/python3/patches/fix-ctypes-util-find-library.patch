@@ -1,0 +1,23 @@
+diff --git a/Lib/ctypes/util.py b/Lib/ctypes/util.py
+--- a/Lib/ctypes/util.py
++++ b/Lib/ctypes/util.py
+@@ -67,4 +67,19 @@
+                 return fname
+         return None
+ 
++# This patch overrides the find_library to look in the right places on
++# Android
++if True:
++    def find_library(name):
++        # Check the user app libs and system libraries directory:
++        app_root = os.path.normpath(os.path.abspath('../../'))
++        lib_search_dirs = [os.path.join(app_root, 'lib'), "/system/lib"]
++        for lib_dir in lib_search_dirs:
++            for filename in os.listdir(lib_dir):
++                if filename.endswith('.so') and (
++                        filename.startswith("lib" + name + ".") or
++                        filename.startswith(name + ".")):
++                    return os.path.join(lib_dir, filename)
++        return None
++
+ elif os.name == "posix" and sys.platform == "darwin":
