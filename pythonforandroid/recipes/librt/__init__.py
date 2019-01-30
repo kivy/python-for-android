@@ -1,5 +1,7 @@
+from os import makedirs, remove
+from os.path import exists, join
 import sh
-from os.path import join
+
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 
@@ -20,17 +22,34 @@ class LibRt(Recipe):
     def libc_path(self):
         return join(self.ctx.ndk_platform, 'usr', 'lib', 'libc')
 
-    @property
-    def librt_path(self):
-        return join(self.ctx.ndk_platform, 'usr', 'lib', 'librt')
-
     def build_arch(self, arch):
-        shprint(sh.ln, '-sf', self.libc_path + '.so', self.librt_path + '.so')
-        shprint(sh.ln, '-sf', self.libc_path + '.a', self.librt_path + '.a')
+        # Create a temporary folder to add to link path with a fake librt.so:
+        fake_librt_temp_folder = join(
+            self.get_build_dir(arch.arch),
+            "p4a-librt-recipe-tempdir"
+        )
+        if not exists(fake_librt_temp_folder):
+            makedirs(fake_librt_temp_folder)
 
-    def postbuild_arch(self, arch):
-        shprint(sh.rm, self.librt_path + '.so')
-        shprint(sh.rm, self.librt_path + '.a')
+        # Set symlinks, and make sure to update them on every build run:
+        if exists(join(fake_librt_temp_folder, "librt.so")):
+            remove(join(fake_librt_temp_folder, "librt.so"))
+        shprint(sh.ln, '-sf',
+                self.libc_path + '.so',
+                join(fake_librt_temp_folder, "librt.so"),
+                )
+        if exists(join(fake_librt_temp_folder, "librt.a")):
+            remove(join(fake_librt_temp_folder, "librt.a"))
+        shprint(sh.ln, '-sf',
+                self.libc_path + '.a',
+                join(fake_librt_temp_folder, "librt.a"),
+               )
+
+        # Add folder as -L link option for all recipes if not done yet:
+        if fake_librt_temp_folder not in arch.extra_global_link_paths:
+            arch.extra_global_link_paths.append(
+                fake_librt_temp_folder
+            )
 
 
 recipe = LibRt()
