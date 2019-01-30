@@ -31,5 +31,5 @@ before_script:
   - tox
 
 script:
-  - docker build --tag=p4a --file Dockerfile.py2 .
+  - docker build --tag=p4a --file Dockerfile.py3 .
   - docker run p4a /bin/sh -c "$COMMAND"

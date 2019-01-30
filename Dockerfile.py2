@@ -3,13 +3,13 @@
 #   - python-for-android dependencies
 #
 # Build with:
-#     docker build --tag=p4a --file Dockerfile.py2 .
+#     docker build --tag=p4apy2 --file Dockerfile.py2 .
 #
 # Run with:
-#     docker run -it --rm p4a /bin/sh -c '. venv/bin/activate && p4a apk --help'
+#     docker run -it --rm p4apy2 /bin/sh -c '. venv/bin/activate && p4a apk --help'
 #
 # Or for interactive shell:
-#     docker run -it --rm p4a
+#     docker run -it --rm p4apy2
 #
 # Note:
 #     Use 'docker run' without '--rm' flag for keeping the container and use
