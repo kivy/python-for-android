@@ -23,8 +23,6 @@ BROKEN_RECIPES_PYTHON2 = set([
     'flask',
     'groestlcoin_hash',
     'hostpython3crystax',
-    # https://github.com/kivy/python-for-android/issues/1398
-    'ifaddrs',
     # https://github.com/kivy/python-for-android/issues/1354
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
     'kiwisolver',
@@ -68,8 +66,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     # enum34 is not compatible with Python 3.6 standard library
     # https://stackoverflow.com/a/45716067/185510
     'enum34',
-    # https://github.com/kivy/python-for-android/issues/1398
-    'ifaddrs',
     # https://github.com/kivy/python-for-android/issues/1399
     'libglob',
     # cannot find -lcrystax
