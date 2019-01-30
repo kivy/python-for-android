@@ -297,6 +297,10 @@ main.py that loads it.''')
         f.write("P4A_NUMERIC_VERSION=" + str(args.numeric_version) + "\n")
         f.write("P4A_MINSDK=" + str(args.min_sdk_version) + "\n")
 
+        # The following is needed for proper library loading
+        # (by ctypes.util.find_library and others)
+        f.write("LD_LIBRARY_PATH=../../lib/:/system/lib/")
+
     # Package up the private data (public not supported).
     tar_dirs = [env_vars_tarpath]
     if args.private:
