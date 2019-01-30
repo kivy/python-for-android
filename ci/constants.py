@@ -16,8 +16,6 @@ BROKEN_RECIPES_PYTHON2 = set([
     # https://github.com/kivy/python-for-android/issues/550
     'audiostream',
     'brokenrecipe',
-    # https://github.com/kivy/python-for-android/issues/1409
-    'enaml',
     'evdev',
     # distutils.errors.DistutilsError
     # Could not find suitable distribution for Requirement.parse('cython')
