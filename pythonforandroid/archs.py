@@ -2,7 +2,6 @@ from distutils.spawn import find_executable
 from os import environ, uname
 from os.path import (exists, join, dirname, split)
 from glob import glob
-import shlex
 import sys
 
 from pythonforandroid.recipe import Recipe
@@ -67,7 +66,7 @@ class Arch(object):
         # Link the extra global link paths first before anything else
         # (such that overriding system libraries with them is possible)
         env['LDFLAGS'] = ' ' + " ".join([
-            "-L" + shlex.quote(l)
+            "-L'" + l.replace("'", "'\"'\"'") + "'"  # no shlex.quote in py2
             for l in self.extra_global_link_paths
         ]) + ' '
 
