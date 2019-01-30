@@ -265,7 +265,9 @@ class Bootstrap(object):
             return
         env = arch.get_env()
         tokens = shlex.split(env['STRIP'])
-        strip = sh.Command(tokens[0]).bake(tokens[1:])
+        strip = sh.Command(tokens[0])
+        if len(tokens) > 1:
+            strip = strip.bake(tokens[1:])
 
         libs_dir = join(self.dist_dir, '_python_bundle',
                         '_python_bundle', 'modules')
