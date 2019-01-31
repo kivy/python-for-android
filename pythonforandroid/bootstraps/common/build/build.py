@@ -677,7 +677,9 @@ tools directory of the Android SDK.
                           'the appropriate environment variables.'))
     ap.add_argument('--add-activity', dest='add_activity', action='append',
                     help='Add this Java class as an Activity to the manifest.')
-    ap.add_argument('--activity-launch-mode', dest='activity_launch_mode',
+    ap.add_argument('--activity-launch-mode',
+                    dest='activity_launch_mode',
+                    default='singleTask',
                     help='Set the launch mode of the main activity in the manifest.')
     ap.add_argument('--allow-backup', dest='allow_backup', default='true',
                     help="if set to 'false', then android won't backup the application.")
