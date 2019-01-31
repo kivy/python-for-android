@@ -343,7 +343,7 @@ class Context(object):
                     warning('If the NDK dir result is correct, you don\'t '
                             'need to manually set the NDK ver.')
         if ndk_ver is None:
-            warning('Android NDK version could not be found. This probably'
+            warning('Android NDK version could not be found. This probably '
                     'won\'t cause any problems, but if necessary you can'
                     'set it with `--ndk-version=...`.')
         self.ndk_ver = ndk_ver
