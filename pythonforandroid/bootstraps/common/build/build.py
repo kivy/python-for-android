@@ -260,7 +260,13 @@ def compile_dir(dfn, optimize_python=True):
     if optimize_python:
         # -OO = strip docstrings
         args.insert(1, '-OO')
-    subprocess.call(args)
+    return_code = subprocess.call(args)
+
+    if return_code != 0:
+        print('Error while running "{}"'.format(' '.join(args)))
+        print('This probably means one of your Python files has a syntax '
+              'error, see logs above')
+        exit(1)
 
 
 def make_package(args):
