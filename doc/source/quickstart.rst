@@ -282,6 +282,17 @@ include such as::
     --android_api 27
     --requirements kivy,openssl
 
+Overriding recipes sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can override the source of any recipe using the
+``$P4A_recipename_DIR`` environment variable. For instance, to test
+your own Kivy branch you might set::
+
+    export P4A_kivy_DIR=/home/username/kivy
+
+The specified directory will be copied into python-for-android instead
+of downloading from the normal url specified in the recipe.
 
 Going further
 ~~~~~~~~~~~~~

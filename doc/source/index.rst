@@ -38,7 +38,6 @@ Contents
    troubleshooting
    docker
    contribute
-   old_toolchain/index.rst
 
 
 Indices and tables
