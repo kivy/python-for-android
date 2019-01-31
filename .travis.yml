@@ -6,8 +6,8 @@ services:
   - docker
 
 before_install:
-  - sudo apt update -qq
-  - sudo apt install -qq --no-install-recommends python2.7 python3
+  - travis_retry sudo apt update -qq
+  - travis_retry sudo apt install -qq --no-install-recommends python2.7 python3
   - sudo pip install tox>=2.0
   # https://github.com/travis-ci/travis-ci/issues/6069#issuecomment-266546552
   - git remote set-branches --add origin master
