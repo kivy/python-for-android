@@ -7,8 +7,10 @@ This module defines the entry point for command line and programmatic use.
 """
 
 from __future__ import print_function
+from os import environ
 from pythonforandroid import __version__
-from pythonforandroid.build import DEFAULT_NDK_API, DEFAULT_ANDROID_API
+from pythonforandroid.recommendations import (
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 from pythonforandroid.util import BuildInterruptingException, handle_build_exception
 
 
@@ -139,7 +141,6 @@ def require_prebuilt_dist(func):
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
-                                      user_ndk_ver=self.ndk_version,
                                       user_ndk_api=self.ndk_api)
         dist = self._dist
         if dist.needs_build:
@@ -258,16 +259,16 @@ class ToolchainCL(object):
             default=0,
             type=int,
             help=('The Android API level to build against defaults to {} if '
-                  'not specified.').format(DEFAULT_ANDROID_API))
+                  'not specified.').format(RECOMMENDED_TARGET_API))
         generic_parser.add_argument(
-            '--ndk-version', '--ndk_version', dest='ndk_version', default='',
-            help=('The version of the Android NDK. This is optional: '
-                  'we try to work it out automatically from the ndk_dir.'))
+            '--ndk-version', '--ndk_version', dest='ndk_version', default=None,
+            help=('DEPRECATED: the NDK version is now found automatically or '
+                  'not at all.'))
         generic_parser.add_argument(
             '--ndk-api', type=int, default=None,
             help=('The Android API level to compile against. This should be your '
                   '*minimal supported* API, not normally the same as your --android-api. '
-                  'Defaults to min(ANDROID_API, {}) if not specified.').format(DEFAULT_NDK_API))
+                  'Defaults to min(ANDROID_API, {}) if not specified.').format(RECOMMENDED_NDK_API))
         generic_parser.add_argument(
             '--symlink-java-src', '--symlink_java_src',
             action='store_true',
@@ -360,6 +361,11 @@ class ToolchainCL(object):
                 kwargs.pop('aliases')
             return subparsers.add_parser(*args, **kwargs)
 
+        parser_recommendations = add_parser(
+            subparsers,
+            'recommendations',
+            parents=[generic_parser],
+            help='List recommended p4a dependencies')
         parser_recipes = add_parser(
             subparsers,
             'recipes',
@@ -533,13 +539,14 @@ class ToolchainCL(object):
                 requirements.append(requirement)
             args.requirements = u",".join(requirements)
 
+        self.warn_on_deprecated_args(args)
+
         self.ctx = Context()
         self.storage_dir = args.storage_dir
         self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir
         self.ndk_dir = args.ndk_dir
         self.android_api = args.android_api
-        self.ndk_version = args.ndk_version
         self.ndk_api = args.ndk_api
         self.ctx.symlink_java_src = args.symlink_java_src
         self.ctx.java_build_tool = args.java_build_tool
@@ -551,6 +558,19 @@ class ToolchainCL(object):
 
         # Each subparser corresponds to a method
         getattr(self, args.subparser_name.replace('-', '_'))(args)
+
+    def warn_on_deprecated_args(self, args):
+        """
+        Print warning messages for any deprecated arguments that were passed.
+        """
+
+        # NDK version is now determined automatically
+        if args.ndk_version is not None:
+            warning('--ndk-version is deprecated and no longer necessary, '
+                    'the value you passed is ignored')
+        if 'ANDROIDNDKVER' in environ:
+            warning('$ANDROIDNDKVER is deprecated and no longer necessary, '
+                    'the value you set is ignored')
 
     def hook(self, name):
         if not self.args.hook:
@@ -959,7 +979,6 @@ class ToolchainCL(object):
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
-                                      user_ndk_ver=self.ndk_version,
                                       user_ndk_api=self.ndk_api)
         android = sh.Command(join(ctx.sdk_dir, 'tools', args.tool))
         output = android(
@@ -987,7 +1006,6 @@ class ToolchainCL(object):
         ctx.prepare_build_environment(user_sdk_dir=self.sdk_dir,
                                       user_ndk_dir=self.ndk_dir,
                                       user_android_api=self.android_api,
-                                      user_ndk_ver=self.ndk_version,
                                       user_ndk_api=self.ndk_api)
         if platform in ('win32', 'cygwin'):
             adb = sh.Command(join(ctx.sdk_dir, 'platform-tools', 'adb.exe'))

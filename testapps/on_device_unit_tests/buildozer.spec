@@ -153,7 +153,7 @@ android.whitelist = unittest/*
 #android.add_activites = com.example.ExampleActivity
 
 # (str) python-for-android branch to use, defaults to master
-#p4a.branch = master
+p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
