@@ -10,7 +10,7 @@ import shutil
 from pythonforandroid.logger import (warning, shprint, info, logger,
                                      debug)
 from pythonforandroid.util import (current_directory, ensure_dir,
-                                   temp_directory, which)
+                                   temp_directory)
 from pythonforandroid.recipe import Recipe
 
 
