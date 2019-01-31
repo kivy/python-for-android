@@ -14,10 +14,6 @@ OLD_NDK_MESSAGE = 'Older NDKs may not be compatible with all p4a features.'
 NEW_NDK_MESSAGE = 'Newer NDKs may not be fully supported by p4a.'
 
 
-def get_recommended_ndk():
-    pass
-
-
 def check_ndk_version(ndk_dir):
     # Check the NDK version against what is currently recommended
     version = read_ndk_version(ndk_dir)

@@ -19,6 +19,7 @@ from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 
+
 class Context(object):
     '''A build context. If anything will be built, an instance this class
     will be instantiated and used to hold all the build state.'''
