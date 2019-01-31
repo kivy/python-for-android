@@ -1,6 +1,7 @@
 from os.path import (join, dirname, isdir, normpath, splitext, basename)
 from os import listdir, walk, sep
 import sh
+import shlex
 import glob
 import importlib
 import os
@@ -9,7 +10,7 @@ import shutil
 from pythonforandroid.logger import (warning, shprint, info, logger,
                                      debug)
 from pythonforandroid.util import (current_directory, ensure_dir,
-                                   temp_directory, which)
+                                   temp_directory)
 from pythonforandroid.recipe import Recipe
 
 
@@ -263,11 +264,10 @@ class Bootstrap(object):
             info('Python was loaded from CrystaX, skipping strip')
             return
         env = arch.get_env()
-        strip = which('arm-linux-androideabi-strip', env['PATH'])
-        if strip is None:
-            warning('Can\'t find strip in PATH...')
-            return
-        strip = sh.Command(strip)
+        tokens = shlex.split(env['STRIP'])
+        strip = sh.Command(tokens[0])
+        if len(tokens) > 1:
+            strip = strip.bake(tokens[1:])
 
         libs_dir = join(self.dist_dir, '_python_bundle',
                         '_python_bundle', 'modules')
@@ -278,6 +278,8 @@ class Bootstrap(object):
 
         logger.info('Stripping libraries in private dir')
         for filen in filens.split('\n'):
+            if not filen:
+                continue  # skip the last ''
             try:
                 strip(filen, _env=env)
             except sh.ErrorReturnCode_1:
