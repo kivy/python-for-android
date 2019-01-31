@@ -286,7 +286,7 @@ Overriding recipes sources
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can override the source of any recipe using the
-``$P4A_recipename_DIR` environment variable. For instance, to test
+``$P4A_recipename_DIR`` environment variable. For instance, to test
 your own Kivy branch you might set::
 
     export P4A_kivy_DIR=/home/username/kivy
