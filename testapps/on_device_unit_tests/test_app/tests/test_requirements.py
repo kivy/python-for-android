@@ -47,4 +47,4 @@ class PyjniusTestCase(PythonTestMixIn, TestCase):
 
     def test_run_module(self):
         from jnius import autoclass
-        autoclass('org.kivy.PythonActivity')
+        autoclass('org.kivy.android.PythonActivity')

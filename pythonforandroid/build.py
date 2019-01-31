@@ -15,11 +15,9 @@ from pythonforandroid.util import (ensure_dir, current_directory, BuildInterrupt
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
 from pythonforandroid.recipe import CythonRecipe, Recipe
-
-DEFAULT_ANDROID_API = 15
-
-DEFAULT_NDK_API = 21
-
+from pythonforandroid.recommendations import (
+    check_ndk_version, check_target_api, check_ndk_api,
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 
 class Context(object):
     '''A build context. If anything will be built, an instance this class
@@ -141,19 +139,6 @@ class Context(object):
         self._ndk_api = value
 
     @property
-    def ndk_ver(self):
-        '''The version of the NDK being used for compilation.'''
-        if self._ndk_ver is None:
-            raise ValueError('Tried to access ndk_ver but it has not '
-                             'been set - this should not happen, something '
-                             'went wrong!')
-        return self._ndk_ver
-
-    @ndk_ver.setter
-    def ndk_ver(self, value):
-        self._ndk_ver = value
-
-    @property
     def sdk_dir(self):
         '''The path to the Android SDK.'''
         if self._sdk_dir is None:
@@ -183,7 +168,6 @@ class Context(object):
                                   user_sdk_dir,
                                   user_ndk_dir,
                                   user_android_api,
-                                  user_ndk_ver,
                                   user_ndk_api):
         '''Checks that build dependencies exist and sets internal variables
         for the Android SDK etc.
@@ -237,17 +221,12 @@ class Context(object):
             info('Found Android API target in $ANDROIDAPI: {}'.format(android_api))
         else:
             info('Android API target was not set manually, using '
-                 'the default of {}'.format(DEFAULT_ANDROID_API))
-            android_api = DEFAULT_ANDROID_API
+                 'the default of {}'.format(RECOMMENDED_TARGET_API))
+            android_api = RECOMMENDED_TARGET_API
         android_api = int(android_api)
         self.android_api = android_api
 
-        if self.android_api >= 21 and self.archs[0].arch == 'armeabi':
-            raise BuildInterruptingException(
-                'Asked to build for armeabi architecture with API '
-                '{}, but API 21 or greater does not support armeabi'.format(
-                    self.android_api),
-                instructions='You probably want to build with --arch=armeabi-v7a instead')
+        check_target_api(android_api, self.archs[0].arch)
 
         if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
             avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
@@ -306,47 +285,7 @@ class Context(object):
             raise BuildInterruptingException('Android NDK dir was not specified')
         self.ndk_dir = realpath(ndk_dir)
 
-        # Find the NDK version, and check it against what the NDK dir
-        # seems to report
-        ndk_ver = None
-        if user_ndk_ver:
-            ndk_ver = user_ndk_ver
-            if ndk_dir is not None:
-                info('Got NDK version from from user argument: {}'.format(ndk_ver))
-        if ndk_ver is None:
-            ndk_ver = environ.get('ANDROIDNDKVER', None)
-            if ndk_ver is not None:
-                info('Got NDK version from $ANDROIDNDKVER: {}'.format(ndk_ver))
-
-        self.ndk = 'google'
-
-        try:
-            with open(join(ndk_dir, 'RELEASE.TXT')) as fileh:
-                reported_ndk_ver = fileh.read().split(' ')[0].strip()
-        except IOError:
-            pass
-        else:
-            if reported_ndk_ver.startswith('crystax-ndk-'):
-                reported_ndk_ver = reported_ndk_ver[12:]
-                self.ndk = 'crystax'
-            if ndk_ver is None:
-                ndk_ver = reported_ndk_ver
-                info(('Got Android NDK version from the NDK dir: {}').format(ndk_ver))
-            else:
-                if ndk_ver != reported_ndk_ver:
-                    warning('NDK version was set as {}, but checking '
-                            'the NDK dir claims it is {}.'.format(
-                                ndk_ver, reported_ndk_ver))
-                    warning('The build will try to continue, but it may '
-                            'fail and you should check '
-                            'that your setting is correct.')
-                    warning('If the NDK dir result is correct, you don\'t '
-                            'need to manually set the NDK ver.')
-        if ndk_ver is None:
-            warning('Android NDK version could not be found. This probably'
-                    'won\'t cause any problems, but if necessary you can'
-                    'set it with `--ndk-version=...`.')
-        self.ndk_ver = ndk_ver
+        check_ndk_version(ndk_dir)
 
         ndk_api = None
         if user_ndk_api:
@@ -356,21 +295,14 @@ class Context(object):
             ndk_api = environ.get('NDKAPI', None)
             info('Found Android API target in $NDKAPI')
         else:
-            ndk_api = min(self.android_api, DEFAULT_NDK_API)
+            ndk_api = min(self.android_api, RECOMMENDED_NDK_API)
             warning('NDK API target was not set manually, using '
                     'the default of {} = min(android-api={}, default ndk-api={})'.format(
-                        ndk_api, self.android_api, DEFAULT_NDK_API))
+                        ndk_api, self.android_api, RECOMMENDED_NDK_API))
         ndk_api = int(ndk_api)
         self.ndk_api = ndk_api
 
-        if self.ndk_api > self.android_api:
-            raise BuildInterruptingException(
-                'Target NDK API is {}, higher than the target Android API {}.'.format(
-                    self.ndk_api, self.android_api),
-                instructions=('The NDK API is a minimum supported API number and must be lower '
-                              'than the target Android API'))
-
-        info('Using {} NDK {}'.format(self.ndk.capitalize(), self.ndk_ver))
+        check_ndk_api(ndk_api, self.android_api)
 
         virtualenv = None
         if virtualenv is None:
@@ -483,7 +415,6 @@ class Context(object):
         self._ndk_dir = None
         self._android_api = None
         self._ndk_api = None
-        self._ndk_ver = None
         self.ndk = None
 
         self.toolchain_prefix = None
