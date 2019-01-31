@@ -2,7 +2,6 @@ from distutils.spawn import find_executable
 from os import environ
 from os.path import (exists, join, dirname, split)
 from glob import glob
-import sys
 
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException, build_platform
@@ -95,10 +94,6 @@ class Arch(object):
 
         if self.ctx.ndk == 'crystax':
             env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
-
-        py_platform = sys.platform
-        if py_platform in ['linux2', 'linux3']:
-            py_platform = 'linux'
 
         toolchain_prefix = self.ctx.toolchain_prefix
         toolchain_version = self.ctx.toolchain_version
