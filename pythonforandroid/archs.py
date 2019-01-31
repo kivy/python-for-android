@@ -1,5 +1,5 @@
 from distutils.spawn import find_executable
-from os import environ, uname
+from os import environ
 from os.path import (exists, join, dirname, split)
 from glob import glob
 import sys
@@ -172,8 +172,8 @@ class Arch(object):
             'host' + self.ctx.python_recipe.name, self.ctx)
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.linux-{}-{}'.format(
-                uname()[-1], self.ctx.python_recipe.major_minor_version_string)
+            'build', 'lib.{}-{}'.format(
+                build_platform, self.ctx.python_recipe.major_minor_version_string)
         )
 
         env['PATH'] = environ['PATH']
