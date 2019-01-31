@@ -17,13 +17,14 @@ NEW_NDK_MESSAGE = 'Newer NDKs may not be fully supported by p4a.'
 def get_recommended_ndk():
     pass
 
+
 def check_ndk_version(ndk_dir):
     # Check the NDK version against what is currently recommended
     version = read_ndk_version(ndk_dir)
 
     if version is None:
-        return  # it doesn't matter 
-        
+        return  # if we failed to read the version, just don't worry about it
+
     major_version = version.version[0]
 
     info('Found NDK revision {}'.format(version))
@@ -37,6 +38,7 @@ def check_ndk_version(ndk_dir):
             RECOMMENDED_NDK_VERSION))
         warning(NEW_NDK_MESSAGE)
 
+
 def read_ndk_version(ndk_dir):
     """Read the NDK version from the NDK dir, if possible"""
     try:
@@ -44,7 +46,7 @@ def read_ndk_version(ndk_dir):
             ndk_data = fileh.read()
     except IOError:
         info('Could not determine NDK version, no source.properties '
-                'in the NDK dir')
+             'in the NDK dir')
         return
 
     for line in ndk_data.split('\n'):
@@ -53,12 +55,13 @@ def read_ndk_version(ndk_dir):
     else:
         info('Could not parse $NDK_DIR/source.properties, not checking '
              'NDK version')
+        return
 
     # Line should have the form "Pkg.Revision = ..."
     ndk_version = LooseVersion(line.split('=')[-1].strip())
 
     return ndk_version
-    
+
 
 MIN_TARGET_API = 26
 RECOMMENDED_TARGET_API = 27  # highest version tested to work fine with SDL2
@@ -69,6 +72,7 @@ OLD_API_MESSAGE = (
     'and are not recommended. Note that the Target API can be higher than '
     'your device Android version, and should usually be as high as possible.')
 
+
 def check_target_api(api, arch):
     """Warn if the user's target API is less than the current minimum
     recommendation
@@ -78,7 +82,7 @@ def check_target_api(api, arch):
         raise BuildInterruptingException(
             'Asked to build for armeabi architecture with API '
             '{}, but API {} or greater does not support armeabi'.format(
-                self.android_api, ARMEABI_MAX_TARGET_API),
+                api, ARMEABI_MAX_TARGET_API),
             instructions='You probably want to build with --arch=armeabi-v7a instead')
 
     if api < MIN_TARGET_API:
@@ -90,6 +94,7 @@ MIN_NDK_API = 21
 RECOMMENDED_NDK_API = 21
 OLD_NDK_API_MESSAGE = ('NDK API less than {} is not supported'.format(MIN_NDK_API))
 
+
 def check_ndk_api(ndk_api, android_api):
     """Warn if the user's NDK is too high or low."""
     if ndk_api > android_api:
@@ -97,7 +102,7 @@ def check_ndk_api(ndk_api, android_api):
             'Target NDK API is {}, higher than the target Android API {}.'.format(
                 ndk_api, android_api),
             instructions=('The NDK API is a minimum supported API number and must be lower '
-                            'than the target Android API'))
+                          'than the target Android API'))
 
     if ndk_api < MIN_NDK_API:
         warning(OLD_NDK_API_MESSAGE)
