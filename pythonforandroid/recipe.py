@@ -764,6 +764,10 @@ class PythonRecipe(Recipe):
 
         env['PYTHONNOUSERSITE'] = '1'
 
+        # Set the LANG, this isn't usually important but is a better default
+        # as it occasionally matters how Python e.g. reads files
+        env['LANG'] = "en_GB.UTF-8"
+
         if not self.call_hostpython_via_targetpython:
             # sets python headers/linkages...depending on python's recipe
             python_name = self.ctx.python_recipe.name
