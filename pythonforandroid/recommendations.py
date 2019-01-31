@@ -60,8 +60,11 @@ def read_ndk_version(ndk_dir):
 
 
 MIN_TARGET_API = 26
-RECOMMENDED_TARGET_API = 27  # highest version tested to work fine with SDL2
-                             # should be a good default for other bootstraps too
+
+# highest version tested to work fine with SDL2
+# should be a good default for other bootstraps too
+RECOMMENDED_TARGET_API = 27
+
 ARMEABI_MAX_TARGET_API = 21
 OLD_API_MESSAGE = (
     'Target APIs lower than 26 are no longer supported on Google Play, '
