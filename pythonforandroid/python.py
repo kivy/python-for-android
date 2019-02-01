@@ -4,6 +4,7 @@ build our python3 and python2 recipes and his corresponding hostpython recipes.
 '''
 
 from os.path import dirname, exists, join
+from multiprocessing import cpu_count
 from shutil import copy2
 from os import environ
 import subprocess
@@ -250,7 +251,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
                 py_version = self.major_minor_version_string
                 if self.major_minor_version_string[0] == '3':
                     py_version += 'm'
-                shprint(sh.make, 'all',
+                shprint(sh.make, 'all', '-j', str(cpu_count()),
                         'INSTSONAME=libpython{version}.so'.format(
                             version=py_version), _env=env)
 
@@ -420,7 +421,7 @@ class HostPythonRecipe(Recipe):
                 shprint(sh.cp, join('Modules', 'Setup.dist'),
                         join(build_dir, 'Modules', 'Setup'))
 
-                result = shprint(sh.make, '-C', build_dir)
+                result = shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
         else:
             info('Skipping {name} ({version}) build, as it has already '
                  'been completed'.format(name=self.name, version=self.version))
