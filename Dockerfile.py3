@@ -6,7 +6,7 @@
 #     docker build --tag=p4a --file Dockerfile.py3 .
 #
 # Run with:
-#     docker run -it --rm p4apy3 /bin/sh -c '. venv/bin/activate && p4a apk --help'
+#     docker run -it --rm p4a /bin/sh -c '. venv/bin/activate && p4a apk --help'
 #
 # Or for interactive shell:
 #     docker run -it --rm p4a
@@ -18,6 +18,14 @@
 FROM ubuntu:18.04
 
 ENV ANDROID_HOME="/opt/android"
+
+# configure locale
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
+    locales && \
+    locale-gen en_US.UTF-8
+ENV LANG="en_US.UTF-8" \
+    LANGUAGE="en_US.UTF-8" \
+    LC_ALL="en_US.UTF-8"
 
 RUN apt -y update -qq \
     && apt -y install -qq --no-install-recommends curl unzip ca-certificates \

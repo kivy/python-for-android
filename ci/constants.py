@@ -68,14 +68,15 @@ BROKEN_RECIPES_PYTHON3 = set([
     'enum34',
     # https://github.com/kivy/python-for-android/issues/1399
     'libglob',
-    # cannot find -lcrystax
-    'cffi', 'pycryptodome', 'pymuk', 'secp256k1',
+    # Could not fetch URL https://pypi.org/simple/pymuk/: 404 Client Error
+    'pymuk',
+    # build_dir = glob.glob('build/lib.*')[0]
+    # IndexError: list index out of range
+    'secp256k1',
     # https://github.com/kivy/python-for-android/issues/1404
     'cryptography',
     # https://github.com/kivy/python-for-android/issues/1294
     'ffmpeg', 'ffpyplayer',
-    # https://github.com/kivy/python-for-android/pull/1307 ?
-    'gevent',
     'icu',
     # https://github.com/kivy/python-for-android/issues/1354
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',

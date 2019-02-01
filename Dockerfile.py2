@@ -19,6 +19,14 @@ FROM ubuntu:18.04
 
 ENV ANDROID_HOME="/opt/android"
 
+# configure locale
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
+    locales && \
+    locale-gen en_US.UTF-8
+ENV LANG="en_US.UTF-8" \
+    LANGUAGE="en_US.UTF-8" \
+    LC_ALL="en_US.UTF-8"
+
 RUN apt -y update -qq \
     && apt -y install -qq --no-install-recommends curl unzip ca-certificates \
     && apt -y autoremove
