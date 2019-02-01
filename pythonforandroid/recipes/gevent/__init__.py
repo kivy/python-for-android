@@ -4,7 +4,7 @@ from pythonforandroid.recipe import CythonRecipe
 
 
 class GeventRecipe(CythonRecipe):
-    version = '1.3.7'
+    version = '1.4.0'
     url = 'https://pypi.python.org/packages/source/g/gevent/gevent-{version}.tar.gz'
     depends = ['librt', 'greenlet']
     patches = ["cross_compiling.patch"]
