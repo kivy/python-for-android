@@ -6,7 +6,7 @@
 #     docker build --tag=p4a --file Dockerfile.py3 .
 #
 # Run with:
-#     docker run -it --rm p4apy3 /bin/sh -c '. venv/bin/activate && p4a apk --help'
+#     docker run -it --rm p4a /bin/sh -c '. venv/bin/activate && p4a apk --help'
 #
 # Or for interactive shell:
 #     docker run -it --rm p4a
