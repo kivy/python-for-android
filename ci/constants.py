@@ -82,8 +82,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
     'netifaces',
-    # https://github.com/kivy/python-for-android/issues/1315 ?
-    'opencv',
     'protobuf_cpp',
     # most likely some setup in the Docker container, because it works in host
     'pyjnius', 'pyopenal',
