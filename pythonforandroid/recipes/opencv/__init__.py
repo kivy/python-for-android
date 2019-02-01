@@ -9,45 +9,43 @@ from multiprocessing import cpu_count
 
 
 class OpenCVRecipe(NDKRecipe):
-    version = '2.4.10.1'
-    url = 'https://github.com/Itseez/opencv/archive/{version}.zip'
-    # md5sum = '2ddfa98e867e6611254040df841186dc'
+    version = '4.0.1'
+    url = 'https://github.com/opencv/opencv/archive/{version}.zip'
     depends = ['numpy']
-    patches = ['patches/p4a_build-2.4.10.1.patch']
-    generated_libraries = ['cv2.so']
-
-    def prebuild_arch(self, arch):
-        self.apply_patches(arch)
 
     def get_recipe_env(self, arch):
         env = super(OpenCVRecipe, self).get_recipe_env(arch)
-        env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['ANDROID_NDK'] = self.ctx.ndk_dir
         env['ANDROID_SDK'] = self.ctx.sdk_dir
-        env['SITEPACKAGES_PATH'] = self.ctx.get_site_packages_dir()
         return env
 
-    def build_arch(self, arch):
-        with current_directory(self.get_build_dir(arch.arch)):
-            env = self.get_recipe_env(arch)
-            cvsrc = self.get_build_dir(arch.arch)
-            lib_dir = os.path.join(self.ctx.get_python_install_dir(), "lib")
+    def should_build(self, arch):
+        return True
 
+    def build_arch(self, arch):
+        build_dir = os.path.join(self.get_build_dir(arch.arch), 'build')
+        shprint(sh.mkdir, '-p', build_dir)
+        with current_directory(build_dir):
+            env = self.get_recipe_env(arch)
             shprint(sh.cmake,
-                    '-DP4A=ON', '-DANDROID_ABI={}'.format(arch.arch),
-                    '-DCMAKE_TOOLCHAIN_FILE={}/platforms/android/android.toolchain.cmake'.format(cvsrc),
-                    '-DPYTHON_INCLUDE_PATH={}/include/python2.7'.format(env['PYTHON_ROOT']),
-                    '-DPYTHON_LIBRARY={}/lib/libpython2.7.so'.format(env['PYTHON_ROOT']),
-                    '-DPYTHON_NUMPY_INCLUDE_DIR={}/numpy/core/include'.format(env['SITEPACKAGES_PATH']),
+                    '-DANDROID_ABI={}'.format(arch.arch),
+                    '-DCMAKE_TOOLCHAIN_FILE={}/build/cmake/android.toolchain.cmake'.format(self.ctx.ndk_dir),
+                    '-DPYTHON_NUMPY_INCLUDE_DIR={}/numpy/core/include'.format(self.ctx.get_site_packages_dir()),
                     '-DANDROID_EXECUTABLE={}/tools/android'.format(env['ANDROID_SDK']),
-                    '-DBUILD_TESTS=OFF', '-DBUILD_PERF_TESTS=OFF',
+                    '-DBUILD_TESTS=OFF', '-DBUILD_PERF_TESTS=OFF', '-DENABLE_TESTING=OFF',
                     '-DBUILD_EXAMPLES=OFF', '-DBUILD_ANDROID_EXAMPLES=OFF',
-                    '-DPYTHON_PACKAGES_PATH={}'.format(env['SITEPACKAGES_PATH']),
-                    cvsrc,
+                    '-DBUILD_opencv_imgproc=OFF', '-DBUILD_opencv_flann=OFF',
+                    '-DBUILD_opencv_python3=ON',
+                    '-DBUILD_WITH_STANDALONE_TOOLCHAIN=ON',
+                    '-DPYTHON_PACKAGES_PATH={}'.format(self.ctx.get_site_packages_dir()),
+                    '-DANDROID_STANDALONE_TOOLCHAIN={}'.format(self.ctx.ndk_dir),
+                    '-DANDROID_NATIVE_API_LEVEL={}'.format(self.ctx.android_api),
+                    self.get_build_dir(arch.arch),
                     _env=env)
-            shprint(sh.make, '-j', str(cpu_count()), 'opencv_python')
+            shprint(sh.make, '-j', str(cpu_count()))
             shprint(sh.cmake, '-DCOMPONENT=python', '-P', './cmake_install.cmake')
-            sh.cp('-a', sh.glob('./lib/{}/lib*.so'.format(arch.arch)), lib_dir)
+            sh.cp('-a', sh.glob('./lib/{}/lib*.a'.format(arch.arch)), self.ctx.get_libs_dir(arch.arch))
+            self.ctx.get_libs_dir(arch.arch)
 
 
 recipe = OpenCVRecipe()
