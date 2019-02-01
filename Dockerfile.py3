@@ -119,10 +119,8 @@ RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 RUN pip3 install --upgrade cython==0.28.6
 
 WORKDIR ${WORK_DIR}
-COPY . ${WORK_DIR}
-
-# user needs ownership/write access to these directories
-RUN chown --recursive ${USER} ${WORK_DIR} ${ANDROID_SDK_HOME}
+COPY --chown=user:user . ${WORK_DIR}
+RUN chown --recursive ${USER} ${ANDROID_SDK_HOME}
 USER ${USER}
 
 # install python-for-android from current branch
