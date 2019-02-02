@@ -1,10 +1,11 @@
 
-from setuptools import setup, find_packages
+import glob
+from io import open  # for open(..,encoding=...) parameter in python 2
 from os import walk
 from os.path import join, dirname, sep
 import os
-import glob
 import re
+from setuptools import setup, find_packages
 
 # NOTE: All package data should also be set in MANIFEST.in
 
@@ -52,13 +53,19 @@ recursively_include(package_data, 'pythonforandroid/bootstraps/webview',
 recursively_include(package_data, 'pythonforandroid',
                     ['liblink', 'biglink', 'liblink.sh'])
 
-with open(join(dirname(__file__), 'README.md')) as fileh:
+with open(join(dirname(__file__), 'README.md'),
+          encoding="utf-8",
+          errors="replace",
+         ) as fileh:
     long_description = fileh.read()
 
 init_filen = join(dirname(__file__), 'pythonforandroid', '__init__.py')
 version = None
 try:
-    with open(init_filen) as fileh:
+    with open(init_filen,
+              encoding="utf-8",
+              errors="replace"
+             ) as fileh:
         lines = fileh.readlines()
 except IOError:
     pass
