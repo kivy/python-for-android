@@ -52,7 +52,7 @@ recursively_include(package_data, 'pythonforandroid/bootstraps/webview',
 recursively_include(package_data, 'pythonforandroid',
                     ['liblink', 'biglink', 'liblink.sh'])
 
-with open(join(dirname(__file__), 'README.rst')) as fileh:
+with open(join(dirname(__file__), 'README.md')) as fileh:
     long_description = fileh.read()
 
 init_filen = join(dirname(__file__), 'pythonforandroid', '__init__.py')
