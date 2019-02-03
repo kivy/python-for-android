@@ -41,6 +41,10 @@ BROKEN_RECIPES_PYTHON2 = set([
     'x3dh',
     'pynacl',
     'doubleratchet',
+    # The opencv recipe fails to pass travis tests due to the long processing
+    # when building it and the lack of console output, so, it's only broken
+    # for travis, see: https://github.com/kivy/python-for-android/pull/1661
+    'opencv',
     'omemo',
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
@@ -74,6 +78,10 @@ BROKEN_RECIPES_PYTHON3 = set([
     'icu',
     # https://github.com/kivy/python-for-android/issues/1354
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
+    # The opencv recipe fails to pass travis tests due to the long processing
+    # when building it and the lack of console output, so, it's only broken
+    # for travis, see: https://github.com/kivy/python-for-android/pull/1661
+    'opencv',
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
     'netifaces',
