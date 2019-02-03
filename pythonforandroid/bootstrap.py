@@ -49,7 +49,10 @@ class Bootstrap(object):
     dist_name = None
     distribution = None
 
-    recipe_depends = ['sdl2']
+    # All bootstraps should include Python in some way:
+    recipe_depends = [
+        ("python2", "python2legacy", "python3", "python3crystax"),
+    ]
 
     can_be_chosen_automatically = True
     '''Determines whether the bootstrap can be chosen as one that
@@ -167,7 +170,7 @@ class Bootstrap(object):
                 for recipe in recipes:
                     try:
                         recipe = Recipe.get_recipe(recipe, ctx)
-                    except IOError:
+                    except ValueError:
                         conflicts = []
                     else:
                         conflicts = recipe.conflicts
@@ -175,7 +178,7 @@ class Bootstrap(object):
                             for conflict in conflicts]):
                         ok = False
                         break
-                if ok:
+                if ok and bs not in acceptable_bootstraps:
                     acceptable_bootstraps.append(bs)
         info('Found {} acceptable bootstraps: {}'.format(
             len(acceptable_bootstraps),

@@ -574,6 +574,7 @@ class Recipe(with_metaclass(RecipeMeta)):
     @classmethod
     def get_recipe(cls, name, ctx):
         '''Returns the Recipe with the given name, if it exists.'''
+        name = name.lower()
         if not hasattr(cls, "recipes"):
             cls.recipes = {}
         if name in cls.recipes:
@@ -581,20 +582,28 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         recipe_file = None
         for recipes_dir in cls.recipe_dirs(ctx):
-            recipe_file = join(recipes_dir, name, '__init__.py')
-            if exists(recipe_file):
+            if not exists(recipes_dir):
+                continue
+            # Find matching folder (may differ in case):
+            for subfolder in listdir(recipes_dir):
+                if subfolder.lower() == name:
+                    recipe_file = join(recipes_dir, subfolder, '__init__.py')
+                    if exists(recipe_file):
+                        name = subfolder  # adapt to actual spelling
+                        break
+                    recipe_file = None
+            if recipe_file is not None:
                 break
-            recipe_file = None
 
         if not recipe_file:
-            raise IOError('Recipe does not exist: {}'.format(name))
+            raise ValueError('Recipe does not exist: {}'.format(name))
 
         mod = import_recipe('pythonforandroid.recipes.{}'.format(name), recipe_file)
         if len(logger.handlers) > 1:
             logger.removeHandler(logger.handlers[1])
         recipe = mod.recipe
         recipe.ctx = ctx
-        cls.recipes[name] = recipe
+        cls.recipes[name.lower()] = recipe
         return recipe
 
 

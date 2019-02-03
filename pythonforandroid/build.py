@@ -11,7 +11,10 @@ import re
 import sh
 import subprocess
 
-from pythonforandroid.util import (ensure_dir, current_directory, BuildInterruptingException)
+from pythonforandroid.util import (
+    current_directory, ensure_dir, get_virtualenv_executable,
+    BuildInterruptingException
+)
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
 from pythonforandroid.recipe import CythonRecipe, Recipe
@@ -305,13 +308,7 @@ class Context(object):
 
         check_ndk_api(ndk_api, self.android_api)
 
-        virtualenv = None
-        if virtualenv is None:
-            virtualenv = sh.which('virtualenv2')
-        if virtualenv is None:
-            virtualenv = sh.which('virtualenv-2.7')
-        if virtualenv is None:
-            virtualenv = sh.which('virtualenv')
+        virtualenv = get_virtualenv_executable()
         if virtualenv is None:
             raise IOError('Couldn\'t find a virtualenv executable, '
                           'you must install this to use p4a.')
@@ -509,7 +506,7 @@ class Context(object):
         # Try to look up recipe by name:
         try:
             recipe = Recipe.get_recipe(name, self)
-        except IOError:
+        except ValueError:
             pass
         else:
             name = getattr(recipe, 'site_packages_name', None) or name
@@ -618,14 +615,15 @@ def run_pymodules_install(ctx, modules):
                     line = '{}\n'.format(module)
                 fileh.write(line)
 
+        # Prepare base environment and upgrade pip:
         base_env = copy.copy(os.environ)
         base_env["PYTHONPATH"] = ctx.get_site_packages_dir()
-
         info('Upgrade pip to latest version')
         shprint(sh.bash, '-c', (
             "source venv/bin/activate && pip install -U pip"
         ), _env=copy.copy(base_env))
 
+        # Install Cython in case modules need it to build:
         info('Install Cython in case one of the modules needs it to build')
         shprint(sh.bash, '-c', (
             "venv/bin/pip install Cython"
@@ -648,15 +646,17 @@ def run_pymodules_install(ctx, modules):
              'changes / workarounds.')
 
         # Make sure our build package dir is available, and the virtualenv
-        # site packages come FIRST (for the proper pip version):
+        # site packages come FIRST (so the proper pip version is used):
         env["PYTHONPATH"] += ":" + ctx.get_site_packages_dir()
         env["PYTHONPATH"] = os.path.abspath(join(
             ctx.build_dir, "venv", "lib",
             "python" + ctx.python_recipe.major_minor_version_string,
             "site-packages")) + ":" + env["PYTHONPATH"]
+
+        # Do actual install:
         shprint(sh.bash, '-c', (
-            "source venv/bin/activate && " +
-            "pip install -v --target '{0}' --no-deps -r requirements.txt"
+            "venv/bin/pip " +
+            "install -v --target '{0}' --no-deps -r requirements.txt"
         ).format(ctx.get_site_packages_dir().replace("'", "'\"'\"'")),
                 _env=copy.copy(env))
 

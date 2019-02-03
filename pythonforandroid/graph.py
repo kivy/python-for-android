@@ -7,17 +7,31 @@ from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.util import BuildInterruptingException
 
 
-class RecipeOrder(dict):
+def fix_deplist(deps):
+    """ Turn a dependency list into lowercase, and make sure all entries
+        that are just a string become a tuple of strings
+    """
+    deps = [
+        ((dep.lower(),)
+         if not isinstance(dep, (list, tuple))
+         else tuple([dep_entry.lower()
+                     for dep_entry in dep
+                    ]))
+        for dep in deps
+    ]
+    return deps
 
+
+class RecipeOrder(dict):
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def conflicts(self, name):
+    def conflicts(self):
         for name in self.keys():
             try:
                 recipe = Recipe.get_recipe(name, self.ctx)
-                conflicts = recipe.conflicts
-            except IOError:
+                conflicts = [dep.lower() for dep in recipe.conflicts]
+            except ValueError:
                 conflicts = []
 
             if any([c in self for c in conflicts]):
@@ -25,31 +39,50 @@ class RecipeOrder(dict):
         return False
 
 
-def recursively_collect_orders(name, ctx, all_inputs, orders=[]):
+def get_dependency_tuple_list_for_recipe(recipe, blacklist=[]):
+    """ Get the dependencies of a recipe with filtered out blacklist, and
+        turned into tuples with fix_deplist()
+    """
+    if recipe.depends is None:
+        dependencies = []
+    else:
+        # Turn all dependencies into tuples so that product will work
+        dependencies = fix_deplist(recipe.depends)
+
+        # Filter out blacklisted items and turn lowercase:
+        dependencies = [
+            deptuple for deptuple in dependencies
+            if not set(deptuple).intersection(set(blacklist))
+        ]
+    return dependencies
+
+
+def recursively_collect_orders(
+        name, ctx, all_inputs, orders=[], blacklist=[]
+        ):
     '''For each possible recipe ordering, try to add the new recipe name
     to that order. Recursively do the same thing with all the
     dependencies of each recipe.
 
     '''
+    name = name.lower()
     try:
         recipe = Recipe.get_recipe(name, ctx)
-        if recipe.depends is None:
-            dependencies = []
-        else:
-            # make all dependencies into lists so that product will work
-            dependencies = [([dependency] if not isinstance(
-                dependency, (list, tuple))
-                            else dependency) for dependency in recipe.depends]
+        dependencies = get_dependency_tuple_list_for_recipe(
+            recipe, blacklist=blacklist
+        )
 
         # handle opt_depends: these impose requirements on the build
         # order only if already present in the list of recipes to build
-        dependencies.extend([[d] for d in recipe.get_opt_depends_in_list(all_inputs)])
+        dependencies.extend(fix_deplist(
+            [[d] for d in recipe.get_opt_depends_in_list(all_inputs)]
+        ))
 
         if recipe.conflicts is None:
             conflicts = []
         else:
-            conflicts = recipe.conflicts
-    except IOError:
+            conflicts = [dep.lower() for dep in recipe.conflicts]
+    except ValueError:
         # The recipe does not exist, so we assume it can be installed
         # via pip with no extra dependencies
         dependencies = []
@@ -61,7 +94,7 @@ def recursively_collect_orders(name, ctx, all_inputs, orders=[]):
         if name in order:
             new_orders.append(deepcopy(order))
             continue
-        if order.conflicts(name):
+        if order.conflicts():
             continue
         if any([conflict in order for conflict in conflicts]):
             continue
@@ -99,17 +132,131 @@ def find_order(graph):
                 bset.discard(result)
 
 
-def get_recipe_order_and_bootstrap(ctx, names, bs=None):
-    recipes_to_load = set(names)
-    if bs is not None and bs.recipe_depends:
-        recipes_to_load = recipes_to_load.union(set(bs.recipe_depends))
+def obvious_conflict_checker(ctx, name_tuples, blacklist=[]):
+    """ This is a pre-flight check function that will completely ignore
+        recipe order or choosing an actual value in any of the multiple
+        choice tuples/dependencies, and just do a very basic obvious
+        conflict check.
+    """
+    deps_were_added_by = dict()
+    deps = set()
 
-    possible_orders = []
+    # Add dependencies for all recipes:
+    to_be_added = [(name_tuple, None) for name_tuple in name_tuples]
+    while len(to_be_added) > 0:
+        current_to_be_added = list(to_be_added)
+        to_be_added = []
+        for (added_tuple, adding_recipe) in current_to_be_added:
+            assert(type(added_tuple) == tuple)
+            if len(added_tuple) > 1:
+                # No obvious commitment in what to add, don't check it itself
+                # but throw it into deps for later comparing against
+                # (Remember this function only catches obvious issues)
+                deps.add(added_tuple)
+                continue
+
+            name = added_tuple[0]
+            recipe_conflicts = set()
+            recipe_dependencies = []
+            try:
+                # Get recipe to add and who's ultimately adding it:
+                recipe = Recipe.get_recipe(name, ctx)
+                recipe_conflicts = {c.lower() for c in recipe.conflicts}
+                recipe_dependencies = get_dependency_tuple_list_for_recipe(
+                    recipe, blacklist=blacklist
+                )
+            except ValueError:
+                pass
+            adder_first_recipe_name = adding_recipe or name
+
+            # Collect the conflicts:
+            triggered_conflicts = []
+            for dep_tuple_list in deps:
+                # See if the new deps conflict with things added before:
+                if set(dep_tuple_list).intersection(
+                       recipe_conflicts) == set(dep_tuple_list):
+                    triggered_conflicts.append(dep_tuple_list)
+                    continue
+
+                # See if what was added before conflicts with the new deps:
+                if len(dep_tuple_list) > 1:
+                    # Not an obvious commitment to a specific recipe/dep
+                    # to be added, so we won't check.
+                    # (remember this function only catches obvious issues)
+                    continue
+                try:
+                    dep_recipe = Recipe.get_recipe(dep_tuple_list[0], ctx)
+                except ValueError:
+                    continue
+                conflicts = [c.lower() for c in dep_recipe.conflicts]
+                if name in conflicts:
+                    triggered_conflicts.append(dep_tuple_list)
+
+            # Throw error on conflict:
+            if triggered_conflicts:
+                # Get first conflict and see who added that one:
+                adder_second_recipe_name = "'||'".join(triggered_conflicts[0])
+                second_recipe_original_adder = deps_were_added_by.get(
+                    (adder_second_recipe_name,), None
+                )
+                if second_recipe_original_adder:
+                    adder_second_recipe_name = second_recipe_original_adder
+
+                # Prompt error:
+                raise BuildInterruptingException(
+                    "Conflict detected: '{}'"
+                    " inducing dependencies {}, and '{}'"
+                    " inducing conflicting dependencies {}".format(
+                        adder_first_recipe_name,
+                        (recipe.name,),
+                        adder_second_recipe_name,
+                        triggered_conflicts[0]
+                    ))
+
+            # Actually add it to our list:
+            deps.add(added_tuple)
+            deps_were_added_by[added_tuple] = adding_recipe
+
+            # Schedule dependencies to be added
+            to_be_added += [
+                (dep, adder_first_recipe_name or name)
+                for dep in recipe_dependencies
+                if dep not in deps
+            ]
+    # If we came here, then there were no obvious conflicts.
+    return None
+
+
+def get_recipe_order_and_bootstrap(ctx, names, bs=None, blacklist=[]):
+    # Get set of recipe/dependency names, clean up and add bootstrap deps:
+    names = set(names)
+    if bs is not None and bs.recipe_depends:
+        names = names.union(set(bs.recipe_depends))
+    names = fix_deplist([
+        ([name] if not isinstance(name, (list, tuple)) else name)
+        for name in names
+    ])
+    blacklist = [bitem.lower() for bitem in blacklist]
+
+    # Remove all values that are in the blacklist:
+    names_before_blacklist = list(names)
+    names = []
+    for name in names_before_blacklist:
+        cleaned_up_tuple = tuple([
+            item for item in name if item not in blacklist
+        ])
+        if cleaned_up_tuple:
+            names.append(cleaned_up_tuple)
+
+    # Do check for obvious conflicts (that would trigger in any order, and
+    # without comitting to any specific choice in a multi-choice tuple of
+    # dependencies):
+    obvious_conflict_checker(ctx, names, blacklist=blacklist)
+    # If we get here, no obvious conflicts!
 
     # get all possible order graphs, as names may include tuples/lists
     # of alternative dependencies
-    names = [([name] if not isinstance(name, (list, tuple)) else name)
-             for name in names]
+    possible_orders = []
     for name_set in product(*names):
         new_possible_orders = [RecipeOrder(ctx)]
         for name in name_set:
@@ -128,13 +275,14 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             continue
         orders.append(list(order))
 
-    # prefer python2 and SDL2 if available
+    # prefer python3 and SDL2 if available
     orders = sorted(orders,
-                    key=lambda order: -('python2' in order) - ('sdl2' in order))
+                    key=lambda order: -('python3' in order) - ('sdl2' in order))
 
     if not orders:
         raise BuildInterruptingException(
-            'Didn\'t find any valid dependency graphs. This means that some of your '
+            'Didn\'t find any valid dependency graphs. '
+            'This means that some of your '
             'requirements pull in conflicting dependencies.')
 
     # It would be better to check against possible orders other
@@ -151,6 +299,11 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
 
     if bs is None:
         bs = Bootstrap.get_bootstrap_from_recipes(chosen_order, ctx)
+        if bs is None:
+            # Note: don't remove this without thought, causes infinite loop
+            raise BuildInterruptingException(
+                "Could not find any compatible bootstrap!"
+            )
         recipes, python_modules, bs = get_recipe_order_and_bootstrap(
             ctx, chosen_order, bs=bs)
     else:
@@ -161,7 +314,7 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             try:
                 recipe = Recipe.get_recipe(name, ctx)
                 python_modules += recipe.python_depends
-            except IOError:
+            except ValueError:
                 python_modules.append(name)
             else:
                 recipes.append(name)

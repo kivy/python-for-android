@@ -614,7 +614,7 @@ class ToolchainCL(object):
             for name in sorted(Recipe.list_recipes(ctx)):
                 try:
                     recipe = Recipe.get_recipe(name, ctx)
-                except IOError:
+                except (IOError, ValueError):
                     warning('Recipe "{}" could not be loaded'.format(name))
                 except SyntaxError:
                     import traceback

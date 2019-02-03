@@ -566,7 +566,8 @@ tools directory of the Android SDK.
 
     # --private is required unless for sdl2, where there's also --launcher
     ap.add_argument('--private', dest='private',
-                    help='the dir of user files',
+                    help='the directory with the app source code files' +
+                         ' (containing your main.py entrypoint)',
                     required=(get_bootstrap_name() != "sdl2"))
     ap.add_argument('--package', dest='package',
                     help=('The name of the java package the project will be'
