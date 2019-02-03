@@ -1,7 +1,7 @@
 from copy import deepcopy
 from itertools import product
 
-from pythonforandroid.logger import (info, warning)
+from pythonforandroid.logger import info
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.util import BuildInterruptingException
@@ -126,11 +126,6 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None):
             info('Circular dependency found in graph {}, skipping it.'.format(
                 possible_order))
             continue
-        except:
-            warning('Failed to import recipe named {}; the recipe exists '
-                    'but appears broken.'.format(name))
-            warning('Exception was:')
-            raise
         orders.append(list(order))
 
     # prefer python2 and SDL2 if available
