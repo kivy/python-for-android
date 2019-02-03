@@ -87,6 +87,8 @@ class OpenCVRecipe(NDKRecipe):
 
                     # Disable some opencv's features
                     '-DBUILD_opencv_java=OFF',
+                    '-DBUILD_opencv_java_bindings_generator=OFF',
+                    # '-DBUILD_opencv_highgui=OFF',
                     # '-DBUILD_opencv_imgproc=OFF',
                     # '-DBUILD_opencv_flann=OFF',
                     '-DBUILD_TESTS=OFF',
