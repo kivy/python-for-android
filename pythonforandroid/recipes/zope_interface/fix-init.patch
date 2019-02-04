@@ -1,0 +1,9 @@
+The zope.interface module lacks of the __init__.py file in `zope` folder
+(once is installed), this patch creates that missing file. This seems to be
+caused during the installation process because that file exists in source
+files.
+diff -Naurp zope.orig/__init__.py zope/__init__.py
+--- zope.orig/__init__.py	1970-01-01 01:00:00.000000000 +0100
++++ zope/__init__.py	2019-02-05 11:29:22.666757227 +0100
+@@ -0,0 +1 @@
++ 
