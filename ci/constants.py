@@ -33,6 +33,7 @@ BROKEN_RECIPES_PYTHON2 = set([
     'libtribler',
     'ndghttpsclient',
     'm2crypto',
+    # ImportError: No module named setuptools
     'netifaces',
     'Pillow',
     # depends on cffi that still seems to have compilation issues
@@ -78,7 +79,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     'kivent_core', 'kivent_cymunk', 'kivent_particles', 'kivent_polygen',
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
-    'netifaces',
     # fatal error: crypt.h: No such file or directory
     'pyleveldb',
     'protobuf_cpp',

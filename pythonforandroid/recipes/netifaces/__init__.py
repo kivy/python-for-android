@@ -3,7 +3,7 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 class NetifacesRecipe(CompiledComponentsPythonRecipe):
 
-    version = '0.10.7'
+    version = '0.10.9'
 
     url = 'https://files.pythonhosted.org/packages/source/n/netifaces/netifaces-{version}.tar.gz'
 
