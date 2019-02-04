@@ -33,7 +33,7 @@ class Runnable(PythonJavaClass):
     def run(self):
         try:
             self.func(*self.args, **self.kwargs)
-        except:
+        except:  # noqa E722
             import traceback
             traceback.print_exc()
 
