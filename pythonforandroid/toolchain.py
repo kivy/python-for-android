@@ -361,7 +361,7 @@ class ToolchainCL(object):
                 kwargs.pop('aliases')
             return subparsers.add_parser(*args, **kwargs)
 
-        parser_recommendations = add_parser(
+        add_parser(
             subparsers,
             'recommendations',
             parents=[generic_parser],
@@ -470,20 +470,20 @@ class ToolchainCL(object):
             '--signkeypw', dest='signkeypw', action='store', default=None,
             help='Password for key alias')
 
-        parser_create = add_parser(
+        add_parser(
             subparsers,
             'create', help='Compile a set of requirements into a dist',
             parents=[generic_parser])
-        parser_archs = add_parser(
+        add_parser(
             subparsers,
             'archs', help='List the available target architectures',
             parents=[generic_parser])
-        parser_distributions = add_parser(
+        add_parser(
             subparsers,
             'distributions', aliases=['dists'],
             help='List the currently available (compiled) dists',
             parents=[generic_parser])
-        parser_delete_dist = add_parser(
+        add_parser(
             subparsers,
             'delete_dist', aliases=['delete-dist'], help='Delete a compiled dist',
             parents=[generic_parser])
@@ -496,15 +496,15 @@ class ToolchainCL(object):
         parser_sdk_tools.add_argument(
             'tool', help='The binary tool name to run')
 
-        parser_adb = add_parser(
+        add_parser(
             subparsers,
             'adb', help='Run adb from the given SDK',
             parents=[generic_parser])
-        parser_logcat = add_parser(
+        add_parser(
             subparsers,
             'logcat', help='Run logcat from the given SDK',
             parents=[generic_parser])
-        parser_build_status = add_parser(
+        add_parser(
             subparsers,
             'build_status', aliases=['build-status'],
             help='Print some debug information about current built components',

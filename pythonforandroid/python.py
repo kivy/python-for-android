@@ -421,7 +421,7 @@ class HostPythonRecipe(Recipe):
                 shprint(sh.cp, join('Modules', 'Setup.dist'),
                         join(build_dir, 'Modules', 'Setup'))
 
-                result = shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
+                shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
         else:
             info('Skipping {name} ({version}) build, as it has already '
                  'been completed'.format(name=self.name, version=self.version))

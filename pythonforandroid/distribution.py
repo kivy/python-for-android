@@ -79,8 +79,6 @@ class Distribution(object):
 
         existing_dists = Distribution.get_distributions(ctx)
 
-        needs_build = True  # whether the dist needs building, will be returned
-
         possible_dists = existing_dists
 
         name_match_dist = None

@@ -1468,7 +1468,7 @@ class _ActionsContainer(object):
     def _handle_conflict_error(self, action, conflicting_actions):
         message = _('conflicting option string(s): %s')
         conflict_string = ', '.join([option_string
-                                     for option_string, action
+                                     for option_string, action  # noqa F812
                                      in conflicting_actions])
         raise ArgumentError(action, message % conflict_string)
 
@@ -2071,7 +2071,7 @@ class ArgumentParser(_AttributeHolder, _ActionsContainer):
         # if multiple actions match, the option string was ambiguous
         if len(option_tuples) > 1:
             options = ', '.join(
-                    [option_string for action, option_string, explicit_arg in option_tuples])
+                    [option_string for action, option_string, explicit_arg in option_tuples])  # noqa F812
             tup = arg_string, options
             self.error(_('ambiguous option: %s could match %s') % tup)
 

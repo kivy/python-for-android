@@ -12,7 +12,6 @@ class PyLevelDBRecipe(CompiledComponentsPythonRecipe):
     site_packages_name = 'leveldb'
 
     def build_arch(self, arch):
-        env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             # Remove source in this pypi package
             sh.rm('-rf', 'leveldb', 'leveldb.egg-info', 'snappy')
