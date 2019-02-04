@@ -68,7 +68,6 @@ class PygameRecipe(Recipe):
             shprint(sh.find, build_lib[0], '-name', '*.o', '-exec',
                     env['STRIP'], '{}', ';')
 
-        python_install_path = join(self.ctx.build_dir, 'python-install')
         warning('Should remove pygame tests etc. here, but skipping for now')
 
 

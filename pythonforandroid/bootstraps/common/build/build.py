@@ -426,7 +426,7 @@ main.py that loads it.''')
         target = fileh.read().strip()
     android_api = target.split('-')[1]
     try:
-        android_api_int_test = int(android_api)
+        int(android_api)
     except (ValueError, TypeError):
         raise ValueError(
             "failed to extract the Android API level from " +

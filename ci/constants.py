@@ -39,6 +39,8 @@ BROKEN_RECIPES_PYTHON2 = set([
     'protobuf_cpp',
     'xeddsa',
     'x3dh',
+    # fatal error: crypt.h: No such file or directory
+    'pyleveldb',
     'pynacl',
     'doubleratchet',
     'omemo',
@@ -77,6 +79,8 @@ BROKEN_RECIPES_PYTHON3 = set([
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
     'netifaces',
+    # fatal error: crypt.h: No such file or directory
+    'pyleveldb',
     'protobuf_cpp',
     # most likely some setup in the Docker container, because it works in host
     'pyjnius', 'pyopenal',

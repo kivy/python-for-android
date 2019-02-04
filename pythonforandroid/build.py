@@ -528,7 +528,6 @@ class Context(object):
 
 def build_recipes(build_order, python_modules, ctx):
     # Put recipes in correct build order
-    bs = ctx.bootstrap
     info_notify("Recipe build order is {}".format(build_order))
     if python_modules:
         python_modules = sorted(set(python_modules))

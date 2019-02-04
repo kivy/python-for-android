@@ -63,15 +63,12 @@ def build(target_python, requirements):
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
     with current_directory('testapps/'):
-        try:
-            # iterates to stream the output
-            for line in sh.python(
-                    testapp, 'apk', '--sdk-dir', android_sdk_home,
-                    '--ndk-dir', android_ndk_home, '--bootstrap', 'sdl2', '--requirements',
-                    requirements, _err_to_out=True, _iter=True):
-                print(line)
-        except sh.ErrorReturnCode as e:
-            raise
+        # iterates to stream the output
+        for line in sh.python(
+                testapp, 'apk', '--sdk-dir', android_sdk_home,
+                '--ndk-dir', android_ndk_home, '--bootstrap', 'sdl2', '--requirements',
+                requirements, _err_to_out=True, _iter=True):
+            print(line)
 
 
 def main():
