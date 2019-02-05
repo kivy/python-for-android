@@ -17,7 +17,7 @@ class OpenCVRecipe(NDKRecipe):
     '''
     version = '4.0.1'
     url = 'https://github.com/opencv/opencv/archive/{version}.zip'
-    depends = ['numpy']
+    depends = ['numpy', ('python2', 'python3', 'python3crystax')]
     patches = ['patches/p4a_build.patch']
     generated_libraries = [
         'libopencv_features2d.so',
