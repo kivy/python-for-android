@@ -7,7 +7,9 @@ import sh
 class WebViewBootstrap(Bootstrap):
     name = 'webview'
 
-    recipe_depends = ['genericndkbuild', ('python2', 'python3', 'python3crystax')]
+    recipe_depends = list(
+        set(Bootstrap.recipe_depends).union({'genericndkbuild'})
+    )
 
     def run_distribute(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(

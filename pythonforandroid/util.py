@@ -3,6 +3,7 @@ from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk, uname
 import io
 import json
+import sh
 import shutil
 import sys
 from fnmatch import fnmatch
@@ -132,6 +133,17 @@ def which(program, path_env):
                 return exe_file
 
     return None
+
+
+def get_virtualenv_executable():
+    virtualenv = None
+    if virtualenv is None:
+        virtualenv = sh.which('virtualenv2')
+    if virtualenv is None:
+        virtualenv = sh.which('virtualenv-2.7')
+    if virtualenv is None:
+        virtualenv = sh.which('virtualenv')
+    return virtualenv
 
 
 def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):

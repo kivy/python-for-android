@@ -37,7 +37,7 @@ class TestRecipe(unittest.TestCase):
         self.assertTrue(isinstance(recipe, Recipe))
         self.assertEqual(recipe.name, recipe_name)
         recipe_name = 'does_not_exist'
-        with self.assertRaises(IOError) as e:
+        with self.assertRaises(ValueError) as e:
             Recipe.get_recipe(recipe_name, ctx)
         self.assertEqual(
             e.exception.args[0], 'Recipe does not exist: {}'.format(recipe_name))

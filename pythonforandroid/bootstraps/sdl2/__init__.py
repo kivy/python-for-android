@@ -8,7 +8,9 @@ import sh
 class SDL2GradleBootstrap(Bootstrap):
     name = 'sdl2'
 
-    recipe_depends = ['sdl2']
+    recipe_depends = list(
+        set(Bootstrap.recipe_depends).union({'sdl2'})
+    )
 
     def run_distribute(self):
         info_main("# Creating Android project ({})".format(self.name))
