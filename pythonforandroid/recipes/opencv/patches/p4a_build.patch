@@ -1,0 +1,33 @@
+This patch allow that the opencv's build command correctly detects our version
+of python, so we can successfully build the python bindings (cv2.so)
+--- opencv-4.0.1/cmake/OpenCVDetectPython.cmake.orig	2018-12-22 08:03:30.000000000 +0100
++++ opencv-4.0.1/cmake/OpenCVDetectPython.cmake	2019-01-31 11:33:10.896502978 +0100
+@@ -175,7 +175,7 @@ if(NOT ${found})
+       endif()
+     endif()
+
+-    if(NOT ANDROID AND NOT IOS)
++    if(P4A OR NOT ANDROID AND NOT IOS)
+       if(CMAKE_HOST_UNIX)
+         execute_process(COMMAND ${_executable} -c "from distutils.sysconfig import *; print(get_python_lib())"
+                         RESULT_VARIABLE _cvpy_process
+@@ -244,7 +244,7 @@ if(NOT ${found})
+                           OUTPUT_STRIP_TRAILING_WHITESPACE)
+         endif()
+       endif()
+-    endif(NOT ANDROID AND NOT IOS)
++    endif(P4A OR NOT ANDROID AND NOT IOS)
+   endif()
+
+   # Export return values
+--- opencv-4.0.1/modules/python/CMakeLists.txt.orig	2018-12-22 08:03:30.000000000 +0100
++++ opencv-4.0.1/modules/python/CMakeLists.txt	2019-01-31 11:47:17.100494908 +0100
+@@ -3,7 +3,7 @@
+ # ----------------------------------------------------------------------------
+ if(DEFINED OPENCV_INITIAL_PASS)  # OpenCV build
+
+-if(ANDROID OR APPLE_FRAMEWORK OR WINRT)
++if(ANDROID AND NOT P4A OR APPLE_FRAMEWORK OR WINRT)
+   ocv_module_disable_(python2)
+   ocv_module_disable_(python3)
+   return()
