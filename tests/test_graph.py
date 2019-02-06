@@ -1,6 +1,7 @@
 from pythonforandroid.build import Context
 from pythonforandroid.graph import (
-    fix_deplist, get_recipe_order_and_bootstrap, obvious_conflict_checker,
+    fix_deplist, get_dependency_tuple_list_for_recipe,
+    get_recipe_order_and_bootstrap, obvious_conflict_checker,
 )
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.recipe import Recipe
@@ -81,6 +82,41 @@ def test_invalid_recipe_order_and_bootstrap(names, bootstrap):
     with pytest.raises(BuildInterruptingException) as e_info:
         get_recipe_order_and_bootstrap(ctx, names, bootstrap)
     assert "conflict" in e_info.value.message.lower()
+
+
+def test_blacklist():
+    # First, get order without blacklist:
+    build_order, python_modules, bs = get_recipe_order_and_bootstrap(
+        ctx, ["python3", "kivy"], None
+    )
+    # Now, obtain again with blacklist:
+    build_order_2, python_modules_2, bs_2 = get_recipe_order_and_bootstrap(
+        ctx, ["python3", "kivy"], None, blacklist=["libffi"]
+    )
+    assert "libffi" not in build_order_2
+    assert set(build_order_2).union({"libffi"}) == set(build_order)
+
+    # Check that we get a conflict when using webview and kivy combined:
+    wbootstrap = Bootstrap.get_bootstrap('webview', ctx)
+    with pytest.raises(BuildInterruptingException) as e_info:
+        get_recipe_order_and_bootstrap(ctx, ["flask", "kivy"], wbootstrap)
+    assert "conflict" in e_info.value.message.lower()
+
+    # We should no longer get a conflict blacklisting sdl2 and pygame:
+    get_recipe_order_and_bootstrap(
+        ctx, ["flask", "kivy"], wbootstrap, blacklist=["sdl2", "pygame"]
+    )
+
+
+def test_get_dependency_tuple_list_for_recipe(monkeypatch):
+    r = get_fake_recipe("recipe1", depends=[
+        "libffi",
+        ("libffi", "Pillow")
+    ])
+    dep_list = get_dependency_tuple_list_for_recipe(
+        r, blacklist={"libffi"}
+    )
+    assert(dep_list == [("pillow",)])
 
 
 @pytest.mark.parametrize('names,bootstrap', valid_combinations)

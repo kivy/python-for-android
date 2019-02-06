@@ -243,3 +243,25 @@ options (this list may not be exhaustive):
 - ``add-source``: Add a source directory to the app's Java code.
 - ``--compile-pyo``: Optimise .py files to .pyo.
 - ``--resource``: A key=value pair to add in the string.xml resource file.
+
+
+Blacklist (APK size optimization)
+---------------------------------
+
+To optimize the size of the `.apk` file that p4a builds for you,
+you can **blacklist** certain core components. Per default, p4a
+will add python *with batteries included* as would be expected on
+desktop, including openssl, sqlite3 and other components you may
+not use.
+
+To blacklist an item, specify the ``--blacklist`` option::
+
+    p4a apk ... --blacklist=sqlite3
+
+At the moment, the following core components can be blacklisted
+(if you don't want to use them) to decrease APK size:
+
+- ``android``  disables p4a's android module (see :ref:`reference-label-for-android-module`)
+- ``libffi``  disables ctypes stdlib module
+- ``openssl``   disables ssl stdlib module
+- ``sqlite3``   disables sqlite3 stdlib module

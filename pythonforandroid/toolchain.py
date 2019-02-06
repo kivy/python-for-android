@@ -171,16 +171,24 @@ def build_dist_from_args(ctx, dist, args):
     """Parses out any bootstrap related arguments, and uses them to build
     a dist."""
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
-    build_order, python_modules, bs \
-        = get_recipe_order_and_bootstrap(ctx, dist.recipes, bs)
+    blacklist = getattr(args, "blacklist", "").split(",")
+    if len(blacklist) == 1 and blacklist[0] == "":
+        blacklist = []
+    build_order, python_modules, bs = (
+        get_recipe_order_and_bootstrap(
+            ctx, dist.recipes, bs,
+            blacklist=blacklist
+        ))
     ctx.recipe_build_order = build_order
     ctx.python_modules = python_modules
 
     info('The selected bootstrap is {}'.format(bs.name))
     info_main('# Creating dist with {} bootstrap'.format(bs.name))
     bs.distribution = dist
-    info_notify('Dist will have name {} and recipes ({})'.format(
+    info_notify('Dist will have name {} and requirements ({})'.format(
         dist.name, ', '.join(dist.recipes)))
+    info('Dist contains the following requirements as recipes: {}'.format(
+        ctx.recipe_build_order))
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
 
@@ -299,6 +307,13 @@ class ToolchainCL(object):
             '--requirements',
             help=('Dependencies of your app, should be recipe names or '
                   'Python modules'),
+            default='')
+
+        generic_parser.add_argument(
+            '--blacklist',
+            help=('Blacklist an internal recipe from use. Allows '
+                  'disabling Python 3 core modules to save size'),
+            dest="blacklist",
             default='')
 
         generic_parser.add_argument(
@@ -448,7 +463,6 @@ class ToolchainCL(object):
             help='Symlink the dist instead of copying')
 
         parser_apk = add_parser(
-
             subparsers,
             'apk', help='Build an APK',
             parents=[generic_parser])
@@ -527,9 +541,11 @@ class ToolchainCL(object):
         if args.debug:
             logger.setLevel(logging.DEBUG)
 
-        # strip version from requirements, and put them in environ
+        # Process requirements and put version in environ
         if hasattr(args, 'requirements'):
             requirements = []
+
+            # Parse --requirements argument list:
             for requirement in split_argument_list(args.requirements):
                 if "==" in requirement:
                     requirement, version = requirement.split(u"==", 1)

@@ -12,8 +12,8 @@ Runtime permissions
 With API level >= 21, you will need to request runtime permissions
 to access the SD card, the camera, and other things.
 
-This can be done through the `android` module, just add it to
-your `--requirements` (as `android`) and then use it in your app like this::
+This can be done through the `android` module which is *available per default*
+unless you blacklist it. Use it in your app like this::
 
       from android.permissions import request_permission, Permission
       request_permission(Permission.WRITE_EXTERNAL_STORAGE)
@@ -34,8 +34,8 @@ longer than necessary (with your app already being loaded) due to a
 limitation with the way we check if the app has properly started.
 In this case, the splash screen overlaps the app gui for a short time.
 
-To dismiss the loading screen explicitely in your code, add p4a's `android`
-module to your `--requirements` and use this::
+To dismiss the loading screen explicitely in your code, use the `android`
+module::
 
   from android import hide_loading_screen
   hide_loading_screen()
@@ -92,14 +92,14 @@ Under SDL2, you can handle the `appropriate events <https://wiki.libsdl.org/SDL_
 Advanced Android API use
 ------------------------
 
+.. _reference-label-for-android-module:
+
 `android` for Android API access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As mentioned above, the ``android`` Python module provides a simple 
-wrapper around many native Android APIS, and it can be included by
-adding it to your requirements, e.g. :code:`--requirements=kivy,android`.
-It is not automatically included by Kivy unless you use the old (Pygame)
-bootstrap.
+wrapper around many native Android APIS, and it is *included per default*
+unless you blacklist it.
 
 The available functionality of this module is not separately documented.
 You can read the source `on
@@ -136,7 +136,7 @@ This is obviously *much* less verbose than with Pyjnius!
 
 
 `Pyjnius` - raw lowlevel API access
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pyjnius lets you call the Android API directly from Python Pyjnius is
 works by dynamically wrapping Java classes, so you don't have to wait

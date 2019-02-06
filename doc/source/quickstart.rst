@@ -149,18 +149,34 @@ You have the possibility to configure on any command the PATH to the SDK, NDK an
 Usage
 -----
 
-Build a Kivy application
-~~~~~~~~~~~~~~~~~~~~~~~~
+Build a Kivy or SDL2 application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To build your application, you need to have a name, version, a package
-identifier, and explicitly write the bootstrap you want to use, as
-well as the requirements::
+To build your application, you need to specify name, version, a package
+identifier, the bootstrap you want to use (`sdl2` for kivy or sdl2 apps)
+and the requirements::
 
-    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python2,kivy
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python3,kivy
 
-This will first build a distribution that contains `python2` and `kivy`, and using a SDL2 bootstrap. Python2 is here explicitely written as kivy can work with python2 or python3.
+**Note on `--requirements`: you must add all
+libraries/dependencies your app needs to run.**
+Example: `--requirements=python3,kivy,vispy`. For an SDL2 app,
+`kivy` is not needed, but you need to add any wrappers you might
+use (e.g. `pysdl2`).
 
-You can also use ``--bootstrap=pygame``, but this bootstrap is deprecated for use with Kivy and SDL2 is preferred.
+This `p4a apk ...` command builds a distribution with `python3`,
+`kivy`, and everything else you specified in the requirements.
+It will be packaged using a SDL2 bootstrap, and produce
+an `.apk` file.
+
+*Compatibility notes:*
+
+- While python2 is still supported by python-for-android,
+  it will possibly no longer receive patches by the python creators
+  themselves in 2020. Migration to Python 3 is recommended!
+
+- You can also use ``--bootstrap=pygame``, but this bootstrap
+  is deprecated and not well-tested.
 
 Build a WebView application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,25 +187,13 @@ well as the requirements::
 
     p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My WebView Application" --version 0.1 --bootstrap=webview --requirements=flask --port=5000
 
+**Please note as with kivy/SDL2, you need to specify all your
+additional requirements/depenencies.**
+
 You can also replace flask with another web framework.
 
 Replace ``--port=5000`` with the port on which your app will serve a
 website. The default for Flask is 5000.
-
-Build an SDL2 based application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This includes e.g. `PySDL2
-<https://pysdl2.readthedocs.io/en/latest/>`__.
-
-To build your application, you need to have a name, version, a package
-identifier, and explicitly write the sdl2 bootstrap, as well as the
-requirements::
-
-    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My SDL2 application" --version 0.1 --bootstrap=sdl2 --requirements=your_requirements
-
-Add your required modules in place of ``your_requirements``,
-e.g. ``--requirements=pysdl2`` or ``--requirements=vispy``.
 
 Other options
 ~~~~~~~~~~~~~
@@ -198,7 +202,7 @@ You can pass other command line arguments to control app behaviours
 such as orientation, wakelock and app permissions. See
 :ref:`bootstrap_build_options`.
 
-    
+
 
 Rebuild everything
 ~~~~~~~~~~~~~~~~~~
@@ -206,11 +210,11 @@ Rebuild everything
 If anything goes wrong and you want to clean the downloads and builds to retry everything, run::
 
     p4a clean_all
-    
+
 If you just want to clean the builds to avoid redownloading dependencies, run::
 
     p4a clean_builds && p4a clean_dists
-    
+
 Getting help
 ~~~~~~~~~~~~
 
@@ -269,7 +273,7 @@ You can list the available distributions::
 And clean all of them::
 
     p4a clean_dists
-    
+
 Configuration file
 ~~~~~~~~~~~~~~~~~~
 
