@@ -590,14 +590,16 @@ tools directory of the Android SDK.
         ap.add_argument('--launcher', dest='launcher', action='store_true',
                         help=('Provide this argument to build a multi-app '
                               'launcher, rather than a single app.'))
-    ap.add_argument('--permission', dest='permissions', action='append',
+    ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
-    ap.add_argument('--meta-data', dest='meta_data', action='append',
+    ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
                     help='Custom key=value to add in application metadata')
+    ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
+                    help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
-    ap.add_argument('--service', dest='services', action='append',
+    ap.add_argument('--service', dest='services', action='append', default=[],
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
     if get_bootstrap_name() != "service_only":
@@ -740,17 +742,8 @@ tools directory of the Android SDK.
               'deprecated and does nothing.')
         args.sdk_version = -1  # ensure it is not used
 
-    if args.permissions is None:
-        args.permissions = []
-    elif args.permissions:
-        if isinstance(args.permissions[0], list):
-            args.permissions = [p for perm in args.permissions for p in perm]
-
-    if args.meta_data is None:
-        args.meta_data = []
-
-    if args.services is None:
-        args.services = []
+    if args.permissions and isinstance(args.permissions[0], list):
+        args.permissions = [p for perm in args.permissions for p in perm]
 
     if args.try_system_python_compile:
         # Hardcoding python2.7 is okay for now, as python3 skips the

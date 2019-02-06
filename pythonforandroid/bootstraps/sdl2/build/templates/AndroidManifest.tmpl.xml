@@ -56,6 +56,9 @@
                  android:allowBackup="{{ args.allow_backup }}"
                  android:theme="@android:style/Theme.NoTitleBar{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true" >
+        {% for l in args.android_used_libs %}
+        <uses-library android:name="{{ l }}" />
+        {% endfor %}
 
         {% for m in args.meta_data %}
         <meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
