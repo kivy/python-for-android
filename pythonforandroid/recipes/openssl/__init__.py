@@ -43,9 +43,6 @@ class OpenSSLRecipe(Recipe):
 
     '''
 
-
-    conflicts = ['python3']
-
     standard_version = '1.1'
     '''the major minor version used to link our recipes'''
     legacy_version = '1.0'
