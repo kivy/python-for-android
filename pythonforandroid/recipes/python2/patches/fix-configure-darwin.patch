@@ -1,0 +1,40 @@
+--- Python-2.7.15/configure.orig	2018-04-30 00:47:33.000000000 +0200
++++ Python-2.7.15/configure	2019-02-06 00:44:09.636369760 +0100
+@@ -5481,7 +5481,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ 	  INSTSONAME="$LDLIBRARY".$SOVERSION
+           ;;
+-    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*)
++    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|Darwin*)
+ 	  LDLIBRARY='libpython$(VERSION).so'
+ 	  BLDLIBRARY='-L. -lpython$(VERSION)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+@@ -5514,7 +5514,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	  BLDLIBRARY='-L. -lpython$(VERSION)'
+ 	  RUNSHARED=DLL_PATH=`pwd`:${DLL_PATH:-/atheos/sys/libs:/atheos/autolnk/lib}
+ 	  ;;
+-    Darwin*)
++    DDarwin*)
+     	LDLIBRARY='libpython$(VERSION).dylib'
+ 	BLDLIBRARY='-L. -lpython$(VERSION)'
+ 	RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
+@@ -8594,6 +8594,9 @@ then
+ 			LDSHARED='ld -b'
+ 		fi ;;
+ 	OSF*) LDSHARED="ld -shared -expect_unresolved \"*\"";;
++	Darwin*|Linux*|GNU*|QNX*)
++		LDSHARED='$(CC) -shared'
++		LDCXXSHARED='$(CXX) -shared';;
+ 	Darwin/1.3*)
+ 		LDSHARED='$(CC) -bundle'
+ 		LDCXXSHARED='$(CXX) -bundle'
+@@ -8653,9 +8656,6 @@ then
+ 			BLDSHARED="$LDSHARED"
+ 		fi
+ 		;;
+-	Linux*|GNU*|QNX*)
+-		LDSHARED='$(CC) -shared'
+-		LDCXXSHARED='$(CXX) -shared';;
+ 	BSD/OS*/4*)
+ 		LDSHARED="gcc -shared"
+ 		LDCXXSHARED="g++ -shared";;

@@ -2,6 +2,7 @@ from os.path import join, exists
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.python import GuestPythonRecipe
 from pythonforandroid.logger import shprint
+from pythonforandroid.patching import is_darwin
 import sh
 
 
@@ -31,7 +32,8 @@ class Python2Recipe(GuestPythonRecipe):
                'patches/fix-filesystem-default-encoding.patch',
                'patches/fix-gethostbyaddr.patch',
                'patches/fix-posix-declarations.patch',
-               'patches/fix-pwd-gecos.patch']
+               'patches/fix-pwd-gecos.patch',
+               ('patches/fix-configure-darwin.patch', is_darwin)]
 
     configure_args = ('--host={android_host}',
                       '--build={android_build}',

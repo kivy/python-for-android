@@ -1,5 +1,6 @@
 from pythonforandroid.python import GuestPythonRecipe
 from pythonforandroid.recipe import Recipe
+from pythonforandroid.patching import is_darwin
 
 
 class Python3Recipe(GuestPythonRecipe):
@@ -21,7 +22,8 @@ class Python3Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
-    patches = ["patches/fix-ctypes-util-find-library.patch"]
+    patches = ['patches/fix-ctypes-util-find-library.patch',
+               ('patches/fix-configure-darwin.patch', is_darwin)]
 
     depends = ['hostpython3']
     conflicts = ['python3crystax', 'python2', 'python2legacy']
