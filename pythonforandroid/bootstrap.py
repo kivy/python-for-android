@@ -52,6 +52,7 @@ class Bootstrap(object):
     # All bootstraps should include Python in some way:
     recipe_depends = [
         ("python2", "python2legacy", "python3", "python3crystax"),
+        'android',
     ]
 
     can_be_chosen_automatically = True
