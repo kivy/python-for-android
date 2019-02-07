@@ -189,14 +189,14 @@ public class PythonActivity extends Activity {
         String entry_point = getEntryPoint(app_root_dir);
 
         Log.v(TAG, "Setting env vars for start.c and Python to use");
-        PythonActivity.nativeSetEnv("ANDROID_ENTRYPOINT", entry_point);
-        PythonActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
-        PythonActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
-        PythonActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-        PythonActivity.nativeSetEnv("ANDROID_UNPACK", app_root_dir);
-        PythonActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
-        PythonActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
-        PythonActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
+        PythonActivity.nativeSetenv("ANDROID_ENTRYPOINT", entry_point);
+        PythonActivity.nativeSetenv("ANDROID_ARGUMENT", app_root_dir);
+        PythonActivity.nativeSetenv("ANDROID_APP_PATH", app_root_dir);
+        PythonActivity.nativeSetenv("ANDROID_PRIVATE", mFilesDirectory);
+        PythonActivity.nativeSetenv("ANDROID_UNPACK", app_root_dir);
+        PythonActivity.nativeSetenv("PYTHONHOME", app_root_dir);
+        PythonActivity.nativeSetenv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+        PythonActivity.nativeSetenv("PYTHONOPTIMIZE", "2");
 
         try {
             Log.v(TAG, "Access to our meta-data...");
@@ -461,7 +461,7 @@ public class PythonActivity extends Activity {
     }
 
 
-    public static native void nativeSetEnv(String j_name, String j_value);
+    public static native void nativeSetenv(String name, String value);
     public static native int nativeInit(Object arguments);
 
 }

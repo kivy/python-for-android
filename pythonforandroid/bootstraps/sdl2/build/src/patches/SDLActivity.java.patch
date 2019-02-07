@@ -25,14 +25,6 @@
          Message msg = commandHandler.obtainMessage();
          msg.arg1 = command;
          msg.obj = data;
-@@ -709,6 +718,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
-     public static native void nativeResume();
-     public static native void onNativeDropFile(String filename);
-     public static native void onNativeResize(int surfaceWidth, int surfaceHeight, int deviceWidth, int deviceHeight, int format, float rate);
-+    public static native void nativeSetEnv(String j_name, String j_value);
-     public static native void onNativeKeyDown(int keycode);
-     public static native void onNativeKeyUp(int keycode);
-     public static native void onNativeKeyboardFocusLost();
 @@ -1051,6 +1061,21 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
          return Arrays.copyOf(filtered, used);
      }

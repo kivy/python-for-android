@@ -458,19 +458,20 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)
 // Webview and service_only uses some more functions:
 
-void Java_org_kivy_android_PythonActivity_nativeSetEnv(
-                                    JNIEnv* env, jclass jcls,
-                                    jstring j_name, jstring j_value)
-/* JNIEXPORT void JNICALL Java_org_libsdl_app_SDLActivity_nativeSetEnv( */
-/*                                     JNIEnv* env, jclass jcls, */
-/*                                     jstring j_name, jstring j_value) */
+void Java_org_kivy_android_PythonActivity_nativeSetenv(
+                                    JNIEnv* env, jclass cls,
+                                    jstring name, jstring value)
+//JNIEXPORT void JNICALL SDL_JAVA_INTERFACE(nativeSetenv)(
+//                                    JNIEnv* env, jclass cls,
+//                                    jstring name, jstring value)
 {
-    jboolean iscopy;
-    const char *name = (*env)->GetStringUTFChars(env, j_name, &iscopy);
-    const char *value = (*env)->GetStringUTFChars(env, j_value, &iscopy);
-    setenv(name, value, 1);
-    (*env)->ReleaseStringUTFChars(env, j_name, name);
-    (*env)->ReleaseStringUTFChars(env, j_value, value);
+    const char *utfname = (*env)->GetStringUTFChars(env, name, NULL);
+    const char *utfvalue = (*env)->GetStringUTFChars(env, value, NULL);
+
+    SDL_setenv(utfname, utfvalue, 1);
+
+    (*env)->ReleaseStringUTFChars(env, name, utfname);
+    (*env)->ReleaseStringUTFChars(env, value, utfvalue);
 }
 
 

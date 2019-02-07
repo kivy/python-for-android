@@ -151,9 +151,9 @@ public class PythonActivity extends SDLActivity {
 
                 Project p = Project.scanDirectory(path);
                 String entry_point = getEntryPoint(p.dir);
-                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", p.dir + "/" + entry_point);
-                SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", p.dir);
-                SDLActivity.nativeSetEnv("ANDROID_APP_PATH", p.dir);
+                SDLActivity.nativeSetenv("ANDROID_ENTRYPOINT", p.dir + "/" + entry_point);
+                SDLActivity.nativeSetenv("ANDROID_ARGUMENT", p.dir);
+                SDLActivity.nativeSetenv("ANDROID_APP_PATH", p.dir);
 
                 if (p != null) {
                     if (p.landscape) {
@@ -173,18 +173,18 @@ public class PythonActivity extends SDLActivity {
                 }
             } else {
                 String entry_point = getEntryPoint(app_root_dir);
-                SDLActivity.nativeSetEnv("ANDROID_ENTRYPOINT", entry_point);
-                SDLActivity.nativeSetEnv("ANDROID_ARGUMENT", app_root_dir);
-                SDLActivity.nativeSetEnv("ANDROID_APP_PATH", app_root_dir);
+                SDLActivity.nativeSetenv("ANDROID_ENTRYPOINT", entry_point);
+                SDLActivity.nativeSetenv("ANDROID_ARGUMENT", app_root_dir);
+                SDLActivity.nativeSetenv("ANDROID_APP_PATH", app_root_dir);
             }
 
             String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
             Log.v(TAG, "Setting env vars for start.c and Python to use");
-            SDLActivity.nativeSetEnv("ANDROID_PRIVATE", mFilesDirectory);
-            SDLActivity.nativeSetEnv("ANDROID_UNPACK", app_root_dir);
-            SDLActivity.nativeSetEnv("PYTHONHOME", app_root_dir);
-            SDLActivity.nativeSetEnv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
-            SDLActivity.nativeSetEnv("PYTHONOPTIMIZE", "2");
+            SDLActivity.nativeSetenv("ANDROID_PRIVATE", mFilesDirectory);
+            SDLActivity.nativeSetenv("ANDROID_UNPACK", app_root_dir);
+            SDLActivity.nativeSetenv("PYTHONHOME", app_root_dir);
+            SDLActivity.nativeSetenv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+            SDLActivity.nativeSetenv("PYTHONOPTIMIZE", "2");
 
             try {
                 Log.v(TAG, "Access to our meta-data...");
