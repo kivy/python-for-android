@@ -171,7 +171,7 @@ def build_dist_from_args(ctx, dist, args):
     """Parses out any bootstrap related arguments, and uses them to build
     a dist."""
     bs = Bootstrap.get_bootstrap(args.bootstrap, ctx)
-    blacklist = getattr(args, "blacklist", "").split(",")
+    blacklist = getattr(args, "blacklist_requirements", "").split(",")
     if len(blacklist) == 1 and blacklist[0] == "":
         blacklist = []
     build_order, python_modules, bs = (
@@ -310,10 +310,10 @@ class ToolchainCL(object):
             default='')
 
         generic_parser.add_argument(
-            '--blacklist',
+            '--blacklist-requirements',
             help=('Blacklist an internal recipe from use. Allows '
                   'disabling Python 3 core modules to save size'),
-            dest="blacklist",
+            dest="blacklist_requirements",
             default='')
 
         generic_parser.add_argument(
