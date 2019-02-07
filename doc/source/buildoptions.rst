@@ -245,8 +245,8 @@ options (this list may not be exhaustive):
 - ``--resource``: A key=value pair to add in the string.xml resource file.
 
 
-Blacklist (APK size optimization)
----------------------------------
+Requirements blacklist (APK size optimization)
+----------------------------------------------
 
 To optimize the size of the `.apk` file that p4a builds for you,
 you can **blacklist** certain core components. Per default, p4a
@@ -254,9 +254,9 @@ will add python *with batteries included* as would be expected on
 desktop, including openssl, sqlite3 and other components you may
 not use.
 
-To blacklist an item, specify the ``--blacklist`` option::
+To blacklist an item, specify the ``--blacklist-requirements`` option::
 
-    p4a apk ... --blacklist=sqlite3
+    p4a apk ... --blacklist-requirements=sqlite3
 
 At the moment, the following core components can be blacklisted
 (if you don't want to use them) to decrease APK size:
