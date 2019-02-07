@@ -1,25 +1,25 @@
---- orig/Android.mk	2016-01-03 06:52:28.000000000 +0100
-+++ patch/Android.mk	2016-04-15 21:14:23.906688966 +0200
-@@ -6,19 +6,19 @@
- 
+--- SDL2_image-2.0.4/Android.mk.orig	2018-10-31 15:58:52.000000000 +0100
++++ SDL2_image-2.0.4/Android.mk	2019-02-07 23:51:51.740299680 +0100
+@@ -3,18 +3,18 @@ SDL_IMAGE_LOCAL_PATH := $(call my-dir)
+
  # Enable this if you want to support loading JPEG images
  # The library path should be a relative path to this directory.
 -SUPPORT_JPG ?= true
 +SUPPORT_JPG := true
- JPG_LIBRARY_PATH := external/jpeg-9
- 
+ JPG_LIBRARY_PATH := external/jpeg-9b
+
  # Enable this if you want to support loading PNG images
  # The library path should be a relative path to this directory.
 -SUPPORT_PNG ?= true
 +SUPPORT_PNG := true
- PNG_LIBRARY_PATH := external/libpng-1.6.2
- 
+ PNG_LIBRARY_PATH := external/libpng-1.6.32
+
  # Enable this if you want to support loading WebP images
  # The library path should be a relative path to this directory.
- #
- # IMPORTANT: In order to enable this must have a symlink in your jni directory to external/libwebp-0.3.0.
--SUPPORT_WEBP ?= false
-+SUPPORT_WEBP := false
- WEBP_LIBRARY_PATH := external/libwebp-0.3.0
- 
- 
+-SUPPORT_WEBP ?= true
+-WEBP_LIBRARY_PATH := external/libwebp-0.6.0
++SUPPORT_WEBP := true
++WEBP_LIBRARY_PATH := external/libwebp-1.0.0
+
+
+ # Build the library
