@@ -6,7 +6,8 @@ import glob
 
 
 class KivyRecipe(CythonRecipe):
-    version = 'master'
+    # post kivy==1.10.1, `fixes SDL2 image loading (jpg)`
+    version = 'a95d67f'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
