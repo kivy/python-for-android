@@ -341,7 +341,7 @@ main.py that loads it.''')
             if not exists(jarname):
                 print('Requested jar does not exist: {}'.format(jarname))
                 sys.exit(-1)
-            shutil.copy(jarname, 'libs')
+            shutil.copy(jarname, 'src/main/libs')
             jars.append(basename(jarname))
 
     # If extra aar were requested, copy them into the libs directory
