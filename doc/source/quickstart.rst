@@ -55,7 +55,7 @@ p4a has several dependencies that must be installed:
 - ant
 - python2
 - cython (can be installed via pip)
-- a Java JDK (e.g. openjdk-7)
+- a Java JDK (e.g. openjdk-8)
 - zlib (including 32 bit)
 - libncurses (including 32 bit)
 - unzip
@@ -70,7 +70,7 @@ install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-7-jdk unzip ant ccache autoconf libtool
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool
 
 On Arch Linux (64 bit) you should be able to run the following to
 install most of the dependencies (note: this list may not be
