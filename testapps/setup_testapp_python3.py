@@ -2,7 +2,8 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-options = {'apk': {'requirements': 'libffi,sdl2,numpy,pyjnius,kivy,python3',
+options = {'apk': {'requirements': 'sdl2,numpy,pyjnius,kivy,python3',
+                   'blacklist-requirements': 'openssl,sqlite3',
                    'android-api': 27,
                    'ndk-api': 21,
                    'dist-name': 'bdisttest_python3_googlendk',
