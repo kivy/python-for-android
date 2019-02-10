@@ -8,7 +8,7 @@ class ZopeRecipe(PythonRecipe):
     version = '4.1.3'
     url = 'http://pypi.python.org/packages/source/z/zope.interface/zope.interface-{version}.tar.gz'
 
-    depends = ['python2']
+    depends = []
 
     def get_recipe_env(self, arch):
         env = super(ZopeRecipe, self).get_recipe_env(arch)

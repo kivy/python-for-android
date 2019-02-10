@@ -59,6 +59,8 @@ class OpenSSLRecipe(Recipe):
 
     @property
     def use_legacy(self):
+        if not self.ctx.recipe_build_order:
+            return False
         return any([i for i in ('python2legacy', 'python3crystax') if
                     i in self.ctx.recipe_build_order])
 
