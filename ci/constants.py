@@ -3,8 +3,7 @@ from enum import Enum
 
 class TargetPython(Enum):
     python2 = 0
-    python3crystax = 1
-    python3 = 2
+    python3 = 1
 
 
 # recipes that currently break the build
