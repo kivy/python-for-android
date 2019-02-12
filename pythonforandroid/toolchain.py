@@ -944,6 +944,8 @@ class ToolchainCL(object):
         else:
             shprint(sh.cp, apk_file, './')
 
+        self.hook("post_complete_hook")
+
     @require_prebuilt_dist
     def create(self, args):
         """Create a distribution directory if it doesn't already exist, run
