@@ -63,6 +63,7 @@ BROKEN_RECIPES_PYTHON2 = set([
     'zeroconf',
     'zope',
 ])
+# to be created via https://github.com/kivy/python-for-android/issues/1514
 BROKEN_RECIPES_PYTHON3 = set([
     'brokenrecipe',
     # enum34 is not compatible with Python 3.6 standard library
