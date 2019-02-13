@@ -762,9 +762,9 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         if (hint.contains("LandscapeRight") && hint.contains("LandscapeLeft")) {
             orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
         } else if (hint.contains("LandscapeRight")) {
-            orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        } else if (hint.contains("LandscapeLeft")) {
             orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+        } else if (hint.contains("LandscapeLeft")) {
+            orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
         } else if (hint.contains("Portrait") && hint.contains("PortraitUpsideDown")) {
             orientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
         } else if (hint.contains("Portrait")) {
