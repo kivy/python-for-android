@@ -229,6 +229,7 @@ class ToolchainCL(object):
     def __init__(self):
 
         argv = sys.argv
+        self.warn_on_carriage_return_args(argv)
         # Buildozer used to pass these arguments in a now-invalid order
         # If that happens, apply this fix
         # This fix will be removed once a fixed buildozer is released
@@ -574,6 +575,12 @@ class ToolchainCL(object):
 
         # Each subparser corresponds to a method
         getattr(self, args.subparser_name.replace('-', '_'))(args)
+
+    def warn_on_carriage_return_args(self, args):
+        for check_arg in args:
+            if '\r' in check_arg:
+                warning("Argument '" + str(check_arg.replace('\r', '')) + "' contains a carriage return (\\r).")
+                warning("Invoking this program via scripts which use CRLF instead of LF line endings will have undefined behaviour.")
 
     def warn_on_deprecated_args(self, args):
         """
