@@ -6,7 +6,7 @@ lib_dict = {
     'pygame': ['sdl'],
     'sdl2': ['SDL2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf']
 }
-sdl_libs = lib_dict[os.environ['BOOTSTRAP']]
+sdl_libs = lib_dict.get(os.environ['BOOTSTRAP'], [])
 
 renpy_sound = Extension('android._android_sound',
                         ['android/_android_sound.c', 'android/_android_sound_jni.c', ],
