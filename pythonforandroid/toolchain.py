@@ -162,6 +162,7 @@ def dist_from_args(ctx, args):
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
         ndk_api=args.ndk_api,
+        archs=split_argument_list(args.arch),
         force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
         allow_replace_dist=args.allow_replace_dist)
@@ -792,9 +793,9 @@ class ToolchainCL(object):
 
     @property
     def _dist(self):
-        ctx = self.ctx
-        dist = dist_from_args(ctx, self.args)
-        return dist
+        if (not hasattr(self, 'dist') or self.dist is None):
+            self.dist = dist_from_args(self.ctx, self.args)
+        return self.dist
 
     @require_prebuilt_dist
     def apk(self, args):

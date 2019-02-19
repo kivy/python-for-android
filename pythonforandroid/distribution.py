@@ -44,6 +44,7 @@ class Distribution(object):
     @classmethod
     def get_distribution(cls, ctx, name=None, recipes=[],
                          ndk_api=None,
+                         archs=None,
                          force_build=False,
                          extra_dist_dirs=[],
                          require_perfect_match=False,
@@ -62,8 +63,10 @@ class Distribution(object):
             exists, it will be used.
         recipes : list
             The recipes that the distribution must contain.
-        force_download: bool
-            If True, only downloaded dists are considered.
+        ndk_api : str
+            NDK API level used
+        archs : list
+            List of architectures to be built
         force_build : bool
             If True, the dist is forced to be built locally.
         extra_dist_dirs : list
@@ -92,15 +95,13 @@ class Distribution(object):
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
         for dist in possible_dists:
-            if (
-                ndk_api is not None and dist.ndk_api != ndk_api
-            ) or dist.ndk_api is None:
+            if ((ndk_api is not None and dist.ndk_api != ndk_api)
+                or dist.ndk_api is None or dist.archs is None):
                 continue
-            for recipe in recipes:
-                if recipe not in dist.recipes:
-                    break
-            else:
+            if (set(recipes).issubset(set(dist.recipes))
+                and set(archs).issubset(set(dist.archs))):
                 _possible_dists.append(dist)
+
         possible_dists = _possible_dists
 
         if possible_dists:
@@ -116,9 +117,7 @@ class Distribution(object):
                 continue
             if ndk_api is not None and dist.ndk_api != ndk_api:
                 continue
-            if (set(dist.recipes) == set(recipes) or
-                (set(recipes).issubset(set(dist.recipes)) and
-                 not require_perfect_match)):
+            if (set(dist.recipes) == set(recipes) or not require_perfect_match):
                 info_notify('{} has compatible recipes, using this one'
                             .format(dist.name))
                 return dist
