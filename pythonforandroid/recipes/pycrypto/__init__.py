@@ -15,7 +15,7 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
     patches = ['add_length.patch']
 
-    def get_recipe_env(self, arch=None, clang=True):
+    def get_recipe_env(self, arch=None):
         env = super(PyCryptoRecipe, self).get_recipe_env(arch)
         openssl_recipe = Recipe.get_recipe('openssl', self.ctx)
         env['CC'] = env['CC'] + openssl_recipe.include_flags(arch)

@@ -119,7 +119,7 @@ class Arch(object):
             compiler += '++'
         return join(self.clang_path, compiler)
 
-    def get_env(self, with_flags_in_cc=True, clang=False):
+    def get_env(self, with_flags_in_cc=True):
         env = {}
 
         # CFLAGS/CXXFLAGS: the processor flags
