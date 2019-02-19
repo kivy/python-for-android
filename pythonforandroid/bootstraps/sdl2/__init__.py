@@ -34,11 +34,6 @@ class SDL2GradleBootstrap(Bootstrap):
             info("Copying Python distribution")
 
             python_bundle_dir = join('_python_bundle', '_python_bundle')
-            if 'python2legacy' in self.ctx.recipe_build_order:
-                # a special case with its own packaging location
-                python_bundle_dir = 'private'
-                # And also must had an install directory, make sure of that
-                self.ctx.python_recipe.create_python_install(self.dist_dir)
 
             self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
             self.distribute_javaclasses(self.ctx.javaclass_dir,
