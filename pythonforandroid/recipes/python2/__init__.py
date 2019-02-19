@@ -20,7 +20,7 @@ class Python2Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python2'
 
-    depends = ['hostpython2']
+    depends = ['hostpython2', 'libffi']
     conflicts = ['python3']
 
     patches = [
