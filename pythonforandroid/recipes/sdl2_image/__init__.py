@@ -1,5 +1,4 @@
 from pythonforandroid.recipe import BootstrapNDKRecipe
-from pythonforandroid.patching import is_arch
 
 
 class LibSDL2Image(BootstrapNDKRecipe):
