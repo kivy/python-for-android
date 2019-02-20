@@ -360,10 +360,17 @@ main.py that loads it.''')
 
     version_code = 0
     if not args.numeric_version:
+        # Set version code in format (arch-minsdk-app_version)
+        with open(join(dirname(__file__), 'dist_info.json'), 'r') as dist_info:
+            dist_data = json.load(dist_info)
+        arch = dist_data["archs"][0]
+        arch_dict = {"arm64-v8a": "8", "armeabi-v7a": "7", "x86": "6"}
+        arch_code = arch_dict[arch]
+        min_sdk = args.min_sdk_version
         for i in args.version.split('.'):
             version_code *= 100
             version_code += int(i)
-        args.numeric_version = str(version_code)
+        args.numeric_version = "{}{}{}".format(arch_code, min_sdk, version_code)
 
     if args.intent_filters:
         with open(args.intent_filters) as fd:
