@@ -1,15 +1,3 @@
-diff -Naurp Python-2.7.15/Modules/Setup.dist.orig Python-2.7.15/Modules/Setup.dist
---- Python-2.7.15/Modules/Setup.dist.orig	2018-04-30 00:47:33.000000000 +0200
-+++ Python-2.7.15/Modules/Setup.dist	2018-11-17 20:40:20.153518694 +0100
-@@ -464,7 +464,7 @@
- # Andrew Kuchling's zlib module.
- # This require zlib 1.1.3 (or later).
- # See http://www.gzip.org/zlib/
--#zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
-+zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz
-
- # Interface to the Expat XML parser
- #
 diff -Naurp Python-2.7.15.orig/Makefile.pre.in Python-2.7.15/Makefile.pre.in
 --- Python-2.7.15.orig/Makefile.pre.in	2018-04-30 00:47:33.000000000 +0200
 +++ Python-2.7.15/Makefile.pre.in	2018-11-18 00:43:58.777379280 +0100

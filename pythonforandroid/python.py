@@ -168,6 +168,33 @@ class GuestPythonRecipe(TargetPythonRecipe):
             recipe = Recipe.get_recipe('openssl', self.ctx)
             add_flags(recipe.include_flags(arch),
                       recipe.link_dirs_flags(arch), recipe.link_libs_flags())
+
+        # python build system contains hardcoded zlib version which prevents
+        # the build of zlib module, here we search for android's zlib version
+        # and sets the right flags, so python can be build with android's zlib
+        info("Activating flags for android's zlib")
+        zlib_lib_path = join(self.ctx.ndk_platform, 'usr', 'lib')
+        zlib_includes = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        zlib_h = join(zlib_includes, 'zlib.h')
+        try:
+            with open(zlib_h) as fileh:
+                zlib_data = fileh.read()
+        except IOError:
+            raise BuildInterruptingException(
+                "Could not determine android's zlib version, no zlib.h ({}) in"
+                " the NDK dir includes".format(zlib_h)
+            )
+        for line in zlib_data.split('\n'):
+            if line.startswith('#define ZLIB_VERSION '):
+                break
+        else:
+            raise BuildInterruptingException(
+                'Could not parse zlib.h...so we cannot find zlib version,'
+                'required by python build,'
+            )
+        env['ZLIB_VERSION'] = line.replace('#define ZLIB_VERSION ', '')
+        add_flags(' -I' + zlib_includes, ' -L' + zlib_lib_path, ' -lz')
+
         return env
 
     @property

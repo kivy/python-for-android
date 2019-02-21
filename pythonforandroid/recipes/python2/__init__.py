@@ -34,6 +34,7 @@ class Python2Recipe(GuestPythonRecipe):
                'patches/fix-pwd-gecos.patch',
                'patches/fix-ctypes-util-find-library.patch',
                'patches/fix-interpreter-version.patch',
+               'patches/fix-zlib-version.patch',
     ]
 
     configure_args = ('--host={android_host}',
