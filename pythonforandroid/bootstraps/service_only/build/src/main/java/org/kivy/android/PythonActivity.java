@@ -46,8 +46,6 @@ import android.widget.AbsoluteLayout;
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
 
-import org.kivy.android.PythonUtil;
-
 import org.renpy.android.ResourceManager;
 import org.renpy.android.AssetExtract;
 
@@ -122,7 +120,7 @@ public class PythonActivity extends Activity {
         // Load shared libraries
         String errorMsgBrokenLib = "";
         try {
-            loadLibraries();
+            System.loadLibrary("main");
         } catch(UnsatisfiedLinkError e) {
             System.err.println(e.getMessage());
             mBrokenLibraries = true;
@@ -196,12 +194,6 @@ public class PythonActivity extends Activity {
 
         // make sure all child threads (python_thread) are stopped
         android.os.Process.killProcess(android.os.Process.myPid());
-    }
-
-    public void loadLibraries() {
-        String app_root = new String(getAppRoot());
-        File app_root_file = new File(app_root);
-        PythonUtil.loadLibraries(app_root_file);
     }
 
     public void recursiveDelete(File f) {
