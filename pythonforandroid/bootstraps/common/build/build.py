@@ -364,7 +364,7 @@ main.py that loads it.''')
         with open(join(dirname(__file__), 'dist_info.json'), 'r') as dist_info:
             dist_data = json.load(dist_info)
         arch = dist_data["archs"][0]
-        arch_dict = {"arm64-v8a": "8", "armeabi-v7a": "7", "x86": "6"}
+        arch_dict = {"x86_64": "9", "arm64-v8a": "8", "armeabi-v7a": "7", "x86": "6"}
         arch_code = arch_dict[arch]
         min_sdk = args.min_sdk_version
         for i in args.version.split('.'):
