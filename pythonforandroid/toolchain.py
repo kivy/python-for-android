@@ -570,6 +570,7 @@ class ToolchainCL(object):
         self.ctx.java_build_tool = args.java_build_tool
 
         self._archs = split_argument_list(args.arch)
+        self._cached_dist = None
 
         self.ctx.local_recipes = args.local_recipes
         self.ctx.copy_libs = args.copy_libs
@@ -793,9 +794,9 @@ class ToolchainCL(object):
 
     @property
     def _dist(self):
-        if (not hasattr(self, 'dist') or self.dist is None):
-            self.dist = dist_from_args(self.ctx, self.args)
-        return self.dist
+        if (self._cached_dist is None):
+            self._cached_dist = dist_from_args(self.ctx, self.args)
+        return self._cached_dist
 
     @require_prebuilt_dist
     def apk(self, args):

@@ -96,10 +96,10 @@ class Distribution(object):
         _possible_dists = []
         for dist in possible_dists:
             if ((ndk_api is not None and dist.ndk_api != ndk_api)
-                or dist.ndk_api is None or dist.archs is None):
+                    or dist.ndk_api is None or dist.archs is None):
                 continue
             if (set(recipes).issubset(set(dist.recipes))
-                and set(archs).issubset(set(dist.archs))):
+                    and set(archs).issubset(set(dist.archs))):
                 _possible_dists.append(dist)
 
         possible_dists = _possible_dists
