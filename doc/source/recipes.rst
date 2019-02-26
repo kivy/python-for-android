@@ -251,7 +251,7 @@ install`` with an appropriate environment.
 For instance, the following is all that's necessary to create a recipe
 for the Vispy module::
 
-  from pythonforandroid.toolchain import PythonRecipe
+  from pythonforandroid.recipe import PythonRecipe
   class VispyRecipe(PythonRecipe):
       version = 'master'
       url = 'https://github.com/vispy/vispy/archive/{version}.zip'
