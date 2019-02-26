@@ -32,4 +32,4 @@ before_script:
 
 script:
   - docker build --tag=p4a --file Dockerfile.py3 .
-  - docker run p4a /bin/sh -c "$COMMAND"
+  - docker run -e CI p4a /bin/sh -c "$COMMAND"
