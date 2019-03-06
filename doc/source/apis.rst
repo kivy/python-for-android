@@ -15,8 +15,8 @@ to access the SD card, the camera, and other things.
 This can be done through the `android` module which is *available per default*
 unless you blacklist it. Use it in your app like this::
 
-      from android.permissions import request_permission, Permission
-      request_permission(Permission.WRITE_EXTERNAL_STORAGE)
+      from android.permissions import request_permissions, Permission
+      request_permissions([Permission.WRITE_EXTERNAL_STORAGE])
 
 The available permissions are listed here:
 
