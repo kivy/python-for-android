@@ -50,7 +50,9 @@
                  android:allowBackup="true"
                  android:theme="@android:style/Theme.NoTitleBar{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true" >
-
+        {% for l in args.android_used_libs %}
+        <uses-library android:name="{{ l }}" />
+        {% endfor %}
         {% for m in args.meta_data %}
         <meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
         <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
