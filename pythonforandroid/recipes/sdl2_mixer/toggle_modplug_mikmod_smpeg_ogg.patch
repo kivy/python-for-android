@@ -1,31 +1,28 @@
 diff -Naur SDL2_mixer/Android.mk SDL2_mixer-1/Android.mk
---- SDL2_mixer/Android.mk	2019-03-07 16:14:49.468477800 +0100
-+++ SDL2_mixer-1/Android.mk	2019-03-07 16:10:22.371142900 +0100
-@@ -3,24 +3,24 @@
+--- SDL2_mixer/Android.mk	2019-03-07 21:07:42.149457400 +0100
++++ SDL2_mixer-1/Android.mk	2019-03-07 21:05:06.851338800 +0100
+@@ -3,20 +3,20 @@
 
 
  # Enable this if you want to support loading FLAC music with libFLAC
--SUPPORT_FLAC ?= false
+-SUPPORT_FLAC := false
 +SUPPORT_FLAC ?= true
  FLAC_LIBRARY_PATH := external/flac-1.3.2
 
  # Enable this if you want to support loading OGG Vorbis music via Tremor
--SUPPORT_OGG ?= false
+-SUPPORT_OGG := true
 +SUPPORT_OGG ?= true
  OGG_LIBRARY_PATH := external/libogg-1.3.2
  VORBIS_LIBRARY_PATH := external/libvorbisidec-1.2.1
 
  # Enable this if you want to support loading MP3 music via MPG123
--SUPPORT_MP3_MPG123 ?= false
+-SUPPORT_MP3_MPG123 := false
 +SUPPORT_MP3_MPG123 ?= true
  MPG123_LIBRARY_PATH := external/mpg123-1.25.6
 
  # Enable this if you want to support loading MOD music via modplug
--SUPPORT_MOD_MODPLUG ?= false
+-SUPPORT_MOD_MODPLUG := false
 +SUPPORT_MOD_MODPLUG ?= true
  MODPLUG_LIBRARY_PATH := external/libmodplug-0.8.9.0
 
  # Enable this if you want to support TiMidity
--SUPPORT_MID_TIMIDITY ?= false
-+SUPPORT_MID_TIMIDITY ?= true
- TIMIDITY_LIBRARY_PATH := timidity
