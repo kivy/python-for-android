@@ -197,6 +197,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
             add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
                       ' -L' + join(recipe.get_build_dir(arch.arch), '.libs'),
                       ' -lffi')
+            env["LDFLAGS"] += ' -L. -fuse-ld=lld'
 
         if 'openssl' in self.ctx.recipe_build_order:
             info('Activating flags for openssl')
