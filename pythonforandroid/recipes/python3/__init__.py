@@ -21,7 +21,7 @@ class Python3Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
-    patches = ["patches/fix-ctypes-util-find-library.patch"]
+    patches = ["patches/fix-ctypes-util-find-library.patch", "patches/remove-fix-cortex-a8.patch"]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
     conflicts = ['python3crystax', 'python2', 'python2legacy']
