@@ -990,7 +990,7 @@ class CythonRecipe(PythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             hostpython = sh.Command(self.ctx.hostpython)
             shprint(hostpython, '-c', 'import sys; print(sys.path)', _env=env)
-            print('cwd is', realpath(curdir))
+            debug('cwd is {}'.format(realpath(curdir)))
             info('Trying first build of {} to get cython files: this is '
                  'expected to fail'.format(self.name))
 
