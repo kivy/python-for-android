@@ -1,8 +1,7 @@
 from os.path import exists, join
 from pythonforandroid.recipe import Recipe
-from pythonforandroid.logger import info, shprint
+from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory, ensure_dir
-from glob import glob
 import sh
 
 
