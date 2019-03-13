@@ -45,11 +45,11 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         if is_sdl2 or is_webview:
             if is_sdl2:
                 bootstrap = 'sdl2'
-            java_ns = 'org.kivy.android'
-            jni_ns = 'org/kivy/android'
+            java_ns = u'org.kivy.android'
+            jni_ns = u'org/kivy/android'
         elif is_pygame:
-            java_ns = b'org.renpy.android'
-            jni_ns = b'org/renpy/android'
+            java_ns = u'org.renpy.android'
+            jni_ns = u'org/renpy/android'
         else:
             logger.error((
                 'unsupported bootstrap for android recipe: {}'
