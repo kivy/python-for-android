@@ -37,6 +37,7 @@ class Libxml2Recipe(Recipe):
                     '--without-python',
                     '--without-threads',
                     '--without-iconv',
+                    '--without-lzma',
                     '--disable-shared',
                     '--enable-static',
                     _env=env)
