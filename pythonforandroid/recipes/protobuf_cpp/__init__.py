@@ -98,6 +98,10 @@ class ProtobufCppRecipe(PythonRecipe):
         # Install python bindings
         self.install_python_package(arch)
 
+        # Create __init__.py which is missing (cf. https://github.com/protocolbuffers/protobuf/issues/1296
+        # and https://stackoverflow.com/questions/13862562/google-protocol-buffers-not-found-when-trying-to-freeze-python-app)
+        open(join(self.ctx.get_site_packages_dir(), 'google', '__init__.py'), 'a').close()
+
     def install_python_package(self, arch):
         env = self.get_recipe_env(arch)
 
@@ -132,11 +136,10 @@ class ProtobufCppRecipe(PythonRecipe):
         env['CXXFLAGS'] += ' -frtti'
         env['CXXFLAGS'] += ' -fexceptions'
         env['LDFLAGS'] += (
+            ' -lgnustl_shared -landroid -llog' +
             ' -L' + self.ctx.ndk_dir +
             '/sources/cxx-stl/gnu-libstdc++/' + self.ctx.toolchain_version +
             '/libs/' + arch.arch)
-        env['LIBS'] = env.get('LIBS', '') + ' -lgnustl_shared -landroid -llog'
-
         return env
 
 
