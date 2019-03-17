@@ -45,32 +45,22 @@ class LibGlobRecipe(CompiledComponentsPythonRecipe):
             if not exists(path):
                 info("creating {}".format(path))
                 shprint(sh.mkdir, '-p', path)
-        cli = env['CC'].split()
-        cc = sh.Command(cli[0])
+        cli = env['CC'].split()[0]
+        # makes sure first CC command is the compiler rather than ccache, refs:
+        # https://github.com/kivy/python-for-android/issues/1399
+        if 'ccache' in cli:
+            cli = env['CC'].split()[1]
+        cc = sh.Command(cli)
 
         with current_directory(self.get_build_dir(arch.arch)):
             cflags = env['CFLAGS'].split()
-            cflags.extend(['-I.', '-c', '-l.', 'glob.c', '-I.'])  # , '-o', 'glob.o'])
+            cflags.extend(['-I.', '-c', '-l.', 'glob.c', '-I.'])
             shprint(cc, *cflags, _env=env)
-
             cflags = env['CFLAGS'].split()
-            srindex = cflags.index('--sysroot')
-            if srindex:
-                cflags[srindex+1] = self.ctx.ndk_platform
             cflags.extend(['-shared', '-I.', 'glob.o', '-o', 'libglob.so'])
+            cflags.extend(env['LDFLAGS'].split())
             shprint(cc, *cflags, _env=env)
-
             shprint(sh.cp, 'libglob.so', join(self.ctx.libs_dir, arch.arch))
-            shprint(sh.cp, "libglob.so", join(self.ctx.get_python_install_dir(), 'lib'))
-            # drop header in to the Python include directory
-            shprint(sh.cp, "glob.h", join(self.ctx.get_python_install_dir(),
-                                          'include/python{}'.format(
-                                              self.ctx.python_recipe.version[0:3]
-                                          )
-                                         )
-                   )
-            include_path = join(self.ctx.python_recipe.get_build_dir(arch.arch), 'Include')
-            shprint(sh.cp, "glob.h", include_path)
 
 
 recipe = LibGlobRecipe()
