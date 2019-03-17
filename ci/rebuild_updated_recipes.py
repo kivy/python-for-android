@@ -58,7 +58,7 @@ def build(target_python, requirements):
     android_sdk_home = os.environ['ANDROID_SDK_HOME']
     android_ndk_home = os.environ['ANDROID_NDK_HOME']
     if target_python == TargetPython.python3:
-        testapp = 'setup_testapp_python3.py'
+        testapp = 'setup_testapp_python3_sqlite_openssl.py'
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
