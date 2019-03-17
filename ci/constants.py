@@ -25,8 +25,6 @@ BROKEN_RECIPES_PYTHON2 = set([
     'hostpython3crystax',
     # https://github.com/kivy/python-for-android/issues/1354
     'kiwisolver',
-    # https://github.com/kivy/python-for-android/issues/1399
-    'libglob',
     'libmysqlclient',
     'libsecp256k1',
     'libtribler',
@@ -69,8 +67,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     # enum34 is not compatible with Python 3.6 standard library
     # https://stackoverflow.com/a/45716067/185510
     'enum34',
-    # https://github.com/kivy/python-for-android/issues/1399
-    'libglob',
     # build_dir = glob.glob('build/lib.*')[0]
     # IndexError: list index out of range
     'secp256k1',
