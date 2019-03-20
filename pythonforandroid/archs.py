@@ -86,7 +86,7 @@ class Arch(object):
                                          self.ctx.python_recipe.version[0:3])
                                     )
 
-        env['LDFLAGS'] += '--sysroot {} '.format(self.ctx.ndk_platform)
+        env['LDFLAGS'] += '--sysroot={} '.format(self.ctx.ndk_platform)
 
         env["CXXFLAGS"] = env["CFLAGS"]
 

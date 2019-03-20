@@ -1,8 +1,8 @@
 from os.path import exists, join
+from multiprocessing import cpu_count
 from pythonforandroid.recipe import Recipe
-from pythonforandroid.logger import info, shprint
+from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory, ensure_dir
-from glob import glob
 import sh
 
 
@@ -37,46 +37,10 @@ class LibffiRecipe(Recipe):
                     '--prefix=' + self.get_build_dir(arch.arch),
                     '--disable-builddir',
                     '--enable-shared', _env=env)
-            # '--with-sysroot={}'.format(self.ctx.ndk_platform),
-            # '--target={}'.format(arch.toolchain_prefix),
 
-            # ndk 15 introduces unified headers required --sysroot and
-            # -isysroot for libraries and headers. libtool's head explodes
-            # trying to weave them into it's own magic. The result is a link
-            # failure trying to link libc. We call make to compile the bits
-            # and manually link...
+            shprint(sh.make, '-j', str(cpu_count()), 'libffi.la', _env=env)
 
-            try:
-                shprint(sh.make, '-j5', 'libffi.la', _env=env)
-            except sh.ErrorReturnCode_2:
-                info("make libffi.la failed as expected")
-            cc = sh.Command(env['CC'].split()[0])
-            cflags = env['CC'].split()[1:]
             host_build = self.get_build_dir(arch.arch)
-
-            arch_flags = ''
-            if '-march=' in env['CFLAGS']:
-                arch_flags = '-march={}'.format(env['CFLAGS'].split('-march=')[1])
-
-            src_arch = arch.command_prefix.split('-')[0]
-            if src_arch == 'x86_64':
-                # libffi has not specific arch files for x86_64...so...using
-                # the ones from x86 which seems to build fine...
-                src_arch = 'x86'
-
-            cflags.extend(arch_flags.split())
-            cflags.extend(['-shared', '-fPIC', '-DPIC'])
-            cflags.extend(glob(join(host_build, 'src/.libs/*.o')))
-            cflags.extend(glob(join(host_build, 'src', src_arch, '.libs/*.o')))
-
-            ldflags = env['LDFLAGS'].split()
-            cflags.extend(ldflags)
-            cflags.extend(['-Wl,-soname', '-Wl,libffi.so', '-o',
-                           '.libs/libffi.so'])
-
-            with current_directory(host_build):
-                shprint(cc, *cflags, _env=env)
-
             ensure_dir(self.ctx.get_libs_dir(arch.arch))
             shprint(sh.cp,
                     join(host_build, '.libs', 'libffi.so'),
