@@ -171,7 +171,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
         env['SYSROOT'] = sysroot
 
         if sh.which('lld') is not None:
-            # Note: The -L. is to fix a bug in python 3.7. 
+            # Note: The -L. is to fix a bug in python 3.7.
             # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234409
             env["LDFLAGS"] += ' -L. -fuse-ld=lld'
         else:
