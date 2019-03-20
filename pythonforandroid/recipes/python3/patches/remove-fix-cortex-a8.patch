@@ -1,3 +1,5 @@
+This patch removes --fix-cortex-a8 from the linker flags in order to support linking
+with lld, as lld does not support this flag (https://github.com/android-ndk/ndk/issues/766).
 diff --git a/configure b/configure
 --- a/configure
 +++ b/configure

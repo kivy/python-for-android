@@ -170,6 +170,15 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
         env['SYSROOT'] = sysroot
 
+        exitcode, _ = subprocess.getstatusoutput('which lld')
+        if exitcode == 0:
+            # Note: The -L. is to fix a bug in python 3.7. 
+            # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234409
+            env["LDFLAGS"] += ' -L. -fuse-ld=lld'
+        else:
+            logger.warning('lld not found, linking without it. ' +
+                           'Consider installing lld if linker errors occur.')
+
         return env
 
     def set_libs_flags(self, env, arch):
@@ -197,7 +206,6 @@ class GuestPythonRecipe(TargetPythonRecipe):
             add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
                       ' -L' + join(recipe.get_build_dir(arch.arch), '.libs'),
                       ' -lffi')
-            env["LDFLAGS"] += ' -L. -fuse-ld=lld'
 
         if 'openssl' in self.ctx.recipe_build_order:
             info('Activating flags for openssl')

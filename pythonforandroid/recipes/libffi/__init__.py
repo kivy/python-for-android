@@ -1,4 +1,5 @@
 from os.path import exists, join
+from multiprocessing import cpu_count
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory, ensure_dir
@@ -37,7 +38,7 @@ class LibffiRecipe(Recipe):
                     '--disable-builddir',
                     '--enable-shared', _env=env)
 
-            shprint(sh.make, '-j5', 'libffi.la', _env=env)
+            shprint(sh.make, '-j', str(cpu_count()), 'libffi.la', _env=env)
 
             host_build = self.get_build_dir(arch.arch)
             ensure_dir(self.ctx.get_libs_dir(arch.arch))

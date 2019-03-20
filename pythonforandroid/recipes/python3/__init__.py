@@ -1,3 +1,4 @@
+import subprocess
 from pythonforandroid.python import GuestPythonRecipe
 from pythonforandroid.recipe import Recipe
 
@@ -21,7 +22,11 @@ class Python3Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
-    patches = ["patches/fix-ctypes-util-find-library.patch", "patches/remove-fix-cortex-a8.patch"]
+    patches = ["patches/fix-ctypes-util-find-library.patch"]
+
+    exitcode, _ = subprocess.getstatusoutput('which lld')
+    if exitcode == 0:
+        patches = patches + ["patches/remove-fix-cortex-a8.patch"]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
     conflicts = ['python3crystax', 'python2', 'python2legacy']
