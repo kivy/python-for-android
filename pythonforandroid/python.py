@@ -170,8 +170,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
         env['SYSROOT'] = sysroot
 
-        exitcode, _ = subprocess.getstatusoutput('which lld')
-        if exitcode == 0:
+        if sh.which('lld') is not None:
             # Note: The -L. is to fix a bug in python 3.7. 
             # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234409
             env["LDFLAGS"] += ' -L. -fuse-ld=lld'

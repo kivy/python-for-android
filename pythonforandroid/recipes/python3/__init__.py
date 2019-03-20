@@ -1,4 +1,4 @@
-import subprocess
+import sh
 from pythonforandroid.python import GuestPythonRecipe
 from pythonforandroid.recipe import Recipe
 
@@ -24,8 +24,7 @@ class Python3Recipe(GuestPythonRecipe):
 
     patches = ["patches/fix-ctypes-util-find-library.patch"]
 
-    exitcode, _ = subprocess.getstatusoutput('which lld')
-    if exitcode == 0:
+    if sh.which('lld') is not None:
         patches = patches + ["patches/remove-fix-cortex-a8.patch"]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
