@@ -106,7 +106,7 @@ RUN dpkg --add-architecture i386 \
         build-essential ccache git python3 python3-dev \
         libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 \
         libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 \
-        zip zlib1g-dev zlib1g:i386 lld \
+        zip zlib1g-dev zlib1g:i386 \
     && apt -y autoremove
 
 # specific recipes dependencies (e.g. libffi requires autoreconf binary)
