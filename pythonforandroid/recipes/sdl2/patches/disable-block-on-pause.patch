@@ -1,0 +1,8 @@
+diff --git a/src/video/android/SDL_androidevents.c b/src/video/android/SDL_androidevents.c
+index 6cf9af2..1c932a8 100644
+--- a/src/video/android/SDL_androidevents.c
++++ b/src/video/android/SDL_androidevents.c
+@@ -25,2 +25,2 @@
+ /* We're going to do this by default */
+-#define SDL_ANDROID_BLOCK_ON_PAUSE  1
++#define SDL_ANDROID_BLOCK_ON_PAUSE  0
