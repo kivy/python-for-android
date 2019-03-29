@@ -24,7 +24,9 @@ class XedDSARecipe(CythonRecipe):
                 hostpython, 'ref10/build.py',
                 _env=env
             )
-            shprint(sh.cp, '_crypto_sign.so', self.ctx.get_site_packages_dir())
+            # the library could be `_crypto_sign.cpython-37m-x86_64-linux-gnu.so`
+            # or simply `_crypto_sign.so` depending on the platform/distribution
+            sh.cp('-a', sh.glob('_crypto_sign*.so'), self.ctx.get_site_packages_dir())
             self.install_python_package(arch)
 
 
