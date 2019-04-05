@@ -18,6 +18,21 @@ import org.kivy.android.PythonUtil;
 
 import org.renpy.android.Hardware;
 
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.support.v4.app.NotificationCompat;
+import android.graphics.Color;
+import android.app.Service;
+import android.content.ComponentName;
+import android.app.PendingIntent;
+
+import android.graphics.drawable.Icon;
+import android.provider.Settings;
 
 public class PythonService extends Service implements Runnable {
 
@@ -35,6 +50,7 @@ public class PythonService extends Service implements Runnable {
     private String pythonServiceArgument;
     public static PythonService mService = null;
     private Intent startIntent = null;
+    private String NOTIFICATION_CHANNEL_ID = "BackgroundService";
 
     private boolean autoRestartService = false;
 
@@ -67,8 +83,13 @@ public class PythonService extends Service implements Runnable {
             return START_NOT_STICKY;
         }
 
-		startIntent = intent;
+        startIntent = intent;
         Bundle extras = intent.getExtras();
+
+        if (canDisplayNotification()) {
+            doStartForeground(extras);
+        }
+
         androidPrivate = extras.getString("androidPrivate");
         androidArgument = extras.getString("androidArgument");
         serviceEntrypoint = extras.getString("serviceEntrypoint");
@@ -79,10 +100,6 @@ public class PythonService extends Service implements Runnable {
 
         pythonThread = new Thread(this);
         pythonThread.start();
-
-        if (canDisplayNotification()) {
-            doStartForeground(extras);
-        }
 
         return startType();
     }
@@ -96,6 +113,7 @@ public class PythonService extends Service implements Runnable {
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_UPDATE_CURRENT);
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             notification = new Notification(
                 context.getApplicationInfo().icon, serviceTitle, System.currentTimeMillis());
@@ -108,6 +126,25 @@ public class PythonService extends Service implements Runnable {
             } catch (NoSuchMethodException | IllegalAccessException |
                      IllegalArgumentException | InvocationTargetException e) {
             }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelName = "Service";
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_MIN);
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            assert manager != null;
+            manager.createNotificationChannel(chan);
+
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, "persistent");
+            notification = notificationBuilder.setOngoing(true)
+                    .setSmallIcon(context.getApplicationInfo().icon)
+                    .setContentTitle(serviceTitle)
+                    .setContentIntent(pIntent)
+                    .setPriority(Notification.PRIORITY_MIN)
+                    .setShowWhen(false)
+                    .setOnlyAlertOnce(true)             
+                    .build();
         } else {
             Notification.Builder builder = new Notification.Builder(context);
             builder.setContentTitle(serviceTitle);
@@ -127,7 +164,6 @@ public class PythonService extends Service implements Runnable {
             Log.v("python service", "service restart requested");
             startService(startIntent);
         }
-        Process.killProcess(Process.myPid());
     }
 
     /**
@@ -137,7 +173,6 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        stopSelf();
     }
 
     @Override

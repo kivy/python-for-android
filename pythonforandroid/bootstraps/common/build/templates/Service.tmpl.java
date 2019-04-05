@@ -11,19 +11,34 @@ import android.os.Bundle;
 import org.kivy.android.PythonService;
 import org.kivy.android.PythonActivity;
 
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.support.v4.app.NotificationCompat;
+import android.graphics.Color;
+import android.app.Service;
+import android.content.ComponentName;
+import android.app.PendingIntent;
 
 public class Service{{ name|capitalize }} extends PythonService {
+
+    private boolean autoRestartService = true;
+
     {% if sticky %}
     @Override
     public int startType() {
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
     {% endif %}
 
     {% if not foreground %}
     @Override
     public boolean canDisplayNotification() {
-        return false;
+        return true;
     }
     {% endif %}
 
@@ -46,6 +61,26 @@ public class Service{{ name|capitalize }} extends PythonService {
             } catch (NoSuchMethodException | IllegalAccessException |
                      IllegalArgumentException | InvocationTargetException e) {
             }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelName = "{{ name| capitalize }}";
+            NotificationChannel chan = new NotificationChannel("{{ args.name }}", channelName, NotificationManager.IMPORTANCE_MIN);
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            assert manager != null;
+            manager.createNotificationChannel(chan);
+
+            NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, "{{ args.name }}");
+            notification = notificationBuilder.setOngoing(true)
+                    .setSmallIcon(context.getApplicationInfo().icon)
+                    .setContentTitle(channelName)
+                    .setContentIntent(pIntent)
+                    .setPriority(Notification.PRIORITY_MIN)
+                    .setShowWhen(false)
+                    //.setCategory(Notification.CATEGORY_SERVICE)
+                    .setOnlyAlertOnce(true)             
+                    .build();
         } else {
             Notification.Builder builder = new Notification.Builder(context);
             builder.setContentTitle("{{ args.name }}");
@@ -53,7 +88,7 @@ public class Service{{ name|capitalize }} extends PythonService {
             builder.setContentIntent(pIntent);
             builder.setSmallIcon(context.getApplicationInfo().icon);
             notification = builder.build();
-        }
+        }        
         startForeground({{ service_id }}, notification);
     }
 
@@ -67,7 +102,26 @@ public class Service{{ name|capitalize }} extends PythonService {
         intent.putExtra("pythonHome", argument);
         intent.putExtra("pythonPath", argument + ":" + argument + "/lib");
         intent.putExtra("pythonServiceArgument", pythonServiceArgument);
-        ctx.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ctx.startForegroundService(intent);
+        } else {
+            ctx.startService(intent);
+        }
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    /**
+     * Stops the task gracefully when killed.
+     * Calling stopSelf() will trigger a onDestroy() call from the system.
+     */
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
     }
 
     static public void stop(Context ctx) {
