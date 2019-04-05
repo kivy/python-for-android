@@ -137,7 +137,7 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        stopSelf();
+        //stopSelf();
     }
 
     @Override
