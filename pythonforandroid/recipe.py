@@ -151,6 +151,8 @@ class Recipe(with_metaclass(RecipeMeta)):
             attempts = 0
             while True:
                 try:
+                    import ssl
+                    ssl._create_default_https_context = ssl._create_unverified_context
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
