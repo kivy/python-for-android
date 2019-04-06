@@ -1,7 +1,9 @@
+import os
 import types
 import unittest
+import warnings
 from pythonforandroid.build import Context
-from pythonforandroid.recipe import Recipe
+from pythonforandroid.recipe import Recipe, import_recipe
 
 
 class TestRecipe(unittest.TestCase):
@@ -41,3 +43,18 @@ class TestRecipe(unittest.TestCase):
             Recipe.get_recipe(recipe_name, ctx)
         self.assertEqual(
             e.exception.args[0], 'Recipe does not exist: {}'.format(recipe_name))
+
+    def test_import_recipe(self):
+        """
+        Verifies we can dynamically import a recipe without warnings.
+        """
+        p4a_root_dir = os.path.dirname(os.path.dirname(__file__))
+        name = 'pythonforandroid.recipes.python3'
+        pathname = os.path.join(
+            *([p4a_root_dir] + name.split('.') + ['__init__.py'])
+        )
+        with warnings.catch_warnings(record=True) as recorded_warnings:
+            warnings.simplefilter("always")
+            module = import_recipe(name, pathname)
+        assert module is not None
+        assert recorded_warnings == []
