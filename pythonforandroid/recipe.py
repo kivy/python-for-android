@@ -9,15 +9,10 @@ from re import match
 import sh
 import shutil
 import fnmatch
-from os import listdir, unlink, environ, mkdir, curdir, walk
-from sys import stdout
-import time
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from os import listdir, environ, mkdir, curdir, walk
+from pythonforandroid.download import download_file
 from pythonforandroid.logger import (logger, info, warning, debug, shprint, info_main)
-from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir,
+from pythonforandroid.util import (current_directory, ensure_dir,
                                    BuildInterruptingException)
 
 
@@ -131,58 +126,12 @@ class Recipe(with_metaclass(RecipeMeta)):
         """
         if not url:
             return
-        info('Downloading {} from {}'.format(self.name, url))
 
         if cwd:
             target = join(cwd, target)
 
-        parsed_url = urlparse(url)
-        if parsed_url.scheme in ('http', 'https'):
-            def report_hook(index, blksize, size):
-                if size <= 0:
-                    progression = '{0} bytes'.format(index * blksize)
-                else:
-                    progression = '{0:.2f}%'.format(
-                        index * blksize * 100. / float(size))
-                if "CI" not in environ:
-                    stdout.write('- Download {}\r'.format(progression))
-                    stdout.flush()
-
-            if exists(target):
-                unlink(target)
-
-            # Download item with multiple attempts (for bad connections):
-            attempts = 0
-            while True:
-                try:
-                    urlretrieve(url, target, report_hook)
-                except OSError as e:
-                    attempts += 1
-                    if attempts >= 5:
-                        raise e
-                    stdout.write('Download failed retrying in a second...')
-                    time.sleep(1)
-                    continue
-                break
-            return target
-        elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
-            if isdir(target):
-                with current_directory(target):
-                    shprint(sh.git, 'fetch', '--tags')
-                    if self.version:
-                        shprint(sh.git, 'checkout', self.version)
-                    shprint(sh.git, 'pull')
-                    shprint(sh.git, 'pull', '--recurse-submodules')
-                    shprint(sh.git, 'submodule', 'update', '--recursive')
-            else:
-                if url.startswith('git+'):
-                    url = url[4:]
-                shprint(sh.git, 'clone', '--recursive', url, target)
-                if self.version:
-                    with current_directory(target):
-                        shprint(sh.git, 'checkout', self.version)
-                        shprint(sh.git, 'submodule', 'update', '--recursive')
-            return target
+        info('Downloading {} from {}'.format(self.name, url))
+        return download_file(url, target)
 
     def apply_patch(self, filename, arch, build_dir=None):
         """

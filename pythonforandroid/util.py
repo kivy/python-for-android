@@ -6,21 +6,10 @@ import shutil
 import sys
 from fnmatch import fnmatch
 from tempfile import mkdtemp
-try:
-    from urllib.request import FancyURLopener
-except ImportError:
-    from urllib import FancyURLopener
 
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
 IS_PY3 = sys.version_info[0] >= 3
-
-
-class WgetDownloader(FancyURLopener):
-    version = ('Wget/1.17.1')
-
-
-urlretrieve = WgetDownloader().retrieve
 
 
 build_platform = '{system}-{machine}'.format(
