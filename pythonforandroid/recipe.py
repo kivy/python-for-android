@@ -1,5 +1,4 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
-import importlib
 import glob
 from shutil import rmtree
 from six import PY2, with_metaclass
@@ -21,22 +20,27 @@ from pythonforandroid.logger import (logger, info, warning, debug, shprint, info
 from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir,
                                    BuildInterruptingException)
 
-# this import is necessary to keep imp.load_source from complaining :)
-if PY2:
-    import imp
-    import_recipe = imp.load_source
-else:
-    import importlib.util
-    if hasattr(importlib.util, 'module_from_spec'):
-        def import_recipe(module, filename):
+
+def import_recipe(module, filename):
+    if PY2:
+        import imp
+        import warnings
+        with warnings.catch_warnings():
+            # ignores warnings raised by hierarchical module names
+            # (names containing dots) on Python 2
+            warnings.simplefilter("ignore", RuntimeWarning)
+            return imp.load_source(module, filename)
+    else:
+        # Python 3.5+
+        import importlib.util
+        if hasattr(importlib.util, 'module_from_spec'):
             spec = importlib.util.spec_from_file_location(module, filename)
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             return mod
-    else:
-        from importlib.machinery import SourceFileLoader
-
-        def import_recipe(module, filename):
+        else:
+            # Python 3.3 and 3.4:
+            from importlib.machinery import SourceFileLoader
             return SourceFileLoader(module, filename).load_module()
 
 
