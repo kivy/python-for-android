@@ -78,7 +78,6 @@ public class Service{{ name|capitalize }} extends PythonService {
                     .setContentIntent(pIntent)
                     .setPriority(Notification.PRIORITY_MIN)
                     .setShowWhen(false)
-                    //.setCategory(Notification.CATEGORY_SERVICE)
                     .setOnlyAlertOnce(true)             
                     .build();
         } else {
@@ -115,14 +114,6 @@ public class Service{{ name|capitalize }} extends PythonService {
         super.onDestroy();
     }
 
-    /**
-     * Stops the task gracefully when killed.
-     * Calling stopSelf() will trigger a onDestroy() call from the system.
-     */
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-    }
 
     static public void stop(Context ctx) {
         Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);

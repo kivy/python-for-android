@@ -167,8 +167,7 @@ public class PythonService extends Service implements Runnable {
     }
 
     /**
-     * Stops the task gracefully when killed.
-     * Calling stopSelf() will trigger a onDestroy() call from the system.
+     * Stops the task gracefully, but don t kill the process.
      */
     @Override
     public void onTaskRemoved(Intent rootIntent) {
