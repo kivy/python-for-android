@@ -31,14 +31,14 @@ public class Service{{ name|capitalize }} extends PythonService {
     {% if sticky %}
     @Override
     public int startType() {
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
     {% endif %}
 
     {% if not foreground %}
     @Override
     public boolean canDisplayNotification() {
-        return true;
+        return false;
     }
     {% endif %}
 
