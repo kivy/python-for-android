@@ -434,7 +434,7 @@ overrides if you do not use them::
                         # alongside this one
 
         def get_recipe_env(self, arch):
-            env = super(YourRecipe, self).get_recipe_env()
+            env = super(YourRecipe, self).get_recipe_env(arch)
             # Manipulate the env here if you want
             return env
 
