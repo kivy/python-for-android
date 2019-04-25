@@ -5,8 +5,8 @@ import sh
 
 
 class LibZMQRecipe(Recipe):
-    version = '4.1.4'
-    url = 'http://download.zeromq.org/zeromq-{version}.tar.gz'
+    version = '4.3.1'
+    url = 'https://github.com/zeromq/libzmq/releases/download/v{version}/zeromq-{version}.zip'
     depends = []
 
     def should_build(self, arch):
@@ -31,14 +31,14 @@ class LibZMQRecipe(Recipe):
             bash = sh.Command('sh')
             shprint(
                 bash, './configure',
-                '--host=arm-linux-androideabi',
+                '--host={}'.format(arch.command_prefix),
                 '--without-documentation',
                 '--prefix={}'.format(prefix),
                 '--with-libsodium=no',
                 _env=env)
             shprint(sh.make, _env=env)
             shprint(sh.make, 'install', _env=env)
-            shutil.copyfile('.libs/libzmq.so', join(
+            shutil.copyfile('src/.libs/libzmq.so', join(
                 self.ctx.get_libs_dir(arch.arch), 'libzmq.so'))
 
             bootstrap_obj_dir = join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
@@ -55,6 +55,9 @@ class LibZMQRecipe(Recipe):
                     self.ctx.get_libs_dir(arch.arch)
                 )
 
+    def get_include_dirs(self, arch):
+        return [join(self.get_build_dir(arch.arch), 'include')]
+
     def get_recipe_env(self, arch):
         # XXX should stl be configuration for the toolchain itself?
         env = super(LibZMQRecipe, self).get_recipe_env(arch)
@@ -69,6 +72,8 @@ class LibZMQRecipe(Recipe):
         env['CXXFLAGS'] += ' -lgnustl_shared'
         env['LDFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
             self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
+        env['CXXFLAGS'] += ' --sysroot={}/platforms/android-{}/arch-arm'.format(
+            self.ctx.ndk_dir, self.ctx.ndk_api)
         return env
 
 

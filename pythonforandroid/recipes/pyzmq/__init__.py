@@ -43,7 +43,7 @@ class PyZMQRecipe(CythonRecipe):
 [global]
 zmq_prefix = {}
 skip_check_zmq = True
-""".format(libzmq_prefix))
+""".format(libzmq_prefix).encode())
 
         return super(PyZMQRecipe, self).build_cython_components(arch)
 
