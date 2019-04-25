@@ -73,7 +73,7 @@ class LibZMQRecipe(Recipe):
         env['LDFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
             self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
         env['CXXFLAGS'] += ' --sysroot={}/platforms/android-{}/arch-arm'.format(
-            self.ctx.ndk_dir,self.ctx.ndk_api)
+            self.ctx.ndk_dir, self.ctx.ndk_api)
         return env
 
 
