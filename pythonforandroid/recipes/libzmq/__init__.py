@@ -31,7 +31,7 @@ class LibZMQRecipe(Recipe):
             bash = sh.Command('sh')
             shprint(
                 bash, './configure',
-                '--host=' + arch.command_prefix,
+                '--host={}'.format(arch.command_prefix),
                 '--without-documentation',
                 '--prefix={}'.format(prefix),
                 '--with-libsodium=no',
