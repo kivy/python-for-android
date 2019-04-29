@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from os import environ
 from pythonforandroid import __version__
+from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 from pythonforandroid.util import BuildInterruptingException, handle_build_exception
@@ -179,6 +180,7 @@ def build_dist_from_args(ctx, dist, args):
             ctx, dist.recipes, bs,
             blacklist=blacklist
         ))
+    assert set(build_order).intersection(set(python_modules)) == set()
     ctx.recipe_build_order = build_order
     ctx.python_modules = python_modules
 
@@ -197,7 +199,9 @@ def build_dist_from_args(ctx, dist, args):
     if dist.needs_build:
         ctx.prepare_dist(ctx.dist_name)
 
-    build_recipes(build_order, python_modules, ctx)
+    build_recipes(build_order, python_modules, ctx, args.private,
+                  ignore_project_setup_py=args.ignore_setup_py,
+                 )
 
     ctx.bootstrap.run_distribute()
 
@@ -307,7 +311,15 @@ class ToolchainCL(object):
         generic_parser.add_argument(
             '--requirements',
             help=('Dependencies of your app, should be recipe names or '
-                  'Python modules'),
+                  'Python modules. NOT NECESSARY if you are using '
+                  'Python 3 with --use-setup-py'),
+            default='')
+
+        generic_parser.add_argument(
+            '--recipe-blacklist',
+            help=('Blacklist an internal recipe from use. Allows '
+                  'disabling Python 3 core modules to save size'),
+            dest="recipe_blacklist",
             default='')
 
         generic_parser.add_argument(
@@ -467,10 +479,33 @@ class ToolchainCL(object):
             subparsers,
             'apk', help='Build an APK',
             parents=[generic_parser])
+        # This is actually an internal argument of the build.py
+        # (see pythonforandroid/bootstraps/common/build/build.py).
+        # However, it is also needed before the distribution is finally
+        # assembled for locating the setup.py / other build systems, which
+        # is why we also add it here:
+        parser_apk.add_argument(
+            '--private', dest='private',
+            help='the directory with the app source code files' +
+                 ' (containing your main.py entrypoint)',
+            required=False, default=None)
         parser_apk.add_argument(
             '--release', dest='build_mode', action='store_const',
             const='release', default='debug',
             help='Build the PARSER_APK. in Release mode')
+        parser_apk.add_argument(
+            '--use-setup-py', dest="use_setup_py",
+            action='store_true', default=False,
+            help="Process the setup.py of a project if present. " +
+                 "(Experimental!")
+        parser_apk.add_argument(
+            '--ignore-setup-py', dest="ignore_setup_py",
+            action='store_true', default=False,
+            help="Don't run the setup.py of a project if present. " +
+                 "This may be required if the setup.py is not " +
+                 "designed to work inside p4a (e.g. by installing " +
+                 "dependencies that won't work or aren't desired " +
+                 "on Android")
         parser_apk.add_argument(
             '--keystore', dest='keystore', action='store', default=None,
             help=('Keystore for JAR signing key, will use jarsigner '
@@ -530,6 +565,11 @@ class ToolchainCL(object):
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
+        if hasattr(args, "private") and args.private is not None:
+            # Pass this value on to the internal bootstrap build.py:
+            args.unknown_args += ["--private", args.private]
+        if args.ignore_setup_py:
+            args.use_setup_py = False
 
         self.args = args
 
@@ -542,9 +582,53 @@ class ToolchainCL(object):
         if args.debug:
             logger.setLevel(logging.DEBUG)
 
+        self.ctx = Context()
+        self.ctx.use_setup_py = args.use_setup_py
+
+        have_setup_py_or_similar = False
+        if getattr(args, "private", None) is not None:
+            project_dir = getattr(args, "private")
+            if (os.path.exists(os.path.join(project_dir, "setup.py")) or
+                    os.path.exists(os.path.join(project_dir,
+                                                "pyproject.toml"))):
+                have_setup_py_or_similar = True
+
         # Process requirements and put version in environ
         if hasattr(args, 'requirements'):
             requirements = []
+
+            # Add dependencies from setup.py, but only if they are recipes
+            # (because otherwise, setup.py itself will install them later)
+            if (have_setup_py_or_similar and
+                    getattr(args, "use_setup_py", False)):
+                try:
+                    info("Analyzing package dependencies. MAY TAKE A WHILE.")
+                    # Get all the dependencies corresponding to a recipe:
+                    dependencies = [
+                        dep.lower() for dep in
+                        get_dep_names_of_package(
+                            args.private,
+                            keep_version_pins=True,
+                            recursive=True,
+                            verbose=True,
+                        )
+                    ]
+                    info("Dependencies obtained: " + str(dependencies))
+                    all_recipes = [
+                        recipe.lower() for recipe in
+                        set(Recipe.list_recipes(self.ctx))
+                    ]
+                    dependencies = set(dependencies).intersection(
+                        set(all_recipes)
+                    )
+                    # Add dependencies to argument list:
+                    if len(dependencies) > 0:
+                        if len(args.requirements) > 0:
+                            args.requirements += u","
+                        args.requirements += u",".join(dependencies)
+                except ValueError:
+                    # Not a python package, apparently.
+                    pass
 
             # Parse --requirements argument list:
             for requirement in split_argument_list(args.requirements):
@@ -558,7 +642,6 @@ class ToolchainCL(object):
 
         self.warn_on_deprecated_args(args)
 
-        self.ctx = Context()
         self.storage_dir = args.storage_dir
         self.ctx.setup_dirs(self.storage_dir)
         self.sdk_dir = args.sdk_dir
@@ -587,6 +670,25 @@ class ToolchainCL(object):
         """
         Print warning messages for any deprecated arguments that were passed.
         """
+
+        # Output warning if setup.py is present and neither --ignore-setup-py
+        # nor --use-setup-py was specified.
+        if getattr(args, "private", None) is not None and \
+                (os.path.exists(os.path.join(args.private, "setup.py")) or
+                 os.path.exists(os.path.join(args.private, "pyproject.toml"))
+                ):
+            if not getattr(args, "use_setup_py", False) and \
+                    not getattr(args, "ignore_setup_py", False):
+                warning("  **** FUTURE BEHAVIOR CHANGE WARNING ****")
+                warning("Your project appears to contain a setup.py file.")
+                warning("Currently, these are ignored by default.")
+                warning("This will CHANGE in an upcoming version!")
+                warning("")
+                warning("To ensure your setup.py is ignored, please specify:")
+                warning("    --ignore-setup-py")
+                warning("")
+                warning("To enable what will some day be the default, specify:")
+                warning("    --use-setup-py")
 
         # NDK version is now determined automatically
         if args.ndk_version is not None:

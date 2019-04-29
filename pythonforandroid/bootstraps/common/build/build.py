@@ -23,12 +23,14 @@ from fnmatch import fnmatch
 import jinja2
 
 
-def get_dist_info_for(key):
+def get_dist_info_for(key, error_if_missing=True):
     try:
         with open(join(dirname(__file__), 'dist_info.json'), 'r') as fileh:
             info = json.load(fileh)
-        value = str(info[key])
+        value = info[key]
     except (OSError, KeyError) as e:
+        if not error_if_missing:
+            return None
         print("BUILD FAILURE: Couldn't extract the key `" + key + "` " +
               "from dist_info.json: " + str(e))
         sys.exit(1)
@@ -304,18 +306,45 @@ main.py that loads it.''')
         f.write("P4A_MINSDK=" + str(args.min_sdk_version) + "\n")
 
     # Package up the private data (public not supported).
+    use_setup_py = get_dist_info_for("use_setup_py",
+                                     error_if_missing=False) is True
     tar_dirs = [env_vars_tarpath]
-    if args.private:
-        tar_dirs.append(args.private)
-    for python_bundle_dir in ('private', 'crystax_python', '_python_bundle'):
-        if exists(python_bundle_dir):
-            tar_dirs.append(python_bundle_dir)
-    if get_bootstrap_name() == "webview":
-        tar_dirs.append('webview_includes')
-    if args.private or args.launcher:
-        make_tar(
-            join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
-            optimize_python=args.optimize_python)
+    _temp_dirs_to_clean = []
+    try:
+        if args.private:
+            if not use_setup_py or (
+                    not exists(join(args.private, "setup.py")) and
+                    not exists(join(args.private, "pyproject.toml"))
+                    ):
+                print('No setup.py/pyproject.toml used, copying '
+                      'full private data into .apk.')
+                tar_dirs.append(args.private)
+            else:
+                print('Copying main.py ONLY, since other app data is '
+                      'expected in site-packages.')
+                main_py_only_dir = tempfile.mkdtemp()
+                _temp_dirs_to_clean.append(main_py_only_dir)
+                if exists(join(args.private, "main.pyo")):
+                    shutil.copyfile(join(args.private, "main.pyo"),
+                                    join(main_py_only_dir, "main.pyo"))
+                elif exists(join(args.private, "main.py")):
+                    shutil.copyfile(join(args.private, "main.py"),
+                                    join(main_py_only_dir, "main.py"))
+                tar_dirs.append(main_py_only_dir)
+        for python_bundle_dir in ('private',
+                                  'crystax_python',
+                                  '_python_bundle'):
+            if exists(python_bundle_dir):
+                tar_dirs.append(python_bundle_dir)
+        if get_bootstrap_name() == "webview":
+            tar_dirs.append('webview_includes')
+        if args.private or args.launcher:
+            make_tar(
+                join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
+                optimize_python=args.optimize_python)
+    finally:
+        for directory in _temp_dirs_to_clean:
+            shutil.rmtree(directory)
 
     # Remove extra env vars tar-able directory:
     shutil.rmtree(env_vars_tarpath)
@@ -361,9 +390,7 @@ main.py that loads it.''')
     version_code = 0
     if not args.numeric_version:
         # Set version code in format (arch-minsdk-app_version)
-        with open(join(dirname(__file__), 'dist_info.json'), 'r') as dist_info:
-            dist_data = json.load(dist_info)
-        arch = dist_data["archs"][0]
+        arch = get_dist_info_for("archs")[0]
         arch_dict = {"x86_64": "9", "arm64-v8a": "8", "armeabi-v7a": "7", "x86": "6"}
         arch_code = arch_dict.get(arch, '1')
         min_sdk = args.min_sdk_version
