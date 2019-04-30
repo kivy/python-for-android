@@ -593,7 +593,8 @@ def project_has_setup_py(project_dir):
     return False
 
 
-def run_pymodules_install(ctx, modules, project_dir, ignore_setup_py=False):
+def run_pymodules_install(ctx, modules, project_dir=None,
+                          ignore_setup_py=False):
     """ This function will take care of all non-recipe things, by:
 
         1. Processing them from --requirements (the modules argument)
@@ -610,6 +611,7 @@ def run_pymodules_install(ctx, modules, project_dir, ignore_setup_py=False):
     # Bail out if no python deps and no setup.py to process:
     if not modules and (
             ignore_setup_py or
+            project_dir is None or
             not project_has_setup_py(project_dir)
             ):
         info('No Python modules and no setup.py to process, skipping')
@@ -621,7 +623,8 @@ def run_pymodules_install(ctx, modules, project_dir, ignore_setup_py=False):
              'install them with pip'.format(', '.join(modules)))
         info('If this fails, it may mean that the module has compiled '
              'components and needs a recipe.')
-    if project_has_setup_py(project_dir) and not ignore_setup_py:
+    if project_dir is not None and \
+            project_has_setup_py(project_dir) and not ignore_setup_py:
         info('Will process project install, if it fails then the '
              'project may not be compatible for Android install.')
 
@@ -694,7 +697,9 @@ def run_pymodules_install(ctx, modules, project_dir, ignore_setup_py=False):
                     _env=copy.copy(env))
 
         # Afterwards, run setup.py if present:
-        if project_has_setup_py(project_dir) and not ignore_setup_py:
+        if project_dir is not None and (
+                project_has_setup_py(project_dir) and not ignore_setup_py
+                ):
             with current_directory(project_dir):
                 info('got setup.py or similar, running project install. ' +
                      '(disable this behavior with --ignore-setup-py)')
