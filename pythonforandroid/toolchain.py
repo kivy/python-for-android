@@ -199,8 +199,11 @@ def build_dist_from_args(ctx, dist, args):
     if dist.needs_build:
         ctx.prepare_dist(ctx.dist_name)
 
-    build_recipes(build_order, python_modules, ctx, args.private,
-                  ignore_project_setup_py=args.ignore_setup_py,
+    build_recipes(build_order, python_modules, ctx,
+                  getattr(args, "private", None),
+                  ignore_project_setup_py=getattr(
+                      args, "ignore_setup_py", False
+                  ),
                  )
 
     ctx.bootstrap.run_distribute()
@@ -568,7 +571,7 @@ class ToolchainCL(object):
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
-        if args.ignore_setup_py:
+        if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
         self.args = args
@@ -583,7 +586,7 @@ class ToolchainCL(object):
             logger.setLevel(logging.DEBUG)
 
         self.ctx = Context()
-        self.ctx.use_setup_py = args.use_setup_py
+        self.ctx.use_setup_py = getattr(args, "use_setup_py", True)
 
         have_setup_py_or_similar = False
         if getattr(args, "private", None) is not None:
