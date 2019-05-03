@@ -125,7 +125,7 @@ call anything that is currently missing.
 You can include Plyer in your APKs by adding the `Plyer` recipe to
 your build requirements, e.g. :code:`--requirements=plyer`.
 
-You should check the `Plyer documentation <Plyer_>`_ for details of all supported
+You should check the `Plyer documentation <https://plyer.readthedocs.io/en/stable/>`_ for details of all supported
 facades (platform APIs), but as an example the following is how you
 would achieve vibration as described in the Pyjnius section above::
 
@@ -191,5 +191,5 @@ sometimes a little more involved, particularly if making Java classes
 from Python code), but it's not Pythonic and it's not short. These are
 problems that Plyer, explained below, attempts to address.
 
-You can check the `Pyjnius documentation <Pyjnius_>`_ for further details.
+You can check the `Pyjnius documentation <https://pyjnius.readthedocs.io/en/stable/>`_ for further details.
 

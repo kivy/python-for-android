@@ -21,8 +21,10 @@ data_files = []
 # https://github.com/kivy/buildozer/issues/722
 install_reqs = [
     'appdirs', 'colorama>=0.3.3', 'jinja2', 'six',
-    'enum34; python_version<"3.4"', 'sh>=1.10; sys_platform!="nt"'
+    'enum34; python_version<"3.4"', 'sh>=1.10; sys_platform!="nt"',
+    'pep517', 'pytoml', 'virtualenv'
 ]
+# (pep517, pytoml and virtualenv are used by pythonpackage.py)
 
 # By specifying every file manually, package_data will be able to
 # include them in binary distributions. Note that we have to add
