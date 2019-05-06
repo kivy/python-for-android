@@ -34,7 +34,7 @@ class Python3Recipe(GuestPythonRecipe):
         '--host={android_host}',
         '--build={android_build}',
         '--enable-shared',
-        '--disable-ipv6',
+        '--enable-ipv6',
         'ac_cv_file__dev_ptmx=yes',
         'ac_cv_file__dev_ptc=no',
         '--without-ensurepip',
