@@ -1,6 +1,6 @@
 
 try:
-    from jnius import autoclass
+    from jnius import autoclass, PythonJavaClass, java_method
 except ImportError:
     # To allow importing by build/manifest-creating code without
     # pyjnius being present:
@@ -420,6 +420,41 @@ class Permission:
     WRITE_VOICEMAIL = (
         "com.android.voicemail.permission.WRITE_VOICEMAIL"
         )
+
+
+class onRequestPermissionsCallback(PythonJavaClass):
+    """Callback class for registering a Python callback from
+    onRequestPermissionsResult in PythonActivity.
+    """
+    __javainterfaces__ = ['org.kivy.android.PythonActivity$PermissionsCallback']
+    __javacontext__ = 'app'
+    _callback = None  # To avoid garbage collection
+
+    def __init__(self, func):
+        self.func = func
+        onRequestPermissionsCallback._callback = self
+        super().__init__()
+
+    @java_method('(I[Ljava/lang/String;[I)V')
+    def onRequestPermissionsResult(self, requestCode, permissions, grantResults):
+        self.func(requestCode, permissions, grantResults)
+
+
+def register_permissions_callback(callback):
+    """Register a callback. This will asynchronously receive arguments from
+    onRequestPermissionsResult on PythonActivity after request_permission(s)
+    is called.
+
+    The callback must accept three arguments: requestCode, permissions and
+    grantResults.
+
+    Note that calling request_permission on SDK_INT < 23 will return
+    immediately (as run-time permissions are not required), and so this
+    callback will never happen.
+    """
+    java_callback = onRequestPermissionsCallback(callback)
+    python_activity = autoclass('org.kivy.android.PythonActivity')
+    python_activity.addPermissionsCallback(java_callback)
 
 
 def request_permissions(permissions):
