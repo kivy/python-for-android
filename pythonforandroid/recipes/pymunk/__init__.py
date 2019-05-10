@@ -4,7 +4,7 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 class PymunkRecipe(CompiledComponentsPythonRecipe):
     name = "pymunk"
-    version = '5.3.2'
+    version = '5.5.0'
     url = 'https://pypi.python.org/packages/source/p/pymunk/pymunk-{version}.zip'
     depends = ['cffi', 'setuptools']
     call_hostpython_via_targetpython = False
