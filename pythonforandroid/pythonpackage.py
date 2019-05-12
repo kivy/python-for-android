@@ -55,16 +55,21 @@ import zipfile
 
 
 def transform_dep_for_pip(dependency):
-    if dependency.find("@") > 0:
+    if dependency.find("@") > 0 and (
+            dependency.find("@") < dependency.find("://") or
+            "://" not in dependency
+            ):
         # WORKAROUND FOR UPSTREAM BUG:
         # https://github.com/pypa/pip/issues/6097
         # (Please REMOVE workaround once that is fixed & released upstream!)
         #
         # Basically, setup_requires() can contain a format pip won't install
         # from a requirements.txt (PEP 508 URLs).
-        # To avoid this, translate to an #egg-name= reference:
-        url = (dependency.partition("@")[2].strip() +
-               "#egg-name=" +
+        # To avoid this, translate to an #egg= reference:
+        if dependency.endswith("#"):
+            dependency = dependency[:-1]
+        url = (dependency.partition("@")[2].strip().partition("#egg")[0] +
+               "#egg=" +
                dependency.partition("@")[0].strip()
               )
         return url
