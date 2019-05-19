@@ -436,10 +436,11 @@ def _extract_metainfo_files_from_package_unsafe(
                 os.path.join(output_path, 'pyproject.toml')
             )
 
-            # Get build backend from pyproject.toml:
+            # Get build backend and requirements from pyproject.toml:
             with open(os.path.join(path, 'pyproject.toml')) as f:
                 build_sys = pytoml.load(f)['build-system']
                 backend = build_sys["build-backend"]
+                build_requires.extend(build_sys["requires"])
 
             # Get a virtualenv with build requirements and get all metadata:
             env = BuildEnvironment()
