@@ -1,10 +1,8 @@
 from os.path import join
 import sh
 from pythonforandroid.recipe import NDKRecipe
-from pythonforandroid.toolchain import (
-    current_directory,
-    shprint,
-)
+from pythonforandroid.util import current_directory
+from pythonforandroid.logger import shprint
 from multiprocessing import cpu_count
 
 

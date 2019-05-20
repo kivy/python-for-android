@@ -35,5 +35,10 @@ before_script:
   # (we ignore test_pythonpackage.py since these run way too long!! test_pythonpackage_basic.py will still be run.)
 
 script:
+  # Run a background process to make sure that travis will not kill our tests in
+  # case that the travis log doesn't produce any output for more than 10 minutes
+  - while sleep 540; do echo "==== Still running (travis, don't kill me) ===="; done &
   - docker build --tag=p4a --file Dockerfile.py3 .
   - docker run -e CI p4a /bin/sh -c "$COMMAND"
+  # kill the background process started before run docker
+  - kill %1
