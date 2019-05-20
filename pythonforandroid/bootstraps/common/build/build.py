@@ -299,7 +299,8 @@ main.py that loads it.''')
     # Add extra environment variable file into tar-able directory:
     env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
     with open(os.path.join(env_vars_tarpath, "p4a_env_vars.txt"), "w") as f:
-        f.write("P4A_IS_WINDOWED=" + str(args.window) + "\n")
+        if hasattr(args, "window"):
+            f.write("P4A_IS_WINDOWED=" + str(args.window) + "\n")
         if hasattr(args, "orientation"):
             f.write("P4A_ORIENTATION=" + str(args.orientation) + "\n")
         f.write("P4A_NUMERIC_VERSION=" + str(args.numeric_version) + "\n")
