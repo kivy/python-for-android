@@ -9,7 +9,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
     version = '3.0.3'
     url = 'https://github.com/matplotlib/matplotlib/archive/v{version}.zip'
 
-    depends = ['numpy', 'setuptools', 'freetype', 'kiwisolver']
+    depends = ['numpy', 'png', 'setuptools', 'freetype', 'kiwisolver']
 
     python_depends = ['pyparsing', 'cycler', 'python-dateutil']
 
@@ -20,30 +20,6 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
     patches = ['mpl_android_fixes.patch']
 
     call_hostpython_via_targetpython = False
-
-    def get_recipe_env(self, arch):
-        env = super(MatplotlibRecipe, self).get_recipe_env(arch)
-
-        numpy_recipe = Recipe.get_recipe('numpy', self.ctx)
-        
-        env['NUMPY_INCLUDE_DIR'] = join(
-            numpy_recipe.get_build_container_dir(arch.arch),
-            'numpy', 'core', 'include')
-
-        env['CFLAGS'] = env['CFLAGS'] + ' -I{jni_path}/png -I{jni_path}/freetype/include'.format(
-            jni_path=join(self.ctx.bootstrap.build_dir, 'jni'))
-
-        freetype_so_dir = join(
-            Recipe.get_recipe('freetype', self.ctx).get_build_dir(arch),
-            'objs', '.libs'
-        )
-        env['CFLAGS'] += ' -L{}'.format(freetype_so_dir)
-        env['LDFLAGS'] += ' -L{}'.format(freetype_so_dir)
-
-        env['CFLAGS'] += ' -L/home/sandy/kivytest'
-        env['LDFLAGS'] += ' -L/home/sandy/kivytest'
-
-        return env
 
     def prebuild_arch(self, arch):
         with open(join(self.get_recipe_dir(), 'setup.cfg.template')) as fileh:
