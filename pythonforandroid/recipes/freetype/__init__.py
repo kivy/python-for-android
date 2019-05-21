@@ -116,5 +116,19 @@ class FreetypeRecipe(Recipe):
                 # recipes to the definitive library, located at: objs/.libs
                 self.install_libs(arch, 'objs/.libs/libfreetype.so')
 
+        with current_directory(self.get_build_dir(arch.arch)):
+            configure = sh.Command('./configure')
+            shprint(configure,
+                    '--host=arm-linux-androideabi',
+                    '--prefix={}'.format(realpath('.')),
+                    '--without-zlib',
+                    '--without-harfbuzz',
+                    '--with-png=no',
+                    _env=env)
+            shprint(sh.make, '-j5', _env=env)
+
+    def postbuild_arch(self, arch):
+        shprint(sh.cp, 'objs/.libs/libfreetype.so', self.ctx.get_libs_dir(arch.arch))
+
 
 recipe = FreetypeRecipe()
