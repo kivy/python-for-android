@@ -1,4 +1,10 @@
 from pythonforandroid.recipe import NDKRecipe
+from pythonforandroid.util import current_directory
+from pythonforandroid.logger import shprint
+
+import sh
+
+from os.path import join
 
 
 class PngRecipe(NDKRecipe):
@@ -15,5 +21,22 @@ class PngRecipe(NDKRecipe):
 
     patches = ['build_shared_library.patch']
 
+    generated_libraries = ['libpng.so']
+
+    def build_arch(self, arch):
+        super(PngRecipe, self).build_arch(arch)
+
+        with current_directory(self.get_build_dir(arch.arch)):
+            shprint(
+                sh.cp,
+                join(
+                    self.get_build_dir(arch.arch),
+                    'libs',
+                    arch.arch,
+                    'libpng.so'),
+                join(self.ctx.get_libs_dir(arch.arch), 'libpng16.so'))
+                    
+                                
+            pass
 
 recipe = PngRecipe()
