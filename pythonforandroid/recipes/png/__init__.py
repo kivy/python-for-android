@@ -13,7 +13,7 @@ class PngRecipe(NDKRecipe):
     # TODO: Try to move the repo to mainline
     url = 'https://github.com/julienr/libpng-android/archive/{version}.zip'
 
-    generated_libraries = ['libpng.a']
+    patches = ['build_shared_library.patch']
 
 
 recipe = PngRecipe()
