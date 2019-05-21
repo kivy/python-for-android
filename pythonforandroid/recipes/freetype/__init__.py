@@ -127,8 +127,7 @@ class FreetypeRecipe(Recipe):
                     _env=env)
             shprint(sh.make, '-j5', _env=env)
 
-    def postbuild_arch(self, arch):
-        shprint(sh.cp, 'objs/.libs/libfreetype.so', self.ctx.get_libs_dir(arch.arch))
+            shprint(sh.cp, 'objs/.libs/libfreetype.so', self.ctx.get_libs_dir(arch.arch))
 
 
 recipe = FreetypeRecipe()
