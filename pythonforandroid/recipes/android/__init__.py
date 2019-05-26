@@ -14,8 +14,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
 
     src_filename = 'src'
 
-    depends = [('pygame', 'sdl2', 'genericndkbuild'),
-               'pyjnius']
+    depends = [('sdl2', 'genericndkbuild'), 'pyjnius']
 
     config_env = {}
 
@@ -39,7 +38,6 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         bootstrap = bootstrap_name = ctx_bootstrap
 
         is_sdl2 = bootstrap_name in ('sdl2', 'sdl2python3', 'sdl2_gradle')
-        is_pygame = bootstrap_name in ('pygame',)
         is_webview = bootstrap_name in ('webview',)
 
         if is_sdl2 or is_webview:
@@ -47,9 +45,6 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
                 bootstrap = 'sdl2'
             java_ns = u'org.kivy.android'
             jni_ns = u'org/kivy/android'
-        elif is_pygame:
-            java_ns = u'org.renpy.android'
-            jni_ns = u'org/renpy/android'
         else:
             logger.error((
                 'unsupported bootstrap for android recipe: {}'
@@ -60,7 +55,6 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         config = {
             'BOOTSTRAP': bootstrap,
             'IS_SDL2': int(is_sdl2),
-            'IS_PYGAME': int(is_pygame),
             'PY2': int(will_build('python2')(self)),
             'JAVA_NAMESPACE': java_ns,
             'JNI_NAMESPACE': jni_ns,
@@ -88,8 +82,6 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
                 fh.write(
                     '#define SDL_ANDROID_GetJNIEnv SDL_AndroidGetJNIEnv\n'
                 )
-            elif is_pygame:
-                fh.write('JNIEnv *SDL_ANDROID_GetJNIEnv(void);\n')
 
 
 recipe = AndroidRecipe()

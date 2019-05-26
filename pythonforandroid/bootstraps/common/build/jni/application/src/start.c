@@ -15,14 +15,10 @@
 #include <errno.h>
 
 #include "bootstrap_name.h"
+
 #ifndef BOOTSTRAP_USES_NO_SDL_HEADERS
 #include "SDL.h"
-#ifndef BOOTSTRAP_NAME_PYGAME
 #include "SDL_opengles2.h"
-#endif
-#endif
-#ifdef BOOTSTRAP_NAME_PYGAME
-#include "jniwrapperstuff.h"
 #endif
 #include "android/log.h"
 

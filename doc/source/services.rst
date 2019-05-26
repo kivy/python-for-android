@@ -26,18 +26,16 @@ There are two ways to have services included in your APK.
 Service folder
 ~~~~~~~~~~~~~~
 
-This basic method works with both the new SDL2 and old Pygame
-bootstraps. It is recommended to use the second method (below) where
-possible.
+This is the older method of handling services. It is
+recommended to use the second method (below) where possible.
 
 Create a folder named ``service`` in your app directory, and add a
 file ``service/main.py``. This file should contain the Python code
 that you want the service to run.
 
 To start the service, use the :code:`start_service` function from the
-:code:`android` module (included automatically with the Pygame
-bootstrap, you must add it to the requirements manually with SDL2 if
-you wish to use this method)::
+:code:`android` module (you may need to add ``android`` to your app
+requirements)::
 
     import android
     android.start_service(title='service name',
@@ -48,8 +46,6 @@ you wish to use this method)::
 
 Arbitrary service scripts
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. note:: This service method is *not supported* by the Pygame bootstrap.
 
 This method is recommended for non-trivial use of services as it is
 more flexible, supporting multiple services and a wider range of

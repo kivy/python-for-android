@@ -188,24 +188,10 @@ ready.
   access. Defaults to 5000.
 
 
-pygame
-~~~~~~
-
-You can use this with ``--bootstrap=pygame``, or simply include the
-``pygame`` recipe in your ``--requirements``.
-
-The pygame bootstrap is the original backend used by Kivy, and still
-works fine for use with Kivy apps. It may also work for pure pygame
-apps, but hasn't been developed with this in mind.
-
-This bootstrap will eventually be deprecated in favour of sdl2, but
-not before the sdl2 bootstrap includes all the features that would be
-lost.
-
 Build options
 %%%%%%%%%%%%%
 
-The pygame bootstrap supports the following additional command line
+The sdl2 bootstrap supports the following additional command line
 options (this list may not be exhaustive):
 
 - ``--private``: The directory containing your project files.

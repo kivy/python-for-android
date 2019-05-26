@@ -2,22 +2,6 @@
 
 include "config.pxi"
 
-IF BOOTSTRAP == 'pygame':
-    cdef extern int SDL_ANDROID_CheckPause()
-    cdef extern void SDL_ANDROID_WaitForResume() nogil
-    cdef extern void SDL_ANDROID_MapKey(int scancode, int keysym)
-
-    def check_pause():
-        return SDL_ANDROID_CheckPause()
-    
-    def wait_for_resume():
-        android_accelerometer_enable(False)
-        SDL_ANDROID_WaitForResume()
-        android_accelerometer_enable(accelerometer_enabled)
-    
-    def map_key(scancode, keysym):
-        SDL_ANDROID_MapKey(scancode, keysym)
-
 # Android keycodes.
 KEYCODE_UNKNOWN         = 0
 KEYCODE_SOFT_LEFT       = 1
@@ -179,8 +163,6 @@ python_act = autoclass(JAVA_NAMESPACE + u'.PythonActivity')
 Rect = autoclass(u'android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
-    # PyGame backend already has the listener so adding
-    # one here leads to a crash/too much cpu usage.
     # SDL2 now does not need the listener so there is
     # no point adding a processor intensive layout listenere here.
     height = 0
@@ -274,42 +256,6 @@ def get_buildinfo():
     binfo.VERSION_RELEASE = BUILD_VERSION_RELEASE
     return binfo
 
-IF IS_PYGAME:
-    # Activate input - required to receive input events.
-    cdef extern void android_activate_input()
-
-    def init():
-        android_activate_input()
-
-    # Action send
-    cdef extern void android_action_send(char*, char*, char*, char*, char*)
-    def action_send(mimetype, filename=None, subject=None, text=None,
-            chooser_title=None):
-        cdef char *j_mimetype = <bytes>mimetype
-        cdef char *j_filename = NULL
-        cdef char *j_subject = NULL
-        cdef char *j_text = NULL
-        cdef char *j_chooser_title = NULL
-        if filename is not None:
-            j_filename = <bytes>filename
-        if subject is not None:
-            j_subject = <bytes>subject
-        if text is not None:
-            j_text = <bytes>text
-        if chooser_title is not None:
-            j_chooser_title = <bytes>chooser_title
-        android_action_send(j_mimetype, j_filename, j_subject, j_text,
-                j_chooser_title)
-    
-    cdef extern int android_checkstop()
-    cdef extern void android_ackstop()
-    
-    def check_stop():
-        return android_checkstop()
-    
-    def ack_stop():
-        android_ackstop()
-    
 # -------------------------------------------------------------------
 # URL Opening.
 def open_url(url):

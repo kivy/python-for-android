@@ -3,7 +3,7 @@ Bootstraps
 ==========
 
 This page is about creating new bootstrap backends. For build options
-of existing bootstraps (i.e. with SDL2, Pygame, Webview etc.), see
+of existing bootstraps (i.e. with SDL2, Webview, etc.), see
 :ref:`build options <bootstrap_build_options>`.
 
 python-for-android (p4a) supports multiple *bootstraps*. These fulfill a

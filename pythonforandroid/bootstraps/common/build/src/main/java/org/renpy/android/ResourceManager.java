@@ -1,8 +1,7 @@
 /**
  * This class takes care of managing resources for us. In our code, we
  * can't use R, since the name of the package containing R will
- * change. (This same code is used in both org.renpy.android and
- * org.renpy.pygame.) So this is the next best thing.
+ * change. So this is the next best thing.
  */
 
 package org.renpy.android;

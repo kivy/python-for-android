@@ -78,8 +78,7 @@ supply those that you need.
   The Java bootstrap to use for your application. You mostly don't
   need to worry about this or set it manually, as an appropriate
   bootstrap will be chosen from your ``--requirements``. Current
-  choices are ``sdl2`` or ``pygame``; ``sdl2`` is experimental but
-  preferable where possible.
+  choices are ``sdl2`` (used with Kivy and most other apps) or ``webview``.
 
 
 .. note:: These options are preliminary. Others will include toggles
