@@ -36,7 +36,7 @@ grab an old (cached) package instead of a fresh one.
             --name="App name" \
             --version=x.y.z \
             --android_api XY \
-            --bootstrap=pygame or sdl2 \
+            --bootstrap=sdl2 \
             --launcher \
             --minsdk 13
 
@@ -91,12 +91,8 @@ it changes quickly and needs testing.
 Source code
 -----------
 
-.. |renpy| replace:: pygame org.renpy.android
 .. |kivy| replace:: sdl2 org.kivy.android
 
-.. _renpy:
-    https://github.com/kivy/python-for-android/tree/master/\
-    pythonforandroid/bootstraps/pygame/build/src/org/renpy/android
 .. _sdl2:
     https://github.com/kivy/python-for-android/tree/master/\
     pythonforandroid/bootstraps/sdl2/build/src/org/kivy/android

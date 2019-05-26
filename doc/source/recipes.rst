@@ -41,7 +41,7 @@ The basic declaration of a recipe is as follows::
       patches = ['some_fix.patch']  # Paths relative to the recipe dir
 
       depends = ['kivy', 'sdl2']  # These are just examples
-      conflicts = ['pygame'] 
+      conflicts = ['python2'] 
     
   recipe = YourRecipe()
 
@@ -306,14 +306,14 @@ the cython components and to install the Python module just like a
 normal PythonRecipe.
 
 For instance, the following is all that's necessary to make a recipe
-for Kivy (in this case, depending on Pygame rather than SDL2)::
+for Kivy::
 
   class KivyRecipe(CythonRecipe):
-       version = 'stable'
-       url = 'https://github.com/kivy/kivy/archive/{version}.zip'
-       name = 'kivy'
+      version = 'stable'
+      url = 'https://github.com/kivy/kivy/archive/{version}.zip'
+      name = 'kivy'
 
-       depends = ['pygame', 'pyjnius', 'android']
+      depends = ['sdl2', 'pyjnius']
 
   recipe = KivyRecipe()
   

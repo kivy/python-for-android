@@ -98,7 +98,7 @@ Advanced Android API use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As mentioned above, the ``android`` Python module provides a simple 
-wrapper around many native Android APIS, and it is *included per default*
+wrapper around many native Android APIS, and it is *included by default*
 unless you blacklist it.
 
 The available functionality of this module is not separately documented.
@@ -159,9 +159,6 @@ a Java class. For instance, here is the code to vibrate your device::
      # application, this reference is stored automatically by
      # Kivy's PythonActivity bootstrap
 
-     # This one works with Pygame
-     # PythonActivity = autoclass('org.renpy.android.PythonActivity')
-     
      # This one works with SDL2
      PythonActivity = autoclass('org.kivy.android.PythonActivity')
 
@@ -176,9 +173,9 @@ Things to note here are:
 
 - The class that must be wrapped depends on the bootstrap. This is
   because Pyjnius is using the bootstrap's java source code to get a
-  reference to the current activity, which both the Pygame and SDL2
-  bootstraps store in the ``mActivity`` static variable. This
-  difference isn't always important, but it's important to know about.
+  reference to the current activity, which the bootstraps store in the
+  ``mActivity`` static variable. This difference isn't always
+  important, but it's important to know about.
 - The code closely follows the Java API - this is exactly the same set
   of function calls that you'd use to achieve the same thing from Java
   code.

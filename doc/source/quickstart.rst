@@ -27,7 +27,7 @@ Concepts
   different sets of requirements.
 
 - bootstrap: A bootstrap is the app backend that will start your
-  application. Your application could use SDL2 as a base, or Pygame,
+  application. Your application could use SDL2 as a base, 
   or a web backend like Flask with a WebView bootstrap. Different
   bootstraps can have different build options.
 

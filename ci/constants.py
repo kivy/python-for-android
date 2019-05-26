@@ -42,7 +42,6 @@ BROKEN_RECIPES_PYTHON2 = set([
     'omemo',
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
-    'pygame',
     # most likely some setup in the Docker container, because it works in host
     'pyjnius', 'pyopenal',
     'pyproj',
