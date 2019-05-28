@@ -37,6 +37,7 @@ public class PythonUtil {
         addLibraryIfExists(libsList, "ffi", libsDir);
         addLibraryIfExists(libsList, "ssl.*", libsDir);
         addLibraryIfExists(libsList, "crypto.*", libsDir);
+        addLibraryIfExists(libsList, "png16", libsDir);
         libsList.add("python2.7");
         libsList.add("python3.5m");
         libsList.add("python3.6m");
