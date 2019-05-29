@@ -1,19 +1,52 @@
-from pythonforandroid.recipe import NDKRecipe
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.logger import shprint
+from pythonforandroid.util import current_directory
+from multiprocessing import cpu_count
+from os.path import join, exists
+import sh
 
 
-class PngRecipe(NDKRecipe):
+class PngRecipe(Recipe):
     name = 'png'
-    # This version is the last `sha commit` published in the repo (it's more
-    # than one year old...) and it's for libpng version `1.6.29`. We set a
-    # commit for a version because the author of the github's repo never
-    # released/tagged it, despite He performed the necessary changes in
-    # master branch.
-    version = 'b43b4c6'
+    version = 'v1.6.37'
+    url = 'https://github.com/glennrp/libpng/archive/{version}.zip'
 
-    # TODO: Try to move the repo to mainline
-    url = 'https://github.com/julienr/libpng-android/archive/{version}.zip'
+    def should_build(self, arch):
+        return not exists(
+            join(self.get_build_dir(arch.arch), '.libs', 'libpng16.so')
+        )
 
-    generated_libraries = ['libpng.a']
+    def get_recipe_env(self, arch=None):
+        env = super(PngRecipe, self).get_recipe_env(arch)
+        ndk_lib_dir = join(self.ctx.ndk_platform, 'usr', 'lib')
+        ndk_include_dir = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        env['CFLAGS'] += ' -I{}'.format(ndk_include_dir)
+        env['LDFLAGS'] += ' -L{}'.format(ndk_lib_dir)
+        env['LDFLAGS'] += ' --sysroot={}'.format(self.ctx.ndk_platform)
+        return env
+
+    def build_arch(self, arch):
+        super(PngRecipe, self).build_arch(arch)
+        build_dir = self.get_build_dir(arch.arch)
+        with current_directory(build_dir):
+            env = self.get_recipe_env(arch)
+            build_arch = (
+                shprint(sh.gcc, '-dumpmachine')
+                .stdout.decode('utf-8')
+                .split('\n')[0]
+            )
+            shprint(
+                sh.Command('./configure'),
+                '--build=' + build_arch,
+                '--host=' + arch.command_prefix,
+                '--target=' + arch.command_prefix,
+                '--disable-static',
+                '--enable-shared',
+                '--prefix={}/install'.format(self.get_build_dir(arch.arch)),
+                _env=env,
+            )
+            shprint(sh.make, '-j', str(cpu_count()), _env=env)
+            self.install_libs(arch, join(build_dir, '.libs', 'libpng16.so'))
 
 
 recipe = PngRecipe()
