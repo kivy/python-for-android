@@ -21,9 +21,7 @@ import org.renpy.android.Hardware;
 //imports for channel definition
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
-import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 
 public class PythonService extends Service implements Runnable {
 
