@@ -17,7 +17,7 @@ public class Service{{ name|capitalize }} extends PythonService {
      * {@inheritDoc}
      */
     @Override
-    public int getStartType() {
+    public int startType() {
         return START_STICKY;
     }
     {% endif %}
