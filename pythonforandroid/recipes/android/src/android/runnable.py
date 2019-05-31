@@ -10,6 +10,8 @@ from android.config import JAVA_NAMESPACE
 # reference to the activity
 _PythonActivity = autoclass(JAVA_NAMESPACE + '.PythonActivity')
 
+#cache of functions table
+__functionstable__ = {}
 
 class Runnable(PythonJavaClass):
     '''Wrapper around Java Runnable class. This class can be used to schedule a
@@ -27,6 +29,7 @@ class Runnable(PythonJavaClass):
         self.args = args
         self.kwargs = kwargs
         Runnable.__runnables__.append(self)
+        
         _PythonActivity.mActivity.runOnUiThread(self)
 
     @java_method('()V')
@@ -38,12 +41,24 @@ class Runnable(PythonJavaClass):
             traceback.print_exc()
 
         Runnable.__runnables__.remove(self)
+        
+        
 
 
 def run_on_ui_thread(f):
     '''Decorator to create automatically a :class:`Runnable` object with the
     function. The function will be delayed and call into the Activity thread.
     '''
+    
+    if f not in __functionstable__:
+        
+        rfunction = Runnable(f) #store the runnable function
+        
+        __functionstable__[f] = {"rfunction":rfunction}
+        
+    rfunction = __functionstable__[f]["rfunction"]
+    
     def f2(*args, **kwargs):
-        Runnable(f)(*args, **kwargs)
+        rfunction(*args, **kwargs)
+            
     return f2
