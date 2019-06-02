@@ -51,7 +51,7 @@ class Bootstrap(object):
 
     # All bootstraps should include Python in some way:
     recipe_depends = [
-        ("python2", "python2legacy", "python3", "python3crystax"),
+        ("python2", "python3", "python3crystax"),
         'android',
     ]
 
@@ -275,8 +275,6 @@ class Bootstrap(object):
 
         libs_dir = join(self.dist_dir, '_python_bundle',
                         '_python_bundle', 'modules')
-        if self.ctx.python_recipe.name == 'python2legacy':
-            libs_dir = join(self.dist_dir, 'private')
         filens = shprint(sh.find, libs_dir, join(self.dist_dir, 'libs'),
                          '-iname', '*.so', _env=env).stdout.decode('utf-8')
 

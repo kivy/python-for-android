@@ -21,7 +21,7 @@ class Python2Recipe(GuestPythonRecipe):
     name = 'python2'
 
     depends = ['hostpython2']
-    conflicts = ['python3crystax', 'python3', 'python2legacy']
+    conflicts = ['python3crystax', 'python3']
 
     patches = [
                # new 2.7.15 patches
