@@ -11,6 +11,7 @@ except ImportError:
 class Permission:
     ACCEPT_HANDOVER = "android.permission.ACCEPT_HANDOVER"
     ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION"
+    ACCESS_FINE_LOCATION = "android.permisssion.ACCESS_FINE_LOCATION"
     ACCESS_LOCATION_EXTRA_COMMANDS = (
         "android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"
         )
