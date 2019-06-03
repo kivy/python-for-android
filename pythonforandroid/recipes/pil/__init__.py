@@ -1,12 +1,13 @@
 from pythonforandroid.recipes.Pillow import PillowRecipe
 from pythonforandroid.logger import warning
 
+
 class PilRecipe(PillowRecipe):
     """A transparent wrapper around the Pillow recipe, it should build
     Pillow automatically as if "pillow" were specified in the
     requirements.
     """
-    
+
     name = 'Pillow'  # ensures the Pillow recipe directory is used where necessary
 
     conflicts = ['pillow']

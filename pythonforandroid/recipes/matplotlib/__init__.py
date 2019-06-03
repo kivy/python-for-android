@@ -1,11 +1,11 @@
 
-from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe, warning, Recipe
+from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
 from os.path import join
-import shutil
+
 
 class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
-    
+
     version = '3.0.3'
     url = 'https://github.com/matplotlib/matplotlib/archive/v{version}.zip'
 
