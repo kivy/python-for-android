@@ -21,8 +21,8 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         ndk_include_dir = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
 
         png = self.get_recipe('png', self.ctx)
-        png_lib_dir = png.get_lib_dir(arch)
-        png_jni_dir = png.get_jni_dir(arch)
+        png_lib_dir = join(png.get_build_dir(arch.arch), '.libs')
+        png_inc_dir = png.get_build_dir(arch)
 
         jpeg = self.get_recipe('jpeg', self.ctx)
         jpeg_inc_dir = jpeg_lib_dir = jpeg.get_build_dir(arch.arch)
@@ -41,7 +41,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         env['FREETYPE_ROOT'] = '{}|{}'.format(free_lib_dir, free_inc_dir)
         env['ZLIB_ROOT'] = '{}|{}'.format(ndk_lib_dir, ndk_include_dir)
 
-        cflags = ' -I{}'.format(png_jni_dir)
+        cflags = ' -I{}'.format(png_inc_dir)
         cflags += ' -I{} -I{}'.format(harf_inc_dir, join(harf_inc_dir, 'src'))
         cflags += ' -I{}'.format(free_inc_dir)
         cflags += ' -I{}'.format(jpeg_inc_dir)

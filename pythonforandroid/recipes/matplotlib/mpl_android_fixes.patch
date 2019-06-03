@@ -1,0 +1,29 @@
+diff --git a/setupext.py b/setupext.py
+index fc82d5d..2067db0 100644
+--- a/setupext.py
++++ b/setupext.py
+@@ -1004,10 +1004,10 @@ class Numpy(SetupPackage):
+         ext.define_macros.append(('__STDC_FORMAT_MACROS', 1))
+ 
+     def get_setup_requires(self):
+-        return ['numpy>=1.10.0']
++        return ['numpy==1.15.1']  # to match p4a's target version
+ 
+     def get_install_requires(self):
+-        return ['numpy>=1.10.0']
++        return ['numpy==1.15.1']  # to match p4a's target version
+ 
+ 
+ class LibAgg(SetupPackage):
+@@ -1443,9 +1443,10 @@ class BackendAgg(OptionalBackendPackage):
+ 
+ class BackendTkAgg(OptionalBackendPackage):
+     name = "tkagg"
+-    force = True
++    force = False
+ 
+     def check(self):
++        raise CheckFailed("Disabled by patching during Android build")  # tk doesn't work on Android but causes build problems
+         return "installing; run-time loading from Python Tcl / Tk"
+ 
+     def get_extension(self):
