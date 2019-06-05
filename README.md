@@ -3,8 +3,8 @@ python-for-android
 
 [![Build Status](https://travis-ci.org/kivy/python-for-android.svg?branch=master)](https://travis-ci.org/kivy/python-for-android)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=master&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=master)
-[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers) 
-[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors) 
+[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 
 python-for-android is a packager for Python apps on Android. You can
 create your own Python distribution including the modules and
@@ -69,9 +69,15 @@ We also have [#support Discord channel](https://chat.kivy.org/).
 
 ## Contributing
 
-We love pull requests and discussing novel ideas. Check out our
-[contribution guide](http://kivy.org/docs/contribute.html) and feel
-free to improve python-for-android.
+We love pull requests and discussing novel ideas. Check out the Kivy
+project [contribution guide](http://kivy.org/docs/contribute.html) and
+feel free to improve python-for-android.
+
+See [our
+documentation](https://python-for-android.readthedocs.io/en/latest/contribute/)
+for more information about the python-for-android development and
+release model, but don't worry about the details. You just need to
+make a pull request, we'll take care of the rest.
 
 The following mailing list and IRC channel are used exclusively for
 discussions about developing the Kivy framework and its sister projects:
@@ -139,4 +145,3 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/kivy/sponsor/7/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/8/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/9/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a>
-
