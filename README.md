@@ -2,6 +2,7 @@ python-for-android
 ==================
 
 [![Build Status](https://travis-ci.org/kivy/python-for-android.svg?branch=master)](https://travis-ci.org/kivy/python-for-android)
+[![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=master&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=master)
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers) 
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors) 
 
