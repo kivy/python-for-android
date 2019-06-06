@@ -71,11 +71,13 @@
 
         {% if service %}
         <service android:name="org.kivy.android.PythonService"
-                 android:process=":pythonservice" />
+                 android:process=":pythonservice" 
+                 android:exported="true"/>
         {% endif %}
         {% for name in service_names %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
-                 android:process=":service_{{ name }}" />
+                 android:process=":service_{{ name }}"
+                 android:exported="true" />
         {% endfor %}
 
         {% if args.billing_pubkey %}

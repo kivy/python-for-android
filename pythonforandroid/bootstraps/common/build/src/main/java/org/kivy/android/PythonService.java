@@ -18,6 +18,10 @@ import org.kivy.android.PythonUtil;
 
 import org.renpy.android.Hardware;
 
+//imports for channel definition
+import android.app.NotificationManager;
+import android.app.NotificationChannel;
+import android.graphics.Color;
 
 public class PythonService extends Service implements Runnable {
 
@@ -90,13 +94,13 @@ public class PythonService extends Service implements Runnable {
     protected void doStartForeground(Bundle extras) {
         String serviceTitle = extras.getString("serviceTitle");
         String serviceDescription = extras.getString("serviceDescription");
-
         Notification notification;
         Context context = getApplicationContext();
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_UPDATE_CURRENT);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             notification = new Notification(
                 context.getApplicationInfo().icon, serviceTitle, System.currentTimeMillis());
             try {
@@ -109,7 +113,19 @@ public class PythonService extends Service implements Runnable {
                      IllegalArgumentException | InvocationTargetException e) {
             }
         } else {
-            Notification.Builder builder = new Notification.Builder(context);
+            // for android 8+ we need to create our own channel
+            // https://stackoverflow.com/questions/47531742/startforeground-fail-after-upgrade-to-android-8-1
+            String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a";    //TODO: make this configurable
+            String channelName = "PythonSerice";                //TODO: make this configurable
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, 
+                NotificationManager.IMPORTANCE_NONE);
+            
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(chan);
+
+            Notification.Builder builder = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID);
             builder.setContentTitle(serviceTitle);
             builder.setContentText(serviceDescription);
             builder.setContentIntent(pIntent);
