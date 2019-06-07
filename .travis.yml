@@ -54,16 +54,16 @@ jobs:
       after_script:
         # kill the background process started before run docker
         - kill %1
-      name: Python 3 basic
+      name: Python 3 armeabi-v7a
       # overrides requirements to skip `peewee` pure python module, see:
       # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
-      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools'
+      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools' --arch=armeabi-v7a
+    - <<: *testing
+      name: Python 3 arm64-v8a
+      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools' --arch=arm64-v8a
     - <<: *testing
       name: Python 2 basic
-      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools'
-    - <<: *testing
-      name: Python 2 numpy
-      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --bootstrap sdl2 --requirements python2,numpy'
+      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools,numpy'
     - <<: *testing
       name: Rebuild updated recipes
       env: COMMAND='. venv/bin/activate && ./ci/rebuild_updated_recipes.py'
