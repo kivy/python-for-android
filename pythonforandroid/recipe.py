@@ -409,7 +409,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                         sh.tar('xf', extraction_filename)
                         root_directory = sh.tar('tf', extraction_filename).stdout.decode(
                                 'utf-8').split('\n')[0].split('/')[0]
-                        if root_directory != directory_name:
+                        if root_directory != basename(directory_name):
                             shprint(sh.mv, root_directory, directory_name)
                     else:
                         raise Exception(
