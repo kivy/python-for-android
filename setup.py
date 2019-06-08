@@ -88,8 +88,8 @@ setup(name='python-for-android',
       long_description=long_description,
       author='The Kivy team',
       author_email='kivy-dev@googlegroups.com',
-      url='https://github.com/kivy/python-for-android', 
-      license='MIT', 
+      url='https://github.com/kivy/python-for-android',
+      license='MIT',
       install_requires=install_reqs,
       entry_points={
           'console_scripts': [
