@@ -31,7 +31,7 @@ from pythonforandroid.util import BuildInterruptingException
 from ci.constants import TargetPython, CORE_RECIPES, BROKEN_RECIPES
 
 
-def modified_recipes(branch='origin/master'):
+def modified_recipes(branch='origin/develop'):
     """
     Returns a set of modified recipes between the current branch and the one
     in param.
