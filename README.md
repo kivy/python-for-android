@@ -6,7 +6,7 @@ python-for-android
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 
-python-for-android is a packager for Python apps on Android. You can
+python-for-android is a packaging tool for Python apps on Android. You can
 create your own Python distribution including the modules and
 dependencies you want, and bundle it in an APK along with your own code.
 
@@ -37,7 +37,7 @@ Quick instructions to start would be:
 
     pip install python-for-android
 
-or to test the master branch:
+or to test the develop branch:
 
     pip install git+https://github.com/kivy/python-for-android.git
 
@@ -46,14 +46,14 @@ equivalent). To test that the installation worked, try::
 
     python-for-android recipes
 
-This should return a list of recipes available to be built.
+This should return a list of available build recipes.
 
 To build any distributions, you need to set up the Android SDK and NDK
 as described in the documentation linked above.
 
 If you did this, to build an APK with SDL2 you can try e.g.:
 
-    p4a apk --requirements=kivy --private /home/asandy/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
+    p4a apk --requirements=kivy --private /home/username/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
 For full instructions and parameter options, see [the
 documentation](https://python-for-android.readthedocs.io/en/latest/quickstart/#usage).
