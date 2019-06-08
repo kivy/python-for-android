@@ -43,6 +43,8 @@ def fake_metadata_extract(dep_name, output_folder, debug=False):
 
             Lorem Ipsum"""
         ))
+    with open(os.path.join(output_folder, "metadata_source"), "w") as f:
+        f.write(u"wheel")  # since we have no pyproject.toml
 
 
 def test__extract_info_from_package():
@@ -87,9 +89,25 @@ def test_get_dep_names_of_package():
     dep_names = get_dep_names_of_package("python-for-android")
     assert "colorama" in dep_names
     assert "setuptools" not in dep_names
-    dep_names = get_dep_names_of_package("python-for-android",
-                                         include_build_requirements=True)
-    assert "setuptools" in dep_names
+    try:
+        dep_names = get_dep_names_of_package(
+            "python-for-android", include_build_requirements=True,
+            verbose=True,
+        )
+    except NotImplementedError as e:
+        # If python-for-android was fetched as wheel then build requirements
+        # cannot be obtained (since that is not implemented for wheels).
+        # Check for the correct error message:
+        assert "wheel" in str(e)
+        # (And yes it would be better to do a local test with something
+        #  that is guaranteed to be a wheel and not remote on pypi,
+        #  but that might require setting up a full local pypiserver.
+        #  Not worth the test complexity for now, but if anyone has an
+        #  idea in the future feel free to replace this subtest.)
+    else:
+        # We managed to obtain build requirements!
+        # Check setuptools is in here:
+        assert "setuptools" in dep_names
 
     # TEST 2 from local folder:
     assert "colorama" in get_dep_names_of_package(local_repo_folder())
