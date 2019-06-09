@@ -33,6 +33,8 @@ jobs:
   include:
     - stage: lint
       name: "Tox tests and coverage"
+      language: python
+      python: 3.7
       script:
         # we want to fail fast on tox errors without having to `docker build` first
         - tox -- tests/ --ignore tests/test_pythonpackage.py
