@@ -74,7 +74,7 @@ class TestDistribution(unittest.TestCase):
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
         self.ctx.bootstrap.distribution.folder_exists()
-        mock_exists.assert_called_with(
+        mock_exists.assert_called_once_with(
             self.ctx.bootstrap.distribution.dist_dir
         )
 
@@ -85,7 +85,7 @@ class TestDistribution(unittest.TestCase):
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
         self.ctx.bootstrap.distribution.delete()
-        mock_rmtree.assert_called_with(
+        mock_rmtree.assert_called_once_with(
             self.ctx.bootstrap.distribution.dist_dir
         )
 
