@@ -34,6 +34,7 @@
 
 
 from io import open  # needed for python 2
+import functools
 import os
 from pep517.envbuild import BuildEnvironment
 from pep517.wrappers import Pep517HookCaller
@@ -176,11 +177,23 @@ def _get_system_python_executable():
 
     def python_binary_from_folder(path):
         def binary_is_usable(python_bin):
+            """ Helper function to see if a given binary name refers
+                to a usable python interpreter binary
+            """
+
+            # Abort if path isn't present at all or a directory:
+            if not os.path.exists(
+                os.path.join(path, python_bin)
+            ) or os.path.isdir(os.path.join(path, python_bin)):
+                return
+            # We should check file not found anyway trying to run it,
+            # since it might be a dead symlink:
             try:
                 filenotfounderror = FileNotFoundError
             except NameError:  # Python 2
                 filenotfounderror = OSError
             try:
+                # Run it and see if version output works with no error:
                 subprocess.check_output([
                     os.path.join(path, python_bin), "--version"
                 ], stderr=subprocess.STDOUT)
@@ -206,6 +219,7 @@ def _get_system_python_executable():
     bad_candidates = []
     good_candidates = []
     ever_had_nonvenv_path = False
+    ever_had_path_starting_with_prefix = False
     for p in os.environ.get("PATH", "").split(":"):
         # Skip if not possibly the real system python:
         if not os.path.normpath(p).startswith(
@@ -213,12 +227,18 @@ def _get_system_python_executable():
                 ):
             continue
 
+        ever_had_path_starting_with_prefix = True
+
         # First folders might be virtualenv/venv we want to avoid:
         if not ever_had_nonvenv_path:
             sep = os.path.sep
-            if ("system32" not in p.lower() and "usr" not in p) or \
-                    {"home", ".tox"}.intersection(set(p.split(sep))) or \
-                    "users" in p.lower():
+            if (
+                ("system32" not in p.lower() and
+                 "usr" not in p and
+                 not p.startswith("/opt/python")) or
+                {"home", ".tox"}.intersection(set(p.split(sep))) or
+                "users" in p.lower()
+            ):
                 # Doesn't look like bog-standard system path.
                 if (p.endswith(os.path.sep + "bin") or
                         p.endswith(os.path.sep + "bin" + os.path.sep)):
@@ -230,14 +250,37 @@ def _get_system_python_executable():
 
         good_candidates.append(p)
 
+    # If we have a bad env with PATH not containing any reference to our
+    # real python (travis, why would you do that to me?) then just guess
+    # based from the search prefix location itself:
+    if not ever_had_path_starting_with_prefix:
+        # ... and yes we're scanning all the folders for that, it's dumb
+        # but i'm not aware of a better way: (@JonasT)
+        for root, dirs, files in os.walk(search_prefix, topdown=True):
+            for name in dirs:
+                bad_candidates.append(os.path.join(root, name))
+
+    # Sort candidates by length (to prefer shorter ones):
+    def candidate_cmp(a, b):
+        return len(a) - len(b)
+    good_candidates = sorted(
+        good_candidates, key=functools.cmp_to_key(candidate_cmp)
+    )
+    bad_candidates = sorted(
+        bad_candidates, key=functools.cmp_to_key(candidate_cmp)
+    )
+
     # See if we can now actually find the system python:
     for p in good_candidates + bad_candidates:
         result = python_binary_from_folder(p)
         if result is not None:
             return result
 
-    raise RuntimeError("failed to locate system python in: " +
-                       sys.real_prefix)
+    raise RuntimeError(
+        "failed to locate system python in: {}"
+        " - checked candidates were: {}, {}"
+        .format(sys.real_prefix, good_candidates, bad_candidates)
+    )
 
 
 def get_package_as_folder(dependency):
