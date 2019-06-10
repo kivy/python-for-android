@@ -97,6 +97,10 @@ def extract_metainfo_files_from_package(
     if not os.path.exists(output_folder) or os.path.isfile(output_folder):
         raise ValueError("output folder needs to be existing folder")
 
+    if debug:
+        print("extract_metainfo_files_from_package: extracting for " +
+              "package: " + str(package))
+
     # A temp folder for making a package copy in case it's a local folder,
     # because extracting metadata might modify files
     # (creating sdists/wheels...)
@@ -418,6 +422,7 @@ def _extract_metainfo_files_from_package_unsafe(
     try:
         build_requires = []
         metadata_path = None
+
         if path_type != "wheel":
             # We need to process this first to get the metadata.
 
@@ -447,7 +452,9 @@ def _extract_metainfo_files_from_package_unsafe(
             metadata = None
             with env:
                 hooks = Pep517HookCaller(path, backend)
-                env.pip_install([transform_dep_for_pip(req) for req in build_requires])
+                env.pip_install(
+                    [transform_dep_for_pip(req) for req in build_requires]
+                )
                 reqs = hooks.get_requires_for_build_wheel({})
                 env.pip_install([transform_dep_for_pip(req) for req in reqs])
                 try:
@@ -465,6 +472,15 @@ def _extract_metainfo_files_from_package_unsafe(
                 [f for f in os.listdir(path) if f.endswith(".dist-info")][0],
                 "METADATA"
             )
+
+        # Store type of metadata source. Can be "wheel", "source" for source
+        # distribution, and others get_package_as_folder() may support
+        # in the future.
+        with open(os.path.join(output_path, "metadata_source"), "w") as f:
+            try:
+                f.write(path_type)
+            except TypeError:  # in python 2 path_type may be str/bytes:
+                f.write(path_type.decode("utf-8", "replace"))
 
         # Copy the metadata file:
         shutil.copyfile(metadata_path, os.path.join(output_path, "METADATA"))
@@ -518,12 +534,23 @@ def _extract_info_from_package(dependency,
         - name
         - dependencies  (a list of dependencies)
     """
+    if debug:
+        print("_extract_info_from_package called with "
+              "extract_type={} include_build_requirements={}".format(
+                  extract_type, include_build_requirements,
+              ))
     output_folder = tempfile.mkdtemp(prefix="pythonpackage-metafolder-")
     try:
         extract_metainfo_files_from_package(
             dependency, output_folder, debug=debug
         )
 
+        # Extract the type of data source we used to get the metadata:
+        with open(os.path.join(output_folder,
+                               "metadata_source"), "r") as f:
+            metadata_source_type = f.read().strip()
+
+        # Extract main METADATA file:
         with open(os.path.join(output_folder, "METADATA"),
                   "r", encoding="utf-8"
                  ) as f:
@@ -539,14 +566,34 @@ def _extract_info_from_package(dependency,
                 raise ValueError("failed to obtain package name")
             return name
         elif extract_type == "dependencies":
+            # First, make sure we don't attempt to return build requirements
+            # for wheels since they usually come without pyproject.toml
+            # and we haven't implemented another way to get them:
+            if include_build_requirements and \
+                    metadata_source_type == "wheel":
+                if debug:
+                    print("_extract_info_from_package: was called "
+                          "with include_build_requirements=True on "
+                          "package obtained as wheel, raising error...")
+                raise NotImplementedError(
+                    "fetching build requirements for "
+                    "wheels is not implemented"
+                )
+
+            # Get build requirements from pyproject.toml if requested:
             requirements = []
             if os.path.exists(os.path.join(output_folder,
                                            'pyproject.toml')
                               ) and include_build_requirements:
+                # Read build system from pyproject.toml file: (PEP518)
                 with open(os.path.join(output_folder, 'pyproject.toml')) as f:
                     build_sys = pytoml.load(f)['build-system']
                     if "requires" in build_sys:
                         requirements += build_sys["requires"]
+            elif include_build_requirements:
+                # For legacy packages with no pyproject.toml, we have to
+                # add setuptools as default build system.
+                requirements.append("setuptools")
 
             # Add requirements from metadata:
             requirements += [
