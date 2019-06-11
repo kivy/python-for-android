@@ -187,6 +187,8 @@ def test_is_filesystem_path():
     assert not is_filesystem_path("test @ bla")
     assert is_filesystem_path("/abc/c@d")
     assert not is_filesystem_path("https://user:pw@host/")
+    assert is_filesystem_path(".")
+    assert is_filesystem_path("")
 
 
 def test_parse_as_folder_reference():

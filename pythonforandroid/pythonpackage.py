@@ -559,7 +559,7 @@ def parse_as_folder_reference(dep):
     # Check if this is either not an url, or a file URL:
     if dep.startswith(("/", "file://")) or (
             dep.find("/") > 0 and
-            dep.find("://") < 0):
+            dep.find("://") < 0) or (dep in ["", "."]):
         if dep.startswith("file://"):
             dep = urlunquote(urlparse(dep).path)
         return dep
@@ -689,7 +689,7 @@ def get_package_dependencies(package,
         for package_dep in current_queue:
             new_reqs = set()
             if verbose:
-                print("get_package_dependencies: resolving dependecy "
+                print("get_package_dependencies: resolving dependency "
                       "to package name: ".format(package_dep))
             package = get_package_name(package_dep)
             if package.lower() in packages_processed:
