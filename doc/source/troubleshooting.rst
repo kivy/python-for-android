@@ -101,17 +101,15 @@ This will reveal all the Python-related files::
   $ ls
   android_runnable.pyo  include          interpreter_subprocess  main.kv   pipinterface.kv   settings.pyo
   assets                __init__.pyo     interpreterwrapper.pyo  main.pyo  pipinterface.pyo  utils.pyo
-  editor.kv             interpreter.kv   lib                     menu.kv   private.mp3       widgets.pyo
+  editor.kv             interpreter.kv   _python_bundle          menu.kv   private.mp3       widgets.pyo
   editor.pyo            interpreter.pyo  libpymodules.so         menu.pyo  settings.kv
 
 Most of these files have been included by the user (in this case, they
 come from one of my own apps), the rest relate to the python
 distribution.
 
-With Python 2, the Python installation can mostly be found in the
-``lib`` folder. With Python 3 (using the ``python3crystax`` recipe),
-the Python installation can be found in a folder named
-``crystax_python``.
+The python installation, along with all side-packages, is mostly contained
+inside the `_python_bundle` folder.
 
 
 Common errors
