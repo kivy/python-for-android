@@ -23,8 +23,8 @@ env:
 
 jobs:
   include:
-    - stage: lint
-      name: "Tox tests and coverage"
+    - &linting
+      stage: lint
       language: python
       python: 3.7
       before_script:
@@ -45,6 +45,14 @@ jobs:
         - tox -- tests/ --ignore tests/test_pythonpackage.py
         # (we ignore test_pythonpackage.py since these run way too long!!
         #  test_pythonpackage_basic.py will still be run.)
+      name: "Tox Pep8"
+      env: TOXENV=pep8
+    - <<: *linting
+      name: "Tox Python 2"
+      env: TOXENV=py27
+    - <<: *linting
+      name: "Tox Python 3 & Coverage"
+      env: TOXENV=py3
       after_success:
         - coveralls
 
