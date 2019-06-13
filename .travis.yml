@@ -13,7 +13,7 @@ services:
 
 before_install:
   # https://github.com/travis-ci/travis-ci/issues/6069#issuecomment-266546552
-  - git remote set-branches --add origin master
+  - git remote set-branches --add origin develop
   - git fetch
 
 env:
