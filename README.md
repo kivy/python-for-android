@@ -33,29 +33,27 @@ Follow the [quickstart
 instructions](<https://python-for-android.readthedocs.org/en/latest/quickstart/>)
 to install and begin creating APKs.
 
-Quick instructions to start would be:
+**Quick instructions**: install python-for-android with:
 
     pip install python-for-android
 
-or to test the develop branch:
+(for the develop branch: `pip install git+https://github.com/kivy/python-for-android.git`)
 
-    pip install git+https://github.com/kivy/python-for-android.git
+Test that the install works with:
 
-The executable is called ``python-for-android`` or ``p4a`` (both are
-equivalent). To test that the installation worked, try::
+    p4a --version
 
-    python-for-android recipes
+To build any actual apps, **set up the Android SDK and NDK**
+as described in the [quickstart](
+<https://python-for-android.readthedocs.org/en/latest/quickstart/#installing-android-sdk>).
+**Use the SDK/NDK API level & NDK version as in the quickstart,**
+other API levels may not work.
 
-This should return a list of available build recipes.
-
-To build any distributions, you need to set up the Android SDK and NDK
-as described in the documentation linked above.
-
-If you did this, to build an APK with SDL2 you can try e.g.:
+With everything installed, build an APK with SDL2 with e.g.:
 
     p4a apk --requirements=kivy --private /home/username/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
 
-For full instructions and parameter options, see [the
+**For full instructions and parameter options,** see [the
 documentation](https://python-for-android.readthedocs.io/en/latest/quickstart/#usage).
 
 ## Support
