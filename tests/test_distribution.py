@@ -27,7 +27,14 @@ dist_info_data = {
 
 
 class TestDistribution(unittest.TestCase):
+    """
+    An inherited class of `unittest.TestCase`to test the module
+    :mod:`~pythonforandroid.distribution`.
+    """
+
     def setUp(self):
+        """Configure a :class:`~pythonforandroid.build.Context` so we can
+        perform our unittests"""
         self.ctx = Context()
         self.ctx.ndk_api = 21
         self.ctx.android_api = 27
@@ -42,8 +49,8 @@ class TestDistribution(unittest.TestCase):
         ]
 
     def setUp_distribution_with_bootstrap(self, bs, **kwargs):
-        # extend the setUp by configuring a distribution, because some test
-        # needs a distribution to be set to be properly tested
+        """Extend the setUp by configuring a distribution, because some test
+        needs a distribution to be set to be properly tested"""
         self.ctx.bootstrap = bs
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
             self.ctx,
@@ -53,9 +60,13 @@ class TestDistribution(unittest.TestCase):
         )
 
     def tearDown(self):
+        """Here we make sure that we reset a possible bootstrap created in
+        `setUp_distribution_with_bootstrap`"""
         self.ctx.bootstrap = None
 
     def test_properties(self):
+        """Test that some attributes has the expected result (for now, we check
+        that `__repr__` and `__str__` return the proper values"""
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
@@ -69,29 +80,36 @@ class TestDistribution(unittest.TestCase):
 
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.folder_exist` is
+        called once with the proper arguments."""
 
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
         self.ctx.bootstrap.distribution.folder_exists()
-        mock_exists.assert_called_with(
+        mock_exists.assert_called_once_with(
             self.ctx.bootstrap.distribution.dist_dir
         )
 
     @mock.patch("pythonforandroid.distribution.rmtree")
     def test_delete(self, mock_rmtree):
-
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.delete` is
+        called once with the proper arguments."""
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
         self.ctx.bootstrap.distribution.delete()
-        mock_rmtree.assert_called_with(
+        mock_rmtree.assert_called_once_with(
             self.ctx.bootstrap.distribution.dist_dir
         )
 
     @mock.patch("pythonforandroid.distribution.exists")
     def test_get_distribution_no_name(self, mock_exists):
-
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.get_distribution`
+        returns the proper result which should `unnamed_dist_1`."""
         mock_exists.return_value = False
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         dist = Distribution.get_distribution(self.ctx)
@@ -100,6 +118,9 @@ class TestDistribution(unittest.TestCase):
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.distribution.open", create=True)
     def test_save_info(self, mock_open_dist_info, mock_chdir):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.save_info`
+        is called once with the proper arguments."""
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
@@ -119,6 +140,15 @@ class TestDistribution(unittest.TestCase):
     def test_get_distributions(
         self, mock_glob, mock_exists, mock_open_dist_info
     ):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.get_distributions`
+        returns some expected values:
+
+            - A list of instances of class
+              `~pythonforandroid.distribution.Distribution
+            - That one of the distributions returned in the result has the
+              proper values (`name`, `ndk_api` and `recipes`)
+        """
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
@@ -146,6 +176,10 @@ class TestDistribution(unittest.TestCase):
     def test_get_distributions_error_ndk_api(
         self, mock_glob, mock_exists, mock_open_dist_info
     ):
+        """Test method
+        :meth:`~pythonforandroid.distribution.Distribution.get_distributions`
+        in case that `ndk_api` is not set..which should return a `None`.
+        """
         dist_info_data_no_ndk_api = dist_info_data.copy()
         dist_info_data_no_ndk_api.pop("ndk_api")
         self.setUp_distribution_with_bootstrap(
@@ -169,6 +203,12 @@ class TestDistribution(unittest.TestCase):
     def test_get_distributions_error_ndk_api_mismatch(
         self, mock_glob, mock_exists, mock_get_dists
     ):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.get_distribution`
+        raises an error in case that we have some distribution already build,
+        with a given `name` and `ndk_api`, and we try to get another
+        distribution with the same `name` but different `ndk_api`.
+        """
         expected_dist = Distribution.get_distribution(
             self.ctx, name="test_prj", recipes=["python3", "kivy"]
         )
@@ -189,10 +229,15 @@ class TestDistribution(unittest.TestCase):
         )
 
     def test_get_distributions_error_extra_dist_dirs(self):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.get_distributions`
+        raises an exception of
+        :class:`~pythonforandroid.util.BuildInterruptingException` in case that
+        we supply the kwargs `extra_dist_dirs`.
+        """
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
-
         with self.assertRaises(BuildInterruptingException) as e:
             self.ctx.bootstrap.distribution.get_distributions(
                 self.ctx, extra_dist_dirs=["/fake/extra/dist_dirs"]
@@ -205,6 +250,13 @@ class TestDistribution(unittest.TestCase):
 
     @mock.patch("pythonforandroid.distribution.Distribution.get_distributions")
     def test_get_distributions_possible_dists(self, mock_get_dists):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.get_distributions`
+        returns the proper
+        `:class:`~pythonforandroid.distribution.Distribution` in case that we
+        already have it build and we request the same
+        `:class:`~pythonforandroid.distribution.Distribution`.
+        """
         expected_dist = Distribution.get_distribution(
             self.ctx, name="test_prj", recipes=["python3", "kivy"]
         )

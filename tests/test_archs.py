@@ -46,6 +46,12 @@ expected_env_gcc_keys = {
 
 
 class ArchSetUpBaseClass(object):
+    """
+    An class object which is intended to be used as a base class to configure
+    an inherited class of `unittest.TestCase`. This class will override the
+    `setUp` method.
+    """
+
     ctx = None
 
     def setUp(self):
@@ -63,6 +69,12 @@ class ArchSetUpBaseClass(object):
 
 
 class TestArch(ArchSetUpBaseClass, unittest.TestCase):
+    """
+    An inherited class of `ArchSetUpBaseClass` and `unittest.TestCase` which
+    will be used to perform tests for the base class
+    :class:`~pythonforandroid.archs.Arch`.
+    """
+
     def test_arch(self):
         arch = Arch(self.ctx)
         with self.assertRaises(AttributeError) as e1:
@@ -81,14 +93,28 @@ class TestArch(ArchSetUpBaseClass, unittest.TestCase):
 
 
 class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
-    # Here we mock two functions:
-    # - `ensure_dir` because we don't want to create any directory
-    # - `find_executable` because otherwise we will
-    #   get an error when trying to find the compiler (we are setting some fake
-    #   paths for our android sdk and ndk so probably will not exist)
+    """
+    An inherited class of `ArchSetUpBaseClass` and `unittest.TestCase` which
+    will be used to perform tests for :class:`~pythonforandroid.archs.ArchARM`.
+    """
+
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_arm(self, mock_ensure_dir, mock_find_executable):
+        """
+        Test that class :class:`~pythonforandroid.archs.ArchARM` returns some
+        expected attributes and environment variables.
+
+        .. note::
+            Here we mock two methods:
+
+                - `ensure_dir` because we don't want to create any directory
+                - `find_executable` because otherwise we will
+                  get an error when trying to find the compiler (we are setting
+                  some fake paths for our android sdk and ndk so probably will
+                  not exist)
+
+        """
         mock_find_executable.return_value = "arm-linux-androideabi-gcc"
         mock_ensure_dir.return_value = True
 
@@ -147,16 +173,30 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
 
 
 class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
-    # Here we mock the same functions than the previous tests plus `glob`,
-    # so we make sure that the glob result is the expected even if the folder
-    # doesn't exist, which is probably the case. This has to be done because
-    # here we tests the `get_env` with clang
+    """
+    An inherited class of `ArchSetUpBaseClass` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.archs.ArchARMv7_a`.
+    """
+
     @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_armv7a(
         self, mock_ensure_dir, mock_find_executable, mock_glob
     ):
+        """
+        Test that class :class:`~pythonforandroid.archs.ArchARMv7_a` returns
+        some expected attributes and environment variables.
+
+        .. note::
+            Here we mock the same functions than
+            :meth:`TestArchARM.test_arch_arm` plus `glob`, so we make sure that
+            the glob result is the expected even if the folder doesn't exist,
+            which is probably the case. This has to be done because here we
+            tests the `get_env` with clang
+
+        """
         mock_find_executable.return_value = "arm-linux-androideabi-gcc"
         mock_ensure_dir.return_value = True
         mock_glob.return_value = ["llvm"]
@@ -197,9 +237,21 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
 
 
 class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
+    """
+    An inherited class of `ArchSetUpBaseClass` and `unittest.TestCase` which
+    will be used to perform tests for :class:`~pythonforandroid.archs.Archx86`.
+    """
+
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_x86(self, mock_ensure_dir, mock_find_executable):
+        """
+        Test that class :class:`~pythonforandroid.archs.Archx86` returns
+        some expected attributes and environment variables.
+
+        .. note:: Here we mock the same functions than
+                  :meth:`TestArchARM.test_arch_arm`
+        """
         mock_find_executable.return_value = "arm-linux-androideabi-gcc"
         mock_ensure_dir.return_value = True
 
@@ -220,9 +272,22 @@ class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
 
 
 class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
+    """
+    An inherited class of `ArchSetUpBaseClass` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.archs.Archx86_64`.
+    """
+
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_x86_64(self, mock_ensure_dir, mock_find_executable):
+        """
+        Test that class :class:`~pythonforandroid.archs.Archx86_64` returns
+        some expected attributes and environment variables.
+
+        .. note:: Here we mock the same functions than
+                  :meth:`TestArchARM.test_arch_arm`
+        """
         mock_find_executable.return_value = "arm-linux-androideabi-gcc"
         mock_ensure_dir.return_value = True
 
@@ -242,9 +307,22 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
 
 
 class TestArchAArch64(ArchSetUpBaseClass, unittest.TestCase):
+    """
+    An inherited class of `ArchSetUpBaseClass` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.archs.ArchAarch_64`.
+    """
+
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_aarch_64(self, mock_ensure_dir, mock_find_executable):
+        """
+        Test that class :class:`~pythonforandroid.archs.ArchAarch_64` returns
+        some expected attributes and environment variables.
+
+        .. note:: Here we mock the same functions than
+                  :meth:`TestArchARM.test_arch_arm`
+        """
         mock_find_executable.return_value = "arm-linux-androideabi-gcc"
         mock_ensure_dir.return_value = True
 

@@ -12,14 +12,6 @@ services:
   - docker
 
 before_install:
-  - travis_retry sudo apt update -qq
-  # to successfully send the coveralls reports we need pyOpenSSL
-  - travis_retry sudo apt install -qq --no-install-recommends
-    python2.7 python3 python3-venv python3-virtualenv python3-pip
-    python3-setuptools python3-openssl
-  # (venv/virtualenv are both used by tests/test_pythonpackage.py)
-  - sudo pip install tox>=2.0
-  - sudo pip3 install coveralls
   # https://github.com/travis-ci/travis-ci/issues/6069#issuecomment-266546552
   - git remote set-branches --add origin master
   - git fetch
@@ -33,6 +25,21 @@ jobs:
   include:
     - stage: lint
       name: "Tox tests and coverage"
+      language: python
+      python: 3.7
+      before_script:
+        # We need to escape virtualenv for `test_pythonpackage_basic.test_virtualenv`
+        #   See also: https://github.com/travis-ci/travis-ci/issues/8589
+        - type -t deactivate && deactivate || true
+        - export PATH=/opt/python/3.7/bin:$PATH
+        # Install tox & virtualenv
+        #   Note: venv/virtualenv are both used by tests/test_pythonpackage.py
+        - pip3.7 install -U virtualenv
+        - pip3.7 install tox>=2.0
+        # Install coveralls & dependencies
+        #   Note: pyOpenSSL needed to send the coveralls reports
+        - pip3.7 install pyOpenSSL
+        - pip3.7 install coveralls
       script:
         # we want to fail fast on tox errors without having to `docker build` first
         - tox -- tests/ --ignore tests/test_pythonpackage.py
