@@ -486,7 +486,8 @@ main.py that loads it.''')
         "args": args,
         "service": service,
         "service_names": service_names,
-        "android_api": android_api
+        "android_api": android_api,
+        "debug": "debug" in args.build_mode,
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
@@ -509,7 +510,8 @@ main.py that loads it.''')
         aars=aars,
         jars=jars,
         android_api=android_api,
-        build_tools_version=build_tools_version
+        build_tools_version=build_tools_version,
+        debug_build="debug" in args.build_mode,
         )
 
     # ant build templates
@@ -574,7 +576,7 @@ main.py that loads it.''')
                     raise e
 
 
-def parse_args(args=None):
+def parse_args_and_make_package(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
     # Get the default minsdk, equal to the NDK API that this dist is built against
@@ -674,6 +676,10 @@ tools directory of the Android SDK.
                     default=join(curdir, 'whitelist.txt'),
                     help=('Use a whitelist file to prevent blacklisting of '
                           'file in the final APK'))
+    ap.add_argument('--release', dest='build_mode', action='store_const',
+                    const='release', default='debug',
+                    help='Build your app as a non-debug release build. '
+                         '(Disables gdb debugging among other things)')
     ap.add_argument('--add-jar', dest='add_jar', action='append',
                     help=('Add a Java .jar to the libs, so you can access its '
                           'classes with pyjnius. You can specify this '
@@ -817,4 +823,4 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
-    parse_args()
+    parse_args_and_make_package()

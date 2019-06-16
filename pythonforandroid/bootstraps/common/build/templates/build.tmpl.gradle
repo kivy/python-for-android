@@ -31,6 +31,12 @@ android {
 		versionName '{{ args.version }}'
 	}
 
+	{% if debug_build -%}
+	packagingOptions {
+		doNotStrip '**/*.so'
+	}
+	{%- endif %}
+
 	{% if args.sign -%}
 	signingConfigs {
 		release {
