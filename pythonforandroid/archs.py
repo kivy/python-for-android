@@ -167,8 +167,12 @@ class Arch(object):
             'host' + self.ctx.python_recipe.name, self.ctx)
         env['BUILDLIB_PATH'] = join(
             hostpython_recipe.get_build_dir(self.arch),
-            'build', 'lib.{}-{}'.format(
-                build_platform, self.ctx.python_recipe.major_minor_version_string)
+            'native-build',
+            'build',
+            'lib.{}-{}'.format(
+                build_platform,
+                self.ctx.python_recipe.major_minor_version_string,
+            ),
         )
 
         env['PATH'] = environ['PATH']
