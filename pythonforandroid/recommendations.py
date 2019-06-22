@@ -10,28 +10,80 @@ MIN_NDK_VERSION = 17
 MAX_NDK_VERSION = 17
 
 RECOMMENDED_NDK_VERSION = '17c'
-OLD_NDK_MESSAGE = 'Older NDKs may not be compatible with all p4a features.'
 NEW_NDK_MESSAGE = 'Newer NDKs may not be fully supported by p4a.'
+NDK_DOWNLOAD_URL = 'https://developer.android.com/ndk/downloads/'
 
 
 def check_ndk_version(ndk_dir):
-    # Check the NDK version against what is currently recommended
+    """
+    Check the NDK version against what is currently recommended and raise an
+    exception of :class:`~pythonforandroid.util.BuildInterruptingException` in
+    case that the user tries to use an NDK lower than minimum supported,
+    specified via attribute `MIN_NDK_VERSION`.
+
+    .. versionchanged:: 2019.06.06.1.dev0
+        Added the ability to get android's ndk `letter version` and also
+        rewrote to raise an exception in case that an NDK version lower than
+        the minimum supported is detected.
+    """
     version = read_ndk_version(ndk_dir)
 
     if version is None:
-        return  # if we failed to read the version, just don't worry about it
+        warning(
+            'Unable to read the ndk version, assuming that you are using an'
+            ' NDK greater than {min_supported} (the minimum ndk required to'
+            ' use p4a successfully).\n'
+            'Note: If you got build errors, consider to download the'
+            ' recommended ndk version which is {rec_version} and try'
+            ' it again (after removing all the files generated with this'
+            ' build). To download the android NDK visit the following page: '
+            '{ndk_url}'.format(
+                min_supported=MIN_NDK_VERSION,
+                rec_version=RECOMMENDED_NDK_VERSION,
+                ndk_url=NDK_DOWNLOAD_URL,
+            )
+        )
+        return
+
+    # create a dictionary which will describe the relationship of the android's
+    # ndk minor version with the `human readable` letter version, egs:
+    # Pkg.Revision = 17.1.4828580 => ndk-17b
+    # Pkg.Revision = 17.2.4988734 => ndk-17c
+    # Pkg.Revision = 19.0.5232133 => ndk-19 (No letter)
+    minor_to_letter = {0: ''}
+    minor_to_letter.update(
+        {n + 1: chr(i) for n, i in enumerate(range(ord('b'), ord('b') + 25))}
+    )
 
     major_version = version.version[0]
+    letter_version = minor_to_letter[version.version[1]]
+    string_version = '{major_version}{letter_version}'.format(
+        major_version=major_version, letter_version=letter_version
+    )
 
-    info('Found NDK revision {}'.format(version))
+    info('Found NDK version {}'.format(string_version))
 
     if major_version < MIN_NDK_VERSION:
-        warning('Minimum recommended NDK version is {}'.format(
-            RECOMMENDED_NDK_VERSION))
-        warning(OLD_NDK_MESSAGE)
+        raise BuildInterruptingException(
+            'Unsupported NDK version detected {user_version}\n'
+            '* Note: Minimum supported NDK version is {min_supported}'.format(
+                user_version=string_version, min_supported=MIN_NDK_VERSION
+            ),
+            instructions=(
+                'Please, go to the android ndk page ({ndk_url}) and download a'
+                ' supported version.\n*** The currently recommended NDK'
+                ' version is {rec_version} ***'.format(
+                    ndk_url=NDK_DOWNLOAD_URL,
+                    rec_version=RECOMMENDED_NDK_VERSION,
+                )
+            ),
+        )
     elif major_version > MAX_NDK_VERSION:
-        warning('Maximum recommended NDK version is {}'.format(
-            RECOMMENDED_NDK_VERSION))
+        warning(
+            'Maximum recommended NDK version is {}'.format(
+                RECOMMENDED_NDK_VERSION
+            )
+        )
         warning(NEW_NDK_MESSAGE)
 
 
