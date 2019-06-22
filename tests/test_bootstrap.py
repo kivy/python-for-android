@@ -533,15 +533,23 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstrap.shprint")
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.build.ensure_dir")
+    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_bootstrap_strip(
         self,
         mock_find_executable,
+        mock_glob,
         mock_ensure_dir,
         mock_sh_command,
         mock_sh_print,
     ):
-        mock_find_executable.return_value = "arm-linux-androideabi-gcc"
+        mock_find_executable.return_value = os.path.join(
+            self.ctx._ndk_dir,
+            "toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+        )
+        mock_glob.return_value = [
+            os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
+        ]
         # prepare arch, bootstrap, distribution and PythonRecipe
         arch = ArchARMv7_a(self.ctx)
         bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
