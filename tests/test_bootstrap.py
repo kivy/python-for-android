@@ -1,0 +1,545 @@
+import os
+import sh
+
+import unittest
+
+try:
+    from unittest import mock
+except ImportError:
+    # `Python 2` or lower than `Python 3.3` does not
+    # have the `unittest.mock` module built-in
+    import mock
+from pythonforandroid.bootstrap import Bootstrap
+from pythonforandroid.distribution import Distribution
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.archs import ArchARMv7_a
+from pythonforandroid.build import Context
+
+
+class BaseClassSetupBootstrap(object):
+    """
+    An class object which is intended to be used as a base class to configure
+    an inherited class of `unittest.TestCase`. This class will override the
+    `setUp` and `tearDown` methods.
+    """
+
+    def setUp(self):
+        self.ctx = Context()
+        self.ctx.ndk_api = 21
+        self.ctx.android_api = 27
+        self.ctx._sdk_dir = "/opt/android/android-sdk"
+        self.ctx._ndk_dir = "/opt/android/android-ndk"
+        self.ctx.setup_dirs(os.getcwd())
+        self.ctx.recipe_build_order = [
+            "hostpython3",
+            "python3",
+            "sdl2",
+            "kivy",
+        ]
+
+    def setUp_distribution_with_bootstrap(self, bs):
+        """
+        Extend the setUp by configuring a distribution, because some test
+        needs a distribution to be set to be properly tested
+        """
+        self.ctx.bootstrap = bs
+        self.ctx.bootstrap.distribution = Distribution.get_distribution(
+            self.ctx, name="test_prj", recipes=["python3", "kivy"]
+        )
+
+    def tearDown(self):
+        """
+        Extend the `tearDown` by configuring a distribution, because some test
+        needs a distribution to be set to be properly tested
+        """
+        self.ctx.bootstrap = None
+
+
+class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
+    """
+    An inherited class of `BaseClassSetupBootstrap` and `unittest.TestCase`
+    which will be used to perform tests for the methods/attributes shared
+    between all bootstraps which inherits from class
+    :class:`~pythonforandroid.bootstrap.Bootstrap`.
+    """
+
+    def test_attributes(self):
+        """A test which will initialize a bootstrap and will check if the
+        values are the expected.
+        """
+        bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
+        self.assertEqual(bs.name, "sdl2")
+        self.assertEqual(bs.jni_dir, "sdl2/jni")
+        self.assertEqual(bs.get_build_dir_name(), "sdl2-python3")
+
+        # test dist_dir error
+        bs.distribution = None
+        with self.assertRaises(SystemExit) as e:
+            bs.dist_dir
+        self.assertEqual(e.exception.args[0], 1)
+
+        # test dist_dir success
+        self.setUp_distribution_with_bootstrap(bs)
+        self.assertTrue(bs.dist_dir.endswith("dists/test_prj"))
+
+    def test_build_dist_dirs(self):
+        """A test which will initialize a bootstrap and will check if the
+        directories we set has the values that we expect. Here we test methods:
+
+            - :meth:`~pythonforandroid.bootstrap.Bootstrap.get_build_dir`
+            - :meth:`~pythonforandroid.bootstrap.Bootstrap.get_dist_dir`
+            - :meth:`~pythonforandroid.bootstrap.Bootstrap.get_common_dir`
+        """
+        bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
+
+        self.assertTrue(
+            bs.get_build_dir().endswith("build/bootstrap_builds/sdl2-python3")
+        )
+        self.assertTrue(bs.get_dist_dir("test_prj").endswith("dists/test_prj"))
+        self.assertTrue(
+            bs.get_common_dir().endswith("pythonforandroid/bootstraps/common")
+        )
+
+    def test_list_bootstraps(self):
+        """A test which will initialize a bootstrap and will check if the
+        method :meth:`~pythonforandroid.bootstrap.Bootstrap.list_bootstraps`
+        returns the expected values, which should be: `empty", `service_only`,
+        `webview` and `sdl2`
+        """
+        expected_bootstraps = {"empty", "service_only", "webview", "sdl2"}
+        set_of_bootstraps = set(Bootstrap().list_bootstraps())
+        self.assertEqual(
+            expected_bootstraps, expected_bootstraps & set_of_bootstraps
+        )
+        self.assertEqual(len(expected_bootstraps), len(set_of_bootstraps))
+
+    def test_get_bootstraps_from_recipes(self):
+        """A test which will initialize a bootstrap and will check if the
+        method :meth:`~pythonforandroid.bootstrap.Bootstrap.
+        get_bootstraps_from_recipes` returns the expected values
+        """
+        recipes_sdl2 = {"sdl2", "python3", "kivy"}
+        bs = Bootstrap().get_bootstrap_from_recipes(recipes_sdl2, self.ctx)
+
+        self.assertEqual(bs.name, "sdl2")
+
+        # test wrong recipes
+        wrong_recipes = {"python2", "python3", "pyjnius"}
+        bs = Bootstrap().get_bootstrap_from_recipes(wrong_recipes, self.ctx)
+        self.assertIsNone(bs)
+
+    @mock.patch("pythonforandroid.bootstrap.ensure_dir")
+    def test_prepare_dist_dir(self, mock_ensure_dir):
+        """A test which will initialize a bootstrap and will check if the
+        method :meth:`~pythonforandroid.bootstrap.Bootstrap.prepare_dist_dir`
+        successfully calls once the method `endure_dir`
+        """
+        bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
+
+        bs.prepare_dist_dir("fake_name")
+        mock_ensure_dir.assert_called_once_with(bs.dist_dir)
+
+    @mock.patch("pythonforandroid.bootstrap.open", create=True)
+    @mock.patch("pythonforandroid.util.chdir")
+    @mock.patch("pythonforandroid.bootstrap.shutil.copy")
+    @mock.patch("pythonforandroid.bootstrap.os.makedirs")
+    def test_bootstrap_prepare_build_dir(
+        self, mock_os_makedirs, mock_shutil_copy, mock_chdir, mock_open
+    ):
+        """A test which will initialize a bootstrap and will check if the
+        method :meth:`~pythonforandroid.bootstrap.Bootstrap.prepare_build_dir`
+        successfully calls the methods that we need to prepare a build dir.
+        """
+
+        # prepare bootstrap
+        bs = Bootstrap().get_bootstrap("service_only", self.ctx)
+        self.ctx.bootstrap = bs
+
+        # test that prepare_build_dir runs (notice that we mock
+        # any file/dir creation so we can speed up the tests)
+        bs.prepare_build_dir()
+
+        # make sure that the open command has been called only once
+        mock_open.assert_called_once_with("project.properties", "w")
+
+        # check that the other mocks we made are actually called
+        mock_os_makedirs.assert_called()
+        mock_shutil_copy.assert_called()
+        mock_chdir.assert_called()
+
+    @mock.patch("pythonforandroid.bootstrap.os.path.isfile")
+    @mock.patch("pythonforandroid.bootstrap.os.path.exists")
+    @mock.patch("pythonforandroid.bootstrap.os.unlink")
+    @mock.patch("pythonforandroid.bootstrap.open", create=True)
+    @mock.patch("pythonforandroid.util.chdir")
+    @mock.patch("pythonforandroid.bootstrap.sh.ln")
+    @mock.patch("pythonforandroid.bootstrap.listdir")
+    @mock.patch("pythonforandroid.bootstrap.sh.mkdir")
+    @mock.patch("pythonforandroid.bootstrap.sh.rm")
+    def test_bootstrap_prepare_build_dir_with_java_src(
+        self,
+        mock_sh_rm,
+        mock_sh_mkdir,
+        mock_listdir,
+        mock_sh_ln,
+        mock_chdir,
+        mock_open,
+        mock_os_unlink,
+        mock_os_path_exists,
+        mock_os_path_isfile,
+    ):
+        """A test which will initialize a bootstrap and will check perform
+        another test for method
+        :meth:`~pythonforandroid.bootstrap.Bootstrap.prepare_build_dir`. In
+        here we will simulate that we have `with_java_src` set to some value.
+        """
+        self.ctx.symlink_java_src = ["some_java_src"]
+        mock_listdir.return_value = [
+            "jnius",
+            "kivy",
+            "Kivy-1.11.0.dev0-py3.7.egg-info",
+            "pyjnius-1.2.1.dev0-py3.7.egg",
+        ]
+
+        # prepare bootstrap
+        bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
+        self.ctx.bootstrap = bs
+
+        # test that prepare_build_dir runs (notice that we mock
+        # any file/dir creation so we can speed up the tests)
+        bs.prepare_build_dir()
+        # make sure that the open command has been called only once
+        mock_open.assert_called_with("project.properties", "w")
+
+        # check that the symlink was made 4 times and that
+        self.assertEqual(
+            len(mock_sh_ln.call_args_list), len(mock_listdir.return_value)
+        )
+        for i, directory in enumerate(mock_listdir.return_value):
+            self.assertTrue(
+                mock_sh_ln.call_args_list[i][0][1].endswith(directory)
+            )
+
+        # check that the other mocks we made are actually called
+        mock_sh_rm.assert_called()
+        mock_sh_mkdir.assert_called()
+        mock_chdir.assert_called()
+        mock_os_unlink.assert_called()
+        mock_os_path_exists.assert_called()
+        mock_os_path_isfile.assert_called()
+
+
+class GenericBootstrapTest(BaseClassSetupBootstrap):
+    """
+    An inherited class of `BaseClassSetupBootstrap` which will extends his
+    functionality by adding some generic bootstrap tests, so this way we can
+    test all our sub modules of :mod:`~pythonforandroid.bootstraps` from within
+    this module.
+
+    .. warning:: This is supposed to be used as a base class, so please, don't
+                 use this directly.
+    """
+
+    @property
+    def bootstrap_name(self):
+        """Subclasses must have property 'bootstrap_name'. It should be the
+        name of the bootstrap to test"""
+        raise NotImplementedError("Not implemented in GenericBootstrapTest")
+
+    @mock.patch("pythonforandroid.bootstraps.service_only.open", create=True)
+    @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
+    @mock.patch("pythonforandroid.bootstraps.sdl2.open", create=True)
+    @mock.patch("pythonforandroid.distribution.open", create=True)
+    @mock.patch(
+        "pythonforandroid.python.GuestPythonRecipe.create_python_bundle"
+    )
+    @mock.patch("pythonforandroid.bootstrap.Bootstrap.strip_libraries")
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("pythonforandroid.util.chdir")
+    @mock.patch("pythonforandroid.bootstrap.listdir")
+    @mock.patch("pythonforandroid.bootstrap.sh.rm")
+    @mock.patch("pythonforandroid.bootstrap.sh.cp")
+    def test_run_distribute(
+        self,
+        mock_sh_cp,
+        mock_sh_rm,
+        mock_listdir,
+        mock_chdir,
+        mock_ensure_dir,
+        mock_strip_libraries,
+        mock_create_python_bundle,
+        mock_open_dist_files,
+        mock_open_sdl2_files,
+        mock_open_webview_files,
+        mock_open_service_only_files,
+    ):
+        """
+        A test for any overwritten method of
+        `~pythonforandroid.bootstrap.Bootstrap.run_distribute`. Here we mock
+        any file/dir operation that it could slow down our tests, and there is
+        a lot to mock, because the `run_distribute` method it should take care
+        of prepare all compiled files to generate the final `apk`. The targets
+        of this test will be:
+
+            - :meth:`~pythonforandroid.bootstraps.sdl2.BootstrapSdl2
+              .run_distribute`
+            - :meth:`~pythonforandroid.bootstraps.service_only
+              .ServiceOnlyBootstrap.run_distribute`
+            - :meth:`~pythonforandroid.bootstraps.webview.WebViewBootstrap
+               .run_distribute`
+            - :meth:`~pythonforandroid.bootstraps.empty.EmptyBootstrap.
+              run_distribute`
+
+        Here we will tests all those methods that are specific for each class.
+        """
+        # prepare bootstrap and distribution
+        bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
+        bs.build_dir = bs.get_build_dir()
+        self.setUp_distribution_with_bootstrap(bs)
+
+        self.ctx.hostpython = "/some/fake/hostpython3"
+        self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
+        self.ctx.python_modules = ["requests"]
+        self.ctx.archs = [ArchARMv7_a(self.ctx)]
+
+        bs.run_distribute()
+
+        mock_open_dist_files.assert_called_once_with("dist_info.json", "w")
+        mock_open_bootstraps = {
+            "sdl2": mock_open_sdl2_files,
+            "webview": mock_open_webview_files,
+            "service_only": mock_open_service_only_files,
+        }
+        expected_open_calls = {
+            "sdl2": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
+            "webview": [mock.call("local.properties", "w")],
+            "service_only": [mock.call("local.properties", "w")],
+        }
+        mock_open_bs = mock_open_bootstraps[self.bootstrap_name]
+        # test that the expected calls has been called
+        for expected_call in expected_open_calls[self.bootstrap_name]:
+            self.assertIn(expected_call, mock_open_bs.call_args_list)
+        # test that the write function has been called with the expected args
+        self.assertIn(
+            mock.call().__enter__().write("sdk.dir=/opt/android/android-sdk"),
+            mock_open_bs.mock_calls,
+        )
+        if self.bootstrap_name == "sdl2":
+            self.assertIn(
+                mock.call()
+                .__enter__()
+                .write("\nsqlite3/*\nlib-dynload/_sqlite3.so\n"),
+                mock_open_bs.mock_calls,
+            )
+
+        # check that the other mocks we made are actually called
+        mock_sh_rm.assert_called()
+        mock_sh_cp.assert_called()
+        mock_chdir.assert_called()
+        mock_listdir.assert_called()
+        mock_strip_libraries.assert_called()
+        mock_create_python_bundle.assert_called()
+
+    @mock.patch("pythonforandroid.bootstrap.shprint")
+    @mock.patch("pythonforandroid.bootstrap.glob.glob")
+    @mock.patch("pythonforandroid.bootstrap.ensure_dir")
+    @mock.patch("pythonforandroid.build.ensure_dir")
+    def test_distribute_methods(
+        self, mock_build_dir, mock_bs_dir, mock_glob, mock_shprint
+    ):
+        # prepare arch, bootstrap and distribution
+        arch = ArchARMv7_a(self.ctx)
+        bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
+        self.setUp_distribution_with_bootstrap(bs)
+
+        # a convenient method to reset mocks in one shot
+        def reset_mocks():
+            mock_glob.reset_mock()
+            mock_shprint.reset_mock()
+            mock_build_dir.reset_mock()
+            mock_bs_dir.reset_mock()
+
+        # test distribute_libs
+        mock_glob.return_value = [
+            "/fake_dir/libsqlite3.so",
+            "/fake_dir/libpng16.so",
+        ]
+        bs.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
+        libs_dir = os.path.join("libs", arch.arch)
+        # we expect two calls to glob/copy command via shprint
+        self.assertEqual(len(mock_glob.call_args_list), 2)
+        self.assertEqual(len(mock_shprint.call_args_list), 2)
+        for i, lib in enumerate(mock_glob.return_value):
+            self.assertEqual(
+                mock_shprint.call_args_list[i],
+                mock.call(sh.cp, "-a", lib, libs_dir),
+            )
+        mock_build_dir.assert_called()
+        mock_bs_dir.assert_called_once_with(libs_dir)
+        reset_mocks()
+
+        # test distribute_javaclasses
+        mock_glob.return_value = ["/fakedir/java_file.java"]
+        bs.distribute_javaclasses(self.ctx.javaclass_dir)
+        mock_glob.assert_called_once_with(self.ctx.javaclass_dir)
+        mock_build_dir.assert_called_with(self.ctx.javaclass_dir)
+        mock_bs_dir.assert_called_once_with("src")
+        self.assertEqual(
+            mock_shprint.call_args,
+            mock.call(sh.cp, "-a", "/fakedir/java_file.java", "src"),
+        )
+        reset_mocks()
+
+        # test distribute_aars
+        mock_glob.return_value = ["/fakedir/file.aar"]
+        bs.distribute_aars(arch)
+        mock_build_dir.assert_called_with(self.ctx.aars_dir)
+        # We expect three calls to shprint: unzip, cp, cp
+        zip_call, kw = mock_shprint.call_args_list[0]
+        self.assertEqual(zip_call[0], sh.unzip)
+        self.assertEqual(zip_call[2], "/fakedir/file.aar")
+        cp_java_call, kw = mock_shprint.call_args_list[1]
+        self.assertEqual(cp_java_call[0], sh.cp)
+        self.assertTrue(cp_java_call[2].endswith("classes.jar"))
+        self.assertEqual(cp_java_call[3], "libs/file.jar")
+        cp_libs_call, kw = mock_shprint.call_args_list[2]
+        self.assertEqual(cp_libs_call[0], sh.cp)
+        self.assertEqual(cp_libs_call[2], "/fakedir/file.aar")
+        self.assertEqual(cp_libs_call[3], libs_dir)
+        mock_bs_dir.assert_has_calls([mock.call("libs"), mock.call(libs_dir)])
+        mock_glob.assert_called()
+
+    @mock.patch("pythonforandroid.bootstrap.shprint")
+    @mock.patch("pythonforandroid.bootstrap.sh.Command")
+    @mock.patch("pythonforandroid.build.ensure_dir")
+    @mock.patch("pythonforandroid.archs.find_executable")
+    def test_bootstrap_strip(
+        self,
+        mock_find_executable,
+        mock_ensure_dir,
+        mock_sh_command,
+        mock_sh_print,
+    ):
+        mock_find_executable.return_value = "arm-linux-androideabi-gcc"
+        # prepare arch, bootstrap, distribution and PythonRecipe
+        arch = ArchARMv7_a(self.ctx)
+        bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
+        self.setUp_distribution_with_bootstrap(bs)
+        self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
+
+        # test that strip_libraries runs with a fake distribution
+        bs.strip_libraries(arch)
+
+        mock_find_executable.assert_called_once()
+        self.assertEqual(
+            mock_find_executable.call_args[0][0],
+            mock_find_executable.return_value,
+        )
+        mock_sh_command.assert_called_once_with("arm-linux-androideabi-strip")
+        # check that the other mocks we made are actually called
+        mock_ensure_dir.assert_called()
+        mock_sh_print.assert_called()
+
+    @mock.patch("pythonforandroid.bootstrap.listdir")
+    @mock.patch("pythonforandroid.bootstrap.sh.rm")
+    @mock.patch("pythonforandroid.bootstrap.sh.mv")
+    @mock.patch("pythonforandroid.bootstrap.isdir")
+    def test_bootstrap_fry_eggs(
+        self, mock_isdir, mock_sh_mv, mock_sh_rm, mock_listdir
+    ):
+        mock_listdir.return_value = [
+            "jnius",
+            "kivy",
+            "Kivy-1.11.0.dev0-py3.7.egg-info",
+            "pyjnius-1.2.1.dev0-py3.7.egg",
+        ]
+
+        # prepare bootstrap, context and distribution
+        bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
+        self.setUp_distribution_with_bootstrap(bs)
+
+        # test that fry_eggs runs with a fake distribution
+        site_packages = os.path.join(
+            bs.dist_dir, "_python_bundle", "_python_bundle"
+        )
+        bs.fry_eggs(site_packages)
+
+        mock_listdir.assert_has_calls(
+            [
+                mock.call(site_packages),
+                mock.call(
+                    os.path.join(site_packages, "pyjnius-1.2.1.dev0-py3.7.egg")
+                ),
+            ]
+        )
+        self.assertEqual(
+            mock_sh_rm.call_args[0][1], "pyjnius-1.2.1.dev0-py3.7.egg"
+        )
+        # check that the other mocks we made are actually called
+        mock_isdir.assert_called()
+        mock_sh_mv.assert_called()
+
+
+class TestBootstrapSdl2(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.sdl2.BootstrapSdl2`.
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "sdl2"
+
+
+class TestBootstrapServiceOnly(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.service_only.ServiceOnlyBootstrap`.
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "service_only"
+
+
+class TestBootstrapWebview(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.webview.WebViewBootstrap`.
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "webview"
+
+
+class TestBootstrapEmpty(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.empty.EmptyBootstrap`.
+
+    .. note:: here will test most of the base class methods, because we only
+              overwrite :meth:`~pythonforandroid.bootstraps.empty.
+              EmptyBootstrap.run_distribute`
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "empty"
+
+    def test_run_distribute(self, *args):
+        # prepare bootstrap
+        bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
+        self.ctx.bootstrap = bs
+
+        # test dist_dir error
+        with self.assertRaises(SystemExit) as e:
+            bs.run_distribute()
+        self.assertEqual(e.exception.args[0], 1)
