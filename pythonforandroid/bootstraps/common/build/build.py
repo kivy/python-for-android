@@ -321,16 +321,36 @@ main.py that loads it.''')
                       'full private data into .apk.')
                 tar_dirs.append(args.private)
             else:
-                print('Copying main.py ONLY, since other app data is '
-                      'expected in site-packages.')
+                print("Copying main.py's ONLY, since other app data is "
+                      "expected in site-packages.")
                 main_py_only_dir = tempfile.mkdtemp()
                 _temp_dirs_to_clean.append(main_py_only_dir)
-                if exists(join(args.private, "main.pyo")):
-                    shutil.copyfile(join(args.private, "main.pyo"),
-                                    join(main_py_only_dir, "main.pyo"))
-                elif exists(join(args.private, "main.py")):
-                    shutil.copyfile(join(args.private, "main.py"),
-                                    join(main_py_only_dir, "main.py"))
+
+                # Check all main.py files we need to copy:
+                copy_paths = ["main.py", join("service", "main.py")]
+                for copy_path in copy_paths:
+                    variants = [
+                        copy_path,
+                        copy_path.partition(".")[0] + ".pyc",
+                        copy_path.partition(".")[0] + ".pyo",
+                    ]
+                    # Check in all variants with all possible endings:
+                    for variant in variants:
+                        if exists(join(args.private, variant)):
+                            # Make sure surrounding directly exists:
+                            dir_path = os.path.dirname(variant)
+                            if (len(dir_path) > 0 and
+                                    not exists(
+                                        join(main_py_only_dir, dir_path)
+                                    )):
+                                os.mkdir(join(main_py_only_dir, dir_path))
+                            # Copy actual file:
+                            shutil.copyfile(
+                                join(args.private, variant),
+                                join(main_py_only_dir, variant),
+                            )
+
+                # Append directory with all main.py's to result apk paths:
                 tar_dirs.append(main_py_only_dir)
         for python_bundle_dir in ('private', '_python_bundle'):
             if exists(python_bundle_dir):
