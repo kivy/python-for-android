@@ -201,34 +201,6 @@ void android_get_buildinfo() {
     }
 }
 
-void android_start_service(char *title, char *description, char *arg) {
-    static JNIEnv *env = NULL;
-    static jclass *cls = NULL;
-    static jmethodID mid = NULL;
-
-    if (env == NULL) {
-        env = SDL_ANDROID_GetJNIEnv();
-        aassert(env);
-        cls = (*env)->FindClass(env, JNI_NAMESPACE "/PythonActivity");
-        aassert(cls);
-        mid = (*env)->GetStaticMethodID(env, cls, "start_service",
-                                       "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
-        aassert(mid);
-    }
-
-    jstring j_title = NULL;
-    jstring j_description = NULL;
-    jstring j_arg = NULL;
-    if ( title != 0 )
-            j_title = (*env)->NewStringUTF(env, title);
-    if ( description != 0 )
-            j_description = (*env)->NewStringUTF(env, description);
-    if ( arg != 0 )
-            j_arg = (*env)->NewStringUTF(env, arg);
-
-    (*env)->CallStaticVoidMethod(env, cls, mid, j_title, j_description, j_arg);
-}
-
 void android_stop_service() {
     static JNIEnv *env = NULL;
     static jclass *cls = NULL;

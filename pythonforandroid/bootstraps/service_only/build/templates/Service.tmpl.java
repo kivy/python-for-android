@@ -22,15 +22,10 @@ public class Service{{ name|capitalize }} extends PythonService {
     }
     {% endif %}
 
-    {% if foreground %}
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public boolean getStartForeground() {
-        return true;
+    protected int getServiceId() {
+        return {{ service_id }};
     }
-    {% endif %}
 
     public static void start(Context ctx, String pythonServiceArgument) {
         String argument = ctx.getFilesDir().getAbsolutePath() + "/app";
@@ -41,6 +36,7 @@ public class Service{{ name|capitalize }} extends PythonService {
         intent.putExtra("serviceTitle", "{{ name|capitalize }}");
         intent.putExtra("serviceDescription", "");
         intent.putExtra("pythonName", "{{ name }}");
+        intent.putExtra("serviceStartAsForeground", "{{ foreground|lower }}");
         intent.putExtra("pythonHome", argument);
         intent.putExtra("androidUnpack", argument);
         intent.putExtra("pythonPath", argument + ":" + argument + "/lib");
