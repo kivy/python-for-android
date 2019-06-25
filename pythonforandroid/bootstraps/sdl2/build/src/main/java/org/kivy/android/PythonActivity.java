@@ -365,8 +365,23 @@ public class PythonActivity extends SDLActivity {
         }
     }
 
-    public static void start_service(String serviceTitle, String serviceDescription,
-                String pythonServiceArgument) {
+    public static void start_service(
+            String serviceTitle,
+            String serviceDescription,
+            String pythonServiceArgument
+            ) {
+        // This is the legacy call with less parameters!
+        start_service(
+            serviceTitle, serviceDescription, pythonServiceArgument, true
+        );
+    }
+
+    public static void start_service(
+            String serviceTitle,
+            String serviceDescription,
+            String pythonServiceArgument,
+            boolean showForegroundNotification
+            ) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
@@ -378,6 +393,9 @@ public class PythonActivity extends SDLActivity {
         serviceIntent.putExtra("pythonName", "python");
         serviceIntent.putExtra("pythonHome", app_root_dir);
         serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
+        serviceIntent.putExtra("serviceStartAsForeground",
+            (showForegroundNotification ? "true" : "false")
+        );
         serviceIntent.putExtra("serviceTitle", serviceTitle);
         serviceIntent.putExtra("serviceDescription", serviceDescription);
         serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
