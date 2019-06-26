@@ -1,5 +1,5 @@
 diff --git a/numpy/fft/setup.py b/numpy/fft/setup.py
-index cd99a82d7..e614ecd07 100644
+index cd99a82..cd7c1ef 100644
 --- a/numpy/fft/setup.py
 +++ b/numpy/fft/setup.py
 @@ -9,7 +9,8 @@ def configuration(parent_package='',top_path=None):
@@ -8,12 +8,12 @@ index cd99a82d7..e614ecd07 100644
      config.add_extension('fftpack_lite',
 -                         sources=['fftpack_litemodule.c', 'fftpack.c']
 +                         sources=['fftpack_litemodule.c', 'fftpack.c'],
-+                         libraries=['m']
++                         libraries=['m'],
                           )
  
      return config
 diff --git a/numpy/linalg/setup.py b/numpy/linalg/setup.py
-index 66c07c9e1..d34bd930a 100644
+index 66c07c9..d34bd93 100644
 --- a/numpy/linalg/setup.py
 +++ b/numpy/linalg/setup.py
 @@ -43,6 +43,7 @@ def configuration(parent_package='', top_path=None):
@@ -34,10 +34,10 @@ index 66c07c9e1..d34bd930a 100644
      return config
  
 diff --git a/numpy/random/setup.py b/numpy/random/setup.py
-index 3f3b773a4..c1db9f783 100644
+index 394a70e..44af180 100644
 --- a/numpy/random/setup.py
 +++ b/numpy/random/setup.py
-@@ -40,7 +40,7 @@ def configuration(parent_package='',top_path=None):
+@@ -39,7 +39,7 @@ def configuration(parent_package='',top_path=None):
      if needs_mingw_ftime_workaround():
          defs.append(("NPY_NEEDS_MINGW_TIME_WORKAROUND", None))
  
