@@ -1,6 +1,6 @@
+
 import os
 import sh
-
 import unittest
 
 try:
@@ -9,11 +9,15 @@ except ImportError:
     # `Python 2` or lower than `Python 3.3` does not
     # have the `unittest.mock` module built-in
     import mock
-from pythonforandroid.bootstrap import Bootstrap
+from pythonforandroid.bootstrap import (
+    _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
+)
 from pythonforandroid.distribution import Distribution
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
+
+from test_graph import get_fake_recipe
 
 
 class BaseClassSetupBootstrap(object):
@@ -90,7 +94,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
             - :meth:`~pythonforandroid.bootstrap.Bootstrap.get_dist_dir`
             - :meth:`~pythonforandroid.bootstrap.Bootstrap.get_common_dir`
         """
-        bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
+        bs = Bootstrap.get_bootstrap("sdl2", self.ctx)
 
         self.assertTrue(
             bs.get_build_dir().endswith("build/bootstrap_builds/sdl2-python3")
@@ -100,32 +104,133 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
             bs.get_common_dir().endswith("pythonforandroid/bootstraps/common")
         )
 
-    def test_list_bootstraps(self):
+    def test__cmp_bootstraps_by_priority(self):
+        # Test service_only has higher priority than sdl2:
+        # (higher priority = smaller number/comes first)
+        self.assertTrue(_cmp_bootstraps_by_priority(
+            Bootstrap.get_bootstrap("service_only", self.ctx),
+            Bootstrap.get_bootstrap("sdl2", self.ctx)
+        ) < 0)
+
+        # Test a random bootstrap is always lower priority than sdl2:
+        class _FakeBootstrap(object):
+            def __init__(self, name):
+                self.name = name
+        bs1 = _FakeBootstrap("alpha")
+        bs2 = _FakeBootstrap("zeta")
+        self.assertTrue(_cmp_bootstraps_by_priority(
+            bs1,
+            Bootstrap.get_bootstrap("sdl2", self.ctx)
+        ) > 0)
+        self.assertTrue(_cmp_bootstraps_by_priority(
+            bs2,
+            Bootstrap.get_bootstrap("sdl2", self.ctx)
+        ) > 0)
+
+        # Test bootstraps that aren't otherwise recognized are ranked
+        # alphabetically:
+        self.assertTrue(_cmp_bootstraps_by_priority(
+            bs2,
+            bs1,
+        ) > 0)
+        self.assertTrue(_cmp_bootstraps_by_priority(
+            bs1,
+            bs2,
+        ) < 0)
+
+    def test_all_bootstraps(self):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.list_bootstraps`
         returns the expected values, which should be: `empty", `service_only`,
         `webview` and `sdl2`
         """
         expected_bootstraps = {"empty", "service_only", "webview", "sdl2"}
-        set_of_bootstraps = set(Bootstrap().list_bootstraps())
+        set_of_bootstraps = Bootstrap.all_bootstraps()
         self.assertEqual(
             expected_bootstraps, expected_bootstraps & set_of_bootstraps
         )
         self.assertEqual(len(expected_bootstraps), len(set_of_bootstraps))
+
+    def test_expand_dependencies(self):
+        # Test dependency expansion of a recipe with no alternatives:
+        expanded_result_1 = expand_dependencies(["pysdl2"], self.ctx)
+        self.assertTrue(
+            {"sdl2", "pysdl2", "python3"} in
+            [set(s) for s in expanded_result_1]
+        )
+
+        # Test expansion of a single element but as tuple:
+        expanded_result_1 = expand_dependencies([("pysdl2",)], self.ctx)
+        self.assertTrue(
+            {"sdl2", "pysdl2", "python3"} in
+            [set(s) for s in expanded_result_1]
+        )
+
+        # Test all alternatives are listed (they won't have dependencies
+        # expanded since expand_dependencies() is too simplistic):
+        expanded_result_2 = expand_dependencies([("pysdl2", "kivy")], self.ctx)
+        self.assertEqual([["pysdl2"], ["kivy"]], expanded_result_2)
 
     def test_get_bootstraps_from_recipes(self):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.
         get_bootstraps_from_recipes` returns the expected values
         """
-        recipes_sdl2 = {"sdl2", "python3", "kivy"}
-        bs = Bootstrap().get_bootstrap_from_recipes(recipes_sdl2, self.ctx)
 
+        import pythonforandroid.recipe
+        original_get_recipe = pythonforandroid.recipe.Recipe.get_recipe
+
+        # Test that SDL2 works with kivy:
+        recipes_sdl2 = {"sdl2", "python3", "kivy"}
+        bs = Bootstrap.get_bootstrap_from_recipes(recipes_sdl2, self.ctx)
         self.assertEqual(bs.name, "sdl2")
 
-        # test wrong recipes
+        # Test that pysdl2 or kivy alone will also yield SDL2 (dependency):
+        recipes_pysdl2_only = {"pysdl2"}
+        bs = Bootstrap.get_bootstrap_from_recipes(
+            recipes_pysdl2_only, self.ctx
+        )
+        self.assertEqual(bs.name, "sdl2")
+        recipes_kivy_only = {"kivy"}
+        bs = Bootstrap.get_bootstrap_from_recipes(
+            recipes_kivy_only, self.ctx
+        )
+        self.assertEqual(bs.name, "sdl2")
+
+        with mock.patch("pythonforandroid.recipe.Recipe.get_recipe") as \
+                mock_get_recipe:
+            # Test that something conflicting with sdl2 won't give sdl2:
+            def _add_sdl2_conflicting_recipe(name, ctx):
+                if name == "conflictswithsdl2":
+                    if name not in pythonforandroid.recipe.Recipe.recipes:
+                        pythonforandroid.recipe.Recipe.recipes[name] = (
+                            get_fake_recipe("sdl2", conflicts=["sdl2"])
+                        )
+                return original_get_recipe(name, ctx)
+            mock_get_recipe.side_effect = _add_sdl2_conflicting_recipe
+            recipes_with_sdl2_conflict = {"python3", "conflictswithsdl2"}
+            bs = Bootstrap.get_bootstrap_from_recipes(
+                recipes_with_sdl2_conflict, self.ctx
+            )
+            self.assertNotEqual(bs.name, "sdl2")
+
+        # Test using flask will default to webview:
+        recipes_with_flask = {"python3", "flask"}
+        bs = Bootstrap.get_bootstrap_from_recipes(
+            recipes_with_flask, self.ctx
+        )
+        self.assertEqual(bs.name, "webview")
+
+        # Test using random packages will default to service_only:
+        recipes_with_no_sdl2_or_web = {"python3", "numpy"}
+        bs = Bootstrap.get_bootstrap_from_recipes(
+            recipes_with_no_sdl2_or_web, self.ctx
+        )
+        self.assertEqual(bs.name, "service_only")
+
+        # Test wrong recipes
         wrong_recipes = {"python2", "python3", "pyjnius"}
-        bs = Bootstrap().get_bootstrap_from_recipes(wrong_recipes, self.ctx)
+        bs = Bootstrap.get_bootstrap_from_recipes(wrong_recipes, self.ctx)
         self.assertIsNone(bs)
 
     @mock.patch("pythonforandroid.bootstrap.ensure_dir")
