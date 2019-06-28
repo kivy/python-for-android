@@ -721,9 +721,9 @@ def run_pymodules_install(ctx, modules, project_dir=None,
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE ***')
     modules = list(filter(ctx.not_has_package, modules))
 
-    # We change current working directory later, so this
-    # has to be an absolute path:
-    project_dir = abspath(project_dir)
+    # We change current working directory later, so this has to be an absolute
+    # path or `None` in case that we didn't supply the `project_dir` via kwargs
+    project_dir = abspath(project_dir) if project_dir else None
 
     # Bail out if no python deps and no setup.py to process:
     if not modules and (
