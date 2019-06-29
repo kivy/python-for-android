@@ -27,7 +27,6 @@ print('Imported kivy')
 from kivy.utils import platform
 print('platform is', platform)
 
-
 kv = '''
 #:import Metrics kivy.metrics.Metrics
 #:import sys sys
@@ -90,7 +89,7 @@ ScrollView:
             on_touch_down: print('touched at', args[-1].pos)
 
 <ErrorPopup>:
-    title: 'Error' 
+    title: 'Error'
     size_hint: 0.75, 0.75
     Label:
         text: root.error_text
@@ -128,7 +127,7 @@ class TestApp(App):
         except ImportError:
             raise_error('Could not import pyjnius')
             return
-        
+
         print('Attempting to vibrate with pyjnius')
         # PythonActivity = autoclass('org.renpy.android.PythonActivity')
         # activity = PythonActivity.mActivity
@@ -142,13 +141,13 @@ class TestApp(App):
 
     def test_ctypes(self, *args):
         import ctypes
-            
+
     def test_numpy(self, *args):
         import numpy
 
         print(numpy.zeros(5))
         print(numpy.arange(5))
         print(numpy.random.random((3, 3)))
-                    
+
 
 TestApp().run()
