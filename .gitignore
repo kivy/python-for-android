@@ -32,3 +32,6 @@ nosetests.xml
 coverage.xml
 *.cover
 .pytest_cache/
+
+# testapp's build folder
+testapps/build/
