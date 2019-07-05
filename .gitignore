@@ -35,3 +35,6 @@ coverage.xml
 
 # testapp's build folder
 testapps/build/
+
+# Dolphin (the KDE file manager autogenerates the file `.directory`)
+.directory
