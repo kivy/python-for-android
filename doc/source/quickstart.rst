@@ -131,9 +131,9 @@ API/NDK API level 21**:
 
 Second, install the build-tools. You can use
 ``$SDK_DIR/tools/bin/sdkmanager --list`` to see all the
-possibilities, but 26.0.2 is the latest version at the time of writing::
+possibilities, but 28.0.2 is the latest version at the time of writing::
 
-  $SDK_DIR/tools/bin/sdkmanager "build-tools;26.0.2"
+  $SDK_DIR/tools/bin/sdkmanager "build-tools;28.0.2"
 
 Configure p4a to use your SDK/NDK
 `````````````````````````````````

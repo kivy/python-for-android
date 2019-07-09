@@ -58,8 +58,8 @@ RUN ${RETRY} curl --location --progress-bar --insecure \
 ENV ANDROID_SDK_HOME="${ANDROID_HOME}/android-sdk"
 
 # get the latest version from https://developer.android.com/studio/index.html
-ENV ANDROID_SDK_TOOLS_VERSION="3859397"
-ENV ANDROID_SDK_BUILD_TOOLS_VERSION="26.0.2"
+ENV ANDROID_SDK_TOOLS_VERSION="4333796"
+ENV ANDROID_SDK_BUILD_TOOLS_VERSION="28.0.2"
 ENV ANDROID_SDK_TOOLS_ARCHIVE="sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
 ENV ANDROID_SDK_TOOLS_DL_URL="https://dl.google.com/android/repository/${ANDROID_SDK_TOOLS_ARCHIVE}"
 
@@ -76,16 +76,14 @@ RUN mkdir --parents "${ANDROID_SDK_HOME}/.android/" \
     && echo '### User Sources for Android SDK Manager' \
         > "${ANDROID_SDK_HOME}/.android/repositories.cfg"
 
-# accept Android licenses (JDK necessary!)
+# Download and accept Android licenses (JDK necessary!)
 RUN ${RETRY} apt -y install -qq --no-install-recommends openjdk-8-jdk \
     && apt -y autoremove
 RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" > /dev/null
+RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" > /dev/null
 
-# download platforms, API, build tools
-RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-19" && \
-    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" && \
-    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" && \
-    chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
+# Set avdmanager permissions (executable)
+RUN chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
 
 
 ENV USER="user"
