@@ -19,14 +19,14 @@ bootstraps = [None,
               Bootstrap.get_bootstrap('sdl2', ctx)]
 valid_combinations = list(product(name_sets, bootstraps))
 valid_combinations.extend(
-    [(['python3crystax'], Bootstrap.get_bootstrap('sdl2', ctx)),
-     (['kivy', 'python3crystax'], Bootstrap.get_bootstrap('sdl2', ctx)),
+    [(['python3'], Bootstrap.get_bootstrap('sdl2', ctx)),
+     (['kivy', 'python3'], Bootstrap.get_bootstrap('sdl2', ctx)),
      (['flask'], Bootstrap.get_bootstrap('webview', ctx)),
      (['pysdl2'], None),  # auto-detect bootstrap! important corner case
     ]
 )
 invalid_combinations = [
-    [['python2', 'python3crystax'], None],
+    [['python2', 'python3'], None],
     [['pysdl2', 'genericndkbuild'], None],
 ]
 invalid_combinations_simple = list(invalid_combinations)
@@ -39,12 +39,11 @@ invalid_combinations_simple = list(invalid_combinations)
 # non-tuple/non-ambiguous dependencies, e.g.:
 #
 #     dependencies_1st = ["python2", "pillow"]
-#     dependencies_2nd = ["python3crystax", "pillow"]
+#     dependencies_2nd = ["python3", "pillow"]
 #
 # This however won't work:
 #
 #     dependencies_1st = [("python2", "python3"), "pillow"]
-#     dependencies_2nd = [("python2legacy", "python3crystax"), "pillow"]
 #
 # (This is simply because the conflict checker doesn't resolve this to
 # keep the code ismple enough)

@@ -28,7 +28,7 @@ class Python3Recipe(GuestPythonRecipe):
         patches = patches + ["patches/remove-fix-cortex-a8.patch"]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
-    conflicts = ['python3crystax', 'python2']
+    conflicts = ['python2']
 
     configure_args = (
         '--host={android_host}',

@@ -730,7 +730,7 @@ class PythonRecipe(Recipe):
     def __init__(self, *args, **kwargs):
         super(PythonRecipe, self).__init__(*args, **kwargs)
         depends = self.depends
-        depends.append(('python2', 'python3', 'python3crystax'))
+        depends.append(('python2', 'python3'))
         depends = list(set(depends))
         self.depends = depends
 
@@ -753,8 +753,6 @@ class PythonRecipe(Recipe):
         host_build = Recipe.get_recipe(host_name, self.ctx).get_build_dir()
         if host_name in ['hostpython2', 'hostpython3']:
             return join(host_build, 'native-build', 'python')
-        elif host_name in ['hostpython3crystax']:
-            return join(host_build, 'hostpython')
         else:
             python_recipe = self.ctx.python_recipe
             return 'python{}'.format(python_recipe.version)
@@ -783,27 +781,16 @@ class PythonRecipe(Recipe):
         env['LANG'] = "en_GB.UTF-8"
 
         if not self.call_hostpython_via_targetpython:
-            # sets python headers/linkages...depending on python's recipe
             python_name = self.ctx.python_recipe.name
-            python_version = self.ctx.python_recipe.version
-            python_short_version = '.'.join(python_version.split('.')[:2])
-            if not self.ctx.python_recipe.from_crystax:
-                env['CFLAGS'] += ' -I{}'.format(
-                    self.ctx.python_recipe.include_root(arch.arch))
-                env['LDFLAGS'] += ' -L{} -lpython{}'.format(
-                    self.ctx.python_recipe.link_root(arch.arch),
-                    self.ctx.python_recipe.major_minor_version_string)
-                if python_name == 'python3':
-                    env['LDFLAGS'] += 'm'
-            else:
-                ndk_dir_python = join(self.ctx.ndk_dir, 'sources',
-                                      'python', python_version)
-                env['CFLAGS'] += ' -I{} '.format(
-                    join(ndk_dir_python, 'include',
-                         'python'))
-                env['LDFLAGS'] += ' -L{}'.format(
-                    join(ndk_dir_python, 'libs', arch.arch))
-                env['LDFLAGS'] += ' -lpython{}m'.format(python_short_version)
+            env['CFLAGS'] += ' -I{}'.format(
+                self.ctx.python_recipe.include_root(arch.arch)
+            )
+            env['LDFLAGS'] += ' -L{} -lpython{}'.format(
+                self.ctx.python_recipe.link_root(arch.arch),
+                self.ctx.python_recipe.major_minor_version_string,
+            )
+            if python_name == 'python3':
+                env['LDFLAGS'] += 'm'
 
             hppath = []
             hppath.append(join(dirname(self.hostpython_location), 'Lib'))
@@ -954,7 +941,7 @@ class CythonRecipe(PythonRecipe):
     def __init__(self, *args, **kwargs):
         super(CythonRecipe, self).__init__(*args, **kwargs)
         depends = self.depends
-        depends.append(('python2', 'python3', 'python3crystax'))
+        depends.append(('python2', 'python3'))
         depends = list(set(depends))
         self.depends = depends
 
@@ -1021,8 +1008,7 @@ class CythonRecipe(PythonRecipe):
             del cyenv['PYTHONPATH']
         if 'PYTHONNOUSERSITE' in cyenv:
             cyenv.pop('PYTHONNOUSERSITE')
-        cython = 'cython' if self.ctx.python_recipe.from_crystax else self.ctx.cython
-        cython_command = sh.Command(cython)
+        cython_command = sh.Command(self.ctx.cython)
         shprint(cython_command, filename, *self.cython_args, _env=cyenv)
 
     def cythonize_build(self, env, build_dir="."):
@@ -1041,9 +1027,6 @@ class CythonRecipe(PythonRecipe):
             ' -L{} '.format(self.ctx.libs_dir) +
             ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
                                 arch.arch)))
-        if self.ctx.python_recipe.from_crystax:
-            env['LDFLAGS'] = (env['LDFLAGS'] +
-                              ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)))
 
         env['LDSHARED'] = env['CC'] + ' -shared'
         # shprint(sh.whereis, env['LDSHARED'], _env=env)
@@ -1059,24 +1042,6 @@ class CythonRecipe(PythonRecipe):
         env['LIBLINK_PATH'] = liblink_path
         ensure_dir(liblink_path)
 
-        # Add crystax-specific site packages:
-        if self.ctx.python_recipe.from_crystax:
-            command = sh.Command('python{}'.format(self.ctx.python_recipe.version))
-            site_packages_dirs = command(
-                '-c', 'import site; print("\\n".join(site.getsitepackages()))')
-            site_packages_dirs = site_packages_dirs.stdout.decode('utf-8').split('\n')
-            if 'PYTHONPATH' in env:
-                env['PYTHONPATH'] = env['PYTHONPATH'] +\
-                    ':{}'.format(':'.join(site_packages_dirs))
-            else:
-                env['PYTHONPATH'] = ':'.join(site_packages_dirs)
-            while env['PYTHONPATH'].find("::") > 0:
-                env['PYTHONPATH'] = env['PYTHONPATH'].replace("::", ":")
-            if env['PYTHONPATH'].endswith(":"):
-                env['PYTHONPATH'] = env['PYTHONPATH'][:-1]
-            if env['PYTHONPATH'].startswith(":"):
-                env['PYTHONPATH'] = env['PYTHONPATH'][1:]
-
         return env
 
 
@@ -1084,20 +1049,12 @@ class TargetPythonRecipe(Recipe):
     '''Class for target python recipes. Sets ctx.python_recipe to point to
     itself, so as to know later what kind of Python was built or used.'''
 
-    from_crystax = False
-    '''True if the python is used from CrystaX, False otherwise (i.e. if
-    it is built by p4a).'''
-
     def __init__(self, *args, **kwargs):
         self._ctx = None
         super(TargetPythonRecipe, self).__init__(*args, **kwargs)
 
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
-        if self.from_crystax and self.ctx.ndk != 'crystax':
-            raise BuildInterruptingException(
-                'The {} recipe can only be built when '
-                'using the CrystaX NDK. Exiting.'.format(self.name))
         self.ctx.python_recipe = self
 
     def include_root(self, arch):

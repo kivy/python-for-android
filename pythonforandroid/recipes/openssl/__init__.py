@@ -20,11 +20,6 @@ class OpenSSLRecipe(Recipe):
     using the methods: :meth:`include_flags`, :meth:`link_dirs_flags` and
     :meth:`link_libs_flags`.
 
-    .. note:: the python2legacy version is too old to support openssl 1.1+, so
-        we must use version 1.0.x. Also python3crystax is not building
-        successfully with openssl libs 1.1+ so we use the legacy version as
-        we do with python2legacy.
-
     .. warning:: This recipe is very sensitive because is used for our core
         recipes, the python recipes. The used API should match with the one
         used in our python build, otherwise we will be unable to build the
