@@ -1,10 +1,11 @@
+import functools
+import glob
+import importlib
+import os
 from os.path import (join, dirname, isdir, normpath, splitext, basename)
 from os import listdir, walk, sep
 import sh
 import shlex
-import glob
-import importlib
-import os
 import shutil
 
 from pythonforandroid.logger import (warning, shprint, info, logger,
@@ -32,6 +33,35 @@ def copy_files(src_root, dest_root, override=True):
                     shutil.copy(src_file, dest_file)
             else:
                 os.makedirs(dest_file)
+
+
+default_recipe_priorities = [
+    "webview", "sdl2", "service_only"  # last is highest
+]
+# ^^ NOTE: these are just the default priorities if no special rules
+# apply (which you can find in the code below), so basically if no
+# known graphical lib or web lib is used - in which case service_only
+# is the most reasonable guess.
+
+
+def _cmp_bootstraps_by_priority(a, b):
+    def rank_bootstrap(bootstrap):
+        """ Returns a ranking index for each bootstrap,
+            with higher priority ranked with higher number. """
+        if bootstrap.name in default_recipe_priorities:
+            return default_recipe_priorities.index(bootstrap.name) + 1
+        return 0
+
+    # Rank bootstraps in order:
+    rank_a = rank_bootstrap(a)
+    rank_b = rank_bootstrap(b)
+    if rank_a != rank_b:
+        return (rank_b - rank_a)
+    else:
+        if a.name < b.name:  # alphabetic sort for determinism
+            return -1
+        else:
+            return 1
 
 
 class Bootstrap(object):
@@ -138,36 +168,43 @@ class Bootstrap(object):
         self.distribution.save_info(self.dist_dir)
 
     @classmethod
-    def list_bootstraps(cls):
+    def all_bootstraps(cls):
         '''Find all the available bootstraps and return them.'''
         forbidden_dirs = ('__pycache__', 'common')
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
+        result = set()
         for name in listdir(bootstraps_dir):
             if name in forbidden_dirs:
                 continue
             filen = join(bootstraps_dir, name)
             if isdir(filen):
-                yield name
+                result.add(name)
+        return result
 
     @classmethod
-    def get_bootstrap_from_recipes(cls, recipes, ctx):
-        '''Returns a bootstrap whose recipe requirements do not conflict with
-        the given recipes.'''
+    def get_usable_bootstraps_for_recipes(cls, recipes, ctx):
+        '''Returns all bootstrap whose recipe requirements do not conflict
+        with the given recipes, in no particular order.'''
         info('Trying to find a bootstrap that matches the given recipes.')
         bootstraps = [cls.get_bootstrap(name, ctx)
-                      for name in cls.list_bootstraps()]
-        acceptable_bootstraps = []
+                      for name in cls.all_bootstraps()]
+        acceptable_bootstraps = set()
+
+        # Find out which bootstraps are acceptable:
         for bs in bootstraps:
             if not bs.can_be_chosen_automatically:
                 continue
-            possible_dependency_lists = expand_dependencies(bs.recipe_depends)
+            possible_dependency_lists = expand_dependencies(bs.recipe_depends, ctx)
             for possible_dependencies in possible_dependency_lists:
                 ok = True
+                # Check if the bootstap's dependencies have an internal conflict:
                 for recipe in possible_dependencies:
                     recipe = Recipe.get_recipe(recipe, ctx)
                     if any([conflict in recipes for conflict in recipe.conflicts]):
                         ok = False
                         break
+                # Check if bootstrap's dependencies conflict with chosen
+                # packages:
                 for recipe in recipes:
                     try:
                         recipe = Recipe.get_recipe(recipe, ctx)
@@ -180,14 +217,58 @@ class Bootstrap(object):
                         ok = False
                         break
                 if ok and bs not in acceptable_bootstraps:
-                    acceptable_bootstraps.append(bs)
+                    acceptable_bootstraps.add(bs)
+
         info('Found {} acceptable bootstraps: {}'.format(
             len(acceptable_bootstraps),
             [bs.name for bs in acceptable_bootstraps]))
-        if acceptable_bootstraps:
-            info('Using the first of these: {}'
-                 .format(acceptable_bootstraps[0].name))
-            return acceptable_bootstraps[0]
+        return acceptable_bootstraps
+
+    @classmethod
+    def get_bootstrap_from_recipes(cls, recipes, ctx):
+        '''Picks a single recommended default bootstrap out of
+           all_usable_bootstraps_from_recipes() for the given reicpes,
+           and returns it.'''
+
+        known_web_packages = {"flask"}  # to pick webview over service_only
+        recipes_with_deps_lists = expand_dependencies(recipes, ctx)
+        acceptable_bootstraps = cls.get_usable_bootstraps_for_recipes(
+            recipes, ctx
+        )
+
+        def have_dependency_in_recipes(dep):
+            for dep_list in recipes_with_deps_lists:
+                if dep in dep_list:
+                    return True
+            return False
+
+        # Special rule: return SDL2 bootstrap if there's an sdl2 dep:
+        if (have_dependency_in_recipes("sdl2") and
+                "sdl2" in [b.name for b in acceptable_bootstraps]
+                ):
+            info('Using sdl2 bootstrap since it is in dependencies')
+            return cls.get_bootstrap("sdl2", ctx)
+
+        # Special rule: return "webview" if we depend on common web recipe:
+        for possible_web_dep in known_web_packages:
+            if have_dependency_in_recipes(possible_web_dep):
+                # We have a web package dep!
+                if "webview" in [b.name for b in acceptable_bootstraps]:
+                    info('Using webview bootstrap since common web packages '
+                         'were found {}'.format(
+                             known_web_packages.intersection(recipes)
+                         ))
+                    return cls.get_bootstrap("webview", ctx)
+
+        prioritized_acceptable_bootstraps = sorted(
+            list(acceptable_bootstraps),
+            key=functools.cmp_to_key(_cmp_bootstraps_by_priority)
+        )
+
+        if prioritized_acceptable_bootstraps:
+            info('Using the highest ranked/first of these: {}'
+                 .format(prioritized_acceptable_bootstraps[0].name))
+            return prioritized_acceptable_bootstraps[0]
         return None
 
     @classmethod
@@ -299,9 +380,26 @@ class Bootstrap(object):
                 shprint(sh.rm, '-rf', d)
 
 
-def expand_dependencies(recipes):
+def expand_dependencies(recipes, ctx):
+    """ This function expands to lists of all different available
+        alternative recipe combinations, with the dependencies added in
+        ONLY for all the not-with-alternative recipes.
+        (So this is like the deps graph very simplified and incomplete, but
+         hopefully good enough for most basic bootstrap compatibility checks)
+    """
+
+    # Add in all the deps of recipes where there is no alternative:
+    recipes_with_deps = list(recipes)
+    for entry in recipes:
+        if not isinstance(entry, (tuple, list)) or len(entry) == 1:
+            if isinstance(entry, (tuple, list)):
+                entry = entry[0]
+            recipe = Recipe.get_recipe(entry, ctx)
+            recipes_with_deps += recipe.depends
+
+    # Split up lists by available alternatives:
     recipe_lists = [[]]
-    for recipe in recipes:
+    for recipe in recipes_with_deps:
         if isinstance(recipe, (tuple, list)):
             new_recipe_lists = []
             for alternative in recipe:
@@ -311,6 +409,6 @@ def expand_dependencies(recipes):
                     new_recipe_lists.append(new_list)
             recipe_lists = new_recipe_lists
         else:
-            for old_list in recipe_lists:
-                old_list.append(recipe)
+            for existing_list in recipe_lists:
+                existing_list.append(recipe)
     return recipe_lists
