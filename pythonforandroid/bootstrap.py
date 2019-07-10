@@ -394,8 +394,13 @@ def expand_dependencies(recipes, ctx):
         if not isinstance(entry, (tuple, list)) or len(entry) == 1:
             if isinstance(entry, (tuple, list)):
                 entry = entry[0]
-            recipe = Recipe.get_recipe(entry, ctx)
-            recipes_with_deps += recipe.depends
+            try:
+                recipe = Recipe.get_recipe(entry, ctx)
+                recipes_with_deps += recipe.depends
+            except ValueError:
+                # it's a pure python package without a recipe, so we
+                # don't know the dependencies...skipping for now
+                pass
 
     # Split up lists by available alternatives:
     recipe_lists = [[]]
