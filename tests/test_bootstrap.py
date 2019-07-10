@@ -171,6 +171,18 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         expanded_result_2 = expand_dependencies([("pysdl2", "kivy")], self.ctx)
         self.assertEqual([["pysdl2"], ["kivy"]], expanded_result_2)
 
+    def test_expand_dependencies_with_pure_python_package(self):
+        """Check that `expanded_dependencies`, with a pure python package as
+        one of the dependencies, returns a list of dependencies
+        """
+        expanded_result = expand_dependencies(
+            ["python3", "kivy", "peewee"], self.ctx
+        )
+        self.assertEqual(len(expanded_result), 3)
+        self.assertIsInstance(expanded_result, list)
+        for i in expanded_result:
+            self.assertIsInstance(i, list)
+
     def test_get_bootstraps_from_recipes(self):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.
