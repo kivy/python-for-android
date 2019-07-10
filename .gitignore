@@ -21,4 +21,20 @@ __pycache__/
 
 #idea/pycharm
 .idea/
-.tox
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+
+# testapp's build folder
+testapps/build/
+
+# Dolphin (the KDE file manager autogenerates the file `.directory`)
+.directory
