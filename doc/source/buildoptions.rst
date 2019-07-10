@@ -43,7 +43,7 @@ recipe.
 .. note:: Since we don't support `python3crystax` anymore, the old instructions
           has been removed from here. If you, still have the need to make use
           of this old recipe, you should do it with an old `python-for-android`
-          release. Probably, a got starting point would be `version 0.7.0
+          release. Probably, a good starting point would be `version 0.7.0
           <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__ or
           if that doesn't work , then go for `version 0.6.0
           <https://github.com/kivy/python-for-android/archive/0.6.0.zip>`__
