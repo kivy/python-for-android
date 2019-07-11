@@ -28,6 +28,7 @@ from pythonforandroid import logger
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
 from pythonforandroid.toolchain import current_directory
 from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.recipe import Recipe
 from ci.constants import TargetPython, CORE_RECIPES, BROKEN_RECIPES
 
 
@@ -78,6 +79,18 @@ def main():
     recipes -= CORE_RECIPES
     logger.info('recipes to build: {}'.format(recipes))
     context = Context()
+
+    # removing the deleted recipes for the given target (if any)
+    for recipe_name in recipes.copy():
+        try:
+            Recipe.get_recipe(recipe_name, context)
+        except ValueError:
+            # recipe doesn't exist, so probably we remove it
+            recipes.remove(recipe_name)
+            logger.warning(
+                'removed {} from recipes because deleted'.format(recipe_name)
+            )
+
     # forces the default target
     recipes_and_target = recipes | set([target_python.name])
     try:
