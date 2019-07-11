@@ -67,7 +67,7 @@ def build(target_python, requirements):
         # iterates to stream the output
         for line in sh.python(
                 testapp, 'apk', '--sdk-dir', android_sdk_home,
-                '--ndk-dir', android_ndk_home, '--bootstrap', 'sdl2', '--requirements',
+                '--ndk-dir', android_ndk_home, '--requirements',
                 requirements, _err_to_out=True, _iter=True):
             print(line)
 
