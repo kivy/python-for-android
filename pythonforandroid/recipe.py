@@ -725,7 +725,7 @@ class PythonRecipe(Recipe):
     This is almost always what you want to do.'''
 
     setup_extra_args = []
-    '''List of extra arugments to pass to setup.py'''
+    '''List of extra arguments to pass to setup.py'''
 
     def __init__(self, *args, **kwargs):
         super(PythonRecipe, self).__init__(*args, **kwargs)
