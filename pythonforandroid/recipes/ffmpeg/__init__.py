@@ -97,7 +97,7 @@ class FFMpegRecipe(Recipe):
                 '--disable-static',
                 '--enable-shared',
             ]
-            
+
             if 'arm64' in arch.arch:
                 cross_prefix = 'aarch64-linux-android-'
                 arch_flag = 'aarch64'
@@ -114,7 +114,7 @@ class FFMpegRecipe(Recipe):
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]
-            
+
             if arch_flag == 'arm':
                 cflags += [
                     '-mfpu=vfpv3-d16',
