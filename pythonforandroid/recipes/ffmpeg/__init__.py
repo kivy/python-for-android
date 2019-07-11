@@ -98,20 +98,29 @@ class FFMpegRecipe(Recipe):
                 '--enable-shared',
             ]
 
+            if 'arm64' in arch.arch:
+                cross_prefix = 'aarch64-linux-android-'
+                arch_flag = 'aarch64'
+            else:
+                cross_prefix = 'arm-linux-androideabi-'
+                arch_flag = 'arm'
+
             # android:
             flags += [
                 '--target-os=android',
-                '--cross-prefix=arm-linux-androideabi-',
-                '--arch=arm',
+                '--cross-prefix={}'.format(cross_prefix),
+                '--arch={}'.format(arch_flag),
                 '--sysroot=' + self.ctx.ndk_platform,
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]
-            cflags += [
-                '-mfpu=vfpv3-d16',
-                '-mfloat-abi=softfp',
-                '-fPIC',
-            ]
+
+            if arch_flag == 'arm':
+                cflags += [
+                    '-mfpu=vfpv3-d16',
+                    '-mfloat-abi=softfp',
+                    '-fPIC',
+                ]
 
             env['CFLAGS'] += ' ' + ' '.join(cflags)
             env['LDFLAGS'] += ' ' + ' '.join(ldflags)
@@ -121,7 +130,8 @@ class FFMpegRecipe(Recipe):
             shprint(sh.make, '-j4', _env=env)
             shprint(sh.make, 'install', _env=env)
             # copy libs:
-            sh.cp('-a', sh.glob('./lib/lib*.so'), self.ctx.get_libs_dir(arch.arch))
+            sh.cp('-a', sh.glob('./lib/lib*.so'),
+                  self.ctx.get_libs_dir(arch.arch))
 
 
 recipe = FFMpegRecipe()
