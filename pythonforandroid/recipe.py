@@ -727,12 +727,42 @@ class PythonRecipe(Recipe):
     setup_extra_args = []
     '''List of extra arguments to pass to setup.py'''
 
+    depends = [('python2', 'python3')]
+    '''
+    .. note:: it's important to keep this depends as a class attribute, outside
+              `__init__` because, sometimes, we only initialize the object, so
+              the `__init__` call it won't be called, which will lead to not
+              have the python versions as a dependencies and it will cause a
+              tremendous `test_graph` error (difficult to track) and also, the
+              build order for dependencies will not be computed as expected (if
+              computed...). So be very careful with this line!!
+
+    .. warning:: this `depends` may be overwrote in inherited classes of
+                 `PythonRecipe`, so we make sure that any sub class will
+                 contain python as a dependency. We do this by checking the
+                 dependencies in meth:`PythonRecipe.__init__` method and adding
+                 them again in case that is necessary, so don't forget to call
+                 `super` in any inherited class of this class.
+    '''
+
     def __init__(self, *args, **kwargs):
         super(PythonRecipe, self).__init__(*args, **kwargs)
-        depends = self.depends
-        depends.append(('python2', 'python3'))
-        depends = list(set(depends))
-        self.depends = depends
+        if not any(
+            [
+                d
+                for d in {'python2', 'python3', ('python2', 'python3')}
+                if d in self.depends
+            ]
+        ):
+            # we overwrote `depends` in inherited recipe, so we must add it
+            # again the python versions as dependencies, but we only do this in
+            # case that the sub classes recipe does not contain any python
+            # version as dependency because it may be some recipes only
+            # compatible with a single version of python
+            depends = self.depends
+            depends.append(('python2', 'python3'))
+            depends = list(set(depends))
+            self.depends = depends
 
     def clean_build(self, arch=None):
         super(PythonRecipe, self).clean_build(arch=arch)
@@ -937,13 +967,6 @@ class CythonRecipe(PythonRecipe):
     cythonize = True
     cython_args = []
     call_hostpython_via_targetpython = False
-
-    def __init__(self, *args, **kwargs):
-        super(CythonRecipe, self).__init__(*args, **kwargs)
-        depends = self.depends
-        depends.append(('python2', 'python3'))
-        depends = list(set(depends))
-        self.depends = depends
 
     def build_arch(self, arch):
         '''Build any cython components, then install the Python module by
