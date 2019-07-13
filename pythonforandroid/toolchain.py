@@ -100,6 +100,13 @@ user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
+def check_python_version():
+    py2_text = (
+        'python-for-android no longer supports running under Python 2. Either upgrade to '
+        'Python 3 (recommended), or revert to python-for-android 2019.07.08. Note that '
+        'you *can* still target Python 2 on Android by including python2 in your requirements.')
+    if sys.version_info.major < 3:
+        raise BuildInterruptingException(py2_text)
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):
@@ -568,6 +575,9 @@ class ToolchainCL(object):
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
+
+        check_python_version()
+
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
