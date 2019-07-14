@@ -35,18 +35,12 @@ e.g. ``--requirements=python3``.
 CrystaX python3
 ~~~~~~~~~~~~~~~
 
-python-for-android originally supported Python 3 using the CrystaX NDK.  Since
-we have a working python3 recipe, we don't support CrystaX NDK anymore. If you
-were using `python3crystax`, we recommend to give it a try to the new `python3`
-recipe.
+python-for-android no longer supports building for Python 3 using the CrystaX
+NDK. Instead, use the python3 recipe, which can be built using the normal
+Google NDK.
 
-.. note:: Since we don't support `python3crystax` anymore, the old instructions
-          has been removed from here. If you, still have the need to make use
-          of this old recipe, you should do it with an old `python-for-android`
-          release. Probably, a good starting point would be `version 0.7.0
-          <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__ or
-          if that doesn't work , then go for `version 0.6.0
-          <https://github.com/kivy/python-for-android/archive/0.6.0.zip>`__
+.. note:: The last python-for-android version supporting CrystaX was `0.7.0.
+          <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__
 
 .. _bootstrap_build_options:
 

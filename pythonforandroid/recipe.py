@@ -729,20 +729,14 @@ class PythonRecipe(Recipe):
 
     depends = [('python2', 'python3')]
     '''
-    .. note:: it's important to keep this depends as a class attribute, outside
-              `__init__` because, sometimes, we only initialize the object, so
-              the `__init__` call it won't be called, which will lead to not
-              have the python versions as a dependencies and it will cause a
-              tremendous `test_graph` error (difficult to track) and also, the
-              build order for dependencies will not be computed as expected (if
-              computed...). So be very careful with this line!!
+    .. note:: it's important to keep this depends as a class attribute outside
+              `__init__` because sometimes we only initialize the class, so the
+              `__init__` call won't be called and the deps would be missing
+              (which breaks the dependency graph computation)
 
-    .. warning:: this `depends` may be overwrote in inherited classes of
-                 `PythonRecipe`, so we make sure that any sub class will
-                 contain python as a dependency. We do this by checking the
-                 dependencies in meth:`PythonRecipe.__init__` method and adding
-                 them again in case that is necessary, so don't forget to call
-                 `super` in any inherited class of this class.
+    .. warning:: don't forget to call `super().__init__()` in any recipe's
+                 `__init__`, or otherwise it may not be ensured that it depends
+                 on python2 or python3 which can break the dependency graph
     '''
 
     def __init__(self, *args, **kwargs):
@@ -754,11 +748,10 @@ class PythonRecipe(Recipe):
                 if d in self.depends
             ]
         ):
-            # we overwrote `depends` in inherited recipe, so we must add it
-            # again the python versions as dependencies, but we only do this in
-            # case that the sub classes recipe does not contain any python
-            # version as dependency because it may be some recipes only
-            # compatible with a single version of python
+            # We ensure here that the recipe depends on python even it overrode
+            # `depends`. We only do this if it doesn't already depend on any
+            # python, since some recipes intentionally don't depend on/work
+            # with all python variants
             depends = self.depends
             depends.append(('python2', 'python3'))
             depends = list(set(depends))
