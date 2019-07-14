@@ -31,7 +31,6 @@ public class PythonUtil {
 
     protected static ArrayList<String> getLibraries(File libsDir) {
         ArrayList<String> libsList = new ArrayList<String>();
-        addLibraryIfExists(libsList, "crystax", libsDir);
         addLibraryIfExists(libsList, "sqlite3", libsDir);
         addLibraryIfExists(libsList, "ffi", libsDir);
         addLibraryIfExists(libsList, "png16", libsDir);

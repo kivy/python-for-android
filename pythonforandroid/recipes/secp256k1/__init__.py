@@ -10,9 +10,14 @@ class Secp256k1Recipe(CppCompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     depends = [
-        'openssl', ('hostpython3', 'hostpython2', 'hostpython3crystax'),
-        ('python2', 'python3', 'python3crystax'), 'setuptools',
-        'libffi', 'cffi', 'libsecp256k1']
+        'openssl',
+        ('hostpython3', 'hostpython2'),
+        ('python2', 'python3'),
+        'setuptools',
+        'libffi',
+        'cffi',
+        'libsecp256k1'
+    ]
 
     patches = [
         "cross_compile.patch", "drop_setup_requires.patch",

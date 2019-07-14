@@ -982,7 +982,7 @@ class ToolchainCL(object):
                 gradlew = sh.Command('./gradlew')
                 if exists('/usr/bin/dos2unix'):
                     # .../dists/bdisttest_python3/gradlew
-                    # .../build/bootstrap_builds/sdl2-python3crystax/gradlew
+                    # .../build/bootstrap_builds/sdl2-python3/gradlew
                     # if docker on windows, gradle contains CRLF
                     output = shprint(
                         sh.Command('dos2unix'), gradlew._path.decode('utf8'),

@@ -24,9 +24,6 @@ class OpenALRecipe(NDKRecipe):
                 '-DCMAKE_TOOLCHAIN_FILE={}'.format('XCompile-Android.txt'),
                 '-DHOST={}'.format(self.ctx.toolchain_prefix)
             ]
-            if self.ctx.ndk == 'crystax':
-                # avoids a segfault in libcrystax when calling lrintf
-                cmake_args += ['-DHAVE_LRINTF=0']
             shprint(
                 sh.cmake, '.',
                 *cmake_args,

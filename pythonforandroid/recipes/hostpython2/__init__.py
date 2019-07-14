@@ -12,7 +12,7 @@ class Hostpython2Recipe(HostPythonRecipe):
     '''
     version = '2.7.15'
     name = 'hostpython2'
-    conflicts = ['hostpython3', 'hostpython3crystax']
+    conflicts = ['hostpython3']
 
 
 recipe = Hostpython2Recipe()

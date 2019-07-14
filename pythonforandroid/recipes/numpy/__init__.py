@@ -8,7 +8,6 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
     version = '1.16.4'
     url = 'https://pypi.python.org/packages/source/n/numpy/numpy-{version}.zip'
     site_packages_name = 'numpy'
-    depends = [('python2', 'python3', 'python3crystax')]
 
     patches = [
         join('patches', 'add_libm_explicitly_to_build.patch'),
@@ -42,10 +41,6 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
         py_ver = self.ctx.python_recipe.major_minor_version_string
         py_inc_dir = self.ctx.python_recipe.include_root(arch.arch)
         py_lib_dir = self.ctx.python_recipe.link_root(arch.arch)
-        if self.ctx.ndk == 'crystax':
-            src_dir = join(self.ctx.ndk_dir, 'sources')
-            flags += " -I{}".format(join(src_dir, 'crystax', 'include'))
-            flags += " -L{}".format(join(src_dir, 'crystax', 'libs', arch.arch))
         flags += ' -I{}'.format(py_inc_dir)
         flags += ' -L{} -lpython{}'.format(py_lib_dir, py_ver)
         if 'python3' in self.ctx.python_recipe.name:

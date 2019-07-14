@@ -17,12 +17,11 @@ already have Docker preinstalled and set up.
 .. warning::
    This approach is highly space unfriendly! The more layers (``commit``) or
    even Docker images (``build``) you create the more space it'll consume.
-   Within the Docker image there is Android + Crystax SDK and NDK + various
-   dependencies. Within the custom diff made by building the distribution
-   there is another big chunk of space eaten. The very basic stuff such as
-   a distribution with: CPython 3, setuptools, Python for Android ``android``
-   module, SDL2 (+ deps), PyJNIus and Kivy takes almost 13 GB. Check your free
-   space first!
+   Within the Docker image there is Android SDK and NDK + various dependencies.
+   Within the custom diff made by building the distribution there is another
+   big chunk of space eaten. The very basic stuff such as a distribution with:
+   CPython 3, setuptools, Python for Android ``android`` module, SDL2 (+ deps),
+   PyJNIus and Kivy takes almost 2 GB. Check your free space first!
 
 1. Clone the repository::
 
