@@ -1,0 +1,30 @@
+diff --git a/numpy/testing/__init__.py b/numpy/testing/__init__.py
+index a8bd4fc..6b01fa6 100644
+--- a/numpy/testing/__init__.py
++++ b/numpy/testing/__init__.py
+@@ -5,18 +5,11 @@ in a single location, so that test scripts can just import it and work right
+ away.
+ 
+ """
+-from __future__ import division, absolute_import, print_function
+ 
+-from unittest import TestCase
+-
+-from ._private.utils import *
+-from ._private import decorators as dec
+-from ._private.nosetester import (
+-    run_module_suite, NoseTester as Tester
+-    )
+-
+-__all__ = _private.utils.__all__ + ['TestCase', 'run_module_suite']
+-
+-from numpy._pytesttester import PytestTester
+-test = PytestTester(__name__)
+-del PytestTester
++# fake tester, android don't have unittest
++class Tester(object):
++    def test(self, *args, **kwargs):
++        pass
++    def bench(self, *args, **kwargs):
++        pass
++test = Tester().test

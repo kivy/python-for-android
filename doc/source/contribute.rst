@@ -14,7 +14,7 @@ and we'll deal with the rest.
 Development model
 -----------------
 
-python-for-android is developed using the following model::
+python-for-android is developed using the following model:
 
 - The ``master`` branch always represents the latest stable release.
 - The ``develop`` branch is the most up to date with new contributions.
@@ -44,9 +44,9 @@ Creating a new release
 
 New releases follow these steps:
 
-- Create a new branch ``release/YYYY.MM.DD`` based on the ``develop`` branch.
-  - ``git checkout -b release/YYYY.MM.DD develop``
-- Create a Github pull request to merge ``release/YYYY.MM.DD`` into ``master``.
+- Create a new branch ``release-YYYY.MM.DD`` based on the ``develop`` branch.
+  - ``git checkout -b release-YYYY.MM.DD develop``
+- Create a Github pull request to merge ``release-YYYY.MM.DD`` into ``master``.
 - Complete all steps in the `release checklist <release_checklist_>`_,
   and document this in the pull request (copy the checklist into the PR text)
 
@@ -54,10 +54,14 @@ At this point, wait for reviewer approval and conclude any discussion that arise
 
 - Merge the release branch to the ``master`` branch.
 - Also merge the release branch to the ``develop`` branch.
-- Tag the release commit in ``master``. Include a short summary of the changes.
-- Create the release distributions: ``python3 setup.py sdist``
+- Tag the release commit in ``master``, with tag ``vYYYY.MM.DD``. Include a short summary of the changes.
+- Create the release distributions: ``python3 setup.py sdist bdist_wheel``
 - Upload the release to pypi: ``python3 -m twine upload``.
-- Upload the release ``.tar.gz`` to the Github tag.
+- Add to the Github release page (see e.g. `this example <https://github.com/kivy/python-for-android/releases/tag/v2019.06.06>`__):
+  - The python-for-android README summary
+  - A short list of major changes in this release, if any
+  - A changelog summarising merge commits since the last release
+  - The release sdist and wheel(s)
 
 .. _release_checklist:
 

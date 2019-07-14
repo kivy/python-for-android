@@ -31,7 +31,8 @@ class Python2Recipe(GuestPythonRecipe):
                'patches/fix-filesystem-default-encoding.patch',
                'patches/fix-gethostbyaddr.patch',
                'patches/fix-posix-declarations.patch',
-               'patches/fix-pwd-gecos.patch']
+               'patches/fix-pwd-gecos.patch',
+               'patches/fix-ctypes-util-find-library.patch']
 
     configure_args = ('--host={android_host}',
                       '--build={android_build}',

@@ -76,6 +76,7 @@ class FreetypeRecipe(Recipe):
             '--host={}'.format(arch.command_prefix),
             '--prefix={}'.format(prefix_path),
             '--without-zlib',
+            '--without-bzip2',
             '--with-png=no',
         }
         if not harfbuzz_in_recipes:

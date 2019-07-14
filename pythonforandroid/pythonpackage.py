@@ -34,6 +34,7 @@
 
 
 from io import open  # needed for python 2
+import functools
 import os
 from pep517.envbuild import BuildEnvironment
 from pep517.wrappers import Pep517HookCaller
@@ -96,6 +97,10 @@ def extract_metainfo_files_from_package(
 
     if not os.path.exists(output_folder) or os.path.isfile(output_folder):
         raise ValueError("output folder needs to be existing folder")
+
+    if debug:
+        print("extract_metainfo_files_from_package: extracting for " +
+              "package: " + str(package))
 
     # A temp folder for making a package copy in case it's a local folder,
     # because extracting metadata might modify files
@@ -172,11 +177,23 @@ def _get_system_python_executable():
 
     def python_binary_from_folder(path):
         def binary_is_usable(python_bin):
+            """ Helper function to see if a given binary name refers
+                to a usable python interpreter binary
+            """
+
+            # Abort if path isn't present at all or a directory:
+            if not os.path.exists(
+                os.path.join(path, python_bin)
+            ) or os.path.isdir(os.path.join(path, python_bin)):
+                return
+            # We should check file not found anyway trying to run it,
+            # since it might be a dead symlink:
             try:
                 filenotfounderror = FileNotFoundError
             except NameError:  # Python 2
                 filenotfounderror = OSError
             try:
+                # Run it and see if version output works with no error:
                 subprocess.check_output([
                     os.path.join(path, python_bin), "--version"
                 ], stderr=subprocess.STDOUT)
@@ -202,6 +219,7 @@ def _get_system_python_executable():
     bad_candidates = []
     good_candidates = []
     ever_had_nonvenv_path = False
+    ever_had_path_starting_with_prefix = False
     for p in os.environ.get("PATH", "").split(":"):
         # Skip if not possibly the real system python:
         if not os.path.normpath(p).startswith(
@@ -209,12 +227,18 @@ def _get_system_python_executable():
                 ):
             continue
 
+        ever_had_path_starting_with_prefix = True
+
         # First folders might be virtualenv/venv we want to avoid:
         if not ever_had_nonvenv_path:
             sep = os.path.sep
-            if ("system32" not in p.lower() and "usr" not in p) or \
-                    {"home", ".tox"}.intersection(set(p.split(sep))) or \
-                    "users" in p.lower():
+            if (
+                ("system32" not in p.lower() and
+                 "usr" not in p and
+                 not p.startswith("/opt/python")) or
+                {"home", ".tox"}.intersection(set(p.split(sep))) or
+                "users" in p.lower()
+            ):
                 # Doesn't look like bog-standard system path.
                 if (p.endswith(os.path.sep + "bin") or
                         p.endswith(os.path.sep + "bin" + os.path.sep)):
@@ -226,14 +250,37 @@ def _get_system_python_executable():
 
         good_candidates.append(p)
 
+    # If we have a bad env with PATH not containing any reference to our
+    # real python (travis, why would you do that to me?) then just guess
+    # based from the search prefix location itself:
+    if not ever_had_path_starting_with_prefix:
+        # ... and yes we're scanning all the folders for that, it's dumb
+        # but i'm not aware of a better way: (@JonasT)
+        for root, dirs, files in os.walk(search_prefix, topdown=True):
+            for name in dirs:
+                bad_candidates.append(os.path.join(root, name))
+
+    # Sort candidates by length (to prefer shorter ones):
+    def candidate_cmp(a, b):
+        return len(a) - len(b)
+    good_candidates = sorted(
+        good_candidates, key=functools.cmp_to_key(candidate_cmp)
+    )
+    bad_candidates = sorted(
+        bad_candidates, key=functools.cmp_to_key(candidate_cmp)
+    )
+
     # See if we can now actually find the system python:
     for p in good_candidates + bad_candidates:
         result = python_binary_from_folder(p)
         if result is not None:
             return result
 
-    raise RuntimeError("failed to locate system python in: " +
-                       sys.real_prefix)
+    raise RuntimeError(
+        "failed to locate system python in: {}"
+        " - checked candidates were: {}, {}"
+        .format(sys.real_prefix, good_candidates, bad_candidates)
+    )
 
 
 def get_package_as_folder(dependency):
@@ -418,6 +465,7 @@ def _extract_metainfo_files_from_package_unsafe(
     try:
         build_requires = []
         metadata_path = None
+
         if path_type != "wheel":
             # We need to process this first to get the metadata.
 
@@ -447,7 +495,9 @@ def _extract_metainfo_files_from_package_unsafe(
             metadata = None
             with env:
                 hooks = Pep517HookCaller(path, backend)
-                env.pip_install([transform_dep_for_pip(req) for req in build_requires])
+                env.pip_install(
+                    [transform_dep_for_pip(req) for req in build_requires]
+                )
                 reqs = hooks.get_requires_for_build_wheel({})
                 env.pip_install([transform_dep_for_pip(req) for req in reqs])
                 try:
@@ -465,6 +515,15 @@ def _extract_metainfo_files_from_package_unsafe(
                 [f for f in os.listdir(path) if f.endswith(".dist-info")][0],
                 "METADATA"
             )
+
+        # Store type of metadata source. Can be "wheel", "source" for source
+        # distribution, and others get_package_as_folder() may support
+        # in the future.
+        with open(os.path.join(output_path, "metadata_source"), "w") as f:
+            try:
+                f.write(path_type)
+            except TypeError:  # in python 2 path_type may be str/bytes:
+                f.write(path_type.decode("utf-8", "replace"))
 
         # Copy the metadata file:
         shutil.copyfile(metadata_path, os.path.join(output_path, "METADATA"))
@@ -500,7 +559,7 @@ def parse_as_folder_reference(dep):
     # Check if this is either not an url, or a file URL:
     if dep.startswith(("/", "file://")) or (
             dep.find("/") > 0 and
-            dep.find("://") < 0):
+            dep.find("://") < 0) or (dep in ["", "."]):
         if dep.startswith("file://"):
             dep = urlunquote(urlparse(dep).path)
         return dep
@@ -518,12 +577,23 @@ def _extract_info_from_package(dependency,
         - name
         - dependencies  (a list of dependencies)
     """
+    if debug:
+        print("_extract_info_from_package called with "
+              "extract_type={} include_build_requirements={}".format(
+                  extract_type, include_build_requirements,
+              ))
     output_folder = tempfile.mkdtemp(prefix="pythonpackage-metafolder-")
     try:
         extract_metainfo_files_from_package(
             dependency, output_folder, debug=debug
         )
 
+        # Extract the type of data source we used to get the metadata:
+        with open(os.path.join(output_folder,
+                               "metadata_source"), "r") as f:
+            metadata_source_type = f.read().strip()
+
+        # Extract main METADATA file:
         with open(os.path.join(output_folder, "METADATA"),
                   "r", encoding="utf-8"
                  ) as f:
@@ -539,14 +609,34 @@ def _extract_info_from_package(dependency,
                 raise ValueError("failed to obtain package name")
             return name
         elif extract_type == "dependencies":
+            # First, make sure we don't attempt to return build requirements
+            # for wheels since they usually come without pyproject.toml
+            # and we haven't implemented another way to get them:
+            if include_build_requirements and \
+                    metadata_source_type == "wheel":
+                if debug:
+                    print("_extract_info_from_package: was called "
+                          "with include_build_requirements=True on "
+                          "package obtained as wheel, raising error...")
+                raise NotImplementedError(
+                    "fetching build requirements for "
+                    "wheels is not implemented"
+                )
+
+            # Get build requirements from pyproject.toml if requested:
             requirements = []
             if os.path.exists(os.path.join(output_folder,
                                            'pyproject.toml')
                               ) and include_build_requirements:
+                # Read build system from pyproject.toml file: (PEP518)
                 with open(os.path.join(output_folder, 'pyproject.toml')) as f:
                     build_sys = pytoml.load(f)['build-system']
                     if "requires" in build_sys:
                         requirements += build_sys["requires"]
+            elif include_build_requirements:
+                # For legacy packages with no pyproject.toml, we have to
+                # add setuptools as default build system.
+                requirements.append("setuptools")
 
             # Add requirements from metadata:
             requirements += [
@@ -599,7 +689,7 @@ def get_package_dependencies(package,
         for package_dep in current_queue:
             new_reqs = set()
             if verbose:
-                print("get_package_dependencies: resolving dependecy "
+                print("get_package_dependencies: resolving dependency "
                       "to package name: ".format(package_dep))
             package = get_package_name(package_dep)
             if package.lower() in packages_processed:

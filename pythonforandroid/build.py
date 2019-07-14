@@ -1,7 +1,9 @@
 from __future__ import print_function
 
-from os.path import (join, realpath, dirname, expanduser, exists,
-                     split, isdir)
+from os.path import (
+    abspath, join, realpath, dirname, expanduser, exists,
+    split, isdir
+)
 from os import environ
 import copy
 import os
@@ -590,6 +592,120 @@ def project_has_setup_py(project_dir):
     return False
 
 
+def run_setuppy_install(ctx, project_dir, env=None):
+    if env is None:
+        env = dict()
+
+    with current_directory(project_dir):
+        info('got setup.py or similar, running project install. ' +
+             '(disable this behavior with --ignore-setup-py)')
+
+        # Compute & output the constraints we will use:
+        info('Contents that will be used for constraints.txt:')
+        constraints = subprocess.check_output([
+            join(
+                ctx.build_dir, "venv", "bin", "pip"
+            ),
+            "freeze"
+        ], env=copy.copy(env))
+        try:
+            constraints = constraints.decode("utf-8", "replace")
+        except AttributeError:
+            pass
+        info(constraints)
+
+        # Make sure all packages found are fixed in version
+        # by writing a constraint file, to avoid recipes being
+        # upgraded & reinstalled:
+        with open('._tmp_p4a_recipe_constraints.txt', 'wb') as fileh:
+            fileh.write(constraints.encode("utf-8", "replace"))
+        try:
+
+            info('Populating venv\'s site-packages with '
+                 'ctx.get_site_packages_dir()...')
+
+            # Copy dist contents into site-packages for discovery.
+            # Why this is needed:
+            # --target is somewhat evil and messes with discovery of
+            # packages in PYTHONPATH if that also includes the target
+            # folder. So we need to use the regular virtualenv
+            # site-packages folder instead.
+            # Reference:
+            # https://github.com/pypa/pip/issues/6223
+            ctx_site_packages_dir = os.path.normpath(
+                os.path.abspath(ctx.get_site_packages_dir())
+            )
+            venv_site_packages_dir = os.path.normpath(os.path.join(
+                ctx.build_dir, "venv", "lib", [
+                    f for f in os.listdir(os.path.join(
+                        ctx.build_dir, "venv", "lib"
+                    )) if f.startswith("python")
+                ][0], "site-packages"
+            ))
+            copied_over_contents = []
+            for f in os.listdir(ctx_site_packages_dir):
+                full_path = os.path.join(ctx_site_packages_dir, f)
+                if not os.path.exists(os.path.join(
+                            venv_site_packages_dir, f
+                        )):
+                    if os.path.isdir(full_path):
+                        shutil.copytree(full_path, os.path.join(
+                            venv_site_packages_dir, f
+                        ))
+                    else:
+                        shutil.copy2(full_path, os.path.join(
+                            venv_site_packages_dir, f
+                        ))
+                    copied_over_contents.append(f)
+
+            # Get listing of virtualenv's site-packages, to see the
+            # newly added things afterwards & copy them back into
+            # the distribution folder / build context site-packages:
+            previous_venv_contents = os.listdir(
+                venv_site_packages_dir
+            )
+
+            # Actually run setup.py:
+            info('Launching package install...')
+            shprint(sh.bash, '-c', (
+                "'" + join(
+                    ctx.build_dir, "venv", "bin", "pip"
+                ).replace("'", "'\"'\"'") + "' " +
+                "install -c ._tmp_p4a_recipe_constraints.txt -v ."
+            ).format(ctx.get_site_packages_dir().
+                     replace("'", "'\"'\"'")),
+                    _env=copy.copy(env))
+
+            # Go over all new additions and copy them back:
+            info('Copying additions resulting from setup.py back '
+                 'into ctx.get_site_packages_dir()...')
+            new_venv_additions = []
+            for f in (set(os.listdir(venv_site_packages_dir)) -
+                      set(previous_venv_contents)):
+                new_venv_additions.append(f)
+                full_path = os.path.join(venv_site_packages_dir, f)
+                if os.path.isdir(full_path):
+                    shutil.copytree(full_path, os.path.join(
+                        ctx_site_packages_dir, f
+                    ))
+                else:
+                    shutil.copy2(full_path, os.path.join(
+                        ctx_site_packages_dir, f
+                    ))
+
+            # Undo all the changes we did to the venv-site packages:
+            info('Reverting additions to '
+                 'virtualenv\'s site-packages...')
+            for f in set(copied_over_contents + new_venv_additions):
+                full_path = os.path.join(venv_site_packages_dir, f)
+                if os.path.isdir(full_path):
+                    shutil.rmtree(full_path)
+                else:
+                    os.remove(full_path)
+        finally:
+            os.remove("._tmp_p4a_recipe_constraints.txt")
+
+
 def run_pymodules_install(ctx, modules, project_dir=None,
                           ignore_setup_py=False):
     """ This function will take care of all non-recipe things, by:
@@ -604,6 +720,10 @@ def run_pymodules_install(ctx, modules, project_dir=None,
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE ***')
     modules = list(filter(ctx.not_has_package, modules))
+
+    # We change current working directory later, so this has to be an absolute
+    # path or `None` in case that we didn't supply the `project_dir` via kwargs
+    project_dir = abspath(project_dir) if project_dir else None
 
     # Bail out if no python deps and no setup.py to process:
     if not modules and (
@@ -697,107 +817,7 @@ def run_pymodules_install(ctx, modules, project_dir=None,
         if project_dir is not None and (
                 project_has_setup_py(project_dir) and not ignore_setup_py
                 ):
-            with current_directory(project_dir):
-                info('got setup.py or similar, running project install. ' +
-                     '(disable this behavior with --ignore-setup-py)')
-
-                # Compute & output the constraints we will use:
-                info('Contents that will be used for constraints.txt:')
-                constraints = subprocess.check_output([
-                    join(
-                        ctx.build_dir, "venv", "bin", "pip"
-                    ),
-                    "freeze"
-                ], env=copy.copy(env))
-                try:
-                    constraints = constraints.decode("utf-8", "replace")
-                except AttributeError:
-                    pass
-                info(constraints)
-
-                # Make sure all packages found are fixed in version
-                # by writing a constraint file, to avoid recipes being
-                # upgraded & reinstalled:
-                with open('constraints.txt', 'wb') as fileh:
-                    fileh.write(constraints.encode("utf-8", "replace"))
-
-                info('Populating venv\'s site-packages with '
-                     'ctx.get_site_packages_dir()...')
-
-                # Copy dist contents into site-packages for discovery.
-                # Why this is needed:
-                # --target is somewhat evil and messes with discovery of
-                # packages in PYTHONPATH if that also includes the target
-                # folder. So we need to use the regular virtualenv
-                # site-packages folder instead.
-                # Reference:
-                # https://github.com/pypa/pip/issues/6223
-                ctx_site_packages_dir = os.path.normpath(
-                    os.path.abspath(ctx.get_site_packages_dir())
-                )
-                venv_site_packages_dir = os.path.normpath(os.path.join(
-                    ctx.build_dir, "venv", "lib", [
-                        f for f in os.listdir(os.path.join(
-                            ctx.build_dir, "venv", "lib"
-                        )) if f.startswith("python")
-                    ][0], "site-packages"
-                ))
-                copied_over_contents = []
-                for f in os.listdir(ctx_site_packages_dir):
-                    full_path = os.path.join(ctx_site_packages_dir, f)
-                    if not os.path.exists(os.path.join(
-                                venv_site_packages_dir, f
-                            )):
-                        if os.path.isdir(full_path):
-                            shutil.copytree(full_path, os.path.join(
-                                venv_site_packages_dir, f
-                            ))
-                        else:
-                            shutil.copy2(full_path, os.path.join(
-                                venv_site_packages_dir, f
-                            ))
-                        copied_over_contents.append(f)
-
-                # Get listing of virtualenv's site-packages, to see the
-                # newly added things afterwards & copy them back into
-                # the distribution folder / build context site-packages:
-                previous_venv_contents = os.listdir(venv_site_packages_dir)
-
-                # Actually run setup.py:
-                info('Launching package install...')
-                shprint(sh.bash, '-c', (
-                    "'" + join(
-                        ctx.build_dir, "venv", "bin", "pip"
-                    ).replace("'", "'\"'\"'") + "' " +
-                    "install -c constraints.txt -v ."
-                ).format(ctx.get_site_packages_dir().replace("'", "'\"'\"'")),
-                        _env=copy.copy(env))
-
-                # Go over all new additions and copy them back:
-                info('Copying additions resulting from setup.py back ' +
-                     'into ctx.get_site_packages_dir()...')
-                new_venv_additions = []
-                for f in (set(os.listdir(venv_site_packages_dir)) -
-                          set(previous_venv_contents)):
-                    new_venv_additions.append(f)
-                    full_path = os.path.join(venv_site_packages_dir, f)
-                    if os.path.isdir(full_path):
-                        shutil.copytree(full_path, os.path.join(
-                            ctx_site_packages_dir, f
-                        ))
-                    else:
-                        shutil.copy2(full_path, os.path.join(
-                            ctx_site_packages_dir, f
-                        ))
-
-                # Undo all the changes we did to the venv-site packages:
-                info('Reverting additions to virtualenv\'s site-packages...')
-                for f in set(copied_over_contents + new_venv_additions):
-                    full_path = os.path.join(venv_site_packages_dir, f)
-                    if os.path.isdir(full_path):
-                        shutil.rmtree(full_path)
-                    else:
-                        os.remove(full_path)
+            run_setuppy_install(ctx, project_dir, env)
         elif not ignore_setup_py:
             info("No setup.py found in project directory: " +
                  str(project_dir)

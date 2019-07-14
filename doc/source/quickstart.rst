@@ -9,27 +9,37 @@ for android as p4a in this documentation.
 Concepts
 --------
 
-- requirements: For p4a, your applications dependencies are
-  requirements similar to the standard `requirements.txt`, but with
-  one difference: p4a will search for a recipe first instead of
-  installing requirements with pip.
+*Basic:*
 
-- recipe: A recipe is a file that defines how to compile a
-  requirement. Any libraries that have a Python extension *must* have
-  a recipe in p4a, or compilation will fail. If there is no recipe for
-  a requirement, it will be downloaded using pip.
+- **requirements:** For p4a, all your app's dependencies must be specified
+  via ``--requirements`` similar to the standard `requirements.txt`.
+  (Unless you specify them via a `setup.py`/`install_requires`)
+  All dependencies will be mapped to "recipes" if any exist, so that
+  many common libraries will just work. See "recipe" below for details.
 
-- build: A build refers to a compiled recipe.
+- **distribution:** A distribution is the final "build" of your
+  compiled project + requirements, as an Android project assembled by
+  p4a that can be turned directly into an APK. p4a can contain multiple
+  distributions with different sets of requirements.
 
-- distribution: A distribution is the final "build" of all your
-  compiled requirements, as an Android project that can be turned
-  directly into an APK. p4a can contain multiple distributions with
-  different sets of requirements.
+- **build:** A build refers to a compiled recipe or distribution.
 
-- bootstrap: A bootstrap is the app backend that will start your
-  application. Your application could use SDL2 as a base, 
-  or a web backend like Flask with a WebView bootstrap. Different
-  bootstraps can have different build options.
+- **bootstrap:** A bootstrap is the app backend that will start your
+  application. The default for graphical applications is SDL2.
+  You can also use e.g. the webview for web apps, or service_only for
+  background services. Different bootstraps have different additional
+  build options.
+
+*Advanced:*
+
+- **recipe:**
+  A recipe is a file telling p4a how to install a requirement
+  that isn't by default fully Android compatible.
+  This is often necessary for Cython or C/C++-using python extensions.
+  p4a has recipes for many common libraries already included, and any
+  dependency you specified will be automatically mapped to its recipe.
+  If a dependency doesn't work and has no recipe included in p4a,
+  then it may need one to work.
 
 
 Installation
@@ -75,13 +85,19 @@ install most of these with::
 On Arch Linux (64 bit) you should be able to run the following to
 install most of the dependencies (note: this list may not be
 complete). gcc-multilib will conflict with (and replace) gcc if not
-already installed. If your installation is already 32-bit, install the
-same packages but without ``lib32-`` or ``-multilib``::
+already installed::
 
     sudo pacman -S jdk7-openjdk python2 python2-pip python2-kivy mesa-libgl lib32-mesa-libgl lib32-sdl2 lib32-sdl2_image lib32-sdl2_mixer sdl2_ttf unzip gcc-multilib gcc-libs-multilib
 
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+   python-for-android is often picky about the **SDK/NDK versions.**
+   Pick the recommended ones from below to avoid problems.
+
+Basic SDK install
+`````````````````
 
 You need to download and unpack the Android SDK and NDK to a directory (let's say $HOME/Documents/):
 
@@ -94,31 +110,22 @@ named ``tools``, and you will need to run extra commands to install
 the SDK packages needed. 
 
 For Android NDK, note that modern releases will only work on a 64-bit
-operating system. The minimal, and recommended, NDK version to use is r17c:
+operating system. **The minimal, and recommended, NDK version to use is r17c:**
 
  - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
  - Windows users should create a virtual machine with an GNU Linux os
    installed, and then you can follow the described instructions from within
    your virtual machine.
 
-If you are using a 32-bit distribution (or hardware),
-the latest usable NDK version is r10e, which can be downloaded here:
 
-- `Legacy 32-bit Linux NDK r10e <http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86.bin>`_
+Platform and build tools
+````````````````````````
 
-.. warning::
-    **32-bit distributions**
-
-    Since the python2 recipe updated to version 2.7.15, the build system has
-    been changed and you should use an old release of python-for-android, which
-    contains the legacy python recipe (v2.7.2). The last python-for-android
-    release with the legacy version of python is version
-    `0.6.0 <https://github.com/kivy/python-for-android/archive/0.6.0.zip>`_.
-
-First, install an API platform to target. You can replace ``27`` with
-a different platform number, but keep in mind **other API versions
-are less well-tested**, and older devices are still supported
-(down to the specified *minimum* API/NDK API level):
+First, install an API platform to target. **The recommended *target* API
+level is 27**, you can replace it with a different number but
+keep in mind other API versions are less well-tested and older devices
+are still supported down to the **recommended specified *minimum*
+API/NDK API level 21**:
 
   $SDK_DIR/tools/bin/sdkmanager "platforms;android-27"
 
@@ -128,13 +135,17 @@ possibilities, but 26.0.2 is the latest version at the time of writing::
 
   $SDK_DIR/tools/bin/sdkmanager "build-tools;26.0.2"
 
-Then, you can edit your ``~/.bashrc`` or other favorite shell to include new environment variables necessary for building on android::
+Configure p4a to use your SDK/NDK
+`````````````````````````````````
+
+Then, you can edit your ``~/.bashrc`` or other favorite shell to include new environment
+variables necessary for building on android::
 
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-27"
     export ANDROIDNDK="$HOME/Documents/android-ndk-r17c"
-    export ANDROIDAPI="26"  # Target API version of your application
-    export NDKAPI="19"  # Minimum supported API version of your application
+    export ANDROIDAPI="27"  # Target API version of your application
+    export NDKAPI="21"  # Minimum supported API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 
 You have the possibility to configure on any command the PATH to the SDK, NDK and Android API using:
@@ -158,9 +169,9 @@ and the requirements::
 
     p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python3,kivy
 
-**Note on `--requirements`: you must add all
+**Note on** ``--requirements``: **you must add all
 libraries/dependencies your app needs to run.**
-Example: `--requirements=python3,kivy,vispy`. For an SDL2 app,
+Example: ``--requirements=python3,kivy,vispy``. For an SDL2 app,
 `kivy` is not needed, but you need to add any wrappers you might
 use (e.g. `pysdl2`).
 
@@ -175,8 +186,6 @@ an `.apk` file.
   it will possibly no longer receive patches by the python creators
   themselves in 2020. Migration to Python 3 is recommended!
 
-- You can also use ``--bootstrap=pygame``, but this bootstrap
-  is deprecated and not well-tested.
 
 Build a WebView application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,7 +197,7 @@ well as the requirements::
     p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My WebView Application" --version 0.1 --bootstrap=webview --requirements=flask --port=5000
 
 **Please note as with kivy/SDL2, you need to specify all your
-additional requirements/depenencies.**
+additional requirements/dependencies.**
 
 You can also replace flask with another web framework.
 

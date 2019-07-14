@@ -631,7 +631,10 @@ class ToolchainCL(object):
                         args.requirements += u",".join(dependencies)
                 except ValueError:
                     # Not a python package, apparently.
-                    pass
+                    warning(
+                        "Processing failed, is this project a valid "
+                        "package? Will continue WITHOUT setup.py deps."
+                    )
 
             # Parse --requirements argument list:
             for requirement in split_argument_list(args.requirements):

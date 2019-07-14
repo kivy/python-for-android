@@ -19,7 +19,7 @@ packages = find_packages()
 print('packages are', packages)
 
 setup(
-    name='testapp_matplotlib',
+    name='matplotlib_testapp',
     version='0.1',
     description='p4a setup.py test',
     author='Alexander Taylor',
