@@ -503,6 +503,9 @@ main.py that loads it.''')
         remove('AndroidManifest.xml')
     shutil.copy(manifest_path, 'AndroidManifest.xml')
 
+    if args.fileprovider_paths:
+        shutil.copy(args.fileprovider_paths, join(res_dir, "xml/file_paths.xml"))
+        
     # gradle build templates
     render(
         'build.tmpl.gradle',
@@ -685,6 +688,8 @@ tools directory of the Android SDK.
     ap.add_argument('--depend', dest='depends', action='append',
                     help=('Add a external dependency '
                           '(eg: com.android.support:appcompat-v7:19.0.1)'))
+    ap.add_argument('--fileprovider-paths', dest='fileprovider_paths',
+                    help=('Add fileprovider paths xml file'))
     # The --sdk option has been removed, it is ignored in favour of
     # --android-api handled by toolchain.py
     ap.add_argument('--sdk', dest='sdk_version', default=-1,
