@@ -1,3 +1,4 @@
+import threading
 
 try:
     from jnius import autoclass, PythonJavaClass, java_method
@@ -428,11 +429,10 @@ class onRequestPermissionsCallback(PythonJavaClass):
     """
     __javainterfaces__ = ['org.kivy.android.PythonActivity$PermissionsCallback']
     __javacontext__ = 'app'
-    _callback = None  # To avoid garbage collection
 
     def __init__(self, func):
         self.func = func
-        onRequestPermissionsCallback._callback = self
+        onRequestPermissionsCallback._java_callback = self
         super().__init__()
 
     @java_method('(I[Ljava/lang/String;[I)V')
@@ -440,30 +440,78 @@ class onRequestPermissionsCallback(PythonJavaClass):
         self.func(requestCode, permissions, grantResults)
 
 
-def register_permissions_callback(callback):
-    """Register a callback. This will asynchronously receive arguments from
-    onRequestPermissionsResult on PythonActivity after request_permission(s)
-    is called.
+class onRequestPermissionsManager:
+    """Class for requesting Android permissions via requestPermissions,
+    including registering callbacks to requestPermissions.
 
-    The callback must accept three arguments: requestCode, permissions and
-    grantResults.
+    Permissions are requested through the method 'request_permissions' which
+    accepts a list of permissions and an optional callback.
+
+    Any callback will asynchronously receive arguments from
+    onRequestPermissionsResult on PythonActivity after requestPermissions is
+    called.
+
+    The callback supplied must accept two arguments: 'permissions' and
+    'grantResults' (as supplied to onPermissionsCallbackResult).
 
     Note that calling request_permission on SDK_INT < 23 will return
-    immediately (as run-time permissions are not required), and so this
-    callback will never happen.
+    immediately (as run-time permissions are not required), and so the callback
+    will never happen. Therefore, request_permissions should only be called
+    with a callback if calling check_permission has indicated that it is
+    necessary.
+
+    The attribute '_java_callback' is initially None, but is set when the first
+    permissions request is made. It is set to an instance of
+    onRequestPermissionsCallback, which allows the Java callback to be
+    propagated to the class method 'python_callback'. This is then, in turn,
+    used to call an application callback if provided to request_permissions.
     """
-    java_callback = onRequestPermissionsCallback(callback)
-    python_activity = autoclass('org.kivy.android.PythonActivity')
-    python_activity.addPermissionsCallback(java_callback)
+    _java_callback = None
+    _callbacks = {1: None}
+    _callback_id = 1
+    _lock = threading.Lock()
+
+    @classmethod
+    def register_callback(cls):
+        """Register Java callback for requestPermissions."""
+        cls._java_callback = onRequestPermissionsCallback(cls.python_callback)
+        python_activity = autoclass('org.kivy.android.PythonActivity')
+        python_activity.addPermissionsCallback(cls._java_callback)
+
+    @classmethod
+    def request_permissions(cls, permissions, callback=None):
+        """Requests Android permissions from PythonActivity.
+        If 'callback' is supplied, the request is made with a new requestCode
+        and the callback is stored in the _callbacks dict. When a Java callback
+        with the matching requestCode is received, callback will be called
+        with arguments of 'permissions' and 'grantResults'.
+        """
+        with cls._lock:
+            if not cls._java_callback:
+                cls.register_callback()
+            python_activity = autoclass('org.kivy.android.PythonActivity')
+            if not callback:
+                python_activity.requestPermissions(permissions)
+            else:
+                cls._callback_id += 1
+                python_activity.requestPermissionsWithRequestCode(
+                    permissions, cls._callback_id)
+                cls._callbacks[cls._callback_id] = callback
+
+    @classmethod
+    def python_callback(cls, requestCode, permissions, grantResults):
+        """Calls the relevant callback with arguments of 'permissions'
+        and 'grantResults'."""
+        if cls._callbacks.get(requestCode):
+            cls._callbacks[requestCode](permissions, grantResults)
 
 
-def request_permissions(permissions):
-    python_activity = autoclass('org.kivy.android.PythonActivity')
-    python_activity.requestPermissions(permissions)
+def request_permissions(permissions, callback=None):
+    onRequestPermissionsManager.request_permissions(permissions, callback)
 
 
-def request_permission(permission):
-    request_permissions([permission])
+def request_permission(permission, callback=None):
+    request_permissions([permission], callback)
 
 
 def check_permission(permission):

@@ -633,16 +633,20 @@ public class PythonActivity extends SDLActivity {
     /**
      * Used by android.permissions p4a module to request runtime permissions
      **/
-    public void requestPermissions(String[] permissions) {
+    public void requestPermissionsWithRequestCode(String[] permissions, int requestCode) {
         if (android.os.Build.VERSION.SDK_INT < 23)
             return;
         try {
             java.lang.reflect.Method methodRequestPermission =
                 Activity.class.getMethod("requestPermissions",
                 java.lang.String[].class, int.class);
-            methodRequestPermission.invoke(this, permissions, 1);
+            methodRequestPermission.invoke(this, permissions, requestCode);
         } catch (IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
         }
+    }
+
+    public void requestPermissions(String[] permissions) {
+        requestPermissionsWithRequestCode(permissions, 1);
     }
 }
