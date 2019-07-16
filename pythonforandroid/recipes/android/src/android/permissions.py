@@ -440,7 +440,7 @@ class _onRequestPermissionsCallback(PythonJavaClass):
         self.func(requestCode, permissions, grantResults)
 
 
-class _request_permissions_manager:
+class _RequestPermissionsManager:
     """Internal class for requesting Android permissions via
     requestPermissions, including registering callbacks to requestPermissions.
 
@@ -505,11 +505,11 @@ class _request_permissions_manager:
         if cls._callbacks.get(requestCode):
             cls._callbacks[requestCode](permissions, grantResults)
 
+
 # Public API methods for requesting permissions
 
-
 def request_permissions(permissions, callback=None):
-    _request_permissions_manager.request_permissions(permissions, callback)
+    _RequestPermissionsManager.request_permissions(permissions, callback)
 
 
 def request_permission(permission, callback=None):
