@@ -423,7 +423,7 @@ class Permission:
         )
 
 
-class onRequestPermissionsCallback(PythonJavaClass):
+class _onRequestPermissionsCallback(PythonJavaClass):
     """Callback class for registering a Python callback from
     onRequestPermissionsResult in PythonActivity.
     """
@@ -432,17 +432,17 @@ class onRequestPermissionsCallback(PythonJavaClass):
 
     def __init__(self, func):
         self.func = func
-        onRequestPermissionsCallback._java_callback = self
         super().__init__()
 
     @java_method('(I[Ljava/lang/String;[I)V')
-    def onRequestPermissionsResult(self, requestCode, permissions, grantResults):
+    def onRequestPermissionsResult(self, requestCode,
+                                   permissions, grantResults):
         self.func(requestCode, permissions, grantResults)
 
 
-class onRequestPermissionsManager:
-    """Class for requesting Android permissions via requestPermissions,
-    including registering callbacks to requestPermissions.
+class _request_permissions_manager:
+    """Internal class for requesting Android permissions via
+    requestPermissions, including registering callbacks to requestPermissions.
 
     Permissions are requested through the method 'request_permissions' which
     accepts a list of permissions and an optional callback.
@@ -474,7 +474,7 @@ class onRequestPermissionsManager:
     @classmethod
     def register_callback(cls):
         """Register Java callback for requestPermissions."""
-        cls._java_callback = onRequestPermissionsCallback(cls.python_callback)
+        cls._java_callback = _onRequestPermissionsCallback(cls.python_callback)
         python_activity = autoclass('org.kivy.android.PythonActivity')
         python_activity.addPermissionsCallback(cls._java_callback)
 
@@ -505,9 +505,11 @@ class onRequestPermissionsManager:
         if cls._callbacks.get(requestCode):
             cls._callbacks[requestCode](permissions, grantResults)
 
+# Public API methods for requesting permissions
+
 
 def request_permissions(permissions, callback=None):
-    onRequestPermissionsManager.request_permissions(permissions, callback)
+    _request_permissions_manager.request_permissions(permissions, callback)
 
 
 def request_permission(permission, callback=None):
