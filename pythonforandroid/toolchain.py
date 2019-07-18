@@ -214,6 +214,38 @@ def build_dist_from_args(ctx, dist, args):
     ctx.prepare_bootstrap(bs)
     if dist.needs_build:
         ctx.prepare_dist(ctx.dist_name)
+    if dist.recipes_to_rebuild:
+        info(
+            'Dist will rebuild outdated recipes that depends on {}, '
+            'preparing build directories for those recipes...'.format(
+                dist.recipes_to_rebuild)
+        )
+        all_to_rebuild = set()
+        for recipe_name in dist.recipes_to_rebuild:
+            recipe = Recipe.get_recipe(recipe_name, ctx)
+            all_to_rebuild.add(recipe_name)
+            recipe.clean_build()
+            # if any recipe depends on this one, we also rebuild it
+            for affected_recipe in dist.recipes.keys():
+                try:
+                    test_recipe = Recipe.get_recipe(affected_recipe, ctx)
+                except ValueError:
+                    # we don't have a recipe for this one, so skipping it
+                    continue
+                if affected_recipe not in all_to_rebuild and (
+                    recipe_name in test_recipe.depends
+                    or recipe_name in test_recipe.opt_depends
+                ):
+                    all_to_rebuild.add(affected_recipe)
+                    test_recipe.clean_build()
+
+        more_to_rebuild = set(dist.recipes_to_rebuild) ^ all_to_rebuild
+        if more_to_rebuild:
+            info(
+                'Dist will also rebuild the following recipes: {}'.format(
+                    ', '.join(more_to_rebuild)
+                )
+            )
 
     build_recipes(build_order, python_modules, ctx,
                   getattr(args, "private", None),
