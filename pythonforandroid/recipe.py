@@ -619,7 +619,9 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         '''
         if arch is None:
-            base_dir = join(self.ctx.build_dir, 'other_builds', self.name)
+            base_dir = join(
+                self.ctx.build_dir, 'other_builds', self.get_dir_name()
+            )
         else:
             base_dir = self.get_build_container_dir(arch)
         dirs = glob.glob(base_dir + '-*')
