@@ -3,8 +3,11 @@ import glob
 import json
 
 from pythonforandroid import __version__
-from pythonforandroid.logger import (info, info_notify, warning, Err_Style, Err_Fore)
+from pythonforandroid.logger import (
+    info, debug, info_notify, warning, Err_Style, Err_Fore
+)
 from pythonforandroid.util import current_directory, BuildInterruptingException
+from pythonforandroid.recipe import Recipe
 from shutil import rmtree
 
 
@@ -30,7 +33,11 @@ class Distribution(object):
     archs = []
     '''The arch targets that the dist is built for.'''
 
-    recipes = []
+    recipes = {}
+    '''A dictionary which holds recipes information. Each key is the name of
+    the recipe, and the value is recipe's version'''
+
+    recipes_to_rebuild = set()
 
     description = ''  # A long description
 
@@ -88,6 +95,8 @@ class Distribution(object):
 
         req_archs = [arch.arch for arch in ctx.archs]
 
+        recipes_with_version = cls.get_recipes_with_version(ctx, recipes)
+
         # 0) Check if a dist with that name already exists
         if name is not None and name:
             possible_dists = [d for d in possible_dists if d.name == name]
@@ -106,10 +115,38 @@ class Distribution(object):
                 ]
             ):
                 continue
-            for recipe in recipes:
-                if recipe not in dist.recipes:
+            checked_dist_recipes = set()
+            for recipe_name, recipe_version in recipes_with_version.items():
+                if recipe_name not in dist.recipes.keys():
                     break
+                debug('Checking version for {} recipe: {} VS {}'.format(
+                    recipe_name, dist.recipes[recipe_name], recipe_version)
+                )
+                if dist.recipes[recipe_name] != recipe_version:
+                    warning(
+                        'Recipe {} has a newer version, '
+                        'adding it to recipes_to_rebuild'.format(recipe_name)
+                    )
+                    dist.recipes_to_rebuild.add(recipe_name)
+                    checked_dist_recipes.add(recipe_name)
             else:
+                # Check that the dist recipes has not changed (without
+                # considering the ones we already computed above)
+                for recipe_name, recipe_version in dist.recipes.items():
+                    if recipe_name in dist.recipes_to_rebuild:
+                        continue
+                    try:
+                        test_recipe = Recipe.get_recipe(recipe_name, ctx)
+                    except ValueError:
+                        # we don't have a recipe so skipping it
+                        continue
+                    if test_recipe.version != recipe_version:
+                        warning(
+                            'Recipe {} has a newer version,'
+                            ' adding to rebuild'.format(recipe_name)
+                        )
+                        dist.recipes_to_rebuild.add(recipe_name)
+
                 _possible_dists.append(dist)
         possible_dists = _possible_dists
 
@@ -125,9 +162,10 @@ class Distribution(object):
         for dist in possible_dists:
             if force_build:
                 continue
-            if (set(dist.recipes) == set(recipes) or
-                (set(recipes).issubset(set(dist.recipes)) and
-                 not require_perfect_match)):
+            if set(dist.recipes.keys()) == set(recipes) or (
+                set(recipes).issubset(set(dist.recipes.keys()))
+                and not require_perfect_match
+            ):
                 info_notify('{} has compatible recipes, using this one'
                             .format(dist.name))
                 if dist.p4a_version != __version__:
@@ -135,6 +173,14 @@ class Distribution(object):
                     # we mark it as a dist that requires a clean build environ
                     # (to avoid old cached builds issues)
                     dist.needs_clean_build = True
+                elif dist.recipes_to_rebuild:
+                    dist.needs_build = True
+                    info_notify(
+                        'Some of the recipes has new versions,'
+                        ' we will update them:\n\t- {}'.format(
+                            '\n\t- '.join(dist.recipes_to_rebuild)
+                        )
+                    )
                 return dist
 
         assert len(possible_dists) < 2
@@ -180,7 +226,7 @@ class Distribution(object):
 
         dist.name = name
         dist.dist_dir = join(ctx.dist_dir, dist.name)
-        dist.recipes = recipes
+        dist.recipes = recipes_with_version
         dist.archs = req_archs
         dist.ndk_api = ctx.ndk_api
         dist.android_api = ctx.android_api
@@ -232,38 +278,70 @@ class Distribution(object):
                 dists.append(dist)
         return dists
 
+    @classmethod
+    def get_recipes_with_version(cls, ctx, recipes_names):
+        recipes_with_version = {}
+        for name in recipes_names:
+            try:
+                version = Recipe.get_recipe(name, ctx).version
+            except ValueError:
+                # we don't have a recipe (it's a pure python module, and we
+                # don't know the version, so we set it to None)
+                version = None
+            recipes_with_version[name] = version
+        return recipes_with_version
+
     def save_info(self, dirn):
         '''
         Save information about the distribution in its dist_dir.
         '''
         with current_directory(dirn):
             info('Saving distribution info')
+            # Add version to recipes, so we can detect
+            # any change and rebuild them if necessary
+            recipes_with_version = self.get_recipes_with_version(
+                self.ctx, self.ctx.recipe_build_order + self.ctx.python_modules
+            )
+            py_version = self.ctx.python_recipe.major_minor_version_string
             with open('dist_info.json', 'w') as fileh:
-                json.dump({'dist_name': self.ctx.dist_name,
-                           'bootstrap': self.ctx.bootstrap.name,
-                           'archs': [arch.arch for arch in self.ctx.archs],
-                           'ndk_api': self.ctx.ndk_api,
-                           'android_api': self.ctx.android_api,
-                           'use_setup_py': self.ctx.use_setup_py,
-                           'recipes': self.ctx.recipe_build_order + self.ctx.python_modules,
-                           'hostpython': self.ctx.hostpython,
-                           'python_version': self.ctx.python_recipe.major_minor_version_string,
-                           'p4a_version': __version__},
-                          fileh)
+                json.dump(
+                    {
+                        'dist_name': self.ctx.dist_name,
+                        'bootstrap': self.ctx.bootstrap.name,
+                        'archs': [arch.arch for arch in self.ctx.archs],
+                        'ndk_api': self.ctx.ndk_api,
+                        'android_api': self.ctx.android_api,
+                        'use_setup_py': self.ctx.use_setup_py,
+                        'recipes': recipes_with_version,
+                        'hostpython': self.ctx.hostpython,
+                        'python_version': py_version,
+                        'p4a_version': __version__,
+                    },
+                    fileh,
+                    indent=4,
+                    sort_keys=True,
+                )
 
 
 def pretty_log_dists(dists, log_func=info):
     infos = []
     for dist in dists:
         ndk_api = 'unknown' if dist.ndk_api is None else dist.ndk_api
-        infos.append('{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: min API {ndk_api}, '
-                     'includes recipes ({Fore.GREEN}{recipes}'
-                     '{Style.RESET_ALL}), built for archs ({Fore.BLUE}'
-                     '{archs}{Style.RESET_ALL})'.format(
-                         ndk_api=ndk_api,
-                         name=dist.name, recipes=', '.join(dist.recipes),
-                         archs=', '.join(dist.archs) if dist.archs else 'UNKNOWN',
-                         Fore=Err_Fore, Style=Err_Style))
+        infos.append(
+            '{Fore.GREEN}{Style.BRIGHT}{name}{Style.RESET_ALL}: '
+            'min API {ndk_api}, '
+            'includes recipes ({Fore.GREEN}{recipes}{Style.RESET_ALL}), '
+            'recipes to rebuild({Fore.GREEN}{to_rebuild}{Style.RESET_ALL}), '
+            'built for archs ({Fore.BLUE}{archs}{Style.RESET_ALL})'.format(
+                ndk_api=ndk_api,
+                name=dist.name,
+                recipes=", ".join("{}".format(k) for k in dist.recipes.keys()),
+                to_rebuild=", ".join(dist.recipes_to_rebuild),
+                archs=', '.join(dist.archs) if dist.archs else 'UNKNOWN',
+                Fore=Err_Fore,
+                Style=Err_Style,
+            )
+        )
 
     for line in infos:
         log_func('\t' + line)
