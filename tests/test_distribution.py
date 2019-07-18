@@ -211,8 +211,12 @@ class TestDistribution(unittest.TestCase):
         distribution with the same `name` but different `ndk_api`.
         """
         expected_dist = Distribution.get_distribution(
-            self.ctx, name="test_prj", recipes=["python3", "kivy"]
+            self.ctx,
+            name="test_prj",
+            recipes=["python3", "kivy"],
         )
+        expected_dist.ndk_api = 22
+        expected_dist.android_api = 27
         mock_get_dists.return_value = [expected_dist]
         mock_glob.return_value = ["sdl2-python3"]
 
@@ -220,13 +224,20 @@ class TestDistribution(unittest.TestCase):
             self.setUp_distribution_with_bootstrap(
                 Bootstrap().get_bootstrap("sdl2", self.ctx),
                 allow_replace_dist=False,
-                ndk_api=22,
             )
         self.assertEqual(
             e.exception.args[0],
-            "Asked for dist with name test_prj with recipes (python3, kivy)"
-            " and NDK API 22, but a dist with this name already exists and has"
-            " either incompatible recipes (python3, kivy) or NDK API 21",
+            "\n\tAsked for dist with name test_prj and:"
+            "\n\t-> recipes: (python3, kivy)"
+            "\n\t-> NDK api: (21)"
+            "\n\t-> android api (27)"
+            "\n\t-> archs (armeabi, armeabi-v7a, x86, x86_64, arm64-v8a)"
+            "\n...but a dist with this name already exists and has either "
+            "incompatible:"
+            "\n\t-> recipes: (python3, kivy)"
+            "\n\t-> NDK api: (22)"
+            "\n\t-> android api (27)"
+            "\n\t-> archs (armeabi, armeabi-v7a, x86, x86_64, arm64-v8a)",
         )
 
     def test_get_distributions_error_extra_dist_dirs(self):
@@ -261,6 +272,9 @@ class TestDistribution(unittest.TestCase):
         expected_dist = Distribution.get_distribution(
             self.ctx, name="test_prj", recipes=["python3", "kivy"]
         )
+        # since we simulate a dist we need to set the recipes in dict format,
+        # not not the case for the `Distribution.get_distribution` call
+        expected_dist.recipes = {"python3": "3.7.1", "kivy": "1.10.0"}
         mock_get_dists.return_value = [expected_dist]
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx), name="test_prj"
