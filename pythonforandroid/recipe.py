@@ -758,6 +758,21 @@ class BootstrapNDKRecipe(Recipe):
 
     dir_name = None  # The name of the recipe build folder in the jni dir
 
+    def clean_build(self, arch=None):
+        # we must set python recipe first or `get_recipe_env` will fail
+        self.ctx.python_recipe = Recipe.get_recipe(
+            'python3'
+            if 'python3' in self.ctx.recipe_build_order
+            else 'python2',
+            self.ctx,
+        )
+        for arch in self.ctx.archs if not arch else [arch]:
+            env = self.get_recipe_env(arch)
+            # to clean sdl2 recipe, we also needs below to set nel variable
+            env['APP_ALLOW_MISSING_DEPS'] = 'true'
+            with current_directory(self.get_build_dir(arch.arch)):
+                shprint(sh.ndk_build, 'clean', _env=env)
+
     def get_build_container_dir(self, arch):
         return self.get_jni_dir()
 
