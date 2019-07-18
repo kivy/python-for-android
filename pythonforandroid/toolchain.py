@@ -163,7 +163,6 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
-        ndk_api=args.ndk_api,
         force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
         allow_replace_dist=args.allow_replace_dist)

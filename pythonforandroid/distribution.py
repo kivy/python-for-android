@@ -44,7 +44,6 @@ class Distribution(object):
 
     @classmethod
     def get_distribution(cls, ctx, name=None, recipes=[],
-                         ndk_api=None,
                          force_build=False,
                          extra_dist_dirs=[],
                          require_perfect_match=False,
@@ -93,9 +92,7 @@ class Distribution(object):
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
         for dist in possible_dists:
-            if (
-                ndk_api is not None and dist.ndk_api != ndk_api
-            ) or dist.ndk_api is None:
+            if (dist.ndk_api != ctx.ndk_api) or dist.ndk_api is None:
                 continue
             for recipe in recipes:
                 if recipe not in dist.recipes:
@@ -115,7 +112,7 @@ class Distribution(object):
         for dist in possible_dists:
             if force_build:
                 continue
-            if ndk_api is not None and dist.ndk_api != ndk_api:
+            if ctx.ndk_api is not None and dist.ndk_api != ctx.ndk_api:
                 continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and
@@ -136,7 +133,7 @@ class Distribution(object):
                 'with this name already exists and has either incompatible recipes '
                 '({dist_recipes}) or NDK API {dist_ndk_api}'.format(
                     name=name,
-                    req_ndk_api=ndk_api,
+                    req_ndk_api=ctx.ndk_api,
                     dist_ndk_api=name_match_dist.ndk_api,
                     req_recipes=', '.join(recipes),
                     dist_recipes=', '.join(name_match_dist.recipes)))
