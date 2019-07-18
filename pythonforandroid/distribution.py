@@ -2,6 +2,7 @@ from os.path import exists, join
 import glob
 import json
 
+from pythonforandroid import __version__
 from pythonforandroid.logger import (info, info_notify, warning, Err_Style, Err_Fore)
 from pythonforandroid.util import current_directory, BuildInterruptingException
 from shutil import rmtree
@@ -23,6 +24,7 @@ class Distribution(object):
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
     ndk_api = None
     android_api = None
+    p4a_version = None
 
     archs = []
     '''The arch targets that the dist is built for.'''
@@ -237,7 +239,8 @@ class Distribution(object):
                            'use_setup_py': self.ctx.use_setup_py,
                            'recipes': self.ctx.recipe_build_order + self.ctx.python_modules,
                            'hostpython': self.ctx.hostpython,
-                           'python_version': self.ctx.python_recipe.major_minor_version_string},
+                           'python_version': self.ctx.python_recipe.major_minor_version_string,
+                           'p4a_version': __version__},
                           fileh)
 
 
