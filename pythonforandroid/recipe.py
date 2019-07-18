@@ -4,7 +4,7 @@ from shutil import rmtree
 from six import PY2, with_metaclass
 
 import hashlib
-from re import match
+from re import match, IGNORECASE
 
 import sh
 import shutil
@@ -758,6 +758,15 @@ class BootstrapNDKRecipe(Recipe):
 
     dir_name = None  # The name of the recipe build folder in the jni dir
 
+    def should_build(self, arch):
+        lib_dir = self.get_lib_dir(arch)
+        if not exists(lib_dir):
+            return True
+        for f in listdir(lib_dir):
+            if match('lib{name}.so'.format(name=self.name), f, IGNORECASE):
+                return False
+        return True
+
     def clean_build(self, arch=None):
         # we must set python recipe first or `get_recipe_env` will fail
         self.ctx.python_recipe = Recipe.get_recipe(
@@ -781,6 +790,9 @@ class BootstrapNDKRecipe(Recipe):
             raise ValueError('{} recipe doesn\'t define a dir_name, but '
                              'this is necessary'.format(self.name))
         return join(self.get_build_container_dir(arch), self.dir_name)
+
+    def get_lib_dir(self, arch):
+        return join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
 
     def get_jni_dir(self):
         return join(self.ctx.bootstrap.build_dir, 'jni')
