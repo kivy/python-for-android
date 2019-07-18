@@ -20,6 +20,7 @@ class Distribution(object):
 
     name = None  # A name identifying the dist. May not be None.
     needs_build = False  # Whether the dist needs compiling
+    needs_clean_build = False  # Whether the build needs a full clean
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
     ndk_api = None
@@ -129,6 +130,11 @@ class Distribution(object):
                  not require_perfect_match)):
                 info_notify('{} has compatible recipes, using this one'
                             .format(dist.name))
+                if dist.p4a_version != __version__:
+                    # We build this dist with a different version of p4a, so
+                    # we mark it as a dist that requires a clean build environ
+                    # (to avoid old cached builds issues)
+                    dist.needs_clean_build = True
                 return dist
 
         assert len(possible_dists) < 2
@@ -209,7 +215,9 @@ class Distribution(object):
                 dist.dist_dir = folder
                 dist.needs_build = False
                 dist.recipes = dist_info['recipes']
-                for entry in {'archs', 'ndk_api', 'android_api'}:
+                for entry in {
+                    'archs', 'ndk_api', 'android_api', 'p4a_version'
+                }:
                     setattr(dist, entry, dist_info.get(entry, None))
                     if entry not in dist_info:
                         warning(

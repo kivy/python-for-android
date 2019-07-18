@@ -145,6 +145,22 @@ def require_prebuilt_dist(func):
                                       user_android_api=self.android_api,
                                       user_ndk_api=self.ndk_api)
         dist = self._dist
+        export_dist = func.__name__ == 'export_dist'
+        if all([dist.needs_build, dist.needs_clean_build, not export_dist]):
+            warning(
+                '\n{separator}\n'
+                '* Detected new p4a version: {new_version}\n'
+                '* Selected dist was made using version: {dist_version}\n'
+                '* So We will remove all cached builds, to ensure a '
+                'successful build!!\n\n'
+                '* Note: the downloaded packages will not be removed.\n'
+                '{separator}'.format(
+                    separator='*' * 72,
+                    new_version=__version__,
+                    dist_version=dist.p4a_version
+                )
+            )
+            self.clean_builds(args)
         if dist.needs_build:
             if dist.folder_exists():  # possible if the dist is being replaced
                 dist.delete()
