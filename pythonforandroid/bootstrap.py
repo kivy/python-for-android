@@ -126,7 +126,15 @@ class Bootstrap(object):
         return dir_name
 
     def get_build_dir(self):
-        return join(self.ctx.build_dir, 'bootstrap_builds', self.get_build_dir_name())
+        return join(
+            self.ctx.build_dir,
+            'bootstrap_builds',
+            self.get_build_dir_name(),
+            '{}__ndk_target_{}'.format(
+                '_'.join(arch.arch for arch in self.ctx.archs),
+                self.ctx.ndk_api,
+            ),
+        )
 
     def get_dist_dir(self, name):
         return join(self.ctx.dist_dir, name)

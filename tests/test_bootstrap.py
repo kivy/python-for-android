@@ -99,7 +99,10 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         bs = Bootstrap.get_bootstrap("sdl2", self.ctx)
 
         self.assertTrue(
-            bs.get_build_dir().endswith("build/bootstrap_builds/sdl2-python3")
+            bs.get_build_dir().endswith(
+                "build/bootstrap_builds/sdl2-python3/"
+                "armeabi_armeabi-v7a_x86_x86_64_arm64-v8a__ndk_target_21"
+            )
         )
         self.assertTrue(bs.get_dist_dir("test_prj").endswith("dists/test_prj"))
         self.assertTrue(
