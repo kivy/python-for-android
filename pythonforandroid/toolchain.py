@@ -163,10 +163,18 @@ def require_prebuilt_dist(func):
             self.clean_builds(args)
         if dist.needs_build:
             if dist.folder_exists():  # possible if the dist is being replaced
+                info_notify('A dist with requested name exists [{}], but we '
+                            'need to rebuild it because requirements '
+                            'changed'.format(dist.name))
                 dist.delete()
-            info_notify('No dist exists that meets your requirements, '
-                        'so one will be built.')
+            else:
+                info_notify('No dist exists that meets your requirements, '
+                            'so one will be built with this name: '
+                            '{}'.format(dist.name))
             build_dist_from_args(ctx, dist, args)
+        else:
+            info_notify('Reusing a dist that meets your requirements: '
+                        '{}'.format(dist.name))
         func(self, args)
     return wrapper_func
 
