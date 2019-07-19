@@ -73,7 +73,9 @@ class TestDistribution(unittest.TestCase):
         distribution = self.ctx.bootstrap.distribution
         self.assertEqual(self.ctx, distribution.ctx)
         expected_repr = (
-            "<Distribution: name test_prj with recipes (python3, kivy)>"
+            "<Distribution: name "
+            "test_prj_{armeabi·armeabi-v7a·x86·x86_64·arm64-v8a} "
+            "with recipes (python3, kivy)>"
         )
         self.assertEqual(distribution.__str__(), expected_repr)
         self.assertEqual(distribution.__repr__(), expected_repr)
@@ -114,7 +116,10 @@ class TestDistribution(unittest.TestCase):
         mock_exists.return_value = False
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         dist = Distribution.get_distribution(self.ctx)
-        self.assertEqual(dist.name, "unnamed_dist_1")
+        self.assertEqual(
+            dist.name,
+            "unnamed_dist_1_{armeabi·armeabi-v7a·x86·x86_64·arm64-v8a}"
+        )
 
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.distribution.open", create=True)

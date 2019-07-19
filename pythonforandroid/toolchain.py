@@ -1106,13 +1106,12 @@ class ToolchainCL(object):
             else:
                 raise BuildInterruptingException('Couldn\'t find the built APK')
 
-        info_main('# Found APK file: {}'.format(apk_file))
+        info_main(f'# Found APK file: {apk_file}')
         if apk_add_version:
             info('# Add version number to APK')
-            apk_name, apk_suffix = basename(apk_file).split("-", 1)
-            apk_file_dest = "{}-{}-{}".format(
-                apk_name, build_args.version, apk_suffix)
-            info('# APK renamed to {}'.format(apk_file_dest))
+            apk_name, apk_suffix = basename(apk_file).split("_{", 1)
+            apk_file_dest = f'{apk_name}-{build_args.version}-{{{apk_suffix}'
+            info(f'# APK renamed to {apk_file_dest}')
             shprint(sh.cp, apk_file, apk_file_dest)
         else:
             shprint(sh.cp, apk_file, './')

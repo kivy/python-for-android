@@ -99,7 +99,9 @@ class Distribution(object):
 
         # 0) Check if a dist with that name already exists
         if name is not None and name:
-            possible_dists = [d for d in possible_dists if d.name == name]
+            possible_dists = [
+                d for d in possible_dists if d.name.startswith(name)
+            ]
             if possible_dists:
                 name_match_dist = possible_dists[0]
 
@@ -224,7 +226,10 @@ class Distribution(object):
                 i += 1
             name = filen.format(i)
 
-        dist.name = name
+        # we add a suffix to our dist name, so we avoid to
+        # overwrite them when building for different arch
+        suffix_arch = f"_{{{'·'.join([arch.arch for arch in ctx.archs])}}}"
+        dist.name = name + suffix_arch
         dist.dist_dir = join(ctx.dist_dir, dist.name)
         dist.recipes = recipes_with_version
         dist.archs = req_archs

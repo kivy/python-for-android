@@ -84,7 +84,9 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
 
         # test dist_dir success
         self.setUp_distribution_with_bootstrap(bs)
-        self.assertTrue(bs.dist_dir.endswith("dists/test_prj"))
+        self.assertTrue(bs.dist_dir.endswith(
+            "dists/test_prj_{armeabi·armeabi-v7a·x86·x86_64·arm64-v8a}")
+        )
 
     def test_build_dist_dirs(self):
         """A test which will initialize a bootstrap and will check if the
