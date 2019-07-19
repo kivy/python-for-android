@@ -21,8 +21,21 @@ from pythonforandroid.recommendations import (
     NDK_DOWNLOAD_URL,
     ARMEABI_MAX_TARGET_API,
     MIN_TARGET_API,
+    UNKNOWN_NDK_MESSAGE,
+    PARSE_ERROR_NDK_MESSAGE,
+    READ_ERROR_NDK_MESSAGE,
+    ENSURE_RIGHT_NDK_MESSAGE,
+    NDK_LOWER_THAN_SUPPORTED_MESSAGE,
+    UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE,
+    CURRENT_NDK_VERSION_MESSAGE,
+    RECOMMENDED_NDK_VERSION_MESSAGE,
+    TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE,
+    OLD_NDK_API_MESSAGE,
+    NEW_NDK_MESSAGE,
+    OLD_API_MESSAGE,
 )
 from pythonforandroid.util import BuildInterruptingException
+
 running_in_py2 = int(py_version[0]) < 3
 
 
@@ -45,15 +58,17 @@ class TestRecommendations(unittest.TestCase):
         self.assertEqual(
             cm.output,
             [
-                "INFO:p4a:[INFO]:    Found NDK version {ndk_current}".format(
-                    ndk_current=MAX_NDK_VERSION + 1
+                "INFO:p4a:[INFO]:    {}".format(
+                    CURRENT_NDK_VERSION_MESSAGE.format(
+                        ndk_version=MAX_NDK_VERSION + 1
+                    )
                 ),
-                "WARNING:p4a:[WARNING]:"
-                " Maximum recommended NDK version is {ndk_recommended}".format(
-                    ndk_recommended=RECOMMENDED_NDK_VERSION
+                "WARNING:p4a:[WARNING]: {}".format(
+                    RECOMMENDED_NDK_VERSION_MESSAGE.format(
+                        recommended_ndk_version=RECOMMENDED_NDK_VERSION
+                    )
                 ),
-                "WARNING:p4a:[WARNING]:"
-                " Newer NDKs may not be fully supported by p4a.",
+                "WARNING:p4a:[WARNING]: {}".format(NEW_NDK_MESSAGE),
             ],
         )
 
@@ -64,9 +79,8 @@ class TestRecommendations(unittest.TestCase):
             check_ndk_version(self.ndk_dir)
         self.assertEqual(
             e.exception.args[0],
-            "Unsupported NDK version detected {ndk_current}"
-            "\n* Note: Minimum supported NDK version is {ndk_min}".format(
-                ndk_current=MIN_NDK_VERSION - 1, ndk_min=MIN_NDK_VERSION
+            NDK_LOWER_THAN_SUPPORTED_MESSAGE.format(
+                min_supported=MIN_NDK_VERSION, ndk_url=NDK_DOWNLOAD_URL
             ),
         )
         mock_read_ndk.assert_called_once_with(self.ndk_dir)
@@ -83,16 +97,17 @@ class TestRecommendations(unittest.TestCase):
         self.assertEqual(
             cm.output,
             [
-                "INFO:p4a:[INFO]:    Could not determine NDK version, "
-                "no source.properties in the NDK dir",
-                "WARNING:p4a:[WARNING]: Unable to read the ndk version, "
-                "assuming that you are using an NDK greater than 17 (the "
-                "minimum ndk required to use p4a successfully).\n"
-                "Note: If you got build errors, consider to download the "
-                "recommended ndk version which is 17c and try it again (after "
-                "removing all the files generated with this build). To "
-                "download the android NDK visit the following "
-                "page: {download_url}".format(download_url=NDK_DOWNLOAD_URL),
+                "INFO:p4a:[INFO]:    {}".format(UNKNOWN_NDK_MESSAGE),
+                "WARNING:p4a:[WARNING]: {}".format(
+                    READ_ERROR_NDK_MESSAGE.format(ndk_dir=self.ndk_dir)
+                ),
+                "WARNING:p4a:[WARNING]: {}".format(
+                    ENSURE_RIGHT_NDK_MESSAGE.format(
+                        min_supported=MIN_NDK_VERSION,
+                        rec_version=RECOMMENDED_NDK_VERSION,
+                        ndk_url=NDK_DOWNLOAD_URL,
+                    )
+                ),
             ],
         )
 
@@ -119,10 +134,7 @@ class TestRecommendations(unittest.TestCase):
             version = read_ndk_version(self.ndk_dir)
         self.assertEqual(
             cm.output,
-            [
-                "INFO:p4a:[INFO]:    Could not parse "
-                "$NDK_DIR/source.properties, not checking NDK version"
-            ],
+            ["INFO:p4a:[INFO]:    {}".format(PARSE_ERROR_NDK_MESSAGE)],
         )
         mock_open_src_prop.assert_called_once_with(
             join(self.ndk_dir, "source.properties")
@@ -135,10 +147,9 @@ class TestRecommendations(unittest.TestCase):
             check_target_api(RECOMMENDED_TARGET_API, "armeabi")
         self.assertEqual(
             e.exception.args[0],
-            "Asked to build for armeabi architecture with API {ndk_api}, but "
-            "API {max_target_api} or greater does not support armeabi".format(
-                ndk_api=RECOMMENDED_TARGET_API,
-                max_target_api=ARMEABI_MAX_TARGET_API,
+            UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE.format(
+                req_ndk_api=RECOMMENDED_TARGET_API,
+                max_ndk_api=ARMEABI_MAX_TARGET_API,
             ),
         )
 
@@ -151,10 +162,9 @@ class TestRecommendations(unittest.TestCase):
             cm.output,
             [
                 "WARNING:p4a:[WARNING]: Target API 25 < 26",
-                "WARNING:p4a:[WARNING]: Target APIs lower than 26 are no "
-                "longer supported on Google Play, and are not recommended. "
-                "Note that the Target API can be higher than your device "
-                "Android version, and should usually be as high as possible.",
+                "WARNING:p4a:[WARNING]: {old_api_msg}".format(
+                    old_api_msg=OLD_API_MESSAGE
+                ),
             ],
         )
 
@@ -169,8 +179,7 @@ class TestRecommendations(unittest.TestCase):
             check_ndk_api(ndk_api, android_api)
         self.assertEqual(
             e.exception.args[0],
-            "Target NDK API is {ndk_api}, higher than the target Android "
-            "API {android_api}.".format(
+            TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE.format(
                 ndk_api=ndk_api, android_api=android_api
             ),
         )
@@ -187,5 +196,9 @@ class TestRecommendations(unittest.TestCase):
             check_ndk_api(ndk_api, android_api)
         self.assertEqual(
             cm.output,
-            ["WARNING:p4a:[WARNING]: NDK API less than 21 is not supported"],
+            [
+                "WARNING:p4a:[WARNING]: {}".format(
+                    OLD_NDK_API_MESSAGE.format(MIN_NDK_API)
+                )
+            ],
         )
