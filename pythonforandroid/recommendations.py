@@ -30,14 +30,13 @@ def check_ndk_version(ndk_dir):
 
     if version is None:
         warning(
-            'Unable to read the NDK version, assuming that you are using an'
-            ' NDK greater than {min_supported} (the minimum NDK required to'
-            ' use p4a successfully).\n'
-            'Note: If you got build errors, consider to download the'
-            ' recommended NDK version which is {rec_version} and try'
-            ' it again (after removing all the files generated with this'
-            ' build). To download the android NDK visit the following page: '
-            '{ndk_url}'.format(
+            'Unable to read the NDK version from the given directory '
+            '{}'.format(ndk_dir)
+        )
+        warning(
+            "Make sure your NDK version is greater than {min_supported}. "
+            "If you get build errors, download the recommended NDK "
+            "{rec_version} from {ndk_url}".format(
                 min_supported=MIN_NDK_VERSION,
                 rec_version=RECOMMENDED_NDK_VERSION,
                 ndk_url=NDK_DOWNLOAD_URL,
@@ -65,9 +64,9 @@ def check_ndk_version(ndk_dir):
 
     if major_version < MIN_NDK_VERSION:
         raise BuildInterruptingException(
-            'Unsupported NDK version detected {user_version}\n'
-            '* Note: Minimum supported NDK version is {min_supported}'.format(
-                user_version=string_version, min_supported=MIN_NDK_VERSION
+            'The minimum supported NDK version is {min_supported}. You can '
+            'download it from {ndk_url}'.format(
+                min_supported=MIN_NDK_VERSION, ndk_url=NDK_DOWNLOAD_URL,
             ),
             instructions=(
                 'Please, go to the android NDK page ({ndk_url}) and download a'
