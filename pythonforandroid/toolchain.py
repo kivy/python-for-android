@@ -10,6 +10,7 @@ from __future__ import print_function
 from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
+from pythonforandroid.recipe import PythonRecipe
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 from pythonforandroid.util import BuildInterruptingException
@@ -228,11 +229,14 @@ def build_dist_from_args(ctx, dist, args):
             'preparing build directories for those recipes...'.format(
                 dist.recipes_to_rebuild)
         )
+        needs_clean_site_packages = set()
         all_to_rebuild = set()
         for recipe_name in dist.recipes_to_rebuild:
             recipe = Recipe.get_recipe(recipe_name, ctx)
             all_to_rebuild.add(recipe_name)
             recipe.clean_build()
+            if isinstance(recipe, PythonRecipe):
+                needs_clean_site_packages.add(recipe_name)
             # if any recipe depends on this one, we also rebuild it
             for affected_recipe in dist.recipes.keys():
                 try:
@@ -246,6 +250,15 @@ def build_dist_from_args(ctx, dist, args):
                 ):
                     all_to_rebuild.add(affected_recipe)
                     test_recipe.clean_build()
+                    if isinstance(test_recipe, PythonRecipe):
+                        needs_clean_site_packages.add(affected_recipe)
+        if needs_clean_site_packages and exists(ctx.python_installs_dir):
+            warning(
+                'Cleaning site packages because the following recipes, ({}), '
+                'are Python Packages, so we make sure that we rebuild new '
+                'versions.'.format(', '.join(needs_clean_site_packages))
+            )
+            shutil.rmtree(ctx.python_installs_dir)
 
         more_to_rebuild = set(dist.recipes_to_rebuild) ^ all_to_rebuild
         if more_to_rebuild:
