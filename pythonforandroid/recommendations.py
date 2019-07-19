@@ -22,7 +22,7 @@ def check_ndk_version(ndk_dir):
     specified via attribute `MIN_NDK_VERSION`.
 
     .. versionchanged:: 2019.06.06.1.dev0
-        Added the ability to get android's ndk `letter version` and also
+        Added the ability to get android's NDK `letter version` and also
         rewrote to raise an exception in case that an NDK version lower than
         the minimum supported is detected.
     """
@@ -30,11 +30,11 @@ def check_ndk_version(ndk_dir):
 
     if version is None:
         warning(
-            'Unable to read the ndk version, assuming that you are using an'
-            ' NDK greater than {min_supported} (the minimum ndk required to'
+            'Unable to read the NDK version, assuming that you are using an'
+            ' NDK greater than {min_supported} (the minimum NDK required to'
             ' use p4a successfully).\n'
             'Note: If you got build errors, consider to download the'
-            ' recommended ndk version which is {rec_version} and try'
+            ' recommended NDK version which is {rec_version} and try'
             ' it again (after removing all the files generated with this'
             ' build). To download the android NDK visit the following page: '
             '{ndk_url}'.format(
@@ -46,7 +46,7 @@ def check_ndk_version(ndk_dir):
         return
 
     # create a dictionary which will describe the relationship of the android's
-    # ndk minor version with the `human readable` letter version, egs:
+    # NDK minor version with the `human readable` letter version, egs:
     # Pkg.Revision = 17.1.4828580 => ndk-17b
     # Pkg.Revision = 17.2.4988734 => ndk-17c
     # Pkg.Revision = 19.0.5232133 => ndk-19 (No letter)
@@ -70,7 +70,7 @@ def check_ndk_version(ndk_dir):
                 user_version=string_version, min_supported=MIN_NDK_VERSION
             ),
             instructions=(
-                'Please, go to the android ndk page ({ndk_url}) and download a'
+                'Please, go to the android NDK page ({ndk_url}) and download a'
                 ' supported version.\n*** The currently recommended NDK'
                 ' version is {rec_version} ***'.format(
                     ndk_url=NDK_DOWNLOAD_URL,
