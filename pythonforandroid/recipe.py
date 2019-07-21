@@ -622,8 +622,10 @@ class Recipe(with_metaclass(RecipeMeta)):
             base_dir = join(
                 self.ctx.build_dir, 'other_builds', self.get_dir_name()
             )
+            archs = [arch.arch for arch in self.ctx.archs]
         else:
             base_dir = self.get_build_container_dir(arch)
+            archs = [arch.arch]
         dirs = glob.glob(base_dir + '-*')
         if exists(base_dir):
             dirs.append(base_dir)
@@ -639,6 +641,15 @@ class Recipe(with_metaclass(RecipeMeta)):
         # Delete any Python distributions to ensure the recipe build
         # doesn't persist in site-packages
         shutil.rmtree(self.ctx.python_installs_dir)
+
+        if self.built_libraries:
+            for arch in archs:
+                for lib in self.get_recipe_libraries(arch, in_context=True):
+                    if isfile(lib):
+                        info('Deleting ctx {arch} library {lib}'.format(
+                            arch=arch, lib=split(lib)[-1])
+                        )
+                        shprint(sh.rm, '-f', lib)
 
     def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
