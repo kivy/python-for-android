@@ -27,6 +27,66 @@ from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 
 
+def get_cython_path():
+    for cython_fn in ("cython", "cython3", "cython2", "cython-2.7"):
+        cython = sh.which(cython_fn)
+        if cython:
+            return cython
+    raise BuildInterruptingException('No cython binary found.')
+
+
+def get_ndk_platform_dir(ndk_dir, ndk_api, arch):
+    ndk_platform_dir_exists = True
+    platform_dir = arch.platform_dir
+    ndk_platform = join(
+        ndk_dir,
+        'platforms',
+        'android-{}'.format(ndk_api),
+        platform_dir)
+    if not exists(ndk_platform):
+        warning("ndk_platform doesn't exist: {}".format(ndk_platform))
+        ndk_platform_dir_exists = False
+    return ndk_platform, ndk_platform_dir_exists
+
+
+def get_toolchain_versions(ndk_dir, arch):
+    toolchain_versions = []
+    toolchain_path_exists = True
+    toolchain_prefix = arch.toolchain_prefix
+    toolchain_path = join(ndk_dir, 'toolchains')
+    if isdir(toolchain_path):
+        toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
+                                                        toolchain_prefix))
+        toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
+                              for path in toolchain_contents]
+    else:
+        warning('Could not find toolchain subdirectory!')
+        toolchain_path_exists = False
+    return toolchain_versions, toolchain_path_exists
+
+
+def get_targets(sdk_dir):
+    if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
+        avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
+        targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+    elif exists(join(sdk_dir, 'tools', 'android')):
+        android = sh.Command(join(sdk_dir, 'tools', 'android'))
+        targets = android('list').stdout.decode('utf-8').split('\n')
+    else:
+        raise BuildInterruptingException(
+            'Could not find `android` or `sdkmanager` binaries in Android SDK',
+            instructions='Make sure the path to the Android SDK is correct')
+    return targets
+
+
+def get_available_apis(sdk_dir):
+    targets = get_targets(sdk_dir)
+    apis = [s for s in targets if re.match(r'^ *API level: ', s)]
+    apis = [re.findall(r'[0-9]+', s) for s in apis]
+    apis = [int(s[0]) for s in apis if s]
+    return apis
+
+
 class Context(object):
     '''A build context. If anything will be built, an instance this class
     will be instantiated and used to hold all the build state.'''
@@ -238,20 +298,7 @@ class Context(object):
         self.android_api = android_api
 
         check_target_api(android_api, self.archs[0].arch)
-
-        if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
-            avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
-            targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
-        elif exists(join(sdk_dir, 'tools', 'android')):
-            android = sh.Command(join(sdk_dir, 'tools', 'android'))
-            targets = android('list').stdout.decode('utf-8').split('\n')
-        else:
-            raise BuildInterruptingException(
-                'Could not find `android` or `sdkmanager` binaries in Android SDK',
-                instructions='Make sure the path to the Android SDK is correct')
-        apis = [s for s in targets if re.match(r'^ *API level: ', s)]
-        apis = [re.findall(r'[0-9]+', s) for s in apis]
-        apis = [int(s[0]) for s in apis if s]
+        apis = get_available_apis(self.sdk_dir)
         info('Available Android APIs are ({})'.format(
             ', '.join(map(str, apis))))
         if android_api in apis:
@@ -327,46 +374,21 @@ class Context(object):
         if not self.ccache:
             info('ccache is missing, the build will not be optimized in the '
                  'future.')
-        for cython_fn in ("cython", "cython3", "cython2", "cython-2.7"):
-            cython = sh.which(cython_fn)
-            if cython:
-                self.cython = cython
-                break
-        else:
-            raise BuildInterruptingException('No cython binary found.')
-        if not self.cython:
-            ok = False
-            warning("Missing requirement: cython is not installed")
+        self.cython = get_cython_path()
 
         # This would need to be changed if supporting multiarch APKs
         arch = self.archs[0]
-        platform_dir = arch.platform_dir
         toolchain_prefix = arch.toolchain_prefix
-        toolchain_version = None
-        self.ndk_platform = join(
-            self.ndk_dir,
-            'platforms',
-            'android-{}'.format(self.ndk_api),
-            platform_dir)
-        if not exists(self.ndk_platform):
-            warning('ndk_platform doesn\'t exist: {}'.format(
-                self.ndk_platform))
-            ok = False
+        self.ndk_platform, ndk_platform_dir_exists = get_ndk_platform_dir(
+            self.ndk_dir, self.ndk_api, arch)
+        ok = ok and ndk_platform_dir_exists
 
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
-
-        toolchain_versions = []
-        toolchain_path = join(self.ndk_dir, 'toolchains')
-        if isdir(toolchain_path):
-            toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
-                                                            toolchain_prefix))
-            toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
-                                  for path in toolchain_contents]
-        else:
-            warning('Could not find toolchain subdirectory!')
-            ok = False
+        toolchain_versions, toolchain_path_exists = get_toolchain_versions(
+            self.ndk_dir, arch)
+        ok = ok and toolchain_path_exists
         toolchain_versions.sort()
 
         toolchain_versions_gcc = []
