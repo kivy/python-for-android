@@ -13,7 +13,7 @@ class ServiceOnlyBootstrap(Bootstrap):
         set(Bootstrap.recipe_depends).union({'genericndkbuild'})
     )
 
-    def run_distribute(self):
+    def assemble_distribution(self):
         info_main('# Creating Android project from build and {} bootstrap'.format(
             self.name))
 
@@ -47,7 +47,7 @@ class ServiceOnlyBootstrap(Bootstrap):
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(ServiceOnlyBootstrap, self).run_distribute()
+        super(ServiceOnlyBootstrap, self).assemble_distribution()
 
 
 bootstrap = ServiceOnlyBootstrap()
