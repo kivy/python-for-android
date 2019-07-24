@@ -209,7 +209,7 @@ def build_dist_from_args(ctx, dist, args):
                   ),
                  )
 
-    ctx.bootstrap.run_distribute()
+    ctx.bootstrap.assemble_distribution()
 
     info_main('# Your distribution was created successfully, exiting.')
     info('Dist can be found at (for now) {}'
