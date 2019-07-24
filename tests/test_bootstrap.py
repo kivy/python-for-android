@@ -377,7 +377,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstrap.listdir")
     @mock.patch("pythonforandroid.bootstrap.sh.rm")
     @mock.patch("pythonforandroid.bootstrap.sh.cp")
-    def test_run_distribute(
+    def test_assemble_distribution(
         self,
         mock_sh_cp,
         mock_sh_rm,
@@ -393,25 +393,26 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     ):
         """
         A test for any overwritten method of
-        `~pythonforandroid.bootstrap.Bootstrap.run_distribute`. Here we mock
+        `~pythonforandroid.bootstrap.Bootstrap.assemble_distribution`. Here we mock
         any file/dir operation that it could slow down our tests, and there is
-        a lot to mock, because the `run_distribute` method it should take care
+        a lot to mock, because the `assemble_distribution` method it should take care
         of prepare all compiled files to generate the final `apk`. The targets
         of this test will be:
 
             - :meth:`~pythonforandroid.bootstraps.sdl2.BootstrapSdl2
-              .run_distribute`
+              .assemble_distribution`
             - :meth:`~pythonforandroid.bootstraps.service_only
-              .ServiceOnlyBootstrap.run_distribute`
+              .ServiceOnlyBootstrap.assemble_distribution`
             - :meth:`~pythonforandroid.bootstraps.webview.WebViewBootstrap
-               .run_distribute`
+               .assemble_distribution`
             - :meth:`~pythonforandroid.bootstraps.empty.EmptyBootstrap.
-              run_distribute`
+              assemble_distribution`
 
         Here we will tests all those methods that are specific for each class.
         """
         # prepare bootstrap and distribution
-        bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
+        bs = Bootstrap.get_bootstrap(self.bootstrap_name, self.ctx)
+        self.assertNotEqual(bs.ctx, None)
         bs.build_dir = bs.get_build_dir()
         self.setUp_distribution_with_bootstrap(bs)
 
@@ -419,8 +420,9 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
         self.ctx.python_modules = ["requests"]
         self.ctx.archs = [ArchARMv7_a(self.ctx)]
+        self.ctx.bootstrap = bs
 
-        bs.run_distribute()
+        bs.assemble_distribution()
 
         mock_open_dist_files.assert_called_once_with("dist_info.json", "w")
         mock_open_bootstraps = {
@@ -645,19 +647,19 @@ class TestBootstrapEmpty(GenericBootstrapTest, unittest.TestCase):
 
     .. note:: here will test most of the base class methods, because we only
               overwrite :meth:`~pythonforandroid.bootstraps.empty.
-              EmptyBootstrap.run_distribute`
+              EmptyBootstrap.assemble_distribution`
     """
 
     @property
     def bootstrap_name(self):
         return "empty"
 
-    def test_run_distribute(self, *args):
+    def test_assemble_distribution(self, *args):
         # prepare bootstrap
         bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
         self.ctx.bootstrap = bs
 
         # test dist_dir error
         with self.assertRaises(SystemExit) as e:
-            bs.run_distribute()
+            bs.assemble_distribution()
         self.assertEqual(e.exception.args[0], 1)

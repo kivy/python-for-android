@@ -8,7 +8,7 @@ class EmptyBootstrap(Bootstrap):
 
     can_be_chosen_automatically = False
 
-    def run_distribute(self):
+    def assemble_distribution(self):
         print('empty bootstrap has no distribute')
         exit(1)
 
