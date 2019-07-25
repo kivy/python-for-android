@@ -35,6 +35,7 @@ class LibZMQRecipe(Recipe):
                 '--without-documentation',
                 '--prefix={}'.format(prefix),
                 '--with-libsodium=no',
+                '--disable-libunwind',
                 _env=env)
             shprint(sh.make, _env=env)
             shprint(sh.make, 'install', _env=env)
@@ -72,8 +73,8 @@ class LibZMQRecipe(Recipe):
         env['CXXFLAGS'] += ' -lgnustl_shared'
         env['LDFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
             self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
-        env['CXXFLAGS'] += ' --sysroot={}/platforms/android-{}/arch-arm'.format(
-            self.ctx.ndk_dir, self.ctx.ndk_api)
+        env['CXXFLAGS'] += ' --sysroot={}/platforms/android-{}/{}'.format(
+            self.ctx.ndk_dir, self.ctx.ndk_api, arch.platform_dir)
         return env
 
 
