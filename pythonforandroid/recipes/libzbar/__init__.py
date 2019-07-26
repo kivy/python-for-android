@@ -1,6 +1,7 @@
 import os
-from pythonforandroid.toolchain import shprint, current_directory
 from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import current_directory
+from pythonforandroid.logger import shprint
 from multiprocessing import cpu_count
 import sh
 
@@ -15,9 +16,7 @@ class LibZBarRecipe(Recipe):
 
     patches = ["werror.patch"]
 
-    def should_build(self, arch):
-        return not os.path.exists(
-            os.path.join(self.ctx.get_libs_dir(arch.arch), 'libzbar.so'))
+    built_libraries = {'libzbar.so': 'zbar/.libs'}
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super(LibZBarRecipe, self).get_recipe_env(arch, with_flags_in_cc)
@@ -28,7 +27,6 @@ class LibZBarRecipe(Recipe):
         return env
 
     def build_arch(self, arch):
-        super(LibZBarRecipe, self).build_arch(arch)
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(sh.Command('autoreconf'), '-vif', _env=env)
@@ -50,8 +48,6 @@ class LibZBarRecipe(Recipe):
                 '--enable-static=no',
                 _env=env)
             shprint(sh.make, '-j' + str(cpu_count()), _env=env)
-            libs = ['zbar/.libs/libzbar.so']
-            self.install_libs(arch, *libs)
 
 
 recipe = LibZBarRecipe()
