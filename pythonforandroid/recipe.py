@@ -573,6 +573,27 @@ class Recipe(with_metaclass(RecipeMeta)):
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
 
+    def get_libraries(self, arch_name, in_context=False):
+        """Return the full path of the library depending on the architecture.
+        Per default, the build library path it will be returned, unless
+        `get_libraries` has been called with kwarg `in_context` set to
+        True.
+
+        .. note:: this method should be used for library recipes only
+        """
+        recipe_libs = set()
+        if not self.built_libraries:
+            return recipe_libs
+        for lib, rel_path in self.built_libraries.items():
+            if not in_context:
+                abs_path = join(self.get_build_dir(arch_name), rel_path, lib)
+                if rel_path in {".", "", None}:
+                    abs_path = join(self.get_build_dir(arch_name), lib)
+            else:
+                abs_path = join(self.ctx.get_libs_dir(arch_name), lib)
+            recipe_libs.add(abs_path)
+        return recipe_libs
+
     @classmethod
     def recipe_dirs(cls, ctx):
         recipe_dirs = []
