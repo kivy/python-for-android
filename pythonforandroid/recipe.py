@@ -516,6 +516,19 @@ class Recipe(with_metaclass(RecipeMeta)):
         if hasattr(self, build):
             getattr(self, build)()
 
+    def install_libraries(self, arch):
+        '''This method is always called after `build_arch`. In case that we
+        detect a library recipe, defined by the class attribute
+        `built_libraries`, we will copy all defined libraries into the
+         right location.
+        '''
+        if not self.built_libraries:
+            return
+        shared_libs = [
+            lib for lib in self.get_libraries(arch) if lib.endswith(".so")
+        ]
+        self.install_libs(arch, *shared_libs)
+
     def postbuild_arch(self, arch):
         '''Run any post-build tasks for the Recipe. By default, this checks if
         any postbuild_archname methods exist for the archname of the
