@@ -1,7 +1,7 @@
-from pythonforandroid.toolchain import Recipe
+from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint, info
 from pythonforandroid.util import current_directory
-from os.path import exists, join
+from os.path import join, exists
 from multiprocessing import cpu_count
 import sh
 
@@ -26,16 +26,7 @@ class FreetypeRecipe(Recipe):
 
     version = '2.5.5'
     url = 'http://download.savannah.gnu.org/releases/freetype/freetype-{version}.tar.gz'  # noqa
-
-    def should_build(self, arch):
-        return not exists(
-            join(
-                self.get_build_dir(arch.arch),
-                'objs',
-                '.libs',
-                'libfreetype.so',
-            )
-        )
+    built_libraries = {'libfreetype.so': 'objs/.libs'}
 
     def get_recipe_env(self, arch=None, with_harfbuzz=False):
         env = super(FreetypeRecipe, self).get_recipe_env(arch)
@@ -111,11 +102,14 @@ class FreetypeRecipe(Recipe):
                 # First build, install the compiled lib, and clean build env
                 shprint(sh.make, 'install', _env=env)
                 shprint(sh.make, 'distclean', _env=env)
-            else:
-                # Second build (or the first if harfbuzz not enabled), now we
-                # copy definitive libs to libs collection. Be sure to link your
-                # recipes to the definitive library, located at: objs/.libs
-                self.install_libs(arch, 'objs/.libs/libfreetype.so')
+
+    def install_libraries(self, arch):
+        # This library it's special because the first time we built it may not
+        # generate the expected library, because it can depend on harfbuzz, so
+        # we will make sure to only install it when the library exists
+        if not exists(list(self.get_libraries(arch))[0]):
+            return
+        self.install_libs(arch, *self.get_libraries(arch))
 
 
 recipe = FreetypeRecipe()
