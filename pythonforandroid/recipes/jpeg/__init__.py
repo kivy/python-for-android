@@ -1,9 +1,8 @@
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory
-from os.path import join, exists
+from os.path import join
 from os import environ, uname
-from glob import glob
 import sh
 
 
@@ -16,15 +15,11 @@ class JpegRecipe(Recipe):
     name = 'jpeg'
     version = '2.0.1'
     url = 'https://github.com/libjpeg-turbo/libjpeg-turbo/archive/{version}.tar.gz'  # noqa
+    built_libraries = {'libjpeg.a': '.', 'libturbojpeg.a': '.'}
     # we will require this below patch to build the shared library
     # patches = ['remove-version.patch']
 
-    def should_build(self, arch):
-        return not exists(join(self.get_build_dir(arch.arch),
-                               'libturbojpeg.a'))
-
     def build_arch(self, arch):
-        super(JpegRecipe, self).build_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
 
         # TODO: Fix simd/neon
@@ -58,10 +53,6 @@ class JpegRecipe(Recipe):
                     '-DENABLE_STATIC=1',
                     _env=env)
             shprint(sh.make, _env=env)
-
-            # copy static libs to libs collection
-            for lib in glob(join(build_dir, '*.a')):
-                shprint(sh.cp, '-L', lib, self.ctx.libs_dir)
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=False):
         env = environ.copy()
