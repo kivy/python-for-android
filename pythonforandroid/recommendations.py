@@ -9,29 +9,103 @@ from pythonforandroid.util import BuildInterruptingException
 MIN_NDK_VERSION = 17
 MAX_NDK_VERSION = 17
 
-RECOMMENDED_NDK_VERSION = '17c'
-OLD_NDK_MESSAGE = 'Older NDKs may not be compatible with all p4a features.'
+RECOMMENDED_NDK_VERSION = "17c"
+NDK_DOWNLOAD_URL = "https://developer.android.com/ndk/downloads/"
+
+# Important log messages
 NEW_NDK_MESSAGE = 'Newer NDKs may not be fully supported by p4a.'
+UNKNOWN_NDK_MESSAGE = (
+    'Could not determine NDK version, no source.properties in the NDK dir'
+)
+PARSE_ERROR_NDK_MESSAGE = (
+    'Could not parse $NDK_DIR/source.properties, not checking NDK version'
+)
+READ_ERROR_NDK_MESSAGE = (
+    'Unable to read the NDK version from the given directory {ndk_dir}'
+)
+ENSURE_RIGHT_NDK_MESSAGE = (
+    'Make sure your NDK version is greater than {min_supported}. If you get '
+    'build errors, download the recommended NDK {rec_version} from {ndk_url}'
+)
+NDK_LOWER_THAN_SUPPORTED_MESSAGE = (
+    'The minimum supported NDK version is {min_supported}. '
+    'You can download it from {ndk_url}'
+)
+UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE = (
+    'Asked to build for armeabi architecture with API '
+    '{req_ndk_api}, but API {max_ndk_api} or greater does not support armeabi'
+)
+CURRENT_NDK_VERSION_MESSAGE = (
+    'Found NDK version {ndk_version}'
+)
+RECOMMENDED_NDK_VERSION_MESSAGE = (
+    'Maximum recommended NDK version is {recommended_ndk_version}'
+)
 
 
 def check_ndk_version(ndk_dir):
-    # Check the NDK version against what is currently recommended
+    """
+    Check the NDK version against what is currently recommended and raise an
+    exception of :class:`~pythonforandroid.util.BuildInterruptingException` in
+    case that the user tries to use an NDK lower than minimum supported,
+    specified via attribute `MIN_NDK_VERSION`.
+
+    .. versionchanged:: 2019.06.06.1.dev0
+        Added the ability to get android's NDK `letter version` and also
+        rewrote to raise an exception in case that an NDK version lower than
+        the minimum supported is detected.
+    """
     version = read_ndk_version(ndk_dir)
 
     if version is None:
-        return  # if we failed to read the version, just don't worry about it
+        warning(READ_ERROR_NDK_MESSAGE.format(ndk_dir=ndk_dir))
+        warning(
+            ENSURE_RIGHT_NDK_MESSAGE.format(
+                min_supported=MIN_NDK_VERSION,
+                rec_version=RECOMMENDED_NDK_VERSION,
+                ndk_url=NDK_DOWNLOAD_URL,
+            )
+        )
+        return
+
+    # create a dictionary which will describe the relationship of the android's
+    # NDK minor version with the `human readable` letter version, egs:
+    # Pkg.Revision = 17.1.4828580 => ndk-17b
+    # Pkg.Revision = 17.2.4988734 => ndk-17c
+    # Pkg.Revision = 19.0.5232133 => ndk-19 (No letter)
+    minor_to_letter = {0: ''}
+    minor_to_letter.update(
+        {n + 1: chr(i) for n, i in enumerate(range(ord('b'), ord('b') + 25))}
+    )
 
     major_version = version.version[0]
+    letter_version = minor_to_letter[version.version[1]]
+    string_version = '{major_version}{letter_version}'.format(
+        major_version=major_version, letter_version=letter_version
+    )
 
-    info('Found NDK revision {}'.format(version))
+    info(CURRENT_NDK_VERSION_MESSAGE.format(ndk_version=string_version))
 
     if major_version < MIN_NDK_VERSION:
-        warning('Minimum recommended NDK version is {}'.format(
-            RECOMMENDED_NDK_VERSION))
-        warning(OLD_NDK_MESSAGE)
+        raise BuildInterruptingException(
+            NDK_LOWER_THAN_SUPPORTED_MESSAGE.format(
+                min_supported=MIN_NDK_VERSION, ndk_url=NDK_DOWNLOAD_URL
+            ),
+            instructions=(
+                'Please, go to the android NDK page ({ndk_url}) and download a'
+                ' supported version.\n*** The currently recommended NDK'
+                ' version is {rec_version} ***'.format(
+                    ndk_url=NDK_DOWNLOAD_URL,
+                    rec_version=RECOMMENDED_NDK_VERSION,
+                )
+            ),
+        )
     elif major_version > MAX_NDK_VERSION:
-        warning('Maximum recommended NDK version is {}'.format(
-            RECOMMENDED_NDK_VERSION))
+        warning(
+            RECOMMENDED_NDK_VERSION_MESSAGE.format(
+                recommended_ndk_version=RECOMMENDED_NDK_VERSION
+            )
+        )
         warning(NEW_NDK_MESSAGE)
 
 
@@ -41,16 +115,14 @@ def read_ndk_version(ndk_dir):
         with open(join(ndk_dir, 'source.properties')) as fileh:
             ndk_data = fileh.read()
     except IOError:
-        info('Could not determine NDK version, no source.properties '
-             'in the NDK dir')
+        info(UNKNOWN_NDK_MESSAGE)
         return
 
     for line in ndk_data.split('\n'):
         if line.startswith('Pkg.Revision'):
             break
     else:
-        info('Could not parse $NDK_DIR/source.properties, not checking '
-             'NDK version')
+        info(PARSE_ERROR_NDK_MESSAGE)
         return
 
     # Line should have the form "Pkg.Revision = ..."
@@ -79,9 +151,9 @@ def check_target_api(api, arch):
 
     if api >= ARMEABI_MAX_TARGET_API and arch == 'armeabi':
         raise BuildInterruptingException(
-            'Asked to build for armeabi architecture with API '
-            '{}, but API {} or greater does not support armeabi'.format(
-                api, ARMEABI_MAX_TARGET_API),
+            UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE.format(
+                req_ndk_api=api, max_ndk_api=ARMEABI_MAX_TARGET_API
+            ),
             instructions='You probably want to build with --arch=armeabi-v7a instead')
 
     if api < MIN_TARGET_API:
@@ -92,14 +164,19 @@ def check_target_api(api, arch):
 MIN_NDK_API = 21
 RECOMMENDED_NDK_API = 21
 OLD_NDK_API_MESSAGE = ('NDK API less than {} is not supported'.format(MIN_NDK_API))
+TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE = (
+    'Target NDK API is {ndk_api}, '
+    'higher than the target Android API {android_api}.'
+)
 
 
 def check_ndk_api(ndk_api, android_api):
     """Warn if the user's NDK is too high or low."""
     if ndk_api > android_api:
         raise BuildInterruptingException(
-            'Target NDK API is {}, higher than the target Android API {}.'.format(
-                ndk_api, android_api),
+            TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE.format(
+                ndk_api=ndk_api, android_api=android_api
+            ),
             instructions=('The NDK API is a minimum supported API number and must be lower '
                           'than the target Android API'))
 
