@@ -106,6 +106,25 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     archs = ['armeabi']  # Not currently implemented properly
 
+    built_libraries = {}
+    """Each recipe that builds a system library (e.g.:libffi, openssl, etc...)
+    should contain a dict holding the relevant information of the library. The
+    keys should be the generated libraries and the values the relative path of
+    the library inside his build folder. This dict will be used to perform
+    different operations:
+        - copy the library into the right location, depending on if it's shared
+          or static)
+        - check if we have to rebuild the library
+
+    Here an example of how it would look like for `libffi` recipe:
+
+        - `built_libraries = {'libffi.so': '.libs'}`
+
+    .. note:: in case that the built library resides in recipe's build
+              directory, you can set the following values for the relative
+              path: `'.', None or ''`
+    """
+
     @property
     def version(self):
         key = 'VERSION_' + self.name
