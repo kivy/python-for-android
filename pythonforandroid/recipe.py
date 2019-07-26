@@ -498,9 +498,14 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
-        building again.
+        building again. Per default we implement a library test, in case that
+        we detect so.
 
         '''
+        if self.built_libraries:
+            return not all(
+                exists(lib) for lib in self.get_libraries(arch.arch)
+            )
         return True
 
     def build_arch(self, arch):
