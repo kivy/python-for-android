@@ -3,7 +3,6 @@ from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk, uname
 import sh
 import shutil
-import sys
 from fnmatch import fnmatch
 from tempfile import mkdtemp
 

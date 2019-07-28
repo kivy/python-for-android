@@ -11,8 +11,8 @@ from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, check_python_version)
-from pythonforandroid.util import BuildInterruptingException, handle_build_exception
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
+from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.entrypoints import main
 
 
@@ -100,6 +100,7 @@ from pythonforandroid.build import Context, build_recipes
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
+
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):

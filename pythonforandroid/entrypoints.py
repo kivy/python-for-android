@@ -1,6 +1,7 @@
 from pythonforandroid.recommendations import check_python_version
 from pythonforandroid.util import BuildInterruptingException, handle_build_exception
 
+
 def main():
     """
     Main entrypoint for running python-for-android as a script.

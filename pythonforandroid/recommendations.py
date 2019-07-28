@@ -171,6 +171,7 @@ TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE = (
     'higher than the target Android API {android_api}.'
 )
 
+
 def check_ndk_api(ndk_api, android_api):
     """Warn if the user's NDK is too high or low."""
     if ndk_api > android_api:
@@ -183,6 +184,7 @@ def check_ndk_api(ndk_api, android_api):
 
     if ndk_api < MIN_NDK_API:
         warning(OLD_NDK_API_MESSAGE)
+
 
 MIN_PYTHON_MAJOR_VERSION = 3
 MIN_PYTHON_MINOR_VERSION = 6
@@ -201,6 +203,7 @@ PY_MINOR_VERSION_ERROR_TEXT = (
         user_major=sys.version_info.major,
         user_minor=sys.version_info.minor,
         min_version=MIN_PYTHON_VERSION)
+
 
 def check_python_version():
     if sys.version_info.major < MIN_PYTHON_MAJOR_VERSION:

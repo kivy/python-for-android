@@ -17,6 +17,7 @@ package_data = {'': ['*.tmpl',
 data_files = []
 
 
+
 # must be a single statement since buildozer is currently parsing it, refs:
 # https://github.com/kivy/buildozer/issues/722
 install_reqs = [
