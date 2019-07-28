@@ -280,17 +280,29 @@ class AndroidBrowser(object):
 import webbrowser
 webbrowser.register('android', AndroidBrowser)
 
-cdef extern void android_start_service(char *, char *, char *)
-def start_service(title=None, description=None, arg=None):
-    cdef char *j_title = NULL
-    cdef char *j_description = NULL
-    if title is not None:
-        j_title = <bytes>title
-    if description is not None:
-        j_description = <bytes>description
-    if arg is not None:
-        j_arg = <bytes>arg
-    android_start_service(j_title, j_description, j_arg)
+
+def start_service(title="Background Service",
+                  description="", arg="",
+                  as_foreground=True):
+    # Legacy None value support (for old function signature style):
+    if title is None:
+        title = "Background Service"
+    if description is None:
+        description = ""
+    if arg is None:
+        arg = ""
+
+    # Start service:
+    mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+    if as_foreground:
+        mActivity.start_service(
+            title, description, arg
+        )
+    else:
+        mActivity.start_service_not_as_foreground(
+            title, description, arg
+        )
+
 
 cdef extern void android_stop_service()
 def stop_service():

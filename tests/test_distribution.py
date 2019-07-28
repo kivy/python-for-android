@@ -84,11 +84,12 @@ class TestDistribution(unittest.TestCase):
         :meth:`~pythonforandroid.distribution.Distribution.folder_exist` is
         called once with the proper arguments."""
 
+        mock_exists.return_value = False
         self.setUp_distribution_with_bootstrap(
-            Bootstrap().get_bootstrap("sdl2", self.ctx)
+            Bootstrap.get_bootstrap("sdl2", self.ctx)
         )
         self.ctx.bootstrap.distribution.folder_exists()
-        mock_exists.assert_called_once_with(
+        mock_exists.assert_called_with(
             self.ctx.bootstrap.distribution.dist_dir
         )
 
