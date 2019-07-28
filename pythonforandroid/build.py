@@ -27,14 +27,6 @@ from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 
 
-def get_cython_path():
-    for cython_fn in ("cython", "cython3", "cython2", "cython-2.7"):
-        cython = sh.which(cython_fn)
-        if cython:
-            return cython
-    raise BuildInterruptingException('No cython binary found.')
-
-
 def get_ndk_platform_dir(ndk_dir, ndk_api, arch):
     ndk_platform_dir_exists = True
     platform_dir = arch.platform_dir
@@ -111,7 +103,6 @@ class Context(object):
     use_setup_py = False
 
     ccache = None  # whether to use ccache
-    cython = None  # the cython interpreter name
 
     ndk_platform = None  # the ndk platform directory
 
@@ -374,7 +365,14 @@ class Context(object):
         if not self.ccache:
             info('ccache is missing, the build will not be optimized in the '
                  'future.')
-        self.cython = get_cython_path()
+        try:
+            subprocess.check_output([
+                "python3", "-m", "cython", "--help",
+            ])
+        except subprocess.CalledProcessError:
+            warning('Cython for python3 missing. If you are building for '
+                    ' a python 3 target (which is the default)'
+                    ' then THINGS WILL BREAK.')
 
         # This would need to be changed if supporting multiarch APKs
         arch = self.archs[0]

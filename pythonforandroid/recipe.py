@@ -1024,8 +1024,11 @@ class CythonRecipe(PythonRecipe):
             del cyenv['PYTHONPATH']
         if 'PYTHONNOUSERSITE' in cyenv:
             cyenv.pop('PYTHONNOUSERSITE')
-        cython_command = sh.Command(self.ctx.cython)
-        shprint(cython_command, filename, *self.cython_args, _env=cyenv)
+        python_command = sh.Command("python{}".format(
+            self.ctx.python_recipe.major_minor_version_string.split(".")[0]
+        ))
+        shprint(python_command, "-m", "Cython.Build.Cythonize",
+                filename, *self.cython_args, _env=cyenv)
 
     def cythonize_build(self, env, build_dir="."):
         if not self.cythonize:

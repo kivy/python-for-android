@@ -94,7 +94,7 @@ ENV WORK_DIR="${HOME_DIR}" \
 # install system dependencies
 RUN ${RETRY} apt -y install -qq --no-install-recommends \
         python3 virtualenv python3-pip python3-venv \
-        wget lbzip2 patch sudo \
+        wget lbzip2 patch sudo python python-pip \
     && apt -y autoremove
 
 # build dependencies
@@ -122,8 +122,8 @@ RUN useradd --create-home --shell /bin/bash ${USER}
 RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-
-RUN pip3 install --upgrade cython==0.28.6
+# install cython for python 2 (for python 3 it's inside the venv)
+RUN pip2 install --upgrade Cython==0.28.6
 
 WORKDIR ${WORK_DIR}
 COPY --chown=user:user . ${WORK_DIR}
@@ -133,4 +133,5 @@ USER ${USER}
 # install python-for-android from current branch
 RUN virtualenv --python=python3 venv \
     && . venv/bin/activate \
+    && pip3 install --upgrade Cython==0.28.6 \
     && pip3 install -e .
