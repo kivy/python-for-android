@@ -5,6 +5,60 @@ Working on Android
 This page gives details on accessing Android APIs and managing other
 interactions on Android.
 
+Storage paths
+-------------
+
+If you want to store and retrieve data, you shouldn't just save to
+the current directory, and not hardcode `/sdcard/` or some other
+path either - it might differ per device.
+
+Instead, the `android` module which you can add to your `--requirements`
+allows you to query the most commonly required paths::
+
+      from android.storage import app_storage_path
+      settings_path = app_storage_path()
+
+      from android.storage import primary_external_storage_path
+      primary_ext_storage = primary_external_storage_path()
+
+      from android.storage import secondary_external_storage_path
+      secondary_ext_storage = secondary_external_storage_path()
+
+`app_storage_path()` gives you Android's so-called "internal storage"
+which is specific to your app and cannot seen by others or the user.
+It compares best to the AppData directory on Windows.
+
+`primary_external_storage_path()` returns Android's so-called
+"primary external storage", often found at `/sdcard/` and potentially
+accessible to any other app.
+It compares best to the Documents directory on Windows.
+Requires `Permission.WRITE_EXTERNAL_STORAGE` to read and write to.
+
+`secondary_external_storage_path()` returns Android's so-called
+"secondary external storage", often found at `/storage/External_SD/`.
+It compares best to an external disk plugged to a Desktop PC, and can
+after a device restart become inaccessible if removed.
+Requires `Permission.WRITE_EXTERNAL_STORAGE` to read and write to.
+
+.. warning::
+   Even if `secondary_external_storage_path` returns a path
+   the external sd card may still not be present.
+   Only non-empty contents or a successful write indicate that it is.
+
+Read more on all the different storage types and what to use them for
+in the Android documentation:
+
+https://developer.android.com/training/data-storage/files
+
+A note on permissions
+~~~~~~~~~~~~~~~~~~~~~
+
+Only the internal storage is always accessible with no additional
+permissions. For both primary and secondary external storage, you need
+to obtain `Permission.WRITE_EXTERNAL_STORAGE` **and the user may deny it.**
+Also, if you get it, both forms of external storage may only allow
+your app to write to the common pre-existing folders like "Music",
+"Documents", and so on. (see the Android Docs linked above for details)
 
 Runtime permissions
 -------------------
