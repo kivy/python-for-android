@@ -6,14 +6,14 @@ import shutil
 import sys
 from fnmatch import fnmatch
 from tempfile import mkdtemp
-try:
+
+# This Python version workaround left for compatibility during initial version check
+try:  # Python 3
     from urllib.request import FancyURLopener
-except ImportError:
+except ImportError:  # Python 2
     from urllib import FancyURLopener
 
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
-
-IS_PY3 = sys.version_info[0] >= 3
 
 
 class WgetDownloader(FancyURLopener):

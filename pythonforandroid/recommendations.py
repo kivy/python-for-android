@@ -1,7 +1,9 @@
 """Simple functions for checking dependency versions."""
 
+import sys
 from distutils.version import LooseVersion
 from os.path import join
+
 from pythonforandroid.logger import info, warning
 from pythonforandroid.util import BuildInterruptingException
 
@@ -169,7 +171,6 @@ TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE = (
     'higher than the target Android API {android_api}.'
 )
 
-
 def check_ndk_api(ndk_api, android_api):
     """Warn if the user's NDK is too high or low."""
     if ndk_api > android_api:
@@ -182,3 +183,28 @@ def check_ndk_api(ndk_api, android_api):
 
     if ndk_api < MIN_NDK_API:
         warning(OLD_NDK_API_MESSAGE)
+
+MIN_PYTHON_MAJOR_VERSION = 3
+MIN_PYTHON_MINOR_VERSION = 6
+MIN_PYTHON_VERSION = LooseVersion('{major}.{minor}'.format(major=MIN_PYTHON_MAJOR_VERSION,
+                                                           minor=MIN_PYTHON_MINOR_VERSION))
+PY2_ERROR_TEXT = (
+    'python-for-android no longer supports running under Python 2. Either upgrade to '
+    'Python {min_version} (recommended), or revert to python-for-android 2019.07.08. Note that '
+    'you *can* still target Python 2 on Android by including python2 in your requirements.').format(
+        min_version=MIN_PYTHON_VERSION)
+
+PY_MINOR_VERSION_ERROR_TEXT = (
+    'Your Python version {user_major}.{user_minor} is not supported by python-for-android, '
+    'please upgrade to {min_version} or higher.'
+    ).format(
+        user_major=sys.version_info.major,
+        user_minor=sys.version_info.minor,
+        min_version=MIN_PYTHON_VERSION)
+
+def check_python_version():
+    if sys.version_info.major < MIN_PYTHON_MAJOR_VERSION:
+        raise BuildInterruptingException(PY2_ERROR_TEXT)
+
+    if sys.version_info.minor < MIN_PYTHON_MINOR_VERSION:
+        raise BuildInterruptingException(PY_MINOR_VERSION_ERROR_TEXT)
