@@ -1,9 +1,9 @@
-
 from jnius import autoclass, cast
 import os
 
 
 Environment = autoclass('android.os.Environment')
+File = autoclass('java.io.File')
 
 
 def _android_has_is_removable_func():
@@ -24,6 +24,19 @@ def _get_sdcard_path():
     )
 
 
+def _get_activity():
+    """
+    Retrieves the activity from `PythonActivity` fallback to `PythonService`.
+    """
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    activity = PythonActivity.mActivity
+    if activity is None:
+        # assume we're running from the background service
+        PythonService = autoclass('org.kivy.android.PythonService')
+        activity = PythonService.mService
+    return activity
+
+
 def app_storage_path():
     """ Locate the built-in device storage used for this app only.
 
@@ -32,9 +45,8 @@ def app_storage_path():
 
         Returns directory path to storage.
     """
-    PythonActivity = autoclass('org.kivy.android.PythonActivity')
-    currentActivity = cast('android.app.Activity',
-                           PythonActivity.mActivity)
+    activity = _get_activity()
+    currentActivity = cast('android.app.Activity', activity)
     context = cast('android.content.ContextWrapper',
                    currentActivity.getApplicationContext())
     file_p = cast('java.io.File', context.getFilesDir())
@@ -58,7 +70,7 @@ def primary_external_storage_path():
         # Apparently this can both return primary (built-in) or
         # secondary (removable) external storage depending on the device,
         # therefore check that we got what we wanted:
-        if not Environment.isExternalStorageRemovable(sdpath):
+        if not Environment.isExternalStorageRemovable(File(sdpath)):
             return sdpath
     if "EXTERNAL_STORAGE" in os.environ:
         return os.environ["EXTERNAL_STORAGE"]
@@ -88,7 +100,7 @@ def secondary_external_storage_path():
         # Apparently this can both return primary (built-in) or
         # secondary (removable) external storage depending on the device,
         # therefore check that we got what we wanted:
-        if Environment.isExternalStorageRemovable(sdpath):
+        if Environment.isExternalStorageRemovable(File(sdpath)):
             if os.path.exists(sdpath):
                 return sdpath
 
@@ -98,6 +110,6 @@ def secondary_external_storage_path():
         p = os.environ["SECONDARY_STORAGE"]
     elif "EXTERNAL_SDCARD_STORAGE" in os.environ:
         p = os.environ["EXTERNAL_SDCARD_STORAGE"]
-    if os.path.exists(p):
+    if p is not None and os.path.exists(p):
         return p
     return None
