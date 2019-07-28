@@ -187,7 +187,7 @@ def check_ndk_api(ndk_api, android_api):
 
 
 MIN_PYTHON_MAJOR_VERSION = 3
-MIN_PYTHON_MINOR_VERSION = 6
+MIN_PYTHON_MINOR_VERSION = 4
 MIN_PYTHON_VERSION = LooseVersion('{major}.{minor}'.format(major=MIN_PYTHON_MAJOR_VERSION,
                                                            minor=MIN_PYTHON_MINOR_VERSION))
 PY2_ERROR_TEXT = (
