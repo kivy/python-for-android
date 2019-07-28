@@ -10,7 +10,7 @@ class KivyRecipe(CythonRecipe):
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
-    depends = ['sdl2', 'pyjnius']
+    depends = ['sdl2', 'pyjnius', 'setuptools']
 
     def cythonize_build(self, env, build_dir='.'):
         super(KivyRecipe, self).cythonize_build(env, build_dir=build_dir)
