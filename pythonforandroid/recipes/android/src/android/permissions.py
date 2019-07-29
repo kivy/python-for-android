@@ -457,11 +457,8 @@ class _RequestPermissionsManager:
     The callback supplied must accept two arguments: 'permissions' and
     'grantResults' (as supplied to onPermissionsCallbackResult).
 
-    Note that calling request_permission on SDK_INT < 23 will return
-    immediately (as run-time permissions are not required), and so the callback
-    will never happen. Therefore, request_permissions should only be called
-    with a callback if calling check_permission has indicated that it is
-    necessary.
+    Note that for SDK_INT < 23, run-time permissions are not required, and so
+    the callback will be called immediately.
 
     The attribute '_java_callback' is initially None, but is set when the first
     permissions request is made. It is set to an instance of
@@ -475,6 +472,7 @@ class _RequestPermissionsManager:
     the Java call, and used to identify (via the _callbacks dictionary)
     the matching call.
     """
+    _SDK_INT = None
     _java_callback = None
     _callbacks = {1: None}
     _callback_id = 1
@@ -497,6 +495,16 @@ class _RequestPermissionsManager:
         with the matching requestCode is received, callback will be called
         with arguments of 'permissions' and 'grant_results'.
         """
+        if not cls._SDK_INT:
+            # Get the Android build version and store it
+            VERSION = autoclass('android.os.Build$VERSION')
+            cls.SDK_INT = VERSION.SDK_INT
+        if cls.SDK_INT < 23:
+            # No run-time permissions needed, return immediately.
+            if callback:
+                callback(permissions, [True for x in permissions])
+                return
+        # Request permissions
         with cls._lock:
             if not cls._java_callback:
                 cls.register_callback()
@@ -555,11 +563,9 @@ def request_permissions(permissions, callback=None):
     list of permissions, without permissions being granted; the App should
     check that each permission requested has been granted.
 
-    Also note that calling request_permission on SDK_INT < 23 will return
-    immediately (as run-time permissions are not required), and so the callback
-    will never happen. Therefore, request_permissions should only be called
-    with a callback if calling check_permission has indicated that it is
-    necessary.
+    Also note that when calling request_permission on SDK_INT < 23, the
+    callback will be returned immediately as requesting permissions is not
+    required.
     """
     _RequestPermissionsManager.request_permissions(permissions, callback)
 
