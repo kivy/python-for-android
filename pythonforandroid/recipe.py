@@ -156,10 +156,10 @@ class Recipe(with_metaclass(RecipeMeta)):
             while True:
                 try:
                     urlretrieve(url, target, report_hook)
-                except OSError as e:
+                except OSError:
                     attempts += 1
                     if attempts >= 5:
-                        raise e
+                        raise
                     stdout.write('Download failed retrying in a second...')
                     time.sleep(1)
                     continue
