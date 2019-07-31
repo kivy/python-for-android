@@ -2,6 +2,7 @@ import io
 import sys
 import pytest
 import mock
+from util import backup_attributes
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import ToolchainCL
 from pythonforandroid.util import BuildInterruptingException
@@ -121,7 +122,10 @@ class TestToolchainCL:
         Checks the `recipes` command prints out recipes information without crashing.
         """
         argv = ['toolchain.py', 'recipes']
-        with patch_sys_argv(argv), patch_sys_stdout() as m_stdout:
+        with (
+                patch_sys_argv(argv)), (
+                patch_sys_stdout()) as m_stdout, (
+                backup_attributes(Recipe, {'recipes'})):
             ToolchainCL()
         # check if we have common patterns in the output
         expected_strings = (
@@ -134,5 +138,3 @@ class TestToolchainCL:
         )
         for expected_string in expected_strings:
             assert expected_string in m_stdout.getvalue()
-        # deletes static attribute to not mess with other tests
-        del Recipe.recipes

@@ -8,6 +8,7 @@ except ImportError:
     # `Python 2` or lower than `Python 3.3` does not
     # have the `unittest.mock` module built-in
     import mock
+import util as test_util
 from pythonforandroid import util
 
 
@@ -16,6 +17,36 @@ class TestUtil(unittest.TestCase):
     An inherited class of `unittest.TestCase`to test the module
     :mod:`~pythonforandroid.util`.
     """
+
+    def test_backup_attributes(self):
+        """
+        Checks the helper backup_attributes context manager works as expected.
+        """
+        class MyClass:
+            def __init__(self, foo, bar):
+                self.foo = foo
+                self.bar = bar
+
+        # testing trivial flat backup
+        foo = 'foo'
+        bar = 'bar'
+        my_object = MyClass(foo=foo, bar=bar)
+        with test_util.backup_attributes(my_object, {'foo'}):
+            my_object.foo = 'not foo'
+            my_object.bar = 'not bar'
+        assert my_object.foo == 'foo'
+        assert my_object.bar == 'not bar'
+        # testing deep backup
+        foo = {'foo': {1, 2, 3}}
+        bar = {'bar': {3, 2, 1}}
+        my_object = MyClass(foo=foo, bar=bar)
+        with test_util.backup_attributes(my_object, {'foo', 'bar'}):
+            # changing the reference
+            my_object.foo = {}
+            # and mutating the object the attribute is referencing to
+            my_object.bar['bar'] = None
+        assert my_object.foo == {'foo': {1, 2, 3}}
+        assert my_object.bar == {'bar': {3, 2, 1}}
 
     @mock.patch("pythonforandroid.util.makedirs")
     def test_ensure_dir(self, mock_makedirs):
