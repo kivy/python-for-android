@@ -65,7 +65,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     # IndexError: list index out of range
     'secp256k1',
     'ffpyplayer',
-    'icu',
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
     'protobuf_cpp',

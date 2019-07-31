@@ -1,0 +1,66 @@
+diff -aur icu4c-org/source/config/Makefile.inc.in icu4c/source/config/Makefile.inc.in
+--- icu/source/config/Makefile.inc.in.orig	2016-03-23 21:50:50.000000000 +0100
++++ icu/source/config/Makefile.inc.in	2019-02-15 17:59:28.331749766 +0100
+@@ -142,8 +142,8 @@
+ LDLIBRARYPATH_ENVVAR = LD_LIBRARY_PATH
+
+ # Versioned target for a shared library
+-FINAL_SO_TARGET = $(SO_TARGET).$(SO_TARGET_VERSION)
+-MIDDLE_SO_TARGET = $(SO_TARGET).$(SO_TARGET_VERSION_MAJOR)
++FINAL_SO_TARGET =  $(SO_TARGET).$(SO_TARGET_VERSION)
++MIDDLE_SO_TARGET = $(SO_TARGET)
+
+ # Access to important ICU tools.
+ # Use as follows:  $(INVOKE) $(GENRB) arguments ..
+diff -aur icu4c-org/source/config/mh-linux icu4c/source/config/mh-linux
+--- icu4c-org/source/config/mh-linux	2017-07-05 13:23:06.000000000 +0200
++++ icu4c/source/config/mh-linux	2017-07-06 14:02:52.275016858 +0200
+@@ -24,9 +24,17 @@
+
+ ## Compiler switch to embed a library name
+ # The initial tab in the next line is to prevent icu-config from reading it.
+-	LD_SONAME = -Wl,-soname -Wl,$(notdir $(MIDDLE_SO_TARGET))
++	LD_SONAME = -Wl,-soname -Wl,$(notdir $(SO_TARGET))
++	DATA_STUBNAME = data$(SO_TARGET_VERSION_MAJOR)
++	COMMON_STUBNAME = uc$(SO_TARGET_VERSION_MAJOR)
++	I18N_STUBNAME = i18n$(SO_TARGET_VERSION_MAJOR)
++	LAYOUT_STUBNAME = le$(SO_TARGET_VERSION_MAJOR)
++	LAYOUTEX_STUBNAME = lx$(SO_TARGET_VERSION_MAJOR)
++	IO_STUBNAME = io$(SO_TARGET_VERSION_MAJOR)
++	TOOLUTIL_STUBNAME = tu$(SO_TARGET_VERSION_MAJOR)
++	CTESTFW_STUBNAME = test$(SO_TARGET_VERSION_MAJOR)
+ #SH# # We can't depend on MIDDLE_SO_TARGET being set.
+-#SH# LD_SONAME=
++#SH# LD_SONAME=$(SO_TARGET)
+
+ ## Shared library options
+ LD_SOOPTIONS= -Wl,-Bsymbolic
+@@ -64,10 +64,10 @@
+
+ ## Versioned libraries rules
+
+-%.$(SO).$(SO_TARGET_VERSION_MAJOR): %.$(SO).$(SO_TARGET_VERSION)
+-	$(RM) $@ && ln -s ${<F} $@
+-%.$(SO): %.$(SO).$(SO_TARGET_VERSION_MAJOR)
+-	$(RM) $@ && ln -s ${*F}.$(SO).$(SO_TARGET_VERSION) $@
++%.$(SO).$(SO_TARGET_VERSION_MAJOR): %.$(SO).$(SO_TARGET_VERSION)
++	$(RM) $@ && ln -s ${<F} $@
++%.$(SO): %.$(SO).$(SO_TARGET_VERSION_MAJOR)
++	$(RM) $@ && ln -s ${*F}.$(SO).$(SO_TARGET_VERSION) $@
+
+ ##  Bind internal references
+
+diff -aur icu4c-org/source/data/Makefile.in icu4c/source/data/Makefile.in
+--- icu4c-org/source/data/Makefile.in	2017-07-05 13:23:06.000000000 +0200
++++ icu4c/source/data/Makefile.in	2017-07-06 14:05:31.607995855 +0200
+@@ -24,9 +24,9 @@
+ ifeq ($(PKGDATA_OPTS),)
+ PKGDATA_OPTS = -O $(top_builddir)/data/icupkg.inc
+ endif
+-ifeq ($(PKGDATA_VERSIONING),)
+-PKGDATA_VERSIONING = -r $(SO_TARGET_VERSION)
+-endif
++#ifeq ($(PKGDATA_VERSIONING),)
++#PKGDATA_VERSIONING = -r $(SO_TARGET_VERSION)
++#endif
+
