@@ -1,15 +1,13 @@
-import os
-import sh
 from os.path import join
-from pythonforandroid.recipe import CompiledComponentsPythonRecipe
-from pythonforandroid.toolchain import shprint, info
+from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
 
-class PyICURecipe(CompiledComponentsPythonRecipe):
+class PyICURecipe(CppCompiledComponentsPythonRecipe):
     version = '1.9.2'
-    url = 'https://pypi.python.org/packages/source/P/PyICU/PyICU-{version}.tar.gz'
+    url = ('https://pypi.python.org/packages/source/P/PyICU/'
+           'PyICU-{version}.tar.gz')
     depends = ["icu"]
-    patches = ['locale.patch', 'icu.patch']
+    patches = ['locale.patch']
 
     def get_recipe_env(self, arch):
         env = super(PyICURecipe, self).get_recipe_env(arch)
@@ -17,42 +15,15 @@ class PyICURecipe(CompiledComponentsPythonRecipe):
         icu_include = join(
             self.ctx.get_python_install_dir(), "include", "icu")
 
-        env["CC"] += " -I"+icu_include
+        icu_recipe = self.get_recipe('icu', self.ctx)
+        icu_link_libs = icu_recipe.built_libraries.keys()
+        env["PYICU_LIBRARIES"] = ":".join(lib[3:-3] for lib in icu_link_libs)
+        env["CPPFLAGS"] += " -I" + icu_include
+        env["LDFLAGS"] += " -L" + join(
+            icu_recipe.get_build_dir(arch.arch), "icu_build", "lib"
+        )
 
-        include = (
-            " -I{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/include/"
-            " -I{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/"
-            "{arch}/include")
-        include = include.format(ndk=self.ctx.ndk_dir,
-                                 version=env["TOOLCHAIN_VERSION"],
-                                 arch=arch.arch)
-        env["CC"] += include
-
-        lib = "{ndk}/sources/cxx-stl/gnu-libstdc++/{version}/libs/{arch}"
-        lib = lib.format(ndk=self.ctx.ndk_dir,
-                         version=env["TOOLCHAIN_VERSION"],
-                         arch=arch.arch)
-        env["LDFLAGS"] += " -lgnustl_shared -L"+lib
-
-        build_dir = self.get_build_dir(arch.arch)
-        env["LDFLAGS"] += " -L"+build_dir
         return env
-
-    def build_arch(self, arch):
-        build_dir = self.get_build_dir(arch.arch)
-
-        info("create links to icu libs")
-        lib_dir = join(self.ctx.get_python_install_dir(), "lib")
-        icu_libs = [f for f in os.listdir(lib_dir) if f.startswith("libicu")]
-
-        for l in icu_libs:
-            raw = l.rsplit(".", 1)[0]
-            try:
-                shprint(sh.ln, "-s", join(lib_dir, l), join(build_dir, raw))
-            except Exception:
-                pass
-
-        super(PyICURecipe, self).build_arch(arch)
 
 
 recipe = PyICURecipe()
