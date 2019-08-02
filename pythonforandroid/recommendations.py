@@ -192,11 +192,12 @@ MIN_PYTHON_VERSION = LooseVersion('{major}.{minor}'.format(major=MIN_PYTHON_MAJO
                                                            minor=MIN_PYTHON_MINOR_VERSION))
 PY2_ERROR_TEXT = (
     'python-for-android no longer supports running under Python 2. Either upgrade to '
-    'Python {min_version} (recommended), or revert to python-for-android 2019.07.08. Note that '
-    'you *can* still target Python 2 on Android by including python2 in your requirements.').format(
+    'Python {min_version} or higher (recommended), or revert to python-for-android 2019.07.08. '
+    'Note that you *can* still target Python 2 on Android by including python2 in your '
+    'requirements.').format(
         min_version=MIN_PYTHON_VERSION)
 
-PY_MINOR_VERSION_ERROR_TEXT = (
+PY_VERSION_ERROR_TEXT = (
     'Your Python version {user_major}.{user_minor} is not supported by python-for-android, '
     'please upgrade to {min_version} or higher.'
     ).format(
@@ -206,8 +207,12 @@ PY_MINOR_VERSION_ERROR_TEXT = (
 
 
 def check_python_version():
-    if sys.version_info.major < MIN_PYTHON_MAJOR_VERSION:
+    # Python 2 special cased because it's a major transition. In the
+    # future the major or minor versions can increment more quietly.
+    if sys.version_info.major == 2:
         raise BuildInterruptingException(PY2_ERROR_TEXT)
 
-    if sys.version_info.minor < MIN_PYTHON_MINOR_VERSION:
-        raise BuildInterruptingException(PY_MINOR_VERSION_ERROR_TEXT)
+    if (sys.version_info.major < MIN_PYTHON_MAJOR_VERSION or
+        sys.version_info.minor < MIN_PYTHON_MINOR_VERSION):
+
+        raise BuildInterruptingException(PY_VERSION_ERROR_TEXT)
