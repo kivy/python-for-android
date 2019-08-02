@@ -1,6 +1,6 @@
 import unittest
 from os.path import join
-from sys import version_info, version as py_version
+from sys import version as py_version
 
 from unittest import mock
 from pythonforandroid.recommendations import (
@@ -34,7 +34,6 @@ from pythonforandroid.recommendations import (
     PY2_ERROR_TEXT,
     PY_VERSION_ERROR_TEXT,
 )
-import pythonforandroid.recommendations  # for mocking constants only, other imports explicit
 
 from pythonforandroid.util import BuildInterruptingException
 
@@ -206,8 +205,8 @@ class TestRecommendations(unittest.TestCase):
         )
 
     def test_check_python_version(self):
-        """
-        With any version info lower than the minimum, we should get a
+        """With any version info lower than the minimum, we should get a
+        BuildInterruptingException with an appropriate message.
         """
         with mock.patch('sys.version_info') as fake_version_info:
 

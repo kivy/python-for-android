@@ -4,7 +4,7 @@
 try:  # Python 3+
     from unittest import mock
     from unittest.mock import MagicMock
-except:  # Python 2
+except ImportError:  # Python 2
     import mock
     from mock import MagicMock
 import os
