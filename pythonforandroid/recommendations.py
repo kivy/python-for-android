@@ -212,7 +212,9 @@ def check_python_version():
     if sys.version_info.major == 2:
         raise BuildInterruptingException(PY2_ERROR_TEXT)
 
-    if (sys.version_info.major < MIN_PYTHON_MAJOR_VERSION or
-        sys.version_info.minor < MIN_PYTHON_MINOR_VERSION):
+    if (
+        sys.version_info.major < MIN_PYTHON_MAJOR_VERSION or
+        sys.version_info.minor < MIN_PYTHON_MINOR_VERSION
+    ):
 
         raise BuildInterruptingException(PY_VERSION_ERROR_TEXT)

@@ -21,8 +21,9 @@ def test_main_python2():
 
     # Under Python 2, we should get a normal control flow exception
     # that is handled properly, not any other type of crash
+    handle_exception_path = 'pythonforandroid.entrypoints.handle_build_exception'
     with mock.patch('sys.version_info') as fake_version_info, \
-         mock.patch('pythonforandroid.entrypoints.handle_build_exception') as handle_build_exception:
+         mock.patch(handle_exception_path) as handle_build_exception:  # noqa: E127
 
         fake_version_info.major = 2
         fake_version_info.minor = 7
