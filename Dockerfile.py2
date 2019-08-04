@@ -122,8 +122,6 @@ RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 
-RUN pip install --upgrade cython==0.28.6
-
 WORKDIR ${WORK_DIR}
 COPY --chown=user:user . ${WORK_DIR}
 RUN chown --recursive ${USER} ${ANDROID_SDK_HOME}
@@ -132,4 +130,5 @@ USER ${USER}
 # install python-for-android from current branch
 RUN virtualenv --python=python venv \
     && . venv/bin/activate \
+    && pip install --upgrade cython==0.28.6 \
     && pip install -e .

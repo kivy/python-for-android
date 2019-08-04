@@ -68,8 +68,6 @@ class TestToolchainCL:
         ) as m_get_toolchain_versions, mock.patch(
             'pythonforandroid.build.get_ndk_platform_dir'
         ) as m_get_ndk_platform_dir, mock.patch(
-            'pythonforandroid.build.get_cython_path'
-        ) as m_get_cython_path, mock.patch(
             'pythonforandroid.toolchain.build_recipes'
         ) as m_build_recipes, mock.patch(
             'pythonforandroid.bootstraps.service_only.'
@@ -84,7 +82,6 @@ class TestToolchainCL:
             mock.call('/tmp/android-sdk')]
         assert m_get_toolchain_versions.call_args_list == [
             mock.call('/tmp/android-ndk', mock.ANY)]
-        assert m_get_cython_path.call_args_list == [mock.call()]
         build_order = [
             'hostpython3', 'libffi', 'openssl', 'sqlite3', 'python3',
             'genericndkbuild', 'setuptools', 'six', 'pyjnius', 'android',
