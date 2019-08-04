@@ -9,6 +9,7 @@ This module defines the entry point for command line and programmatic use.
 from __future__ import print_function
 from os import environ
 from pythonforandroid import __version__
+from pythonforandroid.mergedargsparser import wrap_as_parser_with_merged_args
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
@@ -246,13 +247,28 @@ class ToolchainCL(object):
             argv.append(argv.pop(1))  # the --color arg
             argv.append(argv.pop(1))  # the --storage-dir arg
 
-        parser = NoAbbrevParser(
-            description='A packaging tool for turning Python scripts and apps '
-                        'into Android APKs')
+        # This set keeps all args ever seen, so the parse_args() function of
+        # each parser can return 'None' even for arguments only truly provided
+        # by other command's parsers, making our life easier.
+        # (Otherwise we'd need to use hasattr()/getattr() a lot since many
+        #  code paths are reachable with multiple different command parsers)
+        merged_args_store = set()
 
-        generic_parser = argparse.ArgumentParser(
-            add_help=False,
-            description='Generic arguments applied to all commands')
+        parser = wrap_as_parser_with_merged_args(
+            merged_args_store,
+            NoAbbrevParser(description=(
+                'A packaging tool for turning Python scripts and apps '
+                'into Android APKs'
+            ))
+        )
+
+        generic_parser = wrap_as_parser_with_merged_args(
+            merged_args_store,
+            argparse.ArgumentParser(
+                add_help=False,
+                description='Generic arguments applied to all commands'
+            )
+        )
         argparse.ArgumentParser(
             add_help=False, description='Arguments for dist building')
 
@@ -390,7 +406,9 @@ class ToolchainCL(object):
             """
             if 'aliases' in kwargs and sys.version_info.major < 3:
                 kwargs.pop('aliases')
-            return subparsers.add_parser(*args, **kwargs)
+            return wrap_as_parser_with_merged_args(
+                merged_args_store, subparsers.add_parser(*args, **kwargs)
+            )
 
         add_parser(
             subparsers,
@@ -568,10 +586,10 @@ class ToolchainCL(object):
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
-        if hasattr(args, "private") and args.private is not None:
+        if args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
-        if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
+        if args.ignore_setup_py:
             args.use_setup_py = False
 
         self.args = args
@@ -586,24 +604,24 @@ class ToolchainCL(object):
             logger.setLevel(logging.DEBUG)
 
         self.ctx = Context()
-        self.ctx.use_setup_py = getattr(args, "use_setup_py", True)
+        self.ctx.use_setup_py = (
+            args.use_setup_py if args.use_setup_py is not None else True
+        )
 
         have_setup_py_or_similar = False
-        if getattr(args, "private", None) is not None:
-            project_dir = getattr(args, "private")
-            if (os.path.exists(os.path.join(project_dir, "setup.py")) or
-                    os.path.exists(os.path.join(project_dir,
+        if args.private is not None:
+            if (os.path.exists(os.path.join(args.private, "setup.py")) or
+                    os.path.exists(os.path.join(args.private,
                                                 "pyproject.toml"))):
                 have_setup_py_or_similar = True
 
         # Process requirements and put version in environ
-        if hasattr(args, 'requirements'):
+        if args.requirements is not None:
             requirements = []
 
             # Add dependencies from setup.py, but only if they are recipes
             # (because otherwise, setup.py itself will install them later)
-            if (have_setup_py_or_similar and
-                    getattr(args, "use_setup_py", False)):
+            if have_setup_py_or_similar and args.use_setup_py is True:
                 try:
                     info("Analyzing package dependencies. MAY TAKE A WHILE.")
                     # Get all the dependencies corresponding to a recipe:
