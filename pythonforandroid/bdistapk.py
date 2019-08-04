@@ -75,7 +75,7 @@ class BdistAPK(Command):
     def run(self):
         self.prepare_build_dir()
 
-        from pythonforandroid.toolchain import main
+        from pythonforandroid.entrypoints import main
         sys.argv[1] = 'apk'
         main()
 

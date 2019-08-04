@@ -6,6 +6,8 @@ from sys import stdout, stderr
 from math import log10
 from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
+
+# six import left for Python 2 compatibility during initial Python version check
 import six
 
 # This codecs change fixes a bug with log output, but crashes under python3

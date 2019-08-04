@@ -12,7 +12,8 @@ from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
-from pythonforandroid.util import BuildInterruptingException, handle_build_exception
+from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.entrypoints import main
 
 
 def check_python_dependencies():
@@ -568,6 +569,7 @@ class ToolchainCL(object):
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
+
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
@@ -1185,13 +1187,6 @@ class ToolchainCL(object):
                         '{Fore.RESET})').format(Fore=Out_Fore)
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Out_Style)
                 print(recipe_str)
-
-
-def main():
-    try:
-        ToolchainCL()
-    except BuildInterruptingException as exc:
-        handle_build_exception(exc)
 
 
 if __name__ == "__main__":
