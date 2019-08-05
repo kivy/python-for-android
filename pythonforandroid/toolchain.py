@@ -743,12 +743,11 @@ class ToolchainCL(object):
     def recipes(self, args):
         """
         Prints recipes basic info, e.g.
-        ```
-        python3      3.7.1
-            depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
-            conflicts: ['python2']
-            optional depends: ['sqlite3', 'libffi', 'openssl']
-        ```
+        .. code-block:: bash
+            python3      3.7.1
+                depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
+                conflicts: ['python2']
+                optional depends: ['sqlite3', 'libffi', 'openssl']
         """
         ctx = self.ctx
         if args.compact:
