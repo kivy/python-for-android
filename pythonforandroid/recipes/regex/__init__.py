@@ -7,6 +7,7 @@ class RegexRecipe(CompiledComponentsPythonRecipe):
     url = 'https://pypi.python.org/packages/d1/23/5fa829706ee1d4452552eb32e0bfc1039553e01f50a8754c6f7152e85c1b/regex-{version}.tar.gz'
 
     depends = ['setuptools']
+    call_hostpython_via_targetpython = False
 
 
 recipe = RegexRecipe()
