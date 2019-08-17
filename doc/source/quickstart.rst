@@ -125,9 +125,10 @@ First, install an API platform to target. **The recommended *target* API
 level is 27**, you can replace it with a different number but
 keep in mind other API versions are less well-tested and older devices
 are still supported down to the **recommended specified *minimum*
-API/NDK API level 21**:
+API/NDK API level 21**::
 
   $SDK_DIR/tools/bin/sdkmanager "platforms;android-27"
+
 
 Second, install the build-tools. You can use
 ``$SDK_DIR/tools/bin/sdkmanager --list`` to see all the
