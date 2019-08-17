@@ -3,7 +3,7 @@ This module is kind of special because it contains the base classes used to
 build our python3 and python2 recipes and his corresponding hostpython recipes.
 '''
 
-from os.path import dirname, exists, join
+from os.path import dirname, exists, join, isfile
 from multiprocessing import cpu_count
 from shutil import copy2
 from os import environ
@@ -205,6 +205,17 @@ class GuestPythonRecipe(TargetPythonRecipe):
                       recipe.link_dirs_flags(arch), recipe.link_libs_flags())
         return env
 
+    @property
+    def _libpython(self):
+        '''return the python's library name (with extension)'''
+        py_version = self.major_minor_version_string
+        if self.major_minor_version_string[0] == '3':
+            py_version += 'm'
+        return 'libpython{version}.so'.format(version=py_version)
+
+    def should_build(self, arch):
+        return not isfile(join(self.link_root(arch.arch), self._libpython))
+
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
         self.ctx.python_recipe = self
@@ -243,13 +254,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
                                     exec_prefix=sys_exec_prefix)).split(' '),
                     _env=env)
 
-            if not exists('python'):
-                py_version = self.major_minor_version_string
-                if self.major_minor_version_string[0] == '3':
-                    py_version += 'm'
-                shprint(sh.make, 'all', '-j', str(cpu_count()),
-                        'INSTSONAME=libpython{version}.so'.format(
-                            version=py_version), _env=env)
+            shprint(
+                sh.make, 'all', '-j', str(cpu_count()),
+                'INSTSONAME={lib_name}'.format(lib_name=self._libpython),
+                _env=env
+            )
 
             # TODO: Look into passing the path to pyconfig.h in a
             # better way, although this is probably acceptable
@@ -382,6 +391,30 @@ class HostPythonRecipe(Recipe):
     '''The default url to download our host python recipe. This url will
     change depending on the python version set in attribute :attr:`version`.'''
 
+    @property
+    def _exe_name(self):
+        '''
+        Returns the name of the python executable depending on the version.
+        '''
+        if not self.version:
+            raise BuildInterruptingException(
+                'The hostpython recipe must have set version'
+            )
+        version = self.version.split('.')[0]
+        return 'python{major_version}'.format(major_version=version)
+
+    @property
+    def python_exe(self):
+        '''Returns the full path of the hostpython executable.'''
+        return join(self.get_path_to_python(), self._exe_name)
+
+    def should_build(self, arch):
+        if exists(self.python_exe):
+            # no need to build, but we must set hostpython for our Context
+            self.ctx.hostpython = self.python_exe
+            return False
+        return True
+
     def get_build_container_dir(self, arch=None):
         choices = self.check_recipe_choices()
         dir_name = '-'.join([self.name] + choices)
@@ -404,22 +437,28 @@ class HostPythonRecipe(Recipe):
         build_dir = join(recipe_build_dir, self.build_subdir)
         ensure_dir(build_dir)
 
-        if not exists(join(build_dir, 'python')):
-            with current_directory(recipe_build_dir):
-                # Configure the build
-                with current_directory(build_dir):
-                    if not exists('config.status'):
-                        shprint(
-                            sh.Command(join(recipe_build_dir, 'configure')))
+        with current_directory(recipe_build_dir):
+            # Configure the build
+            with current_directory(build_dir):
+                if not exists('config.status'):
+                    shprint(sh.Command(join(recipe_build_dir, 'configure')))
 
-                # Create the Setup file. This copying from Setup.dist
-                # seems to be the normal and expected procedure.
-                shprint(sh.cp, join('Modules', 'Setup.dist'),
-                        join(build_dir, 'Modules', 'Setup'))
+            # Create the Setup file. This copying from Setup.dist
+            # seems to be the normal and expected procedure.
+            shprint(sh.cp, join('Modules', 'Setup.dist'),
+                    join(build_dir, 'Modules', 'Setup'))
 
-                shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
-        else:
-            info('Skipping {name} ({version}) build, as it has already '
-                 'been completed'.format(name=self.name, version=self.version))
+            shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
 
-        self.ctx.hostpython = join(build_dir, 'python')
+            # make a copy of the python executable giving it the name we want,
+            # because we got different python's executable names depending on
+            # the fs being case-insensitive (Mac OS X, Cygwin...) or
+            # case-sensitive (linux)...so this way we will have an unique name
+            # for our hostpython, regarding the used fs
+            for exe_name in ['python.exe', 'python']:
+                exe = join(self.get_path_to_python(), exe_name)
+                if isfile(exe):
+                    shprint(sh.cp, exe, self.python_exe)
+                    break
+
+        self.ctx.hostpython = self.python_exe
