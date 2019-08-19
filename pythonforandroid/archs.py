@@ -92,9 +92,6 @@ class Arch(object):
 
         env["LDFLAGS"] += " ".join(['-lm', '-L' + self.ctx.get_libs_dir(self.arch)])
 
-        if self.ctx.ndk == 'crystax':
-            env['LDFLAGS'] += ' -L{}/sources/crystax/libs/{} -lcrystax'.format(self.ctx.ndk_dir, self.arch)
-
         toolchain_prefix = self.ctx.toolchain_prefix
         toolchain_version = self.ctx.toolchain_version
         command_prefix = self.command_prefix
@@ -154,10 +151,7 @@ class Arch(object):
         env['LD'] = '{}-ld'.format(command_prefix)
         env['LDSHARED'] = env["CC"] + " -pthread -shared " +\
             "-Wl,-O1 -Wl,-Bsymbolic-functions "
-        if self.ctx.python_recipe and self.ctx.python_recipe.from_crystax:
-            # For crystax python, we can't use the host python headers:
-            env["CFLAGS"] += ' -I{}/sources/python/{}/include/python/'.\
-                format(self.ctx.ndk_dir, self.ctx.python_recipe.version[0:3])
+
         env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
         env['MAKE'] = 'make -j5'
         env['READELF'] = '{}-readelf'.format(command_prefix)
@@ -179,9 +173,6 @@ class Arch(object):
 
         env['ARCH'] = self.arch
         env['NDK_API'] = 'android-{}'.format(str(self.ctx.ndk_api))
-
-        if self.ctx.python_recipe and self.ctx.python_recipe.from_crystax:
-            env['CRYSTAX_PYTHON_VERSION'] = self.ctx.python_recipe.version
 
         return env
 

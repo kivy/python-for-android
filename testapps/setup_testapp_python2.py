@@ -5,7 +5,7 @@ from setuptools import find_packages
 options = {'apk': {'requirements': 'sdl2,numpy,pyjnius,kivy,python2',
                    'android-api': 27,
                    'ndk-api': 21,
-                   'ndk-dir': '/home/asandy/android/crystax-ndk-10.3.2',
+                   'ndk-dir': '/home/asandy/android/android-ndk-r17c',
                    'dist-name': 'bdisttest_python2',
                    'ndk-version': '10.3.2',
                    'permission': 'VIBRATE',

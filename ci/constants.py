@@ -3,7 +3,6 @@ from enum import Enum
 
 class TargetPython(Enum):
     python2 = 0
-    python3crystax = 1
     python3 = 2
 
 
@@ -22,7 +21,6 @@ BROKEN_RECIPES_PYTHON2 = set([
     'ffpyplayer',
     'flask',
     'groestlcoin_hash',
-    'hostpython3crystax',
     # https://github.com/kivy/python-for-android/issues/1354
     'kiwisolver',
     'libmysqlclient',
@@ -88,5 +86,5 @@ BROKEN_RECIPES = {
 # recipes that were already built will be skipped
 CORE_RECIPES = set([
     'pyjnius', 'kivy', 'openssl', 'requests', 'sqlite3', 'setuptools',
-    'numpy', 'android', 'python2', 'python3',
+    'numpy', 'android', 'hostpython2', 'hostpython3', 'python2', 'python3',
 ])

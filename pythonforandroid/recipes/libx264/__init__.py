@@ -14,9 +14,13 @@ class LibX264Recipe(Recipe):
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
+            if 'arm64' in arch.arch:
+                cross_prefix = 'aarch64-linux-android-'
+            else:
+                cross_prefix = 'arm-linux-androideabi-'
             configure = sh.Command('./configure')
             shprint(configure,
-                    '--cross-prefix=arm-linux-androideabi-',
+                    '--cross-prefix={}'.format(cross_prefix),
                     '--host=arm-linux',
                     '--disable-asm',
                     '--disable-cli',

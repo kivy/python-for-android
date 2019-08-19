@@ -58,8 +58,8 @@ RUN ${RETRY} curl --location --progress-bar --insecure \
 ENV ANDROID_SDK_HOME="${ANDROID_HOME}/android-sdk"
 
 # get the latest version from https://developer.android.com/studio/index.html
-ENV ANDROID_SDK_TOOLS_VERSION="3859397"
-ENV ANDROID_SDK_BUILD_TOOLS_VERSION="26.0.2"
+ENV ANDROID_SDK_TOOLS_VERSION="4333796"
+ENV ANDROID_SDK_BUILD_TOOLS_VERSION="28.0.2"
 ENV ANDROID_SDK_TOOLS_ARCHIVE="sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
 ENV ANDROID_SDK_TOOLS_DL_URL="https://dl.google.com/android/repository/${ANDROID_SDK_TOOLS_ARCHIVE}"
 
@@ -76,16 +76,14 @@ RUN mkdir --parents "${ANDROID_SDK_HOME}/.android/" \
     && echo '### User Sources for Android SDK Manager' \
         > "${ANDROID_SDK_HOME}/.android/repositories.cfg"
 
-# accept Android licenses (JDK necessary!)
+# Download and accept Android licenses (JDK necessary!)
 RUN ${RETRY} apt -y install -qq --no-install-recommends openjdk-8-jdk \
     && apt -y autoremove
 RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" > /dev/null
+RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" > /dev/null
 
-# download platforms, API, build tools
-RUN "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-19" && \
-    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" && \
-    "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" && \
-    chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
+# Set avdmanager permissions (executable)
+RUN chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
 
 
 ENV USER="user"
@@ -96,7 +94,7 @@ ENV WORK_DIR="${HOME_DIR}" \
 # install system dependencies
 RUN ${RETRY} apt -y install -qq --no-install-recommends \
         python3 virtualenv python3-pip python3-venv \
-        wget lbzip2 patch sudo \
+        wget lbzip2 patch sudo python python-pip \
     && apt -y autoremove
 
 # build dependencies
@@ -124,8 +122,8 @@ RUN useradd --create-home --shell /bin/bash ${USER}
 RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-
-RUN pip3 install --upgrade cython==0.28.6
+# install cython for python 2 (for python 3 it's inside the venv)
+RUN pip2 install --upgrade Cython==0.28.6
 
 WORKDIR ${WORK_DIR}
 COPY --chown=user:user . ${WORK_DIR}
@@ -135,4 +133,5 @@ USER ${USER}
 # install python-for-android from current branch
 RUN virtualenv --python=python3 venv \
     && . venv/bin/activate \
+    && pip3 install --upgrade Cython==0.28.6 \
     && pip3 install -e .

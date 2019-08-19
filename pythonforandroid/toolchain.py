@@ -12,7 +12,8 @@ from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
-from pythonforandroid.util import BuildInterruptingException, handle_build_exception
+from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.entrypoints import main
 
 
 def check_python_dependencies():
@@ -568,6 +569,7 @@ class ToolchainCL(object):
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
+
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
@@ -739,6 +741,14 @@ class ToolchainCL(object):
                 sys.argv.append(arg)
 
     def recipes(self, args):
+        """
+        Prints recipes basic info, e.g.
+        .. code-block:: bash
+            python3      3.7.1
+                depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
+                conflicts: ['python2']
+                optional depends: ['sqlite3', 'libffi', 'openssl']
+        """
         ctx = self.ctx
         if args.compact:
             print(" ".join(set(Recipe.list_recipes(ctx))))
@@ -982,7 +992,7 @@ class ToolchainCL(object):
                 gradlew = sh.Command('./gradlew')
                 if exists('/usr/bin/dos2unix'):
                     # .../dists/bdisttest_python3/gradlew
-                    # .../build/bootstrap_builds/sdl2-python3crystax/gradlew
+                    # .../build/bootstrap_builds/sdl2-python3/gradlew
                     # if docker on windows, gradle contains CRLF
                     output = shprint(
                         sh.Command('dos2unix'), gradlew._path.decode('utf8'),
@@ -1176,13 +1186,6 @@ class ToolchainCL(object):
                         '{Fore.RESET})').format(Fore=Out_Fore)
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Out_Style)
                 print(recipe_str)
-
-
-def main():
-    try:
-        ToolchainCL()
-    except BuildInterruptingException as exc:
-        handle_build_exception(exc)
 
 
 if __name__ == "__main__":

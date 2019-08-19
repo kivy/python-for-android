@@ -165,26 +165,14 @@ int main(int argc, char *argv[]) {
   // Set up the python path
   char paths[256];
 
-  char crystax_python_dir[256];
-  snprintf(crystax_python_dir, 256,
-           "%s/crystax_python", getenv("ANDROID_UNPACK"));
   char python_bundle_dir[256];
   snprintf(python_bundle_dir, 256,
            "%s/_python_bundle", getenv("ANDROID_UNPACK"));
-  if (dir_exists(crystax_python_dir) || dir_exists(python_bundle_dir)) {
-    if (dir_exists(crystax_python_dir)) {
-        LOGP("crystax_python exists");
-        snprintf(paths, 256,
-                "%s/stdlib.zip:%s/modules",
-                crystax_python_dir, crystax_python_dir);
-    }
-
-    if (dir_exists(python_bundle_dir)) {
-        LOGP("_python_bundle dir exists");
-        snprintf(paths, 256,
-                "%s/stdlib.zip:%s/modules",
-                python_bundle_dir, python_bundle_dir);
-    }
+  if (dir_exists(python_bundle_dir)) {
+    LOGP("_python_bundle dir exists");
+    snprintf(paths, 256,
+            "%s/stdlib.zip:%s/modules",
+            python_bundle_dir, python_bundle_dir);
 
     LOGP("calculated paths to be...");
     LOGP(paths);
@@ -196,10 +184,8 @@ int main(int argc, char *argv[]) {
 
         LOGP("set wchar paths...");
   } else {
-      // We do not expect to see crystax_python any more, so no point
-      // reminding the user about it. If it does exist, we'll have
-      // logged it earlier.
-      LOGP("_python_bundle does not exist");
+      LOGP("_python_bundle does not exist...this not looks good, all python"
+           " recipes should have this folder, should we expect a crash soon?");
   }
 
   Py_Initialize();
@@ -234,18 +220,6 @@ int main(int argc, char *argv[]) {
   PyRun_SimpleString("import sys, posix\n");
 
   char add_site_packages_dir[256];
-  if (dir_exists(crystax_python_dir)) {
-    snprintf(add_site_packages_dir, 256,
-             "sys.path.append('%s/site-packages')",
-             crystax_python_dir);
-
-    PyRun_SimpleString("import sys\n"
-                       "sys.argv = ['notaninterpreterreally']\n"
-                       "from os.path import realpath, join, dirname");
-    PyRun_SimpleString(add_site_packages_dir);
-    /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
-    PyRun_SimpleString("sys.path = ['.'] + sys.path");
-  }
 
   if (dir_exists(python_bundle_dir)) {
     snprintf(add_site_packages_dir, 256,
