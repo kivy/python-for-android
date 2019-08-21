@@ -926,7 +926,8 @@ class ToolchainCL(object):
         # we can't leave it until later as the build.py scripts assume
         # they are in the current directory.
         fix_args = ('--dir', '--private', '--add-jar', '--add-source',
-                    '--whitelist', '--blacklist', '--presplash', '--icon')
+                    '--whitelist', '--blacklist', '--presplash', '--icon', 
+                    '--fileprovider-paths')
         unknown_args = args.unknown_args
         for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
