@@ -16,11 +16,6 @@ before_install:
   - git remote set-branches --add origin develop
   - git fetch
 
-env:
-  global:
-    - ANDROID_SDK_HOME=/opt/android/android-sdk
-    - ANDROID_NDK_HOME=/opt/android/android-ndk
-
 jobs:
   include:
     - &linting
@@ -65,19 +60,41 @@ jobs:
         # case that the travis log doesn't produce any output for more than 10 minutes
         - while sleep 540; do echo "==== Still running (travis, don't kill me) ===="; done &
       script:
-        - docker run -e CI -e TRAVIS_JOB_ID="$TRAVIS_JOB_ID" -e TRAVIS_BRANCH="$TRAVIS_BRANCH" p4a /bin/sh -c "$COMMAND"
+        - >
+          docker run
+          -e CI
+          -e TRAVIS_JOB_ID
+          -e TRAVIS_BRANCH
+          -e ANDROID_SDK_HOME="/home/user/.android/android-sdk"
+          -e ANDROID_NDK_HOME="/home/user/.android/android-ndk"
+          p4a /bin/sh -c "$COMMAND"
       after_script:
         # kill the background process started before run docker
         - kill %1
-      name: Python 3 armeabi-v7a
+      name: Python 3 arm64-v8a
       # overrides requirements to skip `peewee` pure python module, see:
       # https://github.com/kivy/python-for-android/issues/1263#issuecomment-390421054
-      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools' --arch=armeabi-v7a
+      env:
+        COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools' --arch=arm64-v8a
     - <<: *testing
-      name: Python 3 arm64-v8a
-      env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools' --arch=arm64-v8a
+      name: Python 3 armeabi-v7a
+      os: osx
+      osx_image: xcode11  # since xcode1.3, python3 is the default interpreter
+      before_script:
+        # installs java 1.8, android's SDK/NDK and p4a
+        - make -f ci/makefiles/osx.mk
+        - export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
+        # Run a background process (like we do with linux tests)
+        - while sleep 540; do echo "==== Still running (travis, don't kill me) ===="; done &
+      script:
+        - >
+          cd testapps && python3 setup_testapp_python3_sqlite_openssl.py apk
+          --sdk-dir $HOME/.android/android-sdk
+          --ndk-dir $HOME/.android/android-ndk
+          --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools
+          --arch=armeabi-v7a
     - <<: *testing
-      name: Python 2 basic
+      name: Python 2 armeabi-v7a (with numpy)
       env: COMMAND='. venv/bin/activate && cd testapps/ && python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $ANDROID_SDK_HOME --ndk-dir $ANDROID_NDK_HOME --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools,numpy'
     - <<: *testing
       name: Rebuild updated recipes
