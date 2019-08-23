@@ -17,8 +17,6 @@
 
 FROM ubuntu:18.04
 
-ENV ANDROID_HOME="/opt/android"
-
 # configure locale
 RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
     locales && \
@@ -37,57 +35,9 @@ ENV RETRY="retry -t 3 --"
 RUN curl https://raw.githubusercontent.com/kadwanev/retry/1.0.1/retry \
     --output /usr/local/bin/retry && chmod +x /usr/local/bin/retry
 
-ENV ANDROID_NDK_HOME="${ANDROID_HOME}/android-ndk"
-ENV ANDROID_NDK_VERSION="17c"
-ENV ANDROID_NDK_HOME_V="${ANDROID_NDK_HOME}-r${ANDROID_NDK_VERSION}"
-
-# get the latest version from https://developer.android.com/ndk/downloads/index.html
-ENV ANDROID_NDK_ARCHIVE="android-ndk-r${ANDROID_NDK_VERSION}-linux-x86_64.zip"
-ENV ANDROID_NDK_DL_URL="https://dl.google.com/android/repository/${ANDROID_NDK_ARCHIVE}"
-
-# download and install Android NDK
-RUN ${RETRY} curl --location --progress-bar --insecure \
-        "${ANDROID_NDK_DL_URL}" \
-        --output "${ANDROID_NDK_ARCHIVE}" \
-    && mkdir --parents "${ANDROID_NDK_HOME_V}" \
-    && unzip -q "${ANDROID_NDK_ARCHIVE}" -d "${ANDROID_HOME}" \
-    && ln -sfn "${ANDROID_NDK_HOME_V}" "${ANDROID_NDK_HOME}" \
-    && rm -rf "${ANDROID_NDK_ARCHIVE}"
-
-
-ENV ANDROID_SDK_HOME="${ANDROID_HOME}/android-sdk"
-
-# get the latest version from https://developer.android.com/studio/index.html
-ENV ANDROID_SDK_TOOLS_VERSION="4333796"
-ENV ANDROID_SDK_BUILD_TOOLS_VERSION="28.0.2"
-ENV ANDROID_SDK_TOOLS_ARCHIVE="sdk-tools-linux-${ANDROID_SDK_TOOLS_VERSION}.zip"
-ENV ANDROID_SDK_TOOLS_DL_URL="https://dl.google.com/android/repository/${ANDROID_SDK_TOOLS_ARCHIVE}"
-
-# download and install Android SDK
-RUN ${RETRY} curl --location --progress-bar --insecure \
-        "${ANDROID_SDK_TOOLS_DL_URL}" \
-        --output "${ANDROID_SDK_TOOLS_ARCHIVE}" \
-    && mkdir --parents "${ANDROID_SDK_HOME}" \
-    && unzip -q "${ANDROID_SDK_TOOLS_ARCHIVE}" -d "${ANDROID_SDK_HOME}" \
-    && rm -rf "${ANDROID_SDK_TOOLS_ARCHIVE}"
-
-# update Android SDK, install Android API, Build Tools...
-RUN mkdir --parents "${ANDROID_SDK_HOME}/.android/" \
-    && echo '### User Sources for Android SDK Manager' \
-        > "${ANDROID_SDK_HOME}/.android/repositories.cfg"
-
-# Download and accept Android licenses (JDK necessary!)
-RUN ${RETRY} apt -y install -qq --no-install-recommends openjdk-8-jdk \
-    && apt -y autoremove
-RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" > /dev/null
-RUN yes | "${ANDROID_SDK_HOME}/tools/bin/sdkmanager" "platforms;android-27" > /dev/null
-
-# Set avdmanager permissions (executable)
-RUN chmod +x "${ANDROID_SDK_HOME}/tools/bin/avdmanager"
-
-
 ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
+ENV ANDROID_HOME="${HOME_DIR}/.android"
 ENV WORK_DIR="${HOME_DIR}" \
     PATH="${HOME_DIR}/.local/bin:${PATH}"
 
@@ -114,6 +64,10 @@ RUN ${RETRY} apt -y install -qq --no-install-recommends \
     && apt -y autoremove \
     && apt -y clean
 
+# Install Java and set JAVA_HOME (to accept android's SDK licenses)
+RUN ${RETRY} apt -y install -qq --no-install-recommends openjdk-8-jdk \
+    && apt -y autoremove && apt -y clean
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -127,8 +81,11 @@ RUN pip2 install --upgrade Cython==0.28.6
 
 WORKDIR ${WORK_DIR}
 COPY --chown=user:user . ${WORK_DIR}
-RUN chown --recursive ${USER} ${ANDROID_SDK_HOME}
+RUN mkdir ${ANDROID_HOME} && chown --recursive ${USER} ${ANDROID_HOME}
 USER ${USER}
+
+# Download and install android's NDK/SDK
+RUN make -f ci/makefiles/android.mk target_os=linux
 
 # install python-for-android from current branch
 RUN virtualenv --python=python3 venv \
