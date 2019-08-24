@@ -108,8 +108,12 @@ require to target to a **minimum api level of 21**,
 api level below 21, you must use an old version of python-for-android
 (<=0.7.1). All this work has been done using android ndk version r17c,
 and your build should success with that version...but be aware that the
-project is in constant development so...the ndk version will change at
-some time.
+project is in constant development so, as per time of writing,
+``we recommend to use android's NDK r19b`` because the toolchains installed by
+default with the NDK may be used *in-place* and the python-for-android project
+has been adapted to that feature, so, it's mandatory to use, at least, ndk
+version r19 (be aware that more modern versions of the
+android's ndk may not work).
 
 Those mentioned changes has been done this way to make easier the transition
 between python3 and python2. We will slowly phase out python2 support

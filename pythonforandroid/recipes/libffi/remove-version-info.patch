@@ -1,12 +1,11 @@
-diff -Naur libffi/Makefile.am b/Makefile.am
---- libffi/Makefile.am	2014-11-12 06:00:59.000000000 -0600
-+++ b/Makefile.am	2015-12-23 15:57:10.363148806 -0600
-@@ -249,7 +249,7 @@
- AM_CFLAGS += -DFFI_DEBUG
- endif
- 
--libffi_la_LDFLAGS = -no-undefined -version-info `grep -v '^\#' $(srcdir)/libtool-version` $(LTLDFLAGS) $(AM_LTLDFLAGS)
+--- libffi/Makefile.am.orig	2018-12-21 16:11:26.159181262 +0100
++++ libffi/Makefile.am	2018-12-21 16:14:44.075179374 +0100
+@@ -156,7 +156,7 @@
+ libffi.map: $(top_srcdir)/libffi.map.in
+ 	$(COMPILE) -D$(TARGET) -E -x assembler-with-cpp -o $@ $<
+
+-libffi_la_LDFLAGS = -no-undefined $(libffi_version_info) $(libffi_version_script) $(LTLDFLAGS) $(AM_LTLDFLAGS)
 +libffi_la_LDFLAGS = -no-undefined -avoid-version $(LTLDFLAGS) $(AM_LTLDFLAGS)
- 
+ libffi_la_DEPENDENCIES = $(libffi_la_LIBADD) $(libffi_version_dep)
+
  AM_CPPFLAGS = -I. -I$(top_srcdir)/include -Iinclude -I$(top_srcdir)/src
- AM_CCASFLAGS = $(AM_CPPFLAGS)

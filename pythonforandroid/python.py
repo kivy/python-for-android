@@ -12,10 +12,13 @@ import glob
 import sh
 
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
-from pythonforandroid.logger import logger, info, shprint
+from pythonforandroid.logger import info, warning, shprint
 from pythonforandroid.util import (
-    current_directory, ensure_dir, walk_valid_filens,
-    BuildInterruptingException, build_platform)
+    current_directory,
+    ensure_dir,
+    walk_valid_filens,
+    BuildInterruptingException,
+)
 
 
 class GuestPythonRecipe(TargetPythonRecipe):
@@ -105,26 +108,9 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = environ.copy()
+        env['HOSTARCH'] = arch.command_prefix
 
-        android_host = env['HOSTARCH'] = arch.command_prefix
-        toolchain = '{toolchain_prefix}-{toolchain_version}'.format(
-            toolchain_prefix=self.ctx.toolchain_prefix,
-            toolchain_version=self.ctx.toolchain_version)
-        toolchain = join(self.ctx.ndk_dir, 'toolchains',
-                         toolchain, 'prebuilt', build_platform)
-
-        env['CC'] = (
-            '{clang} -target {target} -gcc-toolchain {toolchain}').format(
-                clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt',
-                           build_platform, 'bin', 'clang'),
-                target=arch.target,
-                toolchain=toolchain)
-        env['AR'] = join(toolchain, 'bin', android_host) + '-ar'
-        env['LD'] = join(toolchain, 'bin', android_host) + '-ld'
-        env['RANLIB'] = join(toolchain, 'bin', android_host) + '-ranlib'
-        env['READELF'] = join(toolchain, 'bin', android_host) + '-readelf'
-        env['STRIP'] = join(toolchain, 'bin', android_host) + '-strip'
-        env['STRIP'] += ' --strip-debug --strip-unneeded'
+        env['CC'] = arch.get_clang_exe(with_target=True)
 
         env['PATH'] = (
             '{hostpython_dir}:{old_path}').format(
@@ -132,43 +118,22 @@ class GuestPythonRecipe(TargetPythonRecipe):
                     'host' + self.name, self.ctx).get_path_to_python(),
                 old_path=env['PATH'])
 
-        ndk_flags = (
-            '-fPIC --sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
-            '-isystem {ndk_android_host} -I{ndk_include}').format(
-                ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
-                android_api=self.ctx.ndk_api,
-                ndk_android_host=join(
-                    self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host),
-                ndk_include=join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include'))
-        sysroot = self.ctx.ndk_platform
-        env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
-        env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
-        env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(
-            sysroot, join(sysroot, 'usr', 'lib'))
+        env['CFLAGS'] = ' '.join(
+            [
+                '-fPIC',
+                '-DANDROID',
+                '-D__ANDROID_API__={}'.format(self.ctx.ndk_api),
+            ]
+        )
 
-        # Manually add the libs directory, and copy some object
-        # files to the current directory otherwise they aren't
-        # picked up. This seems necessary because the --sysroot
-        # setting in LDFLAGS is overridden by the other flags.
-        # TODO: Work out why this doesn't happen in the original
-        # bpo-30386 Makefile system.
-        logger.warning('Doing some hacky stuff to link properly')
-        lib_dir = join(sysroot, 'usr', 'lib')
-        if arch.arch == 'x86_64':
-            lib_dir = join(sysroot, 'usr', 'lib64')
-        env['LDFLAGS'] += ' -L{}'.format(lib_dir)
-        shprint(sh.cp, join(lib_dir, 'crtbegin_so.o'), './')
-        shprint(sh.cp, join(lib_dir, 'crtend_so.o'), './')
-
-        env['SYSROOT'] = sysroot
-
+        env['LDFLAGS'] = env.get('LDFLAGS', '')
         if sh.which('lld') is not None:
             # Note: The -L. is to fix a bug in python 3.7.
             # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234409
-            env["LDFLAGS"] += ' -L. -fuse-ld=lld'
+            env['LDFLAGS'] += ' -L. -fuse-ld=lld'
         else:
-            logger.warning('lld not found, linking without it. ' +
-                           'Consider installing lld if linker errors occur.')
+            warning('lld not found, linking without it. '
+                    'Consider installing lld if linker errors occur.')
 
         return env
 
@@ -203,6 +168,33 @@ class GuestPythonRecipe(TargetPythonRecipe):
             recipe = Recipe.get_recipe('openssl', self.ctx)
             add_flags(recipe.include_flags(arch),
                       recipe.link_dirs_flags(arch), recipe.link_libs_flags())
+
+        # python build system contains hardcoded zlib version which prevents
+        # the build of zlib module, here we search for android's zlib version
+        # and sets the right flags, so python can be build with android's zlib
+        info("Activating flags for android's zlib")
+        zlib_lib_path = join(self.ctx.ndk_platform, 'usr', 'lib')
+        zlib_includes = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        zlib_h = join(zlib_includes, 'zlib.h')
+        try:
+            with open(zlib_h) as fileh:
+                zlib_data = fileh.read()
+        except IOError:
+            raise BuildInterruptingException(
+                "Could not determine android's zlib version, no zlib.h ({}) in"
+                " the NDK dir includes".format(zlib_h)
+            )
+        for line in zlib_data.split('\n'):
+            if line.startswith('#define ZLIB_VERSION '):
+                break
+        else:
+            raise BuildInterruptingException(
+                'Could not parse zlib.h...so we cannot find zlib version,'
+                'required by python build,'
+            )
+        env['ZLIB_VERSION'] = line.replace('#define ZLIB_VERSION ', '')
+        add_flags(' -I' + zlib_includes, ' -L' + zlib_lib_path, ' -lz')
+
         return env
 
     @property

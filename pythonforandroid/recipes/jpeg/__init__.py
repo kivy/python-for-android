@@ -63,7 +63,7 @@ class JpegRecipe(Recipe):
             for lib in glob(join(build_dir, '*.a')):
                 shprint(sh.cp, '-L', lib, self.ctx.libs_dir)
 
-    def get_recipe_env(self, arch=None, with_flags_in_cc=False, clang=True):
+    def get_recipe_env(self, arch=None, with_flags_in_cc=False):
         env = environ.copy()
 
         build_platform = '{system}-{machine}'.format(

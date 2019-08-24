@@ -90,7 +90,7 @@ class OpenSSLRecipe(Recipe):
                                  'libcrypto' + self.version + '.so')
 
     def get_recipe_env(self, arch=None):
-        env = super(OpenSSLRecipe, self).get_recipe_env(arch, clang=True)
+        env = super(OpenSSLRecipe, self).get_recipe_env(arch)
         env['OPENSSL_VERSION'] = self.version
         env['MAKE'] = 'make'  # This removes the '-j5', which isn't safe
         env['ANDROID_NDK'] = self.ctx.ndk_dir
