@@ -16,15 +16,6 @@ class PngRecipe(Recipe):
             join(self.get_build_dir(arch.arch), '.libs', 'libpng16.so')
         )
 
-    def get_recipe_env(self, arch=None):
-        env = super(PngRecipe, self).get_recipe_env(arch)
-        ndk_lib_dir = join(self.ctx.ndk_platform, 'usr', 'lib')
-        ndk_include_dir = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
-        env['CFLAGS'] += ' -I{}'.format(ndk_include_dir)
-        env['LDFLAGS'] += ' -L{}'.format(ndk_lib_dir)
-        env['LDFLAGS'] += ' --sysroot={}'.format(self.ctx.ndk_platform)
-        return env
-
     def build_arch(self, arch):
         super(PngRecipe, self).build_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
