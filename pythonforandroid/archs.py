@@ -260,6 +260,7 @@ class ArchARMv7_a(ArchARM):
         '-mfloat-abi=softfp',
         '-mfpu=vfp',
         '-mthumb',
+        '-fPIC',
     ]
 
 
