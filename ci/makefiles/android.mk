@@ -6,7 +6,7 @@ ifndef target_os
 endif
 
 # Those android NDK/SDK variables can be override when running the file
-ANDROID_NDK_VERSION ?= 17c
+ANDROID_NDK_VERSION ?= 19b
 ANDROID_SDK_TOOLS_VERSION ?= 4333796
 ANDROID_SDK_BUILD_TOOLS_VERSION ?= 28.0.2
 ANDROID_HOME ?= $(HOME)/.android
