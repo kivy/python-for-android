@@ -1,5 +1,7 @@
-from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from os.path import exists, join
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import current_directory
+from pythonforandroid.logger import shprint
+from multiprocessing import cpu_count
 import sh
 
 
@@ -8,19 +10,21 @@ class LibsodiumRecipe(Recipe):
     url = 'https://github.com/jedisct1/libsodium/releases/download/{version}/libsodium-{version}.tar.gz'
     depends = []
     patches = ['size_max_fix.patch']
-
-    def should_build(self, arch):
-        super(LibsodiumRecipe, self).should_build(arch)
-        return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libsodium.so'))
+    built_libraries = {'libsodium.so': 'src/libsodium/.libs'}
 
     def build_arch(self, arch):
-        super(LibsodiumRecipe, self).build_arch(arch)
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             bash = sh.Command('bash')
-            shprint(bash, 'configure', '--disable-soname-versions', '--host=arm-linux-androideabi', '--enable-shared', _env=env)
-            shprint(sh.make, _env=env)
-            shutil.copyfile('src/libsodium/.libs/libsodium.so', join(self.ctx.get_libs_dir(arch.arch), 'libsodium.so'))
+            shprint(
+                bash,
+                'configure',
+                '--disable-soname-versions',
+                '--host={}'.format(arch.command_prefix),
+                '--enable-shared',
+                _env=env,
+            )
+            shprint(sh.make, '-j', str(cpu_count()), _env=env)
 
     def get_recipe_env(self, arch):
         env = super(LibsodiumRecipe, self).get_recipe_env(arch)

@@ -106,6 +106,25 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     archs = ['armeabi']  # Not currently implemented properly
 
+    built_libraries = {}
+    """Each recipe that builds a system library (e.g.:libffi, openssl, etc...)
+    should contain a dict holding the relevant information of the library. The
+    keys should be the generated libraries and the values the relative path of
+    the library inside his build folder. This dict will be used to perform
+    different operations:
+        - copy the library into the right location, depending on if it's shared
+          or static)
+        - check if we have to rebuild the library
+
+    Here an example of how it would look like for `libffi` recipe:
+
+        - `built_libraries = {'libffi.so': '.libs'}`
+
+    .. note:: in case that the built library resides in recipe's build
+              directory, you can set the following values for the relative
+              path: `'.', None or ''`
+    """
+
     @property
     def version(self):
         key = 'VERSION_' + self.name
@@ -479,9 +498,14 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
-        building again.
+        building again. Per default we implement a library test, in case that
+        we detect so.
 
         '''
+        if self.built_libraries:
+            return not all(
+                exists(lib) for lib in self.get_libraries(arch.arch)
+            )
         return True
 
     def build_arch(self, arch):
@@ -491,6 +515,19 @@ class Recipe(with_metaclass(RecipeMeta)):
         build = "build_{}".format(arch.arch)
         if hasattr(self, build):
             getattr(self, build)()
+
+    def install_libraries(self, arch):
+        '''This method is always called after `build_arch`. In case that we
+        detect a library recipe, defined by the class attribute
+        `built_libraries`, we will copy all defined libraries into the
+         right location.
+        '''
+        if not self.built_libraries:
+            return
+        shared_libs = [
+            lib for lib in self.get_libraries(arch) if lib.endswith(".so")
+        ]
+        self.install_libs(arch, *shared_libs)
 
     def postbuild_arch(self, arch):
         '''Run any post-build tasks for the Recipe. By default, this checks if
@@ -553,6 +590,27 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
+
+    def get_libraries(self, arch_name, in_context=False):
+        """Return the full path of the library depending on the architecture.
+        Per default, the build library path it will be returned, unless
+        `get_libraries` has been called with kwarg `in_context` set to
+        True.
+
+        .. note:: this method should be used for library recipes only
+        """
+        recipe_libs = set()
+        if not self.built_libraries:
+            return recipe_libs
+        for lib, rel_path in self.built_libraries.items():
+            if not in_context:
+                abs_path = join(self.get_build_dir(arch_name), rel_path, lib)
+                if rel_path in {".", "", None}:
+                    abs_path = join(self.get_build_dir(arch_name), lib)
+            else:
+                abs_path = join(self.ctx.get_libs_dir(arch_name), lib)
+            recipe_libs.add(abs_path)
+        return recipe_libs
 
     @classmethod
     def recipe_dirs(cls, ctx):

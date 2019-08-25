@@ -911,7 +911,7 @@ diff -Nur /tmp/x/glob.c libglob/glob.c
 diff -Nur /tmp/x/glob.h libglob/glob.h
 --- /tmp/x/glob.h	1969-12-31 19:00:00.000000000 -0500
 +++ libglob/glob.h	2017-08-19 15:22:18.367109399 -0400
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,104 @@
 +/*
 + * Copyright (c) 1989, 1993
 + *	The Regents of the University of California.  All rights reserved.
@@ -952,10 +952,12 @@ diff -Nur /tmp/x/glob.h libglob/glob.h
 +
 +#include <sys/cdefs.h>
 +#include <sys/types.h>
++#ifndef ARG_MAX
 +#define     ARG_MAX     6553
++#endif
 +
 +#ifndef	_SIZE_T_DECLARED
-+typedef	__size_t	size_t;
++#include <stddef.h>
 +#define	_SIZE_T_DECLARED
 +#endif
 +

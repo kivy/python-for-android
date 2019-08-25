@@ -575,6 +575,7 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
             if recipe.should_build(arch):
                 recipe.build_arch(arch)
+                recipe.install_libraries(arch)
             else:
                 info('{} said it is already built, skipping'
                      .format(recipe.name))

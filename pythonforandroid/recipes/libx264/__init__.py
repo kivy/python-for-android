@@ -1,15 +1,15 @@
-from pythonforandroid.toolchain import Recipe, current_directory, shprint
-from os.path import exists, join, realpath
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.util import current_directory
+from pythonforandroid.logger import shprint
+from multiprocessing import cpu_count
+from os.path import realpath
 import sh
 
 
 class LibX264Recipe(Recipe):
     version = 'x264-snapshot-20171218-2245-stable'  # using mirror url since can't use ftp
     url = 'http://mirror.yandex.ru/mirrors/ftp.videolan.org/x264/snapshots/{version}.tar.bz2'
-
-    def should_build(self, arch):
-        build_dir = self.get_build_dir(arch.arch)
-        return not exists(join(build_dir, 'lib', 'libx264.a'))
+    built_libraries = {'libx264.a': 'lib'}
 
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
@@ -29,7 +29,7 @@ class LibX264Recipe(Recipe):
                     '--enable-static',
                     '--prefix={}'.format(realpath('.')),
                     _env=env)
-            shprint(sh.make, '-j4', _env=env)
+            shprint(sh.make, '-j', str(cpu_count()), _env=env)
             shprint(sh.make, 'install', _env=env)
 
 

@@ -7,6 +7,9 @@ import mock
 from backports import tempfile
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import Recipe, import_recipe
+from pythonforandroid.archs import ArchAarch_64
+from pythonforandroid.bootstrap import Bootstrap
+from test_bootstrap import BaseClassSetupBootstrap
 
 
 def patch_logger(level):
@@ -176,3 +179,55 @@ class TestRecipe(unittest.TestCase):
         assert m_urlretrieve.call_args_list == expected_call_args_list
         expected_call_args_list = [mock.call(1)] * (retry - 1)
         assert m_sleep.call_args_list == expected_call_args_list
+
+
+class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
+    def setUp(self):
+        """
+        Initialize a Context with a Bootstrap and a Distribution to properly
+        test an library recipe, to do so we reuse `BaseClassSetupBootstrap`
+        """
+        super(TestLibraryRecipe, self).setUp()
+        self.ctx.bootstrap = Bootstrap().get_bootstrap('sdl2', self.ctx)
+        self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
+
+    def test_built_libraries(self):
+        """The openssl recipe is a library recipe, so it should have set the
+        attribute `built_libraries`, but not the case of `pyopenssl` recipe.
+        """
+        recipe = Recipe.get_recipe('openssl', self.ctx)
+        self.assertTrue(recipe.built_libraries)
+
+        recipe = Recipe.get_recipe('pyopenssl', self.ctx)
+        self.assertFalse(recipe.built_libraries)
+
+    @mock.patch('pythonforandroid.recipe.exists')
+    def test_should_build(self, mock_exists):
+        arch = ArchAarch_64(self.ctx)
+        recipe = Recipe.get_recipe('openssl', self.ctx)
+        recipe.ctx = self.ctx
+        self.assertFalse(recipe.should_build(arch))
+
+        mock_exists.return_value = False
+        self.assertTrue(recipe.should_build(arch))
+
+    @mock.patch('pythonforandroid.recipe.Recipe.get_libraries')
+    @mock.patch('pythonforandroid.recipe.Recipe.install_libs')
+    def test_install_libraries(self, mock_install_libs, mock_get_libraries):
+        mock_get_libraries.return_value = {
+            '/build_lib/libsample1.so',
+            '/build_lib/libsample2.so',
+        }
+        self.ctx.recipe_build_order = [
+            "hostpython3",
+            "openssl",
+            "python3",
+            "sdl2",
+            "kivy",
+        ]
+        arch = ArchAarch_64(self.ctx)
+        recipe = Recipe.get_recipe('openssl', self.ctx)
+        recipe.install_libraries(arch)
+        mock_install_libs.assert_called_once_with(
+            arch, *mock_get_libraries.return_value
+        )
