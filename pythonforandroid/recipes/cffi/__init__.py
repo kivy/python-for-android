@@ -38,7 +38,6 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
         ndk_dir = self.ctx.ndk_platform
         ndk_lib_dir = os.path.join(ndk_dir, 'usr', 'lib')
         env['LDFLAGS'] += ' -L{}'.format(ndk_lib_dir)
-        env['LDFLAGS'] += " --sysroot={}".format(self.ctx.ndk_platform)
         env['PYTHONPATH'] = ':'.join([
             self.ctx.get_site_packages_dir(),
             env['BUILDLIB_PATH'],
