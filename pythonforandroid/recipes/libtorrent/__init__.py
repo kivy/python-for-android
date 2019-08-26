@@ -5,8 +5,8 @@ from os import listdir, walk
 import sh
 
 # This recipe builds libtorrent with Python bindings
-# It depends on Boost.Build and the source of several Boost libraries present in BOOST_ROOT,
-# which is all provided by the boost recipe
+# It depends on Boost.Build and the source of several Boost libraries present
+# in BOOST_ROOT, which is all provided by the boost recipe
 
 
 def get_lib_from(search_directory, lib_extension='.so'):
@@ -24,7 +24,8 @@ def get_lib_from(search_directory, lib_extension='.so'):
 class LibtorrentRecipe(Recipe):
     # Todo: make recipe compatible with all p4a architectures
     '''
-    .. note:: This recipe can be built only against API 21+ and arch armeabi-v7a
+    .. note:: This recipe can be built only against API 21+ and an android
+              ndk >= r19
 
     .. versionchanged:: 0.6.0
          Rewrote recipe to support clang's build and boost 1.68. The following
@@ -33,9 +34,14 @@ class LibtorrentRecipe(Recipe):
             - Bumped version number to 1.2.0
             - added python 3 compatibility
             - new system to detect/copy generated libraries
+
+    .. versionchanged:: 2019.08.09.1.dev0
+
+            - Bumped version number to 1.2.1
+            - Adapted to work with ndk-r19+
     '''
-    version = '1_2_0'
-    url = 'https://github.com/arvidn/libtorrent/archive/libtorrent_{version}.tar.gz'
+    version = '1_2_1'
+    url = 'https://github.com/arvidn/libtorrent/archive/libtorrent-{version}.tar.gz'
 
     depends = ['boost']
     opt_depends = ['openssl']
@@ -76,7 +82,7 @@ class LibtorrentRecipe(Recipe):
             '-j' + str(cpu_count()),
             '--debug-configuration',  # so we know if our python is detected
             # '--deprecated-functions=off',
-            'toolset=clang-arm',
+            'toolset=clang-{arch}'.format(arch=env['ARCH']),
             'abi=aapcs',
             'binary-format=elf',
             'cxxflags=-std=c++11',
@@ -105,8 +111,12 @@ class LibtorrentRecipe(Recipe):
         # Copy only the boost shared libraries into the libs folder. Because
         # boost build two boost_python libraries, we force to search the lib
         # into the corresponding build path.
-        b2_build_dir = 'build/clang-linux-arm/release/{encryption}/' \
-                       'lt-visibility-hidden/'.format(encryption=crypto_folder)
+        b2_build_dir = (
+            'build/clang-linux-{arch}/release/{encryption}/'
+            'lt-visibility-hidden/'.format(
+                arch=env['ARCH'], encryption=crypto_folder
+            )
+        )
         boost_libs_dir = join(env['BOOST_BUILD_PATH'], 'bin.v2/libs')
         for boost_lib in listdir(boost_libs_dir):
             lib_path = get_lib_from(join(boost_libs_dir, boost_lib, b2_build_dir))
