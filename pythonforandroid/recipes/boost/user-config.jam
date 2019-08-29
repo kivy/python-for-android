@@ -1,6 +1,7 @@
 import os ;
 
 local ARCH = [ os.environ ARCH ] ;
+local TARGET_TRIPLET = [ os.environ TARGET_TRIPLET ] ;
 local CROSSHOME = [ os.environ CROSSHOME ] ;
 local PYTHON_HOST = [ os.environ PYTHON_HOST ] ;
 local PYTHON_ROOT = [ os.environ PYTHON_ROOT ] ;
@@ -8,42 +9,22 @@ local PYTHON_INCLUDE = [ os.environ PYTHON_INCLUDE ] ;
 local PYTHON_LINK_VERSION = [ os.environ PYTHON_LINK_VERSION ] ;
 local PYTHON_MAJOR_MINOR = [ os.environ PYTHON_MAJOR_MINOR ] ;
 
-using clang : $(ARCH) : $(CROSSHOME)/bin/arm-linux-androideabi-clang++ :
-<archiver>$(CROSSHOME)/bin/arm-linux-androideabi-ar
-<root>$(CROSSHOME)/sysroot
-<architecture>$(ARCH)
-<compileflags>-fexceptions
-<compileflags>-frtti
-<compileflags>-fpic
+using clang : $(ARCH) : $(CROSSHOME)/bin/$(TARGET_TRIPLET)-clang++ :
+<archiver>$(CROSSHOME)/bin/llvm-ar
+<compileflags>-fPIC
 <compileflags>-ffunction-sections
-<compileflags>-funwind-tables
-<compileflags>-march=armv7-a
-<compileflags>-msoft-float
-<compileflags>-mfpu=neon
-<compileflags>-mthumb
-<linkflags>-march=armv7-a
-<linkflags>-Wl,--fix-cortex-a8
-<compileflags>-Os
-<compileflags>-fomit-frame-pointer
-<compileflag>-fno-strict-aliasing
-<compileflags>-DANDROID
-<compileflags>-D__ANDROID__
-<compileflags>-DANDROID_TOOLCHAIN=clang
-<compileflags>-DANDROID_ABI=armv7-a
-<compileflags>-DANDROID_STL=c++_shared
-<compileflags>-DBOOST_ALL_NO_LIB
-#<compileflags>-DNDEBUG
-<compileflags>-O2
-<compileflags>-g
-<compileflags>-fvisibility=hidden
-<compileflags>-fvisibility-inlines-hidden
 <compileflags>-fdata-sections
-<cxxflags>-D__arm__
-<cxxflags>-D_REENTRANT
-<cxxflags>-D_GLIBCXX__PTHREADS
-<compileflags>-Wno-long-long
-<compileflags>-Wno-missing-field-initializers
-<compileflags>-Wno-unused-variable
+<compileflags>-funwind-tables
+<compileflags>-fstack-protector-strong
+<compileflags>-no-canonical-prefixes
+<compileflags>-Wformat
+<compileflags>-Werror=format-security
+<compileflags>-frtti
+<compileflags>-fexceptions
+<compileflags>-DNDEBUG
+<compileflags>-g
+<compileflags>-Oz
+<compileflags>-mthumb
 <linkflags>-Wl,-z,relro
 <linkflags>-Wl,-z,now
 <linkflags>-lc++_shared
