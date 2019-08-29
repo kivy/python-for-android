@@ -231,3 +231,125 @@ class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         mock_install_libs.assert_called_once_with(
             arch, *mock_get_libraries.return_value
         )
+
+
+class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
+    def setUp(self):
+        """
+        Initialize a Context with a Bootstrap and a Distribution to properly
+        test a recipe which depends on android's STL library, to do so we reuse
+        `BaseClassSetupBootstrap`
+        """
+        super(TesSTLRecipe, self).setUp()
+        self.ctx.bootstrap = Bootstrap().get_bootstrap('sdl2', self.ctx)
+        self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
+        self.ctx.python_recipe = Recipe.get_recipe('python3', self.ctx)
+
+    def test_get_stl_lib_dir(self):
+        """
+        Test that :meth:`~pythonforandroid.recipe.STLRecipe.get_stl_lib_dir`
+        returns the expected path for the stl library
+        """
+        arch = ArchAarch_64(self.ctx)
+        recipe = Recipe.get_recipe('icu', self.ctx)
+        self.assertTrue(recipe.need_stl_shared)
+        self.assertEqual(
+            recipe.get_stl_lib_dir(arch),
+            os.path.join(
+                self.ctx.ndk_dir,
+                'sources/cxx-stl/llvm-libc++/libs/{arch}'.format(
+                    arch=arch.arch
+                ),
+            ),
+        )
+
+    @mock.patch("pythonforandroid.archs.glob")
+    @mock.patch('pythonforandroid.archs.find_executable')
+    @mock.patch('pythonforandroid.build.ensure_dir')
+    def test_get_recipe_env_with(
+        self, mock_ensure_dir, mock_find_executable, mock_glob
+    ):
+        """
+        Test that :meth:`~pythonforandroid.recipe.STLRecipe.get_recipe_env`
+        returns some expected keys and values.
+
+        .. note:: We don't check all the env variables, only those one specific
+                  of :class:`~pythonforandroid.recipe.STLRecipe`, the others
+                  should be tested in the proper test.
+        """
+        expected_compiler = (
+            "/opt/android/android-ndk/toolchains/"
+            "llvm/prebuilt/linux-x86_64/bin/clang"
+        )
+        mock_find_executable.return_value = expected_compiler
+        mock_glob.return_value = ["llvm"]
+
+        arch = ArchAarch_64(self.ctx)
+        recipe = Recipe.get_recipe('icu', self.ctx)
+        assert recipe.need_stl_shared, True
+        env = recipe.get_recipe_env(arch)
+        #  check that the mocks have been called
+        mock_glob.assert_called()
+        mock_ensure_dir.assert_called()
+        mock_find_executable.assert_called_once_with(
+            expected_compiler, path=os.environ['PATH']
+        )
+        self.assertIsInstance(env, dict)
+
+        # check `CPPFLAGS`
+        expected_cppflags = {
+            '-I{stl_include}'.format(stl_include=recipe.stl_include_dir)
+        }
+        self.assertIn('CPPFLAGS', env)
+        for flags in expected_cppflags:
+            self.assertIn(flags, env['CPPFLAGS'])
+
+        # check `LIBS`
+        self.assertIn('LDFLAGS', env)
+        self.assertIn('-L' + recipe.get_stl_lib_dir(arch), env['LDFLAGS'])
+        self.assertIn('LIBS', env)
+        self.assertIn('-lc++_shared', env['LIBS'])
+
+        # check `CXXFLAGS` and `CXX`
+        for flag in {'CXXFLAGS', 'CXX'}:
+            self.assertIn(flag, env)
+            self.assertIn('-frtti -fexceptions', env[flag])
+
+    @mock.patch('pythonforandroid.recipe.Recipe.install_libs')
+    @mock.patch('pythonforandroid.recipe.isfile')
+    @mock.patch('pythonforandroid.build.ensure_dir')
+    def test_install_stl_lib(
+        self, mock_ensure_dir, mock_isfile, mock_install_lib
+    ):
+        """
+        Test that :meth:`~pythonforandroid.recipe.STLRecipe.install_stl_lib`,
+        calls the method :meth:`~pythonforandroid.recipe.Recipe.install_libs`
+        with the proper arguments: a subclass of
+        :class:`~pythonforandroid.archs.Arch` and our stl lib
+        (:attr:`~pythonforandroid.recipe.STLRecipe.stl_lib_name`)
+        """
+        mock_isfile.return_value = False
+
+        arch = ArchAarch_64(self.ctx)
+        recipe = Recipe.get_recipe('icu', self.ctx)
+        recipe.ctx = self.ctx
+        assert recipe.need_stl_shared, True
+        recipe.install_stl_lib(arch)
+        mock_install_lib.assert_called_once_with(
+            arch,
+            '{ndk_dir}/sources/cxx-stl/llvm-libc++/'
+            'libs/{arch}/lib{stl_lib}.so'.format(
+                ndk_dir=self.ctx.ndk_dir,
+                arch=arch.arch,
+                stl_lib=recipe.stl_lib_name,
+            ),
+        )
+        mock_ensure_dir.assert_called()
+
+    @mock.patch('pythonforandroid.recipe.Recipe.install_stl_lib')
+    def test_postarch_build(self, mock_install_stl_lib):
+        arch = ArchAarch_64(self.ctx)
+        recipe = Recipe.get_recipe('icu', self.ctx)
+        assert recipe.need_stl_shared, True
+        recipe.postbuild_arch(arch)
+        mock_install_stl_lib.assert_called_once_with(arch)
