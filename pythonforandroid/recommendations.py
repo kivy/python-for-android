@@ -11,37 +11,39 @@ from pythonforandroid.util import BuildInterruptingException
 MIN_NDK_VERSION = 19
 MAX_NDK_VERSION = 20
 
+# DO NOT CHANGE LINE FORMAT: buildozer parses the existence of a RECOMMENDED_NDK_VERSION
 RECOMMENDED_NDK_VERSION = "19b"
+
 NDK_DOWNLOAD_URL = "https://developer.android.com/ndk/downloads/"
 
 # Important log messages
 NEW_NDK_MESSAGE = 'Newer NDKs may not be fully supported by p4a.'
 UNKNOWN_NDK_MESSAGE = (
-    'Could not determine NDK version, no source.properties in the NDK dir'
+    'Could not determine NDK version, no source.properties in the NDK dir.'
 )
 PARSE_ERROR_NDK_MESSAGE = (
-    'Could not parse $NDK_DIR/source.properties, not checking NDK version'
+    'Could not parse $NDK_DIR/source.properties, not checking NDK version.'
 )
 READ_ERROR_NDK_MESSAGE = (
-    'Unable to read the NDK version from the given directory {ndk_dir}'
+    'Unable to read the NDK version from the given directory {ndk_dir}.'
 )
 ENSURE_RIGHT_NDK_MESSAGE = (
     'Make sure your NDK version is greater than {min_supported}. If you get '
-    'build errors, download the recommended NDK {rec_version} from {ndk_url}'
+    'build errors, download the recommended NDK {rec_version} from {ndk_url}.'
 )
 NDK_LOWER_THAN_SUPPORTED_MESSAGE = (
     'The minimum supported NDK version is {min_supported}. '
-    'You can download it from {ndk_url}'
+    'You can download it from {ndk_url}.'
 )
 UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE = (
     'Asked to build for armeabi architecture with API '
-    '{req_ndk_api}, but API {max_ndk_api} or greater does not support armeabi'
+    '{req_ndk_api}, but API {max_ndk_api} or greater does not support armeabi.'
 )
 CURRENT_NDK_VERSION_MESSAGE = (
     'Found NDK version {ndk_version}'
 )
 RECOMMENDED_NDK_VERSION_MESSAGE = (
-    'Maximum recommended NDK version is {recommended_ndk_version}'
+    'Maximum recommended NDK version is {recommended_ndk_version}, but newer versions may work.'
 )
 
 
@@ -218,3 +220,14 @@ def check_python_version():
     ):
 
         raise BuildInterruptingException(PY_VERSION_ERROR_TEXT)
+
+def print_recommendations():
+    """
+    Print the main recommended dependency versions as simple key-value pairs.
+    """
+    print(f'Min supported NDK version: {MIN_NDK_VERSION}')
+    print(f'Recommended NDK version: {RECOMMENDED_NDK_VERSION}')
+    print(f'Min target API: {MIN_TARGET_API}')
+    print(f'Recommended target API: {RECOMMENDED_TARGET_API}')
+    print(f'Min NDK API: {MIN_NDK_API}')
+    print(f'Recommended NDK API: {RECOMMENDED_NDK_API}')
