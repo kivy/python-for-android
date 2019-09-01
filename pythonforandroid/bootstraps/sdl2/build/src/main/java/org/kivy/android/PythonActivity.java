@@ -151,7 +151,7 @@ public class PythonActivity extends SDLActivity {
                 File path = new File(getIntent().getData().getSchemeSpecificPart());
 
                 Project p = Project.scanDirectory(path);
-                String custom_orientation = this.getExtra("orientation");
+                String custom_orientation = PythonActivity.mActivity.getExtra("orientation");
 
                 String entry_point = getEntryPoint(p.dir);
                 SDLActivity.nativeSetenv("ANDROID_ENTRYPOINT", p.dir + "/" + entry_point);
@@ -505,7 +505,7 @@ public class PythonActivity extends SDLActivity {
          * have a compiled version or not.
         */
         List<String> entryPoints = new ArrayList<String>();
-        String extra = this.getExtra("entrypoint");
+        String extra = PythonActivity.mActivity.getExtra("entrypoint");
         if (extra != "")
             entryPoints.add(extra);  // custom entrypoint
 
