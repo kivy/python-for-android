@@ -712,6 +712,9 @@ class Recipe(with_metaclass(RecipeMeta)):
         if not hasattr(cls, "recipes"):
             cls.recipes = {}
         if name in cls.recipes:
+            # we already have recipe in cls.recipes,
+            # so we update the recipe's ctx and return it
+            cls.recipes[name].ctx = ctx
             return cls.recipes[name]
 
         recipe_file = None
