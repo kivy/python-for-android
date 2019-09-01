@@ -151,12 +151,18 @@ public class PythonActivity extends SDLActivity {
                 File path = new File(getIntent().getData().getSchemeSpecificPart());
 
                 Project p = Project.scanDirectory(path);
+                String custom_orientation = this.getExtra("orientation");
+
                 String entry_point = getEntryPoint(p.dir);
                 SDLActivity.nativeSetenv("ANDROID_ENTRYPOINT", p.dir + "/" + entry_point);
                 SDLActivity.nativeSetenv("ANDROID_ARGUMENT", p.dir);
                 SDLActivity.nativeSetenv("ANDROID_APP_PATH", p.dir);
 
-                if (p != null) {
+                if (custom_orientation == "landscape")
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                else if (custom_orientation == "portrait")
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                else if (p != null) {
                     if (p.landscape) {
                         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                     } else {
@@ -499,9 +505,15 @@ public class PythonActivity extends SDLActivity {
          * have a compiled version or not.
         */
         List<String> entryPoints = new ArrayList<String>();
-        entryPoints.add("main.pyo");  // python 2 compiled files
-        entryPoints.add("main.pyc");  // python 3 compiled files
-		for (String value : entryPoints) {
+        String extra = this.getExtra("entrypoint");
+        if (extra != "")
+            entryPoints.add(extra);  // custom entrypoint
+
+	else {
+	    entryPoints.add("main.pyo");  // python 2 compiled files
+	    entryPoints.add("main.pyc");  // python 3 compiled files
+	}
+        for (String value : entryPoints) {
             File mainFile = new File(search_dir + "/" + value);
             if (mainFile.exists()) {
                 return value;
