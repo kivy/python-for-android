@@ -1,72 +1,34 @@
 import os
-
 import unittest
+from unittest import mock
 
-try:
-    from unittest import mock
-except ImportError:
-    # `Python 2` or lower than `Python 3.3` does not
-    # have the `unittest.mock` module built-in
-    import mock
-from pythonforandroid.bootstrap import Bootstrap
-from pythonforandroid.distribution import Distribution
-
-from pythonforandroid.build import Context
-from pythonforandroid.archs import ArchARMv7_a
+from tests.recipes.recipe_ctx import RecipeCtx
 from pythonforandroid.recipes.icu import ICURecipe
-from pythonforandroid.recipe import Recipe
 
 
-class TestIcuRecipe(unittest.TestCase):
+class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     """
     An unittest for recipe :mod:`~pythonforandroid.recipes.icu`
     """
 
-    ctx = None
-
-    def setUp(self):
-        self.ctx = Context()
-        self.ctx.ndk_api = 21
-        self.ctx.android_api = 27
-        self.ctx._sdk_dir = "/opt/android/android-sdk"
-        self.ctx._ndk_dir = "/opt/android/android-ndk"
-        self.ctx.setup_dirs(os.getcwd())
-        self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
-        self.ctx.bootstrap.distribution = Distribution.get_distribution(
-            self.ctx, name="sdl2", recipes=["python3", "kivy", "icu"]
-        )
-        self.ctx.python_recipe = ICURecipe.get_recipe("python3", self.ctx)
-        self.ctx.recipe_build_order = [
-            "hostpython3",
-            "icu",
-            "python3",
-            "sdl2",
-            "kivy",
-        ]
-
-    def tearDown(self):
-        self.ctx = None
+    recipe_name = "icu"
+    recipes = ["python3", "kivy", "icu"]
+    recipe_build_order = ["hostpython3", "icu", "python3", "sdl2", "kivy"]
 
     def test_url(self):
-        recipe = ICURecipe()
-        recipe.ctx = self.ctx
-        self.assertTrue(recipe.versioned_url.startswith("http"))
-        self.assertIn(recipe.version, recipe.versioned_url)
+        self.assertTrue(self.recipe.versioned_url.startswith("http"))
+        self.assertIn(self.recipe.version, self.recipe.versioned_url)
 
     @mock.patch(
         "pythonforandroid.recipe.Recipe.url", new_callable=mock.PropertyMock
     )
     def test_url_none(self, mock_url):
         mock_url.return_value = None
-        recipe = ICURecipe()
-        recipe.ctx = self.ctx
-        self.assertIsNone(recipe.versioned_url)
+        self.assertIsNone(self.recipe.versioned_url)
 
     def test_get_recipe_dir(self):
-        recipe = ICURecipe()
-        recipe.ctx = self.ctx
         expected_dir = os.path.join(self.ctx.root_dir, "recipes", "icu")
-        self.assertEqual(recipe.get_recipe_dir(), expected_dir)
+        self.assertEqual(self.recipe.get_recipe_dir(), expected_dir)
 
     @mock.patch("pythonforandroid.util.makedirs")
     @mock.patch("pythonforandroid.util.chdir")
@@ -85,8 +47,6 @@ class TestIcuRecipe(unittest.TestCase):
         mock_chdir,
         mock_makedirs,
     ):
-        recipe = ICURecipe()
-        recipe.ctx = self.ctx
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
             "toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
@@ -94,13 +54,12 @@ class TestIcuRecipe(unittest.TestCase):
         mock_archs_glob.return_value = [
             os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
         ]
-        arch = ArchARMv7_a(self.ctx)
-        self.ctx.toolchain_prefix = arch.toolchain_prefix
+        self.ctx.toolchain_prefix = self.arch.toolchain_prefix
         self.ctx.toolchain_version = "4.9"
-        recipe.build_arch(arch)
+        self.recipe.build_arch(self.arch)
 
-        # We expect to calls to `sh.Command`
-        build_root = recipe.get_build_dir(arch.arch)
+        # We expect some calls to `sh.Command`
+        build_root = self.recipe.get_build_dir(self.arch.arch)
         mock_sh_command.has_calls(
             [
                 mock.call(
@@ -111,7 +70,7 @@ class TestIcuRecipe(unittest.TestCase):
         )
         mock_ensure_dir.assert_called()
         mock_chdir.assert_called()
-        # we expect for calls to sh.make command
+        # we expect multiple calls to sh.make command
         expected_host_cppflags = (
             "-O3 -fno-short-wchar -DU_USING_ICU_NAMESPACE=1 -fno-short-enums "
             "-DU_HAVE_NL_LANGINFO_CODESET=0 -D__STDC_INT64__ -DU_TIMEZONE=0 "
@@ -147,10 +106,7 @@ class TestIcuRecipe(unittest.TestCase):
     @mock.patch("pythonforandroid.recipes.icu.sh.cp")
     @mock.patch("pythonforandroid.util.makedirs")
     def test_install_libraries(self, mock_makedirs, mock_sh_cp):
-        arch = ArchARMv7_a(self.ctx)
-        recipe = Recipe.get_recipe("icu", self.ctx)
-        recipe.ctx = self.ctx
-        recipe.install_libraries(arch)
+        self.recipe.install_libraries(self.arch)
         mock_makedirs.assert_called()
         mock_sh_cp.assert_called()
 
@@ -158,6 +114,8 @@ class TestIcuRecipe(unittest.TestCase):
     def test_get_recipe_dir_with_local_recipes(self, mock_exists):
         self.ctx.local_recipes = "/home/user/p4a_local_recipes"
 
+        # we don't use `self.recipe` because, somehow, the modified variable
+        # above is not updated in the `ctx` and makes the test fail...
         recipe = ICURecipe()
         recipe.ctx = self.ctx
         recipe_dir = recipe.get_recipe_dir()
