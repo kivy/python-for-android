@@ -108,3 +108,44 @@ class BaseTestForMakeRecipe(RecipeCtx):
                     mock_sh_command.mock_calls,
                 )
             mock_make.assert_called()
+
+
+class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
+    """
+    An unittest for testing any recipe using `cmake`. It inherits from
+    `BaseTestForMakeRecipe` but we override the build method to match the cmake
+    build method.
+
+    .. note:: Note that Some cmake recipe may need some more specific testing
+        ...but this should cover the basics.
+    """
+
+    @mock.patch("pythonforandroid.util.chdir")
+    @mock.patch("pythonforandroid.build.ensure_dir")
+    @mock.patch("pythonforandroid.archs.glob")
+    @mock.patch("pythonforandroid.archs.find_executable")
+    def test_build_arch(
+        self,
+        mock_find_executable,
+        mock_glob,
+        mock_ensure_dir,
+        mock_current_directory,
+    ):
+        mock_find_executable.return_value = self.expected_compiler.format(
+                android_ndk=self.ctx._ndk_dir
+        )
+        mock_glob.return_value = ["llvm"]
+        with mock.patch(
+            f"pythonforandroid.recipes.{self.recipe_name}.sh.make"
+        ) as mock_make, mock.patch(
+            f"pythonforandroid.recipes.{self.recipe_name}.sh.cmake"
+        ) as mock_cmake:
+            self.recipe.build_arch(self.arch)
+
+            # make sure that the mocked methods are actually called
+            mock_glob.assert_called()
+            mock_ensure_dir.assert_called()
+            mock_current_directory.assert_called()
+            mock_find_executable.assert_called()
+            mock_cmake.assert_called()
+            mock_make.assert_called()
