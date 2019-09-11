@@ -109,7 +109,7 @@ api level below 21, you should use an older version of python-for-android
 (<=0.7.1).
 
 Be aware that this project is in constant development so, as per time of writing,
-you should use a minimum on Android's NDK r19, and ``we recommend using NDK r19c``.
+you should use a minimum on Android's NDK r19, and ``we recommend using NDK r19b``.
 This is because the toolchains installed by
 default with the NDK can be used *in-place* and the python-for-android project
 has been adapted for that feature. Also be aware that more recent versions of the
