@@ -2,7 +2,6 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory
 from os.path import join
-from os import environ, uname
 import sh
 
 
@@ -35,10 +34,9 @@ class JpegRecipe(Recipe):
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',
                     '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
                     '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,
-                    '-DCMAKE_C_COMPILER={toolchain}/bin/clang'.format(
-                        toolchain=env['TOOLCHAIN']),
-                    '-DCMAKE_CXX_COMPILER={toolchain}/bin/clang++'.format(
-                        toolchain=env['TOOLCHAIN']),
+                    '-DCMAKE_C_COMPILER={cc}'.format(cc=arch.get_clang_exe()),
+                    '-DCMAKE_CXX_COMPILER={cc_plus}'.format(
+                        cc_plus=arch.get_clang_exe(plus_plus=True)),
                     '-DCMAKE_BUILD_TYPE=Release',
                     '-DCMAKE_INSTALL_PREFIX=./install',
                     '-DCMAKE_TOOLCHAIN_FILE=' + toolchain_file,
@@ -53,17 +51,6 @@ class JpegRecipe(Recipe):
                     '-DENABLE_STATIC=1',
                     _env=env)
             shprint(sh.make, _env=env)
-
-    def get_recipe_env(self, arch=None, with_flags_in_cc=False):
-        env = environ.copy()
-
-        build_platform = '{system}-{machine}'.format(
-            system=uname()[0], machine=uname()[-1]).lower()
-        env['TOOLCHAIN'] = join(self.ctx.ndk_dir, 'toolchains/llvm/'
-                                'prebuilt/{build_platform}'.format(
-                                    build_platform=build_platform))
-
-        return env
 
 
 recipe = JpegRecipe()
