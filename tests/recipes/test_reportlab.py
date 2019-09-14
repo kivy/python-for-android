@@ -1,34 +1,18 @@
 import os
-import tempfile
 import unittest
 from mock import patch
-from pythonforandroid.archs import ArchARMv7_a
-from pythonforandroid.build import Context
-from pythonforandroid.graph import get_recipe_order_and_bootstrap
-from pythonforandroid.recipe import Recipe
+from tests.recipes.recipe_ctx import RecipeCtx
 from pythonforandroid.util import ensure_dir
 
 
-class TestReportLabRecipe(unittest.TestCase):
+class TestReportLabRecipe(RecipeCtx, unittest.TestCase):
+    recipe_name = "reportlab"
 
     def setUp(self):
         """
         Setups recipe and context.
         """
-        self.context = Context()
-        self.context.ndk_api = 21
-        self.context.android_api = 27
-        self.arch = ArchARMv7_a(self.context)
-        self.recipe = Recipe.get_recipe('reportlab', self.context)
-        self.recipe.ctx = self.context
-        self.bootstrap = None
-        recipe_build_order, python_modules, bootstrap = \
-            get_recipe_order_and_bootstrap(
-                self.context, [self.recipe.name], self.bootstrap)
-        self.context.recipe_build_order = recipe_build_order
-        self.context.python_modules = python_modules
-        self.context.setup_dirs(tempfile.gettempdir())
-        self.bootstrap = bootstrap
+        super().setUp()
         self.recipe_dir = self.recipe.get_build_dir(self.arch.arch)
         ensure_dir(self.recipe_dir)
 

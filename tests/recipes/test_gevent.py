@@ -1,21 +1,11 @@
 import unittest
 from mock import patch
-from pythonforandroid.archs import ArchARMv7_a
-from pythonforandroid.build import Context
-from pythonforandroid.recipe import Recipe
+from tests.recipes.recipe_ctx import RecipeCtx
 
 
-class TestGeventRecipe(unittest.TestCase):
+class TestGeventRecipe(RecipeCtx, unittest.TestCase):
 
-    def setUp(self):
-        """
-        Setups recipe and context.
-        """
-        self.context = Context()
-        self.context.ndk_api = 21
-        self.context.android_api = 27
-        self.arch = ArchARMv7_a(self.context)
-        self.recipe = Recipe.get_recipe('gevent', self.context)
+    recipe_name = "gevent"
 
     def test_get_recipe_env(self):
         """
