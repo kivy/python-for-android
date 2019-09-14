@@ -26,6 +26,6 @@ class TestLibvorbisRecipe(BaseTestForMakeRecipe, unittest.TestCase):
     ):
         # We overwrite the base test method because we need to mock a little
         # more with this recipe (`sh.cp`)
-        super(TestLibvorbisRecipe, self).test_build_arch()
+        super().test_build_arch()
         # make sure that the mocked methods are actually called
         mock_sh_cp.assert_called()

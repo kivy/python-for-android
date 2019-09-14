@@ -24,6 +24,6 @@ class TestLibgeosRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
     ):
         # We overwrite the base test method because we
         # want to avoid any file/directory creation
-        super(TestLibgeosRecipe, self).test_build_arch()
+        super().test_build_arch()
         # make sure that the mocked methods are actually called
         mock_makedirs.assert_called()

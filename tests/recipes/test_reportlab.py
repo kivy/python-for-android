@@ -12,7 +12,7 @@ class TestReportLabRecipe(RecipeCtx, unittest.TestCase):
         """
         Setups recipe and context.
         """
-        super(TestReportLabRecipe, self).setUp()
+        super().setUp()
         self.recipe_dir = self.recipe.get_build_dir(self.arch.arch)
         ensure_dir(self.recipe_dir)
 

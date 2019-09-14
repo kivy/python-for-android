@@ -27,7 +27,7 @@ class BaseTestForMakeRecipe(RecipeCtx):
     """
 
     def __new__(cls, *args):
-        obj = super(BaseTestForMakeRecipe, cls).__new__(cls)
+        obj = super().__new__(cls)
         if obj.recipe_name is not None:
             print(f"We are testing recipe: {obj.recipe_name}")
             obj.recipes.append(obj.recipe_name)
