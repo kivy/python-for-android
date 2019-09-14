@@ -90,6 +90,9 @@ class BaseTestForMakeRecipe(RecipeCtx):
                 android_ndk=self.ctx._ndk_dir
         )
         mock_glob.return_value = ["llvm"]
+
+        # Since the following mocks are dynamic,
+        # we mock it inside a Context Manager
         with mock.patch(
             f"pythonforandroid.recipes.{self.recipe_name}.sh.Command"
         ) as mock_sh_command, mock.patch(
@@ -97,17 +100,17 @@ class BaseTestForMakeRecipe(RecipeCtx):
         ) as mock_make:
             self.recipe.build_arch(self.arch)
 
-            # make sure that the mocked methods are actually called
-            mock_glob.assert_called()
-            mock_ensure_dir.assert_called()
-            mock_current_directory.assert_called()
-            mock_find_executable.assert_called()
-            for command in self.sh_command_calls:
-                self.assertIn(
-                    mock.call(command),
-                    mock_sh_command.mock_calls,
-                )
-            mock_make.assert_called()
+        # make sure that the mocked methods are actually called
+        for command in self.sh_command_calls:
+            self.assertIn(
+                mock.call(command),
+                mock_sh_command.mock_calls,
+            )
+        mock_make.assert_called()
+        mock_glob.assert_called()
+        mock_ensure_dir.assert_called()
+        mock_current_directory.assert_called()
+        mock_find_executable.assert_called()
 
 
 class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
@@ -135,6 +138,9 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
                 android_ndk=self.ctx._ndk_dir
         )
         mock_glob.return_value = ["llvm"]
+
+        # Since the following mocks are dynamic,
+        # we mock it inside a Context Manager
         with mock.patch(
             f"pythonforandroid.recipes.{self.recipe_name}.sh.make"
         ) as mock_make, mock.patch(
@@ -142,10 +148,10 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
         ) as mock_cmake:
             self.recipe.build_arch(self.arch)
 
-            # make sure that the mocked methods are actually called
-            mock_glob.assert_called()
-            mock_ensure_dir.assert_called()
-            mock_current_directory.assert_called()
-            mock_find_executable.assert_called()
-            mock_cmake.assert_called()
-            mock_make.assert_called()
+        # make sure that the mocked methods are actually called
+        mock_cmake.assert_called()
+        mock_make.assert_called()
+        mock_glob.assert_called()
+        mock_ensure_dir.assert_called()
+        mock_current_directory.assert_called()
+        mock_find_executable.assert_called()
