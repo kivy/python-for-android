@@ -5,7 +5,6 @@ These are in a separate file because these were picked to run in travis,
 while the other additional ones aren't (for build time reasons).
 """
 
-import mock
 import os
 import pytest
 import shutil
@@ -13,6 +12,7 @@ import sys
 import subprocess
 import tempfile
 import textwrap
+from unittest import mock
 
 from pythonforandroid.pythonpackage import (
     _extract_info_from_package,

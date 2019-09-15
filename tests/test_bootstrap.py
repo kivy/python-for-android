@@ -3,12 +3,7 @@ import os
 import sh
 import unittest
 
-try:
-    from unittest import mock
-except ImportError:
-    # `Python 2` or lower than `Python 3.3` does not
-    # have the `unittest.mock` module built-in
-    import mock
+from unittest import mock
 from pythonforandroid.bootstrap import (
     _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
 )

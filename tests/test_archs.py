@@ -1,13 +1,7 @@
 import os
 import unittest
 from os import environ
-
-try:
-    from unittest import mock
-except ImportError:
-    # `Python 2` or lower than `Python 3.3` does not
-    # have the `unittest.mock` module built-in
-    import mock
+from unittest import mock
 
 from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution
