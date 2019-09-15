@@ -26,13 +26,12 @@ class BaseTestForMakeRecipe(RecipeCtx):
     This must be a dictionary containing pairs of key (env var) and value.
     """
 
-    def __new__(cls, *args):
-        obj = super().__new__(cls)
-        if obj.recipe_name is not None:
-            print(f"We are testing recipe: {obj.recipe_name}")
-            obj.recipes.append(obj.recipe_name)
-            obj.recipe_build_order.insert(1, obj.recipe_name)
-            return obj
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.recipe_name not in self.recipes:
+            self.recipes.append(self.recipe_name)
+            self.recipe_build_order.insert(1, self.recipe_name)
+        print(f"We are testing recipe: {self.recipe_name}")
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
     @mock.patch("pythonforandroid.build.ensure_dir")
