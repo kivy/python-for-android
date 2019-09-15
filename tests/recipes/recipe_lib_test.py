@@ -12,8 +12,6 @@ class BaseTestForMakeRecipe(RecipeCtx):
     """
 
     recipe_name = None
-    recipes = ["python3", "kivy"]
-    recipe_build_order = ["hostpython3", "python3", "sdl2", "kivy"]
     expected_compiler = (
         "{android_ndk}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
     )
@@ -28,9 +26,10 @@ class BaseTestForMakeRecipe(RecipeCtx):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.recipe_name not in self.recipes:
-            self.recipes.append(self.recipe_name)
-            self.recipe_build_order.insert(1, self.recipe_name)
+        self.recipes = ["python3", "kivy", self.recipe_name]
+        self.recipe_build_order = [
+            "hostpython3", self.recipe_name, "python3", "sdl2", "kivy"
+        ]
         print(f"We are testing recipe: {self.recipe_name}")
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")

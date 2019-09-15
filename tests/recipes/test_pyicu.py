@@ -9,15 +9,6 @@ class TestPyIcuRecipe(RecipeCtx, unittest.TestCase):
     An unittest for recipe :mod:`~pythonforandroid.recipes.pyicu`
     """
     recipe_name = "pyicu"
-    recipes = ["python3", "kivy", "pyicu"]
-    recipe_build_order = [
-            "hostpython3",
-            "icu",
-            "python3",
-            "sdl2",
-            "pyicu",
-            "kivy",
-    ]
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
     @mock.patch("pythonforandroid.build.ensure_dir")
