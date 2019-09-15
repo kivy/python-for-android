@@ -22,7 +22,11 @@ allprojects {
     }
 }
 
+{% if is_library %}
+apply plugin: 'com.android.library'
+{% else %}
 apply plugin: 'com.android.application'
+{% endif %}
 
 android {
     compileSdkVersion {{ android_api }}

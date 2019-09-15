@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="{{ args.package }}"
+      android:versionCode="{{ args.numeric_version }}"
+      android:versionName="{{ args.version }}">
+
+    <!-- Android 2.3.3 -->
+    <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
+
+    <application>
+        {% for name in service_names %}
+        <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
+                 android:process=":service_{{ name }}"
+                 android:exported="true" />
+        {% endfor %}
+    </application>
+
+</manifest>
