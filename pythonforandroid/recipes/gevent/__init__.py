@@ -6,7 +6,7 @@ from pythonforandroid.recipe import CythonRecipe
 class GeventRecipe(CythonRecipe):
     version = '1.4.0'
     url = 'https://pypi.python.org/packages/source/g/gevent/gevent-{version}.tar.gz'
-    depends = ['librt', 'greenlet']
+    depends = ['librt', 'setuptools']
     patches = ["cross_compiling.patch"]
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
