@@ -3,7 +3,7 @@ import pytest
 import types
 import unittest
 import warnings
-import mock
+from unittest import mock
 from backports import tempfile
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import Recipe, import_recipe

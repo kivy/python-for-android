@@ -1,5 +1,5 @@
 import unittest
-from mock import patch
+from unittest.mock import patch
 from tests.recipes.recipe_ctx import RecipeCtx
 
 

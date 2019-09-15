@@ -12,8 +12,6 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     """
 
     recipe_name = "icu"
-    recipes = ["python3", "kivy", "icu"]
-    recipe_build_order = ["hostpython3", "icu", "python3", "sdl2", "kivy"]
 
     def test_url(self):
         self.assertTrue(self.recipe.versioned_url.startswith("http"))
