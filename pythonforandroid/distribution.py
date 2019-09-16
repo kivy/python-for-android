@@ -64,8 +64,8 @@ class Distribution(object):
         ndk_api : int
             The NDK API to compile against, included in the dist because it cannot
             be changed later during APK packaging.
-        arch : Arch
-            The target architecture to compile against, included in the dist because
+        arch_name : str
+            The target architecture name to compile against, included in the dist because
             it cannot be changed later during APK packaging.
         recipes : list
             The recipes that the distribution must contain.
@@ -86,16 +86,23 @@ class Distribution(object):
 
         existing_dists = Distribution.get_distributions(ctx)
 
-        possible_dists = existing_dists
+        possible_dists = existing_dists[:]
 
-        name_match_dists = []
+        # Will hold dists that would be built in the same folder as an existing dist
+        folder_match_dist = None
 
         # 0) Check if a dist with that name and architecture already exists
-        # There may be more than one dist with the same name but different arch targets
         if name is not None and name:
             possible_dists = [
                 d for d in possible_dists if
                 (d.name == name) and (arch_name in d.archs)]
+
+            # There should only be one folder with a given dist name *and* arch.
+            # We could check that here, but for compatibility let's let it slide
+            # and just record the details of one of them. We only use this data to
+            # possibly fail the build later, so it doesn't really matter if there
+            # was more than one clash.
+            folder_match_dist = possible_dists[0]
 
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
@@ -133,12 +140,10 @@ class Distribution(object):
                             .format(dist.name))
                 return dist
 
-        assert len(possible_dists) < 2
-
         # If there was a name match but we didn't already choose it,
         # then the existing dist is incompatible with the requested
         # configuration and the build cannot continue
-        if name_match_dists and not allow_replace_dist:
+        if folder_match_dist is not None and not allow_replace_dist:
             raise BuildInterruptingException(
                 'Asked for dist with name {name} with recipes ({req_recipes}) and '
                 'NDK API {req_ndk_api}, but a dist '
@@ -146,9 +151,11 @@ class Distribution(object):
                 '({dist_recipes}) or NDK API {dist_ndk_api}'.format(
                     name=name,
                     req_ndk_api=ndk_api,
-                    dist_ndk_api=name_match_dist.ndk_api,
+                    dist_ndk_api=folder_match_dist.ndk_api,
                     req_recipes=', '.join(recipes),
-                    dist_recipes=', '.join(name_match_dist.recipes)))
+                    dist_recipes=', '.join(folder_match_dist.recipes)))
+
+        assert len(folder_match_dist) < 2
 
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)
@@ -169,7 +176,6 @@ class Distribution(object):
         dist.recipes = recipes
         dist.ndk_api = ctx.ndk_api
         dist.archs = [arch_name]
-
 
         return dist
 
