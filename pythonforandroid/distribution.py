@@ -24,7 +24,7 @@ class Distribution(object):
     ndk_api = None
 
     archs = []
-    '''The arch targets that the dist is built for.'''
+    '''The names of the arch targets that the dist is built for.'''
 
     recipes = []
 
@@ -44,6 +44,7 @@ class Distribution(object):
     @classmethod
     def get_distribution(cls, ctx, name=None, recipes=[],
                          ndk_api=None,
+                         arch_name=None,
                          force_build=False,
                          extra_dist_dirs=[],
                          require_perfect_match=False,
@@ -60,6 +61,12 @@ class Distribution(object):
         name : str
             The name of the distribution. If a dist with this name already '
             exists, it will be used.
+        ndk_api : int
+            The NDK API to compile against, included in the dist because it cannot
+            be changed later during APK packaging.
+        arch : Arch
+            The target architecture to compile against, included in the dist because
+            it cannot be changed later during APK packaging.
         recipes : list
             The recipes that the distribution must contain.
         force_download: bool
@@ -81,13 +88,14 @@ class Distribution(object):
 
         possible_dists = existing_dists
 
-        name_match_dist = None
+        name_match_dists = []
 
-        # 0) Check if a dist with that name already exists
+        # 0) Check if a dist with that name and architecture already exists
+        # There may be more than one dist with the same name but different arch targets
         if name is not None and name:
-            possible_dists = [d for d in possible_dists if d.name == name]
-            if possible_dists:
-                name_match_dist = possible_dists[0]
+            possible_dists = [
+                d for d in possible_dists if
+                (d.name == name) and (arch_name in d.archs)]
 
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
@@ -110,11 +118,13 @@ class Distribution(object):
         else:
             info('No existing dists meet the given requirements!')
 
-        # If any dist has perfect recipes and ndk API, return it
+        # If any dist has perfect recipes, arch and NDK API, return it
         for dist in possible_dists:
             if force_build:
                 continue
             if ndk_api is not None and dist.ndk_api != ndk_api:
+                continue
+            if arch_name is not None and arch_name not in dist.archs:
                 continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and
@@ -128,7 +138,7 @@ class Distribution(object):
         # If there was a name match but we didn't already choose it,
         # then the existing dist is incompatible with the requested
         # configuration and the build cannot continue
-        if name_match_dist is not None and not allow_replace_dist:
+        if name_match_dists and not allow_replace_dist:
             raise BuildInterruptingException(
                 'Asked for dist with name {name} with recipes ({req_recipes}) and '
                 'NDK API {req_ndk_api}, but a dist '
@@ -152,9 +162,14 @@ class Distribution(object):
             name = filen.format(i)
 
         dist.name = name
-        dist.dist_dir = join(ctx.dist_dir, dist.name)
+        dist.dist_dir = join(
+            ctx.dist_dir,
+            generate_dist_folder_name(name, [arch_name])
+        )
         dist.recipes = recipes
         dist.ndk_api = ctx.ndk_api
+        dist.archs = [arch_name]
+
 
         return dist
 
@@ -182,7 +197,7 @@ class Distribution(object):
                 with open(join(folder, 'dist_info.json')) as fileh:
                     dist_info = json.load(fileh)
                 dist = cls(ctx)
-                dist.name = folder.split('/')[-1]
+                dist.name = dist_info['dist_name']
                 dist.dist_dir = folder
                 dist.needs_build = False
                 dist.recipes = dist_info['recipes']
@@ -236,3 +251,22 @@ def pretty_log_dists(dists, log_func=info):
 
     for line in infos:
         log_func('\t' + line)
+
+def generate_dist_folder_name(base_dist_name, arch_names=None):
+    """Generate the distribution folder name to use, based on a
+    combination of the input arguments.
+
+    Parameters
+    ----------
+    base_dist_name : str
+        The core distribution identifier string
+    arch_names : list of str
+        The architecture compile targets
+    """
+    if arch_names is None:
+        arch_names = ["no_arch_specified"]
+
+    return '{}__{}'.format(
+        base_dist_name,
+        '_'.join(arch_names)
+    )

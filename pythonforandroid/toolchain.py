@@ -163,6 +163,7 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
+        arch_name=args.arch,
         ndk_api=args.ndk_api,
         force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
@@ -304,7 +305,7 @@ class ToolchainCL(object):
                   '(default: {})'.format(default_storage_dir)))
 
         generic_parser.add_argument(
-            '--arch', help='The archs to build for, separated by commas.',
+            '--arch', help='The arch to build for.',
             default='armeabi-v7a')
 
         # Options for specifying the Distribution
