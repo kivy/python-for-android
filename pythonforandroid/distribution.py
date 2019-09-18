@@ -42,13 +42,19 @@ class Distribution(object):
         return str(self)
 
     @classmethod
-    def get_distribution(cls, ctx, name=None, recipes=[],
-                         ndk_api=None,
-                         arch_name=None,
-                         force_build=False,
-                         extra_dist_dirs=[],
-                         require_perfect_match=False,
-                         allow_replace_dist=True):
+    def get_distribution(
+            cls,
+            ctx,
+            *,
+            arch_name,  # required keyword argument: there is no sensible default
+            name=None,
+            recipes=[],
+            ndk_api=None,
+            force_build=False,
+            extra_dist_dirs=[],
+            require_perfect_match=False,
+            allow_replace_dist=True
+    ):
         '''Takes information about the distribution, and decides what kind of
         distribution it will be.
 
@@ -67,6 +73,7 @@ class Distribution(object):
         arch_name : str
             The target architecture name to compile against, included in the dist because
             it cannot be changed later during APK packaging.
+            This is a required, keyword-only argument.
         recipes : list
             The recipes that the distribution must contain.
         force_download: bool
@@ -97,12 +104,13 @@ class Distribution(object):
                 d for d in possible_dists if
                 (d.name == name) and (arch_name in d.archs)]
 
-            # There should only be one folder with a given dist name *and* arch.
-            # We could check that here, but for compatibility let's let it slide
-            # and just record the details of one of them. We only use this data to
-            # possibly fail the build later, so it doesn't really matter if there
-            # was more than one clash.
-            folder_match_dist = possible_dists[0]
+            if possible_dists:
+                # There should only be one folder with a given dist name *and* arch.
+                # We could check that here, but for compatibility let's let it slide
+                # and just record the details of one of them. We only use this data to
+                # possibly fail the build later, so it doesn't really matter if there
+                # was more than one clash.
+                folder_match_dist = possible_dists[0]
 
         # 1) Check if any existing dists meet the requirements
         _possible_dists = []
@@ -155,7 +163,7 @@ class Distribution(object):
                     req_recipes=', '.join(recipes),
                     dist_recipes=', '.join(folder_match_dist.recipes)))
 
-        assert len(folder_match_dist) < 2
+        assert len(possible_dists) < 2
 
         # If we got this far, we need to build a new dist
         dist = Distribution(ctx)
@@ -171,7 +179,10 @@ class Distribution(object):
         dist.name = name
         dist.dist_dir = join(
             ctx.dist_dir,
-            generate_dist_folder_name(name, [arch_name])
+            generate_dist_folder_name(
+                name,
+                [arch_name] if arch_name is not None else None,
+            )
         )
         dist.recipes = recipes
         dist.ndk_api = ctx.ndk_api
@@ -257,6 +268,7 @@ def pretty_log_dists(dists, log_func=info):
 
     for line in infos:
         log_func('\t' + line)
+
 
 def generate_dist_folder_name(base_dist_name, arch_names=None):
     """Generate the distribution folder name to use, based on a
