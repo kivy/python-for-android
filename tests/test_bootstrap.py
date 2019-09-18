@@ -7,7 +7,7 @@ from unittest import mock
 from pythonforandroid.bootstrap import (
     _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
 )
-from pythonforandroid.distribution import Distribution
+from pythonforandroid.distribution import Distribution, generate_dist_folder_name
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
@@ -21,6 +21,8 @@ class BaseClassSetupBootstrap(object):
     an inherited class of `unittest.TestCase`. This class will override the
     `setUp` and `tearDown` methods.
     """
+
+    TEST_ARCH='armeabi-v7a'
 
     def setUp(self):
         self.ctx = Context()
@@ -43,7 +45,9 @@ class BaseClassSetupBootstrap(object):
         """
         self.ctx.bootstrap = bs
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
-            self.ctx, name="test_prj", recipes=["python3", "kivy"]
+            self.ctx, name="test_prj",
+            recipes=["python3", "kivy"],
+            arch_name=self.TEST_ARCH,
         )
 
     def tearDown(self):
@@ -79,7 +83,9 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
 
         # test dist_dir success
         self.setUp_distribution_with_bootstrap(bs)
-        self.assertTrue(bs.dist_dir.endswith("dists/test_prj"))
+        expected_folder_name = generate_dist_folder_name('test_prj', [self.TEST_ARCH])
+        self.assertTrue(
+            bs.dist_dir.endswith(f"dists/{expected_folder_name}"))
 
     def test_build_dist_dirs(self):
         """A test which will initialize a bootstrap and will check if the
