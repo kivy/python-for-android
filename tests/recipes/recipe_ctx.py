@@ -28,6 +28,8 @@ class RecipeCtx:
     """A recipe_build_order which should take into account the recipe we want
     to test as well as the possible dependant recipes"""
 
+    TEST_ARCH = 'arm64-v8a'
+
     def setUp(self):
         self.ctx = Context()
         self.ctx.ndk_api = 21
@@ -37,7 +39,7 @@ class RecipeCtx:
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
-            self.ctx, name="sdl2", recipes=self.recipes
+            self.ctx, name="sdl2", recipes=self.recipes, arch_name=self.TEST_ARCH,
         )
         self.ctx.recipe_build_order = self.recipe_build_order
         self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
