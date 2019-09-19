@@ -22,7 +22,7 @@ class BaseClassSetupBootstrap(object):
     `setUp` and `tearDown` methods.
     """
 
-    TEST_ARCH='armeabi-v7a'
+    TEST_ARCH = 'armeabi-v7a'
 
     def setUp(self):
         self.ctx = Context()

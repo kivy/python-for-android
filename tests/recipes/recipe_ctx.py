@@ -26,7 +26,7 @@ class RecipeCtx:
     contain the target recipe to test as well as a python recipe."""
     recipe_build_order = []
     """A recipe_build_order which should take into account the recipe we want
-    to test as well as the possible dependant recipes"""
+    to test as well as the possible dependent recipes"""
 
     TEST_ARCH = 'arm64-v8a'
 
