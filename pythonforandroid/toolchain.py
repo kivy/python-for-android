@@ -15,7 +15,6 @@ from pythonforandroid.recommendations import (
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.entrypoints import main
 
-
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
     # before the imports because otherwise they're imported elsewhere.
@@ -101,6 +100,7 @@ user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
+APK_SUFFIX = '.apk'
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):
@@ -1064,9 +1064,9 @@ class ToolchainCL(object):
         info_main('# Found APK file: {}'.format(apk_file))
         if apk_add_version:
             info('# Add version number to APK')
-            apk_name, apk_suffix = basename(apk_file).split("-", 1)
+            apk_name = basename(apk_file)[:-len(APK_SUFFIX)]
             apk_file_dest = "{}-{}-{}".format(
-                apk_name, build_args.version, apk_suffix)
+                apk_name, build_args.version, APK_SUFFIX)
             info('# APK renamed to {}'.format(apk_file_dest))
             shprint(sh.cp, apk_file, apk_file_dest)
         else:
