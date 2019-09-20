@@ -242,7 +242,7 @@ class Distribution(object):
         with current_directory(dirn):
             info('Saving distribution info')
             with open('dist_info.json', 'w') as fileh:
-                json.dump({'dist_name': self.ctx.dist_name,
+                json.dump({'dist_name': self.name,
                            'bootstrap': self.ctx.bootstrap.name,
                            'archs': [arch.arch for arch in self.ctx.archs],
                            'ndk_api': self.ctx.ndk_api,

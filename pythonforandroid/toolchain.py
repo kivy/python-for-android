@@ -196,10 +196,10 @@ def build_dist_from_args(ctx, dist, args):
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
 
-    ctx.dist_name = bs.distribution.name
+    ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
     if dist.needs_build:
-        ctx.prepare_dist(ctx.dist_name)
+        ctx.prepare_dist()
 
     build_recipes(build_order, python_modules, ctx,
                   getattr(args, "private", None),
@@ -212,7 +212,7 @@ def build_dist_from_args(ctx, dist, args):
 
     info_main('# Your distribution was created successfully, exiting.')
     info('Dist can be found at (for now) {}'
-         .format(join(ctx.dist_dir, ctx.dist_name)))
+         .format(join(ctx.dist_dir, ctx.distribution.dist_dir)))
 
 
 def split_argument_list(l):
@@ -913,6 +913,7 @@ class ToolchainCL(object):
     def _dist(self):
         ctx = self.ctx
         dist = dist_from_args(ctx, self.args)
+        ctx.distribution = dist
         return dist
 
     @require_prebuilt_dist
