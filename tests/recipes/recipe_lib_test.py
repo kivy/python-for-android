@@ -1,4 +1,5 @@
 from unittest import mock
+from platform import system
 from tests.recipes.recipe_ctx import RecipeCtx
 
 
@@ -13,7 +14,7 @@ class BaseTestForMakeRecipe(RecipeCtx):
 
     recipe_name = None
     expected_compiler = (
-        "{android_ndk}/toolchains/llvm/prebuilt/linux-x86_64/bin/clang"
+        "{android_ndk}/toolchains/llvm/prebuilt/{system}-x86_64/bin/clang"
     )
 
     sh_command_calls = ["./configure"]
@@ -48,7 +49,7 @@ class BaseTestForMakeRecipe(RecipeCtx):
         some internal methods has been called.
         """
         mock_find_executable.return_value = self.expected_compiler.format(
-                android_ndk=self.ctx._ndk_dir
+                android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
         mock_glob.return_value = ["llvm"]
         mock_check_recipe_choices.return_value = sorted(
@@ -85,7 +86,7 @@ class BaseTestForMakeRecipe(RecipeCtx):
         mock_current_directory,
     ):
         mock_find_executable.return_value = self.expected_compiler.format(
-                android_ndk=self.ctx._ndk_dir
+                android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
         mock_glob.return_value = ["llvm"]
 
@@ -133,7 +134,7 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
         mock_current_directory,
     ):
         mock_find_executable.return_value = self.expected_compiler.format(
-                android_ndk=self.ctx._ndk_dir
+                android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
         mock_glob.return_value = ["llvm"]
 
