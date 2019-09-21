@@ -100,6 +100,10 @@ class TestToolchainCL:
         ]
         assert m_run_distribute.call_args_list == [mock.call()]
 
+    @mock.patch(
+        'pythonforandroid.build.environ',
+        # Make sure that no environ variable modifies `sdk_dir`
+        {'ANDROIDSDK': None, 'ANDROID_HOME': None})
     def test_create_no_sdk_dir(self):
         """
         The `--sdk-dir` is mandatory to `create` a distribution.
