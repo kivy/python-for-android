@@ -1,4 +1,4 @@
-name: Unit tests
+name: Unit tests & Build Testapp
 
 on: ['push', 'pull_request']
 
@@ -49,3 +49,17 @@ jobs:
         python -m coveralls
       env:
         COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
+  build:
+    name: Build testapp
+    needs: [flake8]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout python-for-android
+      uses: actions/checkout@master
+    - name: Pull docker image
+      run: |
+        make docker/pull
+    - name: Build apk for Python 3 arm64-v8a
+      run: |
+        make docker/run/make/testapps/python3/arm64-v8a
