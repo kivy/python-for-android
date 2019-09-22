@@ -73,7 +73,6 @@ class Distribution(object):
         arch_name : str
             The target architecture name to compile against, included in the dist because
             it cannot be changed later during APK packaging.
-            This is a required, keyword-only argument.
         recipes : list
             The recipes that the distribution must contain.
         force_download: bool
@@ -91,9 +90,7 @@ class Distribution(object):
             a new one with the current requirements.
         '''
 
-        existing_dists = Distribution.get_distributions(ctx)
-
-        possible_dists = existing_dists[:]
+        possible_dists = Distribution.get_distributions(ctx)
 
         # Will hold dists that would be built in the same folder as an existing dist
         folder_match_dist = None

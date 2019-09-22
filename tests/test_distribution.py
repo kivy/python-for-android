@@ -56,7 +56,6 @@ class TestDistribution(unittest.TestCase):
             arch_name=self.TEST_ARCH,
             **kwargs
         )
-        print('distribution when made is', self.ctx.bootstrap.distribution)
 
     def tearDown(self):
         """Here we make sure that we reset a possible bootstrap created in
@@ -158,7 +157,6 @@ class TestDistribution(unittest.TestCase):
         ]
 
         dists = self.ctx.bootstrap.distribution.get_distributions(self.ctx)
-        print('dists are', dists)
         self.assertIsInstance(dists, list)
         self.assertEqual(len(dists), 1)
         self.assertIsInstance(dists[0], Distribution)
