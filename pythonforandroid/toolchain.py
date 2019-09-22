@@ -15,6 +15,7 @@ from pythonforandroid.recommendations import (
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.entrypoints import main
 
+
 def check_python_dependencies():
     # Check if the Python requirements are installed. This appears
     # before the imports because otherwise they're imported elsewhere.
@@ -101,6 +102,7 @@ toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
 APK_SUFFIX = '.apk'
+
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):

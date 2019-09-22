@@ -96,7 +96,7 @@ class Bootstrap(object):
         '''The dist dir at which to place the finished distribution.'''
         if self.distribution is None:
             raise BuildInterruptingException(
-                'Tried to access {}.dist_dir, but {}.distribution '
+                'Internal error: tried to access {}.dist_dir, but {}.distribution '
                 'is None'.format(self, self))
         return self.distribution.dist_dir
 

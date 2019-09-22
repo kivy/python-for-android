@@ -11,6 +11,7 @@ from pythonforandroid.distribution import Distribution, generate_dist_folder_nam
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
+from pythonforandroid.util import BuildInterruptingException
 
 from test_graph import get_fake_recipe
 
@@ -75,11 +76,10 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         self.assertEqual(bs.jni_dir, "sdl2/jni")
         self.assertEqual(bs.get_build_dir_name(), "sdl2-python3")
 
-        # test dist_dir error
+        # bs.dist_dir should raise an error if there is no distribution to query
         bs.distribution = None
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(BuildInterruptingException):
             bs.dist_dir
-        self.assertEqual(e.exception.args[0], 1)
 
         # test dist_dir success
         self.setUp_distribution_with_bootstrap(bs)
@@ -255,8 +255,8 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         """
         bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
 
-        bs.prepare_dist_dir("fake_name")
-        mock_ensure_dir.assert_called_once_with(bs.dist_dir)
+        bs.prepare_dist_dir()
+        mock_ensure_dir.assert_called_once()
 
     @mock.patch("pythonforandroid.bootstrap.open", create=True)
     @mock.patch("pythonforandroid.util.chdir")
