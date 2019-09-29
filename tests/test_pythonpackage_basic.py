@@ -303,7 +303,7 @@ class TestGetSystemPythonExecutable():
             ])
             subprocess.check_output([
                 os.path.join(test_dir, "virtualenv", "bin", "pip"),
-                "install", "-U", "pep517"
+                "install", "-U", "pep517<0.7.0"
             ])
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "virtualenv", "bin", "python")
@@ -336,7 +336,7 @@ class TestGetSystemPythonExecutable():
             ])
             subprocess.check_output([
                 os.path.join(test_dir, "venv", "bin", "pip"),
-                "install", "-U", "pep517"
+                "install", "-U", "pep517<0.7.0"
             ])
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "venv", "bin", "python")
