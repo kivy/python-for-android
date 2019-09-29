@@ -10,7 +10,7 @@ from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.build import Context
 
 dist_info_data = {
-    "dist_name": None,
+    "dist_name": "sdl2_dist",
     "bootstrap": "sdl2",
     "archs": ["armeabi", "armeabi-v7a", "x86", "x86_64", "arm64-v8a"],
     "ndk_api": 21,
@@ -26,6 +26,8 @@ class TestDistribution(unittest.TestCase):
     An inherited class of `unittest.TestCase`to test the module
     :mod:`~pythonforandroid.distribution`.
     """
+
+    TEST_ARCH = 'armeabi-v7a'
 
     def setUp(self):
         """Configure a :class:`~pythonforandroid.build.Context` so we can
@@ -51,6 +53,7 @@ class TestDistribution(unittest.TestCase):
             self.ctx,
             name=kwargs.pop("name", "test_prj"),
             recipes=kwargs.pop("recipes", ["python3", "kivy"]),
+            arch_name=self.TEST_ARCH,
             **kwargs
         )
 
@@ -108,7 +111,7 @@ class TestDistribution(unittest.TestCase):
         returns the proper result which should `unnamed_dist_1`."""
         mock_exists.return_value = False
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
-        dist = Distribution.get_distribution(self.ctx)
+        dist = Distribution.get_distribution(self.ctx, arch_name=self.TEST_ARCH)
         self.assertEqual(dist.name, "unnamed_dist_1")
 
     @mock.patch("pythonforandroid.util.chdir")
@@ -157,7 +160,8 @@ class TestDistribution(unittest.TestCase):
         self.assertIsInstance(dists, list)
         self.assertEqual(len(dists), 1)
         self.assertIsInstance(dists[0], Distribution)
-        self.assertEqual(dists[0].name, "sdl2-python3")
+        self.assertEqual(dists[0].name, "sdl2_dist")
+        self.assertEqual(dists[0].dist_dir, "sdl2-python3")
         self.assertEqual(dists[0].ndk_api, 21)
         self.assertEqual(
             dists[0].recipes,
@@ -206,7 +210,10 @@ class TestDistribution(unittest.TestCase):
         distribution with the same `name` but different `ndk_api`.
         """
         expected_dist = Distribution.get_distribution(
-            self.ctx, name="test_prj", recipes=["python3", "kivy"]
+            self.ctx,
+            name="test_prj",
+            recipes=["python3", "kivy"],
+            arch_name=self.TEST_ARCH,
         )
         mock_get_dists.return_value = [expected_dist]
         mock_glob.return_value = ["sdl2-python3"]
@@ -254,7 +261,10 @@ class TestDistribution(unittest.TestCase):
         `:class:`~pythonforandroid.distribution.Distribution`.
         """
         expected_dist = Distribution.get_distribution(
-            self.ctx, name="test_prj", recipes=["python3", "kivy"]
+            self.ctx,
+            name="test_prj",
+            recipes=["python3", "kivy"],
+            arch_name=self.TEST_ARCH,
         )
         mock_get_dists.return_value = [expected_dist]
         self.setUp_distribution_with_bootstrap(

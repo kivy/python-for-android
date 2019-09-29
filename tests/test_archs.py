@@ -50,6 +50,8 @@ class ArchSetUpBaseClass(object):
     ctx = None
     expected_compiler = ""
 
+    TEST_ARCH = 'armeabi-v7a'
+
     def setUp(self):
         self.ctx = Context()
         self.ctx.ndk_api = 21
@@ -59,7 +61,10 @@ class ArchSetUpBaseClass(object):
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
-            self.ctx, name="sdl2", recipes=["python3", "kivy"]
+            self.ctx,
+            name="sdl2",
+            recipes=["python3", "kivy"],
+            arch_name=self.TEST_ARCH,
         )
         self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
         # Here we define the expected compiler, which, as per ndk >= r19,

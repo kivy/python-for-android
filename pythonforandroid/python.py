@@ -341,8 +341,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
         python_lib_name = 'libpython' + self.major_minor_version_string
         if self.major_minor_version_string[0] == '3':
             python_lib_name += 'm'
-        shprint(sh.cp, join(python_build_dir, python_lib_name + '.so'),
-                join(self.ctx.dist_dir, self.ctx.dist_name, 'libs', arch.arch))
+        shprint(
+            sh.cp,
+            join(python_build_dir, python_lib_name + '.so'),
+            join(self.ctx.bootstrap.dist_dir, 'libs', arch.arch)
+        )
 
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(join(dirn, 'site-packages'))
