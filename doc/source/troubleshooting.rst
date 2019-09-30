@@ -145,18 +145,25 @@ the build (e.g. if buildozer was previously used). Removing this
 directory should fix the problem, and is desirable anyway since you
 don't want it in the APK.
 
-Exception in thread "main" java.lang.UnsupportedClassVersionError: com/android/dx/command/Main : Unsupported major.minor version 52.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Errors related to Java version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This occurs due to a java version mismatch, it should be fixed by
-installing Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
+The errors listed below are related to Java version mismatch, it should be
+fixed by installing Java 8.
 
-java.lang.NoClassDefFoundError: sun/misc/BASE64Encoder
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- :code:`java.lang.UnsupportedClassVersionError: com/android/dx/command/Main`
+- :code:`java.lang.NoClassDefFoundError: sun/misc/BASE64Encoder`
+- :code:`java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema`
 
-Also make sure you're running Java 8, on OS X::
+On Ubuntu fix it my making sure only the :code:`openjdk-8-jdk` package is installed::
+
+    apt remove --purge openjdk-*-jdk
+    apt install openjdk-8-jdk
+
+In the similar fashion for macOS you need to install the :code:`java8` package::
 
     brew cask install java8
+
 
 JNI DETECTED ERROR IN APPLICATION: static jfieldID 0x0000000 not valid for class java.lang.Class<org.renpy.android.PythonActivity>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
