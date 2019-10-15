@@ -18,14 +18,19 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
 
     call_hostpython_via_targetpython = False
 
+    def apply_patches(self, arch, build_dir=None):
+        if 'python2' in self.ctx.recipe_build_order:
+            self.patches.append(join('patches', 'fix-py2-numpy-import.patch'))
+        super().apply_patches(arch, build_dir=build_dir)
+
     def build_compiled_components(self, arch):
         self.setup_extra_args = ['-j', str(cpu_count())]
-        super(NumpyRecipe, self).build_compiled_components(arch)
+        super().build_compiled_components(arch)
         self.setup_extra_args = []
 
     def rebuild_compiled_components(self, arch, env):
         self.setup_extra_args = ['-j', str(cpu_count())]
-        super(NumpyRecipe, self).rebuild_compiled_components(arch, env)
+        super().rebuild_compiled_components(arch, env)
         self.setup_extra_args = []
 
 
