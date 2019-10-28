@@ -29,7 +29,8 @@ RUN apt -y update -qq > /dev/null && apt -y install -qq --no-install-recommends 
 	ca-certificates \
     curl \
     && apt -y autoremove \
-    && apt -y clean
+    && apt -y clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # retry helper script, refs:
 # https://github.com/kivy/python-for-android/issues/1306
@@ -83,7 +84,8 @@ RUN dpkg --add-architecture i386 \
     zlib1g-dev \
     zlib1g:i386 \
     && apt -y autoremove \
-    && apt -y clean
+    && apt -y clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -93,7 +95,8 @@ RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # install cython for python 2 (for python 3 it's inside the venv)
-RUN pip2 install --upgrade Cython==0.28.6
+RUN pip2 install --upgrade Cython==0.28.6 \
+    && rm -rf ~/.cache/
 
 WORKDIR ${WORK_DIR}
 RUN mkdir ${ANDROID_HOME} && chown --recursive ${USER} ${HOME_DIR} ${ANDROID_HOME}
@@ -108,6 +111,7 @@ RUN make --file /tmp/android.mk target_os=linux \
 COPY --chown=user:user Makefile README.md setup.py pythonforandroid/__init__.py ${WORK_DIR}/
 RUN mkdir pythonforandroid \
     && mv __init__.py pythonforandroid/ \
-    && make virtualenv
+    && make virtualenv \
+    && rm -rf ~/.cache/
 
 COPY --chown=user:user . ${WORK_DIR}

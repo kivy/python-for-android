@@ -11,9 +11,18 @@ PYTHON_MINOR_VERSION=6
 PYTHON_VERSION=$(PYTHON_MAJOR_VERSION).$(PYTHON_MINOR_VERSION)
 PYTHON_MAJOR_MINOR=$(PYTHON_MAJOR_VERSION)$(PYTHON_MINOR_VERSION)
 PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
-DOCKER_IMAGE=kivy/python-for-android
 ANDROID_SDK_HOME ?= $(HOME)/.android/android-sdk
 ANDROID_NDK_HOME ?= $(HOME)/.android/android-ndk
+DOCKER_IMAGE=kivy/python-for-android
+# tag to latest only on merge to develop
+DOCKER_TAG=latest
+ifdef TRAVIS_PULL_REQUEST
+ifneq ($(TRAVIS_PULL_REQUEST), false)
+	DOCKER_TAG=pr-$(TRAVIS_PULL_REQUEST)
+else ifneq ($(TRAVIS_BRANCH), develop)
+	DOCKER_TAG=branch-$(subst /,-,$(TRAVIS_BRANCH)) # slash is an invalid docker tag character
+endif
+endif
 
 
 all: virtualenv
@@ -57,13 +66,16 @@ clean/all: clean
 	rm -rf $(VIRTUAL_ENV) .tox/
 
 docker/pull:
-	docker pull $(DOCKER_IMAGE):latest || true
+	docker pull $(DOCKER_IMAGE):$(DOCKER_TAG) || docker pull $(DOCKER_IMAGE):latest || true
 
 docker/build:
-	docker build --cache-from=$(DOCKER_IMAGE) --tag=$(DOCKER_IMAGE) --file=Dockerfile.py3 .
+	docker build --cache-from=$(DOCKER_IMAGE):$(DOCKER_TAG) --tag=$(DOCKER_IMAGE):$(DOCKER_TAG) --file=Dockerfile.py3 .
 
-docker/push:
-	docker push $(DOCKER_IMAGE)
+docker/login:
+	docker login --username $(DOCKER_USERNAME) --password $(DOCKER_PASSWORD) || true
+
+docker/push: docker/login
+	docker push $(DOCKER_IMAGE) || true
 
 docker/run/test: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) 'make test'
@@ -72,7 +84,7 @@ docker/run/command: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) /bin/sh -c "$(COMMAND)"
 
 docker/run/make/%: docker/build
-	docker run --rm --env-file=.env $(DOCKER_IMAGE) make $*
+	docker run --rm --env-file=.env $(DOCKER_IMAGE):$(DOCKER_TAG) make $*
 
 docker/run/shell: docker/build
 	docker run --rm --env-file=.env -it $(DOCKER_IMAGE)

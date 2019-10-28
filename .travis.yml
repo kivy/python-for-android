@@ -3,8 +3,8 @@ sudo: required
 language: generic
 
 stages:
-  - unit tests
-  - build apps
+  - pre checks
+  - build testapps
 
 services:
   - docker
@@ -16,8 +16,8 @@ before_install:
 
 jobs:
   include:
-    - &unittests
-      stage: unit tests
+    - &prechecks
+      stage: pre checks
       language: python
       python: 3.7
       before_script:
@@ -38,23 +38,28 @@ jobs:
         - tox -- tests/ --ignore tests/test_pythonpackage.py
       name: "Tox Pep8"
       env: TOXENV=pep8
-    - <<: *unittests
+    - <<: *prechecks
       name: "Tox Python 2"
       env: TOXENV=py27
-    - <<: *unittests
+    - <<: *prechecks
       name: "Tox Python 3 & Coverage"
       env: TOXENV=py3
       after_success:
         - coveralls
-    - &testing
-      stage: build apps
+    # the docker build stage runs almost as fast as `tox` unit tests, so we can run in parallel
+    - name: "Docker build"
       before_script:
-        # ideally we would have a stage for that so it's not ran multiple time
-        # but it seems Travis doesn't share the build cache
-        - make docker/build
+        - make docker/pull TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST TRAVIS_BRANCH=$TRAVIS_BRANCH
+      script:
+        - make docker/build TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST TRAVIS_BRANCH=$TRAVIS_BRANCH
+      after_success:
+        - make docker/push DOCKER_USERNAME=$DOCKER_USERNAME DOCKER_PASSWORD=$DOCKER_PASSWORD
+    - &testapps
       name: Python 3 arm64-v8a
-      script: make docker/run/make/testapps/python3/arm64-v8a
-    - <<: *testing
+      stage: build testapps
+      before_script: make docker/pull TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST TRAVIS_BRANCH=$TRAVIS_BRANCH
+      script: make docker/run/make/testapps/python3/arm64-v8a TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST TRAVIS_BRANCH=$TRAVIS_BRANCH
+    - <<: *testapps
       name: Python 3 armeabi-v7a
       os: osx
       osx_image: xcode11  # since xcode1.3, python3 is the default interpreter
@@ -63,9 +68,9 @@ jobs:
         - make -f ci/makefiles/osx.mk
         - export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
       script: make testapps/python3/armeabi-v7a PYTHON_WITH_VERSION=python3
-    - <<: *testing
+    - <<: *testapps
       name: Python 2 armeabi-v7a (with numpy)
-      script: make docker/run/make/testapps/python2/armeabi-v7a
-    - <<: *testing
+      script: make docker/run/make/testapps/python2/armeabi-v7a TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST TRAVIS_BRANCH=$TRAVIS_BRANCH
+    - <<: *testapps
       name: Rebuild updated recipes
-      script: make docker/run/make/rebuild_updated_recipes
+      script: make docker/run/make/rebuild_updated_recipes TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST TRAVIS_BRANCH=$TRAVIS_BRANCH
