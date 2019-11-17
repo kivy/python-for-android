@@ -25,7 +25,11 @@ class ZopeInterfaceRecipe(PythonRecipe):
     def prebuild_arch(self, arch):
         super(ZopeInterfaceRecipe, self).prebuild_arch(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            sh.rm('-rf', 'src/zope/interface/tests', 'src/zope/interface/common/tests')
+            sh.rm(
+                '-rf',
+                'src/zope/interface/tests',
+                'src/zope/interface/common/tests',
+            )
 
 
 recipe = ZopeInterfaceRecipe()
