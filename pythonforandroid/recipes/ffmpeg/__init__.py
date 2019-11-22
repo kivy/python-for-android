@@ -37,14 +37,17 @@ class FFMpegRecipe(Recipe):
                     '--enable-nonfree',
                     '--enable-protocol=https,tls_openssl',
                 ]
-                build_dir = Recipe.get_recipe('openssl', self.ctx).get_build_dir(arch.arch)
-                cflags += ['-I' + build_dir + '/include/', '-DOPENSSL_API_COMPAT=0x10002000L']
+                build_dir = Recipe.get_recipe(
+                    'openssl', self.ctx).get_build_dir(arch.arch)
+                cflags += ['-I' + build_dir + '/include/',
+                           '-DOPENSSL_API_COMPAT=0x10002000L']
                 ldflags += ['-L' + build_dir]
 
             if 'ffpyplayer_codecs' in self.ctx.recipe_build_order:
                 # libx264
                 flags += ['--enable-libx264']
-                build_dir = Recipe.get_recipe('libx264', self.ctx).get_build_dir(arch.arch)
+                build_dir = Recipe.get_recipe(
+                    'libx264', self.ctx).get_build_dir(arch.arch)
                 cflags += ['-I' + build_dir + '/include/']
                 ldflags += ['-lx264', '-L' + build_dir + '/lib/']
 
@@ -109,7 +112,6 @@ class FFMpegRecipe(Recipe):
                 cross_prefix = 'arm-linux-androideabi-'
                 arch_flag = 'arm'
 
-
             # android:
             flags += [
                 '--target-os=android',
@@ -118,13 +120,12 @@ class FFMpegRecipe(Recipe):
                 '--arch={}'.format(arch_flag),
                 '--strip={}strip'.format(cross_prefix),
                 '--sysroot={}'.format(join(self.ctx.ndk_dir, 'toolchains',
-                                        'llvm', 'prebuilt', 'linux-x86_64',
-                                        'sysroot')),
+                                           'llvm', 'prebuilt', 'linux-x86_64',
+                                           'sysroot')),
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]
 
-            
             if arch_flag == 'arm':
                 cflags += [
                     '-mfpu=vfpv3-d16',
@@ -142,6 +143,5 @@ class FFMpegRecipe(Recipe):
             # copy libs:
             sh.cp('-a', sh.glob('./lib/lib*.so'),
                   self.ctx.get_libs_dir(arch.arch))
-
 
 recipe = FFMpegRecipe()
