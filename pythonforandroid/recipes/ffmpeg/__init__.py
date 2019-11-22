@@ -4,7 +4,7 @@ import sh
 
 
 class FFMpegRecipe(Recipe):
-    version = 'n4.3-dev'
+    version = '007e03348dbd8d3de3eb09022d72c734a8608144'
     # Moved to github.com instead of ffmpeg.org to improve download speed
     url = 'https://github.com/FFmpeg/FFmpeg/archive/{version}.zip'
     depends = ['sdl2']  # Need this to build correct recipe order
@@ -48,13 +48,16 @@ class FFMpegRecipe(Recipe):
                 cflags += ['-I' + build_dir + '/include/']
                 ldflags += ['-lx264', '-L' + build_dir + '/lib/']
 
-                # libshine
-
                 """
+                WARNING: DISABLED during migration to ndk19, cause We're
+                getting a runtime error for a missing symbol.
+
+                # libshine
                 flags += ['--enable-libshine']
                 build_dir = Recipe.get_recipe('libshine', self.ctx).get_build_dir(arch.arch)
                 cflags += ['-I' + build_dir + '/include/']
                 ldflags += ['-lshine', '-L' + build_dir + '/lib/']
+                ldflags += ['-lm']
                 """
 
                 # Enable all codecs:
@@ -95,6 +98,7 @@ class FFMpegRecipe(Recipe):
                 '--enable-gpl',
                 '--enable-pic',
                 '--disable-static',
+                '--disable-debug',
                 '--enable-shared',
             ]
 
