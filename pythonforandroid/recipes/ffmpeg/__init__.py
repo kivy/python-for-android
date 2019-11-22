@@ -144,4 +144,5 @@ class FFMpegRecipe(Recipe):
             sh.cp('-a', sh.glob('./lib/lib*.so'),
                   self.ctx.get_libs_dir(arch.arch))
 
+
 recipe = FFMpegRecipe()
