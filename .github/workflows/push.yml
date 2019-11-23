@@ -15,11 +15,10 @@ jobs:
       with:
         python-version: 3.7
     - name: Run flake8
-      # we use exactly the same exceptions than tox.ini file
       run: |
         python -m pip install --upgrade pip
-        pip install -U flake8
-        flake8 --ignore=E123,E124,E126,E226,E402,E501,W503,W504 pythonforandroid/ tests/ ci/
+        pip install tox>=2.0
+        tox -e pep8
 
   linting:
     name: Pytest [Python ${{ matrix.python-version }} | ${{ matrix.os }}]
