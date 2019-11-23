@@ -35,19 +35,15 @@ jobs:
       uses: actions/setup-python@v1.1.0
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Tox Python 3
+      # ignores test_pythonpackage.py since it runs for too long
       run: |
         python -m pip install --upgrade pip
-        pip install -U virtualenv pytest pytest-cov backports.tempfile pyOpenSSL coveralls
-        pip install -e .
-    - name: Tests
+        pip install tox>=2.0 pyOpenSSL coveralls
+        tox -e py3 -- tests/ --ignore tests/test_pythonpackage.py
+    - name: Send Coverage to coveralls
       run: |
-        python -m pytest tests/ --ignore tests/test_pythonpackage.py --cov pythonforandroid/ --cov-branch
-    - name: Coveralls
-      run: |
-        python -m coveralls
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        coveralls
 
   build:
     name: Build testapp
