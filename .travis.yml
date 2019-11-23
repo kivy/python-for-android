@@ -65,4 +65,4 @@ jobs:
       script: make docker/run/make/testapps/python2/armeabi-v7a
     - <<: *testapps
       name: Rebuild updated recipes
-      script: make docker/run/make/rebuild_updated_recipes
+      script: travis_wait 30 make docker/run/make/rebuild_updated_recipes
