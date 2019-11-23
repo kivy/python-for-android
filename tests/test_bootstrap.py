@@ -4,6 +4,8 @@ import sh
 import unittest
 
 from unittest import mock
+from platform import system
+
 from pythonforandroid.bootstrap import (
     _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
 )
@@ -546,7 +548,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            "toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+            f"toolchains/llvm/prebuilt/{system().lower()}-x86_64/bin/clang",
         )
         mock_glob.return_value = [
             os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")

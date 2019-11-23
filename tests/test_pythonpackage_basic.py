@@ -308,7 +308,9 @@ class TestGetSystemPythonExecutable():
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "virtualenv", "bin", "python")
             )
-            assert os.path.normpath(sys_python_path) == os.path.normpath(pybin)
+            assert os.path.normpath(sys_python_path).startswith(
+                os.path.normpath(pybin)
+            )
         finally:
             shutil.rmtree(test_dir)
 
@@ -341,6 +343,8 @@ class TestGetSystemPythonExecutable():
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "venv", "bin", "python")
             )
-            assert os.path.normpath(sys_python_path) == os.path.normpath(pybin)
+            assert os.path.normpath(sys_python_path).startswith(
+                os.path.normpath(pybin)
+            )
         finally:
             shutil.rmtree(test_dir)
