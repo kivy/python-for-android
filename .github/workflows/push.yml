@@ -54,3 +54,17 @@ jobs:
     - name: Build apk for Python 3 arm64-v8a
       run: |
         make docker/run/make/testapps/python3/arm64-v8a
+
+  rebuild_updated_recipes:
+    name: Test updated recipes
+    needs: [flake8]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout python-for-android
+      uses: actions/checkout@master
+    - name: Pull docker image
+      run: |
+        make docker/pull
+    - name: Rebuild updated recipes
+      run: |
+        make docker/run/make/rebuild_updated_recipes
