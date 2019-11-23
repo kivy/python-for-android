@@ -44,6 +44,8 @@ jobs:
     - name: Send Coverage to coveralls
       run: |
         coveralls
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
   build:
     name: Build testapp
