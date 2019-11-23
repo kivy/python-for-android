@@ -75,11 +75,7 @@ class LibtorrentRecipe(Recipe):
         # Define build variables
         build_dir = self.get_build_dir(arch.arch)
         ctx_libs_dir = self.ctx.get_libs_dir(arch.arch)
-        encryption = (
-            'openssl'
-            if 'openssl' in recipe.ctx.recipe_build_order
-            else 'built-in'
-        )
+        encryption = 'openssl' if 'openssl' in recipe.ctx.recipe_build_order else 'built-in'
         build_args = [
             '-q',
             # '-a',  # force build, useful to debug the build
