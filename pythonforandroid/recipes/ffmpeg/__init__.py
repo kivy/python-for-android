@@ -51,17 +51,12 @@ class FFMpegRecipe(Recipe):
                 cflags += ['-I' + build_dir + '/include/']
                 ldflags += ['-lx264', '-L' + build_dir + '/lib/']
 
-                """
-                WARNING: DISABLED during migration to ndk19, cause We're
-                getting a runtime error for a missing symbol.
-
                 # libshine
                 flags += ['--enable-libshine']
                 build_dir = Recipe.get_recipe('libshine', self.ctx).get_build_dir(arch.arch)
                 cflags += ['-I' + build_dir + '/include/']
                 ldflags += ['-lshine', '-L' + build_dir + '/lib/']
                 ldflags += ['-lm']
-                """
 
                 # Enable all codecs:
                 flags += [

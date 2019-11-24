@@ -10,7 +10,15 @@ class LibShineRecipe(Recipe):
     version = 'c72aba9031bde18a0995e7c01c9b53f2e08a0e46'
     url = 'https://github.com/toots/shine/archive/{version}.zip'
 
-    built_libraries = {'libshine.a': 'lib'}
+    built_libraries = {'libshine.so': 'lib'}
+
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+        env = super().get_recipe_env(arch, with_flags_in_cc)
+        # technically, libraries should go to `LDLIBS`, but it seems
+        # that libshine doesn't like so, and it will fail on linking stage
+        env['LDLIBS'] = env['LDLIBS'].replace(' -lm', '')
+        env['LDFLAGS'] += ' -lm'
+        return env
 
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
@@ -18,11 +26,11 @@ class LibShineRecipe(Recipe):
             shprint(sh.Command('./bootstrap'))
             configure = sh.Command('./configure')
             shprint(configure,
-                    '--host=arm-linux',
+                    f'--host={arch.command_prefix}',
                     '--enable-pic',
-                    '--disable-shared',
-                    '--enable-static',
-                    '--prefix={}'.format(realpath('.')),
+                    '--disable-static',
+                    '--enable-shared',
+                    f'--prefix={realpath(".")}',
                     _env=env)
             shprint(sh.make, '-j', str(cpu_count()), _env=env)
             shprint(sh.make, 'install', _env=env)
