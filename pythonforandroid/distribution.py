@@ -1,6 +1,7 @@
 from os.path import exists, join
 import glob
 import json
+from pathlib import Path
 
 from pythonforandroid.logger import (info, info_notify, warning, Err_Style, Err_Fore)
 from pythonforandroid.util import current_directory, BuildInterruptingException
@@ -19,6 +20,7 @@ class Distribution(object):
 
     name = None  # A name identifying the dist. May not be None.
     needs_build = False  # Whether the dist needs compiling
+    needs_android_api_update = False  # Whether the dist needs api update
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
     ndk_api = None
@@ -184,6 +186,7 @@ class Distribution(object):
         )
         dist.recipes = recipes
         dist.ndk_api = ctx.ndk_api
+        dist.android_api = ctx.android_api
         dist.archs = [arch_name]
 
         return dist
@@ -237,7 +240,24 @@ class Distribution(object):
                 f"you might want to delete it"
             )
 
+        dist.android_api = dist_info.get('android_api', None)
+        if dist.android_api != ctx.android_api:
+            dist.needs_android_api_update = True
+
         return dist
+
+    @property
+    def dist_info_file(self):
+        """Return the path of the distribution `dist_info.json` file."""
+        return str(Path(self.dist_dir, 'dist_info.json'))
+
+    @staticmethod
+    def get_dist_info(dist_dir):
+        """Load `dist_info.json` file given a dist path."""
+        dist_json_file = str(Path(dist_dir, 'dist_info.json'))
+        with open(dist_json_file, 'r') as file_opened:
+            dist_info = json.load(file_opened)
+        return dist_info
 
     def save_info(self, dirn):
         '''
@@ -263,6 +283,46 @@ class Distribution(object):
                     indent=4,
                     sort_keys=True,
                 )
+
+    def update_dist_info(self, key, value):
+        """Update `dist_info.json` values."""
+        dist_info = self.get_dist_info(self.dist_dir)
+
+        dist_info[key] = value
+        with open(self.dist_info_file, 'w') as file_opened:
+            json.dump(dist_info, file_opened, indent=4, sort_keys=True)
+
+    def update_dist_project_properties_android_api(self, new_android_api):
+        """Update `project.properties` with a new android api."""
+        project_props_file = str(Path(self.dist_dir, 'project.properties'))
+        with open(project_props_file, 'w') as file_opened:
+            file_opened.write(f'target=android-{new_android_api}')
+
+    def update_dist_android_api(self, new_android_api):
+        """Update distribution files with a new android api."""
+        info(f'Update distribution files for android api {new_android_api}')
+
+        # 1) Update hardcoded android api at build.gradle
+        gradle_file = str(Path(self.dist_dir, 'build.gradle'))
+        old_android_api = self.android_api
+        # Read in the file
+        with open(gradle_file, 'r') as f_gradle:
+            file_data = f_gradle.read()
+        # Replace the android API at proper keys
+        for keyword in {'compileSdkVersion', 'targetSdkVersion'}:
+            file_data = file_data.replace(
+                f'{keyword} {old_android_api}', f'{keyword} {new_android_api}'
+            )
+        # Write the file out again with the new content
+        with open(gradle_file, 'w') as new_f_gradle:
+            new_f_gradle.write(file_data)
+
+        # 2) Update hardcoded android api at project.properties
+        self.update_dist_project_properties_android_api(new_android_api)
+
+        # 3) Update cls attributes and `dist_info.json` file
+        self.android_api = new_android_api
+        self.update_dist_info('android_api', new_android_api)
 
 
 def pretty_log_dists(dists, log_func=info):

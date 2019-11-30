@@ -153,6 +153,11 @@ def require_prebuilt_dist(func):
             info_notify('No dist exists that meets your requirements, '
                         'so one will be built.')
             build_dist_from_args(ctx, dist, args)
+        if dist.needs_android_api_update:
+            info_notify(
+                f'Updating dist with new android api {self.android_api}...'
+            )
+            dist.update_dist_android_api(self.android_api)
         func(self, args)
     return wrapper_func
 
