@@ -139,6 +139,25 @@ class TestDistribution(unittest.TestCase):
             new_info_data, expected_json_file, indent=4, sort_keys=True,
         )
 
+    @mock.patch("pythonforandroid.distribution.open", create=True)
+    def test_update_dist_project_properties_android_api(self, mock_open):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.update_dist_project_properties_android_api`
+        calls the proper methods with the right arguments."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        mocked_file_obj = mock.mock_open(read_data=json.dumps(dist_info_data))
+        mock_open.side_effect = [mocked_file_obj.return_value]
+        new_android_api = 28
+        self.ctx.bootstrap.distribution.update_dist_project_properties_android_api(  # noqa
+            new_android_api
+        )
+        self.assertTrue(mock_open.call_args[0][0].endswith(
+            'dists/test_prj__armeabi-v7a/project.properties')
+        )
+        self.assertEqual(mock_open.call_args[0][1], 'w')
+
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
         """Test that method
