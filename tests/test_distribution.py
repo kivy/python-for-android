@@ -89,6 +89,21 @@ class TestDistribution(unittest.TestCase):
             os.path.join(distribution.dist_dir, "dist_info.json")
         )
 
+    @mock.patch("pythonforandroid.distribution.open", create=True)
+    def test_get_dist_info(self, mock_open):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.get_dist_info`
+        calls the proper methods and returns the proper value."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        mock_open.side_effect = [
+            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value
+        ]
+        dist_info = self.ctx.bootstrap.distribution.get_dist_info("/fake_dir")
+        mock_open.assert_called_once_with("/fake_dir/dist_info.json", "r")
+        self.assertIsInstance(dist_info, dict)
+
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
         """Test that method
