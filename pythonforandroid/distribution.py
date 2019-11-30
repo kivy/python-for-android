@@ -22,6 +22,7 @@ class Distribution(object):
     url = None
     dist_dir = None  # Where the dist dir ultimately is. Should not be None.
     ndk_api = None
+    android_api = None
 
     archs = []
     '''The names of the arch targets that the dist is built for.'''
@@ -250,6 +251,7 @@ class Distribution(object):
                      'bootstrap': self.ctx.bootstrap.name,
                      'archs': [arch.arch for arch in self.ctx.archs],
                      'ndk_api': self.ctx.ndk_api,
+                     'android_api': self.ctx.android_api,
                      'use_setup_py': self.ctx.use_setup_py,
                      'recipes':
                          self.ctx.recipe_build_order + self.ctx.python_modules,
