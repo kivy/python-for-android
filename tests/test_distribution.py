@@ -21,6 +21,19 @@ dist_info_data = {
     "python_version": "3.7",
 }
 
+gradle_file_partial_content = f"""
+android {{
+    compileSdkVersion {dist_info_data["android_api"]}
+    buildToolsVersion '29.0.1'
+    defaultConfig {{
+        minSdkVersion {dist_info_data["ndk_api"]}
+        targetSdkVersion {dist_info_data["android_api"]}
+        versionCode 821101
+        versionName '1.1'
+    }}
+}}
+"""
+
 
 class TestDistribution(unittest.TestCase):
     """
@@ -157,6 +170,45 @@ class TestDistribution(unittest.TestCase):
             'dists/test_prj__armeabi-v7a/project.properties')
         )
         self.assertEqual(mock_open.call_args[0][1], 'w')
+
+    @mock.patch("pythonforandroid.distribution.open")
+    def test_update_dist_android_api(self, mock_open):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.update_dist_android_api`
+        calls the proper methods with the right arguments."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+
+        new_android_api = 28
+        new_gradle_content = gradle_file_partial_content.replace(
+            f"compileSdkVersion {dist_info_data['android_api']}",
+            f"compileSdkVersion {new_android_api}"
+        ).replace(
+            f"targetSdkVersion {dist_info_data['android_api']}",
+            f"targetSdkVersion {new_android_api}"
+        )
+        mock_open.side_effect = [
+            mock.mock_open(read_data=gradle_file_partial_content).return_value,
+            mock.mock_open(read_data=new_gradle_content).return_value,
+            mock.mock_open(read_data="target=android-27").return_value,
+            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value,
+            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value,
+        ]
+
+        dist = self.ctx.bootstrap.distribution
+        dist.update_dist_android_api(new_android_api)
+        mock_open.assert_has_calls(
+            [
+                mock.call(os.path.join(dist.dist_dir, "build.gradle"), "r"),
+                mock.call(os.path.join(dist.dist_dir, "build.gradle"), "w"),
+                mock.call(
+                    os.path.join(dist.dist_dir, "project.properties"), "w"
+                ),
+                mock.call(os.path.join(dist.dist_dir, "dist_info.json"), "r"),
+                mock.call(os.path.join(dist.dist_dir, "dist_info.json"), "w"),
+            ]
+        )
 
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
