@@ -14,6 +14,7 @@ dist_info_data = {
     "bootstrap": "sdl2",
     "archs": ["armeabi", "armeabi-v7a", "x86", "x86_64", "arm64-v8a"],
     "ndk_api": 21,
+    "android_api": 27,
     "use_setup_py": False,
     "recipes": ["hostpython3", "python3", "sdl2", "kivy", "requests"],
     "hostpython": "/some/fake/hostpython3",
@@ -33,8 +34,8 @@ class TestDistribution(unittest.TestCase):
         """Configure a :class:`~pythonforandroid.build.Context` so we can
         perform our unittests"""
         self.ctx = Context()
-        self.ctx.ndk_api = 21
-        self.ctx.android_api = 27
+        self.ctx.ndk_api = dist_info_data['ndk_api']
+        self.ctx.android_api = dist_info_data['android_api']
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
         self.ctx.setup_dirs(os.getcwd())
@@ -103,6 +104,40 @@ class TestDistribution(unittest.TestCase):
         dist_info = self.ctx.bootstrap.distribution.get_dist_info("/fake_dir")
         mock_open.assert_called_once_with("/fake_dir/dist_info.json", "r")
         self.assertIsInstance(dist_info, dict)
+
+    @mock.patch("pythonforandroid.distribution.json.dump")
+    @mock.patch("pythonforandroid.distribution.open", create=True)
+    def test_update_dist_info(self, mock_open, mock_json):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.update_dist_info`
+        calls the proper methods with the right arguments."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        new_info_data = dist_info_data
+        new_info_data['android_api'] = 28
+        expected_json_file = mock.mock_open(
+            read_data=json.dumps(new_info_data)
+        ).return_value
+        mock_open.side_effect = [
+            # first call to open, when we read the file
+            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value,
+            # second call to open, when we update the file
+            expected_json_file,
+        ]
+
+        self.ctx.bootstrap.distribution.update_dist_info(
+            "android_api", new_info_data['android_api']
+        )
+        # Note: call_args only contemplates the last mocked call, see also:
+        # https://docs.python.org/3/library/unittest.mock.html#unittest.mock.Mock.call_args   # noqa
+        self.assertTrue(mock_open.call_args[0][0].endswith(
+            'dists/test_prj__armeabi-v7a/dist_info.json')
+        )
+        self.assertEqual(mock_open.call_args[0][1], 'w')
+        mock_json.assert_called_once_with(
+            new_info_data, expected_json_file, indent=4, sort_keys=True,
+        )
 
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
