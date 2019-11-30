@@ -210,27 +210,33 @@ class Distribution(object):
             if exists(join(folder, 'dist_info.json')):
                 with open(join(folder, 'dist_info.json')) as fileh:
                     dist_info = json.load(fileh)
-                dist = cls(ctx)
-                dist.name = dist_info['dist_name']
-                dist.dist_dir = folder
-                dist.needs_build = False
-                dist.recipes = dist_info['recipes']
-                if 'archs' in dist_info:
-                    dist.archs = dist_info['archs']
-                if 'ndk_api' in dist_info:
-                    dist.ndk_api = dist_info['ndk_api']
-                else:
-                    dist.ndk_api = None
-                    warning(
-                        "Distribution {distname}: ({distdir}) has been "
-                        "built with an unknown api target, ignoring it, "
-                        "you might want to delete it".format(
-                            distname=dist.name,
-                            distdir=dist.dist_dir
-                        )
-                    )
-                dists.append(dist)
+                dists.append(
+                    cls.get_dist_from_dist_info(ctx, dist_info, folder)
+                )
         return dists
+
+    @classmethod
+    def get_dist_from_dist_info(cls, ctx, dist_info, dist_dir):
+        """Initializes a distribution based on ``dist_info.json` info."""
+        dist = cls(ctx)
+        dist.needs_build = False
+        dist.dist_dir = dist_dir
+
+        dist.name = dist_info['dist_name']
+        dist.recipes = dist_info['recipes']
+        if 'archs' in dist_info:
+            dist.archs = dist_info['archs']
+        if 'ndk_api' in dist_info:
+            dist.ndk_api = dist_info['ndk_api']
+        else:
+            dist.ndk_api = None
+            warning(
+                f"Distribution {dist.name}: ({dist.dist_dir}) has been "
+                f"built with an unknown api target, ignoring it, "
+                f"you might want to delete it"
+            )
+
+        return dist
 
     def save_info(self, dirn):
         '''
