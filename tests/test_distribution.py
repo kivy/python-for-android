@@ -76,6 +76,19 @@ class TestDistribution(unittest.TestCase):
         self.assertEqual(distribution.__str__(), expected_repr)
         self.assertEqual(distribution.__repr__(), expected_repr)
 
+    def test_dist_info_file(self):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.dist_info_file`
+        returns the expected value."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        distribution = self.ctx.bootstrap.distribution
+        self.assertEqual(
+            distribution.dist_info_file,
+            os.path.join(distribution.dist_dir, "dist_info.json")
+        )
+
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
         """Test that method
