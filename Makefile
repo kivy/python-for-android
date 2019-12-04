@@ -76,5 +76,16 @@ docker/run/command: docker/build
 docker/run/make/%: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) make $*
 
+docker/run/make/with-artifact/%: docker/build
+ifeq (,$(findstring python3,$($*)))
+	$(eval $@_APP_NAME := bdisttest_python3_sqlite_openssl_googlendk)
+else
+	$(eval $@_APP_NAME := bdisttest_python2_sqlite_openssl)
+endif
+	$(eval $@_APP_ARCH := $(shell basename $*))
+	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
+	docker cp p4a-latest:/home/user/app/testapps/$($@_APP_NAME)__$($@_APP_ARCH)-debug-1.1-.apk ./apks
+	docker rm -fv p4a-latest
+
 docker/run/shell: docker/build
 	docker run --rm --env-file=.env -it $(DOCKER_IMAGE)
