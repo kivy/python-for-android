@@ -1,10 +1,11 @@
 python-for-android
 ==================
-*Added Bcrypt Recipe*
 [![Build Status](https://travis-ci.org/kivy/python-for-android.svg?branch=develop)](https://travis-ci.org/kivy/python-for-android)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=develop&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=develop)
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
+
+*Added Bcrypt Recipe*
 
 python-for-android is a packaging tool for Python apps on Android. You can
 create your own Python distribution including the modules and
