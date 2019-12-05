@@ -337,25 +337,34 @@ class TestApp(App):
 
     def test_pyjnius(self, *args):
         try:
-            from jnius import autoclass
+            from jnius import autoclass, cast
         except ImportError:
-            raise_error("Could not import pyjnius")
+            raise_error('Could not import pyjnius')
             return
+        print('Attempting to vibrate with pyjnius')
+        ANDROID_VERSION = autoclass('android.os.Build$VERSION')
+        SDK_INT = ANDROID_VERSION.SDK_INT
 
-        print("Attempting to vibrate with pyjnius")
-        # Todo: fix vibrate with Api level >= 26
-        # vibrate was deprecated in API level 26:
-        # https://developer.android.com/reference/android/os/Vibrator
-        try:
-            PythonActivity = autoclass("org.kivy.android.PythonActivity")
-            activity = PythonActivity.mActivity
-            Intent = autoclass("android.content.Intent")
-            Context = autoclass("android.content.Context")
-            vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE)
+        Context = autoclass("android.content.Context")
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
 
+        vibrator_service = activity.getSystemService(Context.VIBRATOR_SERVICE)
+        vibrator = cast("android.os.Vibrator", vibrator_service)
+
+        if vibrator and SDK_INT >= 26:
+            print("Using android's `VibrationEffect` (SDK >= 26)")
+            VibrationEffect = autoclass("android.os.VibrationEffect")
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    1000, VibrationEffect.DEFAULT_AMPLITUDE,
+                ),
+            )
+        elif vibrator:
+            print("Using deprecated android's vibrate (SDK < 26)")
             vibrator.vibrate(1000)
-        except Exception as e:
-            raise_error("Error when trying to vibrate: {}".format(e))
+        else:
+            print('Something happened...vibrator service disabled?')
 
     def test_ctypes(self, *args):
         try:
