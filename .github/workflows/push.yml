@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@master
+      uses: actions/checkout@v1
     - name: Set up Python 3.7
       uses: actions/setup-python@v1.1.0
       with:
@@ -30,7 +30,7 @@ jobs:
         os: [ubuntu-latest, macOs-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@master
+      uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1.1.0
       with:
@@ -45,15 +45,23 @@ jobs:
     name: Build testapp
     needs: [flake8]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build-arch: ['arm64-v8a', 'armeabi-v7a']
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@master
+      uses: actions/checkout@v1
     - name: Pull docker image
       run: |
         make docker/pull
-    - name: Build apk for Python 3 arm64-v8a
+    - name: Build apk for Python 3 ${{ matrix.build-arch }}
       run: |
-        make docker/run/make/testapps/python3/arm64-v8a
+        mkdir -p apks
+        make docker/run/make/with-artifact/testapps/python3/${{ matrix.build-arch }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: bdisttest_python3_sqlite_openssl_googlendk__${{ matrix.build-arch }}-debug-1.1.apk
+        path: apks
 
   rebuild_updated_recipes:
     name: Test updated recipes
@@ -61,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@master
+      uses: actions/checkout@v1
     - name: Pull docker image
       run: |
         make docker/pull
