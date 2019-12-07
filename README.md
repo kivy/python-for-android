@@ -5,8 +5,6 @@ python-for-android
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
 
-*Added Bcrypt Recipe*
-
 python-for-android is a packaging tool for Python apps on Android. You can
 create your own Python distribution including the modules and
 dependencies you want, and bundle it in an APK along with your own code.
