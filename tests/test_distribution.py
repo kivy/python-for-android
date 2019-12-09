@@ -103,20 +103,21 @@ class TestDistribution(unittest.TestCase):
             os.path.join(distribution.dist_dir, "dist_info.json")
         )
 
-    @mock.patch("pythonforandroid.distribution.open", create=True)
-    def test_get_dist_info(self, mock_open):
+    def test_dist_info(self):
         """Test that method
-        :meth:`~pythonforandroid.distribution.Distribution.get_dist_info`
+        :meth:`~pythonforandroid.distribution.Distribution.dist_info`
         calls the proper methods and returns the proper value."""
         self.setUp_distribution_with_bootstrap(
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
-        mock_open.side_effect = [
-            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value
-        ]
-        dist_info = self.ctx.bootstrap.distribution.get_dist_info("/fake_dir")
-        mock_open.assert_called_once_with("/fake_dir/dist_info.json", "r")
-        self.assertIsInstance(dist_info, dict)
+
+        mock_open = mock.mock_open(read_data=json.dumps(dist_info_data))
+        with mock.patch("pythonforandroid.distribution.open", mock_open):
+            dist_info = self.ctx.bootstrap.distribution.dist_info
+        mock_open.assert_called_once_with(
+            self.ctx.bootstrap.distribution.dist_info_file, "r",
+        )
+        self.assertEqual(dist_info, dist_info_data)
 
     @mock.patch("pythonforandroid.distribution.json.dump")
     @mock.patch("pythonforandroid.distribution.open", create=True)
@@ -132,24 +133,22 @@ class TestDistribution(unittest.TestCase):
         expected_json_file = mock.mock_open(
             read_data=json.dumps(new_info_data)
         ).return_value
-        mock_open.side_effect = [
-            # first call to open, when we read the file
-            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value,
-            # second call to open, when we update the file
-            expected_json_file,
-        ]
+        mock_open.side_effect = [expected_json_file]
 
-        self.ctx.bootstrap.distribution.update_dist_info(
-            "android_api", new_info_data['android_api']
-        )
-        # Note: call_args only contemplates the last mocked call, see also:
-        # https://docs.python.org/3/library/unittest.mock.html#unittest.mock.Mock.call_args   # noqa
-        self.assertTrue(mock_open.call_args[0][0].endswith(
-            'dists/test_prj__armeabi-v7a/dist_info.json')
-        )
-        self.assertEqual(mock_open.call_args[0][1], 'w')
-        mock_json.assert_called_once_with(
-            new_info_data, expected_json_file, indent=4, sort_keys=True,
+        with mock.patch(
+                'pythonforandroid.distribution.Distribution.dist_info',
+                new_callable=mock.PropertyMock,
+                return_value=dist_info_data,
+        ) as mock_dist_info:
+            self.ctx.bootstrap.distribution.update_dist_info(
+                "android_api", new_info_data['android_api']
+            )
+        # We expect two calls to property `dist_info` (read and write)
+        self.assertEqual(len(mock_dist_info.call_args), 2)
+
+        mock_open.assert_called_once_with(
+            self.ctx.bootstrap.distribution.dist_info_file,
+            "w",
         )
 
     @mock.patch("pythonforandroid.distribution.open", create=True)
@@ -197,7 +196,15 @@ class TestDistribution(unittest.TestCase):
         ]
 
         dist = self.ctx.bootstrap.distribution
-        dist.update_dist_android_api(new_android_api)
+        with mock.patch(
+                'pythonforandroid.distribution.Distribution.dist_info',
+                new_callable=mock.PropertyMock,
+                return_value=dist_info_data,
+        ) as mock_dist_info:
+            dist.update_dist_android_api(new_android_api)
+        # We expect two calls to property `dist_info` (read and write)
+        self.assertEqual(len(mock_dist_info.call_args), 2)
+
         mock_open.assert_has_calls(
             [
                 mock.call(os.path.join(dist.dist_dir, "build.gradle"), "r"),
@@ -205,8 +212,6 @@ class TestDistribution(unittest.TestCase):
                 mock.call(
                     os.path.join(dist.dist_dir, "project.properties"), "w"
                 ),
-                mock.call(os.path.join(dist.dist_dir, "dist_info.json"), "r"),
-                mock.call(os.path.join(dist.dist_dir, "dist_info.json"), "w"),
             ]
         )
 

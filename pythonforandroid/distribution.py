@@ -251,11 +251,10 @@ class Distribution(object):
         """Return the path of the distribution `dist_info.json` file."""
         return str(Path(self.dist_dir, 'dist_info.json'))
 
-    @staticmethod
-    def get_dist_info(dist_dir):
-        """Load `dist_info.json` file given a dist path."""
-        dist_json_file = str(Path(dist_dir, 'dist_info.json'))
-        with open(dist_json_file, 'r') as file_opened:
+    @property
+    def dist_info(self):
+        """Load the Distribution's `dist_info.json` file."""
+        with open(self.dist_info_file, 'r') as file_opened:
             dist_info = json.load(file_opened)
         return dist_info
 
@@ -285,12 +284,12 @@ class Distribution(object):
                 )
 
     def update_dist_info(self, key, value):
-        """Update `dist_info.json` values."""
-        dist_info = self.get_dist_info(self.dist_dir)
+        """Update `dist_info.json` file values."""
+        new_dist_info = self.dist_info.copy()
 
-        dist_info[key] = value
+        new_dist_info[key] = value
         with open(self.dist_info_file, 'w') as file_opened:
-            json.dump(dist_info, file_opened, indent=4, sort_keys=True)
+            json.dump(new_dist_info, file_opened, indent=4, sort_keys=True)
 
     def update_dist_project_properties_android_api(self, new_android_api):
         """Update `project.properties` with a new android api."""
