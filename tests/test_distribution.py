@@ -268,8 +268,10 @@ class TestDistribution(unittest.TestCase):
         mock_open_dist_info.side_effect = [
             mock.mock_open(read_data=json.dumps(dist_info_data)).return_value
         ]
-        self.ctx.bootstrap.distribution.save_info("/fake_dir")
-        mock_open_dist_info.assert_called_once_with("dist_info.json", "w")
+        self.ctx.bootstrap.distribution.save_info()
+        mock_open_dist_info.assert_called_once_with(
+            self.ctx.bootstrap.distribution.dist_info_file, "w",
+        )
         mock_open_dist_info.reset_mock()
 
     @mock.patch("pythonforandroid.distribution.open", create=True)

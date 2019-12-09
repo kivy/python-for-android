@@ -258,30 +258,29 @@ class Distribution(object):
             dist_info = json.load(file_opened)
         return dist_info
 
-    def save_info(self, dirn):
+    def save_info(self):
         '''
         Save information about the distribution in its dist_dir.
         '''
-        with current_directory(dirn):
-            info('Saving distribution info')
-            with open('dist_info.json', 'w') as fileh:
-                json.dump(
-                    {'dist_name': self.name,
-                     'bootstrap': self.ctx.bootstrap.name,
-                     'archs': [arch.arch for arch in self.ctx.archs],
-                     'ndk_api': self.ctx.ndk_api,
-                     'android_api': self.ctx.android_api,
-                     'use_setup_py': self.ctx.use_setup_py,
-                     'recipes':
-                         self.ctx.recipe_build_order + self.ctx.python_modules,
-                     'hostpython': self.ctx.hostpython,
-                     'python_version':
-                         self.ctx.python_recipe.major_minor_version_string,
-                     },
-                    fileh,
-                    indent=4,
-                    sort_keys=True,
-                )
+        info('Saving distribution info')
+        with open(self.dist_info_file, 'w') as file_opened:
+            json.dump(
+                {'dist_name': self.name,
+                 'bootstrap': self.ctx.bootstrap.name,
+                 'archs': [arch.arch for arch in self.ctx.archs],
+                 'ndk_api': self.ctx.ndk_api,
+                 'android_api': self.ctx.android_api,
+                 'use_setup_py': self.ctx.use_setup_py,
+                 'recipes':
+                     self.ctx.recipe_build_order + self.ctx.python_modules,
+                 'hostpython': self.ctx.hostpython,
+                 'python_version':
+                     self.ctx.python_recipe.major_minor_version_string,
+                 },
+                file_opened,
+                indent=4,
+                sort_keys=True,
+            )
 
     def update_dist_info(self, key, value):
         """Update `dist_info.json` file values."""
