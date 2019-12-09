@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from pythonforandroid.logger import (info, info_notify, warning, Err_Style, Err_Fore)
-from pythonforandroid.util import current_directory, BuildInterruptingException
+from pythonforandroid.util import BuildInterruptingException
 from shutil import rmtree
 
 
