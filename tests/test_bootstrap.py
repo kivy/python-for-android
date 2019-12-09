@@ -370,7 +370,6 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstraps.service_only.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.sdl2.open", create=True)
-    @mock.patch("pythonforandroid.distribution.open", create=True)
     @mock.patch(
         "pythonforandroid.python.GuestPythonRecipe.create_python_bundle"
     )
@@ -389,7 +388,6 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_ensure_dir,
         mock_strip_libraries,
         mock_create_python_bundle,
-        mock_open_dist_files,
         mock_open_sdl2_files,
         mock_open_webview_files,
         mock_open_service_only_files,
@@ -423,9 +421,12 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         self.ctx.python_modules = ["requests"]
         self.ctx.archs = [ArchARMv7_a(self.ctx)]
 
-        bs.run_distribute()
+        with mock.patch(
+                'pythonforandroid.distribution.Distribution.save_info',
+        ) as mock_open_save_info:
+            bs.run_distribute()
 
-        mock_open_dist_files.assert_called_once_with("dist_info.json", "w")
+        mock_open_save_info.assert_called()
         mock_open_bootstraps = {
             "sdl2": mock_open_sdl2_files,
             "webview": mock_open_webview_files,
