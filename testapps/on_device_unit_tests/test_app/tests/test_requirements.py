@@ -1,6 +1,6 @@
 
-from main import PythonTestMixIn
 from unittest import TestCase
+from .mixin import PythonTestMixIn
 
 
 class NumpyTestCase(PythonTestMixIn, TestCase):
