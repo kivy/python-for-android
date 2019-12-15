@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{{ url_for('static', filename='flask.css') }}">
+        <title>
+        {% block title %}
+            Flask on {{ platform }}
+        {% endblock %}
+        </title>
+        
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <h1 class="logo">Flask on {{ platform }}!</h1>
+                <strong>
+                    <nav>
+                        <ul class="menu">
+                            <li><a href="{{ url_for('index') }}">Home</a></li>
+                            <li><a href="{{ url_for('page2') }}">Another Page</a></li>
+                        </ul>
+                    </nav>
+                </strong>
+            </div>
+        </header>
+
+        <div class="container">
+            {% block body %}
+            {% endblock %}
+        </div>
+
+    </body>
+</html> 

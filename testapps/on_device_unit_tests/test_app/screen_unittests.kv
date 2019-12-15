@@ -1,0 +1,155 @@
+#:import sys sys
+
+#:import Clock kivy.clock.Clock
+#:import Metrics kivy.metrics.Metrics
+
+#:import FONT_SIZE_SUBTITLE constants.FONT_SIZE_SUBTITLE
+#:import FONT_SIZE_TEXT constants.FONT_SIZE_TEXT
+#:import FONT_SIZE_TITLE constants.FONT_SIZE_TITLE
+#:import Spacer20 widgets.Spacer20
+
+<ScreenUnittests@Screen>:
+    name: 'unittests'
+    ScrollView:
+        id: scroll_view
+        GridLayout:
+            id: grid
+            cols: 1
+            size_hint_y: None
+            height: self.minimum_height
+            BoxLayout:
+                id: header_box
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                GridLayout:
+                    rows: 1 if root.width > root.height else 2
+                    size_hint_y: None
+                    height: dp(60) * self.rows
+                    Button:
+                        text: 'Test vibration'
+                        font_size: sp(FONT_SIZE_SUBTITLE)
+                        on_press: app.test_vibration_with_pyjnius()
+                    Button:
+                        text: 'Test Keyboard'
+                        font_size: sp(FONT_SIZE_SUBTITLE)
+                        on_press: root.parent.current = 'keyboard'
+                    Button:
+                        text: 'Test Orientation'
+                        font_size: sp(FONT_SIZE_SUBTITLE)
+                        on_press: root.parent.current = 'orientation'
+                    Button:
+                        text: 'Test Service'
+                        font_size: sp(FONT_SIZE_SUBTITLE)
+                        on_press: root.parent.current = 'service'
+                Image:
+                    keep_ratio: False
+                    allow_stretch: True
+                    source: 'static/colours.png'
+                    size_hint_y: None
+                    height: dp(100)
+                Label:
+                    height: self.texture_size[1]
+                    size_hint_y: None
+                    padding: 0, 20
+                    font_name: 'static/Blanka-Regular.otf'
+                    font_size: sp(FONT_SIZE_TITLE)
+                    text_size: self.size[0], None
+                    markup: True
+                    text:
+                        '[color=#999999]Kivy[/color] on ' \
+                        '[color=#999999]SDL2[/color] on ' \
+                        '[color=#999999]Android[/color] !'
+                    halign: 'center'
+                Label:
+                    height: self.texture_size[1]
+                    size_hint_y: None
+                    text_size: self.size[0], None
+                    font_size: sp(FONT_SIZE_TEXT)
+                    markup: True
+                    text: sys.version
+                    halign: 'center'
+                    padding_y: dp(10)
+                Spacer20:
+                Label:
+                    height: self.texture_size[1]
+                    size_hint_y: None
+                    font_size: sp(FONT_SIZE_SUBTITLE)
+                    text_size: self.size[0], None
+                    markup: True
+                    text:
+                        'Dpi: {}\nDensity: {}\nFontscale: {}'.format(
+                        Metrics.dpi, Metrics.density, Metrics.fontscale)
+                    halign: 'center'
+                Spacer20:
+            BoxLayout:
+                id: output_box
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 1, .25
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Spacer20:
+                Label:
+                    id: test_packages_text
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+                    font_size: sp(FONT_SIZE_SUBTITLE)
+                    padding: 40, 20
+                    markup: True
+                    text: app.test_packages
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, .65
+                        Rectangle:
+                            pos: self.x + 20, self.y
+                            size: self.width - 40, self.height
+                Label:
+                    id: output_text
+                    height: self.texture_size[1]
+                    size_hint: None, None
+                    pos_hint: {'center_x': .5 }
+                    width: output_box.width - 40
+                    padding: 20, 20
+                    font_size: sp(FONT_SIZE_TEXT)
+                    text_size: self.size[0], None
+                    markup: True
+                    text: app.unittest_error_text
+                    halign: 'justify'
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 0, .35
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+            Widget:
+                id: fill_space
+                size_hint_y: None
+                height:
+                    max(20, root.height - header_box.height - output_box.height + 20)
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 1, .25
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+            BoxLayout:
+                id: test_images_box
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height if self.children else 0
+                padding: 0, 20
+            Button:
+                size_hint_y: None
+                height: dp(60)
+                text: 'Restart unittests'
+                font_size: sp(FONT_SIZE_SUBTITLE)
+                on_press:
+                    app.reset_unittests_results(refresh_ui=True);
+                    root.ids.scroll_view.scroll_y = 1;
+                    Clock.schedule_once(app.run_unittests, 2)

@@ -1,0 +1,67 @@
+#:import FONT_SIZE_SUBTITLE constants.FONT_SIZE_SUBTITLE
+#:import FONT_SIZE_TEXT constants.FONT_SIZE_TEXT
+#:import FONT_SIZE_TITLE constants.FONT_SIZE_TITLE
+
+#:import set_device_orientation tools.set_device_orientation
+#:import Spacer20 widgets.Spacer20
+#:import CircularButton widgets.CircularButton
+
+#:set green_color (0.3, 0.5, 0, 1)
+#:set red_color (1.0, 0, 0, 1)
+
+<ScreenService@Screen>:
+    name: 'service'
+    ScrollView:
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: self.minimum_height
+            Button:
+                text: 'Back to unittests'
+                font_size: sp(FONT_SIZE_SUBTITLE)
+                size_hint_y: None
+                height: dp(60)
+                on_press: root.parent.current = 'unittests'
+            Image:
+                keep_ratio: False
+                allow_stretch: True
+                source: 'static/coloursinv.png'
+                size_hint_y: None
+                height: dp(100)
+            Label:
+                text:
+                    '[color=#999999]Test[/color] P4A ' \
+                    '[color=#999999]service[/color]'
+                size_hint_y: None
+                padding: 0, 20
+                height: self.texture_size[1]
+                halign: 'center'
+                font_size: sp(FONT_SIZE_TITLE)
+                font_name: 'static/Blanka-Regular.otf'
+                text_size: root.width, None
+                markup: True
+            Spacer20:
+            Spacer20:
+            RelativeLayout:
+                size_hint_y: None
+                height: dp(100)
+                CircularButton:
+                    text: 'Start service' if not app.service_running else 'Stop Service'
+                    pos_hint: {'center_x': .5}
+                    background_color: red_color
+                    on_press:
+                        app.service_running = not app.service_running;
+                        self.background_color = green_color \
+                        if app.service_running else red_color
+            Spacer20:
+            Spacer20:
+            Label:
+                text:
+                    '[color=#ff5900]WARNING:[/color] ' \
+                    'this test only works on an Android device'
+                markup: True
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'center'
+                text_size: root.width, None
+                font_size: sp(FONT_SIZE_TEXT)

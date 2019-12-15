@@ -1,0 +1,74 @@
+#:import FONT_SIZE_SUBTITLE constants.FONT_SIZE_SUBTITLE
+#:import FONT_SIZE_TEXT constants.FONT_SIZE_TEXT
+#:import FONT_SIZE_TITLE constants.FONT_SIZE_TITLE
+
+#:import set_device_orientation tools.set_device_orientation
+#:import Spacer20 widgets.Spacer20
+
+<ScreenOrientation@Screen>:
+    name: 'orientation'
+    ScrollView:
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: self.minimum_height
+            Button:
+                text: 'Back to unittests'
+                font_size: sp(FONT_SIZE_SUBTITLE)
+                size_hint_y: None
+                height: dp(60)
+                on_press: root.parent.current = 'unittests'
+            Image:
+                keep_ratio: False
+                allow_stretch: True
+                source: 'static/coloursinv.png'
+                size_hint_y: None
+                height: dp(100)
+            Label:
+                text:
+                    '[color=#999999]Test[/color] device ' \
+                    '[color=#999999]orientation[/color]'
+                height: self.texture_size[1]
+                size_hint_y: None
+                padding: 0, 20
+                font_size: sp(FONT_SIZE_TITLE)
+                font_name: 'static/Blanka-Regular.otf'
+                text_size: root.width, None
+                markup: True
+                halign: 'center'
+            Spacer20:
+            Spacer20:
+            RelativeLayout:
+                size_hint_y: None
+                height: dp(50)
+                BoxLayout:
+                    size_hint_x: None
+                    width: min(dp(500), root.width)
+                    pos_hint: {'center_x': .5}
+                    orientation: 'horizontal'
+                    ToggleButton:
+                        text: 'Sensor'
+                        group: 'device_orientations'
+                        state: 'down'
+                        on_press: set_device_orientation('sensor')
+                    ToggleButton:
+                        text: 'Horizontal'
+                        group: 'device_orientations'
+                        on_press: set_device_orientation('horizontal')
+                    ToggleButton:
+                        text: 'Vertical'
+                        group: 'device_orientations'
+                        on_press: set_device_orientation('vertical')
+            Spacer20:
+            Spacer20:
+            Label:
+                text:
+                    '[color=#ff5900]WARNING:[/color] ' \
+                    'these tests only works on an Android device'
+                markup: True
+                padding: 20, 20
+                size_hint_y: None
+                text_size: root.width, None
+                font_size: sp(FONT_SIZE_TEXT)
+                height: self.texture_size[1]
+                halign: 'center'
