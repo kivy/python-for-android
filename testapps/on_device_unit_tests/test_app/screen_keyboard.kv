@@ -1,0 +1,109 @@
+#:import Window kivy.core.window.Window
+
+#:import FONT_SIZE_SUBTITLE constants.FONT_SIZE_SUBTITLE
+#:import FONT_SIZE_TEXT constants.FONT_SIZE_TEXT
+#:import FONT_SIZE_TITLE constants.FONT_SIZE_TITLE
+#:import Spacer20 widgets.Spacer20
+
+<ScreenKeyboard@Screen>:
+    name: 'keyboard'
+    BoxLayout:
+        orientation: 'vertical'
+        Button:
+            text: 'Back to unittests'
+            font_size: sp(FONT_SIZE_SUBTITLE)
+            size_hint_y: None
+            height: dp(60)
+            on_press: root.parent.current = 'unittests'
+        Image:
+            keep_ratio: False
+            allow_stretch: True
+            source: 'static/coloursinv.png'
+            size_hint_y: None
+            height: dp(100)
+        Label:
+            text:
+                '[color=#999999]Test[/color] kivy ' \
+                '[color=#999999]keyboard[/color] modes'
+            height: self.texture_size[1]
+            size_hint_y: None
+            padding: 0, 20
+            font_size: sp(FONT_SIZE_TITLE)
+            font_name: 'static/Blanka-Regular.otf'
+            text_size: root.width, None
+            markup: True
+            halign: 'center'
+        Label:
+            text:
+                'Specifies the behavior of window contents on display ' \
+                'of the soft keyboard on Android.\n\n\n\n' \
+                '[color=#ff5900]WARNING:[/color] ' \
+                'these tests only works on an Android device'
+            markup: True
+            padding: 0, 20
+            size_hint_y: None
+            text_size: root.width, None
+            font_size: sp(FONT_SIZE_TEXT)
+            height: self.texture_size[1]
+            halign: 'center'
+        Spacer20:
+        Spacer20:
+        RelativeLayout:
+            size_hint_y: None
+            height: dp(50)
+            BoxLayout:
+                size_hint_x: None
+                width: min(dp(500), root.width)
+                orientation: 'horizontal'
+                pos_hint: {'center_x': .5}
+                ToggleButton:
+                    text: 'None'
+                    group: 'keyboard_modes'
+                    state: 'down'
+                    on_press: Window.softinput_mode = ''
+                ToggleButton:
+                    text: 'pan'
+                    group: 'keyboard_modes'
+                    on_press: Window.softinput_mode = 'pan'
+                ToggleButton:
+                    text: 'below_target'
+                    group: 'keyboard_modes'
+                    on_press: Window.softinput_mode = 'below_target'
+                ToggleButton:
+                    text: 'resize'
+                    group: 'keyboard_modes'
+                    on_press: Window.softinput_mode = 'resize'
+        Widget:
+            Scatter:
+                id: scatter
+                size_hint: None, None
+                size: dp(300), dp(80)
+                on_parent: self.pos = (300, 100)
+                BoxLayout:
+                    size: scatter.size
+                    orientation: 'horizontal'
+                    canvas:
+                        Color:
+                            rgba: 1, 0, 1, .25
+                        Rectangle:
+                            pos: 0, 0
+                            size: self.size
+                    Label:
+                        size_hint_x: None
+                        width: dp(30)
+                        text: 'drag me'
+                        canvas.before:
+                            Color:
+                                rgb: 1, 1, 1
+                            PushMatrix
+                            Translate:
+                                xy: self.center_x, self.center_y
+                            Rotate:
+                                angle: 90
+                                axis: 0, 0, 1
+                            Translate:
+                                xy: -self.center_x, -self.center_y
+                        canvas.after:
+                            PopMatrix
+                    TextInput:
+                        text: 'type in me'
