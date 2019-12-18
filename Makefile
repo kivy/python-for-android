@@ -35,21 +35,19 @@ rebuild_updated_recipes: virtualenv
 	ANDROID_SDK_HOME=$(ANDROID_SDK_HOME) ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) \
 	$(PYTHON) ci/rebuild_updated_recipes.py
 
-testapps/python2/armeabi-v7a: virtualenv
+testapps/python2/%: virtualenv
+	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup_test_app.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools
+    --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools \
+    --arch=$($@_APP_ARCH)
 
-testapps/python3/arm64-v8a: virtualenv
+testapps/python3/%: virtualenv
+	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup_test_app.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools,numpy \
-    --arch=arm64-v8a
-
-testapps/python3/armeabi-v7a: virtualenv
-	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
-    python setup_test_app.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --arch=armeabi-v7a
+    --requirements sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools,numpy \
+    --arch=$($@_APP_ARCH)
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
