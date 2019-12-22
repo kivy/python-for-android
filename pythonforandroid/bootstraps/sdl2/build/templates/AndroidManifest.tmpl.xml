@@ -54,7 +54,7 @@
     <application android:label="@string/app_name"
                  android:icon="@drawable/icon"
                  android:allowBackup="{{ args.allow_backup }}"
-                 android:theme="@android:style/Theme.NoTitleBar{% if not args.window %}.Fullscreen{% endif %}"
+                 android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true" >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
@@ -64,7 +64,7 @@
         <meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
         <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
 
-        <activity android:name="org.kivy.android.PythonActivity"
+        <activity android:name="{{args.android_entrypoint}}"
                   android:label="@string/app_name"
                   android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 8 %}|uiMode{% endif %}{% if args.min_sdk_version >= 13 %}|screenSize|smallestScreenSize{% endif %}{% if args.min_sdk_version >= 17 %}|layoutDirection{% endif %}{% if args.min_sdk_version >= 24 %}|density{% endif %}"
                   android:screenOrientation="{{ args.orientation }}"

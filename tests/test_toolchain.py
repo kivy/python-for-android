@@ -1,7 +1,7 @@
 import io
 import sys
 import pytest
-import mock
+from unittest import mock
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import ToolchainCL
 from pythonforandroid.util import BuildInterruptingException

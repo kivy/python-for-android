@@ -24,7 +24,7 @@ get help with any problems using the same channels as Kivy itself:
 - by email to the `kivy-users Google group
   <https://groups.google.com/forum/#!forum/kivy-users>`_
 - on `#support Discord channel <https://chat.kivy.org/>`_
-  
+
 If you find a bug, you can also post an issue on the
 `python-for-android Github page
 <https://github.com/kivy/python-for-android>`_.
@@ -58,7 +58,7 @@ grepping this).
 When your app crashes, you'll see the normal Python traceback here, as
 well as the output of any print statements etc. that your app
 runs. Use these to diagnose the problem just as normal.
-    
+
 The adb command passes its arguments straight to adb itself, so you
 can also do other debugging tasks such as ``python-for-android adb
 devices`` to get the list of connected devices.
@@ -88,7 +88,7 @@ At the top level, this will always contain the same set of files::
 The Python distribution is in the assets folder::
 
   $ cd assets
-  $ ls 
+  $ ls
   private.mp3
 
 ``private.mp3`` is actually a tarball containing all your packaged
@@ -145,18 +145,25 @@ the build (e.g. if buildozer was previously used). Removing this
 directory should fix the problem, and is desirable anyway since you
 don't want it in the APK.
 
-Exception in thread "main" java.lang.UnsupportedClassVersionError: com/android/dx/command/Main : Unsupported major.minor version 52.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Errors related to Java version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This occurs due to a java version mismatch, it should be fixed by
-installing Java 8 (e.g. the openjdk-8-jdk package on Ubuntu).
+The errors listed below are related to Java version mismatch, it should be
+fixed by installing Java 8.
 
-java.lang.NoClassDefFoundError: sun/misc/BASE64Encoder
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- :code:`java.lang.UnsupportedClassVersionError: com/android/dx/command/Main`
+- :code:`java.lang.NoClassDefFoundError: sun/misc/BASE64Encoder`
+- :code:`java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema`
 
-Also make sure you're running Java 8, on OS X::
+On Ubuntu fix it my making sure only the :code:`openjdk-8-jdk` package is installed::
+
+    apt remove --purge openjdk-*-jdk
+    apt install openjdk-8-jdk
+
+In the similar fashion for macOS you need to install the :code:`java8` package::
 
     brew cask install java8
+
 
 JNI DETECTED ERROR IN APPLICATION: static jfieldID 0x0000000 not valid for class java.lang.Class<org.renpy.android.PythonActivity>
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,7 +176,7 @@ fix it, change your code to reference
 websocket-client: if you see errors relating to 'SSL not available'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Ensure you have the package backports.ssl-match-hostname in the buildozer requirements, since Kivy targets python 2.7.x
- 
+
 You may also need sslopt={"cert_reqs": ssl.CERT_NONE} as a parameter to ws.run_forever() if you get an error relating to host verification
 
 Requested API target 19 is not available, install it with the SDK android tool
@@ -183,3 +190,10 @@ version).
 If using buildozer this should be done automatically, but as a
 workaround you can run these from
 ``~/.buildozer/android/platform/android-sdk-20/tools/android``.
+
+ModuleNotFoundError: No module named '_ctypes'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You do not have the libffi headers available to python-for-android, so you need to install them. On Ubuntu and derivatives these come from the `libffi-dev` package.
+
+After installing the headers, clean the build (`p4a clean builds`, or with buildozer delete the `.buildozer` directory within your app directory) and run python-for-android again.

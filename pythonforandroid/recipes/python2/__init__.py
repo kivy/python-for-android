@@ -20,7 +20,7 @@ class Python2Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python2'
 
-    depends = ['hostpython2']
+    depends = ['hostpython2', 'libffi']
     conflicts = ['python3']
 
     patches = [
@@ -32,7 +32,10 @@ class Python2Recipe(GuestPythonRecipe):
                'patches/fix-gethostbyaddr.patch',
                'patches/fix-posix-declarations.patch',
                'patches/fix-pwd-gecos.patch',
-               'patches/fix-ctypes-util-find-library.patch']
+               'patches/fix-ctypes-util-find-library.patch',
+               'patches/fix-interpreter-version.patch',
+               'patches/fix-zlib-version.patch',
+    ]
 
     configure_args = ('--host={android_host}',
                       '--build={android_build}',

@@ -3,7 +3,7 @@ This module is kind of special because it contains the base classes used to
 build our python3 and python2 recipes and his corresponding hostpython recipes.
 '''
 
-from os.path import dirname, exists, join
+from os.path import dirname, exists, join, isfile
 from multiprocessing import cpu_count
 from shutil import copy2
 from os import environ
@@ -12,10 +12,13 @@ import glob
 import sh
 
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
-from pythonforandroid.logger import logger, info, shprint
+from pythonforandroid.logger import info, warning, shprint
 from pythonforandroid.util import (
-    current_directory, ensure_dir, walk_valid_filens,
-    BuildInterruptingException, build_platform)
+    current_directory,
+    ensure_dir,
+    walk_valid_filens,
+    BuildInterruptingException,
+)
 
 
 class GuestPythonRecipe(TargetPythonRecipe):
@@ -105,26 +108,9 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = environ.copy()
+        env['HOSTARCH'] = arch.command_prefix
 
-        android_host = env['HOSTARCH'] = arch.command_prefix
-        toolchain = '{toolchain_prefix}-{toolchain_version}'.format(
-            toolchain_prefix=self.ctx.toolchain_prefix,
-            toolchain_version=self.ctx.toolchain_version)
-        toolchain = join(self.ctx.ndk_dir, 'toolchains',
-                         toolchain, 'prebuilt', build_platform)
-
-        env['CC'] = (
-            '{clang} -target {target} -gcc-toolchain {toolchain}').format(
-                clang=join(self.ctx.ndk_dir, 'toolchains', 'llvm', 'prebuilt',
-                           build_platform, 'bin', 'clang'),
-                target=arch.target,
-                toolchain=toolchain)
-        env['AR'] = join(toolchain, 'bin', android_host) + '-ar'
-        env['LD'] = join(toolchain, 'bin', android_host) + '-ld'
-        env['RANLIB'] = join(toolchain, 'bin', android_host) + '-ranlib'
-        env['READELF'] = join(toolchain, 'bin', android_host) + '-readelf'
-        env['STRIP'] = join(toolchain, 'bin', android_host) + '-strip'
-        env['STRIP'] += ' --strip-debug --strip-unneeded'
+        env['CC'] = arch.get_clang_exe(with_target=True)
 
         env['PATH'] = (
             '{hostpython_dir}:{old_path}').format(
@@ -132,43 +118,22 @@ class GuestPythonRecipe(TargetPythonRecipe):
                     'host' + self.name, self.ctx).get_path_to_python(),
                 old_path=env['PATH'])
 
-        ndk_flags = (
-            '-fPIC --sysroot={ndk_sysroot} -D__ANDROID_API__={android_api} '
-            '-isystem {ndk_android_host} -I{ndk_include}').format(
-                ndk_sysroot=join(self.ctx.ndk_dir, 'sysroot'),
-                android_api=self.ctx.ndk_api,
-                ndk_android_host=join(
-                    self.ctx.ndk_dir, 'sysroot', 'usr', 'include', android_host),
-                ndk_include=join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include'))
-        sysroot = self.ctx.ndk_platform
-        env['CFLAGS'] = env.get('CFLAGS', '') + ' ' + ndk_flags
-        env['CPPFLAGS'] = env.get('CPPFLAGS', '') + ' ' + ndk_flags
-        env['LDFLAGS'] = env.get('LDFLAGS', '') + ' --sysroot={} -L{}'.format(
-            sysroot, join(sysroot, 'usr', 'lib'))
+        env['CFLAGS'] = ' '.join(
+            [
+                '-fPIC',
+                '-DANDROID',
+                '-D__ANDROID_API__={}'.format(self.ctx.ndk_api),
+            ]
+        )
 
-        # Manually add the libs directory, and copy some object
-        # files to the current directory otherwise they aren't
-        # picked up. This seems necessary because the --sysroot
-        # setting in LDFLAGS is overridden by the other flags.
-        # TODO: Work out why this doesn't happen in the original
-        # bpo-30386 Makefile system.
-        logger.warning('Doing some hacky stuff to link properly')
-        lib_dir = join(sysroot, 'usr', 'lib')
-        if arch.arch == 'x86_64':
-            lib_dir = join(sysroot, 'usr', 'lib64')
-        env['LDFLAGS'] += ' -L{}'.format(lib_dir)
-        shprint(sh.cp, join(lib_dir, 'crtbegin_so.o'), './')
-        shprint(sh.cp, join(lib_dir, 'crtend_so.o'), './')
-
-        env['SYSROOT'] = sysroot
-
+        env['LDFLAGS'] = env.get('LDFLAGS', '')
         if sh.which('lld') is not None:
             # Note: The -L. is to fix a bug in python 3.7.
             # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234409
-            env["LDFLAGS"] += ' -L. -fuse-ld=lld'
+            env['LDFLAGS'] += ' -L. -fuse-ld=lld'
         else:
-            logger.warning('lld not found, linking without it. ' +
-                           'Consider installing lld if linker errors occur.')
+            warning('lld not found, linking without it. '
+                    'Consider installing lld if linker errors occur.')
 
         return env
 
@@ -203,7 +168,45 @@ class GuestPythonRecipe(TargetPythonRecipe):
             recipe = Recipe.get_recipe('openssl', self.ctx)
             add_flags(recipe.include_flags(arch),
                       recipe.link_dirs_flags(arch), recipe.link_libs_flags())
+
+        # python build system contains hardcoded zlib version which prevents
+        # the build of zlib module, here we search for android's zlib version
+        # and sets the right flags, so python can be build with android's zlib
+        info("Activating flags for android's zlib")
+        zlib_lib_path = join(self.ctx.ndk_platform, 'usr', 'lib')
+        zlib_includes = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        zlib_h = join(zlib_includes, 'zlib.h')
+        try:
+            with open(zlib_h) as fileh:
+                zlib_data = fileh.read()
+        except IOError:
+            raise BuildInterruptingException(
+                "Could not determine android's zlib version, no zlib.h ({}) in"
+                " the NDK dir includes".format(zlib_h)
+            )
+        for line in zlib_data.split('\n'):
+            if line.startswith('#define ZLIB_VERSION '):
+                break
+        else:
+            raise BuildInterruptingException(
+                'Could not parse zlib.h...so we cannot find zlib version,'
+                'required by python build,'
+            )
+        env['ZLIB_VERSION'] = line.replace('#define ZLIB_VERSION ', '')
+        add_flags(' -I' + zlib_includes, ' -L' + zlib_lib_path, ' -lz')
+
         return env
+
+    @property
+    def _libpython(self):
+        '''return the python's library name (with extension)'''
+        py_version = self.major_minor_version_string
+        if self.major_minor_version_string[0] == '3':
+            py_version += 'm'
+        return 'libpython{version}.so'.format(version=py_version)
+
+    def should_build(self, arch):
+        return not isfile(join(self.link_root(arch.arch), self._libpython))
 
     def prebuild_arch(self, arch):
         super(TargetPythonRecipe, self).prebuild_arch(arch)
@@ -243,13 +246,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
                                     exec_prefix=sys_exec_prefix)).split(' '),
                     _env=env)
 
-            if not exists('python'):
-                py_version = self.major_minor_version_string
-                if self.major_minor_version_string[0] == '3':
-                    py_version += 'm'
-                shprint(sh.make, 'all', '-j', str(cpu_count()),
-                        'INSTSONAME=libpython{version}.so'.format(
-                            version=py_version), _env=env)
+            shprint(
+                sh.make, 'all', '-j', str(cpu_count()),
+                'INSTSONAME={lib_name}'.format(lib_name=self._libpython),
+                _env=env
+            )
 
             # TODO: Look into passing the path to pyconfig.h in a
             # better way, although this is probably acceptable
@@ -340,8 +341,11 @@ class GuestPythonRecipe(TargetPythonRecipe):
         python_lib_name = 'libpython' + self.major_minor_version_string
         if self.major_minor_version_string[0] == '3':
             python_lib_name += 'm'
-        shprint(sh.cp, join(python_build_dir, python_lib_name + '.so'),
-                join(self.ctx.dist_dir, self.ctx.dist_name, 'libs', arch.arch))
+        shprint(
+            sh.cp,
+            join(python_build_dir, python_lib_name + '.so'),
+            join(self.ctx.bootstrap.dist_dir, 'libs', arch.arch)
+        )
 
         info('Renaming .so files to reflect cross-compile')
         self.reduce_object_file_names(join(dirn, 'site-packages'))
@@ -382,6 +386,30 @@ class HostPythonRecipe(Recipe):
     '''The default url to download our host python recipe. This url will
     change depending on the python version set in attribute :attr:`version`.'''
 
+    @property
+    def _exe_name(self):
+        '''
+        Returns the name of the python executable depending on the version.
+        '''
+        if not self.version:
+            raise BuildInterruptingException(
+                'The hostpython recipe must have set version'
+            )
+        version = self.version.split('.')[0]
+        return 'python{major_version}'.format(major_version=version)
+
+    @property
+    def python_exe(self):
+        '''Returns the full path of the hostpython executable.'''
+        return join(self.get_path_to_python(), self._exe_name)
+
+    def should_build(self, arch):
+        if exists(self.python_exe):
+            # no need to build, but we must set hostpython for our Context
+            self.ctx.hostpython = self.python_exe
+            return False
+        return True
+
     def get_build_container_dir(self, arch=None):
         choices = self.check_recipe_choices()
         dir_name = '-'.join([self.name] + choices)
@@ -404,22 +432,28 @@ class HostPythonRecipe(Recipe):
         build_dir = join(recipe_build_dir, self.build_subdir)
         ensure_dir(build_dir)
 
-        if not exists(join(build_dir, 'python')):
-            with current_directory(recipe_build_dir):
-                # Configure the build
-                with current_directory(build_dir):
-                    if not exists('config.status'):
-                        shprint(
-                            sh.Command(join(recipe_build_dir, 'configure')))
+        with current_directory(recipe_build_dir):
+            # Configure the build
+            with current_directory(build_dir):
+                if not exists('config.status'):
+                    shprint(sh.Command(join(recipe_build_dir, 'configure')))
 
-                # Create the Setup file. This copying from Setup.dist
-                # seems to be the normal and expected procedure.
-                shprint(sh.cp, join('Modules', 'Setup.dist'),
-                        join(build_dir, 'Modules', 'Setup'))
+            # Create the Setup file. This copying from Setup.dist
+            # seems to be the normal and expected procedure.
+            shprint(sh.cp, join('Modules', 'Setup.dist'),
+                    join(build_dir, 'Modules', 'Setup'))
 
-                shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
-        else:
-            info('Skipping {name} ({version}) build, as it has already '
-                 'been completed'.format(name=self.name, version=self.version))
+            shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
 
-        self.ctx.hostpython = join(build_dir, 'python')
+            # make a copy of the python executable giving it the name we want,
+            # because we got different python's executable names depending on
+            # the fs being case-insensitive (Mac OS X, Cygwin...) or
+            # case-sensitive (linux)...so this way we will have an unique name
+            # for our hostpython, regarding the used fs
+            for exe_name in ['python.exe', 'python']:
+                exe = join(self.get_path_to_python(), exe_name)
+                if isfile(exe):
+                    shprint(sh.cp, exe, self.python_exe)
+                    break
+
+        self.ctx.hostpython = self.python_exe

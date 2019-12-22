@@ -8,10 +8,9 @@ import sh
 import shlex
 import shutil
 
-from pythonforandroid.logger import (warning, shprint, info, logger,
-                                     debug)
-from pythonforandroid.util import (current_directory, ensure_dir,
-                                   temp_directory)
+from pythonforandroid.logger import (shprint, info, logger, debug)
+from pythonforandroid.util import (
+    current_directory, ensure_dir, temp_directory, BuildInterruptingException)
 from pythonforandroid.recipe import Recipe
 
 
@@ -75,7 +74,6 @@ class Bootstrap(object):
     bootstrap_dir = None
 
     build_dir = None
-    dist_dir = None
     dist_name = None
     distribution = None
 
@@ -97,9 +95,9 @@ class Bootstrap(object):
     def dist_dir(self):
         '''The dist dir at which to place the finished distribution.'''
         if self.distribution is None:
-            warning('Tried to access {}.dist_dir, but {}.distribution '
-                    'is None'.format(self, self))
-            exit(1)
+            raise BuildInterruptingException(
+                'Internal error: tried to access {}.dist_dir, but {}.distribution '
+                'is None'.format(self, self))
         return self.distribution.dist_dir
 
     @property
@@ -158,7 +156,7 @@ class Bootstrap(object):
             with open('project.properties', 'w') as fileh:
                 fileh.write('target=android-{}'.format(self.ctx.android_api))
 
-    def prepare_dist_dir(self, name):
+    def prepare_dist_dir(self):
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):

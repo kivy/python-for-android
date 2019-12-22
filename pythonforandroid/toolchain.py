@@ -101,6 +101,8 @@ user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
+APK_SUFFIX = '.apk'
+
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):
@@ -163,6 +165,7 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
+        arch_name=args.arch,
         ndk_api=args.ndk_api,
         force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
@@ -195,10 +198,10 @@ def build_dist_from_args(ctx, dist, args):
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
 
-    ctx.dist_name = bs.distribution.name
+    ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
     if dist.needs_build:
-        ctx.prepare_dist(ctx.dist_name)
+        ctx.prepare_dist()
 
     build_recipes(build_order, python_modules, ctx,
                   getattr(args, "private", None),
@@ -211,7 +214,7 @@ def build_dist_from_args(ctx, dist, args):
 
     info_main('# Your distribution was created successfully, exiting.')
     info('Dist can be found at (for now) {}'
-         .format(join(ctx.dist_dir, ctx.dist_name)))
+         .format(join(ctx.dist_dir, ctx.distribution.dist_dir)))
 
 
 def split_argument_list(l):
@@ -304,7 +307,7 @@ class ToolchainCL(object):
                   '(default: {})'.format(default_storage_dir)))
 
         generic_parser.add_argument(
-            '--arch', help='The archs to build for, separated by commas.',
+            '--arch', help='The arch to build for.',
             default='armeabi-v7a')
 
         # Options for specifying the Distribution
@@ -912,6 +915,7 @@ class ToolchainCL(object):
     def _dist(self):
         ctx = self.ctx
         dist = dist_from_args(ctx, self.args)
+        ctx.distribution = dist
         return dist
 
     @require_prebuilt_dist
@@ -1062,9 +1066,9 @@ class ToolchainCL(object):
         info_main('# Found APK file: {}'.format(apk_file))
         if apk_add_version:
             info('# Add version number to APK')
-            apk_name, apk_suffix = basename(apk_file).split("-", 1)
+            apk_name = basename(apk_file)[:-len(APK_SUFFIX)]
             apk_file_dest = "{}-{}-{}".format(
-                apk_name, build_args.version, apk_suffix)
+                apk_name, build_args.version, APK_SUFFIX)
             info('# APK renamed to {}'.format(apk_file_dest))
             shprint(sh.cp, apk_file, apk_file_dest)
         else:

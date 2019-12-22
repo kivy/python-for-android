@@ -3,19 +3,15 @@ import os
 import sh
 import unittest
 
-try:
-    from unittest import mock
-except ImportError:
-    # `Python 2` or lower than `Python 3.3` does not
-    # have the `unittest.mock` module built-in
-    import mock
+from unittest import mock
 from pythonforandroid.bootstrap import (
     _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
 )
-from pythonforandroid.distribution import Distribution
+from pythonforandroid.distribution import Distribution, generate_dist_folder_name
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
+from pythonforandroid.util import BuildInterruptingException
 
 from test_graph import get_fake_recipe
 
@@ -26,6 +22,8 @@ class BaseClassSetupBootstrap(object):
     an inherited class of `unittest.TestCase`. This class will override the
     `setUp` and `tearDown` methods.
     """
+
+    TEST_ARCH = 'armeabi-v7a'
 
     def setUp(self):
         self.ctx = Context()
@@ -48,7 +46,9 @@ class BaseClassSetupBootstrap(object):
         """
         self.ctx.bootstrap = bs
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
-            self.ctx, name="test_prj", recipes=["python3", "kivy"]
+            self.ctx, name="test_prj",
+            recipes=["python3", "kivy"],
+            arch_name=self.TEST_ARCH,
         )
 
     def tearDown(self):
@@ -76,15 +76,16 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         self.assertEqual(bs.jni_dir, "sdl2/jni")
         self.assertEqual(bs.get_build_dir_name(), "sdl2-python3")
 
-        # test dist_dir error
+        # bs.dist_dir should raise an error if there is no distribution to query
         bs.distribution = None
-        with self.assertRaises(SystemExit) as e:
+        with self.assertRaises(BuildInterruptingException):
             bs.dist_dir
-        self.assertEqual(e.exception.args[0], 1)
 
         # test dist_dir success
         self.setUp_distribution_with_bootstrap(bs)
-        self.assertTrue(bs.dist_dir.endswith("dists/test_prj"))
+        expected_folder_name = generate_dist_folder_name('test_prj', [self.TEST_ARCH])
+        self.assertTrue(
+            bs.dist_dir.endswith(f"dists/{expected_folder_name}"))
 
     def test_build_dist_dirs(self):
         """A test which will initialize a bootstrap and will check if the
@@ -254,8 +255,8 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         """
         bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
 
-        bs.prepare_dist_dir("fake_name")
-        mock_ensure_dir.assert_called_once_with(bs.dist_dir)
+        bs.prepare_dist_dir()
+        mock_ensure_dir.assert_called_once()
 
     @mock.patch("pythonforandroid.bootstrap.open", create=True)
     @mock.patch("pythonforandroid.util.chdir")
@@ -533,15 +534,23 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstrap.shprint")
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.build.ensure_dir")
+    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_bootstrap_strip(
         self,
         mock_find_executable,
+        mock_glob,
         mock_ensure_dir,
         mock_sh_command,
         mock_sh_print,
     ):
-        mock_find_executable.return_value = "arm-linux-androideabi-gcc"
+        mock_find_executable.return_value = os.path.join(
+            self.ctx._ndk_dir,
+            "toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+        )
+        mock_glob.return_value = [
+            os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
+        ]
         # prepare arch, bootstrap, distribution and PythonRecipe
         arch = ArchARMv7_a(self.ctx)
         bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)

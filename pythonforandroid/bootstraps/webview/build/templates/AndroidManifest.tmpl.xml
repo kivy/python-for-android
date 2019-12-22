@@ -48,7 +48,7 @@
     <application android:label="@string/app_name"
                  android:icon="@drawable/icon"
                  android:allowBackup="true"
-                 android:theme="@android:style/Theme.NoTitleBar{% if not args.window %}.Fullscreen{% endif %}"
+                 android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true" >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
