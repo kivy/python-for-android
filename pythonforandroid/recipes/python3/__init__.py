@@ -18,14 +18,17 @@ class Python3Recipe(GuestPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.7.1'
+    version = '3.8.1'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
-    patches = ['patches/fix-ctypes-util-find-library.patch',
-               'patches/fix-zlib-version.patch']
+    # patches = ['patches/fix-ctypes-util-find-library.patch',
+    #            'patches/fix-zlib-version.patch']
+
+    patches = ['patches/py381.patch']
 
     if sh.which('lld') is not None:
+        raise RuntimeError("!!!")
         patches = patches + ["patches/remove-fix-cortex-a8.patch"]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
