@@ -4,7 +4,7 @@ On device unit tests
 This test app runs a set of unit tests, to help confirm that the
 python-for-android build is actually working properly.
 
-Also its dynamic, because it will run one app or another depending on the
+Also it's dynamic, because it will run one app or another depending on the
 supplied recipes at build time.
 
 It currently supports three app `modes`:
@@ -28,7 +28,7 @@ Building the app with python-for-android
 
 You can use the provided file `setup_test_app.py`. Check our `Makefile
 <https://github.com/kivy/python-for-android/blob/develop/Makefile>`__ to guess
-how to build th e test app, or also you can look at `testing pull requests documentation
+how to build the test app, or also you can look at `testing pull requests documentation
 <https://github.com/kivy/python-for-android/blob/develop/doc/source/testing_pull_requests.rst>`__,
 which describes some of the methods that you can use to build the test app.
 
