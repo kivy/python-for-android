@@ -39,7 +39,7 @@ options = {
     'apk':
         {
             'requirements':
-                'sqlite3,libffi,openssl,pyjnius,kivy,python3,requests',
+                'sqlite3,libffi,openssl,pyjnius,flask,genericndkbuild,python3,requests',
             'android-api': 27,
             'ndk-api': 21,
             'dist-name': 'bdist_test_app_unittests',
