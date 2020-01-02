@@ -58,6 +58,11 @@ for n, arg in enumerate(sys.argv):
         requirements = sys.argv[n + 1].rsplit(',')
         break
 
+# remove `orientation` in case that we don't detect a kivy or flask app,
+# since the `service_only` bootstrap does not support such argument
+if not ({'kivy', 'flask'} & set(requirements)):
+    options['apk'].pop('orientation')
+
 # write a file to let the test_app know which requirements we want to test
 # Note: later, when running the app, we will guess if we have the right test.
 app_requirements_txt = os.path.join(
