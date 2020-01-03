@@ -93,6 +93,8 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
             with current_directory(join(self.get_build_dir(arch.arch), 'src')):
                 shprint(sh.make, 'libprotobuf.la', '-j'+str(cpu_count()), _env=env)
 
+        self.install_python_package(arch)
+
     def build_compiled_components(self, arch):
         # Build python bindings and _message.so
         env = self.get_recipe_env(arch)
