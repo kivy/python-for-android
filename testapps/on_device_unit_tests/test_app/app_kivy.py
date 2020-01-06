@@ -136,7 +136,7 @@ class TestKivyApp(App):
     def service_time(self):
         from jnius import autoclass
 
-        return autoclass('org.test.test_app_unittests.ServiceP4a_test_service')
+        return autoclass('org.test.unit_tests_app.ServiceP4a_test_service')
 
     def on_service_running(self, *args):
         if RUNNING_ON_ANDROID:

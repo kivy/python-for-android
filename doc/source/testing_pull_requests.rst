@@ -111,9 +111,9 @@ Using python-for-android commands directly from the pull request files
         cd p4a-feature-fix-numpy
         PYTHONPATH=. python3 -m pythonforandroid.toolchain apk \
             --private=testapps/on_device_unit_tests/test_app \
-            --dist-name=dist_test_app_unittests_pycryptodome \
+            --dist-name=dist_unit_tests_app_pycryptodome \
             --package=org.kivy \
-            --name=test_app_unittests_pycryptodome \
+            --name=unit_tests_app_pycryptodome \
             --version=0.1 \
             --requirements=sdl2,pyjnius,kivy,python3,pycryptodome \
             --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
