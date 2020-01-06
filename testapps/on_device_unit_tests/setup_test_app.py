@@ -42,7 +42,7 @@ options = {
                 'sqlite3,libffi,openssl,pyjnius,kivy,python3,requests',
             'android-api': 27,
             'ndk-api': 21,
-            'dist-name': 'bdist_test_app_unittests',
+            'dist-name': 'bdist_unit_tests_app',
             'arch': 'armeabi-v7a',
             'permissions': ['INTERNET', 'VIBRATE'],
             'orientation': 'sensor',
@@ -76,7 +76,7 @@ with open(app_requirements_txt, 'w') as requirements_file:
 
 # run the install
 setup(
-    name='test_app_unittests',
+    name='unit_tests_app',
     version='1.1',
     description='p4a on device unit test app',
     author='Alexander Taylor, Pol Canelles',
