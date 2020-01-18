@@ -5,7 +5,7 @@ In this module we can control how will be built our test app. Depending on
 our requirements we can build an kivy, flask or a non-gui app. We default to an
 kivy app, since the python-for-android project its a sister project of kivy.
 
-The parameter `requirements` it's crucial to determine the unit tests we will
+The parameter `requirements` is crucial to determine the unit tests we will
 perform with our app, so we must explicitly name the recipe we want to test
 and, of course, we should have the proper test for the given recipe at
 `tests.test_requirements.py` or nothing will be tested. We control our default
