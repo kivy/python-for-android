@@ -172,7 +172,7 @@ Installing python-for-android using the github's branch of the pull request
 
     .. code-block:: bash
 
-        python3 setup_test_app.py apk \
+        python3 setup.py apk \
             --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
             --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
             --android-api=27 \
@@ -183,7 +183,7 @@ Installing python-for-android using the github's branch of the pull request
 Things that you should know:
 
     - In the example above, we override some variables that are set in
-      `setup_test_app.py`, you could also override them by editing this file
+      `setup.py`, you could also override them by editing this file
     - be sure to at least edit the following arguments when running the above
       command, since the default set in there it's unlikely that match your
       installation:
