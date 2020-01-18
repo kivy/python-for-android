@@ -38,14 +38,14 @@ rebuild_updated_recipes: virtualenv
 testapps/python2/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
-    python setup_test_app.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools \
     --arch=$($@_APP_ARCH)
 
 testapps/python3/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
-    python setup_test_app.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --requirements sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools,numpy \
     --arch=$($@_APP_ARCH)
 
