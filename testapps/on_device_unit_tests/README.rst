@@ -15,7 +15,7 @@ It currently supports three app `modes`:
 The main tests are for the recipes built in the apk. Each module (or
 other tool) is at least imported and subject to some basic check.
 
-This test app can be build via `setup_test_app.py` or via buildozer. In both
+This test app can be build via `setup.py` or via buildozer. In both
 cases it will build a basic kivy app with a set of tests defined via the
 `requirements` keyword (specified at build time).
 
@@ -26,7 +26,7 @@ permissions in your device to use such app).
 Building the app with python-for-android
 ========================================
 
-You can use the provided file `setup_test_app.py`. Check our `Makefile
+You can use the provided file `setup.py`. Check our `Makefile
 <https://github.com/kivy/python-for-android/blob/develop/Makefile>`__ to guess
 how to build the test app, or also you can look at `testing pull requests documentation
 <https://github.com/kivy/python-for-android/blob/develop/doc/source/testing_pull_requests.rst>`__,
