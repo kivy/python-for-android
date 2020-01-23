@@ -11,6 +11,7 @@ class KivyRecipe(CythonRecipe):
     name = 'kivy'
 
     depends = ['sdl2', 'pyjnius', 'setuptools']
+    python_depends = ['certifi']
 
     def cythonize_build(self, env, build_dir='.'):
         super(KivyRecipe, self).cythonize_build(env, build_dir=build_dir)
