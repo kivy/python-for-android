@@ -31,6 +31,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -421,7 +422,7 @@ public class PythonActivity extends SDLActivity {
     /** Whether main routine/actual app has started yet **/
     protected boolean mAppConfirmedActive = false;
     /** Timer for delayed loading screen removal. **/
-    protected Timer loadingScreenRemovalTimer = null; 
+    protected Timer loadingScreenRemovalTimer = null;
 
     // Overridden since it's called often, to check whether to remove the
     // loading screen:
@@ -431,7 +432,7 @@ public class PythonActivity extends SDLActivity {
         considerLoadingScreenRemoval();
         return result;
     }
-   
+
     /** Confirm that the app's main routine has been launched.
      **/
     @Override
@@ -484,7 +485,7 @@ public class PythonActivity extends SDLActivity {
     public void removeLoadingScreen() {
         runOnUiThread(new Runnable() {
             public void run() {
-                if (PythonActivity.mImageView != null && 
+                if (PythonActivity.mImageView != null &&
                         PythonActivity.mImageView.getParent() != null) {
                     ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
                         PythonActivity.mImageView);
@@ -548,7 +549,7 @@ public class PythonActivity extends SDLActivity {
                 try {
                     mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
                 } catch (IllegalArgumentException e) {}
-            }   
+            }
             mImageView.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.FILL_PARENT,
                 ViewGroup.LayoutParams.FILL_PARENT));
@@ -568,7 +569,7 @@ public class PythonActivity extends SDLActivity {
             // You must call removeView() on the child's parent first.")
         }
     }
-    
+
     @Override
     protected void onPause() {
         if (this.mWakeLock != null && mWakeLock.isHeld()) {
@@ -649,7 +650,7 @@ public class PythonActivity extends SDLActivity {
                 Activity.class.getMethod("checkSelfPermission", java.lang.String.class);
             Object resultObj = methodCheckPermission.invoke(this, permission);
             int result = Integer.parseInt(resultObj.toString());
-            if (result == PackageManager.PERMISSION_GRANTED) 
+            if (result == PackageManager.PERMISSION_GRANTED)
                 return true;
         } catch (IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
@@ -675,5 +676,13 @@ public class PythonActivity extends SDLActivity {
 
     public void requestPermissions(String[] permissions) {
         requestPermissionsWithRequestCode(permissions, 1);
+    }
+
+    public static void changeKeyboard(int inputType) {
+      if (SDLActivity.keyboardInputType != inputType){
+          SDLActivity.keyboardInputType = inputType;
+          InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.restartInput(mTextEdit);
+          }
     }
 }
