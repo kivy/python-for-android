@@ -1,4 +1,5 @@
 from os import uname
+from distutils.version import LooseVersion
 
 
 def check_all(*callables):
@@ -69,3 +70,15 @@ def is_ndk(ndk):
     def is_x(recipe, **kwargs):
         return recipe.ctx.ndk == ndk
     return is_x
+
+def is_version_gt(version):
+    def is_x(recipe, **kwargs):
+        return LooseVersion(recipe.version) > version
+
+def is_version_gt(version):
+    def is_x(recipe, **kwargs):
+        return LooseVersion(recipe.version) < version
+
+def version_starts_with(version):
+    def is_x(recipe, **kwargs):
+        return recipe.version.startswith(version)

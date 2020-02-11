@@ -1,6 +1,7 @@
 import sh
 from pythonforandroid.python import GuestPythonRecipe
 from pythonforandroid.recipe import Recipe
+from pythonforandroid.patching import version_starts_with
 
 
 class Python3Recipe(GuestPythonRecipe):
@@ -22,10 +23,14 @@ class Python3Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
-    # patches = ['patches/fix-ctypes-util-find-library.patch',
-    #            'patches/fix-zlib-version.patch']
+    patches = [
+        # Python 3.7.1
+        ('patches/fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
+        ('patches/fix-zlib-version.patch', version_starts_with("3.7"))
 
-    patches = ['patches/py381.patch']
+        # Python 3.8.1
+        ('patches/py381.patch', version_starts_with("3.8"))
+    ]
 
     if sh.which('lld') is not None:
         raise RuntimeError("!!!")
