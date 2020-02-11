@@ -1,0 +1,42 @@
+diff --git a/Lib/ctypes/util.py b/Lib/ctypes/util.py
+index 97973bc..053c231 100644
+--- a/Lib/ctypes/util.py
++++ b/Lib/ctypes/util.py
+@@ -67,6 +67,13 @@ if os.name == "nt":
+                 return fname
+         return None
+ 
++# This patch overrides the find_library to look in the right places on
++# Android
++if True:
++    from android._ctypes_library_finder import find_library as _find_lib
++    def find_library(name):
++        return _find_lib(name)
++
+ elif os.name == "posix" and sys.platform == "darwin":
+     from ctypes.macholib.dyld import dyld_find as _dyld_find
+     def find_library(name):
+diff --git a/configure b/configure
+index 0914e24..dd00812 100755
+--- a/configure
++++ b/configure
+@@ -18673,4 +18673,3 @@ if test "$Py_OPT" = 'false' -a "$Py_DEBUG" != 'true'; then
+     echo "" >&6
+     echo "" >&6
+ fi
+-
+diff --git a/setup.py b/setup.py
+index 20d7f35..af15cc2 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1501,7 +1501,9 @@ class PyBuildExt(build_ext):
+         if zlib_inc is not None:
+             zlib_h = zlib_inc[0] + '/zlib.h'
+             version = '"0.0.0"'
+-            version_req = '"1.1.3"'
++            # version_req = '"1.1.3"'
++            version_req = '"{}"'.format(
++                os.environ.get('ZLIB_VERSION', '1.1.3'))
+             if MACOS and is_macosx_sdk_path(zlib_h):
+                 zlib_h = os.path.join(macosx_sdk_root(), zlib_h[1:])
+             with open(zlib_h) as fp:
