@@ -25,16 +25,18 @@ class Python3Recipe(GuestPythonRecipe):
 
     patches = [
         # Python 3.7.1
-        ('patches/fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
-        ('patches/fix-zlib-version.patch', version_starts_with("3.7"))
+        ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
+        ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7"))
 
         # Python 3.8.1
-        ('patches/py381.patch', version_starts_with("3.8"))
+        ('patches/py3.8.1.patch', version_starts_with("3.8"))
     ]
 
     if sh.which('lld') is not None:
-        raise RuntimeError("!!!")
-        patches = patches + ["patches/remove-fix-cortex-a8.patch"]
+        patches = patches + [
+            ("patches/py3.7.1_remove-fix-cortex-a8.patch", version_starts_with("3.7")),
+            ("patches/py3.8.1_remove-fix-cortex-a8.patch", version_starts_with("3.8"))
+        ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
     conflicts = ['python2']
