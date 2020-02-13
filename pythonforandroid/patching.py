@@ -75,10 +75,12 @@ def is_version_gt(version):
     def is_x(recipe, **kwargs):
         return LooseVersion(recipe.version) > version
 
-def is_version_gt(version):
+def is_version_lt(version):
     def is_x(recipe, **kwargs):
         return LooseVersion(recipe.version) < version
+    return is_x
 
 def version_starts_with(version):
     def is_x(recipe, **kwargs):
         return recipe.version.startswith(version)
+    return is_x

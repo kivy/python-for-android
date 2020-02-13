@@ -26,7 +26,7 @@ class Python3Recipe(GuestPythonRecipe):
     patches = [
         # Python 3.7.1
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
-        ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7"))
+        ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
 
         # Python 3.8.1
         ('patches/py3.8.1.patch', version_starts_with("3.8"))
