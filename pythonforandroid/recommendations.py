@@ -221,6 +221,7 @@ def check_python_version():
 
         raise BuildInterruptingException(PY_VERSION_ERROR_TEXT)
 
+
 def print_recommendations():
     """
     Print the main recommended dependency versions as simple key-value pairs.
