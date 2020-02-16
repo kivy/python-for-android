@@ -226,9 +226,9 @@ def print_recommendations():
     """
     Print the main recommended dependency versions as simple key-value pairs.
     """
-    print(f'Min supported NDK version: {MIN_NDK_VERSION}')
-    print(f'Recommended NDK version: {RECOMMENDED_NDK_VERSION}')
-    print(f'Min target API: {MIN_TARGET_API}')
-    print(f'Recommended target API: {RECOMMENDED_TARGET_API}')
-    print(f'Min NDK API: {MIN_NDK_API}')
-    print(f'Recommended NDK API: {RECOMMENDED_NDK_API}')
+    print('Min supported NDK version: {}'.format(MIN_NDK_VERSION))
+    print('Recommended NDK version: {}'.format(RECOMMENDED_NDK_VERSION))
+    print('Min target API: {}'.format(MIN_TARGET_API))
+    print('Recommended target API: {}'.format(RECOMMENDED_TARGET_API))
+    print('Min NDK API: {}'.format(MIN_NDK_API))
+    print('Recommended NDK API: {}'.format(RECOMMENDED_NDK_API))
