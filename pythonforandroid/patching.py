@@ -71,14 +71,17 @@ def is_ndk(ndk):
         return recipe.ctx.ndk == ndk
     return is_x
 
+
 def is_version_gt(version):
     def is_x(recipe, **kwargs):
         return LooseVersion(recipe.version) > version
+
 
 def is_version_lt(version):
     def is_x(recipe, **kwargs):
         return LooseVersion(recipe.version) < version
     return is_x
+
 
 def version_starts_with(version):
     def is_x(recipe, **kwargs):
