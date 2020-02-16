@@ -21,20 +21,20 @@ jobs:
     - &linting
       stage: lint
       language: python
-      python: 3.7
+      python: 3.8
       before_script:
         # We need to escape virtualenv for `test_pythonpackage_basic.test_virtualenv`
         #   See also: https://github.com/travis-ci/travis-ci/issues/8589
         - type -t deactivate && deactivate || true
-        - export PATH=/opt/python/3.7/bin:$PATH
+        - export PATH=/opt/python/3.8/bin:$PATH
         # Install tox & virtualenv
         #   Note: venv/virtualenv are both used by tests/test_pythonpackage.py
-        - pip3.7 install -U virtualenv
-        - pip3.7 install tox>=2.0
+        - pip3.8 install -U virtualenv
+        - pip3.8 install tox>=2.0
         # Install coveralls & dependencies
         #   Note: pyOpenSSL needed to send the coveralls reports
-        - pip3.7 install pyOpenSSL
-        - pip3.7 install coveralls
+        - pip3.8 install pyOpenSSL
+        - pip3.8 install coveralls
       script:
         # we want to fail fast on tox errors without having to `docker build` first
         - tox -- tests/ --ignore tests/test_pythonpackage.py
