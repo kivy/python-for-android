@@ -11,37 +11,39 @@ from pythonforandroid.util import BuildInterruptingException
 MIN_NDK_VERSION = 19
 MAX_NDK_VERSION = 20
 
+# DO NOT CHANGE LINE FORMAT: buildozer parses the existence of a RECOMMENDED_NDK_VERSION
 RECOMMENDED_NDK_VERSION = "19b"
+
 NDK_DOWNLOAD_URL = "https://developer.android.com/ndk/downloads/"
 
 # Important log messages
 NEW_NDK_MESSAGE = 'Newer NDKs may not be fully supported by p4a.'
 UNKNOWN_NDK_MESSAGE = (
-    'Could not determine NDK version, no source.properties in the NDK dir'
+    'Could not determine NDK version, no source.properties in the NDK dir.'
 )
 PARSE_ERROR_NDK_MESSAGE = (
-    'Could not parse $NDK_DIR/source.properties, not checking NDK version'
+    'Could not parse $NDK_DIR/source.properties, not checking NDK version.'
 )
 READ_ERROR_NDK_MESSAGE = (
-    'Unable to read the NDK version from the given directory {ndk_dir}'
+    'Unable to read the NDK version from the given directory {ndk_dir}.'
 )
 ENSURE_RIGHT_NDK_MESSAGE = (
     'Make sure your NDK version is greater than {min_supported}. If you get '
-    'build errors, download the recommended NDK {rec_version} from {ndk_url}'
+    'build errors, download the recommended NDK {rec_version} from {ndk_url}.'
 )
 NDK_LOWER_THAN_SUPPORTED_MESSAGE = (
     'The minimum supported NDK version is {min_supported}. '
-    'You can download it from {ndk_url}'
+    'You can download it from {ndk_url}.'
 )
 UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE = (
     'Asked to build for armeabi architecture with API '
-    '{req_ndk_api}, but API {max_ndk_api} or greater does not support armeabi'
+    '{req_ndk_api}, but API {max_ndk_api} or greater does not support armeabi.'
 )
 CURRENT_NDK_VERSION_MESSAGE = (
     'Found NDK version {ndk_version}'
 )
 RECOMMENDED_NDK_VERSION_MESSAGE = (
-    'Maximum recommended NDK version is {recommended_ndk_version}'
+    'Maximum recommended NDK version is {recommended_ndk_version}, but newer versions may work.'
 )
 
 
@@ -187,7 +189,7 @@ def check_ndk_api(ndk_api, android_api):
 
 
 MIN_PYTHON_MAJOR_VERSION = 3
-MIN_PYTHON_MINOR_VERSION = 4
+MIN_PYTHON_MINOR_VERSION = 6
 MIN_PYTHON_VERSION = LooseVersion('{major}.{minor}'.format(major=MIN_PYTHON_MAJOR_VERSION,
                                                            minor=MIN_PYTHON_MINOR_VERSION))
 PY2_ERROR_TEXT = (
@@ -218,3 +220,15 @@ def check_python_version():
     ):
 
         raise BuildInterruptingException(PY_VERSION_ERROR_TEXT)
+
+
+def print_recommendations():
+    """
+    Print the main recommended dependency versions as simple key-value pairs.
+    """
+    print('Min supported NDK version: {}'.format(MIN_NDK_VERSION))
+    print('Recommended NDK version: {}'.format(RECOMMENDED_NDK_VERSION))
+    print('Min target API: {}'.format(MIN_TARGET_API))
+    print('Recommended target API: {}'.format(RECOMMENDED_TARGET_API))
+    print('Min NDK API: {}'.format(MIN_NDK_API))
+    print('Recommended NDK API: {}'.format(RECOMMENDED_NDK_API))

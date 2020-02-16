@@ -11,7 +11,7 @@ from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.entrypoints import main
 
@@ -1162,6 +1162,9 @@ class ToolchainCL(object):
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
+
+    def recommendations(self, args):
+        print_recommendations()
 
     def build_status(self, _args):
         """Print the status of the specified build. """

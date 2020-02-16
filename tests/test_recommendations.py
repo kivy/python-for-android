@@ -9,6 +9,7 @@ from pythonforandroid.recommendations import (
     check_target_api,
     read_ndk_version,
     check_python_version,
+    print_recommendations,
     MAX_NDK_VERSION,
     RECOMMENDED_NDK_VERSION,
     RECOMMENDED_TARGET_API,
@@ -237,3 +238,12 @@ class TestRecommendations(unittest.TestCase):
             fake_version_info.major = MIN_PYTHON_MAJOR_VERSION
             fake_version_info.minor = MIN_PYTHON_MINOR_VERSION
             check_python_version()
+
+    def test_print_recommendations(self):
+        """
+        Simple test that the function actually runs.
+        """
+        # The main failure mode is if the function tries to print a variable
+        # that doesn't actually exist, so simply running to check all the
+        # prints work is the most important test.
+        print_recommendations()
