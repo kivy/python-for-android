@@ -443,7 +443,7 @@ class HostPythonRecipe(Recipe):
             # after this the file with default options is already named "Setup"
             setup_dist_location = join('Modules', 'Setup.dist')
             if exists(setup_dist_location):
-                shprint(sh.cp, join('Modules', 'Setup.dist'),
+                shprint(sh.cp, setup_dist_location,
                         join(build_dir, 'Modules', 'Setup'))
             else:
                 # Check the expected file does exist
