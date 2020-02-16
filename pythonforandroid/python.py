@@ -438,10 +438,19 @@ class HostPythonRecipe(Recipe):
                 if not exists('config.status'):
                     shprint(sh.Command(join(recipe_build_dir, 'configure')))
 
-            # Create the Setup file. This copying from Setup.dist
-            # seems to be the normal and expected procedure.
-            shprint(sh.cp, join('Modules', 'Setup.dist'),
-                    join(build_dir, 'Modules', 'Setup'))
+            # Create the Setup file. This copying from Setup.dist is
+            # the normal and expected procedure before Python 3.8, but
+            # after this the file with default options is already named "Setup"
+            setup_dist_location = join('Modules', 'Setup.dist')
+            if exists(setup_dist_location):
+                shprint(sh.cp, setup_dist_location,
+                        join(build_dir, 'Modules', 'Setup'))
+            else:
+                # Check the expected file does exist
+                setup_location = join('Modules', 'Setup')
+                if not exists(setup_location):
+                    raise BuildInterruptingException(
+                        "Could not find Setup.dist or Setup in Python build")
 
             shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
 
