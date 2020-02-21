@@ -143,7 +143,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
 
     def test_all_bootstraps(self):
         """A test which will initialize a bootstrap and will check if the
-        method :meth:`~pythonforandroid.bootstrap.Bootstrap.list_bootstraps`
+        method :meth:`~pythonforandroid.bootstrap.Bootstrap.all_bootstraps `
         returns the expected values, which should be: `empty", `service_only`,
         `webview` and `sdl2`
         """
