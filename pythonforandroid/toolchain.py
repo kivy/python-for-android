@@ -491,6 +491,9 @@ class ToolchainCL(object):
         # However, it is also needed before the distribution is finally
         # assembled for locating the setup.py / other build systems, which
         # is why we also add it here:
+        parser_apk.add_argument('--add-asset', dest='assets',
+                    action="append",
+                    help=('Put this in the assets folder'))
         parser_apk.add_argument(
             '--private', dest='private',
             help='the directory with the app source code files' +
@@ -576,6 +579,10 @@ class ToolchainCL(object):
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
+        if hasattr(args, "assets") and args.assets is not None:
+            # Pass this value on to the internal bootstrap build.py:
+            for asset in args.assets:
+                args.unknown_args += ["--asset", os.path.abspath(asset)+":"+asset]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 

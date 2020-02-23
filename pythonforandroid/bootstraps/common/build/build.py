@@ -288,10 +288,11 @@ main.py that loads it.''')
     assets_dir = "src/main/assets"
 
     # Delete the old assets.
-    try_unlink(join(assets_dir, 'public.mp3'))
-    try_unlink(join(assets_dir, 'private.mp3'))
     ensure_dir(assets_dir)
-
+    shutil.rmtree(assets_dir)
+    ensure_dir(assets_dir)
+    open(os.path.join(assets_dir, ".gitkeep"), 'a').close()
+    
     # In order to speedup import and initial depack,
     # construct a python27.zip
     make_python_zip()
@@ -358,10 +359,15 @@ main.py that loads it.''')
         if get_bootstrap_name() == "webview":
             tar_dirs.append('webview_includes')
         for asset in args.assets:
-            if isfile(asset):
-                shutil.copyfile(asset, join(assets_dir, asset))
+            print(os.getcwd())
+            asset_src, asset_dest=asset.split(":")
+            if isfile(realpath(asset_src)):
+                ensure_dir(dirname(join(assets_dir, asset_dest)))
+                shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
             else:
-                shutil.copydir(asset, join(assets_dir, asset))
+                #ensure_dir(dirname(join(assets_dir, asset_dest)))
+                shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
+
         if args.private or args.launcher:
             make_tar(
                 join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
