@@ -357,6 +357,11 @@ main.py that loads it.''')
                 tar_dirs.append(python_bundle_dir)
         if get_bootstrap_name() == "webview":
             tar_dirs.append('webview_includes')
+        for asset in args.assets:
+            if isfile(asset):
+                shutil.copyfile(asset, join(assets_dir, asset))
+            else:
+                shutil.copydir(asset, join(assets_dir, asset))
         if args.private or args.launcher:
             make_tar(
                 join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
@@ -649,6 +654,9 @@ tools directory of the Android SDK.
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
+    ap.add_argument('--asset', dest='assets',
+                    action="append",
+                    help=('Put this in the assets folder'))
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
