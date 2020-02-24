@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v1.1.0
       with:
@@ -30,7 +30,7 @@ jobs:
         os: [ubuntu-latest, macOs-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1.1.0
       with:
@@ -50,7 +50,7 @@ jobs:
         build-arch: ['arm64-v8a', 'armeabi-v7a']
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Pull docker image
       run: |
         make docker/pull
@@ -68,8 +68,12 @@ jobs:
     needs: [flake8]
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v1
+    - name: Checkout python-for-android (current branch)
+      uses: actions/checkout@v2
+    - name: Checkout python-for-android (develop branch)
+      uses: actions/checkout@v2
+      with:
+        ref: 'develop'
     - name: Pull docker image
       run: |
         make docker/pull
