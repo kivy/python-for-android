@@ -289,6 +289,7 @@ class Archx86_64(Arch):
         '-mpopcnt',
         '-m64',
         '-mtune=intel',
+        '-fPIC',
     ]
 
 
