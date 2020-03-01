@@ -1,0 +1,10 @@
+prefix=path_to_built
+exec_prefix=${prefix}
+includedir=${prefix}
+libdir=${exec_prefix}/.libs
+
+Name: libpng
+Description: The png library
+Version: 1.6.37
+Cflags: -I${includedir}
+Libs: -L${libdir} -lpng16
