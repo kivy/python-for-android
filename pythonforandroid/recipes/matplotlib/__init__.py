@@ -32,7 +32,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
 
         Because, for unix platforms, the mpl install script uses `pkg-config`
         to detect libraries installed in non standard locations (our case...
-        well...we don't event install the libraries...so we must trick a little
+        well...we don't even install the libraries...so we must trick a little
         the mlp install).
         """
         pkg_config_path = self.get_recipe_env(arch)['PKG_CONFIG_PATH']
