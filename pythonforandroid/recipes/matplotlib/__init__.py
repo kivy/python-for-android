@@ -71,7 +71,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
         in our CI tests, so we download this package at the expected location
         by the mpl install script which is defined by the environ variable
         `XDG_CACHE_HOME` (we modify that one in our `get_recipe_env` so it will
-        be the same regardles of the host platform).
+        be the same regardless of the host platform).
         """
 
         env = self.get_recipe_env(arch)
