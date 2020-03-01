@@ -1,5 +1,5 @@
 --- matplotlib-3.1.1/setupext.py.orig	2019-12-31 01:25:00.000000000 +0100
-+++ matplotlib-3.1.1/setupext.py	2020-01-04 15:30:50.453260814 +0100
++++ matplotlib-3.1.1/setupext.py	2020-03-01 21:12:41.493350250 +0100
 @@ -604,8 +604,7 @@ class Numpy(SetupPackage):
      name = "numpy"
  
@@ -10,7 +10,7 @@
          ext.define_macros.extend([
              # Ensure that PY_ARRAY_UNIQUE_SYMBOL is uniquely defined for each
              # extension.
-@@ -617,10 +616,10 @@ class Numpy(SetupPackage):
+@@ -617,7 +616,7 @@ class Numpy(SetupPackage):
          ])
  
      def get_setup_requires(self):
@@ -18,11 +18,7 @@
 +        return []  # don't need it for p4a, due to above changes
  
      def get_install_requires(self):
--        return ['numpy>=1.11']
-+        return ['numpy==1.16.4']  # to match p4a's target version
- 
- 
- class LibAgg(SetupPackage):
+         return ['numpy>=1.11']
 @@ -674,7 +673,7 @@ class FreeType(SetupPackage):
              if sys.platform == 'win32':
                  libfreetype = 'libfreetype.lib'

@@ -32,7 +32,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
 
         Because, for unix platforms, the mpl install script uses `pkg-config`
         to detect libraries installed in non standard locations (our case...
-        well...we don't event install the libraries...so we must trick a little
+        well...we don't even install the libraries...so we must trick a little
         the mlp install).
         """
         pkg_config_path = self.get_recipe_env(arch)['PKG_CONFIG_PATH']
@@ -71,7 +71,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
         in our CI tests, so we download this package at the expected location
         by the mpl install script which is defined by the environ variable
         `XDG_CACHE_HOME` (we modify that one in our `get_recipe_env` so it will
-        be the same regardles of the host platform).
+        be the same regardless of the host platform).
         """
 
         env = self.get_recipe_env(arch)
