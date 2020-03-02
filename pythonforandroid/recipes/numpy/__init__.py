@@ -5,10 +5,10 @@ from os.path import join
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):
 
-    version = '1.16.4'
+    version = '1.18.1'
     url = 'https://pypi.python.org/packages/source/n/numpy/numpy-{version}.zip'
     site_packages_name = 'numpy'
-    depends = ['setuptools']
+    depends = ['setuptools', 'cython']
 
     patches = [
         join('patches', 'add_libm_explicitly_to_build.patch'),

@@ -2,7 +2,7 @@ diff --git a/numpy/distutils/system_info.py b/numpy/distutils/system_info.py
 index 806f4f7..0d51cfa 100644
 --- a/numpy/distutils/system_info.py
 +++ b/numpy/distutils/system_info.py
-@@ -734,6 +734,7 @@ class system_info(object):
+@@ -823,6 +823,7 @@ class system_info(object):
          return self.get_paths(self.section, key)
 
      def get_libs(self, key, default):
