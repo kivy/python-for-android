@@ -47,12 +47,12 @@ jobs:
       after_success:
         - coveralls
     - &testapps
-      name: Python 3 arm64-v8a
+      name: Python 3 arm64-v8a (with numpy)
       stage: build testapps
       before_script: make docker/pull
       script: make docker/run/make/testapps/python3/arm64-v8a
     - <<: *testapps
-      name: Python 3 armeabi-v7a (with numpy)
+      name: Python 3 armeabi-v7a
       os: osx
       osx_image: xcode11  # since xcode1.3, python3 is the default interpreter
       before_script:
