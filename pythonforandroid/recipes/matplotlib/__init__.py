@@ -54,11 +54,15 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
             # read template file into buffer
             with open(pc_template_file) as template_file:
                 text_buffer = template_file.read()
-            # set the library absolute path
+            # set the library absolute path and library version
+            lib_recipe = self.get_recipe(lib_name, self.ctx)
             text_buffer = text_buffer.replace(
-                'path_to_built',
-                self.get_recipe(lib_name, self.ctx).get_build_dir(arch.arch),
+                'path_to_built', lib_recipe.get_build_dir(arch.arch),
             )
+            text_buffer = text_buffer.replace(
+                'library_version', lib_recipe.version,
+            )
+
             # write the library pc file into our defined dir `PKG_CONFIG_PATH`
             pc_dest_file = join(pkg_config_path, lib_to_pc_file[lib_name])
             with open(pc_dest_file, 'w') as pc_file:
