@@ -35,7 +35,7 @@ class Python3Recipe(GuestPythonRecipe):
     if sh.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8.1_fix-cortex-a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8"))
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
