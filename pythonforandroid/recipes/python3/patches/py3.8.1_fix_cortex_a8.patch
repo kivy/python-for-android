@@ -1,3 +1,5 @@
+This patch removes --fix-cortex-a8 from the linker flags in order to support linking
+with lld, as lld does not support this flag (https://github.com/android-ndk/ndk/issues/766).
 diff --git a/configure b/configure
 index 0914e24..7517168 100755
 --- a/configure
@@ -11,8 +13,3 @@ index 0914e24..7517168 100755
    fi
  else
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not Android" >&5
-@@ -18673,4 +18673,3 @@ if test "$Py_OPT" = 'false' -a "$Py_DEBUG" != 'true'; then
-     echo "" >&6
-     echo "" >&6
- fi
--
