@@ -46,6 +46,7 @@ jobs:
     needs: [flake8]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         build-arch: ['arm64-v8a', 'armeabi-v7a', 'x86_64', 'x86']
     steps:
