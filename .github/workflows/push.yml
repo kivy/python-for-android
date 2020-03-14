@@ -58,7 +58,7 @@ jobs:
     - name: Build apk python3 ${{ matrix.build-arch }}
       run: |
         mkdir -p apks
-        make docker/run/make/with-artifact/testapps/python3/${{ matrix.build-arch }}
+        make docker/run/make/with-artifact/testapps/python3-with-numpy/${{ matrix.build-arch }}
     - uses: actions/upload-artifact@v1
       with:
         name: unit_tests_app__python3-${{ matrix.build-arch }}-debug-1.1.apk
