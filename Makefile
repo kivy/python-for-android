@@ -38,17 +38,17 @@ rebuild_updated_recipes: virtualenv
 testapps/python2/armeabi-v7a: virtualenv
 	. $(ACTIVATE) && cd testapps/ && \
     python setup_testapp_python2_sqlite_openssl.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools,numpy
+    --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools
 
 testapps/python3/arm64-v8a: virtualenv
 	. $(ACTIVATE) && cd testapps/ && \
     python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools,numpy \
     --arch=arm64-v8a
 
 testapps/python3/armeabi-v7a: virtualenv
 	. $(ACTIVATE) && cd testapps/ && \
     python setup_testapp_python3_sqlite_openssl.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools \
     --arch=armeabi-v7a
 
 clean:
