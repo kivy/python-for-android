@@ -123,6 +123,23 @@ class PillowTestCase(PythonTestMixIn, TestCase):
         self.assertTrue(os.path.isfile(img_target))
 
 
+class KiwisolverTestCase(PythonTestMixIn, TestCase):
+    module_import = 'kiwisolver'
+
+    def test_run_module(self):
+        from kiwisolver import Variable, Solver
+
+        x1 = Variable('x1')
+        x2 = Variable('x2')
+        xm = Variable('xm')
+        constraints = [x1 >= 0, x2 <= 100, x2 >= x1 + 10, xm == (x1 + x2) / 2]
+
+        solver = Solver()
+
+        for cn in constraints:
+            solver.addConstraint(cn)
+
+
 class MatplotlibTestCase(PythonTestMixIn, TestCase):
     module_import = 'matplotlib'
 
