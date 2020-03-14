@@ -177,6 +177,19 @@ class MatplotlibTestCase(PythonTestMixIn, TestCase):
         self.assertTrue(os.path.isfile("matplotlib_test.png"))
 
 
+class MplfinanceTestCase(PythonTestMixIn, TestCase):
+    module_import = 'mplfinance'
+
+    def test_run_module(self):
+        import pandas as pd
+        import mplfinance as mpf
+
+        df = pd.read_csv(
+            'tests/pandas_test_data.csv', index_col=0, parse_dates=True,
+        )
+        mpf.plot(df, type='candle', volume=True, savefig='mplfinance_test.png')
+
+
 class CryptographyTestCase(PythonTestMixIn, TestCase):
     module_import = 'cryptography'
 
