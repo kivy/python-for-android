@@ -52,6 +52,7 @@ RUN dpkg --add-architecture i386 \
     && ${RETRY} apt -y install -qq --no-install-recommends \
     autoconf \
     automake \
+    autopoint \
     build-essential \
     ccache \
     cmake \

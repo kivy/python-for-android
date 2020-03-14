@@ -9,6 +9,10 @@ install_java:
 	brew tap adoptopenjdk/openjdk
 	brew cask install adoptopenjdk8
 	/usr/libexec/java_home -V
+	# install gettext (because it contains autopoint
+	# and we need that to build `liblzma` recipe)
+	brew install gettext
+	ln -s `brew ls gettext | grep bin/autopoint` /usr/local/bin
 
 upgrade_cython:
 	pip3 install --upgrade Cython==0.28.6
