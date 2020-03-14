@@ -140,6 +140,20 @@ class KiwisolverTestCase(PythonTestMixIn, TestCase):
             solver.addConstraint(cn)
 
 
+class PandasTestCase(PythonTestMixIn, TestCase):
+    module_import = 'pandas'
+
+    def test_run_module(self):
+        import pandas as pd
+
+        df = pd.read_csv(
+            'tests/pandas_test_data.csv', index_col=0, parse_dates=True,
+        )
+        df.head()
+        df["Volume"].mean()
+        df[["High", "Low"]].describe()
+
+
 class MatplotlibTestCase(PythonTestMixIn, TestCase):
     module_import = 'matplotlib'
 

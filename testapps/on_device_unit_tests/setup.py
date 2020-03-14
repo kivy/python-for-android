@@ -87,6 +87,6 @@ setup(
         'test_app': ['*.py', '*.kv', '*.txt'],
         'test_app/static': ['*.png', '*.css', '*.otf'],
         'test_app/templates': ['*.html'],
-        'test_app/tests': ['*.py'],
+        'test_app/tests': ['*.py', '*.csv'],
     }
 )
