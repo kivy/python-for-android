@@ -1,6 +1,23 @@
 --- pandas-1.0.1/setup.py.orig	2020-02-05 17:15:24.000000000 +0100
-+++ pandas-1.0.1/setup.py	2020-03-12 12:37:46.420516831 +0100
-@@ -514,7 +514,10 @@ def maybe_cythonize(extensions, *args, *
++++ pandas-1.0.1/setup.py	2020-03-15 13:47:57.612237225 +0100
+@@ -37,11 +37,12 @@ min_cython_ver = "0.29.13"  # note: sync
+
+ setuptools_kwargs = {
+     "install_requires": [
+-        "python-dateutil >= 2.6.1",
+-        "pytz >= 2017.2",
+-        f"numpy >= {min_numpy_ver}",
++        # dependencies managed via p4a's recipe
++        # "python-dateutil >= 2.6.1",
++        # "pytz >= 2017.2",
++        # f"numpy >= {min_numpy_ver}",
+     ],
+-    "setup_requires": [f"numpy >= {min_numpy_ver}"],
++    "setup_requires": [],
+     "zip_safe": False,
+ }
+
+@@ -514,7 +515,10 @@ def maybe_cythonize(extensions, *args, *
              )
          raise RuntimeError("Cannot cythonize without Cython installed.")
  
