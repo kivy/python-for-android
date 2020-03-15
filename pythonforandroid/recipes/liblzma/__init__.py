@@ -4,7 +4,7 @@ from multiprocessing import cpu_count
 from pythonforandroid.archs import Arch
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
-from pythonforandroid.util import current_directory
+from pythonforandroid.util import current_directory, ensure_dir
 import sh
 
 
@@ -40,6 +40,8 @@ class LibLzmaRecipe(Recipe):
                 sh.make, '-j', str(cpu_count()),
                 _env=env
             )
+
+            ensure_dir('install')
             shprint(sh.make, 'install', _env=env)
 
     def get_library_includes(self, arch: Arch) -> str:
