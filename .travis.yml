@@ -49,8 +49,10 @@ jobs:
     - &testapps
       name: Python 3 arm64-v8a (with numpy)
       stage: build testapps
+      env:
+        - REQUIREMENTS=sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools,numpy
       before_script: make docker/pull
-      script: make docker/run/make/testapps/python3-with-numpy/arm64-v8a
+      script: make docker/run/make/testapps/python3-reqs-arch/${REQUIREMENTS}/arm64-v8a
     - <<: *testapps
       name: Python 3 armeabi-v7a
       os: osx

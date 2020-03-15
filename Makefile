@@ -42,11 +42,12 @@ testapps/python2/%: virtualenv
     --requirements sdl2,pyjnius,kivy,python2,openssl,requests,sqlite3,setuptools \
     --arch=$($@_APP_ARCH)
 
-testapps/python3-with-numpy/%: virtualenv
+testapps/python3-reqs-arch/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
+	$(eval $@_APP_REQS := $(shell basename $(dir $*)))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements sdl2,pyjnius,kivy,python3,openssl,requests,sqlite3,setuptools,numpy \
+    --requirements $($@_APP_REQS) \
     --arch=$($@_APP_ARCH)
 
 testapps/python3/%: virtualenv
