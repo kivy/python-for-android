@@ -63,7 +63,7 @@ p4a has several dependencies that must be installed:
 
 - git
 - ant
-- python2
+- python (We recommend using python3.)
 - cython (can be installed via pip)
 - a Java JDK (e.g. openjdk-8)
 - zlib (including 32 bit)
