@@ -29,9 +29,11 @@ class TestGeventRecipe(RecipeCtx, unittest.TestCase):
             # checks the regex doesn't parse `python3-libffi-openssl` as a `-libffi`
             '-L/path/to/python3-libffi-openssl/library3 '
         )
+        mocked_ldlibs = ' -lm'
         mocked_env = {
             'CFLAGS': mocked_cflags,
             'LDFLAGS': mocked_ldflags,
+            'LDLIBS': mocked_ldlibs,
         }
         with patch('pythonforandroid.recipe.CythonRecipe.get_recipe_env') as m_get_recipe_env:
             m_get_recipe_env.return_value = mocked_env
@@ -53,11 +55,13 @@ class TestGeventRecipe(RecipeCtx, unittest.TestCase):
             ' -L/path/to/library2'
             ' -L/path/to/python3-libffi-openssl/library3 '
         )
-        expected_libs = '-lm -lpython3.7m'
+        expected_ldlibs = mocked_ldlibs
+        expected_libs = '-lm -lpython3.7m -lm'
         expected_env = {
             'CFLAGS': expected_cflags,
             'CPPFLAGS': expected_cppflags,
             'LDFLAGS': expected_ldflags,
+            'LDLIBS': expected_ldlibs,
             'LIBS': expected_libs,
         }
         self.assertEqual(expected_env, env)
