@@ -39,6 +39,10 @@ class Python3Recipe(GuestPythonRecipe):
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
+    # those optional depends allow us to build python compression modules:
+    #   - _bz2.so
+    #   - _lzma.so
+    opt_depends = ['libbz2', 'liblzma']
     conflicts = ['python2']
 
     configure_args = (
