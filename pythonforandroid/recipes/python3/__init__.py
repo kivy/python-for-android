@@ -9,10 +9,10 @@ class Python3Recipe(GuestPythonRecipe):
     The python3's recipe
     ^^^^^^^^^^^^^^^^^^^^
 
-    The python 3 recipe can be built with some extra python modules, but do so,
-    we need some libraries. Per default, we ship the python3 recipe with some
-    common libraries, defined at ``depends``.We also support some optional
-    libraries, which are less common that the ones defined at ``depends``, so
+    The python 3 recipe can be built with some extra python modules, but to do
+    so, we need some libraries. By default, we ship the python3 recipe with
+    some common libraries, defined in ``depends``. We also support some optional
+    libraries, which are less common that the ones defined in ``depends``, so
     we added them as optional dependencies (``opt_depends``).
 
     Below you have a relationship between the python modules and the recipe
