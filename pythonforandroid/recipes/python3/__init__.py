@@ -6,14 +6,29 @@ from pythonforandroid.patching import version_starts_with
 
 class Python3Recipe(GuestPythonRecipe):
     '''
-    The python3's recipe.
+    The python3's recipe
+    ^^^^^^^^^^^^^^^^^^^^
 
-    .. note:: This recipe can be built only against API 21+. Also, in order to
-        build certain python modules, we need to add some extra recipes to our
-        build requirements:
+    The python 3 recipe can be built with some extra python modules, but do so,
+    we need some libraries. Per default, we ship the python3 recipe with some
+    common libraries, defined at ``depends``.We also support some optional
+    libraries, which are less common that the ones defined at ``depends``, so
+    we added them as optional dependencies (``opt_depends``).
 
-            - ctypes: you must add the recipe for ``libffi``.
+    Below you have a relationship between the python modules and the recipe
+    libraries::
 
+        - _ctypes: you must add the recipe for ``libffi``.
+        - _sqlite3: you must add the recipe for ``sqlite3``.
+        - _ssl: you must add the recipe for ``openssl``.
+        - _bz2: you must add the recipe for ``libbz2`` (optional).
+        - _lzma: you must add the recipe for ``liblzma`` (optional).
+
+    .. note:: This recipe can be built only against API 21+.
+
+    .. versionchanged:: 2019.10.06.post0
+        Added optional dependencies: :mod:`~pythonforandroid.recipes.libbz2`
+        and :mod:`~pythonforandroid.recipes.liblzma`
     .. versionchanged:: 0.6.0
         Refactored into class
         :class:`~pythonforandroid.python.GuestPythonRecipe`
