@@ -1,0 +1,14 @@
+--- pandas-1.0.1/setup.py.orig	2020-02-05 17:15:24.000000000 +0100
++++ pandas-1.0.1/setup.py	2020-03-12 12:37:46.420516831 +0100
+@@ -514,7 +514,10 @@ def maybe_cythonize(extensions, *args, *
+             )
+         raise RuntimeError("Cannot cythonize without Cython installed.")
+ 
+-    numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
++    if 'NUMPY_INCLUDES' in os.environ:
++        numpy_incl = os.environ['NUMPY_INCLUDES']
++    else:
++        numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
+     # TODO: Is this really necessary here?
+     for ext in extensions:
+         if hasattr(ext, "include_dirs") and numpy_incl not in ext.include_dirs:
