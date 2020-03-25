@@ -4,7 +4,7 @@ from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
 
 class PandasRecipe(CppCompiledComponentsPythonRecipe):
-    version = '1.0.2'
+    version = '1.0.3'
     url = 'https://github.com/pandas-dev/pandas/releases/download/v{version}/pandas-{version}.tar.gz'  # noqa
 
     depends = ['cython', 'numpy', 'pytz', 'libbz2', 'liblzma']
