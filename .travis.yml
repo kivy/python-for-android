@@ -37,9 +37,6 @@ jobs:
       name: "Tox Pep8"
       env: TOXENV=pep8
     - <<: *unittests
-      name: "Tox Python 2"
-      env: TOXENV=py27
-    - <<: *unittests
       name: "Tox Python 3 & Coverage"
       env: TOXENV=py3
       after_success:
@@ -48,7 +45,7 @@ jobs:
       name: Python 3 arm64-v8a (with numpy)
       stage: build testapps
       before_script: make docker/pull
-      script: make docker/run/make/testapps/python3/arm64-v8a
+      script: make docker/run/make/testapps/arm64-v8a
     - <<: *testapps
       name: Python 3 armeabi-v7a
       os: osx
@@ -57,10 +54,7 @@ jobs:
         # installs java 1.8, android's SDK/NDK and p4a
         - make -f ci/makefiles/osx.mk
         - export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
-      script: make testapps/python3/armeabi-v7a PYTHON_WITH_VERSION=python3
-    - <<: *testapps
-      name: Python 2 armeabi-v7a
-      script: make docker/run/make/testapps/python2/armeabi-v7a
+      script: make testapps/armeabi-v7a PYTHON_WITH_VERSION=python3
     - <<: *testapps
       name: Rebuild updated recipes
       script: travis_wait 30 make docker/run/make/rebuild_updated_recipes
