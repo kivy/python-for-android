@@ -14,7 +14,7 @@ class ICURecipe(Recipe):
     url = ('http://download.icu-project.org/files/icu4c/'
            '{version}/icu4c-{version_underscore}-src.tgz')
 
-    depends = [('hostpython2', 'hostpython3')]  # installs in python
+    depends = ['hostpython3']  # installs in python
     patches = ['disable-libs-version.patch']
 
     built_libraries = {

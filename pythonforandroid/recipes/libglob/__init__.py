@@ -22,7 +22,7 @@ class LibGlobRecipe(Recipe):
     name = 'libglob'
     built_libraries = {'libglob.so': '.'}
 
-    depends = [('hostpython2', 'hostpython3')]
+    depends = ['hostpython3']
     patches = ['glob.patch']
 
     def should_build(self, arch):

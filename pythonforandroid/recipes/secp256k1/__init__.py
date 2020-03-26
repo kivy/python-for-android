@@ -11,7 +11,7 @@ class Secp256k1Recipe(CppCompiledComponentsPythonRecipe):
 
     depends = [
         'openssl',
-        ('hostpython3', 'hostpython2'),
+        'hostpython3',
         'python3',
         'setuptools',
         'libffi',

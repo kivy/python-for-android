@@ -7,7 +7,7 @@ class CoverageRecipe(PythonRecipe):
 
     url = 'https://pypi.python.org/packages/2d/10/6136c8e10644c16906edf4d9f7c782c0f2e7ed47ff2f41f067384e432088/coverage-{version}.tar.gz'
 
-    depends = [('hostpython2', 'hostpython3'), 'setuptools']
+    depends = ['hostpython3', 'setuptools']
 
     patches = ['fallback-utf8.patch']
 
