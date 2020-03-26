@@ -39,7 +39,7 @@ class BoostRecipe(Recipe):
         'http://downloads.sourceforge.net/project/boost/'
         'boost/{version}/boost_{version_underscore}.tar.bz2'
     )
-    depends = [('python2', 'python3')]
+    depends = ['python3']
     patches = [
         'disable-so-version.patch',
         'use-android-libs.patch',

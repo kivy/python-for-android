@@ -7,7 +7,7 @@ class AudiostreamRecipe(CythonRecipe):
     version = 'master'
     url = 'https://github.com/kivy/audiostream/archive/{version}.zip'
     name = 'audiostream'
-    depends = [('python2', 'python3'), 'sdl2', 'pyjnius']
+    depends = ['python3', 'sdl2', 'pyjnius']
 
     def get_recipe_env(self, arch):
         env = super(AudiostreamRecipe, self).get_recipe_env(arch)
