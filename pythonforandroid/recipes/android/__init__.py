@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 from pythonforandroid.recipe import CythonRecipe, IncludedFilesBehaviour
 from pythonforandroid.util import current_directory
-from pythonforandroid.patching import will_build
 from pythonforandroid import logger
 
 from os.path import join
@@ -56,7 +55,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
         config = {
             'BOOTSTRAP': bootstrap,
             'IS_SDL2': int(is_sdl2),
-            'PY2': int(will_build('python2')(self)),
+            'PY2': 0,
             'JAVA_NAMESPACE': java_ns,
             'JNI_NAMESPACE': jni_ns,
         }
