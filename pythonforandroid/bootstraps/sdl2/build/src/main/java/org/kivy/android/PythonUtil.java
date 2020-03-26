@@ -40,7 +40,6 @@ public class PythonUtil {
         libsList.add("SDL2_ttf");
         addLibraryIfExists(libsList, "ssl.*", libsDir);
         addLibraryIfExists(libsList, "crypto.*", libsDir);
-        libsList.add("python2.7");
         libsList.add("python3.5m");
         libsList.add("python3.6m");
         libsList.add("python3.7m");
@@ -74,20 +73,6 @@ public class PythonUtil {
                     throw e;
                 }
             }
-        }
-
-        try {
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_io.so");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/unicodedata.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load _io.so or unicodedata.so...but that's okay.");
-        }
-
-        try {
-            // System.loadLibrary("ctypes");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_ctypes.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Unsatisfied linker when loading ctypes");
         }
 
         Log.v(TAG, "Loaded everything!");
