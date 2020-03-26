@@ -19,15 +19,12 @@ Current limitations:
   [ERROR]:   Didn't find any valid dependency graphs.
   [ERROR]:   This means that some of your requirements pull in conflicting dependencies.
 - only rebuilds on sdl2 bootstrap
-- supports mainly python3 with fallback to python2
 """
 import sh
 import os
 from pythonforandroid.build import Context
 from pythonforandroid import logger
-from pythonforandroid.graph import get_recipe_order_and_bootstrap
 from pythonforandroid.toolchain import current_directory
-from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.recipe import Recipe
 from ci.constants import TargetPython, CORE_RECIPES, BROKEN_RECIPES
 
@@ -55,11 +52,9 @@ def build(target_python, requirements):
     """
     if not requirements:
         return
-    testapp = 'setup_testapp_python2.py'
+    testapp = 'setup_testapp_python3_sqlite_openssl.py'
     android_sdk_home = os.environ['ANDROID_SDK_HOME']
     android_ndk_home = os.environ['ANDROID_NDK_HOME']
-    if target_python == TargetPython.python3:
-        testapp = 'setup_testapp_python3_sqlite_openssl.py'
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
@@ -91,16 +86,6 @@ def main():
                 'removed {} from recipes because deleted'.format(recipe_name)
             )
 
-    # forces the default target
-    recipes_and_target = recipes | set([target_python.name])
-    try:
-        build_order, python_modules, bs = get_recipe_order_and_bootstrap(
-            context, recipes_and_target, None)
-    except BuildInterruptingException:
-        # fallback to python2 if default target is not compatible
-        logger.info('incompatible with {}'.format(target_python.name))
-        target_python = TargetPython.python2
-        logger.info('falling back to {}'.format(target_python.name))
     # removing the known broken recipe for the given target
     broken_recipes = BROKEN_RECIPES[target_python]
     recipes -= broken_recipes
