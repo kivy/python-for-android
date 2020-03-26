@@ -66,3 +66,34 @@ already have Docker preinstalled and set up.
 5. Find the ``.APK`` file on this location::
 
        ls -lah testapps
+
+Docker Method2
+======
+
+Here's a more practical and understandable way, it requires you to install SDK and NDK manully first.
+
+1. Download an example::
+
+       git clone https://github.com/yingshaoxo/kivy-diary.git
+       cd kivy-diary
+
+2. Prepare your SDK and NDK::
+
+       Use Android Studio SDK Manager to install it. Here I installed SDK 29 and NDK 21.
+
+3. Run it (you need to change the first SDK path)::
+
+       docker run -it --name kivy --volume "$(pwd)":/home/user/host/app --volume /home/yingshaoxo/Android/Sdk:/home/user/host/Android/Sdk kivy/python-for-android
+
+4. Active the virtual env::
+
+       source venv/bin/activate && cd ../host/app
+
+5. Build it::
+       use `./build.sh` or::
+
+              export ANDROIDSDK="/home/user/host/Android/Sdk"       
+              export ANDROIDNDK="/home/user/host/Android/Sdk/ndk/21.0.6113669"
+              export ANDROIDAPI="29"  # Target API version of your application
+              export NDKAPI="21"  # Minimum supported API version of your application
+              p4a apk --private . --package=xyz.yingshaoxo.kivydiary --name "KivyDiary" --version 0.2 --bootstrap=sdl2 --requirements=python3,kivy,jnius --blacklist-requirements=sqlite3,libffi,openssl --orientation=portrait --add-source . --presplash=./data/flash.png --icon=./data/icon.png --permission INTERNET --permission WRITE_EXTERNAL_STORAGE
