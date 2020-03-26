@@ -194,10 +194,8 @@ MIN_PYTHON_VERSION = LooseVersion('{major}.{minor}'.format(major=MIN_PYTHON_MAJO
                                                            minor=MIN_PYTHON_MINOR_VERSION))
 PY2_ERROR_TEXT = (
     'python-for-android no longer supports running under Python 2. Either upgrade to '
-    'Python {min_version} or higher (recommended), or revert to python-for-android 2019.07.08. '
-    'Note that you *can* still target Python 2 on Android by including python2 in your '
-    'requirements.').format(
-        min_version=MIN_PYTHON_VERSION)
+    'Python {min_version} or higher (recommended), or revert to python-for-android 2019.07.08.'
+).format(min_version=MIN_PYTHON_VERSION)
 
 PY_VERSION_ERROR_TEXT = (
     'Your Python version {user_major}.{user_minor} is not supported by python-for-android, '
