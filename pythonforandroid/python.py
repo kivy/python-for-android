@@ -1,6 +1,6 @@
 '''
 This module is kind of special because it contains the base classes used to
-build our python3 and python2 recipes and his corresponding hostpython recipes.
+build our python3 and his corresponding hostpython recipes.
 '''
 
 from os.path import dirname, exists, join, isfile
@@ -26,8 +26,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
     Class for target python recipes. Sets ctx.python_recipe to point to itself,
     so as to know later what kind of Python was built or used.
 
-    This base class is used for our main python recipes (python2 and python3)
-    which shares most of the build process.
+    This base class is used for our main python3 recipe.
 
     .. versionadded:: 0.6.0
         Refactored from the inclement's python3 recipe with a few changes:
@@ -280,10 +279,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
             longer used...uses .pyc (https://www.python.org/dev/peps/pep-0488)
         '''
         args = [self.ctx.hostpython]
-        if self.ctx.python_recipe.name == 'python3':
-            args += ['-OO', '-m', 'compileall', '-b', '-f', dir]
-        else:
-            args += ['-OO', '-m', 'compileall', '-f', dir]
+        args += ['-OO', '-m', 'compileall', '-b', '-f', dir]
         subprocess.call(args)
 
     def create_python_bundle(self, dirn, arch):
@@ -363,7 +359,7 @@ class GuestPythonRecipe(TargetPythonRecipe):
 
 class HostPythonRecipe(Recipe):
     '''
-    This is the base class for hostpython3 and hostpython2 recipes. This class
+    This is the base class for hostpython3 recipe. This class
     will take care to do all the work to build a hostpython recipe but, be
     careful, it is intended to be subclassed because some of the vars needs to
     be set:
@@ -376,8 +372,7 @@ class HostPythonRecipe(Recipe):
     '''
 
     name = ''
-    '''The hostpython's recipe name. This should be ``hostpython2`` or
-    ``hostpython3``
+    '''The hostpython's recipe name. This should be ``hostpython3``
 
     .. warning:: This must be set in inherited class.'''
 
