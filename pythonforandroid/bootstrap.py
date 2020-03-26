@@ -78,7 +78,7 @@ class Bootstrap(object):
     distribution = None
 
     # All bootstraps should include Python in some way:
-    recipe_depends = [("python2", "python3"), 'android']
+    recipe_depends = ['python3', 'android']
 
     can_be_chosen_automatically = True
     '''Determines whether the bootstrap can be chosen as one that
