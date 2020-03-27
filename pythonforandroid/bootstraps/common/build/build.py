@@ -16,7 +16,6 @@ import sys
 import tarfile
 import tempfile
 import time
-from zipfile import ZipFile
 
 from distutils.version import LooseVersion
 from fnmatch import fnmatch
@@ -152,48 +151,6 @@ def listfiles(d):
             yield fn
 
 
-def make_python_zip():
-    '''
-    Search for all the python related files, and construct the pythonXX.zip
-    According to
-    # http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
-    site-packages, config and lib-dynload will be not included.
-    '''
-
-    if not exists('private'):
-        print('No compiled python is present to zip, skipping.')
-        return
-
-    global python_files
-    d = realpath(join('private', 'lib', 'python2.7'))
-
-    def select(fn):
-        if is_blacklist(fn):
-            return False
-        fn = realpath(fn)
-        assert(fn.startswith(d))
-        fn = fn[len(d):]
-        if (fn.startswith('/site-packages/')
-                or fn.startswith('/config/')
-                or fn.startswith('/lib-dynload/')
-                or fn.startswith('/libpymodules.so')):
-            return False
-        return fn
-
-    # get a list of all python file
-    python_files = [x for x in listfiles(d) if select(x)]
-
-    # create the final zipfile
-    zfn = join('private', 'lib', 'python27.zip')
-    zf = ZipFile(zfn, 'w')
-
-    # put all the python files in it
-    for fn in python_files:
-        afn = fn[len(d):]
-        zf.write(fn, afn)
-    zf.close()
-
-
 def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
     '''
     Make a zip file `fn` from the contents of source_dis.
@@ -287,10 +244,6 @@ main.py that loads it.''')
     try_unlink(join(assets_dir, 'public.mp3'))
     try_unlink(join(assets_dir, 'private.mp3'))
     ensure_dir(assets_dir)
-
-    # In order to speedup import and initial depack,
-    # construct a python27.zip
-    make_python_zip()
 
     # Add extra environment variable file into tar-able directory:
     env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
