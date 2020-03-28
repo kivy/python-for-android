@@ -8,17 +8,7 @@ This page contains instructions for using different build options.
 Python versions
 ---------------
 
-python2
-~~~~~~~
-
-Select this by adding it in your requirements, e.g. ``--requirements=python2``.
-
-This option builds Python 2.7.2 for your selected Android
-architecture. There are no special requirements, all the building is
-done locally.
-
-
-python3
+Python3
 ~~~~~~~
 
 Python3 is supported in two ways. The default method uses CPython 3.7+
@@ -30,6 +20,15 @@ e.g. ``--requirements=python3``.
 .. note:: ctypes is not included automatically, if you would like to use it
           then add libffi to your requirements,
           e.g. ``--requirements=kivy,libffi,python3``.
+
+Python2
+~~~~~~~
+
+python-for-android no longer supports building for Python 2.
+
+
+.. note:: The last python-for-android version supporting Python2 was `v2019.10.06
+          <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 
 
 CrystaX python3
@@ -60,7 +59,7 @@ sdl2
 ~~~~
 
 Use this with ``--bootstrap=sdl2``, or just include the
-``sdl2`` recipe, e.g. ``--requirements=sdl2,python2``.
+``sdl2`` recipe, e.g. ``--requirements=sdl2,python3``.
 
 SDL2 is a popular cross-platform depelopment library, particularly for
 games. It has its own Android project support, which
@@ -120,7 +119,7 @@ webview
 ~~~~~~~
 
 You can use this with ``--bootstrap=webview``, or include the
-``webviewjni`` recipe, e.g. ``--requirements=webviewjni,python2``.
+``webviewjni`` recipe, e.g. ``--requirements=webviewjni,python3``.
 
 The webview bootstrap gui is, per the name, a WebView displaying a
 webpage, but this page is hosted on the device via a Python

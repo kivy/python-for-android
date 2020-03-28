@@ -116,9 +116,10 @@ has been adapted for that feature. Also be aware that more recent versions of th
 Android's NDK may not work.
 
 Those mentioned changes has been done this way to make easier the transition
-between python3 and python2. We will slowly phase out python2 support
-towards 2020...so...if you are using python2 in your projects you should
-consider migrating it into python3.
+between python3 and python2.
+
+On march of 2020 we dropped python2 support since the python team dropped
+python2 support.
 
 ## Contributors
 
