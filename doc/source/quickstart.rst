@@ -61,33 +61,35 @@ Installing Dependencies
 
 p4a has several dependencies that must be installed:
 
-- git
 - ant
-- python (We recommend using python3.)
+- autoconf (for ffpyplayer_codecs recipe)
+- ccache (optional)
+- cmake (required for some native code recipes like jpeg's recipe)
 - cython (can be installed via pip)
-- a Java JDK (e.g. openjdk-8)
-- zlib (including 32 bit)
+- gcc
+- git
 - libncurses (including 32 bit)
+- libtool (for ffpyplayer_codecs recipe)
+- openjdk-8
+- patch
+- python3
 - unzip
 - virtualenv (can be installed via pip)
-- ccache (optional)
-- autoconf (for ffpyplayer_codecs recipe)
-- libtool (for ffpyplayer_codecs recipe)
-- cmake (required for some native code recipes like jpeg's recipe)
+- zlib (including 32 bit)
+- zip
 
 On recent versions of Ubuntu and its derivatives you may be able to
 install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python3 python3-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool
 
-On Arch Linux (64 bit) you should be able to run the following to
+On Arch Linux you should be able to run the following to
 install most of the dependencies (note: this list may not be
-complete). gcc-multilib will conflict with (and replace) gcc if not
-already installed::
+complete)::
 
-    sudo pacman -S jdk7-openjdk python2 python2-pip python2-kivy mesa-libgl lib32-mesa-libgl lib32-sdl2 lib32-sdl2_image lib32-sdl2_mixer sdl2_ttf unzip gcc-multilib gcc-libs-multilib
+    sudo pacman -S core/autoconf core/automake core/gcc core/make core/patch core/pkgconf extra/cmake extra/jdk8-openjdk extra/python-pip extra/unzip extra/zip
 
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
