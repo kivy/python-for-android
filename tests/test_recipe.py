@@ -189,7 +189,7 @@ class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         Initialize a Context with a Bootstrap and a Distribution to properly
         test an library recipe, to do so we reuse `BaseClassSetupBootstrap`
         """
-        super(TestLibraryRecipe, self).setUp()
+        super().setUp()
         self.ctx.bootstrap = Bootstrap().get_bootstrap('sdl2', self.ctx)
         self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
 
@@ -242,7 +242,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         test a recipe which depends on android's STL library, to do so we reuse
         `BaseClassSetupBootstrap`
         """
-        super(TesSTLRecipe, self).setUp()
+        super().setUp()
         self.ctx.bootstrap = Bootstrap().get_bootstrap('sdl2', self.ctx)
         self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
         self.ctx.python_recipe = Recipe.get_recipe('python3', self.ctx)

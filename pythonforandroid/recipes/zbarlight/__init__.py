@@ -13,7 +13,7 @@ class ZBarLightRecipe(PythonRecipe):
     depends = ['setuptools', 'libzbar']
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(ZBarLightRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
         libzbar = self.get_recipe('libzbar', self.ctx)
         libzbar_dir = libzbar.get_build_dir(arch.arch)
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()

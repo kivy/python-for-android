@@ -13,7 +13,7 @@ class ReportLabRecipe(CompiledComponentsPythonRecipe):
 
     def prebuild_arch(self, arch):
         if not self.is_patched(arch):
-            super(ReportLabRecipe, self).prebuild_arch(arch)
+            super().prebuild_arch(arch)
             recipe_dir = self.get_build_dir(arch.arch)
 
             # Some versions of reportlab ship with a GPL-licensed font.

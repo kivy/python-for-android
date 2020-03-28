@@ -109,7 +109,7 @@ class ICURecipe(Recipe):
                 shprint(sh.make, "install", _env=env)
 
     def install_libraries(self, arch):
-        super(ICURecipe, self).install_libraries(arch)
+        super().install_libraries(arch)
 
         src_include = join(
             self.get_build_dir(arch.arch), "icu_build", "include")

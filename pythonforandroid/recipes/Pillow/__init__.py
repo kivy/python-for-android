@@ -13,7 +13,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(PillowRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
 
         env['ANDROID_ROOT'] = join(self.ctx.ndk_platform, 'usr')
         ndk_lib_dir = join(self.ctx.ndk_platform, 'usr', 'lib')

@@ -14,7 +14,7 @@ class KivyRecipe(CythonRecipe):
     python_depends = ['certifi']
 
     def cythonize_build(self, env, build_dir='.'):
-        super(KivyRecipe, self).cythonize_build(env, build_dir=build_dir)
+        super().cythonize_build(env, build_dir=build_dir)
 
         if not exists(join(build_dir, 'kivy', 'include')):
             return
@@ -35,10 +35,10 @@ class KivyRecipe(CythonRecipe):
         do_not_cythonize = ['window_x11.pyx', ]
         if basename(filename) in do_not_cythonize:
             return
-        super(KivyRecipe, self).cythonize_file(env, build_dir, filename)
+        super().cythonize_file(env, build_dir, filename)
 
     def get_recipe_env(self, arch):
-        env = super(KivyRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
             env['KIVY_SPLIT_EXAMPLES'] = '1'

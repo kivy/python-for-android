@@ -61,14 +61,14 @@ class LibtorrentRecipe(Recipe):
                     self.ctx.has_package('libtorrent', arch.arch))
 
     def prebuild_arch(self, arch):
-        super(LibtorrentRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         if 'openssl' in recipe.ctx.recipe_build_order:
             # Patch boost user-config.jam to use openssl
             self.get_recipe('boost', self.ctx).apply_patch(
                 join(self.get_recipe_dir(), 'user-config-openssl.patch'), arch.arch)
 
     def build_arch(self, arch):
-        super(LibtorrentRecipe, self).build_arch(arch)
+        super().build_arch(arch)
         env = self.get_recipe_env(arch)
         env['PYTHON_HOST'] = self.ctx.hostpython
 

@@ -11,7 +11,7 @@ class PyNaCLRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
-        env = super(PyNaCLRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['SODIUM_INSTALL'] = 'system'
 
         libsodium_build_dir = self.get_recipe(

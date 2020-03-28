@@ -19,14 +19,14 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
 
     def get_hostrecipe_env(self, arch=None):
         # fixes missing ffi.h on some host systems (e.g. gentoo)
-        env = super(CffiRecipe, self).get_hostrecipe_env(arch)
+        env = super().get_hostrecipe_env(arch)
         libffi = self.get_recipe('libffi', self.ctx)
         includes = libffi.get_include_dirs(arch)
         env['FFI_INC'] = ",".join(includes)
         return env
 
     def get_recipe_env(self, arch=None):
-        env = super(CffiRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         libffi = self.get_recipe('libffi', self.ctx)
         includes = libffi.get_include_dirs(arch)
         env['CFLAGS'] = ' -I'.join([env.get('CFLAGS', '')] + includes)

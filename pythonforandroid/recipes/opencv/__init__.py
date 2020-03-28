@@ -38,7 +38,7 @@ class OpenCVRecipe(NDKRecipe):
         return join(self.get_build_dir(arch.arch), 'build', 'lib', arch.arch)
 
     def get_recipe_env(self, arch):
-        env = super(OpenCVRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['ANDROID_NDK'] = self.ctx.ndk_dir
         env['ANDROID_SDK'] = self.ctx.sdk_dir
         return env

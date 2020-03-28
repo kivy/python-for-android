@@ -10,7 +10,7 @@ class FFPyPlayerRecipe(CythonRecipe):
     opt_depends = ['openssl', 'ffpyplayer_codecs']
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
-        env = super(FFPyPlayerRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         build_dir = Recipe.get_recipe('ffmpeg', self.ctx).get_build_dir(arch.arch)
         env["FFMPEG_INCLUDE_DIR"] = join(build_dir, "include")

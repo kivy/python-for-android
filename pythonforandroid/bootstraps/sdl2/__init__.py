@@ -49,7 +49,7 @@ class SDL2GradleBootstrap(Bootstrap):
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(SDL2GradleBootstrap, self).run_distribute()
+        super().run_distribute()
 
 
 bootstrap = SDL2GradleBootstrap()

@@ -16,7 +16,7 @@ class Enum34Recipe(PythonRecipe):
             # attribute `depends` because otherwise we will not be able to
             # build the cryptography recipe.
             return False
-        return super(Enum34Recipe, self).should_build(arch)
+        return super().should_build(arch)
 
 
 recipe = Enum34Recipe()
