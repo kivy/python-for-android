@@ -366,9 +366,6 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.sdl2.open", create=True)
     @mock.patch("pythonforandroid.distribution.open", create=True)
-    @mock.patch(
-        "pythonforandroid.python.GuestPythonRecipe.create_python_bundle"
-    )
     @mock.patch("pythonforandroid.bootstrap.Bootstrap.strip_libraries")
     @mock.patch("pythonforandroid.util.exists")
     @mock.patch("pythonforandroid.util.chdir")
@@ -383,7 +380,6 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_chdir,
         mock_ensure_dir,
         mock_strip_libraries,
-        mock_create_python_bundle,
         mock_open_dist_files,
         mock_open_sdl2_files,
         mock_open_webview_files,
@@ -415,6 +411,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
 
         self.ctx.hostpython = "/some/fake/hostpython3"
         self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
+        self.ctx.python_recipe.create_python_bundle = mock.MagicMock()
         self.ctx.python_modules = ["requests"]
         self.ctx.archs = [ArchARMv7_a(self.ctx)]
 
@@ -457,7 +454,16 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_chdir.assert_called()
         mock_listdir.assert_called()
         mock_strip_libraries.assert_called()
-        mock_create_python_bundle.assert_called()
+        expected__python_bundle = os.path.join(
+            self.ctx.dist_dir,
+            f"{self.ctx.bootstrap.distribution.name}__{self.TEST_ARCH}",
+            "_python_bundle",
+            "_python_bundle",
+        )
+        self.assertIn(
+            mock.call(expected__python_bundle, self.ctx.archs[0]),
+            self.ctx.python_recipe.create_python_bundle.call_args_list,
+        )
 
     @mock.patch("pythonforandroid.bootstrap.shprint")
     @mock.patch("pythonforandroid.bootstrap.glob.glob")
