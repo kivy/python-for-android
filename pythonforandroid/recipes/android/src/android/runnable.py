@@ -7,10 +7,11 @@ Runnable
 from jnius import PythonJavaClass, java_method, autoclass
 from android.config import JAVA_NAMESPACE
 
-# reference to the activity
+# Reference to the activity
 _PythonActivity = autoclass(JAVA_NAMESPACE + '.PythonActivity')
 
-#cache of functions table
+# Cache of functions table. In older Android versions the number of JNI references
+# is limited, so by caching them we avoid running out.
 __functionstable__ = {}
 
 class Runnable(PythonJavaClass):
