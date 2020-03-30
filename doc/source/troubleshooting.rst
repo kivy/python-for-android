@@ -132,8 +132,8 @@ AttributeError: 'Context' object has no attribute 'hostpython'
 
 This is a known bug in some releases. To work around it, add your
 python requirement explicitly,
-e.g. :code:`--requirements=python2,kivy`. This also applies when using
-buildozer, in which case add python2 to your buildozer.spec requirements.
+e.g. :code:`--requirements=python3,kivy`. This also applies when using
+buildozer, in which case add python3 to your buildozer.spec requirements.
 
 linkname too long
 ~~~~~~~~~~~~~~~~~

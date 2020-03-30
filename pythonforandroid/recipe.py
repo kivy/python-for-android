@@ -843,7 +843,7 @@ class PythonRecipe(Recipe):
     setup_extra_args = []
     '''List of extra arguments to pass to setup.py'''
 
-    depends = [('python2', 'python3')]
+    depends = ['python3']
     '''
     .. note:: it's important to keep this depends as a class attribute outside
               `__init__` because sometimes we only initialize the class, so the
@@ -857,19 +857,13 @@ class PythonRecipe(Recipe):
 
     def __init__(self, *args, **kwargs):
         super(PythonRecipe, self).__init__(*args, **kwargs)
-        if not any(
-            [
-                d
-                for d in {'python2', 'python3', ('python2', 'python3')}
-                if d in self.depends
-            ]
-        ):
+        if 'python3' not in self.depends:
             # We ensure here that the recipe depends on python even it overrode
             # `depends`. We only do this if it doesn't already depend on any
             # python, since some recipes intentionally don't depend on/work
             # with all python variants
             depends = self.depends
-            depends.append(('python2', 'python3'))
+            depends.append('python3')
             depends = list(set(depends))
             self.depends = depends
 
@@ -889,7 +883,7 @@ class PythonRecipe(Recipe):
     @property
     def real_hostpython_location(self):
         host_name = 'host{}'.format(self.ctx.python_recipe.name)
-        if host_name in ['hostpython2', 'hostpython3']:
+        if host_name == 'hostpython3':
             python_recipe = Recipe.get_recipe(host_name, self.ctx)
             return python_recipe.python_exe
         else:

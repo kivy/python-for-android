@@ -185,9 +185,7 @@ an `.apk` file.
 
 *Compatibility notes:*
 
-- While python2 is still supported by python-for-android,
-  it will possibly no longer receive patches by the python creators
-  themselves in 2020. Migration to Python 3 is recommended!
+- Python 2 is no longer supported by python-for-android. The last release supporting Python 2 was v2019.10.06.
 
 
 Build a WebView application

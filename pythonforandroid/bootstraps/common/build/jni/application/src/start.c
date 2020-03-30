@@ -189,17 +189,6 @@ int main(int argc, char *argv[]) {
   }
 
   Py_Initialize();
-
-#if PY_MAJOR_VERSION < 3
-  // Can't Py_SetPath in python2 but we can set PySys_SetPath, which must
-  // be applied after Py_Initialize rather than before like Py_SetPath
-  #if PY_MICRO_VERSION >= 15
-    // Only for python native-build
-    PySys_SetPath(paths);
-  #endif
-  PySys_SetArgv(argc, argv);
-#endif
-
   LOGP("Initialized python");
 
   /* ensure threads will work.
@@ -285,7 +274,7 @@ int main(int argc, char *argv[]) {
       entrypoint[strlen(env_entrypoint) - 1] = '\0';
       LOGP(entrypoint);
       if (!file_exists(entrypoint)) {
-        LOGP("Entrypoint not found (.pyc/.pyo, fallback on .py), abort");
+        LOGP("Entrypoint not found (.pyc, fallback on .py), abort");
         return -1;
       }
     } else {
@@ -309,7 +298,7 @@ int main(int argc, char *argv[]) {
       strcpy(entrypoint, env_entrypoint);
     }
   } else {
-    LOGP("Entrypoint have an invalid extension (must be .py or .pyc/.pyo), abort.");
+    LOGP("Entrypoint have an invalid extension (must be .py or .pyc), abort.");
     return -1;
   }
   // LOGP("Entrypoint is:");
@@ -330,8 +319,7 @@ int main(int argc, char *argv[]) {
     ret = 1;
     PyErr_Print(); /* This exits with the right code if SystemExit. */
     PyObject *f = PySys_GetObject("stdout");
-    if (PyFile_WriteString(
-            "\n", f)) /* python2 used Py_FlushLine, but this no longer exists */
+    if (PyFile_WriteString("\n", f))
       PyErr_Clear();
   }
 

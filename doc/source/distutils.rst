@@ -25,9 +25,6 @@ This however has these caveats:
   or even cause build errors. (Sorry, our internal processing is
   just not smart enough to honor them properly at this point)
 
-- If you don't use Python 3 per default, you still need to specify
-  ``--requirements python2`` (without any additional dependencies)
-
 - The dependency analysis at the start may be quite slow and delay
   your build
 
@@ -117,7 +114,7 @@ store them in setup.py by passing the ``options`` parameter to
     from setuptools import find_packages
 
     options = {'apk': {'debug': None,  # use None for arguments that don't pass a value
-                       'requirements': 'sdl2,pyjnius,kivy,python2',
+                       'requirements': 'sdl2,pyjnius,kivy,python3',
                        'android-api': 19,
                        'ndk-dir': '/path/to/ndk',
                        'dist-name': 'bdisttest',
