@@ -14,11 +14,25 @@ dist_info_data = {
     "bootstrap": "sdl2",
     "archs": ["armeabi", "armeabi-v7a", "x86", "x86_64", "arm64-v8a"],
     "ndk_api": 21,
+    "android_api": 27,
     "use_setup_py": False,
     "recipes": ["hostpython3", "python3", "sdl2", "kivy", "requests"],
     "hostpython": "/some/fake/hostpython3",
     "python_version": "3.7",
 }
+
+gradle_file_partial_content = f"""
+android {{
+    compileSdkVersion {dist_info_data["android_api"]}
+    buildToolsVersion '29.0.1'
+    defaultConfig {{
+        minSdkVersion {dist_info_data["ndk_api"]}
+        targetSdkVersion {dist_info_data["android_api"]}
+        versionCode 821101
+        versionName '1.1'
+    }}
+}}
+"""
 
 
 class TestDistribution(unittest.TestCase):
@@ -33,8 +47,8 @@ class TestDistribution(unittest.TestCase):
         """Configure a :class:`~pythonforandroid.build.Context` so we can
         perform our unittests"""
         self.ctx = Context()
-        self.ctx.ndk_api = 21
-        self.ctx.android_api = 27
+        self.ctx.ndk_api = dist_info_data['ndk_api']
+        self.ctx.android_api = dist_info_data['android_api']
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
         self.ctx.setup_dirs(os.getcwd())
@@ -75,6 +89,131 @@ class TestDistribution(unittest.TestCase):
         )
         self.assertEqual(distribution.__str__(), expected_repr)
         self.assertEqual(distribution.__repr__(), expected_repr)
+
+    def test_dist_info_file(self):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.dist_info_file`
+        returns the expected value."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        distribution = self.ctx.bootstrap.distribution
+        self.assertEqual(
+            distribution.dist_info_file,
+            os.path.join(distribution.dist_dir, "dist_info.json")
+        )
+
+    def test_dist_info(self):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.dist_info`
+        calls the proper methods and returns the proper value."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+
+        mock_open = mock.mock_open(read_data=json.dumps(dist_info_data))
+        with mock.patch("pythonforandroid.distribution.open", mock_open):
+            dist_info = self.ctx.bootstrap.distribution.dist_info
+        mock_open.assert_called_once_with(
+            self.ctx.bootstrap.distribution.dist_info_file, "r",
+        )
+        self.assertEqual(dist_info, dist_info_data)
+
+    @mock.patch("pythonforandroid.distribution.json.dump")
+    @mock.patch("pythonforandroid.distribution.open", create=True)
+    def test_update_dist_info(self, mock_open, mock_json):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.update_dist_info`
+        calls the proper methods with the right arguments."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        new_info_data = dist_info_data
+        new_info_data['android_api'] = 28
+        expected_json_file = mock.mock_open(
+            read_data=json.dumps(new_info_data)
+        ).return_value
+        mock_open.side_effect = [expected_json_file]
+
+        with mock.patch(
+                'pythonforandroid.distribution.Distribution.dist_info',
+                new_callable=mock.PropertyMock,
+                return_value=dist_info_data,
+        ) as mock_dist_info:
+            self.ctx.bootstrap.distribution.update_dist_info(
+                "android_api", new_info_data['android_api']
+            )
+        # We expect two calls to property `dist_info` (read and write)
+        self.assertEqual(len(mock_dist_info.call_args), 2)
+
+        mock_open.assert_called_once_with(
+            self.ctx.bootstrap.distribution.dist_info_file,
+            "w",
+        )
+
+    @mock.patch("pythonforandroid.distribution.open", create=True)
+    def test_update_dist_project_properties_android_api(self, mock_open):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.update_dist_project_properties_android_api`
+        calls the proper methods with the right arguments."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+        mocked_file_obj = mock.mock_open(read_data=json.dumps(dist_info_data))
+        mock_open.side_effect = [mocked_file_obj.return_value]
+        new_android_api = 28
+        self.ctx.bootstrap.distribution.update_dist_project_properties_android_api(  # noqa
+            new_android_api
+        )
+        self.assertTrue(mock_open.call_args[0][0].endswith(
+            'dists/test_prj__armeabi-v7a/project.properties')
+        )
+        self.assertEqual(mock_open.call_args[0][1], 'w')
+
+    @mock.patch("pythonforandroid.distribution.open")
+    def test_update_dist_android_api(self, mock_open):
+        """Test that method
+        :meth:`~pythonforandroid.distribution.Distribution.update_dist_android_api`
+        calls the proper methods with the right arguments."""
+        self.setUp_distribution_with_bootstrap(
+            Bootstrap().get_bootstrap("sdl2", self.ctx)
+        )
+
+        new_android_api = 28
+        new_gradle_content = gradle_file_partial_content.replace(
+            f"compileSdkVersion {dist_info_data['android_api']}",
+            f"compileSdkVersion {new_android_api}"
+        ).replace(
+            f"targetSdkVersion {dist_info_data['android_api']}",
+            f"targetSdkVersion {new_android_api}"
+        )
+        mock_open.side_effect = [
+            mock.mock_open(read_data=gradle_file_partial_content).return_value,
+            mock.mock_open(read_data=new_gradle_content).return_value,
+            mock.mock_open(read_data="target=android-27").return_value,
+            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value,
+            mock.mock_open(read_data=json.dumps(dist_info_data)).return_value,
+        ]
+
+        dist = self.ctx.bootstrap.distribution
+        with mock.patch(
+                'pythonforandroid.distribution.Distribution.dist_info',
+                new_callable=mock.PropertyMock,
+                return_value=dist_info_data,
+        ) as mock_dist_info:
+            dist.update_dist_android_api(new_android_api)
+        # We expect two calls to property `dist_info` (read and write)
+        self.assertEqual(len(mock_dist_info.call_args), 2)
+
+        mock_open.assert_has_calls(
+            [
+                mock.call(os.path.join(dist.dist_dir, "build.gradle"), "r"),
+                mock.call(os.path.join(dist.dist_dir, "build.gradle"), "w"),
+                mock.call(
+                    os.path.join(dist.dist_dir, "project.properties"), "w"
+                ),
+            ]
+        )
 
     @mock.patch("pythonforandroid.distribution.exists")
     def test_folder_exist(self, mock_exists):
@@ -129,8 +268,10 @@ class TestDistribution(unittest.TestCase):
         mock_open_dist_info.side_effect = [
             mock.mock_open(read_data=json.dumps(dist_info_data)).return_value
         ]
-        self.ctx.bootstrap.distribution.save_info("/fake_dir")
-        mock_open_dist_info.assert_called_once_with("dist_info.json", "w")
+        self.ctx.bootstrap.distribution.save_info()
+        mock_open_dist_info.assert_called_once_with(
+            self.ctx.bootstrap.distribution.dist_info_file, "w",
+        )
         mock_open_dist_info.reset_mock()
 
     @mock.patch("pythonforandroid.distribution.open", create=True)
