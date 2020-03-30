@@ -10,7 +10,7 @@ class PyLevelDBRecipe(CppCompiledComponentsPythonRecipe):
     site_packages_name = 'leveldb'
 
     def get_recipe_env(self, arch):
-        env = super(PyLevelDBRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         snappy_recipe = self.get_recipe('snappy', self.ctx)
         leveldb_recipe = self.get_recipe('leveldb', self.ctx)

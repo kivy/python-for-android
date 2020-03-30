@@ -10,7 +10,7 @@ class PymunkRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
-        env = super(PymunkRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['PYTHON_ROOT'] = self.ctx.get_python_install_dir()
         env['LDFLAGS'] += " -shared -llog"
         env['LDFLAGS'] += ' -L{}'.format(join(self.ctx.ndk_platform, 'usr', 'lib'))

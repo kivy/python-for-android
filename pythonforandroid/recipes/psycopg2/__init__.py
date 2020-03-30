@@ -26,7 +26,7 @@ class Psycopg2Recipe(PythonRecipe):
                     'setup.py')
 
     def get_recipe_env(self, arch):
-        env = super(Psycopg2Recipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['LDFLAGS'] = "{} -L{}".format(env['LDFLAGS'], self.ctx.get_libs_dir(arch.arch))
         env['EXTRA_CFLAGS'] = "--host linux-armv"
         return env

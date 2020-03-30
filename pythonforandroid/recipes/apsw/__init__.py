@@ -20,10 +20,10 @@ class ApswRecipe(PythonRecipe):
                     'build_ext',
                     '--enable=fts4', _env=env)
         # Install python bindings
-        super(ApswRecipe, self).build_arch(arch)
+        super().build_arch(arch)
 
     def get_recipe_env(self, arch):
-        env = super(ApswRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         sqlite_recipe = self.get_recipe('sqlite3', self.ctx)
         env['CFLAGS'] += ' -I' + sqlite_recipe.get_build_dir(arch.arch)
         env['LDFLAGS'] += ' -L' + sqlite_recipe.get_lib_dir(arch)

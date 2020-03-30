@@ -29,7 +29,7 @@ class FreetypeRecipe(Recipe):
     built_libraries = {'libfreetype.so': 'objs/.libs'}
 
     def get_recipe_env(self, arch=None, with_harfbuzz=False):
-        env = super(FreetypeRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         if with_harfbuzz:
             harfbuzz_build = self.get_recipe(
                 'harfbuzz', self.ctx

@@ -12,7 +12,7 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False  # Due to setuptools
 
     def should_build(self, arch):
-        super(LXMLRecipe, self).should_build(arch)
+        super().should_build(arch)
 
         py_ver = self.ctx.python_recipe.major_minor_version_string
         build_platform = '{system}-{machine}'.format(
@@ -24,7 +24,7 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         return not all([exists(join(build_dir, lib)) for lib in py_libs])
 
     def get_recipe_env(self, arch):
-        env = super(LXMLRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         # libxslt flags
         libxslt_recipe = Recipe.get_recipe('libxslt', self.ctx)

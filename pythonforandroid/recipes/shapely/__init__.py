@@ -18,7 +18,7 @@ class ShapelyRecipe(CythonRecipe):
     # setup_extra_args = ['sdist']
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(ShapelyRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         libgeos_install = join(self.get_recipe(
             'libgeos', self.ctx).get_build_dir(arch.arch), 'install_target')

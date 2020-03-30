@@ -26,7 +26,7 @@ class HarfbuzzRecipe(Recipe):
     built_libraries = {'libharfbuzz.so': 'src/.libs'}
 
     def get_recipe_env(self, arch=None):
-        env = super(HarfbuzzRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         if 'freetype' in self.ctx.recipe_build_order:
             freetype = self.get_recipe('freetype', self.ctx)
             freetype_install = join(

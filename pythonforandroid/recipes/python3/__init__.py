@@ -72,7 +72,7 @@ class Python3Recipe(GuestPythonRecipe):
         '--exec-prefix={exec_prefix}')
 
     def set_libs_flags(self, env, arch):
-        env = super(Python3Recipe, self).set_libs_flags(env, arch)
+        env = super().set_libs_flags(env, arch)
         if 'openssl' in self.ctx.recipe_build_order:
             recipe = Recipe.get_recipe('openssl', self.ctx)
             self.configure_args += \

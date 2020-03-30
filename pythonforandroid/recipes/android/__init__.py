@@ -18,12 +18,12 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
     config_env = {}
 
     def get_recipe_env(self, arch):
-        env = super(AndroidRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env.update(self.config_env)
         return env
 
     def prebuild_arch(self, arch):
-        super(AndroidRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         ctx_bootstrap = self.ctx.bootstrap.name
 
         # define macros for Cython, C, Python

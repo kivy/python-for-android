@@ -102,7 +102,7 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
 
 class BuildInterruptingException(Exception):
     def __init__(self, message, instructions=None):
-        super(BuildInterruptingException, self).__init__(message, instructions)
+        super().__init__(message, instructions)
         self.message = message
         self.instructions = instructions
 

@@ -15,7 +15,7 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
-        env = super(PandasRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         # we need the includes from our installed numpy at site packages
         # because we need some includes generated at numpy's compile time
         env['NUMPY_INCLUDES'] = join(

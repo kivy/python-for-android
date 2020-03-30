@@ -435,7 +435,7 @@ class Context(object):
                 'python-for-android cannot continue due to the missing executables above')
 
     def __init__(self):
-        super(Context, self).__init__()
+        super().__init__()
         self.include_dirs = []
 
         self._build_env_prepared = False

@@ -45,7 +45,7 @@ class LibxsltRecipe(Recipe):
             shprint(sh.make, "V=1", _env=env)
 
     def get_recipe_env(self, arch):
-        env = super(LibxsltRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['CONFIG_SHELL'] = '/bin/bash'
         env['SHELL'] = '/bin/bash'
 
