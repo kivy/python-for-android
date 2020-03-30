@@ -7,7 +7,7 @@ class GenericNDKBuildRecipe(BootstrapNDKRecipe):
     version = None
     url = None
 
-    depends = [('python2', 'python3')]
+    depends = ['python3']
     conflicts = ['sdl2']
 
     def should_build(self, arch):

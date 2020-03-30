@@ -12,7 +12,6 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
     url = 'https://github.com/matplotlib/matplotlib/archive/v{version}.zip'
 
     depends = ['numpy', 'png', 'setuptools', 'freetype', 'kiwisolver']
-    conflicts = ['python2']
 
     python_depends = ['pyparsing', 'cycler', 'python-dateutil']
 

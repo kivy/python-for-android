@@ -76,7 +76,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         bs = Bootstrap().get_bootstrap("sdl2", self.ctx)
         self.assertEqual(bs.name, "sdl2")
         self.assertEqual(bs.jni_dir, "sdl2/jni")
-        self.assertEqual(bs.get_build_dir_name(), "sdl2-python3")
+        self.assertEqual(bs.get_build_dir_name(), "sdl2")
 
         # bs.dist_dir should raise an error if there is no distribution to query
         bs.distribution = None
@@ -100,7 +100,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         bs = Bootstrap.get_bootstrap("sdl2", self.ctx)
 
         self.assertTrue(
-            bs.get_build_dir().endswith("build/bootstrap_builds/sdl2-python3")
+            bs.get_build_dir().endswith("build/bootstrap_builds/sdl2")
         )
         self.assertTrue(bs.get_dist_dir("test_prj").endswith("dists/test_prj"))
         self.assertTrue(
@@ -181,8 +181,8 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         expanded_result = expand_dependencies(
             ["python3", "kivy", "peewee"], self.ctx
         )
-        # we expect to have two results (one for python2 and one for python3)
-        self.assertEqual(len(expanded_result), 2)
+        # we expect to one results for python3
+        self.assertEqual(len(expanded_result), 1)
         self.assertIsInstance(expanded_result, list)
         for i in expanded_result:
             self.assertIsInstance(i, list)
@@ -243,11 +243,6 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
             recipes_with_no_sdl2_or_web, self.ctx
         )
         self.assertEqual(bs.name, "service_only")
-
-        # Test wrong recipes
-        wrong_recipes = {"python2", "python3", "pyjnius"}
-        bs = Bootstrap.get_bootstrap_from_recipes(wrong_recipes, self.ctx)
-        self.assertIsNone(bs)
 
     @mock.patch("pythonforandroid.bootstrap.ensure_dir")
     def test_prepare_dist_dir(self, mock_ensure_dir):

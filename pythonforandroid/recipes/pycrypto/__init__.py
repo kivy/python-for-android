@@ -10,7 +10,7 @@ import sh
 class PyCryptoRecipe(CompiledComponentsPythonRecipe):
     version = '2.7a1'
     url = 'https://github.com/dlitz/pycrypto/archive/v{version}.zip'
-    depends = ['openssl', ('python2', 'python3')]
+    depends = ['openssl', 'python3']
     site_packages_name = 'Crypto'
     call_hostpython_via_targetpython = False
     patches = ['add_length.patch']
