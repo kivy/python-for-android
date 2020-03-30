@@ -8,37 +8,14 @@ This page contains instructions for using different build options.
 Python versions
 ---------------
 
-Python3
-~~~~~~~
+python-for-android supports using Python 3.7 or higher. To explicitly select a Python
+version in your requirements, use e.g. ``--requirements=python3==3.7.1,hostpython3==3.7.1``.
 
-Python3 is supported in two ways. The default method uses CPython 3.7+
-and works with any recent version of the Android NDK.
-
-Select Python 3 by adding it to your requirements,
-e.g. ``--requirements=python3``.
-
-.. note:: ctypes is not included automatically, if you would like to use it
-          then add libffi to your requirements,
-          e.g. ``--requirements=kivy,libffi,python3``.
-
-Python2
-~~~~~~~
-
-python-for-android no longer supports building for Python 2.
-
-
-.. note:: The last python-for-android version supporting Python2 was `v2019.10.06
+The last python-for-android version supporting Python2 was `v2019.10.06
           <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 
-
-CrystaX python3
-~~~~~~~~~~~~~~~
-
-python-for-android no longer supports building for Python 3 using the CrystaX
-NDK. Instead, use the python3 recipe, which can be built using the normal
-Google NDK.
-
-.. note:: The last python-for-android version supporting CrystaX was `0.7.0.
+Python-for-android no longer supports building for Python 3 using the CrystaX
+NDK. The last python-for-android version supporting CrystaX was `0.7.0.
           <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__
 
 .. _bootstrap_build_options:
