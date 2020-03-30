@@ -45,7 +45,7 @@ jobs:
       name: Python 3 arm64-v8a (with numpy)
       stage: build testapps
       before_script: make docker/pull
-      script: make docker/run/make/testapps/arm64-v8a
+      script: make docker/run/make/testapps-with-numpy/arm64-v8a
     - <<: *testapps
       name: Python 3 armeabi-v7a
       os: osx
