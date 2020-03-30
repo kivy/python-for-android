@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 import json
 from os.path import (
     dirname, join, isfile, realpath,

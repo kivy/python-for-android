@@ -6,7 +6,6 @@ Tool for packaging Python apps for Android
 This module defines the entry point for command line and programmatic use.
 """
 
-from __future__ import print_function
 from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
@@ -235,7 +234,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
         return []
 
 
-class ToolchainCL(object):
+class ToolchainCL:
 
     def __init__(self):
 

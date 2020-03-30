@@ -493,12 +493,11 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         libs_dir = os.path.join("libs", arch.arch)
         # we expect two calls to glob/copy command via shprint
         self.assertEqual(len(mock_glob.call_args_list), 2)
-        self.assertEqual(len(mock_shprint.call_args_list), 2)
-        for i, lib in enumerate(mock_glob.return_value):
-            self.assertEqual(
-                mock_shprint.call_args_list[i],
-                mock.call(sh.cp, "-a", lib, libs_dir),
-            )
+        self.assertEqual(len(mock_shprint.call_args_list), 1)
+        self.assertEqual(
+            mock_shprint.call_args_list,
+            [mock.call(sh.cp, "-a", *mock_glob.return_value, libs_dir)]
+        )
         mock_build_dir.assert_called()
         mock_bs_dir.assert_called_once_with(libs_dir)
         reset_mocks()

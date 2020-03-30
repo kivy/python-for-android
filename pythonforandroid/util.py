@@ -6,11 +6,7 @@ import shutil
 from fnmatch import fnmatch
 from tempfile import mkdtemp
 
-# This Python version workaround left for compatibility during initial version check
-try:  # Python 3
-    from urllib.request import FancyURLopener
-except ImportError:  # Python 2
-    from urllib import FancyURLopener
+from urllib.request import FancyURLopener
 
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
 

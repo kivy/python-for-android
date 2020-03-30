@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from pythonforandroid.recipe import CythonRecipe, IncludedFilesBehaviour
 from pythonforandroid.util import current_directory
 from pythonforandroid import logger
