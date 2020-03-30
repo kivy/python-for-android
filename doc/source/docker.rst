@@ -67,10 +67,11 @@ already have Docker preinstalled and set up.
 
        ls -lah testapps
 
-Docker Method2
-======
+Alternative docker method
+=========================
 
-Here's a more practical and understandable way, it requires you to install SDK and NDK manully first.
+This method may be more straightforward for local development. You will need to 
+install the Android SDK and NDK manually first.
 
 1. Download an example::
 
