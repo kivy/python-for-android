@@ -6,7 +6,7 @@ import sh
 class ApswRecipe(PythonRecipe):
     version = '3.15.0-r1'
     url = 'https://github.com/rogerbinns/apsw/archive/{version}.tar.gz'
-    depends = ['sqlite3', ('python2', 'python3'), 'setuptools']
+    depends = ['sqlite3', 'setuptools']
     call_hostpython_via_targetpython = False
     site_packages_name = 'apsw'
 
@@ -20,10 +20,10 @@ class ApswRecipe(PythonRecipe):
                     'build_ext',
                     '--enable=fts4', _env=env)
         # Install python bindings
-        super(ApswRecipe, self).build_arch(arch)
+        super().build_arch(arch)
 
     def get_recipe_env(self, arch):
-        env = super(ApswRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         sqlite_recipe = self.get_recipe('sqlite3', self.ctx)
         env['CFLAGS'] += ' -I' + sqlite_recipe.get_build_dir(arch.arch)
         env['LDFLAGS'] += ' -L' + sqlite_recipe.get_lib_dir(arch)

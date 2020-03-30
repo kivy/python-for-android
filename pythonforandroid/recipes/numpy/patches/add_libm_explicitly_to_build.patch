@@ -1,22 +1,8 @@
-diff --git a/numpy/fft/setup.py b/numpy/fft/setup.py
-index cd99a82..cd7c1ef 100644
---- a/numpy/fft/setup.py
-+++ b/numpy/fft/setup.py
-@@ -9,7 +9,8 @@ def configuration(parent_package='',top_path=None):
- 
-     # Configure fftpack_lite
-     config.add_extension('fftpack_lite',
--                         sources=['fftpack_litemodule.c', 'fftpack.c']
-+                         sources=['fftpack_litemodule.c', 'fftpack.c'],
-+                         libraries=['m'],
-                          )
- 
-     return config
 diff --git a/numpy/linalg/setup.py b/numpy/linalg/setup.py
 index 66c07c9..d34bd93 100644
 --- a/numpy/linalg/setup.py
 +++ b/numpy/linalg/setup.py
-@@ -43,6 +43,7 @@ def configuration(parent_package='', top_path=None):
+@@ -46,6 +46,7 @@ def configuration(parent_package='', top_path=None):
          sources=['lapack_litemodule.c', get_lapack_lite_sources],
          depends=['lapack_lite/f2c.h'],
          extra_info=lapack_info,
@@ -24,7 +10,7 @@ index 66c07c9..d34bd93 100644
      )
  
      # umath_linalg module
-@@ -51,7 +52,7 @@ def configuration(parent_package='', top_path=None):
+@@ -54,7 +54,7 @@ def configuration(parent_package='', top_path=None):
          sources=['umath_linalg.c.src', get_lapack_lite_sources],
          depends=['lapack_lite/f2c.h'],
          extra_info=lapack_info,
@@ -32,17 +18,3 @@ index 66c07c9..d34bd93 100644
 +        libraries=['npymath', 'm'],
      )
      return config
- 
-diff --git a/numpy/random/setup.py b/numpy/random/setup.py
-index 394a70e..44af180 100644
---- a/numpy/random/setup.py
-+++ b/numpy/random/setup.py
-@@ -39,7 +39,7 @@ def configuration(parent_package='',top_path=None):
-     if needs_mingw_ftime_workaround():
-         defs.append(("NPY_NEEDS_MINGW_TIME_WORKAROUND", None))
- 
--    libs = []
-+    libs = ['m']
-     # Configure mtrand
-     config.add_extension('mtrand',
-                          sources=[join('mtrand', x) for x in

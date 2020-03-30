@@ -3,17 +3,16 @@ from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk, uname
 import sh
 import shutil
-import sys
 from fnmatch import fnmatch
 from tempfile import mkdtemp
-try:
+
+# This Python version workaround left for compatibility during initial version check
+try:  # Python 3
     from urllib.request import FancyURLopener
-except ImportError:
+except ImportError:  # Python 2
     from urllib import FancyURLopener
 
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
-
-IS_PY3 = sys.version_info[0] >= 3
 
 
 class WgetDownloader(FancyURLopener):
@@ -103,7 +102,7 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
 
 class BuildInterruptingException(Exception):
     def __init__(self, message, instructions=None):
-        super(BuildInterruptingException, self).__init__(message, instructions)
+        super().__init__(message, instructions)
         self.message = message
         self.instructions = instructions
 

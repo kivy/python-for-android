@@ -608,7 +608,34 @@ public class PythonActivity extends SDLActivity {
             // call native function (since it's not yet loaded)
         }
         considerLoadingScreenRemoval();
-    }    
+    }
+
+    /**
+     * Used by android.permissions p4a module to register a call back after
+     * requesting runtime permissions
+     **/
+    public interface PermissionsCallback {
+        void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults);
+    }
+
+    private PermissionsCallback permissionCallback;
+    private boolean havePermissionsCallback = false;
+
+    public void addPermissionsCallback(PermissionsCallback callback) {
+        permissionCallback = callback;
+        havePermissionsCallback = true;
+        Log.v(TAG, "addPermissionsCallback(): Added callback for onRequestPermissionsResult");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Log.v(TAG, "onRequestPermissionsResult()");
+        if (havePermissionsCallback) {
+            Log.v(TAG, "onRequestPermissionsResult passed to callback");
+            permissionCallback.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
 
     /**
      * Used by android.permissions p4a module to check a permission
@@ -619,9 +646,9 @@ public class PythonActivity extends SDLActivity {
 
         try {
             java.lang.reflect.Method methodCheckPermission =
-                Activity.class.getMethod("checkSelfPermission", java.lang.String.class);  
+                Activity.class.getMethod("checkSelfPermission", java.lang.String.class);
             Object resultObj = methodCheckPermission.invoke(this, permission);
-            int result = Integer.parseInt(resultObj.toString());   
+            int result = Integer.parseInt(resultObj.toString());
             if (result == PackageManager.PERMISSION_GRANTED) 
                 return true;
         } catch (IllegalAccessException | NoSuchMethodException |
@@ -633,16 +660,20 @@ public class PythonActivity extends SDLActivity {
     /**
      * Used by android.permissions p4a module to request runtime permissions
      **/
-    public void requestPermissions(String[] permissions) {
+    public void requestPermissionsWithRequestCode(String[] permissions, int requestCode) {
         if (android.os.Build.VERSION.SDK_INT < 23)
             return;
         try {
             java.lang.reflect.Method methodRequestPermission =
                 Activity.class.getMethod("requestPermissions",
-                java.lang.String[].class, int.class);  
-            methodRequestPermission.invoke(this, permissions, 1);
+                java.lang.String[].class, int.class);
+            methodRequestPermission.invoke(this, permissions, requestCode);
         } catch (IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {
         }
+    }
+
+    public void requestPermissions(String[] permissions) {
+        requestPermissionsWithRequestCode(permissions, 1);
     }
 }

@@ -12,7 +12,7 @@ class VorbisRecipe(NDKRecipe):
     generated_libraries = ['libvorbis.so', 'libvorbisfile.so', 'libvorbisenc.so']
 
     def get_recipe_env(self, arch=None):
-        env = super(VorbisRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         ogg = self.get_recipe('libogg', self.ctx)
         env['CFLAGS'] += ' -I{}'.format(join(ogg.get_build_dir(arch.arch), 'include'))
         return env

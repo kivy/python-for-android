@@ -50,7 +50,7 @@ class SDL2GradleBootstrap(Bootstrap):
         if not self.ctx.build_as_debuggable:
             self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(SDL2GradleBootstrap, self).run_distribute()
+        super().run_distribute()
 
 
 bootstrap = SDL2GradleBootstrap()

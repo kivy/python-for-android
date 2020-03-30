@@ -14,7 +14,7 @@ class NewIntentListener(PythonJavaClass):
     __javacontext__ = 'app'
 
     def __init__(self, callback, **kwargs):
-        super(NewIntentListener, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.callback = callback
 
     @java_method('(Landroid/content/Intent;)V')
@@ -27,7 +27,7 @@ class ActivityResultListener(PythonJavaClass):
     __javacontext__ = 'app'
 
     def __init__(self, callback):
-        super(ActivityResultListener, self).__init__()
+        super().__init__()
         self.callback = callback
 
     @java_method('(IILandroid/content/Intent;)V')

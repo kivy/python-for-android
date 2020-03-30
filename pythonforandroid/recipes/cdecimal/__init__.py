@@ -13,7 +13,7 @@ class CdecimalRecipe(CompiledComponentsPythonRecipe):
                'cross-compile.patch']
 
     def prebuild_arch(self, arch):
-        super(CdecimalRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         if not is_darwin():
             if '64' in arch.arch:
                 machine = 'ansi64'

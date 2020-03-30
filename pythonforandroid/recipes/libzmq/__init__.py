@@ -1,21 +1,18 @@
-from pythonforandroid.toolchain import Recipe, shprint, shutil, current_directory
-from pythonforandroid.util import ensure_dir
-from os.path import exists, join
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.logger import shprint
+from pythonforandroid.util import current_directory
+from os.path import join
 import sh
 
 
 class LibZMQRecipe(Recipe):
-    version = '4.3.1'
+    version = '4.3.2'
     url = 'https://github.com/zeromq/libzmq/releases/download/v{version}/zeromq-{version}.zip'
     depends = []
-
-    def should_build(self, arch):
-        super(LibZMQRecipe, self).should_build(arch)
-        return True
-        return not exists(join(self.ctx.get_libs_dir(arch.arch), 'libzmq.so'))
+    built_libraries = {'libzmq.so': 'src/.libs'}
+    need_stl_shared = True
 
     def build_arch(self, arch):
-        super(LibZMQRecipe, self).build_arch(arch)
         env = self.get_recipe_env(arch)
         #
         # libsodium_recipe = Recipe.get_recipe('libsodium', self.ctx)
@@ -27,6 +24,7 @@ class LibZMQRecipe(Recipe):
 
         curdir = self.get_build_dir(arch.arch)
         prefix = join(curdir, "install")
+
         with current_directory(curdir):
             bash = sh.Command('sh')
             shprint(
@@ -39,43 +37,6 @@ class LibZMQRecipe(Recipe):
                 _env=env)
             shprint(sh.make, _env=env)
             shprint(sh.make, 'install', _env=env)
-            shutil.copyfile('src/.libs/libzmq.so', join(
-                self.ctx.get_libs_dir(arch.arch), 'libzmq.so'))
-
-            bootstrap_obj_dir = join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
-            ensure_dir(bootstrap_obj_dir)
-            shutil.copyfile(
-                '{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}/libgnustl_shared.so'.format(
-                    self.ctx.ndk_dir, self.ctx.toolchain_version, arch),
-                join(bootstrap_obj_dir, 'libgnustl_shared.so'))
-
-            # Copy libgnustl_shared.so
-            with current_directory(self.get_build_dir(arch.arch)):
-                sh.cp(
-                    "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx, arch=arch),
-                    self.ctx.get_libs_dir(arch.arch)
-                )
-
-    def get_include_dirs(self, arch):
-        return [join(self.get_build_dir(arch.arch), 'include')]
-
-    def get_recipe_env(self, arch):
-        # XXX should stl be configuration for the toolchain itself?
-        env = super(LibZMQRecipe, self).get_recipe_env(arch)
-        env['CFLAGS'] += ' -Os'
-        env['CXXFLAGS'] += ' -Os -fPIC -fvisibility=default'
-        env['CXXFLAGS'] += ' -I{}/sources/cxx-stl/gnu-libstdc++/{}/include'.format(
-            self.ctx.ndk_dir, self.ctx.toolchain_version)
-        env['CXXFLAGS'] += ' -I{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}/include'.format(
-            self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
-        env['CXXFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
-            self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
-        env['CXXFLAGS'] += ' -lgnustl_shared'
-        env['LDFLAGS'] += ' -L{}/sources/cxx-stl/gnu-libstdc++/{}/libs/{}'.format(
-            self.ctx.ndk_dir, self.ctx.toolchain_version, arch)
-        env['CXXFLAGS'] += ' --sysroot={}/platforms/android-{}/{}'.format(
-            self.ctx.ndk_dir, self.ctx.ndk_api, arch.platform_dir)
-        return env
 
 
 recipe = LibZMQRecipe()

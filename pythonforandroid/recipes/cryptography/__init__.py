@@ -10,7 +10,7 @@ class CryptographyRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
-        env = super(CryptographyRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         openssl_recipe = Recipe.get_recipe('openssl', self.ctx)
         env['CFLAGS'] += openssl_recipe.include_flags(arch)

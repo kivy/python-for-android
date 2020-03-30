@@ -11,7 +11,7 @@ class ZopeRecipe(PythonRecipe):
     depends = []
 
     def get_recipe_env(self, arch):
-        env = super(ZopeRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         # These are in the old zope recipe but seem like they shouldn't actually be necessary
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
@@ -19,7 +19,7 @@ class ZopeRecipe(PythonRecipe):
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
 
     def postbuild_arch(self, arch):
-        super(ZopeRecipe, self).postbuild_arch(arch)
+        super().postbuild_arch(arch)
 
         # Should do some deleting here
 

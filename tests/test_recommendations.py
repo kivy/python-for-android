@@ -2,17 +2,14 @@ import unittest
 from os.path import join
 from sys import version as py_version
 
-try:
-    from unittest import mock
-except ImportError:
-    # `Python 2` or lower than `Python 3.3` does not
-    # have the `unittest.mock` module built-in
-    import mock
+from unittest import mock
 from pythonforandroid.recommendations import (
     check_ndk_api,
     check_ndk_version,
     check_target_api,
     read_ndk_version,
+    check_python_version,
+    print_recommendations,
     MAX_NDK_VERSION,
     RECOMMENDED_NDK_VERSION,
     RECOMMENDED_TARGET_API,
@@ -33,7 +30,12 @@ from pythonforandroid.recommendations import (
     OLD_NDK_API_MESSAGE,
     NEW_NDK_MESSAGE,
     OLD_API_MESSAGE,
+    MIN_PYTHON_MAJOR_VERSION,
+    MIN_PYTHON_MINOR_VERSION,
+    PY2_ERROR_TEXT,
+    PY_VERSION_ERROR_TEXT,
 )
+
 from pythonforandroid.util import BuildInterruptingException
 
 running_in_py2 = int(py_version[0]) < 3
@@ -202,3 +204,46 @@ class TestRecommendations(unittest.TestCase):
                 )
             ],
         )
+
+    def test_check_python_version(self):
+        """With any version info lower than the minimum, we should get a
+        BuildInterruptingException with an appropriate message.
+        """
+        with mock.patch('sys.version_info') as fake_version_info:
+
+            # Major version is Python 2 => exception
+            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION - 1
+            fake_version_info.minor = MIN_PYTHON_MINOR_VERSION
+            with self.assertRaises(BuildInterruptingException) as context:
+                check_python_version()
+            assert context.exception.message == PY2_ERROR_TEXT
+
+            # Major version too low => exception
+            # Using a float valued major version just to test the logic and avoid
+            # clashing with the Python 2 check
+            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION - 0.1
+            fake_version_info.minor = MIN_PYTHON_MINOR_VERSION
+            with self.assertRaises(BuildInterruptingException) as context:
+                check_python_version()
+            assert context.exception.message == PY_VERSION_ERROR_TEXT
+
+            # Minor version too low => exception
+            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION
+            fake_version_info.minor = MIN_PYTHON_MINOR_VERSION - 1
+            with self.assertRaises(BuildInterruptingException) as context:
+                check_python_version()
+            assert context.exception.message == PY_VERSION_ERROR_TEXT
+
+            # Version high enough => nothing interesting happens
+            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION
+            fake_version_info.minor = MIN_PYTHON_MINOR_VERSION
+            check_python_version()
+
+    def test_print_recommendations(self):
+        """
+        Simple test that the function actually runs.
+        """
+        # The main failure mode is if the function tries to print a variable
+        # that doesn't actually exist, so simply running to check all the
+        # prints work is the most important test.
+        print_recommendations()

@@ -18,7 +18,7 @@ class VlcRecipe(Recipe):
     aars = {}  # for future use of multiple arch
 
     def prebuild_arch(self, arch):
-        super(VlcRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
         port_dir = join(build_dir, 'vlc-port-android')
         if self.ENV_LIBVLC_AAR in environ:
@@ -50,7 +50,7 @@ class VlcRecipe(Recipe):
 #                            _tail=20, _critical=True)
 
     def build_arch(self, arch):
-        super(VlcRecipe, self).build_arch(arch)
+        super().build_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
         port_dir = join(build_dir, 'vlc-port-android')
         aar = self.aars[arch]

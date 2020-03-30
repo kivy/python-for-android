@@ -11,8 +11,9 @@ from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
-from pythonforandroid.util import BuildInterruptingException, handle_build_exception
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
+from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.entrypoints import main
 
 
 def check_python_dependencies():
@@ -100,6 +101,8 @@ user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
+APK_SUFFIX = '.apk'
+
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):
@@ -162,6 +165,7 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
+        arch_name=args.arch,
         ndk_api=args.ndk_api,
         force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
@@ -198,10 +202,10 @@ def build_dist_from_args(ctx, dist, args):
     else:
         info('Building WITHOUT debugging symbols (--release option used)')
 
-    ctx.dist_name = bs.distribution.name
+    ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
     if dist.needs_build:
-        ctx.prepare_dist(ctx.dist_name)
+        ctx.prepare_dist()
 
     build_recipes(build_order, python_modules, ctx,
                   getattr(args, "private", None),
@@ -214,7 +218,7 @@ def build_dist_from_args(ctx, dist, args):
 
     info_main('# Your distribution was created successfully, exiting.')
     info('Dist can be found at (for now) {}'
-         .format(join(ctx.dist_dir, ctx.dist_name)))
+         .format(join(ctx.dist_dir, ctx.distribution.dist_dir)))
 
 
 def split_argument_list(l):
@@ -307,7 +311,7 @@ class ToolchainCL(object):
                   '(default: {})'.format(default_storage_dir)))
 
         generic_parser.add_argument(
-            '--arch', help='The archs to build for, separated by commas.',
+            '--arch', help='The arch to build for.',
             default='armeabi-v7a')
 
         # Options for specifying the Distribution
@@ -573,6 +577,7 @@ class ToolchainCL(object):
 
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
+
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
@@ -751,12 +756,11 @@ class ToolchainCL(object):
     def recipes(self, args):
         """
         Prints recipes basic info, e.g.
-        ```
-        python3      3.7.1
-            depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
-            conflicts: ['python2']
-            optional depends: ['sqlite3', 'libffi', 'openssl']
-        ```
+        .. code-block:: bash
+            python3      3.7.1
+                depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
+                conflicts: []
+                optional depends: ['sqlite3', 'libffi', 'openssl']
         """
         ctx = self.ctx
         if args.compact:
@@ -791,7 +795,7 @@ class ToolchainCL(object):
 
     def bootstraps(self, _args):
         """List all the bootstraps available to build with."""
-        for bs in Bootstrap.list_bootstraps():
+        for bs in Bootstrap.all_bootstraps():
             bs = Bootstrap.get_bootstrap(bs, self.ctx)
             print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'
                   .format(bs=bs, Fore=Out_Fore, Style=Out_Style))
@@ -834,7 +838,7 @@ class ToolchainCL(object):
         """Delete all the bootstrap builds."""
         if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
             shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
-        # for bs in Bootstrap.list_bootstraps():
+        # for bs in Bootstrap.all_bootstraps():
         #     bs = Bootstrap.get_bootstrap(bs, self.ctx)
         #     if bs.build_dir and exists(bs.build_dir):
         #         info('Cleaning build for {} bootstrap.'.format(bs.name))
@@ -921,6 +925,7 @@ class ToolchainCL(object):
     def _dist(self):
         ctx = self.ctx
         dist = dist_from_args(ctx, self.args)
+        ctx.distribution = dist
         return dist
 
     @require_prebuilt_dist
@@ -1075,9 +1080,9 @@ class ToolchainCL(object):
         info_main('# Found APK file: {}'.format(apk_file))
         if apk_add_version:
             info('# Add version number to APK')
-            apk_name, apk_suffix = basename(apk_file).split("-", 1)
+            apk_name = basename(apk_file)[:-len(APK_SUFFIX)]
             apk_file_dest = "{}-{}-{}".format(
-                apk_name, build_args.version, apk_suffix)
+                apk_name, build_args.version, APK_SUFFIX)
             info('# APK renamed to {}'.format(apk_file_dest))
             shprint(sh.cp, apk_file, apk_file_dest)
         else:
@@ -1172,6 +1177,9 @@ class ToolchainCL(object):
             sys.stdout.write(line)
             sys.stdout.flush()
 
+    def recommendations(self, args):
+        print_recommendations()
+
     def build_status(self, _args):
         """Print the status of the specified build. """
         print('{Style.BRIGHT}Bootstraps whose core components are probably '
@@ -1199,13 +1207,6 @@ class ToolchainCL(object):
                         '{Fore.RESET})').format(Fore=Out_Fore)
                 recipe_str += '{Style.RESET_ALL}'.format(Style=Out_Style)
                 print(recipe_str)
-
-
-def main():
-    try:
-        ToolchainCL()
-    except BuildInterruptingException as exc:
-        handle_build_exception(exc)
 
 
 if __name__ == "__main__":

@@ -40,10 +40,10 @@ public class PythonUtil {
         libsList.add("SDL2_ttf");
         addLibraryIfExists(libsList, "ssl.*", libsDir);
         addLibraryIfExists(libsList, "crypto.*", libsDir);
-        libsList.add("python2.7");
         libsList.add("python3.5m");
         libsList.add("python3.6m");
         libsList.add("python3.7m");
+        libsList.add("python3.8m");
         libsList.add("main");
         return libsList;
     }
@@ -64,7 +64,7 @@ public class PythonUtil {
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.7") && !foundPython) {
+                if (lib.startsWith("python3.8") && !foundPython) {
                     throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;
@@ -75,21 +75,6 @@ public class PythonUtil {
             }
         }
 
-        try {
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_io.so");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/unicodedata.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Failed to load _io.so or unicodedata.so...but that's okay.");
-        }
-        
-        try {
-            // System.loadLibrary("ctypes");
-            System.load(filesDirPath + "/lib/python2.7/lib-dynload/_ctypes.so");
-        } catch(UnsatisfiedLinkError e) {
-            Log.v(TAG, "Unsatisfied linker when loading ctypes");
-        }
-
         Log.v(TAG, "Loaded everything!");
     }
 }
-

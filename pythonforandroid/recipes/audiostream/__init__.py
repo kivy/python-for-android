@@ -7,10 +7,10 @@ class AudiostreamRecipe(CythonRecipe):
     version = 'master'
     url = 'https://github.com/kivy/audiostream/archive/{version}.zip'
     name = 'audiostream'
-    depends = [('python2', 'python3'), 'sdl2', 'pyjnius']
+    depends = ['python3', 'sdl2', 'pyjnius']
 
     def get_recipe_env(self, arch):
-        env = super(AudiostreamRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         sdl_include = 'SDL2'
         sdl_mixer_include = 'SDL2_mixer'
         env['USE_SDL2'] = 'True'

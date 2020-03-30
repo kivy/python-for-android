@@ -61,33 +61,35 @@ Installing Dependencies
 
 p4a has several dependencies that must be installed:
 
-- git
 - ant
-- python2
+- autoconf (for ffpyplayer_codecs recipe)
+- ccache (optional)
+- cmake (required for some native code recipes like jpeg's recipe)
 - cython (can be installed via pip)
-- a Java JDK (e.g. openjdk-8)
-- zlib (including 32 bit)
+- gcc
+- git
 - libncurses (including 32 bit)
+- libtool (for ffpyplayer_codecs recipe)
+- openjdk-8
+- patch
+- python3
 - unzip
 - virtualenv (can be installed via pip)
-- ccache (optional)
-- autoconf (for ffpyplayer_codecs recipe)
-- libtool (for ffpyplayer_codecs recipe)
-- cmake (required for some native code recipes like jpeg's recipe)
+- zlib (including 32 bit)
+- zip
 
 On recent versions of Ubuntu and its derivatives you may be able to
 install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python2.7 python2.7-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python3 python3-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool
 
-On Arch Linux (64 bit) you should be able to run the following to
+On Arch Linux you should be able to run the following to
 install most of the dependencies (note: this list may not be
-complete). gcc-multilib will conflict with (and replace) gcc if not
-already installed::
+complete)::
 
-    sudo pacman -S jdk7-openjdk python2 python2-pip python2-kivy mesa-libgl lib32-mesa-libgl lib32-sdl2 lib32-sdl2_image lib32-sdl2_mixer sdl2_ttf unzip gcc-multilib gcc-libs-multilib
+    sudo pacman -S core/autoconf core/automake core/gcc core/make core/patch core/pkgconf extra/cmake extra/jdk8-openjdk extra/python-pip extra/unzip extra/zip
 
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -110,7 +112,7 @@ named ``tools``, and you will need to run extra commands to install
 the SDK packages needed. 
 
 For Android NDK, note that modern releases will only work on a 64-bit
-operating system. **The minimal, and recommended, NDK version to use is r17c:**
+operating system. **The minimal, and recommended, NDK version to use is r19b:**
 
  - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
  - Windows users should create a virtual machine with an GNU Linux os
@@ -125,9 +127,10 @@ First, install an API platform to target. **The recommended *target* API
 level is 27**, you can replace it with a different number but
 keep in mind other API versions are less well-tested and older devices
 are still supported down to the **recommended specified *minimum*
-API/NDK API level 21**:
+API/NDK API level 21**::
 
   $SDK_DIR/tools/bin/sdkmanager "platforms;android-27"
+
 
 Second, install the build-tools. You can use
 ``$SDK_DIR/tools/bin/sdkmanager --list`` to see all the
@@ -143,7 +146,7 @@ variables necessary for building on android::
 
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-27"
-    export ANDROIDNDK="$HOME/Documents/android-ndk-r17c"
+    export ANDROIDNDK="$HOME/Documents/android-ndk-r19b"
     export ANDROIDAPI="27"  # Target API version of your application
     export NDKAPI="21"  # Minimum supported API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
@@ -182,9 +185,7 @@ an `.apk` file.
 
 *Compatibility notes:*
 
-- While python2 is still supported by python-for-android,
-  it will possibly no longer receive patches by the python creators
-  themselves in 2020. Migration to Python 3 is recommended!
+- Python 2 is no longer supported by python-for-android. The last release supporting Python 2 was v2019.10.06.
 
 
 Build a WebView application

@@ -15,6 +15,6 @@
  setup(
 -    name='python-libtorrent',
 +    name='libtorrent',
-     version='1.2.0',
+     version='1.2.1',
      author='Arvid Norberg',
      author_email='arvid@libtorrent.org',

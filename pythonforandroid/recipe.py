@@ -52,7 +52,7 @@ class RecipeMeta(type):
             if 'version' in dct:
                 dct['_version'] = dct.pop('version')
 
-        return super(RecipeMeta, cls).__new__(cls, name, bases, dct)
+        return super().__new__(cls, name, bases, dct)
 
 
 class Recipe(with_metaclass(RecipeMeta)):
@@ -105,6 +105,65 @@ class Recipe(with_metaclass(RecipeMeta)):
     at build time, you must create a recipe.'''
 
     archs = ['armeabi']  # Not currently implemented properly
+
+    built_libraries = {}
+    """Each recipe that builds a system library (e.g.:libffi, openssl, etc...)
+    should contain a dict holding the relevant information of the library. The
+    keys should be the generated libraries and the values the relative path of
+    the library inside his build folder. This dict will be used to perform
+    different operations:
+        - copy the library into the right location, depending on if it's shared
+          or static)
+        - check if we have to rebuild the library
+
+    Here an example of how it would look like for `libffi` recipe:
+
+        - `built_libraries = {'libffi.so': '.libs'}`
+
+    .. note:: in case that the built library resides in recipe's build
+              directory, you can set the following values for the relative
+              path: `'.', None or ''`
+    """
+
+    need_stl_shared = False
+    '''Some libraries or python packages may need to be linked with android's
+    stl. We can automatically do this for any recipe if we set this property to
+    `True`'''
+
+    stl_lib_name = 'c++_shared'
+    '''
+    The default STL shared lib to use: `c++_shared`.
+
+    .. note:: Android NDK version > 17 only supports 'c++_shared', because
+        starting from NDK r18 the `gnustl_shared` lib has been deprecated.
+    '''
+
+    stl_lib_source = '{ctx.ndk_dir}/sources/cxx-stl/llvm-libc++'
+    '''
+    The source directory of the selected stl lib, defined in property
+    `stl_lib_name`
+    '''
+
+    @property
+    def stl_include_dir(self):
+        return join(self.stl_lib_source.format(ctx=self.ctx), 'include')
+
+    def get_stl_lib_dir(self, arch):
+        return join(
+            self.stl_lib_source.format(ctx=self.ctx), 'libs', arch.arch
+        )
+
+    def get_stl_library(self, arch):
+        return join(
+            self.get_stl_lib_dir(arch),
+            'lib{name}.so'.format(name=self.stl_lib_name),
+        )
+
+    def install_stl_lib(self, arch):
+        if not self.ctx.has_lib(
+            arch.arch, 'lib{name}.so'.format(name=self.stl_lib_name)
+        ):
+            self.install_libs(arch, self.get_stl_library(arch))
 
     @property
     def version(self):
@@ -430,12 +489,27 @@ class Recipe(with_metaclass(RecipeMeta)):
             else:
                 info('{} is already unpacked, skipping'.format(self.name))
 
-    def get_recipe_env(self, arch=None, with_flags_in_cc=True, clang=False):
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         """Return the env specialized for the recipe
         """
         if arch is None:
             arch = self.filtered_archs[0]
-        return arch.get_env(with_flags_in_cc=with_flags_in_cc, clang=clang)
+        env = arch.get_env(with_flags_in_cc=with_flags_in_cc)
+
+        if self.need_stl_shared:
+            env['CPPFLAGS'] = env.get('CPPFLAGS', '')
+            env['CPPFLAGS'] += ' -I{}'.format(self.stl_include_dir)
+
+            env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
+
+            if with_flags_in_cc:
+                env['CXX'] += ' -frtti -fexceptions'
+
+            env['LDFLAGS'] += ' -L{}'.format(self.get_stl_lib_dir(arch))
+            env['LIBS'] = env.get('LIBS', '') + " -l{}".format(
+                self.stl_lib_name
+            )
+        return env
 
     def prebuild_arch(self, arch):
         '''Run any pre-build tasks for the Recipe. By default, this checks if
@@ -479,9 +553,14 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
-        building again.
+        building again. Per default we implement a library test, in case that
+        we detect so.
 
         '''
+        if self.built_libraries:
+            return not all(
+                exists(lib) for lib in self.get_libraries(arch.arch)
+            )
         return True
 
     def build_arch(self, arch):
@@ -492,6 +571,19 @@ class Recipe(with_metaclass(RecipeMeta)):
         if hasattr(self, build):
             getattr(self, build)()
 
+    def install_libraries(self, arch):
+        '''This method is always called after `build_arch`. In case that we
+        detect a library recipe, defined by the class attribute
+        `built_libraries`, we will copy all defined libraries into the
+         right location.
+        '''
+        if not self.built_libraries:
+            return
+        shared_libs = [
+            lib for lib in self.get_libraries(arch) if lib.endswith(".so")
+        ]
+        self.install_libs(arch, *shared_libs)
+
     def postbuild_arch(self, arch):
         '''Run any post-build tasks for the Recipe. By default, this checks if
         any postbuild_archname methods exist for the archname of the
@@ -500,6 +592,9 @@ class Recipe(with_metaclass(RecipeMeta)):
         postbuild = "postbuild_{}".format(arch.arch)
         if hasattr(self, postbuild):
             getattr(self, postbuild)()
+
+        if self.need_stl_shared:
+            self.install_stl_lib(arch)
 
     def prepare_build_dir(self, arch):
         '''Copies the recipe data into a build dir for the given arch. By
@@ -553,6 +648,27 @@ class Recipe(with_metaclass(RecipeMeta)):
 
     def has_libs(self, arch, *libs):
         return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
+
+    def get_libraries(self, arch_name, in_context=False):
+        """Return the full path of the library depending on the architecture.
+        Per default, the build library path it will be returned, unless
+        `get_libraries` has been called with kwarg `in_context` set to
+        True.
+
+        .. note:: this method should be used for library recipes only
+        """
+        recipe_libs = set()
+        if not self.built_libraries:
+            return recipe_libs
+        for lib, rel_path in self.built_libraries.items():
+            if not in_context:
+                abs_path = join(self.get_build_dir(arch_name), rel_path, lib)
+                if rel_path in {".", "", None}:
+                    abs_path = join(self.get_build_dir(arch_name), lib)
+            else:
+                abs_path = join(self.ctx.get_libs_dir(arch_name), lib)
+            recipe_libs.add(abs_path)
+        return recipe_libs
 
     @classmethod
     def recipe_dirs(cls, ctx):
@@ -653,8 +769,7 @@ class BootstrapNDKRecipe(Recipe):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True, with_python=False):
-        env = super(BootstrapNDKRecipe, self).get_recipe_env(
-            arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
         if not with_python:
             return env
 
@@ -688,7 +803,7 @@ class NDKRecipe(Recipe):
         return join(self.get_build_dir(arch.arch), 'jni')
 
     def build_arch(self, arch, *extra_args):
-        super(NDKRecipe, self).build_arch(arch)
+        super().build_arch(arch)
 
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
@@ -728,7 +843,7 @@ class PythonRecipe(Recipe):
     setup_extra_args = []
     '''List of extra arguments to pass to setup.py'''
 
-    depends = [('python2', 'python3')]
+    depends = ['python3']
     '''
     .. note:: it's important to keep this depends as a class attribute outside
               `__init__` because sometimes we only initialize the class, so the
@@ -741,25 +856,20 @@ class PythonRecipe(Recipe):
     '''
 
     def __init__(self, *args, **kwargs):
-        super(PythonRecipe, self).__init__(*args, **kwargs)
-        if not any(
-            [
-                d
-                for d in {'python2', 'python3', ('python2', 'python3')}
-                if d in self.depends
-            ]
-        ):
+        super().__init__(*args, **kwargs)
+
+        if 'python3' not in self.depends:
             # We ensure here that the recipe depends on python even it overrode
             # `depends`. We only do this if it doesn't already depend on any
             # python, since some recipes intentionally don't depend on/work
             # with all python variants
             depends = self.depends
-            depends.append(('python2', 'python3'))
+            depends.append('python3')
             depends = list(set(depends))
             self.depends = depends
 
     def clean_build(self, arch=None):
-        super(PythonRecipe, self).clean_build(arch=arch)
+        super().clean_build(arch=arch)
         name = self.folder_name
         python_install_dirs = glob.glob(join(self.ctx.python_installs_dir, '*'))
         for python_install in python_install_dirs:
@@ -774,9 +884,9 @@ class PythonRecipe(Recipe):
     @property
     def real_hostpython_location(self):
         host_name = 'host{}'.format(self.ctx.python_recipe.name)
-        host_build = Recipe.get_recipe(host_name, self.ctx).get_build_dir()
-        if host_name in ['hostpython2', 'hostpython3']:
-            return join(host_build, 'native-build', 'python')
+        if host_name == 'hostpython3':
+            python_recipe = Recipe.get_recipe(host_name, self.ctx)
+            return python_recipe.python_exe
         else:
             python_recipe = self.ctx.python_recipe
             return 'python{}'.format(python_recipe.version)
@@ -796,7 +906,7 @@ class PythonRecipe(Recipe):
         return name
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
 
         env['PYTHONNOUSERSITE'] = '1'
 
@@ -841,7 +951,7 @@ class PythonRecipe(Recipe):
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
-        super(PythonRecipe, self).build_arch(arch)
+        super().build_arch(arch)
         self.install_python_package(arch)
 
     def install_python_package(self, arch, name=None, env=None, is_dir=True):
@@ -911,7 +1021,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
         self.rebuild_compiled_components(arch, env)
-        super(CompiledComponentsPythonRecipe, self).install_hostpython_package(arch)
+        super().install_hostpython_package(arch)
 
     def rebuild_compiled_components(self, arch, env):
         info('Rebuilding compiled components in {}'.format(self.name))
@@ -925,35 +1035,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
     """ Extensions that require the cxx-stl """
     call_hostpython_via_targetpython = False
-
-    def get_recipe_env(self, arch):
-        env = super(CppCompiledComponentsPythonRecipe, self).get_recipe_env(arch)
-        keys = dict(
-            ctx=self.ctx,
-            arch=arch,
-            arch_noeabi=arch.arch.replace('eabi', '')
-        )
-        env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
-        env['CFLAGS'] += (
-            " -I{ctx.ndk_dir}/platforms/android-{ctx.android_api}/arch-{arch_noeabi}/usr/include" +
-            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/include" +
-            " -I{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/include").format(**keys)
-        env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
-        env['LDFLAGS'] += (
-            " -L{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}" +
-            " -lgnustl_shared").format(**keys)
-
-        return env
-
-    def build_compiled_components(self, arch):
-        super(CppCompiledComponentsPythonRecipe, self).build_compiled_components(arch)
-
-        # Copy libgnustl_shared.so
-        with current_directory(self.get_build_dir(arch.arch)):
-            sh.cp(
-                "{ctx.ndk_dir}/sources/cxx-stl/gnu-libstdc++/{ctx.toolchain_version}/libs/{arch.arch}/libgnustl_shared.so".format(ctx=self.ctx, arch=arch),
-                self.ctx.get_libs_dir(arch.arch)
-            )
+    need_stl_shared = True
 
 
 class CythonRecipe(PythonRecipe):
@@ -1042,7 +1124,7 @@ class CythonRecipe(PythonRecipe):
                 self.cythonize_file(env, build_dir, join(root, filename))
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
-        env = super(CythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
             ' -L{} '.format(self.ctx.libs_dir) +
@@ -1072,10 +1154,10 @@ class TargetPythonRecipe(Recipe):
 
     def __init__(self, *args, **kwargs):
         self._ctx = None
-        super(TargetPythonRecipe, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def prebuild_arch(self, arch):
-        super(TargetPythonRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         self.ctx.python_recipe = self
 
     def include_root(self, arch):

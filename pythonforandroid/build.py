@@ -95,8 +95,13 @@ class Context(object):
     # in which bootstraps are copied for building
     # and recipes are built
     build_dir = None
+
+    distribution = None
+    """The Distribution object representing the current build target location."""
+
     # the Android project folder where everything ends up
     dist_dir = None
+
     # where Android libs are cached after build
     # but before being placed in dists
     libs_dir = None
@@ -109,7 +114,6 @@ class Context(object):
 
     ndk_platform = None  # the ndk platform directory
 
-    dist_name = None  # should be deprecated in favour of self.dist.dist_name
     bootstrap = None
     bootstrap_build_dir = None
 
@@ -434,7 +438,7 @@ class Context(object):
                 'python-for-android cannot continue due to the missing executables above')
 
     def __init__(self):
-        super(Context, self).__init__()
+        super().__init__()
         self.include_dirs = []
 
         self._build_env_prepared = False
@@ -488,9 +492,8 @@ class Context(object):
         self.bootstrap.prepare_build_dir()
         self.bootstrap_build_dir = self.bootstrap.build_dir
 
-    def prepare_dist(self, name):
-        self.dist_name = name
-        self.bootstrap.prepare_dist_dir(self.dist_name)
+    def prepare_dist(self):
+        self.bootstrap.prepare_dist_dir()
 
     def get_site_packages_dir(self, arch=None):
         '''Returns the location of site-packages in the python-install build
@@ -578,6 +581,7 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
             if recipe.should_build(arch):
                 recipe.build_arch(arch)
+                recipe.install_libraries(arch)
             else:
                 info('{} said it is already built, skipping'
                      .format(recipe.name))

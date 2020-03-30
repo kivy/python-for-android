@@ -7,11 +7,11 @@ class PyNaCLRecipe(CompiledComponentsPythonRecipe):
     version = '1.3.0'
     url = 'https://pypi.python.org/packages/source/P/PyNaCl/PyNaCl-{version}.tar.gz'
 
-    depends = [('hostpython2', 'hostpython3'), 'six', 'setuptools', 'cffi', 'libsodium']
+    depends = ['hostpython3', 'six', 'setuptools', 'cffi', 'libsodium']
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
-        env = super(PyNaCLRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['SODIUM_INSTALL'] = 'system'
 
         libsodium_build_dir = self.get_recipe(

@@ -6,6 +6,8 @@ from sys import stdout, stderr
 from math import log10
 from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
+
+# six import left for Python 2 compatibility during initial Python version check
 import six
 
 # This codecs change fixes a bug with log output, but crashes under python3
@@ -40,7 +42,7 @@ class LevelDifferentiatingFormatter(logging.Formatter):
             record.msg = '{}{}[DEBUG]{}{}:   '.format(
                 Err_Style.BRIGHT, Err_Fore.LIGHTBLACK_EX, Err_Fore.RESET,
                 Err_Style.RESET_ALL) + record.msg
-        return super(LevelDifferentiatingFormatter, self).format(record)
+        return super().format(record)
 
 
 logger = logging.getLogger('p4a')

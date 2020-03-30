@@ -1,8 +1,8 @@
-from pythonforandroid.toolchain import Recipe
+from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import current_directory
 from pythonforandroid.logger import shprint
 from multiprocessing import cpu_count
-from os.path import exists, join
+from os.path import join
 import sh
 
 
@@ -20,19 +20,13 @@ class HarfbuzzRecipe(Recipe):
         https://sourceforge.net/projects/freetype/files/freetype2/2.5.3/
     """
 
-    version = '0.9.40'
-    url = 'http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-{version}.tar.bz2'  # noqa
+    version = '2.6.4'
+    url = 'http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-{version}.tar.xz'  # noqa
     opt_depends = ['freetype']
-
-    def should_build(self, arch):
-        return not exists(
-            join(
-                self.get_build_dir(arch.arch), 'src', '.libs', 'libharfbuzz.so'
-            )
-        )
+    built_libraries = {'libharfbuzz.so': 'src/.libs'}
 
     def get_recipe_env(self, arch=None):
-        env = super(HarfbuzzRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         if 'freetype' in self.ctx.recipe_build_order:
             freetype = self.get_recipe('freetype', self.ctx)
             freetype_install = join(
@@ -56,7 +50,6 @@ class HarfbuzzRecipe(Recipe):
             configure = sh.Command('./configure')
             shprint(
                 configure,
-                '--without-icu',
                 '--host={}'.format(arch.command_prefix),
                 '--prefix={}'.format(self.get_build_dir(arch.arch)),
                 '--with-freetype={}'.format(
@@ -64,16 +57,19 @@ class HarfbuzzRecipe(Recipe):
                     if 'freetype' in self.ctx.recipe_build_order
                     else 'no'
                 ),
-                '--without-glib',
+                '--with-icu=no',
+                '--with-cairo=no',
+                '--with-fontconfig=no',
+                '--with-glib=no',
                 _env=env,
             )
             shprint(sh.make, '-j', str(cpu_count()), _env=env)
-            self.install_libs(arch, join('src', '.libs', 'libharfbuzz.so'))
 
         if 'freetype' in self.ctx.recipe_build_order:
-            # Rebuild freetype with harfbuzz support
+            # Rebuild/install freetype with harfbuzz support
             freetype = self.get_recipe('freetype', self.ctx)
             freetype.build_arch(arch, with_harfbuzz=True)
+            freetype.install_libraries(arch)
 
 
 recipe = HarfbuzzRecipe()

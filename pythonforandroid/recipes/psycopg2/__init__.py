@@ -10,8 +10,8 @@ class Psycopg2Recipe(PythonRecipe):
     `ANDROID_API` (`ndk-api`) >= 26, see:
     https://github.com/kivy/python-for-android/issues/1711#issuecomment-465747557
     """
-    version = 'latest'
-    url = 'http://initd.org/psycopg/tarballs/psycopg2-{version}.tar.gz'
+    version = '2.8.4'
+    url = 'https://pypi.python.org/packages/source/p/psycopg2/psycopg2-{version}.tar.gz'
     depends = ['libpq']
     site_packages_name = 'psycopg2'
     call_hostpython_via_targetpython = False
@@ -26,7 +26,7 @@ class Psycopg2Recipe(PythonRecipe):
                     'setup.py')
 
     def get_recipe_env(self, arch):
-        env = super(Psycopg2Recipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['LDFLAGS'] = "{} -L{}".format(env['LDFLAGS'], self.ctx.get_libs_dir(arch.arch))
         env['EXTRA_CFLAGS'] = "--host linux-armv"
         return env
