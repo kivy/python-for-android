@@ -8,7 +8,7 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException, build_platform
 
 
-class Arch(object):
+class Arch:
 
     toolchain_prefix = None
     '''The prefix for the toolchain dir in the NDK.'''
@@ -46,7 +46,6 @@ class Arch(object):
     ]
 
     def __init__(self, ctx):
-        super().__init__()
         self.ctx = ctx
 
         # Allows injecting additional linker paths used by any recipe.

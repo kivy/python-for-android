@@ -1,7 +1,7 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
 from shutil import rmtree
-from six import PY2, with_metaclass
+from six import with_metaclass
 
 import hashlib
 from re import match
@@ -22,26 +22,17 @@ from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir,
 
 
 def import_recipe(module, filename):
-    if PY2:
-        import imp
-        import warnings
-        with warnings.catch_warnings():
-            # ignores warnings raised by hierarchical module names
-            # (names containing dots) on Python 2
-            warnings.simplefilter("ignore", RuntimeWarning)
-            return imp.load_source(module, filename)
+    # Python 3.5+
+    import importlib.util
+    if hasattr(importlib.util, 'module_from_spec'):
+        spec = importlib.util.spec_from_file_location(module, filename)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
     else:
-        # Python 3.5+
-        import importlib.util
-        if hasattr(importlib.util, 'module_from_spec'):
-            spec = importlib.util.spec_from_file_location(module, filename)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            return mod
-        else:
-            # Python 3.3 and 3.4:
-            from importlib.machinery import SourceFileLoader
-            return SourceFileLoader(module, filename).load_module()
+        # Python 3.3 and 3.4:
+        from importlib.machinery import SourceFileLoader
+        return SourceFileLoader(module, filename).load_module()
 
 
 class RecipeMeta(type):
