@@ -1,4 +1,4 @@
-name: Unit tests & Build Testapp
+name: Unit tests & build apps
 
 on: ['push', 'pull_request']
 
@@ -42,25 +42,26 @@ jobs:
         make test
 
   build:
-    name: Build testapp
+    name: Unit test apk
     needs: [flake8]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        build-arch: ['arm64-v8a', 'armeabi-v7a']
+        build-arch: ['arm64-v8a', 'armeabi-v7a', 'x86_64', 'x86']
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v2
     - name: Pull docker image
       run: |
         make docker/pull
-    - name: Build apk for Python 3 ${{ matrix.build-arch }}
+    - name: Build apk Python 3 ${{ matrix.build-arch }}
       run: |
         mkdir -p apks
-        make docker/run/make/with-artifact/testapps/${{ matrix.build-arch }}
+        make docker/run/make/with-artifact/testapps-with-numpy/${{ matrix.build-arch }}
     - uses: actions/upload-artifact@v1
       with:
-        name: bdisttest_python3_sqlite_openssl_googlendk__${{ matrix.build-arch }}-debug-1.1.apk
+        name: bdist_test_app_unittests__${{ matrix.build-arch }}-debug-1.1.apk
         path: apks
 
   rebuild_updated_recipes:

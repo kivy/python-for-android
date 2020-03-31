@@ -52,16 +52,15 @@ def build(target_python, requirements):
     """
     if not requirements:
         return
-    testapp = 'setup_testapp_python3_sqlite_openssl.py'
     android_sdk_home = os.environ['ANDROID_SDK_HOME']
     android_ndk_home = os.environ['ANDROID_NDK_HOME']
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
-    with current_directory('testapps/'):
+    with current_directory('testapps/on_device_unit_tests/'):
         # iterates to stream the output
         for line in sh.python(
-                testapp, 'apk', '--sdk-dir', android_sdk_home,
+                'setup.py', 'apk', '--sdk-dir', android_sdk_home,
                 '--ndk-dir', android_ndk_home, '--requirements',
                 requirements, _err_to_out=True, _iter=True):
             print(line)
