@@ -358,15 +358,14 @@ main.py that loads it.''')
                 tar_dirs.append(python_bundle_dir)
         if get_bootstrap_name() == "webview":
             tar_dirs.append('webview_includes')
-        for asset in args.assets:
-            print(os.getcwd())
-            asset_src, asset_dest=asset.split(":")
-            if isfile(realpath(asset_src)):
-                ensure_dir(dirname(join(assets_dir, asset_dest)))
-                shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
-            else:
-                #ensure_dir(dirname(join(assets_dir, asset_dest)))
-                shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
+        if hasattr(args, "assets") and args.assets is not None:
+            for asset in args.assets:
+                asset_src, asset_dest=asset.split(":")
+                if isfile(realpath(asset_src)):
+                    ensure_dir(dirname(join(assets_dir, asset_dest)))
+                    shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
+                else:
+                    shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
 
         if args.private or args.launcher:
             make_tar(
