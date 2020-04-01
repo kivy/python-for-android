@@ -107,7 +107,7 @@ years. These **unified python recipes** require a **minimum target api level of 
 api level below 21, you should use an older version of python-for-android
 (<=0.7.1).
 
-On March of 2020 we dropped support for creating apps that use Python 2. The latest 
+On March of 2020 we dropped support for creating apps that use Python 2. The latest
 python-for-android release that supported building Python 2 was version 2019.10.6.
 
 ## Contributors
