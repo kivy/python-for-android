@@ -22,8 +22,7 @@ class Python3Recipe(GuestPythonRecipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
-    patches = ['patches/fix-ctypes-util-find-library.patch',
-               'patches/fix-zlib-version.patch']
+    patches = ["patches/fix-ctypes-util-find-library.patch"]
 
     if sh.which('lld') is not None:
         patches = patches + ["patches/remove-fix-cortex-a8.patch"]

@@ -8,7 +8,7 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException
 from itertools import product
 
-from unittest import mock
+import mock
 import pytest
 
 ctx = Context()

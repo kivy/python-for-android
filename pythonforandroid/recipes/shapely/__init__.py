@@ -1,38 +1,21 @@
-from pythonforandroid.recipe import CythonRecipe
-from os.path import join
+from pythonforandroid.recipe import Recipe, CythonRecipe
 
 
 class ShapelyRecipe(CythonRecipe):
-    version = '1.7a1'
-    url = 'https://github.com/Toblerity/Shapely/archive/{version}.tar.gz'
+    version = '1.5'
+    url = 'https://github.com/Toblerity/Shapely/archive/master.zip'
     depends = ['setuptools', 'libgeos']
-
-    # Actually, this recipe seems to compile/install fine for python2, but it
-    # fails at runtime when importing module with:
-    #     `[Errno 2] No such file or directory`
-    conflicts = ['python2']
-
     call_hostpython_via_targetpython = False
 
-    # Patch to avoid libgeos check (because it fails), insert environment
-    # variables for our libgeos build (includes, lib paths...) and force
-    # the cython's compilation to raise an error in case that it fails
-    patches = ['setup.patch']
+    patches = ['setup.patch']  # Patch to force setup to fail when C extention fails to build
 
-    # Don't Force Cython
-    # setup_extra_args = ['sdist']
+    # setup_extra_args = ['sdist'] # DontForce Cython
 
-    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(ShapelyRecipe, self).get_recipe_env(arch)
-
-        libgeos_install = join(self.get_recipe(
-            'libgeos', self.ctx).get_build_dir(arch.arch), 'install_target')
-        # All this `GEOS_X` variables should be string types, separated
-        # by commas in case that we need to pass more than one value
-        env['GEOS_INCLUDE_DIRS'] = join(libgeos_install, 'include')
-        env['GEOS_LIBRARY_DIRS'] = join(libgeos_install, 'lib')
-        env['GEOS_LIBRARIES'] = 'geos_c,geos'
-
+    def get_recipe_env(self, arch, with_flags_in_cc=True):
+        """ Add libgeos headers to path """
+        env = super(ShapelyRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        libgeos_dir = Recipe.get_recipe('libgeos', self.ctx).get_build_dir(arch.arch)
+        env['CFLAGS'] += " -I{}/dist/include".format(libgeos_dir)
         return env
 
 

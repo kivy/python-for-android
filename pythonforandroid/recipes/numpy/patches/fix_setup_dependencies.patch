@@ -1,0 +1,40 @@
+diff --git a/numpy/distutils/misc_util.py b/numpy/distutils/misc_util.py
+index 42374ac..67fcd98 100644
+--- a/numpy/distutils/misc_util.py
++++ b/numpy/distutils/misc_util.py
+@@ -9,7 +9,6 @@ import atexit
+ import tempfile
+ import subprocess
+ import shutil
+-import multiprocessing
+ 
+ import distutils
+ from distutils.errors import DistutilsError
+@@ -94,11 +93,7 @@ def get_num_build_jobs():
+ 
+     """
+     from numpy.distutils.core import get_distribution
+-    try:
+-        cpu_count = len(os.sched_getaffinity(0))
+-    except AttributeError:
+-        cpu_count = multiprocessing.cpu_count()
+-    cpu_count = min(cpu_count, 8)
++    cpu_count = 1
+     envjobs = int(os.environ.get("NPY_NUM_BUILD_JOBS", cpu_count))
+     dist = get_distribution()
+     # may be None during configuration
+diff --git a/setup.py b/setup.py
+index 8b2ded1..431c1b8 100755
+--- a/setup.py
++++ b/setup.py
+@@ -389,9 +389,8 @@ def setup_package():
+         # Raise errors for unsupported commands, improve help output, etc.
+         run_build = parse_setuppy_commands()
+ 
+-    from setuptools import setup
++    from numpy.distutils.core import setup
+     if run_build:
+-        from numpy.distutils.core import setup
+         cwd = os.path.abspath(os.path.dirname(__file__))
+         if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
+             # Generate Cython sources, unless building from source release

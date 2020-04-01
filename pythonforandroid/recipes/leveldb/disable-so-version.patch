@@ -1,0 +1,10 @@
+--- leveldb/build_detect_platform	2014-09-16 23:19:52.000000000 +0200
++++ leveldb-patch/build_detect_platform	2016-03-01 20:25:04.074484399 +0100
+@@ -124,6 +124,7 @@
+         ;;
+     OS_ANDROID_CROSSCOMPILE)
+         PLATFORM=OS_ANDROID
++        PLATFORM_SHARED_VERSIONED=
+         COMMON_FLAGS="$MEMCMP_FLAG -D_REENTRANT -DOS_ANDROID -DLEVELDB_PLATFORM_POSIX"
+         PLATFORM_LDFLAGS=""  # All pthread features are in the Android C library
+         PORT_FILE=port/port_posix.cc

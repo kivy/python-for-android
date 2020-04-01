@@ -1,0 +1,34 @@
+From 982b89c01aca99c7bc229914fc1521f96930919b Mon Sep 17 00:00:00 2001
+From: Yen Chi Hsuan <yan12125@gmail.com>
+Date: Sun, 13 Nov 2016 19:17:19 +0800
+Subject: [PATCH] Install public headers in the standard path
+
+---
+ include/Makefile.am | 3 +--
+ libffi.pc.in        | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/include/Makefile.am b/include/Makefile.am
+index bb241e88..c59df9fb 100644
+--- a/include/Makefile.am
++++ b/include/Makefile.am
+@@ -6,5 +6,4 @@ DISTCLEANFILES=ffitarget.h
+ noinst_HEADERS=ffi_common.h ffi_cfi.h
+ EXTRA_DIST=ffi.h.in
+
+-includesdir = $(libdir)/@PACKAGE_NAME@-@PACKAGE_VERSION@/include
+-nodist_includes_HEADERS = ffi.h ffitarget.h
++nodist_include_HEADERS = ffi.h ffitarget.h
+diff --git a/libffi.pc.in b/libffi.pc.in
+index edf6fde5..6fad83b4 100644
+--- a/libffi.pc.in
++++ b/libffi.pc.in
+@@ -2,7 +2,7 @@ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ libdir=@libdir@
+ toolexeclibdir=@toolexeclibdir@
+-includedir=${libdir}/@PACKAGE_NAME@-@PACKAGE_VERSION@/include
++includedir=@includedir@
+
+ Name: @PACKAGE_NAME@
+ Description: Library supporting Foreign Function Interfaces

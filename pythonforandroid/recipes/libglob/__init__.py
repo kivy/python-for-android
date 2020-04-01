@@ -3,13 +3,13 @@
     available via '-lglob' LDFLAG
 """
 from os.path import exists, join
-from pythonforandroid.recipe import Recipe
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from pythonforandroid.toolchain import current_directory
 from pythonforandroid.logger import info, shprint
 import sh
 
 
-class LibGlobRecipe(Recipe):
+class LibGlobRecipe(CompiledComponentsPythonRecipe):
     """Make a glob.h and glob.so for the python_install_dir()"""
     version = '0.0.1'
     url = None
@@ -20,7 +20,6 @@ class LibGlobRecipe(Recipe):
     #   https://raw.githubusercontent.com/white-gecko/TokyoCabinet/master/glob.c
     # and pushed in via patch
     name = 'libglob'
-    built_libraries = {'libglob.so': '.'}
 
     depends = [('hostpython2', 'hostpython3')]
     patches = ['glob.patch']
@@ -61,6 +60,7 @@ class LibGlobRecipe(Recipe):
             cflags.extend(['-shared', '-I.', 'glob.o', '-o', 'libglob.so'])
             cflags.extend(env['LDFLAGS'].split())
             shprint(cc, *cflags, _env=env)
+            shprint(sh.cp, 'libglob.so', join(self.ctx.libs_dir, arch.arch))
 
 
 recipe = LibGlobRecipe()

@@ -1,8 +1,8 @@
-from pythonforandroid.recipe import Recipe
+from pythonforandroid.toolchain import Recipe
 from pythonforandroid.util import current_directory
 from pythonforandroid.logger import shprint
 from multiprocessing import cpu_count
-from os.path import join
+from os.path import exists, join
 import sh
 
 
@@ -23,7 +23,13 @@ class HarfbuzzRecipe(Recipe):
     version = '0.9.40'
     url = 'http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-{version}.tar.bz2'  # noqa
     opt_depends = ['freetype']
-    built_libraries = {'libharfbuzz.so': 'src/.libs'}
+
+    def should_build(self, arch):
+        return not exists(
+            join(
+                self.get_build_dir(arch.arch), 'src', '.libs', 'libharfbuzz.so'
+            )
+        )
 
     def get_recipe_env(self, arch=None):
         env = super(HarfbuzzRecipe, self).get_recipe_env(arch)
@@ -62,12 +68,12 @@ class HarfbuzzRecipe(Recipe):
                 _env=env,
             )
             shprint(sh.make, '-j', str(cpu_count()), _env=env)
+            self.install_libs(arch, join('src', '.libs', 'libharfbuzz.so'))
 
         if 'freetype' in self.ctx.recipe_build_order:
-            # Rebuild/install freetype with harfbuzz support
+            # Rebuild freetype with harfbuzz support
             freetype = self.get_recipe('freetype', self.ctx)
             freetype.build_arch(arch, with_harfbuzz=True)
-            freetype.install_libraries(arch)
 
 
 recipe = HarfbuzzRecipe()

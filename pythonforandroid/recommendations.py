@@ -8,10 +8,10 @@ from pythonforandroid.logger import info, warning
 from pythonforandroid.util import BuildInterruptingException
 
 # We only check the NDK major version
-MIN_NDK_VERSION = 19
-MAX_NDK_VERSION = 20
+MIN_NDK_VERSION = 17
+MAX_NDK_VERSION = 17
 
-RECOMMENDED_NDK_VERSION = "19b"
+RECOMMENDED_NDK_VERSION = "17c"
 NDK_DOWNLOAD_URL = "https://developer.android.com/ndk/downloads/"
 
 # Important log messages

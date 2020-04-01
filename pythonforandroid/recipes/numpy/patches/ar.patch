@@ -1,0 +1,41 @@
+diff --git a/numpy/core/code_generators/generate_umath.py b/numpy/core/code_generators/generate_umath.py
+index 0fac9b0..94be92a 100644
+--- a/numpy/core/code_generators/generate_umath.py
++++ b/numpy/core/code_generators/generate_umath.py
+@@ -982,6 +982,7 @@ def make_arrays(funcdict):
+                 funclist.append('%s_%s' % (tname, name))
+                 if t.simd is not None:
+                     for vt in t.simd:
++                        continue
+                         code2list.append(textwrap.dedent("""\
+                         #ifdef HAVE_ATTRIBUTE_TARGET_{ISA}
+                         if (npy_cpu_supports("{isa}")) {{
+diff --git a/numpy/distutils/ccompiler.py b/numpy/distutils/ccompiler.py
+index 14451fa..dfd65da 100644
+--- a/numpy/distutils/ccompiler.py
++++ b/numpy/distutils/ccompiler.py
+@@ -295,6 +295,7 @@ def CCompiler_compile(self, sources, output_dir=None, macros=None,
+             self._setup_compile(output_dir, macros, include_dirs, sources,
+                                 depends, extra_postargs)
+     cc_args = self._get_cc_args(pp_opts, debug, extra_preargs)
++    cc_args += os.environ['CFLAGS'].split()
+     display = "compile options: '%s'" % (' '.join(cc_args))
+     if extra_postargs:
+         display += "\nextra options: '%s'" % (' '.join(extra_postargs))
+@@ -795,4 +796,3 @@ for _cc in ['msvc9', 'msvc', '_msvc', 'bcpp', 'cygwinc', 'emxc', 'unixc']:
+     _m = sys.modules.get('distutils.' + _cc + 'compiler')
+     if _m is not None:
+         setattr(_m, 'gen_lib_options', gen_lib_options)
+-
+diff --git a/numpy/distutils/unixccompiler.py b/numpy/distutils/unixccompiler.py
+index 11b2cce..c3e9f10 100644
+--- a/numpy/distutils/unixccompiler.py
++++ b/numpy/distutils/unixccompiler.py
+@@ -111,6 +111,7 @@ def UnixCCompiler_create_static_lib(self, objects, output_libname,
+         while tmp_objects:
+             objects = tmp_objects[:50]
+             tmp_objects = tmp_objects[50:]
++            self.archiver[0] = os.environ['AR']
+             display = '%s: adding %d object files to %s' % (
+                            os.path.basename(self.archiver[0]),
+                            len(objects), output_filename)
