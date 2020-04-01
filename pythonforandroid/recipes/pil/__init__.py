@@ -17,7 +17,7 @@ class PilRecipe(PillowRecipe):
                 'This should be a drop-in replacement.')
         warning('It is recommended to change "pil" to "pillow" in your requirements, '
                 'to ensure future compatibility')
-        super(PilRecipe, self).build_arch(arch)
+        super().build_arch(arch)
 
 
 recipe = PilRecipe()

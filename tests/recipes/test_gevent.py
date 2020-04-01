@@ -1,21 +1,11 @@
 import unittest
-from mock import patch
-from pythonforandroid.archs import ArchARMv7_a
-from pythonforandroid.build import Context
-from pythonforandroid.recipe import Recipe
+from unittest.mock import patch
+from tests.recipes.recipe_ctx import RecipeCtx
 
 
-class TestGeventRecipe(unittest.TestCase):
+class TestGeventRecipe(RecipeCtx, unittest.TestCase):
 
-    def setUp(self):
-        """
-        Setups recipe and context.
-        """
-        self.context = Context()
-        self.context.ndk_api = 21
-        self.context.android_api = 27
-        self.arch = ArchARMv7_a(self.context)
-        self.recipe = Recipe.get_recipe('gevent', self.context)
+    recipe_name = "gevent"
 
     def test_get_recipe_env(self):
         """
@@ -39,9 +29,11 @@ class TestGeventRecipe(unittest.TestCase):
             # checks the regex doesn't parse `python3-libffi-openssl` as a `-libffi`
             '-L/path/to/python3-libffi-openssl/library3 '
         )
+        mocked_ldlibs = ' -lm'
         mocked_env = {
             'CFLAGS': mocked_cflags,
             'LDFLAGS': mocked_ldflags,
+            'LDLIBS': mocked_ldlibs,
         }
         with patch('pythonforandroid.recipe.CythonRecipe.get_recipe_env') as m_get_recipe_env:
             m_get_recipe_env.return_value = mocked_env
@@ -63,11 +55,13 @@ class TestGeventRecipe(unittest.TestCase):
             ' -L/path/to/library2'
             ' -L/path/to/python3-libffi-openssl/library3 '
         )
-        expected_libs = '-lm -lpython3.7m'
+        expected_ldlibs = mocked_ldlibs
+        expected_libs = '-lm -lpython3.7m -lm'
         expected_env = {
             'CFLAGS': expected_cflags,
             'CPPFLAGS': expected_cppflags,
             'LDFLAGS': expected_ldflags,
+            'LDLIBS': expected_ldlibs,
             'LIBS': expected_libs,
         }
         self.assertEqual(expected_env, env)

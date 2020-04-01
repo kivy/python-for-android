@@ -47,7 +47,7 @@ class ServiceOnlyBootstrap(Bootstrap):
 
         self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(ServiceOnlyBootstrap, self).run_distribute()
+        super().run_distribute()
 
 
 bootstrap = ServiceOnlyBootstrap()

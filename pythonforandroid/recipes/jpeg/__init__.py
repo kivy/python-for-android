@@ -1,9 +1,7 @@
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory
-from os.path import join, exists
-from os import environ, uname
-from glob import glob
+from os.path import join
 import sh
 
 
@@ -16,15 +14,11 @@ class JpegRecipe(Recipe):
     name = 'jpeg'
     version = '2.0.1'
     url = 'https://github.com/libjpeg-turbo/libjpeg-turbo/archive/{version}.tar.gz'  # noqa
+    built_libraries = {'libjpeg.a': '.', 'libturbojpeg.a': '.'}
     # we will require this below patch to build the shared library
     # patches = ['remove-version.patch']
 
-    def should_build(self, arch):
-        return not exists(join(self.get_build_dir(arch.arch),
-                               'libturbojpeg.a'))
-
     def build_arch(self, arch):
-        super(JpegRecipe, self).build_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
 
         # TODO: Fix simd/neon
@@ -40,10 +34,9 @@ class JpegRecipe(Recipe):
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',
                     '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
                     '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,
-                    '-DCMAKE_C_COMPILER={toolchain}/bin/clang'.format(
-                        toolchain=env['TOOLCHAIN']),
-                    '-DCMAKE_CXX_COMPILER={toolchain}/bin/clang++'.format(
-                        toolchain=env['TOOLCHAIN']),
+                    '-DCMAKE_C_COMPILER={cc}'.format(cc=arch.get_clang_exe()),
+                    '-DCMAKE_CXX_COMPILER={cc_plus}'.format(
+                        cc_plus=arch.get_clang_exe(plus_plus=True)),
                     '-DCMAKE_BUILD_TYPE=Release',
                     '-DCMAKE_INSTALL_PREFIX=./install',
                     '-DCMAKE_TOOLCHAIN_FILE=' + toolchain_file,
@@ -58,21 +51,6 @@ class JpegRecipe(Recipe):
                     '-DENABLE_STATIC=1',
                     _env=env)
             shprint(sh.make, _env=env)
-
-            # copy static libs to libs collection
-            for lib in glob(join(build_dir, '*.a')):
-                shprint(sh.cp, '-L', lib, self.ctx.libs_dir)
-
-    def get_recipe_env(self, arch=None, with_flags_in_cc=False, clang=True):
-        env = environ.copy()
-
-        build_platform = '{system}-{machine}'.format(
-            system=uname()[0], machine=uname()[-1]).lower()
-        env['TOOLCHAIN'] = join(self.ctx.ndk_dir, 'toolchains/llvm/'
-                                'prebuilt/{build_platform}'.format(
-                                    build_platform=build_platform))
-
-        return env
 
 
 recipe = JpegRecipe()

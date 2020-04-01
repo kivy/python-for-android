@@ -1,11 +1,6 @@
 import unittest
+from unittest import mock
 
-try:
-    from unittest import mock
-except ImportError:
-    # `Python 2` or lower than `Python 3.3` does not
-    # have the `unittest.mock` module built-in
-    import mock
 from pythonforandroid.build import run_pymodules_install
 
 

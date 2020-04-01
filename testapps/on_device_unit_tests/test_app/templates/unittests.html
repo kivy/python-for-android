@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+
+{% block body %}
+
+<h2 class="page-title">Unittests Page</h2>
+
+<br>
+Unittest recipes: {{ tested_recipes }}
+<br>
+
+<div class="terminal-box">
+    <div class="terminal-content">
+        {% for line in unittests_output %}
+            {{ line }}<br>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

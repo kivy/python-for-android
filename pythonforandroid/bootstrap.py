@@ -8,10 +8,9 @@ import sh
 import shlex
 import shutil
 
-from pythonforandroid.logger import (warning, shprint, info, logger,
-                                     debug)
-from pythonforandroid.util import (current_directory, ensure_dir,
-                                   temp_directory)
+from pythonforandroid.logger import (shprint, info, logger, debug)
+from pythonforandroid.util import (
+    current_directory, ensure_dir, temp_directory, BuildInterruptingException)
 from pythonforandroid.recipe import Recipe
 
 
@@ -64,7 +63,7 @@ def _cmp_bootstraps_by_priority(a, b):
             return 1
 
 
-class Bootstrap(object):
+class Bootstrap:
     '''An Android project template, containing recipe stuff for
     compilation and templated fields for APK info.
     '''
@@ -75,12 +74,11 @@ class Bootstrap(object):
     bootstrap_dir = None
 
     build_dir = None
-    dist_dir = None
     dist_name = None
     distribution = None
 
     # All bootstraps should include Python in some way:
-    recipe_depends = [("python2", "python3"), 'android']
+    recipe_depends = ['python3', 'android']
 
     can_be_chosen_automatically = True
     '''Determines whether the bootstrap can be chosen as one that
@@ -97,9 +95,9 @@ class Bootstrap(object):
     def dist_dir(self):
         '''The dist dir at which to place the finished distribution.'''
         if self.distribution is None:
-            warning('Tried to access {}.dist_dir, but {}.distribution '
-                    'is None'.format(self, self))
-            exit(1)
+            raise BuildInterruptingException(
+                'Internal error: tried to access {}.dist_dir, but {}.distribution '
+                'is None'.format(self, self))
         return self.distribution.dist_dir
 
     @property
@@ -158,7 +156,7 @@ class Bootstrap(object):
             with open('project.properties', 'w') as fileh:
                 fileh.write('target=android-{}'.format(self.ctx.android_api))
 
-    def prepare_dist_dir(self, name):
+    def prepare_dist_dir(self):
         ensure_dir(self.dist_dir)
 
     def run_distribute(self):
@@ -296,15 +294,15 @@ class Bootstrap(object):
         tgt_dir = join(dest_dir, arch.arch)
         ensure_dir(tgt_dir)
         for src_dir in src_dirs:
-            for lib in glob.glob(join(src_dir, wildcard)):
-                shprint(sh.cp, '-a', lib, tgt_dir)
+            libs = glob.glob(join(src_dir, wildcard))
+            shprint(sh.cp, '-a', *libs, tgt_dir)
 
     def distribute_javaclasses(self, javaclass_dir, dest_dir="src"):
         '''Copy existing javaclasses from build dir to current dist dir.'''
         info('Copying java files')
         ensure_dir(dest_dir)
-        for filename in glob.glob(javaclass_dir):
-            shprint(sh.cp, '-a', filename, dest_dir)
+        filenames = glob.glob(javaclass_dir)
+        shprint(sh.cp, '-a', *filenames, dest_dir)
 
     def distribute_aars(self, arch):
         '''Process existing .aar bundles and copy to current dist dir.'''
@@ -337,8 +335,7 @@ class Bootstrap(object):
             debug("  to {}".format(so_tgt_dir))
             ensure_dir(so_tgt_dir)
             so_files = glob.glob(join(so_src_dir, '*.so'))
-            for f in so_files:
-                shprint(sh.cp, '-a', f, so_tgt_dir)
+            shprint(sh.cp, '-a', *so_files, so_tgt_dir)
 
     def strip_libraries(self, arch):
         info('Stripping libraries')

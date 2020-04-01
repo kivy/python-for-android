@@ -79,7 +79,7 @@ public class PythonService extends Service implements Runnable {
         pythonHome = extras.getString("pythonHome");
         pythonPath = extras.getString("pythonPath");
         serviceStartAsForeground = (
-            extras.getString("serviceStartAsForeground") == "true"
+            extras.getString("serviceStartAsForeground").equals("true")
         );
         pythonServiceArgument = extras.getString("pythonServiceArgument");
         pythonThread = new Thread(this);

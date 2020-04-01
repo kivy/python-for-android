@@ -160,7 +160,7 @@ def obvious_conflict_checker(ctx, name_tuples, blacklist=None):
         current_to_be_added = list(to_be_added)
         to_be_added = []
         for (added_tuple, adding_recipe) in current_to_be_added:
-            assert(type(added_tuple) == tuple)
+            assert type(added_tuple) == tuple
             if len(added_tuple) > 1:
                 # No obvious commitment in what to add, don't check it itself
                 # but throw it into deps for later comparing against

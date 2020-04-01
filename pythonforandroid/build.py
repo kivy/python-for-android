@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from os.path import (
     abspath, join, realpath, dirname, expanduser, exists,
     split, isdir
@@ -79,7 +77,7 @@ def get_available_apis(sdk_dir):
     return apis
 
 
-class Context(object):
+class Context:
     '''A build context. If anything will be built, an instance this class
     will be instantiated and used to hold all the build state.'''
 
@@ -92,8 +90,13 @@ class Context(object):
     # in which bootstraps are copied for building
     # and recipes are built
     build_dir = None
+
+    distribution = None
+    """The Distribution object representing the current build target location."""
+
     # the Android project folder where everything ends up
     dist_dir = None
+
     # where Android libs are cached after build
     # but before being placed in dists
     libs_dir = None
@@ -106,7 +109,6 @@ class Context(object):
 
     ndk_platform = None  # the ndk platform directory
 
-    dist_name = None  # should be deprecated in favour of self.dist.dist_name
     bootstrap = None
     bootstrap_build_dir = None
 
@@ -128,34 +130,33 @@ class Context(object):
     @property
     def libs_dir(self):
         # Was previously hardcoded as self.build_dir/libs
-        dir = join(self.build_dir, 'libs_collections',
-                   self.bootstrap.distribution.name)
-        ensure_dir(dir)
-        return dir
+        directory = join(self.build_dir, 'libs_collections',
+                         self.bootstrap.distribution.name)
+        ensure_dir(directory)
+        return directory
 
     @property
     def javaclass_dir(self):
         # Was previously hardcoded as self.build_dir/java
-        dir = join(self.build_dir, 'javaclasses',
-                   self.bootstrap.distribution.name)
-        ensure_dir(dir)
-        return dir
+        directory = join(self.build_dir, 'javaclasses',
+                         self.bootstrap.distribution.name)
+        ensure_dir(directory)
+        return directory
 
     @property
     def aars_dir(self):
-        dir = join(self.build_dir, 'aars', self.bootstrap.distribution.name)
-        ensure_dir(dir)
-        return dir
+        directory = join(self.build_dir, 'aars', self.bootstrap.distribution.name)
+        ensure_dir(directory)
+        return directory
 
     @property
     def python_installs_dir(self):
-        dir = join(self.build_dir, 'python-installs')
-        ensure_dir(dir)
-        return dir
+        directory = join(self.build_dir, 'python-installs')
+        ensure_dir(directory)
+        return directory
 
     def get_python_install_dir(self):
-        dir = join(self.python_installs_dir, self.bootstrap.distribution.name)
-        return dir
+        return join(self.python_installs_dir, self.bootstrap.distribution.name)
 
     def setup_dirs(self, storage_dir):
         '''Calculates all the storage and build dirs, and makes sure
@@ -260,7 +261,7 @@ class Context(object):
             possible_dirs = glob.glob(expanduser(join(
                 '~', '.buildozer', 'android', 'platform', 'android-sdk-*')))
             possible_dirs = [d for d in possible_dirs if not
-                             (d.endswith('.bz2') or d.endswith('.gz'))]
+                             d.endswith(('.bz2', '.gz'))]
             if possible_dirs:
                 info('Found possible SDK dirs in buildozer dir: {}'.format(
                     ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
@@ -423,15 +424,13 @@ class Context(object):
         for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
                            "tar", "bzip2", "unzip", "make", "gcc", "g++"):
             if not sh.which(executable):
-                warning("Missing executable: {} is not installed".format(
-                    executable))
+                warning(f"Missing executable: {executable} is not installed")
 
         if not ok:
             raise BuildInterruptingException(
                 'python-for-android cannot continue due to the missing executables above')
 
     def __init__(self):
-        super(Context, self).__init__()
         self.include_dirs = []
 
         self._build_env_prepared = False
@@ -485,9 +484,8 @@ class Context(object):
         self.bootstrap.prepare_build_dir()
         self.bootstrap_build_dir = self.bootstrap.build_dir
 
-    def prepare_dist(self, name):
-        self.dist_name = name
-        self.bootstrap.prepare_dist_dir(self.dist_name)
+    def prepare_dist(self):
+        self.bootstrap.prepare_dist_dir()
 
     def get_site_packages_dir(self, arch=None):
         '''Returns the location of site-packages in the python-install build
@@ -575,6 +573,7 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
             info_main('Building {} for {}'.format(recipe.name, arch.arch))
             if recipe.should_build(arch):
                 recipe.build_arch(arch)
+                recipe.install_libraries(arch)
             else:
                 info('{} said it is already built, skipping'
                      .format(recipe.name))
@@ -601,23 +600,16 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
         ignore_setup_py=ignore_project_setup_py
     )
 
-    return
-
 
 def project_has_setup_py(project_dir):
-    if project_dir is not None and \
-            (os.path.exists(os.path.join(project_dir,
-                            "setup.py")) or
-             os.path.exists(os.path.join(project_dir,
-                            "pyproject.toml"))
-            ):
-        return True
-    return False
+    return (project_dir is not None and
+            (exists(join(project_dir, "setup.py")) or
+             exists(join(project_dir, "pyproject.toml"))
+            ))
 
 
 def run_setuppy_install(ctx, project_dir, env=None):
-    if env is None:
-        env = dict()
+    env = env or {}
 
     with current_directory(project_dir):
         info('got setup.py or similar, running project install. ' +
@@ -1072,5 +1064,4 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=[], env=None):
                             '\n\t'.join(needed_libs))
 
     print('Copying libraries')
-    for lib in sofiles:
-        shprint(sh.cp, lib, dest)
+    shprint(sh.cp, *sofiles, dest)

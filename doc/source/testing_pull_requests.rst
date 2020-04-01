@@ -103,30 +103,31 @@ Using python-for-android commands directly from the pull request files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Enter inside the directory of the cloned repository in the above
-  step and run p4a command with proper args, eg::
+  step and run p4a command with proper args, eg (to test an modified
+  `pycryptodome` recipe)::
 
     .. codeblock:: bash
 
         cd p4a-feature-fix-numpy
         PYTHONPATH=. python3 -m pythonforandroid.toolchain apk \
-            --private=testapps/testapp_sqlite_openssl \
-            --dist-name=dist_test_app_python3_libs \
+            --private=testapps/on_device_unit_tests/test_app \
+            --dist-name=dist_unit_tests_app_pycryptodome \
             --package=org.kivy \
-            --name=test_app_python3_sqlite_openssl \
+            --name=unit_tests_app_pycryptodome \
             --version=0.1 \
-            --requirements=requests,peewee,sdl2,pyjnius,kivy,python3 \
+            --requirements=sdl2,pyjnius,kivy,python3,pycryptodome \
             --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
             --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
             --android-api=27 \
             --arch=arm64-v8a \
-            --permission=INTERNET \
+            --permission=VIBRATE \
             --debug
 
 Things that you should know:
 
 
-    - The example above will build an testapp we will make use of the files of
-      the testapp named `testapp_sqlite_openssl.py` but we don't use the setup
+    - The example above will build an test app we will make use of the files of
+      the `on device unit tests` test app but we don't use the setup
       file to build it so we must tell python-for-android what we want via
       arguments
     - be sure to at least edit the following arguments when running the above
@@ -159,19 +160,19 @@ Installing python-for-android using the github's branch of the pull request
         cd p4a-feature-fix-numpy
         pip3 install . --upgrade --user
 
-- Now, go inside the `testapps` directory (we assume that you still are inside
-  the cloned repository)::
+- Now, go inside the `testapps/on_device_unit_tests` directory (we assume that
+  you still are inside the cloned repository)::
 
     .. codeblock:: bash
 
-        cd testapps
+        cd testapps/on_device_unit_tests
 
 - Run the build of the apk via the freshly installed copy of python-for-android
   by running a similar command than below::
 
     .. code-block:: bash
 
-        python3 setup_testapp_python3_sqlite_openssl.py apk \
+        python3 setup.py apk \
             --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
             --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
             --android-api=27 \
@@ -182,8 +183,7 @@ Installing python-for-android using the github's branch of the pull request
 Things that you should know:
 
     - In the example above, we override some variables that are set in
-      `setup_testapp_python3_sqlite_openssl.py`, you could also override them
-      by editing this file
+      `setup.py`, you could also override them by editing this file
     - be sure to at least edit the following arguments when running the above
       command, since the default set in there it's unlikely that match your
       installation:

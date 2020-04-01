@@ -17,7 +17,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
                'evdev-permissions.patch']
 
     def get_recipe_env(self, arch=None):
-        env = super(EvdevRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['NDKPLATFORM'] = self.ctx.ndk_platform
         return env
 

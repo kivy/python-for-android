@@ -13,7 +13,7 @@ class ScryptRecipe(CythonRecipe):
         """
         Adds openssl recipe to include and library path.
         """
-        env = super(ScryptRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
         openssl_recipe = self.get_recipe('openssl', self.ctx)
         env['CFLAGS'] += openssl_recipe.include_flags(arch)
         env['LDFLAGS'] += ' -L{}'.format(self.ctx.get_libs_dir(arch.arch))

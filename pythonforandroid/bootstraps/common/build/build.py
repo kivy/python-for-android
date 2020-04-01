@@ -1,6 +1,4 @@
-#!/usr/bin/env python2.7
-
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import json
 from os.path import (
@@ -16,7 +14,6 @@ import sys
 import tarfile
 import tempfile
 import time
-from zipfile import ZipFile
 
 from distutils.version import LooseVersion
 from fnmatch import fnmatch
@@ -78,10 +75,6 @@ BLACKLIST_PATTERNS = [
 # pyc/py
 if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
-    if PYTHON_VERSION and int(PYTHON_VERSION[0]) == 2:
-        # we only blacklist `.pyc` for python2 because in python3 the compiled
-        # extension is `.pyc` (.pyo files not exists for python >= 3.6)
-        BLACKLIST_PATTERNS.append('*.pyc')
 
 WHITELIST_PATTERNS = []
 if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
@@ -154,48 +147,6 @@ def listfiles(d):
     for subdir in subdirlist:
         for fn in listfiles(subdir):
             yield fn
-
-
-def make_python_zip():
-    '''
-    Search for all the python related files, and construct the pythonXX.zip
-    According to
-    # http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
-    site-packages, config and lib-dynload will be not included.
-    '''
-
-    if not exists('private'):
-        print('No compiled python is present to zip, skipping.')
-        return
-
-    global python_files
-    d = realpath(join('private', 'lib', 'python2.7'))
-
-    def select(fn):
-        if is_blacklist(fn):
-            return False
-        fn = realpath(fn)
-        assert(fn.startswith(d))
-        fn = fn[len(d):]
-        if (fn.startswith('/site-packages/')
-                or fn.startswith('/config/')
-                or fn.startswith('/lib-dynload/')
-                or fn.startswith('/libpymodules.so')):
-            return False
-        return fn
-
-    # get a list of all python file
-    python_files = [x for x in listfiles(d) if select(x)]
-
-    # create the final zipfile
-    zfn = join('private', 'lib', 'python27.zip')
-    zf = ZipFile(zfn, 'w')
-
-    # put all the python files in it
-    for fn in python_files:
-        afn = fn[len(d):]
-        zf.write(fn, afn)
-    zf.close()
 
 
 def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
@@ -292,10 +243,6 @@ main.py that loads it.''')
     try_unlink(join(assets_dir, 'private.mp3'))
     ensure_dir(assets_dir)
 
-    # In order to speedup import and initial depack,
-    # construct a python27.zip
-    make_python_zip()
-
     # Add extra environment variable file into tar-able directory:
     env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
     with open(os.path.join(env_vars_tarpath, "p4a_env_vars.txt"), "w") as f:
@@ -321,16 +268,36 @@ main.py that loads it.''')
                       'full private data into .apk.')
                 tar_dirs.append(args.private)
             else:
-                print('Copying main.py ONLY, since other app data is '
-                      'expected in site-packages.')
+                print("Copying main.py's ONLY, since other app data is "
+                      "expected in site-packages.")
                 main_py_only_dir = tempfile.mkdtemp()
                 _temp_dirs_to_clean.append(main_py_only_dir)
-                if exists(join(args.private, "main.pyo")):
-                    shutil.copyfile(join(args.private, "main.pyo"),
-                                    join(main_py_only_dir, "main.pyo"))
-                elif exists(join(args.private, "main.py")):
-                    shutil.copyfile(join(args.private, "main.py"),
-                                    join(main_py_only_dir, "main.py"))
+
+                # Check all main.py files we need to copy:
+                copy_paths = ["main.py", join("service", "main.py")]
+                for copy_path in copy_paths:
+                    variants = [
+                        copy_path,
+                        copy_path.partition(".")[0] + ".pyc",
+                        copy_path.partition(".")[0] + ".pyo",
+                    ]
+                    # Check in all variants with all possible endings:
+                    for variant in variants:
+                        if exists(join(args.private, variant)):
+                            # Make sure surrounding directly exists:
+                            dir_path = os.path.dirname(variant)
+                            if (len(dir_path) > 0 and
+                                    not exists(
+                                        join(main_py_only_dir, dir_path)
+                                    )):
+                                os.mkdir(join(main_py_only_dir, dir_path))
+                            # Copy actual file:
+                            shutil.copyfile(
+                                join(args.private, variant),
+                                join(main_py_only_dir, variant),
+                            )
+
+                # Append directory with all main.py's to result apk paths:
                 tar_dirs.append(main_py_only_dir)
         for python_bundle_dir in ('private', '_python_bundle'):
             if exists(python_bundle_dir):
@@ -663,6 +630,24 @@ tools directory of the Android SDK.
                               'https://developer.android.com/guide/'
                               'topics/manifest/'
                               'activity-element.html'))
+
+    ap.add_argument('--android-entrypoint', dest='android_entrypoint',
+                    default='org.kivy.android.PythonActivity',
+                    help='Defines which java class will be used for startup, usually a subclass of PythonActivity')
+    ap.add_argument('--android-apptheme', dest='android_apptheme',
+                    default='@android:style/Theme.NoTitleBar',
+                    help='Defines which app theme should be selected for the main activity')
+    ap.add_argument('--add-compile-option', dest='compile_options', default=[],
+                    action='append', help='add compile options to gradle.build')
+    ap.add_argument('--add-gradle-repository', dest='gradle_repositories',
+                    default=[],
+                    action='append',
+                    help='Ddd a repository for gradle')
+    ap.add_argument('--add-packaging-option', dest='packaging_options',
+                    default=[],
+                    action='append',
+                    help='Dndroid packaging options')
+
     ap.add_argument('--wakelock', dest='wakelock', action='store_true',
                     help=('Indicate if the application needs the device '
                           'to stay on'))
@@ -729,6 +714,9 @@ tools directory of the Android SDK.
                     action='store_false', default=True,
                     help=('Whether to compile to optimised .pyo files, using -OO '
                           '(strips docstrings and asserts)'))
+    ap.add_argument('--extra-manifest-xml', default='',
+                    help=('Extra xml to write directly inside the <manifest> element of'
+                          'AndroidManifest.xml'))
 
     # Put together arguments, and add those from .p4a config file:
     if args is None:
