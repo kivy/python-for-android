@@ -44,6 +44,7 @@ options = {
             'ndk-api': 21,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'armeabi-v7a',
+            'bootstrap' : 'sdl2',
             'permissions': ['INTERNET', 'VIBRATE'],
             'orientation': 'sensor',
             'service': 'P4a_test_service:app_service.py',
