@@ -55,6 +55,7 @@
          An example Java class can be found in README-android.txt
     -->
     <application android:label="@string/app_name"
+                 {% if debug %}android:debuggable="true"{% endif %}
                  android:icon="@drawable/icon"
                  android:allowBackup="{{ args.allow_backup }}"
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"

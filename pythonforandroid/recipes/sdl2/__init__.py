@@ -22,7 +22,12 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env = self.get_recipe_env(arch)
 
         with current_directory(self.get_jni_dir()):
-            shprint(sh.ndk_build, "V=1", _env=env)
+            shprint(
+                sh.ndk_build,
+                "V=1",
+                "NDK_DEBUG=" + ("1" if self.ctx.build_as_debuggable else "0"),
+                _env=env
+            )
 
 
 recipe = LibSDL2Recipe()

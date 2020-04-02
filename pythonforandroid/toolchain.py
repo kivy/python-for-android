@@ -196,6 +196,10 @@ def build_dist_from_args(ctx, dist, args):
         ctx.recipe_build_order))
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
+    if hasattr(args, "build_mode") and args.build_mode == "debug":
+        info('Building WITH debugging symbols (no --release option used)')
+    else:
+        info('Building WITHOUT debugging symbols (--release option used)')
 
     ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
@@ -498,7 +502,8 @@ class ToolchainCL:
         parser_apk.add_argument(
             '--release', dest='build_mode', action='store_const',
             const='release', default='debug',
-            help='Build the PARSER_APK. in Release mode')
+            help='Build your app as a non-debug release build. '
+                 '(Disables gdb debugging among other things)')
         parser_apk.add_argument(
             '--use-setup-py', dest="use_setup_py",
             action='store_true', default=False,
@@ -575,6 +580,8 @@ class ToolchainCL:
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
+        if hasattr(args, "build_mode") and args.build_mode == "release":
+            args.unknown_args += ["--release"]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
@@ -591,6 +598,9 @@ class ToolchainCL:
 
         self.ctx = Context()
         self.ctx.use_setup_py = getattr(args, "use_setup_py", True)
+        self.ctx.build_as_debuggable = getattr(
+            args, "build_mode", "debug"
+        ) == "debug"
 
         have_setup_py_or_similar = False
         if getattr(args, "private", None) is not None:
@@ -957,7 +967,9 @@ class ToolchainCL:
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
             os.environ["ANDROID_API"] = str(self.ctx.android_api)
-            build_args = build.parse_args(args.unknown_args)
+            build_args = build.parse_args_and_make_package(
+                args.unknown_args
+            )
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
 
@@ -1007,7 +1019,9 @@ class ToolchainCL:
                     gradle_task = "assembleRelease"
                 else:
                     raise BuildInterruptingException(
-                        "Unknown build mode {} for apk()".format(args.build_mode))
+                        "Unknown build mode {} for apk()".
+                        format(args.build_mode)
+                    )
                 output = shprint(gradlew, gradle_task, _tail=20,
                                  _critical=True, _env=env)
 

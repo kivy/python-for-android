@@ -801,6 +801,7 @@ class NDKRecipe(Recipe):
             shprint(
                 sh.ndk_build,
                 'V=1',
+                'NDK_DEBUG=' + ("1" if self.ctx.build_as_debuggable else "0"),
                 'APP_PLATFORM=android-' + str(self.ctx.ndk_api),
                 'APP_ABI=' + arch.arch,
                 *extra_args, _env=env
@@ -1071,7 +1072,8 @@ class CythonRecipe(PythonRecipe):
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
 
-            self.strip_object_files(arch, env)
+            if not self.ctx.build_as_debuggable:
+                self.strip_object_files(arch, env)
 
     def strip_object_files(self, arch, env, build_dir=None):
         if build_dir is None:
