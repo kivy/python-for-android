@@ -491,9 +491,10 @@ class ToolchainCL(object):
         # However, it is also needed before the distribution is finally
         # assembled for locating the setup.py / other build systems, which
         # is why we also add it here:
-        parser_apk.add_argument('--add-asset', dest='assets',
-                    action="append",
-                    help=('Put this in the assets folder'))
+        parser_apk.add_argument(
+            '--add-asset', dest='assets',
+            action="append",
+            help=('Put this in the assets folder'))
         parser_apk.add_argument(
             '--private', dest='private',
             help='the directory with the app source code files' +

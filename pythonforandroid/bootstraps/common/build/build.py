@@ -360,7 +360,7 @@ main.py that loads it.''')
             tar_dirs.append('webview_includes')
         if hasattr(args, "assets") and args.assets is not None:
             for asset in args.assets:
-                asset_src, asset_dest=asset.split(":")
+                asset_src, asset_dest = asset.split(":")
                 if isfile(realpath(asset_src)):
                     ensure_dir(dirname(join(assets_dir, asset_dest)))
                     shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
