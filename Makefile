@@ -28,7 +28,6 @@ virtualenv: $(VIRTUAL_ENV)
 # ignores test_pythonpackage.py since it runs for too long
 test:
 	$(TOX) -- tests/ --ignore tests/test_pythonpackage.py
-	@if test -n "$$CI"; then .tox/py$(PYTHON_MAJOR_MINOR)/bin/coveralls; fi; \
 
 rebuild_updated_recipes: virtualenv
 	. $(ACTIVATE) && \
