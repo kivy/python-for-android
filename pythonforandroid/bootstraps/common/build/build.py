@@ -239,9 +239,10 @@ main.py that loads it.''')
     assets_dir = "src/main/assets"
 
     # Delete the old assets.
-    try_unlink(join(assets_dir, 'public.mp3'))
-    try_unlink(join(assets_dir, 'private.mp3'))
     ensure_dir(assets_dir)
+    shutil.rmtree(assets_dir)
+    ensure_dir(assets_dir)
+    open(os.path.join(assets_dir, ".gitkeep"), 'a').close()
 
     # Add extra environment variable file into tar-able directory:
     env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
@@ -304,6 +305,15 @@ main.py that loads it.''')
                 tar_dirs.append(python_bundle_dir)
         if get_bootstrap_name() == "webview":
             tar_dirs.append('webview_includes')
+        if hasattr(args, "assets") and args.assets is not None:
+            for asset in args.assets:
+                asset_src, asset_dest = asset.split(":")
+                if isfile(realpath(asset_src)):
+                    ensure_dir(dirname(join(assets_dir, asset_dest)))
+                    shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
+                else:
+                    shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
+
         if args.private or args.launcher:
             make_tar(
                 join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
@@ -598,6 +608,9 @@ tools directory of the Android SDK.
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
+    ap.add_argument('--asset', dest='assets',
+                    action="append",
+                    help=('Put this in the assets folder'))
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
