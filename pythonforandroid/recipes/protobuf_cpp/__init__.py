@@ -25,7 +25,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
     protoc_dir = None
 
     def prebuild_arch(self, arch):
-        super(ProtobufCppRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
 
         patch_mark = join(self.get_build_dir(arch.arch), '.protobuf-patched')
         if self.ctx.python_recipe.name == 'python3' and not exists(patch_mark):
@@ -93,6 +93,8 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
             with current_directory(join(self.get_build_dir(arch.arch), 'src')):
                 shprint(sh.make, 'libprotobuf.la', '-j'+str(cpu_count()), _env=env)
 
+        self.install_python_package(arch)
+
     def build_compiled_components(self, arch):
         # Build python bindings and _message.so
         env = self.get_recipe_env(arch)
@@ -127,7 +129,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
         ).close()
 
     def get_recipe_env(self, arch):
-        env = super(ProtobufCppRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         if self.protoc_dir is not None:
             # we need protoc with binary for host platform
             env['PROTOC'] = join(self.protoc_dir, 'bin', 'protoc')

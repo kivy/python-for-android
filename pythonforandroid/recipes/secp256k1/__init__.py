@@ -11,8 +11,8 @@ class Secp256k1Recipe(CppCompiledComponentsPythonRecipe):
 
     depends = [
         'openssl',
-        ('hostpython3', 'hostpython2'),
-        ('python2', 'python3'),
+        'hostpython3',
+        'python3',
         'setuptools',
         'libffi',
         'cffi',
@@ -24,7 +24,7 @@ class Secp256k1Recipe(CppCompiledComponentsPythonRecipe):
         "pkg-config.patch", "find_lib.patch", "no-download.patch"]
 
     def get_recipe_env(self, arch=None):
-        env = super(Secp256k1Recipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         libsecp256k1 = self.get_recipe('libsecp256k1', self.ctx)
         libsecp256k1_dir = libsecp256k1.get_build_dir(arch.arch)
         env['CFLAGS'] += ' -I' + os.path.join(libsecp256k1_dir, 'include')

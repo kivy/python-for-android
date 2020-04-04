@@ -39,7 +39,7 @@ class BoostRecipe(Recipe):
         'http://downloads.sourceforge.net/project/boost/'
         'boost/{version}/boost_{version_underscore}.tar.bz2'
     )
-    depends = [('python2', 'python3')]
+    depends = ['python3']
     patches = [
         'disable-so-version.patch',
         'use-android-libs.patch',
@@ -60,7 +60,7 @@ class BoostRecipe(Recipe):
         return not exists(join(self.get_build_dir(arch.arch), 'b2'))
 
     def prebuild_arch(self, arch):
-        super(BoostRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             # Set custom configuration
@@ -70,7 +70,7 @@ class BoostRecipe(Recipe):
             )
 
     def build_arch(self, arch):
-        super(BoostRecipe, self).build_arch(arch)
+        super().build_arch(arch)
         env = self.get_recipe_env(arch)
         env['PYTHON_HOST'] = self.ctx.hostpython
         with current_directory(self.get_build_dir(arch.arch)):

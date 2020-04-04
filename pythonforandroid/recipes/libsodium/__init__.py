@@ -27,7 +27,7 @@ class LibsodiumRecipe(Recipe):
             shprint(sh.make, '-j', str(cpu_count()), _env=env)
 
     def get_recipe_env(self, arch):
-        env = super(LibsodiumRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['CFLAGS'] += ' -Os'
         return env
 

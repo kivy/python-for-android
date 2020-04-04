@@ -88,11 +88,11 @@ longer than necessary (with your app already being loaded) due to a
 limitation with the way we check if the app has properly started.
 In this case, the splash screen overlaps the app gui for a short time.
 
-To dismiss the loading screen explicitely in your code, use the `android`
+To dismiss the loading screen explicitly in your code, use the `android`
 module::
 
-  from android import hide_loading_screen
-  hide_loading_screen()
+  from android import loadingscreen
+  loadingscreen.hide_loading_screen()
 
 You can call it e.g. using ``kivy.clock.Clock.schedule_once`` to run it
 in the first active frame of your app, or use the app build method.

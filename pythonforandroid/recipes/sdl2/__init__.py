@@ -13,7 +13,7 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
     depends = ['sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True, with_python=True):
-        env = super(LibSDL2Recipe, self).get_recipe_env(
+        env = super().get_recipe_env(
             arch=arch, with_flags_in_cc=with_flags_in_cc, with_python=with_python)
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
@@ -22,7 +22,12 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
         env = self.get_recipe_env(arch)
 
         with current_directory(self.get_jni_dir()):
-            shprint(sh.ndk_build, "V=1", _env=env)
+            shprint(
+                sh.ndk_build,
+                "V=1",
+                "NDK_DEBUG=" + ("1" if self.ctx.build_as_debuggable else "0"),
+                _env=env
+            )
 
 
 recipe = LibSDL2Recipe()

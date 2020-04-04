@@ -12,12 +12,12 @@ class TwistedRecipe(CythonRecipe):
     install_in_hostpython = False
 
     def prebuild_arch(self, arch):
-        super(TwistedRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         # TODO Need to whitelist tty.pyo and termios.so here
         print('Should remove twisted tests etc. here, but skipping for now')
 
     def get_recipe_env(self, arch):
-        env = super(TwistedRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         # We add BUILDLIB_PATH to PYTHONPATH so twisted can find _io.so
         env['PYTHONPATH'] = ':'.join([
             self.ctx.get_site_packages_dir(),

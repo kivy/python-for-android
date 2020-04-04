@@ -1,0 +1,133 @@
+
+@font-face{
+  font-family: Blanka;
+  src: url('Blanka-Regular.otf');
+  font-weight: normal;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto Slab", Roboto, sans-serif;
+  color: #444;
+}
+
+/*
+ * Formatting the header area
+ */
+header {
+  background-color: #6600b8;
+  height: 90px;
+  width: 100%;
+  opacity: .9;
+  margin-bottom: 10px;
+}
+header h1.logo {
+  margin-top: 4px;
+  font-size: 1.4em;
+  font-family: Blanka, sans-serif;
+  color: #fff;
+  text-transform: uppercase;
+  float: left;
+  text-align: center;
+  width: 100%;
+}
+header h1.logo:hover {
+  color: #000000;
+  text-decoration: none;
+}
+
+/*
+ * Navbar
+ */
+.menu {
+  float: right;
+  margin-top: 0px;
+  width: 100%;
+  text-align: center;
+  font-family: Blanka, sans-serif;
+}
+.menu li {
+  display: inline-block;
+}
+.menu li + li {
+  margin-left: 35px;
+}
+.menu li a {
+  color: #999999;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/*
+ * Centering the body content
+ */
+.container {
+  width: auto;
+  margin: 0 8px;
+  text-align: center;
+}
+
+h2.page-title {
+  text-align: center;
+  text-transform: uppercase;
+  font-family: Blanka, sans-serif;
+}
+
+.text-underline {
+  border-bottom: 0px solid #333;
+  font-family: Blanka, sans-serif;
+  width: 100%;
+  display: block;
+}
+
+.center {
+  margin: auto;
+  width: 50%;
+}
+
+/*
+ * Unittests page
+ */
+.text-green {
+  color: #5d8000;
+}
+
+.text-red {
+  color: #ff0000;
+}
+
+.terminal-box {
+  background-color: #333;
+}
+
+.terminal-content {
+  color: #fff;
+  margin: 8px;
+  padding-top: 8px;
+}
+
+/*
+ * Adapt header to bigger screens
+ */
+@media only screen and (min-width: 530px) {
+  header {
+    height: 45px;
+  }
+
+  header h1.logo {
+    width: auto;
+    text-align: left;
+  }
+
+  .menu {
+    width: auto;
+    margin-top: 12px;
+  }
+  .container {
+    text-align: left;
+  }
+  .text-underline {
+    border-bottom: 1px solid #333;
+  }
+}

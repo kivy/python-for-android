@@ -34,15 +34,22 @@ android {
         versionName '{{ args.version }}'
     }
 
-    {% if args.sign -%}
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("P4A_RELEASE_KEYSTORE"))
-            keyAlias System.getenv("P4A_RELEASE_KEYALIAS")
-            storePassword System.getenv("P4A_RELEASE_KEYSTORE_PASSWD")
-            keyPassword System.getenv("P4A_RELEASE_KEYALIAS_PASSWD")
-        }
-    }
+	{% if debug_build -%}
+	packagingOptions {
+		doNotStrip '**/*.so'
+	}
+	{%- endif %}
+
+	{% if args.sign -%}
+	signingConfigs {
+		release {
+			storeFile file(System.getenv("P4A_RELEASE_KEYSTORE"))
+			keyAlias System.getenv("P4A_RELEASE_KEYALIAS")
+			storePassword System.getenv("P4A_RELEASE_KEYSTORE_PASSWD")
+			keyPassword System.getenv("P4A_RELEASE_KEYALIAS_PASSWD")
+		}
+	}
+
     {%- endif %}
 
     {% if args.packaging_options -%}

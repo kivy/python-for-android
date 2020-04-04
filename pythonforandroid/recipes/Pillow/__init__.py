@@ -4,17 +4,16 @@ from os.path import join
 
 class PillowRecipe(CompiledComponentsPythonRecipe):
 
-    version = '5.2.0'
+    version = '7.0.0'
     url = 'https://github.com/python-pillow/Pillow/archive/{version}.tar.gz'
     site_packages_name = 'Pillow'
     depends = ['png', 'jpeg', 'freetype', 'setuptools']
-    patches = [join('patches', 'fix-docstring.patch'),
-               join('patches', 'fix-setup.patch')]
+    patches = [join('patches', 'fix-setup.patch')]
 
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(PillowRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
 
         env['ANDROID_ROOT'] = join(self.ctx.ndk_platform, 'usr')
         ndk_lib_dir = join(self.ctx.ndk_platform, 'usr', 'lib')

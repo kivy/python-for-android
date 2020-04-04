@@ -5,6 +5,8 @@ import unittest
 import warnings
 from unittest import mock
 from backports import tempfile
+from platform import system
+
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import Recipe, import_recipe
 from pythonforandroid.archs import ArchAarch_64
@@ -187,7 +189,7 @@ class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         Initialize a Context with a Bootstrap and a Distribution to properly
         test an library recipe, to do so we reuse `BaseClassSetupBootstrap`
         """
-        super(TestLibraryRecipe, self).setUp()
+        super().setUp()
         self.ctx.bootstrap = Bootstrap().get_bootstrap('sdl2', self.ctx)
         self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
 
@@ -240,7 +242,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         test a recipe which depends on android's STL library, to do so we reuse
         `BaseClassSetupBootstrap`
         """
-        super(TesSTLRecipe, self).setUp()
+        super().setUp()
         self.ctx.bootstrap = Bootstrap().get_bootstrap('sdl2', self.ctx)
         self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
         self.ctx.python_recipe = Recipe.get_recipe('python3', self.ctx)
@@ -278,8 +280,8 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
                   should be tested in the proper test.
         """
         expected_compiler = (
-            "/opt/android/android-ndk/toolchains/"
-            "llvm/prebuilt/linux-x86_64/bin/clang"
+            f"/opt/android/android-ndk/toolchains/"
+            f"llvm/prebuilt/{system().lower()}-x86_64/bin/clang"
         )
         mock_find_executable.return_value = expected_compiler
         mock_glob.return_value = ["llvm"]

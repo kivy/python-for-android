@@ -14,7 +14,7 @@ class ICURecipe(Recipe):
     url = ('http://download.icu-project.org/files/icu4c/'
            '{version}/icu4c-{version_underscore}-src.tgz')
 
-    depends = [('hostpython2', 'hostpython3')]  # installs in python
+    depends = ['hostpython3']  # installs in python
     patches = ['disable-libs-version.patch']
 
     built_libraries = {
@@ -109,7 +109,7 @@ class ICURecipe(Recipe):
                 shprint(sh.make, "install", _env=env)
 
     def install_libraries(self, arch):
-        super(ICURecipe, self).install_libraries(arch)
+        super().install_libraries(arch)
 
         src_include = join(
             self.get_build_dir(arch.arch), "icu_build", "include")

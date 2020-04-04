@@ -1,7 +1,7 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
 from shutil import rmtree
-from six import PY2, with_metaclass
+from six import with_metaclass
 
 import hashlib
 from re import match
@@ -22,26 +22,17 @@ from pythonforandroid.util import (urlretrieve, current_directory, ensure_dir,
 
 
 def import_recipe(module, filename):
-    if PY2:
-        import imp
-        import warnings
-        with warnings.catch_warnings():
-            # ignores warnings raised by hierarchical module names
-            # (names containing dots) on Python 2
-            warnings.simplefilter("ignore", RuntimeWarning)
-            return imp.load_source(module, filename)
+    # Python 3.5+
+    import importlib.util
+    if hasattr(importlib.util, 'module_from_spec'):
+        spec = importlib.util.spec_from_file_location(module, filename)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
     else:
-        # Python 3.5+
-        import importlib.util
-        if hasattr(importlib.util, 'module_from_spec'):
-            spec = importlib.util.spec_from_file_location(module, filename)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            return mod
-        else:
-            # Python 3.3 and 3.4:
-            from importlib.machinery import SourceFileLoader
-            return SourceFileLoader(module, filename).load_module()
+        # Python 3.3 and 3.4:
+        from importlib.machinery import SourceFileLoader
+        return SourceFileLoader(module, filename).load_module()
 
 
 class RecipeMeta(type):
@@ -52,7 +43,7 @@ class RecipeMeta(type):
             if 'version' in dct:
                 dct['_version'] = dct.pop('version')
 
-        return super(RecipeMeta, cls).__new__(cls, name, bases, dct)
+        return super().__new__(cls, name, bases, dct)
 
 
 class Recipe(with_metaclass(RecipeMeta)):
@@ -769,8 +760,7 @@ class BootstrapNDKRecipe(Recipe):
         return join(self.ctx.bootstrap.build_dir, 'jni')
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True, with_python=False):
-        env = super(BootstrapNDKRecipe, self).get_recipe_env(
-            arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
         if not with_python:
             return env
 
@@ -804,13 +794,14 @@ class NDKRecipe(Recipe):
         return join(self.get_build_dir(arch.arch), 'jni')
 
     def build_arch(self, arch, *extra_args):
-        super(NDKRecipe, self).build_arch(arch)
+        super().build_arch(arch)
 
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(
                 sh.ndk_build,
                 'V=1',
+                'NDK_DEBUG=' + ("1" if self.ctx.build_as_debuggable else "0"),
                 'APP_PLATFORM=android-' + str(self.ctx.ndk_api),
                 'APP_ABI=' + arch.arch,
                 *extra_args, _env=env
@@ -843,7 +834,7 @@ class PythonRecipe(Recipe):
     setup_extra_args = []
     '''List of extra arguments to pass to setup.py'''
 
-    depends = [('python2', 'python3')]
+    depends = ['python3']
     '''
     .. note:: it's important to keep this depends as a class attribute outside
               `__init__` because sometimes we only initialize the class, so the
@@ -856,25 +847,20 @@ class PythonRecipe(Recipe):
     '''
 
     def __init__(self, *args, **kwargs):
-        super(PythonRecipe, self).__init__(*args, **kwargs)
-        if not any(
-            [
-                d
-                for d in {'python2', 'python3', ('python2', 'python3')}
-                if d in self.depends
-            ]
-        ):
+        super().__init__(*args, **kwargs)
+
+        if 'python3' not in self.depends:
             # We ensure here that the recipe depends on python even it overrode
             # `depends`. We only do this if it doesn't already depend on any
             # python, since some recipes intentionally don't depend on/work
             # with all python variants
             depends = self.depends
-            depends.append(('python2', 'python3'))
+            depends.append('python3')
             depends = list(set(depends))
             self.depends = depends
 
     def clean_build(self, arch=None):
-        super(PythonRecipe, self).clean_build(arch=arch)
+        super().clean_build(arch=arch)
         name = self.folder_name
         python_install_dirs = glob.glob(join(self.ctx.python_installs_dir, '*'))
         for python_install in python_install_dirs:
@@ -889,7 +875,7 @@ class PythonRecipe(Recipe):
     @property
     def real_hostpython_location(self):
         host_name = 'host{}'.format(self.ctx.python_recipe.name)
-        if host_name in ['hostpython2', 'hostpython3']:
+        if host_name == 'hostpython3':
             python_recipe = Recipe.get_recipe(host_name, self.ctx)
             return python_recipe.python_exe
         else:
@@ -911,7 +897,7 @@ class PythonRecipe(Recipe):
         return name
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(PythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
 
         env['PYTHONNOUSERSITE'] = '1'
 
@@ -956,7 +942,7 @@ class PythonRecipe(Recipe):
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
-        super(PythonRecipe, self).build_arch(arch)
+        super().build_arch(arch)
         self.install_python_package(arch)
 
     def install_python_package(self, arch, name=None, env=None, is_dir=True):
@@ -1026,7 +1012,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
         self.rebuild_compiled_components(arch, env)
-        super(CompiledComponentsPythonRecipe, self).install_hostpython_package(arch)
+        super().install_hostpython_package(arch)
 
     def rebuild_compiled_components(self, arch, env):
         info('Rebuilding compiled components in {}'.format(self.name))
@@ -1086,7 +1072,8 @@ class CythonRecipe(PythonRecipe):
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
 
-            self.strip_object_files(arch, env)
+            if not self.ctx.build_as_debuggable:
+                self.strip_object_files(arch, env)
 
     def strip_object_files(self, arch, env, build_dir=None):
         if build_dir is None:
@@ -1128,7 +1115,7 @@ class CythonRecipe(PythonRecipe):
                 self.cythonize_file(env, build_dir, join(root, filename))
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
-        env = super(CythonRecipe, self).get_recipe_env(arch, with_flags_in_cc)
+        env = super().get_recipe_env(arch, with_flags_in_cc)
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
             self.ctx.get_libs_dir(arch.arch) +
             ' -L{} '.format(self.ctx.libs_dir) +
@@ -1158,10 +1145,10 @@ class TargetPythonRecipe(Recipe):
 
     def __init__(self, *args, **kwargs):
         self._ctx = None
-        super(TargetPythonRecipe, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def prebuild_arch(self, arch):
-        super(TargetPythonRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         self.ctx.python_recipe = self
 
     def include_root(self, arch):

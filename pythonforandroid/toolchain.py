@@ -6,12 +6,11 @@ Tool for packaging Python apps for Android
 This module defines the entry point for command line and programmatic use.
 """
 
-from __future__ import print_function
 from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.entrypoints import main
 
@@ -197,6 +196,10 @@ def build_dist_from_args(ctx, dist, args):
         ctx.recipe_build_order))
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
+    if hasattr(args, "build_mode") and args.build_mode == "debug":
+        info('Building WITH debugging symbols (no --release option used)')
+    else:
+        info('Building WITHOUT debugging symbols (--release option used)')
 
     ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
@@ -235,7 +238,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
         return []
 
 
-class ToolchainCL(object):
+class ToolchainCL:
 
     def __init__(self):
 
@@ -503,7 +506,8 @@ class ToolchainCL(object):
         parser_apk.add_argument(
             '--release', dest='build_mode', action='store_const',
             const='release', default='debug',
-            help='Build the PARSER_APK. in Release mode')
+            help='Build your app as a non-debug release build. '
+                 '(Disables gdb debugging among other things)')
         parser_apk.add_argument(
             '--use-setup-py', dest="use_setup_py",
             action='store_true', default=False,
@@ -580,10 +584,16 @@ class ToolchainCL(object):
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
+        if hasattr(args, "build_mode") and args.build_mode == "release":
+            args.unknown_args += ["--release"]
         if hasattr(args, "assets") and args.assets is not None:
             # Pass this value on to the internal bootstrap build.py:
             for asset in args.assets:
-                args.unknown_args += ["--asset", os.path.abspath(asset)+":"+asset]
+                if ":" in asset:
+                    asset_src, asset_dest = asset.split(":")
+                else:
+                    asset_src = asset_dest = asset
+                args.unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
@@ -600,6 +610,9 @@ class ToolchainCL(object):
 
         self.ctx = Context()
         self.ctx.use_setup_py = getattr(args, "use_setup_py", True)
+        self.ctx.build_as_debuggable = getattr(
+            args, "build_mode", "debug"
+        ) == "debug"
 
         have_setup_py_or_similar = False
         if getattr(args, "private", None) is not None:
@@ -757,7 +770,7 @@ class ToolchainCL(object):
         .. code-block:: bash
             python3      3.7.1
                 depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
-                conflicts: ['python2']
+                conflicts: []
                 optional depends: ['sqlite3', 'libffi', 'openssl']
         """
         ctx = self.ctx
@@ -793,7 +806,7 @@ class ToolchainCL(object):
 
     def bootstraps(self, _args):
         """List all the bootstraps available to build with."""
-        for bs in Bootstrap.list_bootstraps():
+        for bs in Bootstrap.all_bootstraps():
             bs = Bootstrap.get_bootstrap(bs, self.ctx)
             print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'
                   .format(bs=bs, Fore=Out_Fore, Style=Out_Style))
@@ -836,7 +849,7 @@ class ToolchainCL(object):
         """Delete all the bootstrap builds."""
         if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
             shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
-        # for bs in Bootstrap.list_bootstraps():
+        # for bs in Bootstrap.all_bootstraps():
         #     bs = Bootstrap.get_bootstrap(bs, self.ctx)
         #     if bs.build_dir and exists(bs.build_dir):
         #         info('Cleaning build for {} bootstrap.'.format(bs.name))
@@ -966,7 +979,9 @@ class ToolchainCL(object):
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
             os.environ["ANDROID_API"] = str(self.ctx.android_api)
-            build_args = build.parse_args(args.unknown_args)
+            build_args = build.parse_args_and_make_package(
+                args.unknown_args
+            )
             self.hook("after_apk_build")
             self.hook("before_apk_assemble")
 
@@ -1016,7 +1031,9 @@ class ToolchainCL(object):
                     gradle_task = "assembleRelease"
                 else:
                     raise BuildInterruptingException(
-                        "Unknown build mode {} for apk()".format(args.build_mode))
+                        "Unknown build mode {} for apk()".
+                        format(args.build_mode)
+                    )
                 output = shprint(gradlew, gradle_task, _tail=20,
                                  _critical=True, _env=env)
 
@@ -1170,6 +1187,9 @@ class ToolchainCL(object):
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
+
+    def recommendations(self, args):
+        print_recommendations()
 
     def build_status(self, _args):
         """Print the status of the specified build. """

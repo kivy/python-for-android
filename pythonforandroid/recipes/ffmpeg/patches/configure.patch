@@ -1,40 +1,20 @@
---- ./configure.orig	2017-12-11 00:35:18.000000000 +0300
-+++ ./configure	2017-12-19 09:47:54.104914600 +0300
-@@ -4841,9 +4841,6 @@
-     add_cflags -std=c11 ||
-     check_cflags -std=c99
-
--check_cppflags -D_FILE_OFFSET_BITS=64
--check_cppflags -D_LARGEFILE_SOURCE
--
- add_host_cppflags -D_ISOC99_SOURCE
- check_host_cflags -std=c99
- check_host_cflags -Wall
-@@ -5979,7 +5976,7 @@
+--- ./configure	2019-07-21 18:36:31.000000000 +0200
++++ ./configure_new	2019-10-04 12:43:41.798448200 +0200
+@@ -6222,7 +6222,7 @@
  enabled librsvg           && require_pkg_config librsvg librsvg-2.0 librsvg-2.0/librsvg/rsvg.h rsvg_handle_render_cairo
  enabled librtmp           && require_pkg_config librtmp librtmp librtmp/rtmp.h RTMP_Socket
- enabled librubberband     && require_pkg_config librubberband "rubberband >= 1.8.1" rubberband/rubberband-c.h rubberband_new
+ enabled librubberband     && require_pkg_config librubberband "rubberband >= 1.8.1" rubberband/rubberband-c.h rubberband_new -lstdc++ && append librubberband_extralibs "-lstdc++"
 -enabled libshine          && require_pkg_config libshine shine shine/layer3.h shine_encode_buffer
-+enabled libshine          && require "shine" shine/layer3.h shine_encode_buffer -lshine
- enabled libsmbclient      && { use_pkg_config libsmbclient smbclient libsmbclient.h smbc_init ||
-                                require smbclient libsmbclient.h smbc_init -lsmbclient; }
- enabled libsnappy         && require libsnappy snappy-c.h snappy_compress -lsnappy
-
-diff -Naur ffmpeg/configure ffmpeg-1/configure
---- ffmpeg/configure	2019-01-11 09:30:02.824961600 +0100
-+++ ffmpeg-1/configure	2019-01-11 09:29:54.976149600 +0100
-@@ -6068,11 +6068,11 @@
-                                { ! enabled cross_compile && add_cflags -isystem/opt/vc/include/IL && check_header OMX_Core.h ; } ||
-                                die "ERROR: OpenMAX IL headers not found"; }
- enabled omx               && require_header OMX_Core.h
--enabled openssl           && { use_pkg_config openssl openssl openssl/ssl.h OPENSSL_init_ssl ||
-+enabled openssl           && { use_pkg_config openssl openssl openssl/ssl.h OPENSSL_init_ssl ||
-                                use_pkg_config openssl openssl openssl/ssl.h SSL_library_init ||
--                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto ||
--                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl32 -leay32 ||
--                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto -lws2_32 -lgdi32 ||
-+                               check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto ||
-+                               check_lib openssl openssl/ssl.h SSL_library_init -lssl32 -leay32 ||
-+                               check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto -lws2_32 -lgdi32 ||
++enabled libshine          && require "shine" shine/layer3.h shine_encode_buffer -lshine -lm
+ enabled libsmbclient      && { check_pkg_config libsmbclient smbclient libsmbclient.h smbc_init ||
+                                require libsmbclient libsmbclient.h smbc_init -lsmbclient; }
+ enabled libsnappy         && require libsnappy snappy-c.h snappy_compress -lsnappy -lstdc++
+@@ -6322,7 +6322,7 @@
+                                die "ERROR: OpenMAX IL headers not found"; } && enable omx
+ enabled openssl           && { check_pkg_config openssl openssl openssl/ssl.h OPENSSL_init_ssl ||
+                                check_pkg_config openssl openssl openssl/ssl.h SSL_library_init ||
+-                               check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto ||
++                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto ||
+                                check_lib openssl openssl/ssl.h SSL_library_init -lssl32 -leay32 ||
+                                check_lib openssl openssl/ssl.h SSL_library_init -lssl -lcrypto -lws2_32 -lgdi32 ||
                                 die "ERROR: openssl not found"; }
- enabled rkmpp             && { { require_pkg_config rockchip_mpp rockchip_mpp rockchip/rk_mpi.h mpp_create ||

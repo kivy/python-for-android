@@ -24,20 +24,17 @@ class FreetypeRecipe(Recipe):
         https://sourceforge.net/projects/freetype/files/freetype2/2.5.3/
     """
 
-    version = '2.5.5'
+    version = '2.10.1'
     url = 'http://download.savannah.gnu.org/releases/freetype/freetype-{version}.tar.gz'  # noqa
     built_libraries = {'libfreetype.so': 'objs/.libs'}
 
     def get_recipe_env(self, arch=None, with_harfbuzz=False):
-        env = super(FreetypeRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         if with_harfbuzz:
             harfbuzz_build = self.get_recipe(
                 'harfbuzz', self.ctx
             ).get_build_dir(arch.arch)
             freetype_install = join(self.get_build_dir(arch.arch), 'install')
-            env['CFLAGS'] = ' '.join(
-                [env['CFLAGS'], '-DFT_CONFIG_OPTION_USE_HARFBUZZ']
-            )
 
             env['HARFBUZZ_CFLAGS'] = '-I{harfbuzz} -I{harfbuzz}/src'.format(
                 harfbuzz=harfbuzz_build
@@ -48,6 +45,19 @@ class FreetypeRecipe(Recipe):
                     freetype=freetype_install, harfbuzz=harfbuzz_build
                 )
             )
+
+        # android's zlib support
+        zlib_lib_path = join(self.ctx.ndk_platform, 'usr', 'lib')
+        zlib_includes = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+
+        def add_flag_if_not_added(flag, env_key):
+            if flag not in env[env_key]:
+                env[env_key] += flag
+
+        add_flag_if_not_added(' -I' + zlib_includes, 'CFLAGS')
+        add_flag_if_not_added(' -L' + zlib_lib_path, 'LDFLAGS')
+        add_flag_if_not_added(' -lz', 'LDLIBS')
+
         return env
 
     def build_arch(self, arch, with_harfbuzz=False):
@@ -66,14 +76,17 @@ class FreetypeRecipe(Recipe):
         config_args = {
             '--host={}'.format(arch.command_prefix),
             '--prefix={}'.format(prefix_path),
-            '--without-zlib',
             '--without-bzip2',
             '--with-png=no',
         }
         if not harfbuzz_in_recipes:
             info('Build freetype (without harfbuzz)')
             config_args = config_args.union(
-                {'--disable-static', '--enable-shared', '--with-harfbuzz=no'}
+                {'--disable-static',
+                 '--enable-shared',
+                 '--with-harfbuzz=no',
+                 '--with-zlib=yes',
+                 }
             )
         elif not with_harfbuzz:
             info('Build freetype for First time (without harfbuzz)')
@@ -82,12 +95,16 @@ class FreetypeRecipe(Recipe):
             # symbols/functions, so we avoid to have two freetype shared
             # libraries which will be confusing and harder to link with them
             config_args = config_args.union(
-                {'--disable-shared', '--with-harfbuzz=no'}
+                {'--disable-shared', '--with-harfbuzz=no', '--with-zlib=no'}
             )
         else:
             info('Build freetype for Second time (with harfbuzz)')
             config_args = config_args.union(
-                {'--disable-static', '--enable-shared', '--with-harfbuzz=yes'}
+                {'--disable-static',
+                 '--enable-shared',
+                 '--with-harfbuzz=yes',
+                 '--with-zlib=yes',
+                 }
             )
         info('Configure args are:\n\t-{}'.format('\n\t-'.join(config_args)))
 

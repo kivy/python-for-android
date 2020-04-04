@@ -78,10 +78,14 @@ class TestToolchainCL:
             m_get_ndk_platform_dir.return_value = (
                 '/tmp/android-ndk/platforms/android-21/arch-arm', True)
             ToolchainCL()
-        assert m_get_available_apis.call_args_list == [
-            mock.call('/tmp/android-sdk')]
-        assert m_get_toolchain_versions.call_args_list == [
-            mock.call('/tmp/android-ndk', mock.ANY)]
+        assert m_get_available_apis.call_args_list in [
+            [mock.call('/tmp/android-sdk')],  # linux case
+            [mock.call('/private/tmp/android-sdk')]  # macos case
+        ]
+        assert m_get_toolchain_versions.call_args_list in [
+            [mock.call('/tmp/android-ndk', mock.ANY)],  # linux case
+            [mock.call('/private/tmp/android-ndk', mock.ANY)],  # macos case
+        ]
         build_order = [
             'hostpython3', 'libffi', 'openssl', 'sqlite3', 'python3',
             'genericndkbuild', 'setuptools', 'six', 'pyjnius', 'android',
@@ -100,6 +104,10 @@ class TestToolchainCL:
         ]
         assert m_run_distribute.call_args_list == [mock.call()]
 
+    @mock.patch(
+        'pythonforandroid.build.environ',
+        # Make sure that no environ variable modifies `sdk_dir`
+        {'ANDROIDSDK': None, 'ANDROID_HOME': None})
     def test_create_no_sdk_dir(self):
         """
         The `--sdk-dir` is mandatory to `create` a distribution.

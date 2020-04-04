@@ -7,8 +7,8 @@ import sh
 
 class PngRecipe(Recipe):
     name = 'png'
-    version = 'v1.6.37'
-    url = 'https://github.com/glennrp/libpng/archive/{version}.zip'
+    version = '1.6.37'
+    url = 'https://github.com/glennrp/libpng/archive/v{version}.zip'
     built_libraries = {'libpng16.so': '.libs'}
 
     def build_arch(self, arch):

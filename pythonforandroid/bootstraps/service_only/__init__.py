@@ -45,9 +45,10 @@ class ServiceOnlyBootstrap(Bootstrap):
                 with open('blacklist.txt', 'a') as fileh:
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
-        self.strip_libraries(arch)
+        if not self.ctx.build_as_debuggable:
+            self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(ServiceOnlyBootstrap, self).run_distribute()
+        super().run_distribute()
 
 
 bootstrap = ServiceOnlyBootstrap()

@@ -10,16 +10,17 @@ index ac89fec..71daa43 100644
  cdef JNIEnv *get_platform_jnienv():
 -    return SDL_ANDROID_GetJNIEnv()
 +    return <JNIEnv*>WebView_AndroidGetJNIEnv()
-diff --git a/setup.py b/setup.py
-index 740510f..0c8e55f 100644
---- a/setup.py
-+++ b/setup.py
-@@ -53,7 +53,7 @@ except ImportError:
+diff --git a/jnius/env.py b/jnius/env.py
+--- a/jnius/env.py
++++ b/jnius/env.py
+@@ -185,10 +185,10 @@ except ImportError:
  
- if PLATFORM == 'android':
-     # for android, we use SDL...
--    LIBRARIES = ['sdl', 'log']
-+    LIBRARIES = ['main', 'log']
-     LIBRARY_DIRS = ['libs/' + getenv('ARCH')]
- elif PLATFORM == 'darwin':
-     import subprocess
+ def get_libraries(platform):
+     if platform == 'android':
+         # for android, we use SDL...
+-        return ['sdl', 'log']
++        return ['main', 'log']
+ 
+     elif platform == 'win32':
+         return ['jvm']
+
