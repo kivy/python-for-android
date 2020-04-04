@@ -589,7 +589,11 @@ class ToolchainCL:
         if hasattr(args, "assets") and args.assets is not None:
             # Pass this value on to the internal bootstrap build.py:
             for asset in args.assets:
-                args.unknown_args += ["--asset", os.path.abspath(asset)+":"+asset]
+                if ":" in asset:
+                    asset_src, asset_dest = asset.split(":")
+                else:
+                    asset_src = asset_dest = asset
+                args.unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 

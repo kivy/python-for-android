@@ -239,8 +239,8 @@ main.py that loads it.''')
     assets_dir = "src/main/assets"
 
     # Delete the old assets.
-    ensure_dir(assets_dir)
-    shutil.rmtree(assets_dir)
+    if os.path.exists(assets_dir):
+        shutil.rmtree(assets_dir)
     ensure_dir(assets_dir)
     open(os.path.join(assets_dir, ".gitkeep"), 'a').close()
 
