@@ -4,6 +4,8 @@ import sh
 import unittest
 
 from unittest import mock
+from platform import system
+
 from pythonforandroid.bootstrap import (
     _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
 )
@@ -141,7 +143,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
 
     def test_all_bootstraps(self):
         """A test which will initialize a bootstrap and will check if the
-        method :meth:`~pythonforandroid.bootstrap.Bootstrap.list_bootstraps`
+        method :meth:`~pythonforandroid.bootstrap.Bootstrap.all_bootstraps `
         returns the expected values, which should be: `empty", `service_only`,
         `webview` and `sdl2`
         """
@@ -546,7 +548,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            "toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+            f"toolchains/llvm/prebuilt/{system().lower()}-x86_64/bin/clang",
         )
         mock_glob.return_value = [
             os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")

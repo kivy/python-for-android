@@ -4,12 +4,11 @@ from os.path import join
 
 class PillowRecipe(CompiledComponentsPythonRecipe):
 
-    version = '5.2.0'
+    version = '7.0.0'
     url = 'https://github.com/python-pillow/Pillow/archive/{version}.tar.gz'
     site_packages_name = 'Pillow'
     depends = ['png', 'jpeg', 'freetype', 'setuptools']
-    patches = [join('patches', 'fix-docstring.patch'),
-               join('patches', 'fix-setup.patch')]
+    patches = [join('patches', 'fix-setup.patch')]
 
     call_hostpython_via_targetpython = False
 

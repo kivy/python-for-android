@@ -9,7 +9,7 @@ class Hostpython3Recipe(HostPythonRecipe):
         Refactored into  the new class
         :class:`~pythonforandroid.python.HostPythonRecipe`
     '''
-    version = '3.7.1'
+    version = '3.8.1'
     name = 'hostpython3'
     conflicts = ['hostpython2']
 

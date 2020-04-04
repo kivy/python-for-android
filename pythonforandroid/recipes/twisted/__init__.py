@@ -2,7 +2,7 @@ from pythonforandroid.recipe import CythonRecipe
 
 
 class TwistedRecipe(CythonRecipe):
-    version = '17.9.0'
+    version = '19.7.0'
     url = 'https://github.com/twisted/twisted/archive/twisted-{version}.tar.gz'
 
     depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']

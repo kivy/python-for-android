@@ -1,0 +1,15 @@
+There is an open issue at numpy talking about the import error with numpy:
+    https://github.com/numpy/numpy/issues/13248
+The solution applied here is mentioned there and it seems to only affect our
+python2 version.
+--- numpy-1.16.4/numpy/core/overrides.py.orig	2019-05-27 12:41:06.000000000 +0200
++++ numpy-1.16.4/numpy/core/overrides.py	2019-10-13 18:51:06.387037239 +0200
+@@ -140,6 +140,8 @@ def array_function_dispatch(dispatcher,
+     -------
+     Function suitable for decorating the implementation of a NumPy function.
+     """
++    if dispatcher.__doc__ is None:
++        dispatcher.__doc__ = ""
+ 
+     if not ENABLE_ARRAY_FUNCTION:
+         # __array_function__ requires an explicit opt-in for now

@@ -11,7 +11,7 @@ from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.entrypoints import main
 
@@ -785,7 +785,7 @@ class ToolchainCL(object):
 
     def bootstraps(self, _args):
         """List all the bootstraps available to build with."""
-        for bs in Bootstrap.list_bootstraps():
+        for bs in Bootstrap.all_bootstraps():
             bs = Bootstrap.get_bootstrap(bs, self.ctx)
             print('{Fore.BLUE}{Style.BRIGHT}{bs.name}{Style.RESET_ALL}'
                   .format(bs=bs, Fore=Out_Fore, Style=Out_Style))
@@ -828,7 +828,7 @@ class ToolchainCL(object):
         """Delete all the bootstrap builds."""
         if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
             shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
-        # for bs in Bootstrap.list_bootstraps():
+        # for bs in Bootstrap.all_bootstraps():
         #     bs = Bootstrap.get_bootstrap(bs, self.ctx)
         #     if bs.build_dir and exists(bs.build_dir):
         #         info('Cleaning build for {} bootstrap.'.format(bs.name))
@@ -1162,6 +1162,9 @@ class ToolchainCL(object):
         for line in output:
             sys.stdout.write(line)
             sys.stdout.flush()
+
+    def recommendations(self, args):
+        print_recommendations()
 
     def build_status(self, _args):
         """Print the status of the specified build. """

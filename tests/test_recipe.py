@@ -5,6 +5,8 @@ import unittest
 import warnings
 from unittest import mock
 from backports import tempfile
+from platform import system
+
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import Recipe, import_recipe
 from pythonforandroid.archs import ArchAarch_64
@@ -278,8 +280,8 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
                   should be tested in the proper test.
         """
         expected_compiler = (
-            "/opt/android/android-ndk/toolchains/"
-            "llvm/prebuilt/linux-x86_64/bin/clang"
+            f"/opt/android/android-ndk/toolchains/"
+            f"llvm/prebuilt/{system().lower()}-x86_64/bin/clang"
         )
         mock_find_executable.return_value = expected_compiler
         mock_glob.return_value = ["llvm"]

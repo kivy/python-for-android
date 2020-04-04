@@ -3,8 +3,8 @@ from pythonforandroid.recipe import PythonRecipe
 
 class PytzRecipe(PythonRecipe):
     name = 'pytz'
-    version = '2015.7'
-    url = 'https://pypi.python.org/packages/source/p/pytz/pytz-{version}.tar.bz2'
+    version = '2019.3'
+    url = 'https://pypi.python.org/packages/source/p/pytz/pytz-{version}.tar.gz'
 
     depends = []
 

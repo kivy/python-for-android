@@ -54,7 +54,6 @@ BROKEN_RECIPES_PYTHON2 = set([
     'websocket-client',
     'zeroconf',
     'zope',
-    'matplotlib',  # https://github.com/kivy/python-for-android/issues/1900
 ])
 BROKEN_RECIPES_PYTHON3 = set([
     'brokenrecipe',
@@ -74,7 +73,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     # mpmath package with a version >= 0.19 required
     'sympy',
     'vlc',
-    'matplotlib',  # https://github.com/kivy/python-for-android/issues/1900
 ])
 
 BROKEN_RECIPES = {

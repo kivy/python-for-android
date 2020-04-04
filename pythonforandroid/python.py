@@ -169,6 +169,14 @@ class GuestPythonRecipe(TargetPythonRecipe):
             add_flags(recipe.include_flags(arch),
                       recipe.link_dirs_flags(arch), recipe.link_libs_flags())
 
+        for library_name in {'libbz2', 'liblzma'}:
+            if library_name in self.ctx.recipe_build_order:
+                info(f'Activating flags for {library_name}')
+                recipe = Recipe.get_recipe(library_name, self.ctx)
+                add_flags(recipe.get_library_includes(arch),
+                          recipe.get_library_ldflags(arch),
+                          recipe.get_library_libs_flag())
+
         # python build system contains hardcoded zlib version which prevents
         # the build of zlib module, here we search for android's zlib version
         # and sets the right flags, so python can be build with android's zlib
@@ -438,10 +446,19 @@ class HostPythonRecipe(Recipe):
                 if not exists('config.status'):
                     shprint(sh.Command(join(recipe_build_dir, 'configure')))
 
-            # Create the Setup file. This copying from Setup.dist
-            # seems to be the normal and expected procedure.
-            shprint(sh.cp, join('Modules', 'Setup.dist'),
-                    join(build_dir, 'Modules', 'Setup'))
+            # Create the Setup file. This copying from Setup.dist is
+            # the normal and expected procedure before Python 3.8, but
+            # after this the file with default options is already named "Setup"
+            setup_dist_location = join('Modules', 'Setup.dist')
+            if exists(setup_dist_location):
+                shprint(sh.cp, setup_dist_location,
+                        join(build_dir, 'Modules', 'Setup'))
+            else:
+                # Check the expected file does exist
+                setup_location = join('Modules', 'Setup')
+                if not exists(setup_location):
+                    raise BuildInterruptingException(
+                        "Could not find Setup.dist or Setup in Python build")
 
             shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
 

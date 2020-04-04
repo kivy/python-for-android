@@ -1,0 +1,82 @@
+name: Unit tests & Build Testapp
+
+on: ['push', 'pull_request']
+
+jobs:
+
+  flake8:
+    name: Flake8 tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout python-for-android
+      uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1.1.0
+      with:
+        python-version: 3.7
+    - name: Run flake8
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox>=2.0
+        tox -e pep8
+
+  test:
+    name: Pytest [Python ${{ matrix.python-version }} | ${{ matrix.os }}]
+    needs: flake8
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7]
+        os: [ubuntu-latest, macOs-latest]
+    steps:
+    - name: Checkout python-for-android
+      uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1.1.0
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Tox tests
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox>=2.0
+        make test
+
+  build:
+    name: Build testapp
+    needs: [flake8]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build-arch: ['arm64-v8a', 'armeabi-v7a']
+    steps:
+    - name: Checkout python-for-android
+      uses: actions/checkout@v2
+    - name: Pull docker image
+      run: |
+        make docker/pull
+    - name: Build apk for Python 3 ${{ matrix.build-arch }}
+      run: |
+        mkdir -p apks
+        make docker/run/make/with-artifact/testapps/python3/${{ matrix.build-arch }}
+    - uses: actions/upload-artifact@v1
+      with:
+        name: bdisttest_python3_sqlite_openssl_googlendk__${{ matrix.build-arch }}-debug-1.1.apk
+        path: apks
+
+  rebuild_updated_recipes:
+    name: Test updated recipes
+    needs: [flake8]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout python-for-android (current branch)
+      uses: actions/checkout@v2
+    - name: Checkout python-for-android (develop branch)
+      uses: actions/checkout@v2
+      with:
+        ref: 'develop'
+    - name: Pull docker image
+      run: |
+        make docker/pull
+    - name: Rebuild updated recipes
+      run: |
+        make docker/run/make/rebuild_updated_recipes

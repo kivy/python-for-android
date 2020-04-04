@@ -2,7 +2,7 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-options = {'apk': {'requirements': 'sdl2,numpy,pyjnius,kivy,python3',
+options = {'apk': {'requirements': 'sdl2,numpy,pyjnius,kivy,python3,hostpython3',
                    'blacklist-requirements': 'openssl,sqlite3',
                    'android-api': 27,
                    'ndk-api': 21,

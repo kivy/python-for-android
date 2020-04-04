@@ -324,19 +324,34 @@ class TestApp(App):
 
     def test_pyjnius(self, *args):
         try:
-            from jnius import autoclass
+            from jnius import autoclass, cast
         except ImportError:
             raise_error('Could not import pyjnius')
             return
-
         print('Attempting to vibrate with pyjnius')
-        python_activity = autoclass('org.kivy.android.PythonActivity')
-        activity = python_activity.mActivity
-        intent = autoclass('android.content.Intent')
-        context = autoclass('android.content.Context')
-        vibrator = activity.getSystemService(context.VIBRATOR_SERVICE)
+        ANDROID_VERSION = autoclass('android.os.Build$VERSION')
+        SDK_INT = ANDROID_VERSION.SDK_INT
 
-        vibrator.vibrate(1000)
+        Context = autoclass("android.content.Context")
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
+
+        vibrator_service = activity.getSystemService(Context.VIBRATOR_SERVICE)
+        vibrator = cast("android.os.Vibrator", vibrator_service)
+
+        if vibrator and SDK_INT >= 26:
+            print("Using android's `VibrationEffect` (SDK >= 26)")
+            VibrationEffect = autoclass("android.os.VibrationEffect")
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    1000, VibrationEffect.DEFAULT_AMPLITUDE,
+                ),
+            )
+        elif vibrator:
+            print("Using deprecated android's vibrate (SDK < 26)")
+            vibrator.vibrate(1000)
+        else:
+            print('Something happened...vibrator service disabled?')
 
     def test_ctypes(self, *args):
         import ctypes

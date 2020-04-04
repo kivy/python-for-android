@@ -1,6 +1,7 @@
 import os
 import unittest
 from unittest import mock
+from platform import system
 
 from tests.recipes.recipe_ctx import RecipeCtx
 from pythonforandroid.recipes.icu import ICURecipe
@@ -47,7 +48,7 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            "toolchains/llvm/prebuilt/linux-x86_64/bin/clang",
+            f"toolchains/llvm/prebuilt/{system().lower()}-x86_64/bin/clang",
         )
         mock_archs_glob.return_value = [
             os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
