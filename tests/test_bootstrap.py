@@ -147,7 +147,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         returns the expected values, which should be: `empty", `service_only`,
         `webview` and `sdl2`
         """
-        expected_bootstraps = {"empty", "service_only", "webview", "sdl2"}
+        expected_bootstraps = {"empty", "service_only", "service_library", "webview", "sdl2"}
         set_of_bootstraps = Bootstrap.all_bootstraps()
         self.assertEqual(
             expected_bootstraps, expected_bootstraps & set_of_bootstraps
