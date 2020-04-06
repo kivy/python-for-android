@@ -43,11 +43,11 @@ Fetch the pull request by number
 For the example, we will use `1901` for the example) and the pull request
 branch that we will use is `feature-fix-numpy`, then you will use a variation
 of the following git command:
-`git fetch origin pull/<#>/head:<local_branch_name>`, eg.::
+`git fetch origin pull/<#>/head:<local_branch_name>`, e.g.:
 
-    .. codeblock:: bash
+.. code-block:: bash
 
-        git fetch upstream pull/1901/head:feature-fix-numpy
+    git fetch upstream pull/1901/head:feature-fix-numpy
 
 .. note:: Notice that we fetch from `upstream`, since that is the original
           project, where the pull request is supposed to be
@@ -55,16 +55,16 @@ of the following git command:
 .. tip:: The amount of work of some users maybe worth it to add his remote
        to your fork's git configuration, to do so with the imaginary
        github user `Obi-Wan Kenobi` which nickname is `obiwankenobi`, you
-       will do::
+       will do:
 
-          .. codeblock:: bash
+          .. code-block:: bash
 
               git remote add obiwankenobi https://github.com/obiwankenobi/python-for-android.git
 
        And to fetch the pull request branch that we put as example, you
-       would do::
+       would do:
 
-          .. codeblock:: bash
+          .. code-block:: bash
 
               git fetch obiwankenobi
               git checkout obiwankenobi/feature-fix-numpy
@@ -74,9 +74,9 @@ Clone the pull request branch from the user's fork
 --------------------------------------------------
 Sometimes you may prefer to use directly the fork of the user, so you will get
 the nickname of the user who created the pull request, let's take the same
-imaginary user than before `obiwankenobi`::
+imaginary user than before `obiwankenobi`:
 
-    .. codeblock:: bash
+    .. code-block:: bash
 
         git clone -b feature-fix-numpy \
             --single-branch \
@@ -103,25 +103,25 @@ Using python-for-android commands directly from the pull request files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Enter inside the directory of the cloned repository in the above
-  step and run p4a command with proper args, eg (to test an modified
-  `pycryptodome` recipe)::
+  step and run p4a command with proper args, e.g. (to test an modified
+  `pycryptodome` recipe)
 
-    .. codeblock:: bash
+.. code-block:: bash
 
-        cd p4a-feature-fix-numpy
-        PYTHONPATH=. python3 -m pythonforandroid.toolchain apk \
-            --private=testapps/on_device_unit_tests/test_app \
-            --dist-name=dist_unit_tests_app_pycryptodome \
-            --package=org.kivy \
-            --name=unit_tests_app_pycryptodome \
-            --version=0.1 \
-            --requirements=sdl2,pyjnius,kivy,python3,pycryptodome \
-            --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
-            --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
-            --android-api=27 \
-            --arch=arm64-v8a \
-            --permission=VIBRATE \
-            --debug
+    cd p4a-feature-fix-numpy
+    PYTHONPATH=. python3 -m pythonforandroid.toolchain apk \
+        --private=testapps/on_device_unit_tests/test_app \
+        --dist-name=dist_unit_tests_app_pycryptodome \
+        --package=org.kivy \
+        --name=unit_tests_app_pycryptodome \
+        --version=0.1 \
+        --requirements=sdl2,pyjnius,kivy,python3,pycryptodome \
+        --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
+        --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
+        --android-api=27 \
+        --arch=arm64-v8a \
+        --permission=VIBRATE \
+        --debug
 
 Things that you should know:
 
@@ -153,31 +153,31 @@ Installing python-for-android using the github's branch of the pull request
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Enter inside the directory of the cloned repository mentioned in
-  `Common steps` and install it via pip, eg.::
+  `Common steps` and install it via pip, e.g.:
 
-    .. codeblock:: bash
+.. code-block:: bash
 
-        cd p4a-feature-fix-numpy
-        pip3 install . --upgrade --user
+    cd p4a-feature-fix-numpy
+    pip3 install . --upgrade --user
 
 - Now, go inside the `testapps/on_device_unit_tests` directory (we assume that
-  you still are inside the cloned repository)::
+  you still are inside the cloned repository)
 
-    .. codeblock:: bash
+.. code-block:: bash
 
-        cd testapps/on_device_unit_tests
+    cd testapps/on_device_unit_tests
 
 - Run the build of the apk via the freshly installed copy of python-for-android
-  by running a similar command than below::
+  by running a similar command than below
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        python3 setup.py apk \
-            --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
-            --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
-            --android-api=27 \
-            --arch=arm64-v8a \
-            --debug
+    python3 setup.py apk \
+        --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
+        --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
+        --android-api=27 \
+        --arch=arm64-v8a \
+        --debug
 
 
 Things that you should know:
@@ -207,7 +207,7 @@ Using buildozer with a custom app
 
     p4a.source_dir = /home/user/p4a_pull_requests/p4a-feature-fix-numpy
 
-- Run you buildozer command as usual, eg.::
+- Run you buildozer command as usual, e.g.::
 
     buildozer android debug p4a --dist-name=dist-test-feature-fix-numpy
 
