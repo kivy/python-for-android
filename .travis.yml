@@ -58,3 +58,15 @@ jobs:
     - <<: *testapps
       name: Rebuild updated recipes
       script: travis_wait 30 make docker/run/make/rebuild_updated_recipes
+
+# Deploy to PyPI using token set in `PYPI_PASSWORD` environment variable
+# https://pypi.org/manage/account/token/
+# https://travis-ci.org/github/kivy/python-for-android/settings
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: "__token__"
+  on:
+    tags: true
+    repo: kivy/python-for-android
+    python: 3.7
