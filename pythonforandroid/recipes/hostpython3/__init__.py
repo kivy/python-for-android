@@ -84,12 +84,12 @@ class Hostpython3Recipe(Recipe):
 
         # ... And add that dir into the include flags
         env = os.environ
-        cflags = " -I{build_dir}".format(build_dir=build_dir)
+        cppflags = f" -I{build_dir}"
 
         try:
-            env["CFLAGS"] += cflags
+            env["CPPFLAGS"] += cppflags
         except KeyError:
-            env["CFLAGS"] = cflags
+            env["CPPFLAGS"] = cppflags
 
         with current_directory(recipe_build_dir):
             # Configure the build
