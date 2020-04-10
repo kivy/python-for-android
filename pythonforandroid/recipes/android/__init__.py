@@ -19,6 +19,12 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
         env.update(self.config_env)
+
+        cflags = " -fPIC"
+
+        if cflags not in env["CFLAGS"]:
+            env["CFLAGS"] += cflags
+
         return env
 
     def prebuild_arch(self, arch):
