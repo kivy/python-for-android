@@ -40,6 +40,7 @@ public class PythonUtil {
         libsList.add("python3.5m");
         libsList.add("python3.6m");
         libsList.add("python3.7m");
+        libsList.add("python3.8m");
         libsList.add("main");
         return libsList;
     }
@@ -60,15 +61,16 @@ public class PythonUtil {
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.7") && !foundPython) {
-                    throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
-                } else if (lib.startsWith("python")) {
+                if (lib.startsWith("python")) {
                     continue;
                 } else {
                     Log.v(TAG, "An UnsatisfiedLinkError occurred loading " + lib);
                     throw e;
                 }
             }
+        }
+        if (!foundPython) {
+           throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
         }
 
         Log.v(TAG, "Loaded everything!");
