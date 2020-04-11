@@ -109,115 +109,121 @@ public class PythonActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "My oncreate running");
         resourceManager = new ResourceManager(this);
-
-        Log.v(TAG, "Ready to unpack");
-        File app_root_file = new File(getAppRoot());
-        unpackData("private", app_root_file);
-
-        Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);
-        Log.v(TAG, "Did super onCreate");
 
         this.mActivity = this;
-        //this.showLoadingScreen();
-        Log.v("Python", "Device: " + android.os.Build.DEVICE);
-        Log.v("Python", "Model: " + android.os.Build.MODEL);
+        this.showLoadingScreen();
+        new UnpackFilesTask().execute(getAppRoot());
+    }
 
-        //Log.v(TAG, "Ready to unpack");
-        //new UnpackFilesTask().execute(getAppRoot());
-
-        PythonActivity.initialize();
-
-        // Load shared libraries
-        String errorMsgBrokenLib = "";
-        try {
-            loadLibraries();
-        } catch(UnsatisfiedLinkError e) {
-            System.err.println(e.getMessage());
-            mBrokenLibraries = true;
-            errorMsgBrokenLib = e.getMessage();
-        } catch(Exception e) {
-            System.err.println(e.getMessage());
-            mBrokenLibraries = true;
-            errorMsgBrokenLib = e.getMessage();
+    private class UnpackFilesTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            File app_root_file = new File(params[0]);
+            Log.v(TAG, "Ready to unpack");
+            unpackData("private", app_root_file);
+            return null;
         }
 
-        if (mBrokenLibraries)
-        {
-            AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
-            dlgAlert.setMessage("An error occurred while trying to load the application libraries. Please try again and/or reinstall."
-                  + System.getProperty("line.separator")
-                  + System.getProperty("line.separator")
-                  + "Error: " + errorMsgBrokenLib);
-            dlgAlert.setTitle("Python Error");
-            dlgAlert.setPositiveButton("Exit",
-                new DialogInterface.OnClickListener() {
+        @Override
+        protected void onPostExecute(String result) {
+            Log.v("Python", "Device: " + android.os.Build.DEVICE);
+            Log.v("Python", "Model: " + android.os.Build.MODEL);
+
+            PythonActivity.initialize();
+
+            // Load shared libraries
+            String errorMsgBrokenLib = "";
+            try {
+                loadLibraries();
+            } catch(UnsatisfiedLinkError e) {
+                System.err.println(e.getMessage());
+                mBrokenLibraries = true;
+                errorMsgBrokenLib = e.getMessage();
+            } catch(Exception e) {
+                System.err.println(e.getMessage());
+                mBrokenLibraries = true;
+                errorMsgBrokenLib = e.getMessage();
+            }
+
+            if (mBrokenLibraries)
+            {
+                AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(PythonActivity.mActivity);
+                dlgAlert.setMessage("An error occurred while trying to load the application libraries. Please try again and/or reinstall."
+                      + System.getProperty("line.separator")
+                      + System.getProperty("line.separator")
+                      + "Error: " + errorMsgBrokenLib);
+                dlgAlert.setTitle("Python Error");
+                dlgAlert.setPositiveButton("Exit",
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog,int id) {
+                            // if this button is clicked, close current activity
+                            PythonActivity.mActivity.finish();
+                        }
+                    });
+               dlgAlert.setCancelable(false);
+               dlgAlert.create().show();
+
+               return;
+            }
+
+            // Set up the webview
+            String app_root_dir = getAppRoot();
+
+            mWebView = new WebView(PythonActivity.mActivity);
+            mWebView.getSettings().setJavaScriptEnabled(true);
+            mWebView.getSettings().setDomStorageEnabled(true);
+            mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
+
+            mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+            mWebView.setWebViewClient(new WebViewClient() {
                     @Override
-                    public void onClick(DialogInterface dialog,int id) {
-                        // if this button is clicked, close current activity
-                        PythonActivity.mActivity.finish();
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        view.loadUrl(url);
+                        return false;
                     }
                 });
-           dlgAlert.setCancelable(false);
-           dlgAlert.create().show();
+            mLayout = new AbsoluteLayout(PythonActivity.mActivity);
+            mLayout.addView(mWebView);
 
-           return;
-        }
+            setContentView(mLayout);
+            // keep the loading screen up until the webview load fully completes
+            PythonActivity.mActivity.showLoadingScreen();
 
-        // Set up the webview
-        String app_root_dir = getAppRoot();
+            String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
+            String entry_point = getEntryPoint(app_root_dir);
 
-        mWebView = new WebView(this);
-        mWebView.getSettings().setJavaScriptEnabled(true);
-        mWebView.getSettings().setDomStorageEnabled(true);
-        mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
+            Log.v(TAG, "Setting env vars for start.c and Python to use");
+            PythonActivity.nativeSetenv("ANDROID_ENTRYPOINT", entry_point);
+            PythonActivity.nativeSetenv("ANDROID_ARGUMENT", app_root_dir);
+            PythonActivity.nativeSetenv("ANDROID_APP_PATH", app_root_dir);
+            PythonActivity.nativeSetenv("ANDROID_PRIVATE", mFilesDirectory);
+            PythonActivity.nativeSetenv("ANDROID_UNPACK", app_root_dir);
+            PythonActivity.nativeSetenv("PYTHONHOME", app_root_dir);
+            PythonActivity.nativeSetenv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+            PythonActivity.nativeSetenv("PYTHONOPTIMIZE", "2");
 
-        mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-        mWebView.setWebViewClient(new WebViewClient() {
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    view.loadUrl(url);
-                    return false;
+            try {
+                Log.v(TAG, "Access to our meta-data...");
+                mActivity.mMetaData = mActivity.getPackageManager().getApplicationInfo(
+                        mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+
+                PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
+                if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
+                    mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+                    mActivity.mWakeLock.acquire();
                 }
-            });
-        mLayout = new AbsoluteLayout(this);
-        mLayout.addView(mWebView);
-
-        setContentView(mLayout);
-
-        String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
-        String entry_point = getEntryPoint(app_root_dir);
-
-        Log.v(TAG, "Setting env vars for start.c and Python to use");
-        PythonActivity.nativeSetenv("ANDROID_ENTRYPOINT", entry_point);
-        PythonActivity.nativeSetenv("ANDROID_ARGUMENT", app_root_dir);
-        PythonActivity.nativeSetenv("ANDROID_APP_PATH", app_root_dir);
-        PythonActivity.nativeSetenv("ANDROID_PRIVATE", mFilesDirectory);
-        PythonActivity.nativeSetenv("ANDROID_UNPACK", app_root_dir);
-        PythonActivity.nativeSetenv("PYTHONHOME", app_root_dir);
-        PythonActivity.nativeSetenv("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
-        PythonActivity.nativeSetenv("PYTHONOPTIMIZE", "2");
-
-        try {
-            Log.v(TAG, "Access to our meta-data...");
-            mActivity.mMetaData = mActivity.getPackageManager().getApplicationInfo(
-                    mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
-
-            PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
-            if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
-                mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
-                mActivity.mWakeLock.acquire();
+            } catch (PackageManager.NameNotFoundException e) {
             }
-        } catch (PackageManager.NameNotFoundException e) {
+
+            final Thread pythonThread = new Thread(new PythonMain(), "PythonThread");
+            PythonActivity.mPythonThread = pythonThread;
+            pythonThread.start();
+
+            final Thread wvThread = new Thread(new WebViewLoaderMain(), "WvThread");
+            wvThread.start();
         }
-
-        final Thread pythonThread = new Thread(new PythonMain(), "PythonThread");
-        PythonActivity.mPythonThread = pythonThread;
-        pythonThread.start();
-
-        final Thread wvThread = new Thread(new WebViewLoaderMain(), "WvThread");
-        wvThread.start();
-
     }
 
     @Override
@@ -367,6 +373,73 @@ public class PythonActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 
+    // loading screen implementation
+    public static ImageView mImageView = null;
+    public void removeLoadingScreen() {
+      runOnUiThread(new Runnable() {
+        public void run() {
+          if (PythonActivity.mImageView != null &&
+                  PythonActivity.mImageView.getParent() != null) {
+            ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
+            PythonActivity.mImageView);
+            PythonActivity.mImageView = null;
+          }
+        }
+      });
+    }
+
+    protected void showLoadingScreen() {
+      // load the bitmap
+      // 1. if the image is valid and we don't have layout yet, assign this bitmap
+      // as main view.
+      // 2. if we have a layout, just set it in the layout.
+      // 3. If we have an mImageView already, then do nothing because it will have
+      // already been made the content view or added to the layout.
+
+      if (mImageView == null) {
+        int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
+        InputStream is = this.getResources().openRawResource(presplashId);
+        Bitmap bitmap = null;
+        try {
+          bitmap = BitmapFactory.decodeStream(is);
+        } finally {
+          try {
+            is.close();
+          } catch (IOException e) {};
+        }
+
+        mImageView = new ImageView(this);
+        mImageView.setImageBitmap(bitmap);
+
+        /*
+     * Set the presplash loading screen background color
+         * https://developer.android.com/reference/android/graphics/Color.html
+         * Parse the color string, and return the corresponding color-int.
+         * If the string cannot be parsed, throws an IllegalArgumentException exception.
+         * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
+         * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
+         * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
+         * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
+         */
+        String backgroundColor = resourceManager.getString("presplash_color");
+        if (backgroundColor != null) {
+          try {
+            mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
+          } catch (IllegalArgumentException e) {}
+        }
+        mImageView.setLayoutParams(new ViewGroup.LayoutParams(
+        ViewGroup.LayoutParams.FILL_PARENT,
+        ViewGroup.LayoutParams.FILL_PARENT));
+        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+      }
+
+      if (mLayout == null) {
+        setContentView(mImageView);
+      } else if (PythonActivity.mImageView.getParent() == null){
+        mLayout.addView(mImageView);
+      }
+    }
 
     //----------------------------------------------------------------------------
     // Listener interface for onNewIntent
