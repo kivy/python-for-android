@@ -14,16 +14,16 @@ def argv_contains(t):
     return False
 
 
-class BdistAPK(Command):
-    description = 'Create an APK with python-for-android'
+class Bdist(Command):
 
     user_options = []
+    package_type = None
 
     def initialize_options(self):
         for option in self.user_options:
             setattr(self, option[0].strip('=').replace('-', '_'), None)
 
-        option_dict = self.distribution.get_option_dict('apk')
+        option_dict = self.distribution.get_option_dict(self.package_type)
 
         # This is a hack, we probably aren't supposed to loop through
         # the option_dict so early because distutils does exactly the
@@ -34,7 +34,7 @@ class BdistAPK(Command):
 
     def finalize_options(self):
 
-        setup_options = self.distribution.get_option_dict('apk')
+        setup_options = self.distribution.get_option_dict(self.package_type)
         for (option, (source, value)) in setup_options.items():
             if source == 'command line':
                 continue
@@ -75,7 +75,7 @@ class BdistAPK(Command):
         self.prepare_build_dir()
 
         from pythonforandroid.entrypoints import main
-        sys.argv[1] = 'apk'
+        sys.argv[1] = self.package_type
         main()
 
     def prepare_build_dir(self):
@@ -125,6 +125,22 @@ class BdistAPK(Command):
             sys.argv.append('--private={}'.format(
                 join(realpath(curdir), bdist_dir, dirname(main_py_dirs[0])))
             )
+
+
+class BdistAPK(Bdist):
+    """
+    distutil command handler for 'apk'
+    """
+    description = 'Create an APK with python-for-android'
+    package_type = 'apk'
+
+
+class BdistAAR(Bdist):
+    """
+    distutil command handler for 'aar'
+    """
+    description = 'Create an AAR with python-for-android'
+    package_type = 'aar'
 
 
 def _set_user_options():

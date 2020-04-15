@@ -288,16 +288,10 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
     @mock.patch("pythonforandroid.bootstrap.os.unlink")
     @mock.patch("pythonforandroid.bootstrap.open", create=True)
     @mock.patch("pythonforandroid.util.chdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.ln")
     @mock.patch("pythonforandroid.bootstrap.listdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.mkdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.rm")
     def test_bootstrap_prepare_build_dir_with_java_src(
         self,
-        mock_sh_rm,
-        mock_sh_mkdir,
         mock_listdir,
-        mock_sh_ln,
         mock_chdir,
         mock_open,
         mock_os_unlink,
@@ -309,7 +303,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         :meth:`~pythonforandroid.bootstrap.Bootstrap.prepare_build_dir`. In
         here we will simulate that we have `with_java_src` set to some value.
         """
-        self.ctx.symlink_java_src = ["some_java_src"]
+        self.ctx.symlink_bootstrap_files = True
         mock_listdir.return_value = [
             "jnius",
             "kivy",
@@ -327,18 +321,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         # make sure that the open command has been called only once
         mock_open.assert_called_with("project.properties", "w")
 
-        # check that the symlink was made 4 times and that
-        self.assertEqual(
-            len(mock_sh_ln.call_args_list), len(mock_listdir.return_value)
-        )
-        for i, directory in enumerate(mock_listdir.return_value):
-            self.assertTrue(
-                mock_sh_ln.call_args_list[i][0][1].endswith(directory)
-            )
-
         # check that the other mocks we made are actually called
-        mock_sh_rm.assert_called()
-        mock_sh_mkdir.assert_called()
         mock_chdir.assert_called()
         mock_os_unlink.assert_called()
         mock_os_path_exists.assert_called()
