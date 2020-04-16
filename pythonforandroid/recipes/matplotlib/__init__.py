@@ -85,7 +85,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
         jquery_sha = (
             'f8233674366ab36b2c34c577ec77a3d70cac75d2e387d8587f3836345c0f624d'
         )
-        url = f'https://jqueryui.com/resources/download/jquery-ui-1.12.1.zip'
+        url = "https://jqueryui.com/resources/download/jquery-ui-1.12.1.zip"
         target_file = join(env['XDG_CACHE_HOME'], 'matplotlib', jquery_sha)
 
         info_notify(f'Will download into {env["XDG_CACHE_HOME"]}')
