@@ -195,7 +195,7 @@ class Bootstrap:
                 # Check if the bootstap's dependencies have an internal conflict:
                 for recipe in possible_dependencies:
                     recipe = Recipe.get_recipe(recipe, ctx)
-                    if any([conflict in recipes for conflict in recipe.conflicts]):
+                    if any(conflict in recipes for conflict in recipe.conflicts):
                         ok = False
                         break
                 # Check if bootstrap's dependencies conflict with chosen
@@ -207,8 +207,8 @@ class Bootstrap:
                         conflicts = []
                     else:
                         conflicts = recipe.conflicts
-                    if any([conflict in possible_dependencies
-                            for conflict in conflicts]):
+                    if any(conflict in possible_dependencies
+                            for conflict in conflicts):
                         ok = False
                         break
                 if ok and bs not in acceptable_bootstraps:

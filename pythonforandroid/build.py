@@ -267,7 +267,7 @@ class Context:
                              d.endswith(('.bz2', '.gz'))]
             if possible_dirs:
                 info('Found possible SDK dirs in buildozer dir: {}'.format(
-                    ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
+                    ', '.join(d.split(os.sep)[-1] for d in possible_dirs)))
                 info('Will attempt to use SDK at {}'.format(possible_dirs[0]))
                 warning('This SDK lookup is intended for debug only, if you '
                         'use python-for-android much you should probably '
@@ -328,7 +328,7 @@ class Context:
                 '~', '.buildozer', 'android', 'platform', 'android-ndk-r*')))
             if possible_dirs:
                 info('Found possible NDK dirs in buildozer dir: {}'.format(
-                    ', '.join([d.split(os.sep)[-1] for d in possible_dirs])))
+                    ', '.join(d.split(os.sep)[-1] for d in possible_dirs)))
                 info('Will attempt to use NDK at {}'.format(possible_dirs[0]))
                 warning('This NDK lookup is intended for debug only, if you '
                         'use python-for-android much you should probably '
@@ -479,7 +479,7 @@ class Context:
         if not self.archs:
             raise BuildInterruptingException('Asked to compile for no Archs, so failing.')
         info('Will compile for the following archs: {}'.format(
-            ', '.join([arch.arch for arch in self.archs])))
+            ', '.join(arch.arch for arch in self.archs)))
 
     def prepare_bootstrap(self, bs):
         bs.ctx = self
@@ -894,7 +894,9 @@ def biglink(ctx, arch):
             env=env)
 
 
-def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
+def biglink_function(soname, objs_paths, extra_link_dirs=None, env=None):
+    if extra_link_dirs is None:
+        extra_link_dirs = []
     print('objs_paths are', objs_paths)
     sofiles = []
 
@@ -941,7 +943,9 @@ def biglink_function(soname, objs_paths, extra_link_dirs=[], env=None):
     shprint(cc, '-shared', '-O3', '-o', soname, *unique_args, _env=env)
 
 
-def copylibs_function(soname, objs_paths, extra_link_dirs=[], env=None):
+def copylibs_function(soname, objs_paths, extra_link_dirs=None, env=None):
+    if extra_link_dirs is None:
+        extra_link_dirs = []
     print('objs_paths are', objs_paths)
 
     re_needso = re.compile(r'^.*\(NEEDED\)\s+Shared library: \[lib(.*)\.so\]\s*$')
