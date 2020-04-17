@@ -117,7 +117,7 @@ class Context:
 
     recipe_build_order = None  # Will hold the list of all built recipes
 
-    symlink_java_src = False  # If True, will symlink instead of copying during build
+    symlink_bootstrap_files = False  # If True, will symlink instead of copying during build
 
     java_build_tool = 'auto'
 
@@ -481,9 +481,11 @@ class Context:
         info('Will compile for the following archs: {}'.format(
             ', '.join(arch.arch for arch in self.archs)))
 
-    def prepare_bootstrap(self, bs):
-        bs.ctx = self
-        self.bootstrap = bs
+    def prepare_bootstrap(self, bootstrap):
+        if not bootstrap:
+            raise TypeError("None is not allowed for bootstrap")
+        bootstrap.ctx = self
+        self.bootstrap = bootstrap
         self.bootstrap.prepare_build_dir()
         self.bootstrap_build_dir = self.bootstrap.build_dir
 
