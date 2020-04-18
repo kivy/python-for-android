@@ -297,9 +297,6 @@ class Bootstrap:
             libs = glob.glob(join(src_dir, wildcard))
             if libs:
                 shprint(sh.cp, '-a', *libs, tgt_dir)
-            else:
-                debug("No libs found at {}".format(src_dirs))
-                debug("We were trying to copy this folders files to {}".format(tgt_dir))
 
     def distribute_javaclasses(self, javaclass_dir, dest_dir="src"):
         '''Copy existing javaclasses from build dir to current dist dir.'''
