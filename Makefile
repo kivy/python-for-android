@@ -58,7 +58,7 @@ docker/pull:
 	docker pull $(DOCKER_IMAGE):latest || true
 
 docker/build:
-	docker build --cache-from=$(DOCKER_IMAGE) --tag=$(DOCKER_IMAGE) --file=Dockerfile.py3 .
+	docker build --cache-from=$(DOCKER_IMAGE) --tag=$(DOCKER_IMAGE) .
 
 docker/push:
 	docker push $(DOCKER_IMAGE)
