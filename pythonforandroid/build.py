@@ -767,7 +767,7 @@ def run_pymodules_install(ctx, modules, project_dir=None,
     venv = sh.Command('python3')
     with current_directory(join(ctx.build_dir)):
         shprint(venv,
-                '-m virtualenv --python {}'.format(
+                '-m virtualenv --python={}'.format(
                     ctx.python_recipe.major_minor_version_string.
                     partition(".")[0]
                     ),
