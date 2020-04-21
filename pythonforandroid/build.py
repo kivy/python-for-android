@@ -765,7 +765,6 @@ def run_pymodules_install(ctx, modules, project_dir=None,
         info('Will process project install, if it fails then the '
              'project may not be compatible for Android install.')
     venv = sh.Command('python3')
-    
     with current_directory(join(ctx.build_dir)):
         try:
             shprint(venv,
