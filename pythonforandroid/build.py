@@ -783,8 +783,6 @@ def run_pymodules_install(ctx, modules, project_dir=None,
                         ),
                     'venv'
                    )
-            
-
         # Prepare base environment and upgrade pip:
         base_env = copy.copy(os.environ)
         base_env["PYTHONPATH"] = ctx.get_site_packages_dir()
