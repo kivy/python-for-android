@@ -775,7 +775,7 @@ def run_pymodules_install(ctx, modules, project_dir=None,
                         ),
                     'venv'
                    )
-        except:
+        except ModuleNotFoundError:
             shprint(venv,
                     '-m virtualenv --python={}'.format(
                         ctx.python_recipe.major_minor_version_string.
