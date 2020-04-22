@@ -58,6 +58,7 @@ import android.view.ViewGroup.LayoutParams;
 
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
+import android.webkit.DownloadListener;
 
 import org.kivy.android.PythonUtil;
 
@@ -184,6 +185,15 @@ public class PythonActivity extends Activity {
         mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
 
         mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        mWebView.setDownloadListener(new DownloadListener() {
+            public void onDownloadStart(String url, String userAgent,
+                                        String contentDisposition, String mimetype,
+                                        long contentLength) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
