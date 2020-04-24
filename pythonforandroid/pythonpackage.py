@@ -108,7 +108,8 @@ def extract_metainfo_files_from_package(
         if is_filesystem_path(package):
             shutil.copytree(
                 parse_as_folder_reference(package),
-                os.path.join(temp_folder, "package")
+                os.path.join(temp_folder, "package"),
+                ignore=shutil.ignore_patterns(".tox")
             )
             package = os.path.join(temp_folder, "package")
 
