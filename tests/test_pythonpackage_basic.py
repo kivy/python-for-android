@@ -340,6 +340,10 @@ class TestGetSystemPythonExecutable():
                 os.path.join(test_dir, "venv", "bin", "pip"),
                 "install", "-U", "pep517<0.7.0"
             ])
+            subprocess.check_output([
+                os.path.join(test_dir, "venv", "bin", "pip"),
+                "install", "-U", "toml"
+            ])
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "venv", "bin", "python")
             )
