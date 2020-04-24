@@ -767,10 +767,6 @@ def run_pymodules_install(ctx, modules, project_dir=None,
     venv = sh.Command('virtualenv')
     with current_directory(join(ctx.build_dir)):
         shprint(venv,
-                '-p=python{}'.format(
-                    ctx.python_recipe.major_minor_version_string.
-                    partition(".")[0]
-                    ),
                 'venv'
                )
         # Prepare base environment and upgrade pip:
