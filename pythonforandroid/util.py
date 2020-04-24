@@ -1,7 +1,6 @@
 import contextlib
 from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk, uname
-import sh
 import shutil
 from fnmatch import fnmatch
 from tempfile import mkdtemp
@@ -53,17 +52,6 @@ def temp_directory():
 def ensure_dir(filename):
     if not exists(filename):
         makedirs(filename)
-
-
-def get_virtualenv_executable():
-    virtualenv = None
-    if virtualenv is None:
-        virtualenv = sh.which('virtualenv2')
-    if virtualenv is None:
-        virtualenv = sh.which('virtualenv-2.7')
-    if virtualenv is None:
-        virtualenv = sh.which('virtualenv')
-    return virtualenv
 
 
 def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):

@@ -77,7 +77,6 @@ RUN dpkg --add-architecture i386 \
     python3-venv \
     sudo \
     unzip \
-    virtualenv \
     wget \
     zip \
     zlib1g-dev \

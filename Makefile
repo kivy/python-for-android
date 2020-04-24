@@ -19,7 +19,7 @@ ANDROID_NDK_HOME ?= $(HOME)/.android/android-ndk
 all: virtualenv
 
 $(VIRTUAL_ENV):
-	virtualenv --python=$(PYTHON_WITH_VERSION) $(VIRTUAL_ENV)
+	python3 -m venv $(VIRTUAL_ENV)
 	$(PIP) install Cython==0.28.6
 	$(PIP) install -e .
 

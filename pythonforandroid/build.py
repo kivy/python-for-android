@@ -13,8 +13,8 @@ import shutil
 import subprocess
 
 from pythonforandroid.util import (
-    current_directory, ensure_dir, get_virtualenv_executable,
-    BuildInterruptingException
+    current_directory, ensure_dir,
+    BuildInterruptingException,
 )
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
@@ -356,13 +356,6 @@ class Context:
         self.ndk_api = ndk_api
 
         check_ndk_api(ndk_api, self.android_api)
-
-        virtualenv = get_virtualenv_executable()
-        if virtualenv is None:
-            raise IOError('Couldn\'t find a virtualenv executable, '
-                          'you must install this to use p4a.')
-        self.virtualenv = virtualenv
-        info('Found virtualenv at {}'.format(virtualenv))
 
         # path to some tools
         self.ccache = sh.which("ccache")
@@ -765,15 +758,10 @@ def run_pymodules_install(ctx, modules, project_dir=None,
         info('Will process project install, if it fails then the '
              'project may not be compatible for Android install.')
 
-    venv = sh.Command(ctx.virtualenv)
+    # Use our hostpython to create the virtualenv
+    host_python = sh.Command(ctx.hostpython)
     with current_directory(join(ctx.build_dir)):
-        shprint(venv,
-                '--python=python{}'.format(
-                    ctx.python_recipe.major_minor_version_string.
-                    partition(".")[0]
-                    ),
-                'venv'
-               )
+        shprint(host_python, '-m', 'venv', 'venv')
 
         # Prepare base environment and upgrade pip:
         base_env = copy.copy(os.environ)
