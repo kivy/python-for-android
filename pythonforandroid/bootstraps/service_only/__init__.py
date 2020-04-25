@@ -34,7 +34,8 @@ class ServiceOnlyBootstrap(Bootstrap):
 
             self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
             self.distribute_aars(arch)
-            self.distribute_javaclasses(self.ctx.javaclass_dir)
+            self.distribute_javaclasses(self.ctx.javaclass_dir,
+                                        dest_dir=join("src", "main", "java"))
 
             python_bundle_dir = join('_python_bundle', '_python_bundle')
             ensure_dir(python_bundle_dir)
