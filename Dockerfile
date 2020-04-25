@@ -66,6 +66,7 @@ RUN dpkg --add-architecture i386 \
     libncurses5:i386 \
     libpangox-1.0-0:i386 \
     libpangoxft-1.0-0:i386 \
+    libssl-dev \
     libstdc++6:i386 \
     libtool \
     openjdk-8-jdk \
@@ -77,7 +78,6 @@ RUN dpkg --add-architecture i386 \
     python3-venv \
     sudo \
     unzip \
-    virtualenv \
     wget \
     zip \
     zlib1g-dev \

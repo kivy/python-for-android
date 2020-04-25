@@ -23,9 +23,7 @@ jobs:
         #   See also: https://github.com/travis-ci/travis-ci/issues/8589
         - type -t deactivate && deactivate || true
         - export PATH=/opt/python/3.7/bin:$PATH
-        # Install tox & virtualenv
-        #   Note: venv/virtualenv are both used by tests/test_pythonpackage.py
-        - pip3.7 install -U virtualenv
+        # Install tox
         - pip3.7 install tox>=2.0
         # Install coveralls & dependencies
         #   Note: pyOpenSSL needed to send the coveralls reports
@@ -54,7 +52,7 @@ jobs:
         # installs java 1.8, android's SDK/NDK and p4a
         - make -f ci/makefiles/osx.mk
         - export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
-      script: make testapps/armeabi-v7a PYTHON_WITH_VERSION=python3
+      script: make testapps-no-venv/armeabi-v7a
     - <<: *testapps
       name: Rebuild updated recipes
       script: travis_wait 30 make docker/run/make/rebuild_updated_recipes
