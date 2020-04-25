@@ -188,8 +188,6 @@ public class PythonActivity extends Activity {
             mLayout.addView(mWebView);
 
             setContentView(mLayout);
-            // keep the loading screen up until the webview load fully completes
-            PythonActivity.mActivity.showLoadingScreen();
 
             String mFilesDirectory = mActivity.getFilesDir().getAbsolutePath();
             String entry_point = getEntryPoint(app_root_dir);
