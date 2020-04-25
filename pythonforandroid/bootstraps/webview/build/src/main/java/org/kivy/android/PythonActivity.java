@@ -1,9 +1,11 @@
-
 package org.kivy.android;
 
 import java.net.Socket;
 import java.net.InetSocketAddress;
 
+import android.net.Uri;
+import android.os.Environment;
+import android.os.Parcelable;
 import android.os.SystemClock;
 
 import java.io.InputStream;
@@ -12,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -19,12 +23,17 @@ import java.util.ArrayList;
 
 import android.app.*;
 import android.content.*;
+import android.provider.MediaStore;
+import android.text.format.DateFormat;
 import android.view.*;
 import android.view.ViewGroup;
 import android.view.SurfaceView;
 import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -38,6 +47,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.Intent;
 import android.widget.ImageView;
 import java.io.InputStream;
+import java.util.Locale;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -47,6 +58,7 @@ import android.view.ViewGroup.LayoutParams;
 
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
+import android.webkit.DownloadListener;
 
 import org.kivy.android.PythonUtil;
 
@@ -84,11 +96,11 @@ public class PythonActivity extends Activity {
     public String getEntryPoint(String search_dir) {
         /* Get the main file (.pyc|.pyo|.py) depending on if we
          * have a compiled version or not.
-        */
+         */
         List<String> entryPoints = new ArrayList<String>();
         entryPoints.add("main.pyo");  // python 2 compiled files
         entryPoints.add("main.pyc");  // python 3 compiled files
-		for (String value : entryPoints) {
+        for (String value : entryPoints) {
             File mainFile = new File(search_dir + "/" + value);
             if (mainFile.exists()) {
                 return value;
@@ -146,22 +158,22 @@ public class PythonActivity extends Activity {
         {
             AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
             dlgAlert.setMessage("An error occurred while trying to load the application libraries. Please try again and/or reinstall."
-                  + System.getProperty("line.separator")
-                  + System.getProperty("line.separator")
-                  + "Error: " + errorMsgBrokenLib);
+                    + System.getProperty("line.separator")
+                    + System.getProperty("line.separator")
+                    + "Error: " + errorMsgBrokenLib);
             dlgAlert.setTitle("Python Error");
             dlgAlert.setPositiveButton("Exit",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog,int id) {
-                        // if this button is clicked, close current activity
-                        PythonActivity.mActivity.finish();
-                    }
-                });
-           dlgAlert.setCancelable(false);
-           dlgAlert.create().show();
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog,int id) {
+                            // if this button is clicked, close current activity
+                            PythonActivity.mActivity.finish();
+                        }
+                    });
+            dlgAlert.setCancelable(false);
+            dlgAlert.create().show();
 
-           return;
+            return;
         }
 
         // Set up the webview
@@ -173,13 +185,55 @@ public class PythonActivity extends Activity {
         mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
 
         mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        mWebView.setDownloadListener(new DownloadListener() {
+            public void onDownloadStart(String url, String userAgent,
+                                        String contentDisposition, String mimetype,
+                                        long contentLength) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
         mWebView.setWebViewClient(new WebViewClient() {
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    view.loadUrl(url);
-                    return false;
-                }
-            });
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return false;
+            }
+        });
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            /**
+             *8 (Android 2.2) < = API < = 10 (Android 2.3) callback this method
+             */
+            private void openFileChooser(android.webkit.ValueCallback uploadMsg) {
+                mUploadCallbackBelow = uploadMsg;
+                takePhoto();
+            }
+
+            /**
+             *11 (Android 3.0) < = API < = 15 (Android 4.0.3) callback this method
+             */
+            public void openFileChooser(android.webkit.ValueCallback uploadMsg, String acceptType) {
+                openFileChooser(uploadMsg);
+            }
+
+            /**
+             *16 (Android 4.1.2) < = API < = 20 (Android 4.4w. 2) callback this method
+             */
+            public void openFileChooser(android.webkit.ValueCallback uploadMsg, String acceptType, String capture) {
+                openFileChooser(uploadMsg);
+            }
+
+            /**
+             *API > = 21 (Android 5.0.1) callback this method
+             */
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback valueCallback, FileChooserParams fileChooserParams) {
+                mUploadCallbackAboveL = valueCallback;
+                takePhoto();
+                return true;
+            }
+        });
         mLayout = new AbsoluteLayout(this);
         mLayout.addView(mWebView);
 
@@ -233,7 +287,7 @@ public class PythonActivity extends Activity {
         String app_root = new String(getAppRoot());
         File app_root_file = new File(app_root);
         PythonUtil.loadLibraries(app_root_file,
-            new File(getApplicationInfo().nativeLibraryDir));
+                new File(getApplicationInfo().nativeLibraryDir));
     }
 
     public void recursiveDelete(File f) {
@@ -359,7 +413,7 @@ public class PythonActivity extends Activity {
         if (SystemClock.elapsedRealtime() - lastBackClick > 2000){
             lastBackClick = SystemClock.elapsedRealtime();
             Toast.makeText(this, "Click again to close the app",
-            Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_LONG).show();
             return true;
         }
 
@@ -427,6 +481,19 @@ public class PythonActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        //Handle file upload
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == REQUEST_CODE) {
+            //After the above two assignment operations (1) and (2), we can decide which processing method to use according to whether its value is empty
+            if (mUploadCallbackBelow != null) {
+                chooseBelow(resultCode, intent);
+            } else if (mUploadCallbackAboveL != null) {
+                chooseAbove(resultCode, intent);
+            } else {
+            }
+        }
+
+        //Normal Process
         if ( this.activityResultListeners == null )
             return;
         this.onResume();
@@ -441,9 +508,9 @@ public class PythonActivity extends Activity {
             String serviceTitle,
             String serviceDescription,
             String pythonServiceArgument
-            ) {
+    ) {
         _do_start_service(
-            serviceTitle, serviceDescription, pythonServiceArgument, true
+                serviceTitle, serviceDescription, pythonServiceArgument, true
         );
     }
 
@@ -451,9 +518,9 @@ public class PythonActivity extends Activity {
             String serviceTitle,
             String serviceDescription,
             String pythonServiceArgument
-            ) {
+    ) {
         _do_start_service(
-            serviceTitle, serviceDescription, pythonServiceArgument, false
+                serviceTitle, serviceDescription, pythonServiceArgument, false
         );
     }
 
@@ -462,7 +529,7 @@ public class PythonActivity extends Activity {
             String serviceDescription,
             String pythonServiceArgument,
             boolean showForegroundNotification
-            ) {
+    ) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String filesDirectory = argument;
@@ -475,7 +542,7 @@ public class PythonActivity extends Activity {
         serviceIntent.putExtra("pythonHome", app_root_dir);
         serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
         serviceIntent.putExtra("serviceStartAsForeground",
-            (showForegroundNotification ? "true" : "false")
+                (showForegroundNotification ? "true" : "false")
         );
         serviceIntent.putExtra("serviceTitle", serviceTitle);
         serviceIntent.putExtra("serviceDescription", serviceDescription);
@@ -492,6 +559,97 @@ public class PythonActivity extends Activity {
     public static native void nativeSetenv(String name, String value);
     public static native int nativeInit(Object arguments);
 
+    private android.webkit.ValueCallback mUploadCallbackAboveL;
+    private android.webkit.ValueCallback mUploadCallbackBelow;
+    private Uri imageUri;
+    private int REQUEST_CODE = 1234;
+    private void takePhoto() {
+        //Set up the camera by specifying the location of the photo storage
+        String filePath = Environment.getExternalStorageDirectory() + File.separator
+                + Environment.DIRECTORY_PICTURES + File.separator;
+        String fileName = "IMG_" + DateFormat.format("yyyyMMdd_hhmmss", Calendar.getInstance(Locale.CHINA)) + ".jpg";
+        imageUri = Uri.fromFile(new File(filePath + fileName));
+
+        //Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        //intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        //startActivityForResult(intent, REQUEST_CODE);
+
+        //Select the picture (excluding camera taking), and the broadcast of refreshing the gallery will not be sent after success
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("image/*");
+        startActivityForResult(Intent.createChooser(i, "Image Chooser"), REQUEST_CODE);
+
+        //Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        //captureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+
+        //Intent Photo = new Intent(Intent.ACTION_PICK,
+        //        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        //Intent chooserIntent = Intent.createChooser(Photo, "Image Chooser");
+        //chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Parcelable[]{captureIntent});
+
+        //startActivityForResult(chooserIntent, REQUEST_CODE);
+    }
+
+    private void chooseBelow(int resultCode, Intent data) {
+        if (RESULT_OK == resultCode) {
+            updatePhotos();
+
+            if (data != null) {
+                //This is for file path processing
+                Uri uri = data.getData();
+                if (uri != null) {
+                    mUploadCallbackBelow.onReceiveValue(uri);
+                } else {
+                    mUploadCallbackBelow.onReceiveValue(null);
+                }
+            } else {
+                //Start the camera by specifying the image storage path, and the data returned after success is empty
+                mUploadCallbackBelow.onReceiveValue(imageUri);
+            }
+        } else {
+            mUploadCallbackBelow.onReceiveValue(null);
+        }
+        mUploadCallbackBelow = null;
+    }
+
+    /**
+     *Callback processing for Android API > = 21 (Android 5.0)
+     *@ param resultcode select the return code of the file or photo
+     *@ param data select the return result of file or photo
+     */
+    private void chooseAbove(int resultCode, Intent data) {
+        if (RESULT_OK == resultCode) {
+            updatePhotos();
+
+            if (data != null) {
+                //Here is the processing for selecting pictures from files
+                Uri[] results;
+                Uri uriData = data.getData();
+                if (uriData != null) {
+                    results = new Uri[]{uriData};
+                    for (Uri uri : results) {
+                    }
+                    mUploadCallbackAboveL.onReceiveValue(results);
+                } else {
+                    mUploadCallbackAboveL.onReceiveValue(null);
+                }
+            } else {
+                mUploadCallbackAboveL.onReceiveValue(new Uri[]{imageUri});
+            }
+        } else {
+            mUploadCallbackAboveL.onReceiveValue(null);
+        }
+        mUploadCallbackAboveL = null;
+    }
+
+    private void updatePhotos() {
+        //It doesn't matter if the broadcast is sent multiple times (i.e. when the photos are selected successfully), but it just wakes up the system to refresh the media files
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(imageUri);
+        sendBroadcast(intent);
+    }
 }
 
 
