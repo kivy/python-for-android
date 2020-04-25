@@ -764,10 +764,10 @@ def run_pymodules_install(ctx, modules, project_dir=None,
             project_has_setup_py(project_dir) and not ignore_setup_py:
         info('Will process project install, if it fails then the '
              'project may not be compatible for Android install.')
-    venv = sh.Command('virtualenv')
+    venv = sh.Command('python3')
     with current_directory(join(ctx.build_dir)):
         shprint(venv,
-                '-p python{}'.format(
+                '-m venv'.format(
                     ctx.python_recipe.major_minor_version_string.
                     partition(".")[0]
                     ),
