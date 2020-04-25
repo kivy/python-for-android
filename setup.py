@@ -25,7 +25,7 @@ install_reqs = [
     'enum34; python_version<"3.4"', 'sh>=1.10; sys_platform!="nt"',
     'pep517<0.7.0"', 'toml',
 ]
-# (pep517, pytoml and virtualenv are used by pythonpackage.py)
+# (pep517 and toml are used by pythonpackage.py)
 
 # By specifying every file manually, package_data will be able to
 # include them in binary distributions. Note that we have to add
