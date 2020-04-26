@@ -33,12 +33,8 @@
 """
 
 
-from io import open  # needed for python 2
 import functools
 import os
-from pep517.envbuild import BuildEnvironment
-from pep517.wrappers import Pep517HookCaller
-import pytoml
 import shutil
 import subprocess
 import sys
@@ -46,13 +42,14 @@ import tarfile
 import tempfile
 import textwrap
 import time
-try:
-    from urllib.parse import urlparse
-    from urllib.parse import unquote as urlunquote
-except ImportError:  # Python 2...
-    from urlparse import urlparse
-    from urlparse import unquote as urlunquote
 import zipfile
+from io import open  # needed for python 2
+from urllib.parse import unquote as urlunquote
+from urllib.parse import urlparse
+
+import toml
+from pep517.envbuild import BuildEnvironment
+from pep517.wrappers import Pep517HookCaller
 
 
 def transform_dep_for_pip(dependency):
@@ -111,7 +108,8 @@ def extract_metainfo_files_from_package(
         if is_filesystem_path(package):
             shutil.copytree(
                 parse_as_folder_reference(package),
-                os.path.join(temp_folder, "package")
+                os.path.join(temp_folder, "package"),
+                ignore=shutil.ignore_patterns(".tox")
             )
             package = os.path.join(temp_folder, "package")
 
@@ -486,7 +484,7 @@ def _extract_metainfo_files_from_package_unsafe(
 
             # Get build backend and requirements from pyproject.toml:
             with open(os.path.join(path, 'pyproject.toml')) as f:
-                build_sys = pytoml.load(f)['build-system']
+                build_sys = toml.load(f)['build-system']
                 backend = build_sys["build-backend"]
                 build_requires.extend(build_sys["requires"])
 
@@ -630,7 +628,7 @@ def _extract_info_from_package(dependency,
                               ) and include_build_requirements:
                 # Read build system from pyproject.toml file: (PEP518)
                 with open(os.path.join(output_folder, 'pyproject.toml')) as f:
-                    build_sys = pytoml.load(f)['build-system']
+                    build_sys = toml.load(f)['build-system']
                     if "requires" in build_sys:
                         requirements += build_sys["requires"]
             elif include_build_requirements:
