@@ -3,7 +3,7 @@
 #   - python-for-android dependencies
 #
 # Build with:
-#     docker build --tag=p4a --file Dockerfile.py3 .
+#     docker build --tag=p4a --file Dockerfile .
 #
 # Run with:
 #     docker run -it --rm p4a /bin/sh -c '. venv/bin/activate && p4a apk --help'
@@ -66,20 +66,18 @@ RUN dpkg --add-architecture i386 \
     libncurses5:i386 \
     libpangox-1.0-0:i386 \
     libpangoxft-1.0-0:i386 \
+    libssl-dev \
     libstdc++6:i386 \
     libtool \
     openjdk-8-jdk \
     patch \
     pkg-config \
-    python \
-    python-pip \
     python3 \
     python3-dev \
     python3-pip \
     python3-venv \
     sudo \
     unzip \
-    virtualenv \
     wget \
     zip \
     zlib1g-dev \
@@ -94,10 +92,6 @@ RUN useradd --create-home --shell /bin/bash ${USER}
 # with sudo access and no password
 RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-# install cython for python 2 (for python 3 it's inside the venv)
-RUN pip2 install --upgrade Cython==0.28.6 \
-    && rm -rf ~/.cache/
 
 WORKDIR ${WORK_DIR}
 RUN mkdir ${ANDROID_HOME} && chown --recursive ${USER} ${HOME_DIR} ${ANDROID_HOME}

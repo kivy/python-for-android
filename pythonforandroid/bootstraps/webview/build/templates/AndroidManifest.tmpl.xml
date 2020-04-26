@@ -49,7 +49,9 @@
                  android:icon="@drawable/icon"
                  android:allowBackup="true"
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
-                 android:hardwareAccelerated="true" >
+                 android:hardwareAccelerated="true"
+                 android:usesCleartextTraffic="true"
+                 >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
         {% endfor %}
