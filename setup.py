@@ -3,7 +3,6 @@ import glob
 from io import open  # for open(..,encoding=...) parameter in python 2
 from os import walk
 from os.path import join, dirname, sep
-import os
 import re
 from setuptools import setup, find_packages
 
@@ -17,7 +16,6 @@ package_data = {'': ['*.tmpl',
 data_files = []
 
 
-
 # must be a single statement since buildozer is currently parsing it, refs:
 # https://github.com/kivy/buildozer/issues/722
 install_reqs = [
@@ -26,6 +24,7 @@ install_reqs = [
     'pep517<0.7.0"', 'toml',
 ]
 # (pep517 and toml are used by pythonpackage.py)
+
 
 # By specifying every file manually, package_data will be able to
 # include them in binary distributions. Note that we have to add
@@ -41,6 +40,7 @@ def recursively_include(results, directory, patterns):
             if directory not in results:
                 results[directory] = []
             results[directory].append(join(*filename.split(sep)[1:]))
+
 
 recursively_include(package_data, 'pythonforandroid/recipes',
                     ['*.patch', 'Setup*', '*.pyx', '*.py', '*.c', '*.h',
@@ -104,7 +104,7 @@ setup(name='python-for-android',
               'aar = pythonforandroid.bdistapk:BdistAAR',
               ],
           },
-      classifiers = [
+      classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: MIT License',
