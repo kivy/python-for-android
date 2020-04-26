@@ -86,16 +86,9 @@ python_files = []
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
 
-
-def try_unlink(fn):
-    if exists(fn):
-        os.unlink(fn)
-
-
 def ensure_dir(path):
     if not exists(path):
         makedirs(path)
-
 
 def render(template, dest, **kwargs):
     '''Using jinja2, render `template` to the filename `dest`, supplying the
@@ -239,10 +232,8 @@ main.py that loads it.''')
     assets_dir = "src/main/assets"
 
     # Delete the old assets.
-    if os.path.exists(assets_dir):
-        shutil.rmtree(assets_dir)
+    shutil.rmtree(assets_dir, ignore_errors=True)
     ensure_dir(assets_dir)
-    open(os.path.join(assets_dir, ".gitkeep"), 'a').close()
 
     # Add extra environment variable file into tar-able directory:
     env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
@@ -305,14 +296,14 @@ main.py that loads it.''')
                 tar_dirs.append(python_bundle_dir)
         if get_bootstrap_name() == "webview":
             tar_dirs.append('webview_includes')
-        if hasattr(args, "assets") and args.assets is not None:
-            for asset in args.assets:
-                asset_src, asset_dest = asset.split(":")
-                if isfile(realpath(asset_src)):
-                    ensure_dir(dirname(join(assets_dir, asset_dest)))
-                    shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
-                else:
-                    shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
+
+        for asset in args.assets:
+            asset_src, asset_dest = asset.split(":")
+            if isfile(realpath(asset_src)):
+                ensure_dir(dirname(join(assets_dir, asset_dest)))
+                shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
+            else:
+                shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
 
         if args.private or args.launcher:
             make_tar(
@@ -609,8 +600,9 @@ tools directory of the Android SDK.
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
     ap.add_argument('--asset', dest='assets',
-                    action="append",
-                    help=('Put this in the assets folder'))
+                    action="append", default=[],
+                    metavar="/path/to/source:dest"
+                    help='Put this in the assets folder at assets/dest')
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))

@@ -496,8 +496,8 @@ class ToolchainCL:
         # is why we also add it here:
         parser_apk.add_argument(
             '--add-asset', dest='assets',
-            action="append",
-            help=('Put this in the assets folder'))
+            action="append", default=[],
+            help='Put this in the assets folder in the apk.')
         parser_apk.add_argument(
             '--private', dest='private',
             help='the directory with the app source code files' +
@@ -586,14 +586,13 @@ class ToolchainCL:
             args.unknown_args += ["--private", args.private]
         if hasattr(args, "build_mode") and args.build_mode == "release":
             args.unknown_args += ["--release"]
-        if hasattr(args, "assets") and args.assets is not None:
-            # Pass this value on to the internal bootstrap build.py:
-            for asset in args.assets:
-                if ":" in asset:
-                    asset_src, asset_dest = asset.split(":")
-                else:
-                    asset_src = asset_dest = asset
-                args.unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
+        for asset in args.assets:
+            if ":" in asset:
+                asset_src, asset_dest = asset.split(":")
+            else:
+                asset_src = asset_dest = asset
+            # take abspath now, because build.py will be run in bootstrap dir
+            args.unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
