@@ -381,8 +381,8 @@ main.py that loads it.''')
             if ':' in spec:
                 specdir, specincludes = spec.split(':')
                 print('WARNING: Currently gradle builds only support including source '
-                      'directories, so when building using gradle, all files in '
-                      '{} will be incldued.',format(specdir))
+                      'directories, so when building using gradle all files in '
+                      '{} will be included.'.format(specdir))
             else:
                 specdir = spec
                 specincludes = '**'
