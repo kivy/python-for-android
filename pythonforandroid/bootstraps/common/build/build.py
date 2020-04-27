@@ -86,9 +86,11 @@ python_files = []
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
 
+
 def ensure_dir(path):
     if not exists(path):
         makedirs(path)
+
 
 def render(template, dest, **kwargs):
     '''Using jinja2, render `template` to the filename `dest`, supplying the
