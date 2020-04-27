@@ -16,7 +16,7 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
     install_in_hostpython = False
 
     def prebuild_arch(self, arch):
-        super(Pygame2Recipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             setup_template = open(join("buildconfig", "Setup.Android.SDL2.in")).read()
             env = self.get_recipe_env(arch)
