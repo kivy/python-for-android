@@ -491,7 +491,7 @@ class ToolchainCL:
         # However, it is also needed before the distribution is finally
         # assembled for locating the setup.py / other build systems, which
         # is why we also add it here:
-       parser_packaging.add_argument(
+        parser_packaging.add_argument(
             '--add-asset', dest='assets',
             action="append", default=[],
             help='Put this in the assets folder in the apk.')
@@ -593,13 +593,6 @@ class ToolchainCL:
             args.unknown_args += ["--private", args.private]
         if hasattr(args, "build_mode") and args.build_mode == "release":
             args.unknown_args += ["--release"]
-        for asset in args.assets:
-            if ":" in asset:
-                asset_src, asset_dest = asset.split(":")
-            else:
-                asset_src = asset_dest = asset
-            # take abspath now, because build.py will be run in bootstrap dir
-            args.unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
@@ -960,6 +953,14 @@ class ToolchainCL:
         fix_args = ('--dir', '--private', '--add-jar', '--add-source',
                     '--whitelist', '--blacklist', '--presplash', '--icon')
         unknown_args = args.unknown_args
+
+        for asset in args.assets:
+            if ":" in asset:
+                asset_src, asset_dest = asset.split(":")
+            else:
+                asset_src = asset_dest = asset
+            # take abspath now, because build.py will be run in bootstrap dir
+            unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
             if argx[0] in fix_args:

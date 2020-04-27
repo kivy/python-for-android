@@ -602,7 +602,7 @@ tools directory of the Android SDK.
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
     ap.add_argument('--asset', dest='assets',
                     action="append", default=[],
-                    metavar="/path/to/source:dest"
+                    metavar="/path/to/source:dest",
                     help='Put this in the assets folder at assets/dest')
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
