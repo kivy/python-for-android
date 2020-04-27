@@ -9,7 +9,7 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
     url = 'https://github.com/pygame/pygame/archive/android-2.0.0-dev7.tar.gz'
 
     site_packages_name = 'pygame'
-    name = 'pygame2'
+    name = 'pygame'
 
     depends = ['sdl2', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf', 'setuptools', 'jpeg', 'png']
     call_hostpython_via_targetpython = False  # Due to setuptools
@@ -47,10 +47,9 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super(Pygame2Recipe, self).get_recipe_env(arch)
-        if 'sdl2' in self.ctx.recipe_build_order:
-            env['USE_SDL2'] = '1'
-            env["PYGAME_CROSS_COMPILE"] = "TRUE"
-            env["PYGAME_ANDROID"] = "TRUE"
+        env['USE_SDL2'] = '1'
+        env["PYGAME_CROSS_COMPILE"] = "TRUE"
+        env["PYGAME_ANDROID"] = "TRUE"
         return env
 
 
