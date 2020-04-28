@@ -47,14 +47,6 @@ testapps/%: virtualenv
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --arch=$($@_APP_ARCH)
 
-testapps-no-venv/%:
-	pip3 install Cython==0.28.6
-	pip3 install -e .
-	$(eval $@_APP_ARCH := $(shell basename $*))
-	cd testapps/on_device_unit_tests/ && \
-    python3 setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --arch=$($@_APP_ARCH)
-
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	find . -type d -name "*.egg-info" -exec rm -r {} +
