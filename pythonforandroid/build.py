@@ -764,7 +764,7 @@ def run_pymodules_install(ctx, modules, project_dir=None,
         shprint(host_python, '-m', 'venv', 'venv')
 
         # Prepare base environment and upgrade pip:
-        base_env = copy.copy(os.environ)
+        base_env = dict(copy.copy(os.environ))
         base_env["PYTHONPATH"] = ctx.get_site_packages_dir()
         info('Upgrade pip to latest version')
         shprint(sh.bash, '-c', (
