@@ -13,7 +13,6 @@ dependencies you want, and bundle it in an APK along with your own code.
 
 Features include:
 
--  Support for building with both Python 2 and Python 3.
 -  Different app backends including Kivy, PySDL2, and a WebView with
    Python webserver.
 -  Automatic support for most pure Python modules, and built in support
