@@ -4,6 +4,7 @@ from multiprocessing import cpu_count
 from os.path import exists, join, isfile
 
 from pythonforandroid.logger import shprint
+from pythonforandroid.patching import is_version_lt
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import (
     BuildInterruptingException,
@@ -34,6 +35,10 @@ class Hostpython3Recipe(Recipe):
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     '''The default url to download our host python recipe. This url will
     change depending on the python version set in attribute :attr:`version`.'''
+
+    patches = (
+        ('patches/pyconfig_detection.patch', is_version_lt("3.8.3")),
+    )
 
     @property
     def _exe_name(self):

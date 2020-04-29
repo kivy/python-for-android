@@ -8,7 +8,7 @@ from os.path import dirname, exists, join, isfile
 from shutil import copy2
 
 from pythonforandroid.logger import info, warning, shprint
-from pythonforandroid.patching import version_starts_with
+from pythonforandroid.patching import version_starts_with, is_version_lt
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
 from pythonforandroid.util import (
     current_directory,
@@ -55,6 +55,8 @@ class Python3Recipe(TargetPythonRecipe):
     name = 'python3'
 
     patches = [
+        ('patches/pyconfig_detection.patch', is_version_lt("3.8.3")),
+
         # Python 3.7.1
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
         ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),

@@ -52,7 +52,7 @@ jobs:
         # installs java 1.8, android's SDK/NDK and p4a
         - make -f ci/makefiles/osx.mk
         - export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
-      script: make testapps-no-venv/armeabi-v7a
+      script: make testapps/armeabi-v7a
     - <<: *testapps
       name: Rebuild updated recipes
       script: travis_wait 30 make docker/run/make/rebuild_updated_recipes
