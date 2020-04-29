@@ -1,3 +1,4 @@
+import os
 import sh
 
 from multiprocessing import cpu_count
@@ -81,6 +82,15 @@ class Hostpython3Recipe(Recipe):
         build_dir = join(recipe_build_dir, self.build_subdir)
         ensure_dir(build_dir)
 
+        # ... And add that dir into the include flags
+        env = os.environ
+        cppflags = f" -I{build_dir}"
+
+        try:
+            env["CPPFLAGS"] += cppflags
+        except KeyError:
+            env["CPPFLAGS"] = cppflags
+
         with current_directory(recipe_build_dir):
             # Configure the build
             with current_directory(build_dir):
@@ -101,7 +111,8 @@ class Hostpython3Recipe(Recipe):
                     raise BuildInterruptingException(
                         "Could not find Setup.dist or Setup in Python build")
 
-            shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir)
+            shprint(sh.make, '-j', str(cpu_count()), '-C', build_dir,
+                    _env=env)
 
             # make a copy of the python executable giving it the name we want,
             # because we got different python's executable names depending on

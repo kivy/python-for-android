@@ -49,6 +49,11 @@ class KivyRecipe(CythonRecipe):
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
                 ])
 
+        cflags = " -fPIC"
+
+        if cflags not in env["CFLAGS"]:
+            env["CFLAGS"] += cflags
+
         return env
 
 

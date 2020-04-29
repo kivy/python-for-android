@@ -17,6 +17,16 @@ class PyjniusRecipe(CythonRecipe):
     patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')),
                ('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild'))]
 
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+        env = super().get_recipe_env(arch, with_flags_in_cc)
+
+        cflags = " -fPIC"
+
+        if cflags not in env["CFLAGS"]:
+            env["CFLAGS"] += cflags
+
+        return env
+
     def postbuild_arch(self, arch):
         super().postbuild_arch(arch)
         info('Copying pyjnius java class to classes build dir')

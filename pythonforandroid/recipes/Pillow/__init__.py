@@ -45,6 +45,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         cflags += ' -I{}'.format(free_inc_dir)
         cflags += ' -I{}'.format(jpeg_inc_dir)
         cflags += ' -I{}'.format(ndk_include_dir)
+        cflags += ' -fPIC'
 
         env['LIBS'] = ' -lpng -lfreetype -lharfbuzz -ljpeg -lturbojpeg'
 
