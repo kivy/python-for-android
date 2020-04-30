@@ -548,7 +548,6 @@ main.py that loads it.''')
                 subprocess.check_output(patch_command)
 
 
-
 def parse_args_and_make_package(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
