@@ -28,6 +28,7 @@ class BaseClassSetupBootstrap(object):
     TEST_ARCH = 'armeabi-v7a'
 
     def setUp(self):
+        Recipe.recipes = {}  # clear Recipe class cache
         self.ctx = Context()
         self.ctx.ndk_api = 21
         self.ctx.android_api = 27
