@@ -152,6 +152,23 @@ class Bootstrap:
         ]
         return bootstrap_dirs
 
+    def _copy_in_final_files(self):
+        if self.name == "sdl2":
+            # Get the paths for copying SDL2's java source code:
+            sdl2_recipe = Recipe.get_recipe("sdl2", self.ctx)
+            sdl2_build_dir = sdl2_recipe.get_jni_dir()
+            src_dir = join(sdl2_build_dir, "SDL", "android-project",
+                           "app", "src", "main", "java",
+                           "org", "libsdl", "app")
+            target_dir = join(self.dist_dir, 'src', 'main', 'java', 'org',
+                              'libsdl', 'app')
+
+            # Do actual copying:
+            info('Copying in SDL2 .java files from: ' + str(src_dir))
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            copy_files(src_dir, target_dir, override=True)
+
     def prepare_build_dir(self):
         """Ensure that a build dir exists for the recipe. This same single
         dir will be used for building all different archs."""
@@ -168,7 +185,12 @@ class Bootstrap:
     def prepare_dist_dir(self):
         ensure_dir(self.dist_dir)
 
-    def run_distribute(self):
+    def assemble_distribution(self):
+        ''' Copies all the files into the distribution (this function is
+            overridden by the specific bootstrap classes to do this)
+            and add in the distribution info.
+        '''
+        self._copy_in_final_files()
         self.distribution.save_info(self.dist_dir)
 
     @classmethod

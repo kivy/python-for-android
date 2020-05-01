@@ -12,7 +12,7 @@ class SDL2GradleBootstrap(Bootstrap):
         set(Bootstrap.recipe_depends).union({'sdl2'})
     )
 
-    def run_distribute(self):
+    def assemble_distribution(self):
         info_main("# Creating Android project ({})".format(self.name))
 
         arch = self.ctx.archs[0]
@@ -50,7 +50,7 @@ class SDL2GradleBootstrap(Bootstrap):
         if not self.ctx.build_as_debuggable:
             self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super().run_distribute()
+        super().assemble_distribution()
 
 
 bootstrap = SDL2GradleBootstrap()

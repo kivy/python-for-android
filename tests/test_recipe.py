@@ -205,6 +205,9 @@ class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
 
     @mock.patch('pythonforandroid.recipe.exists')
     def test_should_build(self, mock_exists):
+        # avoid trying to find the recipe in a non-existing storage directory
+        self.ctx.storage_dir = None
+
         arch = ArchAarch_64(self.ctx)
         recipe = Recipe.get_recipe('openssl', self.ctx)
         recipe.ctx = self.ctx

@@ -530,24 +530,28 @@ main.py that loads it.''')
         for patch_name in os.listdir(join('src', 'patches')):
             patch_path = join('src', 'patches', patch_name)
             print("Applying patch: " + str(patch_path))
+
+            # -N: insist this is FORWARD patch, don't reverse apply
+            # -p1: strip first path component
+            # -t: batch mode, don't ask questions
+            patch_command = ["patch", "-N", "-p1", "-t", "-i", patch_path]
+
             try:
-                subprocess.check_output([
-                    # -N: insist this is FORWARd patch, don't reverse apply
-                    # -p1: strip first path component
-                    # -t: batch mode, don't ask questions
-                    "patch", "-N", "-p1", "-t", "-i", patch_path
-                ])
+                # Use a dry run to establish whether the patch is already applied.
+                # If we don't check this, the patch may be partially applied (which is bad!)
+                subprocess.check_output(patch_command + ["--dry-run"])
             except subprocess.CalledProcessError as e:
                 if e.returncode == 1:
-                    # Return code 1 means it didn't apply, this will
-                    # usually mean it is already applied.
-                    print("Warning: failed to apply patch (" +
-                          "exit code 1), " +
-                          "assuming it is already applied: " +
-                          str(patch_path)
-                         )
+                    # Return code 1 means not all hunks could be applied, this usually
+                    # means the patch is already applied.
+                    print("Warning: failed to apply patch (exit code 1), "
+                          "assuming it is already applied: ",
+                          str(patch_path))
                 else:
                     raise e
+            else:
+                # The dry run worked, so do the real thing
+                subprocess.check_output(patch_command)
 
 
 def parse_args_and_make_package(args=None):
