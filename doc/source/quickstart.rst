@@ -91,6 +91,15 @@ complete)::
 
     sudo pacman -S core/autoconf core/automake core/gcc core/make core/patch core/pkgconf extra/cmake extra/jdk8-openjdk extra/python-pip extra/unzip extra/zip
 
+On macOS::
+
+    brew cask install autoconf automake java8 libtool pkg-config
+
+If Java 8 is no longer available you can still install it via::
+
+    brew tap homebrew/cask-versions
+    brew cask install homebrew/cask-versions/adoptopenjdk8
+
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
 

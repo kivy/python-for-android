@@ -163,6 +163,17 @@ On Ubuntu fix it my making sure only the :code:`openjdk-8-jdk` package is instal
 In the similar fashion for macOS you need to install the :code:`java8` package::
 
     brew cask install java8
+    export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
+
+
+Error: Cask 'java8' is unavailable: No Cask with this name exists
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to install Java 8 on macOS you may need extra steps::
+
+    brew tap homebrew/cask-versions
+    brew cask install homebrew/cask-versions/adoptopenjdk8
+    export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 
 
 JNI DETECTED ERROR IN APPLICATION: static jfieldID 0x0000000 not valid for class java.lang.Class<org.renpy.android.PythonActivity>
@@ -172,12 +183,6 @@ This error appears in the logcat log if you try to access
 ``org.renpy.android.PythonActivity`` from within the new toolchain. To
 fix it, change your code to reference
 ``org.kivy.android.PythonActivity`` instead.
-
-websocket-client: if you see errors relating to 'SSL not available'
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Ensure you have the package backports.ssl-match-hostname in the buildozer requirements, since Kivy targets python 2.7.x
-
-You may also need sslopt={"cert_reqs": ssl.CERT_NONE} as a parameter to ws.run_forever() if you get an error relating to host verification
 
 Requested API target 19 is not available, install it with the SDK android tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
