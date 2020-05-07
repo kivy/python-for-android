@@ -10,13 +10,13 @@ import sh
 class PyCryptoRecipe(CompiledComponentsPythonRecipe):
     version = '2.7a1'
     url = 'https://github.com/dlitz/pycrypto/archive/v{version}.zip'
-    depends = ['openssl', ('python2', 'python3')]
+    depends = ['openssl', 'python3']
     site_packages_name = 'Crypto'
     call_hostpython_via_targetpython = False
     patches = ['add_length.patch']
 
     def get_recipe_env(self, arch=None):
-        env = super(PyCryptoRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         openssl_recipe = Recipe.get_recipe('openssl', self.ctx)
         env['CC'] = env['CC'] + openssl_recipe.include_flags(arch)
 
@@ -38,7 +38,7 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
             shprint(configure, '--host=arm-eabi',
                     '--prefix={}'.format(self.ctx.get_python_install_dir()),
                     '--enable-shared', _env=env)
-        super(PyCryptoRecipe, self).build_compiled_components(arch)
+        super().build_compiled_components(arch)
 
 
 recipe = PyCryptoRecipe()

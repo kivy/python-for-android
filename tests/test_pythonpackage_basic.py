@@ -6,7 +6,6 @@ while the other additional ones aren't (for build time reasons).
 """
 
 import os
-import pytest
 import shutil
 import sys
 import subprocess
@@ -279,43 +278,6 @@ class TestGetSystemPythonExecutable():
             else:
                 raise
 
-    def test_virtualenv(self):
-        """ Verifies that _get_system_python_executable() works correctly
-            if called with a python binary as found inside a virtualenv.
-        """
-
-        # Get system-wide python bin seen from here first:
-        pybin = _get_system_python_executable()
-        # (this call was not a test, we really just need the path here)
-
-        test_dir = tempfile.mkdtemp()
-        try:
-            # Check that in a virtualenv, the system-wide python is returned:
-            subprocess.check_output([
-                pybin, "-m", "virtualenv",
-                "--python=" + str(sys.executable),
-                "--",
-                os.path.join(test_dir, "virtualenv")
-            ])
-            subprocess.check_output([
-                os.path.join(test_dir, "virtualenv", "bin", "pip"),
-                "install", "-U", "pip"
-            ])
-            subprocess.check_output([
-                os.path.join(test_dir, "virtualenv", "bin", "pip"),
-                "install", "-U", "pep517<0.7.0"
-            ])
-            sys_python_path = self.run__get_system_python_executable(
-                os.path.join(test_dir, "virtualenv", "bin", "python")
-            )
-            assert os.path.normpath(sys_python_path).startswith(
-                os.path.normpath(pybin)
-            )
-        finally:
-            shutil.rmtree(test_dir)
-
-    @pytest.mark.skipif(int(sys.version.partition(".")[0]) < 3,
-                        reason="venv is python 3 only")
     def test_venv(self):
         """ Verifies that _get_system_python_executable() works correctly
             in a 'venv' (Python 3 only feature).
@@ -339,6 +301,10 @@ class TestGetSystemPythonExecutable():
             subprocess.check_output([
                 os.path.join(test_dir, "venv", "bin", "pip"),
                 "install", "-U", "pep517<0.7.0"
+            ])
+            subprocess.check_output([
+                os.path.join(test_dir, "venv", "bin", "pip"),
+                "install", "-U", "toml"
             ])
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "venv", "bin", "python")

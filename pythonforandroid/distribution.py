@@ -7,7 +7,7 @@ from pythonforandroid.util import current_directory, BuildInterruptingException
 from shutil import rmtree
 
 
-class Distribution(object):
+class Distribution:
     '''State container for information about a distribution (i.e. an
     Android project).
 

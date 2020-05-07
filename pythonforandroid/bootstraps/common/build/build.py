@@ -1,6 +1,4 @@
-#!/usr/bin/env python2.7
-
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import json
 from os.path import (
@@ -16,7 +14,6 @@ import sys
 import tarfile
 import tempfile
 import time
-from zipfile import ZipFile
 
 from distutils.version import LooseVersion
 from fnmatch import fnmatch
@@ -78,10 +75,6 @@ BLACKLIST_PATTERNS = [
 # pyc/py
 if PYTHON is not None:
     BLACKLIST_PATTERNS.append('*.py')
-    if PYTHON_VERSION and int(PYTHON_VERSION[0]) == 2:
-        # we only blacklist `.pyc` for python2 because in python3 the compiled
-        # extension is `.pyc` (.pyo files not exists for python >= 3.6)
-        BLACKLIST_PATTERNS.append('*.pyc')
 
 WHITELIST_PATTERNS = []
 if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
@@ -154,48 +147,6 @@ def listfiles(d):
     for subdir in subdirlist:
         for fn in listfiles(subdir):
             yield fn
-
-
-def make_python_zip():
-    '''
-    Search for all the python related files, and construct the pythonXX.zip
-    According to
-    # http://randomsplat.com/id5-cross-compiling-python-for-embedded-linux.html
-    site-packages, config and lib-dynload will be not included.
-    '''
-
-    if not exists('private'):
-        print('No compiled python is present to zip, skipping.')
-        return
-
-    global python_files
-    d = realpath(join('private', 'lib', 'python2.7'))
-
-    def select(fn):
-        if is_blacklist(fn):
-            return False
-        fn = realpath(fn)
-        assert(fn.startswith(d))
-        fn = fn[len(d):]
-        if (fn.startswith('/site-packages/')
-                or fn.startswith('/config/')
-                or fn.startswith('/lib-dynload/')
-                or fn.startswith('/libpymodules.so')):
-            return False
-        return fn
-
-    # get a list of all python file
-    python_files = [x for x in listfiles(d) if select(x)]
-
-    # create the final zipfile
-    zfn = join('private', 'lib', 'python27.zip')
-    zf = ZipFile(zfn, 'w')
-
-    # put all the python files in it
-    for fn in python_files:
-        afn = fn[len(d):]
-        zf.write(fn, afn)
-    zf.close()
 
 
 def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
@@ -274,7 +225,7 @@ def compile_dir(dfn, optimize_python=True):
 def make_package(args):
     # If no launcher is specified, require a main.py/main.pyo:
     if (get_bootstrap_name() != "sdl" or args.launcher is None) and \
-            get_bootstrap_name() != "webview":
+            get_bootstrap_name() not in ["webview", "service_library"]:
         # (webview doesn't need an entrypoint, apparently)
         if args.private is None or (
                 not exists(join(realpath(args.private), 'main.py')) and
@@ -291,10 +242,6 @@ main.py that loads it.''')
     try_unlink(join(assets_dir, 'public.mp3'))
     try_unlink(join(assets_dir, 'private.mp3'))
     ensure_dir(assets_dir)
-
-    # In order to speedup import and initial depack,
-    # construct a python27.zip
-    make_python_zip()
 
     # Add extra environment variable file into tar-able directory:
     env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
@@ -506,7 +453,8 @@ main.py that loads it.''')
         "args": args,
         "service": service,
         "service_names": service_names,
-        "android_api": android_api
+        "android_api": android_api,
+        "debug": "debug" in args.build_mode,
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
@@ -529,7 +477,9 @@ main.py that loads it.''')
         aars=aars,
         jars=jars,
         android_api=android_api,
-        build_tools_version=build_tools_version
+        build_tools_version=build_tools_version,
+        debug_build="debug" in args.build_mode,
+        is_library=(get_bootstrap_name() == 'service_library'),
         )
 
     # ant build templates
@@ -594,7 +544,7 @@ main.py that loads it.''')
                     raise e
 
 
-def parse_args(args=None):
+def parse_args_and_make_package(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
     # Get the default minsdk, equal to the NDK API that this dist is built against
@@ -712,6 +662,10 @@ tools directory of the Android SDK.
                     default=join(curdir, 'whitelist.txt'),
                     help=('Use a whitelist file to prevent blacklisting of '
                           'file in the final APK'))
+    ap.add_argument('--release', dest='build_mode', action='store_const',
+                    const='release', default='debug',
+                    help='Build your app as a non-debug release build. '
+                         '(Disables gdb debugging among other things)')
     ap.add_argument('--add-jar', dest='add_jar', action='append',
                     help=('Add a Java .jar to the libs, so you can access its '
                           'classes with pyjnius. You can specify this '
@@ -858,4 +812,4 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
-    parse_args()
+    parse_args_and_make_package()

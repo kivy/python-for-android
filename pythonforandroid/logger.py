@@ -7,19 +7,6 @@ from math import log10
 from collections import defaultdict
 from colorama import Style as Colo_Style, Fore as Colo_Fore
 
-# six import left for Python 2 compatibility during initial Python version check
-import six
-
-# This codecs change fixes a bug with log output, but crashes under python3
-if not six.PY3:
-    import codecs
-    stdout = codecs.getwriter('utf8')(stdout)
-    stderr = codecs.getwriter('utf8')(stderr)
-
-if six.PY2:
-    unistr = unicode  # noqa F821
-else:
-    unistr = str
 
 # monkey patch to show full output
 sh.ErrorReturnCode.truncate_cap = 999999
@@ -42,7 +29,7 @@ class LevelDifferentiatingFormatter(logging.Formatter):
             record.msg = '{}{}[DEBUG]{}{}:   '.format(
                 Err_Style.BRIGHT, Err_Fore.LIGHTBLACK_EX, Err_Fore.RESET,
                 Err_Style.RESET_ALL) + record.msg
-        return super(LevelDifferentiatingFormatter, self).format(record)
+        return super().format(record)
 
 
 logger = logging.getLogger('p4a')
@@ -61,7 +48,7 @@ warning = logger.warning
 error = logger.error
 
 
-class colorama_shim(object):
+class colorama_shim:
 
     def __init__(self, real):
         self._dict = defaultdict(str)
@@ -114,12 +101,12 @@ def shorten_string(string, max_width):
         return string
     visible = max_width - 16 - int(log10(string_len))
     # expected suffix len "...(and XXXXX more)"
-    if not isinstance(string, unistr):
-        visstring = unistr(string[:visible], errors='ignore')
+    if not isinstance(string, str):
+        visstring = str(string[:visible], errors='ignore')
     else:
         visstring = string[:visible]
     return u''.join((visstring, u'...(and ',
-                     unistr(string_len - visible), u' more)'))
+                     str(string_len - visible), u' more)'))
 
 
 def get_console_width():

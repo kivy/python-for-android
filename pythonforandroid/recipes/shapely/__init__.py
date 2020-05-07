@@ -7,11 +7,6 @@ class ShapelyRecipe(CythonRecipe):
     url = 'https://github.com/Toblerity/Shapely/archive/{version}.tar.gz'
     depends = ['setuptools', 'libgeos']
 
-    # Actually, this recipe seems to compile/install fine for python2, but it
-    # fails at runtime when importing module with:
-    #     `[Errno 2] No such file or directory`
-    conflicts = ['python2']
-
     call_hostpython_via_targetpython = False
 
     # Patch to avoid libgeos check (because it fails), insert environment
@@ -23,7 +18,7 @@ class ShapelyRecipe(CythonRecipe):
     # setup_extra_args = ['sdist']
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super(ShapelyRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         libgeos_install = join(self.get_recipe(
             'libgeos', self.ctx).get_build_dir(arch.arch), 'install_target')

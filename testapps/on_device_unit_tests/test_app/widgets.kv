@@ -1,0 +1,84 @@
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+#:import FONT_SIZE_SUBTITLE constants.FONT_SIZE_SUBTITLE
+
+<Spacer20@Widget>:
+    size_hint_y: None
+    height: dp(20)
+
+
+<TestImage@BoxLayout>:
+    text: ''
+    source: ''
+    size_hint_y: None
+    height: self.minimum_height
+    orientation: 'vertical'
+    canvas.before:
+        Color:
+            rgba: 1, 0, 1, .25
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    Spacer20:
+    Label:
+        text: root.text
+        size_hint_y: None
+        height: dp(60)
+        font_size: sp(FONT_SIZE_SUBTITLE)
+        canvas.before:
+            Color:
+                rgba: 0, 0, 0, .65
+            Rectangle:
+                pos: self.x + 20, self.y
+                size: self.width - 40, self.height
+    BoxLayout:
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: 0, 0, 0, .35
+            Rectangle:
+                pos: self.x + 20, self.y
+                size: self.width - 40, self.height
+        Spacer20:
+        Image:
+            source: root.source
+            allow_stretch: True
+            size_hint_y: None
+            height: dp(120)
+        Spacer20:
+    Spacer20:
+
+
+<CircularButton>:
+    size_hint: None, None
+    size: dp(120), dp(120)
+    text: ''
+    background_color: None
+    canvas.before:
+        Color:
+            rgba: .34, .34, .34, 1
+        Ellipse:
+            pos: self.pos
+            size: self.size
+    canvas:
+        Color:
+            rgba:
+                root.background_color \
+                if root.background_color \
+                else (1., 0., 1., .65)  # purple
+        Ellipse:
+            pos: self.x + dp(2), self.y + dp(2)
+            size: self.width - dp(4), self.height - dp(4)
+    Label:
+        text: root.text
+        pos: root.pos
+        size_hint: None, None
+        size: root.size
+
+
+<ErrorPopup@Popup>:
+    title: 'Error'
+    size_hint: 0.75, 0.75
+    Label:
+        text: root.error_text

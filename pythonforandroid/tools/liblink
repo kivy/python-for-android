@@ -1,6 +1,5 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
-from __future__ import print_function
 import sys
 import subprocess
 from os import environ
@@ -22,7 +21,7 @@ while i < len(sys.argv):
         i += 1
         continue
 
-    if opt.startswith("-l") or opt.startswith("-L"):
+    if opt.startswith(("-l", "-L")):
         libs.append(opt)
         continue
 
@@ -34,27 +33,8 @@ while i < len(sys.argv):
         i += 1
         continue
 
-    if opt.startswith("-I") or opt.startswith('-isystem'):
-        continue
-
-    if opt.startswith("-m"):
-        continue
-
-    if opt.startswith("-f"):
-        continue
-
-    if opt.startswith("-O"):
-        continue
-
-    if opt.startswith("-g"):
-        continue
-
-    if opt.startswith("-D"):
-        continue
-
-    if opt.startswith("-R"):
-        # for -rpath, not implemented yet.
-        continue
+    if opt.startswith(
+            ("-I", "-isystem", "-m", "-f", "-O", "-g", "-D", "-R")):
 
     if opt.startswith("-"):
         print(sys.argv)

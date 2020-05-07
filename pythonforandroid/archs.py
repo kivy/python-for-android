@@ -8,7 +8,7 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException, build_platform
 
 
-class Arch(object):
+class Arch:
 
     toolchain_prefix = None
     '''The prefix for the toolchain dir in the NDK.'''
@@ -46,7 +46,6 @@ class Arch(object):
     ]
 
     def __init__(self, ctx):
-        super(Arch, self).__init__()
         self.ctx = ctx
 
         # Allows injecting additional linker paths used by any recipe.
@@ -309,6 +308,6 @@ class ArchAarch_64(Arch):
     # NDK r19 build system, because it seems that we don't need it anymore,
     # do we need them?
     # def get_env(self, with_flags_in_cc=True):
-    #     env = super(ArchAarch_64, self).get_env(with_flags_in_cc)
+    #     env = super().get_env(with_flags_in_cc)
     #     env['EXTRA_CFLAGS'] = self.arch_cflags[-1]
     #     return env

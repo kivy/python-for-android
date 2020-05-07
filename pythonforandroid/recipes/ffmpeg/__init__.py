@@ -19,7 +19,7 @@ class FFMpegRecipe(Recipe):
         self.apply_patches(arch)
 
     def get_recipe_env(self, arch):
-        env = super(FFMpegRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         env['NDK'] = self.ctx.ndk_dir
         return env
 

@@ -7,7 +7,7 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
     Extra system dependencies: autoconf, automake and libtool.
     """
     name = 'cffi'
-    version = '1.11.5'
+    version = '1.13.2'
     url = 'https://pypi.python.org/packages/source/c/cffi/cffi-{version}.tar.gz'
 
     depends = ['setuptools', 'pycparser', 'libffi']
@@ -19,14 +19,14 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
 
     def get_hostrecipe_env(self, arch=None):
         # fixes missing ffi.h on some host systems (e.g. gentoo)
-        env = super(CffiRecipe, self).get_hostrecipe_env(arch)
+        env = super().get_hostrecipe_env(arch)
         libffi = self.get_recipe('libffi', self.ctx)
         includes = libffi.get_include_dirs(arch)
         env['FFI_INC'] = ",".join(includes)
         return env
 
     def get_recipe_env(self, arch=None):
-        env = super(CffiRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         libffi = self.get_recipe('libffi', self.ctx)
         includes = libffi.get_include_dirs(arch)
         env['CFLAGS'] = ' -I'.join([env.get('CFLAGS', '')] + includes)

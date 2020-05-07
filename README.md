@@ -2,6 +2,7 @@ python-for-android
 ==================
 
 [![Build Status](https://travis-ci.org/kivy/python-for-android.svg?branch=develop)](https://travis-ci.org/kivy/python-for-android)
+[![Unit tests & build apps](https://github.com/kivy/python-for-android/workflows/Unit%20tests%20&%20build%20apps/badge.svg?branch=develop)](https://github.com/kivy/python-for-android/actions?query=workflow%3A%22Unit+tests+%26+build+apps%22)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=develop&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=develop)
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
@@ -102,23 +103,13 @@ new recipe for python3 (3.7.1) had a new build system which was
 applied to the ancient python recipe, allowing us to bump the python2
 version number to 2.7.15. This change unified the build process for
 both python recipes, and probably solved various issues detected over the
-years. It should also be mentioned that these **unified python recipes**
-require a **minimum target api level of 21**,
-*Android 5.0 - Lollipop*, so in the case that you need to build targeting an
+years. These **unified python recipes** require a **minimum target api level of 21**,
+*Android 5.0 - Lollipop*. If you need to build targeting an
 api level below 21, you should use an older version of python-for-android
 (<=0.7.1).
 
-Be aware that this project is in constant development so, as per time of writing,
-you should use a minimum on Android's NDK r19, and ``we recommend using NDK r19b``.
-This is because the toolchains installed by
-default with the NDK can be used *in-place* and the python-for-android project
-has been adapted for that feature. Also be aware that more recent versions of the
-Android's NDK may not work.
-
-Those mentioned changes has been done this way to make easier the transition
-between python3 and python2. We will slowly phase out python2 support
-towards 2020...so...if you are using python2 in your projects you should
-consider migrating it into python3.
+On March of 2020 we dropped support for creating apps that use Python 2. The latest
+python-for-android release that supported building Python 2 was version 2019.10.6.
 
 ## Contributors
 

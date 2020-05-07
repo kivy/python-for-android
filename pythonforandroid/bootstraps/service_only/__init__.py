@@ -34,7 +34,8 @@ class ServiceOnlyBootstrap(Bootstrap):
 
             self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
             self.distribute_aars(arch)
-            self.distribute_javaclasses(self.ctx.javaclass_dir)
+            self.distribute_javaclasses(self.ctx.javaclass_dir,
+                                        dest_dir=join("src", "main", "java"))
 
             python_bundle_dir = join('_python_bundle', '_python_bundle')
             ensure_dir(python_bundle_dir)
@@ -45,9 +46,10 @@ class ServiceOnlyBootstrap(Bootstrap):
                 with open('blacklist.txt', 'a') as fileh:
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
-        self.strip_libraries(arch)
+        if not self.ctx.build_as_debuggable:
+            self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
-        super(ServiceOnlyBootstrap, self).run_distribute()
+        super().run_distribute()
 
 
 bootstrap = ServiceOnlyBootstrap()

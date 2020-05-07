@@ -8,7 +8,6 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
     url = 'https://github.com/pandas-dev/pandas/releases/download/v{version}/pandas-{version}.tar.gz'  # noqa
 
     depends = ['cython', 'numpy', 'pytz', 'libbz2', 'liblzma']
-    conflicts = ['python2']
 
     python_depends = ['python-dateutil']
     patches = ['fix_numpy_includes.patch']
@@ -16,7 +15,7 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     def get_recipe_env(self, arch):
-        env = super(PandasRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
         # we need the includes from our installed numpy at site packages
         # because we need some includes generated at numpy's compile time
         env['NUMPY_INCLUDES'] = join(

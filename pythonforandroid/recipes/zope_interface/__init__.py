@@ -14,7 +14,7 @@ class ZopeInterfaceRecipe(PythonRecipe):
     patches = ['no_tests.patch']
 
     def build_arch(self, arch):
-        super(ZopeInterfaceRecipe, self).build_arch(arch)
+        super().build_arch(arch)
         # The zope.interface module lacks of the __init__.py file in one of his
         # folders (once is installed), that leads into an ImportError.
         # Here we intentionally apply a patch to solve that, so, in case that
@@ -23,7 +23,7 @@ class ZopeInterfaceRecipe(PythonRecipe):
         self.apply_patch('fix-init.patch', arch.arch, build_dir=zope_install)
 
     def prebuild_arch(self, arch):
-        super(ZopeInterfaceRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             sh.rm(
                 '-rf',

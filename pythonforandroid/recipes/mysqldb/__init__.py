@@ -23,15 +23,15 @@ class MysqldbRecipe(CompiledComponentsPythonRecipe):
             f.write(data.replace(b'\r\n', b'\n').replace(b'\r', b'\n'))
 
     def prebuild_arch(self, arch):
-        super(MysqldbRecipe, self).prebuild_arch(arch)
+        super().prebuild_arch(arch)
         setupbase = join(self.get_build_dir(arch.arch), 'setup')
         self.convert_newlines(setupbase + '.py')
         self.convert_newlines(setupbase + '_posix.py')
 
     def get_recipe_env(self, arch=None):
-        env = super(MysqldbRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
-        hostpython = self.get_recipe('hostpython2', self.ctx)
+        hostpython = self.get_recipe('hostpython3', self.ctx)
         # TODO: fix hardcoded path
         env['PYTHONPATH'] = (join(hostpython.get_build_dir(arch.arch),
                                   'build', 'lib.linux-x86_64-2.7') +

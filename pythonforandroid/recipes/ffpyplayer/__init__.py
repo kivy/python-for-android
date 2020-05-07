@@ -6,11 +6,11 @@ from os.path import join
 class FFPyPlayerRecipe(CythonRecipe):
     version = 'c99913f2317bf3840eeacf1c1c3db3b3d1f78007'
     url = 'https://github.com/matham/ffpyplayer/archive/{version}.zip'
-    depends = [('python2', 'python3'), 'sdl2', 'ffmpeg']
+    depends = ['python3', 'sdl2', 'ffmpeg']
     opt_depends = ['openssl', 'ffpyplayer_codecs']
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
-        env = super(FFPyPlayerRecipe, self).get_recipe_env(arch)
+        env = super().get_recipe_env(arch)
 
         build_dir = Recipe.get_recipe('ffmpeg', self.ctx).get_build_dir(arch.arch)
         env["FFMPEG_INCLUDE_DIR"] = join(build_dir, "include")

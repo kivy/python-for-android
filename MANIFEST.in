@@ -1,5 +1,6 @@
 
 include LICENSE README.md
+include *.toml
 
 recursive-include doc *
 prune doc/build

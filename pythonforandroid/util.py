@@ -1,16 +1,11 @@
 import contextlib
 from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk, uname
-import sh
 import shutil
 from fnmatch import fnmatch
 from tempfile import mkdtemp
 
-# This Python version workaround left for compatibility during initial version check
-try:  # Python 3
-    from urllib.request import FancyURLopener
-except ImportError:  # Python 2
-    from urllib import FancyURLopener
+from urllib.request import FancyURLopener
 
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
@@ -59,17 +54,6 @@ def ensure_dir(filename):
         makedirs(filename)
 
 
-def get_virtualenv_executable():
-    virtualenv = None
-    if virtualenv is None:
-        virtualenv = sh.which('virtualenv2')
-    if virtualenv is None:
-        virtualenv = sh.which('virtualenv-2.7')
-    if virtualenv is None:
-        virtualenv = sh.which('virtualenv')
-    return virtualenv
-
-
 def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
     """Recursively walks all the files and directories in ``dirn``,
     ignoring directories that match any pattern in ``invalid_dirns``
@@ -102,7 +86,7 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
 
 class BuildInterruptingException(Exception):
     def __init__(self, message, instructions=None):
-        super(BuildInterruptingException, self).__init__(message, instructions)
+        super().__init__(message, instructions)
         self.message = message
         self.instructions = instructions
 
