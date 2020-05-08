@@ -193,7 +193,7 @@ public class PythonActivity extends SDLActivity {
                         mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
 
                 PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
-                if (mActivity.mMetaData.getInt("wakelock") == 1) {
+                if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
                     mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
                     mActivity.mWakeLock.acquire();
                 }
@@ -450,32 +450,35 @@ public class PythonActivity extends SDLActivity {
     public void considerLoadingScreenRemoval() {
         if (loadingScreenRemovalTimer != null)
             return;
-        if (PythonActivity.mSingleton != null &&
-                mAppConfirmedActive &&
-                loadingScreenRemovalTimer == null) {
-            Log.v(TAG, "loading screen timer Runnable() launched.");
-            // Remove loading screen but with a delay.
-            // (app can use p4a's android.loadingscreen module to
-            // do it quicker if it wants to)
-            TimerTask removalTask = new TimerTask() {
-                @Override
-                public void run() {
-                    // post a runnable to the handler
-                    runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (((PythonActivity)PythonActivity.mSingleton).mAppConfirmedActive &&
+                        loadingScreenRemovalTimer == null) {
+                    // Remove loading screen but with a delay.
+                    // (app can use p4a's android.loadingscreen module to
+                    // do it quicker if it wants to)
+                    // get a handler (call from main thread)
+                    // this will run when timer elapses
+                    TimerTask removalTask = new TimerTask() {
                         @Override
                         public void run() {
-                            Log.v(TAG, "loading screen timer Runnable() finished.");
-                            PythonActivity activity =
-                                ((PythonActivity)PythonActivity.mSingleton);
-                            if (activity != null)
-                                activity.removeLoadingScreen();
+                            // post a runnable to the handler
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    PythonActivity activity =
+                                        ((PythonActivity)PythonActivity.mSingleton);
+                                    if (activity != null)
+                                        activity.removeLoadingScreen();
+                                }
+                            });
                         }
-                    });
+                    };
+                    loadingScreenRemovalTimer = new Timer();
+                    loadingScreenRemovalTimer.schedule(removalTask, 5000);
                 }
-            };
-            loadingScreenRemovalTimer = new Timer();
-            loadingScreenRemovalTimer.schedule(removalTask, 5000);
-        }
+            }
+        });
     }
 
     public void removeLoadingScreen() {
@@ -586,30 +589,14 @@ public class PythonActivity extends SDLActivity {
         if (this.mWakeLock != null) {
             this.mWakeLock.acquire();
         }
-        Log.v(TAG, "onResume(), mSDLThread exists yet: " + (mSDLThread != null));
+        Log.v(TAG, "onResume()");
         try {
             super.onResume();
-            if (mSDLThread == null && !mIsResumedCalled) {
-                // Ok so SDL2's onStart() usually launches the native code.
-                // However, this may fail if native libs aren't loaded yet at that point
-                // (due ot our loading screen) so we may need to manually trigger this,
-                // otherwise code would only launch by leaving & re-entering the app:
-                Log.v(TAG, "Loading screen workaround: triggering native resume");
-                if (mSDLThread == null && mCurrentNativeState == NativeState.RESUMED) {
-                    // Force a state change so SDL2 doesn't just ignore the resume:
-                    mCurrentNativeState = NativeState.PAUSED;
-                }
-                resumeNativeThread();  // native resume to call native code
-            }
         } catch (UnsatisfiedLinkError e) {
             // Catch resume while still in loading screen failing to
             // call native function (since it's not yet loaded)
-            Log.v(TAG, "failed to call native onResume() because libs " +
-                       "aren't loaded yet. this is expected to happen");
         }
         considerLoadingScreenRemoval();
-        Log.v(TAG, "onResume() done in PythonActivity, " +
-                   "mSDLThread exists yet: " + (mSDLThread != null));
     }
 
     @Override
@@ -619,7 +606,6 @@ public class PythonActivity extends SDLActivity {
         } catch (UnsatisfiedLinkError e) {
             // Catch window focus while still in loading screen failing to
             // call native function (since it's not yet loaded)
-            return;  // no point in barging further
         }
         considerLoadingScreenRemoval();
     }

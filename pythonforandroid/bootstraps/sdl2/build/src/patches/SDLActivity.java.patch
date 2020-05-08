@@ -1,13 +1,12 @@
 --- a/src/main/java/org/libsdl/app/SDLActivity.java
 +++ b/src/main/java/org/libsdl/app/SDLActivity.java
-@@ -196,6 +196,16 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -196,6 +196,15 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
          Log.v(TAG, "onCreate()");
          super.onCreate(savedInstanceState);
  
++        SDLActivity.initialize();
 +        // So we can call stuff from static callbacks
 +        mSingleton = this;
-+
-+        SDLActivity.initialize();
 +    }
 +
 +    // We don't do this in onCreate because we unpack and load the app data on a thread
@@ -17,16 +16,6 @@
          // Load shared libraries
          String errorMsgBrokenLib = "";
          try {
-@@ -508,7 +508,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
-         }
- 
-         // Try a transition to resumed state
--        if (mNextNativeState == NativeState.RESUMED) {
-+        // python-for-android: we delay finishLoad() -> mSurface can be null!
-+        if (mNextNativeState == NativeState.RESUMED && mSurface != null) {
-             if (mSurface.mIsSurfaceReady && mHasFocus && mIsResumedCalled) {
-                 if (mSDLThread == null) {
-                     // This is the entry point to the C app.
 @@ -639,7 +648,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
      Handler commandHandler = new SDLCommandHandler();
  
@@ -58,11 +47,28 @@
      // APK expansion files support
  
      /** com.android.vending.expansion.zipfile.ZipResourceFile object or null. */
-@@ -1475,5 +1475,7 @@ class SDLMain implements Runnable {
+@@ -1341,14 +1366,13 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+     };
+ 
+     public void onSystemUiVisibilityChange(int visibility) {
+-        if (SDLActivity.mFullscreenModeActive && (visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0 || (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
+-
++        // SDL2 BUGFIX (see sdl bug #4424 ) - REMOVE WHEN FIXED IN UPSTREAM !!
++        if (SDLActivity.mFullscreenModeActive && ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0 || (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)) {
+             Handler handler = getWindow().getDecorView().getHandler();
+             if (handler != null) {
+                 handler.removeCallbacks(rehideSystemUi); // Prevent a hide loop.
+                 handler.postDelayed(rehideSystemUi, 2000);
+             }
+-
+         }
+     }    
+ 
+@@ -1475,6 +1499,7 @@ class SDLMain implements Runnable {
+         String[] arguments = SDLActivity.mSingleton.getArguments();
+ 
          Log.v("SDL", "Running main function " + function + " from library " + library);
-
 +        SDLActivity.mSingleton.appConfirmedActive();
-+        Log.v("SDL", "(python-for-android: appConfirmedActive() was called)");
          SDLActivity.nativeRunMain(library, function, arguments);
  
          Log.v("SDL", "Finished main function");
