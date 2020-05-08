@@ -86,12 +86,12 @@ class Hostpython3Recipe(Recipe):
         build_dir = join(recipe_build_dir, self.build_subdir)
         ensure_dir(build_dir)
 
-        with current_directory(recipe_build_dir):
-            # Configure the build
-            with current_directory(build_dir):
-                if not exists('config.status'):
-                    shprint(sh.Command(join(recipe_build_dir, 'configure')))
+        # Configure the build
+        with current_directory(build_dir):
+            if not exists('config.status'):
+                shprint(sh.Command(join(recipe_build_dir, 'configure')))
 
+        with current_directory(recipe_build_dir):
             # Create the Setup file. This copying from Setup.dist is
             # the normal and expected procedure before Python 3.8, but
             # after this the file with default options is already named "Setup"

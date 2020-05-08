@@ -956,9 +956,9 @@ class PythonRecipe(Recipe):
 
         info('Installing {} into site-packages'.format(self.name))
 
+        hostpython = sh.Command(self.hostpython_location)
+        hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
-            hostpython = sh.Command(self.hostpython_location)
-            hpenv = env.copy()
             shprint(hostpython, 'setup.py', 'install', '-O2',
                     '--root={}'.format(self.ctx.get_python_install_dir()),
                     '--install-lib=.',
@@ -999,8 +999,8 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         info('Building compiled components in {}'.format(self.name))
 
         env = self.get_recipe_env(arch)
+        hostpython = sh.Command(self.hostpython_location)
         with current_directory(self.get_build_dir(arch.arch)):
-            hostpython = sh.Command(self.hostpython_location)
             if self.install_in_hostpython:
                 shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
             shprint(hostpython, 'setup.py', self.build_cmd, '-v',
