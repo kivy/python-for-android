@@ -283,14 +283,14 @@ class Python3Recipe(TargetPythonRecipe):
         sys_prefix = '/usr/local'
         sys_exec_prefix = '/usr/local'
 
+        env = self.get_recipe_env(arch)
+        env = self.set_libs_flags(env, arch)
+
+        android_build = sh.Command(
+            join(recipe_build_dir,
+                 'config.guess'))().stdout.strip().decode('utf-8')
+
         with current_directory(build_dir):
-            env = self.get_recipe_env(arch)
-            env = self.set_libs_flags(env, arch)
-
-            android_build = sh.Command(
-                join(recipe_build_dir,
-                     'config.guess'))().stdout.strip().decode('utf-8')
-
             if not exists('config.status'):
                 shprint(
                     sh.Command(join(recipe_build_dir, 'configure')),

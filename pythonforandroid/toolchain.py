@@ -1051,7 +1051,7 @@ class ToolchainCL:
                     "Unknown build mode {} for apk()".format(args.build_mode))
             output = shprint(gradlew, gradle_task, _tail=20,
                              _critical=True, _env=env)
-            return output, build_args
+        return output, build_args
 
     def _finish_package(self, args, output, build_args, package_type, output_dir):
         """
