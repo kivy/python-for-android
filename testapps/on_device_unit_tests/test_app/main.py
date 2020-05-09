@@ -92,5 +92,5 @@ elif 'flask' in requirements:
 else:
     # we don't have kivy or flask in our
     # requirements, so we run unittests in terminal
-    suite = unittest.TestLoader().loadTestsFromNames(list(tests_to_perform))
+    suite = unittest.TestLoader().loadTestsFromNames(list(tests_to_perform.values()))
     unittest.TextTestRunner().run(suite)
