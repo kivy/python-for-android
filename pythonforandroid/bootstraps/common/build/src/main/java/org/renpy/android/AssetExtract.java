@@ -4,7 +4,7 @@ package org.renpy.android;
 
 import java.io.*;
 
-import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -24,11 +24,9 @@ import org.kamranzafar.jtar.*;
 public class AssetExtract {
 
     private AssetManager mAssetManager = null;
-    private Activity mActivity = null;
 
-    public AssetExtract(Activity act) {
-        mActivity = act;
-        mAssetManager = act.getAssets();
+    public AssetExtract(Context context) {
+        mAssetManager = context.getAssets();
     }
 
     public boolean extractTar(String asset, String target) {
