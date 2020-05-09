@@ -16,8 +16,6 @@ import java.io.File;
 
 import org.kivy.android.PythonUtil;
 
-import org.renpy.android.Hardware;
-
 //imports for channel definition
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
