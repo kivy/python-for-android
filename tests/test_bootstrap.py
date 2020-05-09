@@ -104,9 +104,6 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
             bs.get_build_dir().endswith("build/bootstrap_builds/sdl2")
         )
         self.assertTrue(bs.get_dist_dir("test_prj").endswith("dists/test_prj"))
-        self.assertTrue(
-            bs.get_common_dir().endswith("pythonforandroid/bootstraps/common")
-        )
 
     def test__cmp_bootstraps_by_priority(self):
         # Test service_only has higher priority than sdl2:

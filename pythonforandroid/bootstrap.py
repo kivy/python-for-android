@@ -132,9 +132,6 @@ class Bootstrap:
     def get_dist_dir(self, name):
         return join(self.ctx.dist_dir, name)
 
-    def get_common_dir(self):
-        return os.path.abspath(join(self.bootstrap_dir, "..", 'common'))
-
     @property
     def name(self):
         modname = self.__class__.__module__
