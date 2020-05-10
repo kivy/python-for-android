@@ -8,11 +8,9 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.DisplayMetrics;
 import android.view.inputmethod.InputMethodManager;
-import android.view.inputmethod.EditorInfo;
 import android.view.View;
 
 import java.util.List;
-import java.util.ArrayList;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.content.BroadcastReceiver;
@@ -223,9 +221,6 @@ public class Hardware {
 
         // Now you can call this and it should execute the broadcastReceiver's
         // onReceive()
-        WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        boolean a = wm.startScan();
-
         if (latestResult != null){
 
             String latestResultString = "";
