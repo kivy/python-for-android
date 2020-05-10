@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.UnsatisfiedLinkError;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -21,26 +20,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.Manifest;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import org.libsdl.app.SDL;
 import org.libsdl.app.SDLActivity;
 
 import org.kivy.android.PythonUtil;
@@ -58,7 +50,6 @@ public class PythonActivity extends SDLActivity {
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
-    private static boolean appliedWindowedModeHack = false;
 
     public String getAppRoot() {
         String app_root =  getFilesDir().getAbsolutePath() + "/app";
@@ -393,7 +384,6 @@ public class PythonActivity extends SDLActivity {
             ) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
-        String filesDirectory = argument;
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
         String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
         serviceIntent.putExtra("androidPrivate", argument);
@@ -646,7 +636,7 @@ public class PythonActivity extends SDLActivity {
 
         try {
             java.lang.reflect.Method methodCheckPermission =
-                Activity.class.getMethod("checkSelfPermission", java.lang.String.class);
+                Activity.class.getMethod("checkSelfPermission", String.class);
             Object resultObj = methodCheckPermission.invoke(this, permission);
             int result = Integer.parseInt(resultObj.toString());
             if (result == PackageManager.PERMISSION_GRANTED) 
@@ -666,7 +656,7 @@ public class PythonActivity extends SDLActivity {
         try {
             java.lang.reflect.Method methodRequestPermission =
                 Activity.class.getMethod("requestPermissions",
-                java.lang.String[].class, int.class);
+                String[].class, int.class);
             methodRequestPermission.invoke(this, permissions, requestCode);
         } catch (IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {

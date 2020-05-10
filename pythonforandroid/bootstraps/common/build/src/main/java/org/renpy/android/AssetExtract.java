@@ -2,8 +2,6 @@
 // spaces amount
 package org.renpy.android;
 
-import java.io.*;
-
 import android.content.Context;
 import android.util.Log;
 
@@ -11,15 +9,16 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.File;
 
 import java.util.zip.GZIPInputStream;
 
 import android.content.res.AssetManager;
-
-import org.kamranzafar.jtar.*;
+import org.kamranzafar.jtar.TarEntry;
+import org.kamranzafar.jtar.TarInputStream;
 
 public class AssetExtract {
 
@@ -49,7 +48,7 @@ public class AssetExtract {
 
             try {
                 entry = tis.getNextEntry();
-            } catch ( java.io.IOException e ) {
+            } catch ( IOException e ) {
                 Log.e("python", "extracting tar", e);
                 return false;
             }
@@ -95,7 +94,7 @@ public class AssetExtract {
 
                 out.flush();
                 out.close();
-            } catch ( java.io.IOException e ) {
+            } catch ( IOException e ) {
                 Log.e("python", "extracting zip", e);
                 return false;
             }

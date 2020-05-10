@@ -1,15 +1,10 @@
-
 package org.kivy.android;
-
-import java.net.Socket;
-import java.net.InetSocketAddress;
 
 import android.os.SystemClock;
 
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -17,11 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
-import android.app.*;
-import android.content.*;
-import android.view.*;
 import android.view.ViewGroup;
-import android.view.SurfaceView;
 import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
@@ -29,15 +20,9 @@ import android.widget.Toast;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.graphics.PixelFormat;
-import android.view.SurfaceHolder;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ApplicationInfo;
-import android.content.Intent;
 import android.widget.ImageView;
-import java.io.InputStream;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -536,7 +521,6 @@ public class PythonActivity extends Activity {
             ) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
-        String filesDirectory = argument;
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
         String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
         serviceIntent.putExtra("androidPrivate", argument);
