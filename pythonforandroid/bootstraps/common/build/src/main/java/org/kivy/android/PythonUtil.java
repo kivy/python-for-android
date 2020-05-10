@@ -33,8 +33,13 @@ public class PythonUtil {
         ArrayList<String> libsList = new ArrayList<String>();
         addLibraryIfExists(libsList, "sqlite3", libsDir);
         addLibraryIfExists(libsList, "ffi", libsDir);
+        addLibraryIfExists(libsList, "png16", libsDir);
         addLibraryIfExists(libsList, "ssl.*", libsDir);
         addLibraryIfExists(libsList, "crypto.*", libsDir);
+        addLibraryIfExists(libsList, "SDL2", libsDir);
+        addLibraryIfExists(libsList, "SDL2_image", libsDir);
+        addLibraryIfExists(libsList, "SDL2_mixer", libsDir);
+        addLibraryIfExists(libsList, "SDL2_ttf", libsDir);
         libsList.add("python3.5m");
         libsList.add("python3.6m");
         libsList.add("python3.7m");
@@ -70,5 +75,5 @@ public class PythonUtil {
         }
 
         Log.v(TAG, "Loaded everything!");
-	}
+    }
 }
