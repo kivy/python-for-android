@@ -14,8 +14,6 @@ import android.app.PendingIntent;
 import android.os.Process;
 import java.io.File;
 
-import org.kivy.android.PythonUtil;
-
 //imports for channel definition
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
@@ -33,7 +31,6 @@ public class PythonService extends Service implements Runnable {
     private String pythonHome;
     private String pythonPath;
     private String serviceEntrypoint;
-    private boolean serviceStartAsForeground;
     // Argument to pass to Python code,
     private String pythonServiceArgument;
 
@@ -76,7 +73,7 @@ public class PythonService extends Service implements Runnable {
         pythonName = extras.getString("pythonName");
         pythonHome = extras.getString("pythonHome");
         pythonPath = extras.getString("pythonPath");
-        serviceStartAsForeground = (
+        boolean serviceStartAsForeground = (
             extras.getString("serviceStartAsForeground").equals("true")
         );
         pythonServiceArgument = extras.getString("pythonServiceArgument");

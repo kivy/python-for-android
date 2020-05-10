@@ -73,8 +73,7 @@ public class AssetExtract {
 
             try {
                 out = new BufferedOutputStream(new FileOutputStream(path), 8192);
-            } catch ( FileNotFoundException e ) {
-            } catch ( SecurityException e ) { };
+            } catch ( FileNotFoundException | SecurityException e ) {}
 
             if ( out == null ) {
                 Log.e("python", "could not open " + path);

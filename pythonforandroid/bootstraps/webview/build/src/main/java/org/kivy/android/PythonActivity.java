@@ -3,8 +3,6 @@ package org.kivy.android;
 import android.os.SystemClock;
 
 import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -33,12 +31,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
 
-import org.kivy.android.PythonUtil;
-
-import org.kivy.android.WebViewLoader;
-
 import org.renpy.android.ResourceManager;
-import org.renpy.android.AssetExtract;
 
 public class PythonActivity extends Activity {
     // This activity is modified from a mixture of the SDLActivity and
@@ -106,7 +99,8 @@ public class PythonActivity extends Activity {
         protected String doInBackground(String... params) {
             File app_root_file = new File(params[0]);
             Log.v(TAG, "Ready to unpack");
-            unpackData("private", app_root_file);
+            PythonActivityUtil pythonActivityUtil = new PythonActivityUtil(mActivity, resourceManager);
+            pythonActivityUtil.unpackData("private", app_root_file);
             return null;
         }
 
@@ -223,95 +217,6 @@ public class PythonActivity extends Activity {
         File app_root_file = new File(app_root);
         PythonUtil.loadLibraries(app_root_file,
             new File(getApplicationInfo().nativeLibraryDir));
-    }
-
-    public void recursiveDelete(File f) {
-        if (f.isDirectory()) {
-            for (File r : f.listFiles()) {
-                recursiveDelete(r);
-            }
-        }
-        f.delete();
-    }
-
-    /**
-     * Show an error using a toast. (Only makes sense from non-UI
-     * threads.)
-     */
-    public void toastError(final String msg) {
-
-        final Activity thisActivity = this;
-
-        runOnUiThread(new Runnable () {
-            public void run() {
-                Toast.makeText(thisActivity, msg, Toast.LENGTH_LONG).show();
-            }
-        });
-
-        // Wait to show the error.
-        synchronized (this) {
-            try {
-                this.wait(1000);
-            } catch (InterruptedException e) {
-            }
-        }
-    }
-
-    public void unpackData(final String resource, File target) {
-
-        Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
-
-        // The version of data in memory and on disk.
-        String data_version = resourceManager.getString(resource + "_version");
-        String disk_version = null;
-
-        Log.v(TAG, "Data version is " + data_version);
-
-        // If no version, no unpacking is necessary.
-        if (data_version == null) {
-            return;
-        }
-
-        // Check the current disk version, if any.
-        String filesDir = target.getAbsolutePath();
-        String disk_version_fn = filesDir + "/" + resource + ".version";
-
-        try {
-            byte buf[] = new byte[64];
-            InputStream is = new FileInputStream(disk_version_fn);
-            int len = is.read(buf);
-            disk_version = new String(buf, 0, len);
-            is.close();
-        } catch (Exception e) {
-            disk_version = "";
-        }
-
-        // If the disk data is out of date, extract it and write the
-        // version file.
-        // if (! data_version.equals(disk_version)) {
-        if (! data_version.equals(disk_version)) {
-            Log.v(TAG, "Extracting " + resource + " assets.");
-
-            recursiveDelete(target);
-            target.mkdirs();
-
-            AssetExtract ae = new AssetExtract(this);
-            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
-                toastError("Could not extract " + resource + " data.");
-            }
-
-            try {
-                // Write .nomedia.
-                new File(target, ".nomedia").createNewFile();
-
-                // Write version file.
-                FileOutputStream os = new FileOutputStream(disk_version_fn);
-                os.write(data_version.getBytes());
-                os.close();
-            } catch (Exception e) {
-                Log.w("python", e);
-            }
-        }
     }
 
     public static void loadUrl(String url) {
