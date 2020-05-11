@@ -216,10 +216,10 @@ def build_dist_from_args(ctx, dist, args):
          .format(join(ctx.dist_dir, ctx.distribution.dist_dir)))
 
 
-def split_argument_list(l):
-    if not len(l):
+def split_argument_list(arg_list):
+    if not len(arg_list):
         return []
-    return re.split(r'[ ,]+', l)
+    return re.split(r'[ ,]+', arg_list)
 
 
 class NoAbbrevParser(argparse.ArgumentParser):
@@ -1144,7 +1144,7 @@ class ToolchainCL:
 
         if dists:
             print('{Style.BRIGHT}Distributions currently installed are:'
-                  '{Style.RESET_ALL}'.format(Style=Out_Style, Fore=Out_Fore))
+                  '{Style.RESET_ALL}'.format(Style=Out_Style))
             pretty_log_dists(dists, print)
         else:
             print('{Style.BRIGHT}There are no dists currently built.'
