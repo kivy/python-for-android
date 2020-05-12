@@ -17,6 +17,11 @@ from pythonforandroid.util import (
     BuildInterruptingException,
 )
 
+NDK_API_LOWER_THAN_SUPPORTED_MESSAGE = (
+    'Target ndk-api is {ndk_api}, '
+    'but the python3 recipe supports only {min_ndk_api}+'
+)
+
 
 class Python3Recipe(TargetPythonRecipe):
     '''
@@ -270,8 +275,10 @@ class Python3Recipe(TargetPythonRecipe):
     def build_arch(self, arch):
         if self.ctx.ndk_api < self.MIN_NDK_API:
             raise BuildInterruptingException(
-                'Target ndk-api is {}, but the python3 recipe supports only'
-                ' {}+'.format(self.ctx.ndk_api, self.MIN_NDK_API))
+                NDK_API_LOWER_THAN_SUPPORTED_MESSAGE.format(
+                    ndk_api=self.ctx.ndk_api, min_ndk_api=self.MIN_NDK_API
+                ),
+            )
 
         recipe_build_dir = self.get_build_dir(arch.arch)
 
