@@ -53,7 +53,7 @@ def find_library(name):
         lib_search_dirs.insert(0, lib_dir_2)
 
     # Now scan the lib dirs:
-    for lib_dir in [l for l in lib_search_dirs if os.path.exists(l)]:
+    for lib_dir in [ldir for ldir in lib_search_dirs if os.path.exists(ldir)]:
         filelist = [
             f for f in os.listdir(lib_dir)
             if does_libname_match_filename(name, f)
