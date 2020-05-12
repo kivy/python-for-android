@@ -31,6 +31,7 @@ public class Hardware {
     // The context.
     static Context context;
     static View view;
+    public static final float defaultRv[] = { 0f, 0f, 0f };
 
     /**
      * Vibrate for s seconds.
@@ -107,8 +108,7 @@ public class Hardware {
             if (sSensorEvent != null) {
                 return sSensorEvent.values;
             } else {
-                float rv[] = { 0f, 0f, 0f };
-                return rv;
+                return defaultRv;
             }
         }
     }
@@ -127,9 +127,8 @@ public class Hardware {
         accelerometerSensor.changeStatus(enable);
     }
     public static float[] accelerometerReading() {
-        float rv[] = { 0f, 0f, 0f };
         if ( accelerometerSensor == null )
-            return rv;
+            return defaultRv;
         return (float[]) accelerometerSensor.readSensor();
     }
     public static void orientationSensorEnable(boolean enable) {
@@ -138,9 +137,8 @@ public class Hardware {
         orientationSensor.changeStatus(enable);
     }
     public static float[] orientationSensorReading() {
-        float rv[] = { 0f, 0f, 0f };
         if ( orientationSensor == null )
-            return rv;
+            return defaultRv;
         return (float[]) orientationSensor.readSensor();
     }
     public static void magneticFieldSensorEnable(boolean enable) {
@@ -149,9 +147,8 @@ public class Hardware {
         magneticFieldSensor.changeStatus(enable);
     }
     public static float[] magneticFieldSensorReading() {
-        float rv[] = { 0f, 0f, 0f };
         if ( magneticFieldSensor == null )
-            return rv;
+            return defaultRv;
         return (float[]) magneticFieldSensor.readSensor();
     }
 
