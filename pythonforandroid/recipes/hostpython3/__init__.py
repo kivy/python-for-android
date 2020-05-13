@@ -13,7 +13,7 @@ from pythonforandroid.util import (
 )
 
 
-class Hostpython3Recipe(Recipe):
+class HostPython3Recipe(Recipe):
     '''
     The hostpython3's recipe.
 
@@ -122,4 +122,4 @@ class Hostpython3Recipe(Recipe):
         self.ctx.hostpython = self.python_exe
 
 
-recipe = Hostpython3Recipe()
+recipe = HostPython3Recipe()
