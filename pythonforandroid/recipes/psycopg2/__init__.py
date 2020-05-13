@@ -12,7 +12,7 @@ class Psycopg2Recipe(PythonRecipe):
     """
     version = '2.8.4'
     url = 'https://pypi.python.org/packages/source/p/psycopg2/psycopg2-{version}.tar.gz'
-    depends = ['libpq']
+    depends = ['libpq', 'setuptools']
     site_packages_name = 'psycopg2'
     call_hostpython_via_targetpython = False
 
