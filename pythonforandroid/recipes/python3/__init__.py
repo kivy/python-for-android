@@ -4,7 +4,8 @@ import subprocess
 
 from multiprocessing import cpu_count
 from os import environ
-from os.path import dirname, exists, join, isfile
+from os.path import dirname, exists, join
+from pathlib import Path
 from shutil import copy2
 
 from pythonforandroid.logger import info, warning, shprint
@@ -165,7 +166,7 @@ class Python3Recipe(TargetPythonRecipe):
         return join(self.get_build_dir(arch_name), 'android-build')
 
     def should_build(self, arch):
-        return not isfile(join(self.link_root(arch.arch), self._libpython))
+        return not Path(self.link_root(arch.arch), self._libpython).is_file()
 
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
