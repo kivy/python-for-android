@@ -22,13 +22,13 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             f'libpython{self.recipe.major_minor_version_string}m.so'
         )
 
-    def test_should_build(self):
-        expected_include_dir = join(
-            self.recipe.get_build_dir(self.arch.arch), 'Include',
-        )
-        self.assertEqual(
-            expected_include_dir, self.recipe.include_root(self.arch.arch)
-        )
+    @mock.patch('pythonforandroid.recipes.python3.Path.is_file')
+    def test_should_build(self, mock_is_file):
+        # in case that python lib exists, we shouldn't trigger the build
+        self.assertFalse(self.recipe.should_build(self.arch))
+        # in case that python lib doesn't exist, we should trigger the build
+        mock_is_file.return_value = False
+        self.assertTrue(self.recipe.should_build(self.arch))
 
     def test_include_root(self):
         expected_include_dir = join(
