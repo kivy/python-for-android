@@ -511,10 +511,13 @@ main.py that loads it.''')
         join(res_dir, 'values/strings.xml'),
         **render_args)
 
-    # extra resources
-    if args.add_resource:
-        for file_path in args.add_resource:
-            shutil.copy(file_path, join(res_dir, basename(file_path)))
+    # extra xml resources
+    if args.add_xml_resource:
+        xml_res_dir = join(res_dir, 'xml')
+        if not exists(xml_res_dir):
+            os.mkdir(xml_res_dir)
+        for file_path in args.add_xml_resource:
+            shutil.copy(file_path, join(xml_res_dir, basename(file_path)))
 
     if exists(join("templates", "custom_rules.tmpl.xml")):
         render(
@@ -722,8 +725,9 @@ tools directory of the Android SDK.
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
-    ap.add_argument('--add-resource', dest='add_resource', action='append',
-                    help=('Copy this file at this path to the src/main/res '
+    ap.add_argument('--add-xml-resource', dest='add_xml_resource',
+                    action='append',
+                    help=('Copy this file to the src/main/res/xml '
                           'subdirectory of the build.'))
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
