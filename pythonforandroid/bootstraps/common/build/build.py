@@ -511,6 +511,11 @@ main.py that loads it.''')
         join(res_dir, 'values/strings.xml'),
         **render_args)
 
+    # extra resources
+    if args.add_resource:
+        for file_path in args.add_resource:
+            shutil.copy(file_path, join(res_dir, basename(file_path)))
+
     if exists(join("templates", "custom_rules.tmpl.xml")):
         render(
             'custom_rules.tmpl.xml',
@@ -717,6 +722,9 @@ tools directory of the Android SDK.
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
+    ap.add_argument('--add-resource', dest='add_resource', action='append',
+                    help=('Copy this file at this path to the src/main/res '
+                          'subdirectory of the build.'))
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
