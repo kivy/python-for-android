@@ -129,9 +129,14 @@
             </intent-filter>
         </receiver>
         {% endif %}
-    {% for a in args.add_activity  %}
-    <activity android:name="{{ a }}"></activity>
-    {% endfor %}
+
+        {% for a in args.add_activity  %}
+        <activity android:name="{{ a }}"></activity>
+        {% endfor %}
+
+        {%- if args.content_providers -%}
+        {{- args.content_providers -}}
+        {%- endif -%}
     </application>
 
 </manifest>

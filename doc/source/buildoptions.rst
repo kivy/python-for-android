@@ -86,6 +86,8 @@ options (this list may not be exhaustive):
   include multiple jar files, pass this argument multiple times.
 - ``--intent-filters``: A file path containing intent filter xml to be
   included in AndroidManifest.xml.
+- ``--content-providers``: A file path containing provider xml to be
+  included in AndroidManifest.xml.
 - ``--service``: A service name and the Python script it should
   run. See :ref:`arbitrary_scripts_services`.
 - ``--add-source``: Add a source directory to the app's Java code.

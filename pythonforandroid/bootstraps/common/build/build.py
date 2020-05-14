@@ -372,6 +372,10 @@ main.py that loads it.''')
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
+    if args.content_providers:
+        with open(args.content_providers) as f:
+            args.content_providers = f.read()
+
     if not args.add_activity:
         args.add_activity = []
 
@@ -703,6 +707,12 @@ tools directory of the Android SDK.
                           'the discovered ndk_api in the dist'))
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
+                          'AndroidManifest.xml file. The argument is a '
+                          'filename containing xml. The filename should be '
+                          'located relative to the python-for-android '
+                          'directory'))
+    ap.add_argument('--content-providers', dest='content_providers',
+                    help=('Add providers xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
