@@ -590,9 +590,10 @@ tools directory of the Android SDK.
                     help=('The human-readable name of the project.'),
                     required=True)
     ap.add_argument('--numeric-version', dest='numeric_version',
+                    default=os.environ.get('APK_NUMERIC_VERSION', None),
                     help=('The numeric version number of the project. If not '
-                          'given, this is automatically computed from the '
-                          'version.'))
+                          'given and no APK_NUMERIC_VERSION env is set, this '
+                          'is automatically computed from the version.'))
     ap.add_argument('--version', dest='version',
                     help=('The version number of the project. This should '
                           'consist of numbers and dots, and should have the '

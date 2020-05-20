@@ -58,6 +58,9 @@ options (this list may not be exhaustive):
 - ``--private``: The directory containing your project files.
 - ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
+- ``--numeric-version``: The numeric version number of the project.
+  If not given and no ``APK_NUMERIC_VERSION`` env is set, this is
+  automatically computed from the version.
 - ``--version``: The version number.
 - ``--orientation``: Usually one of ``portait``, ``landscape``,
   ``sensor`` to automatically rotate according to the device
