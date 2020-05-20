@@ -514,10 +514,10 @@ class ToolchainCL:
                  "dependencies that won't work or aren't desired " +
                  "on Android")
         parser_packaging.add_argument(
-            '--release', dest='build_mode', action='store_const',
-            const='release', default='debug',
-            help='Build your app as a non-debug release build. '
-                 '(Disables gdb debugging among other things)')
+            '--debuggable', dest='debuggable', action='store_const',
+            const='debuggable', default=False,
+            help='Build your app as a debug release build. '
+                 '(Enables gdb debugging among other things)')
         parser_packaging.add_argument(
             '--keystore', dest='keystore', action='store', default=None,
             help=('Keystore for JAR signing key, will use jarsigner '
@@ -591,8 +591,8 @@ class ToolchainCL:
         if hasattr(args, "private") and args.private is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
-        if hasattr(args, "build_mode") and args.build_mode == "release":
-            args.unknown_args += ["--release"]
+        if hasattr(args, "debuggable") and args.debuggable:
+            args.unknown_args += ["--debuggable"]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
@@ -609,9 +609,7 @@ class ToolchainCL:
 
         self.ctx = Context()
         self.ctx.use_setup_py = getattr(args, "use_setup_py", True)
-        self.ctx.build_as_debuggable = getattr(
-            args, "build_mode", "debug"
-        ) == "debug"
+        self.ctx.build_as_debuggable = getattr(args, "debuggable", False)
 
         have_setup_py_or_similar = False
         if getattr(args, "private", None) is not None:
@@ -977,7 +975,7 @@ class ToolchainCL:
         :param args: parser args
         """
         env = os.environ.copy()
-        if args.build_mode == 'release':
+        if not args.debuggable:
             if args.keystore:
                 env['P4A_RELEASE_KEYSTORE'] = realpath(expanduser(args.keystore))
             if args.signkey:
@@ -1042,13 +1040,10 @@ class ToolchainCL:
                     sh.Command('dos2unix'), gradlew._path.decode('utf8'),
                     _tail=20, _critical=True, _env=env
                 )
-            if args.build_mode == "debug":
+            if args.debuggable:
                 gradle_task = "assembleDebug"
-            elif args.build_mode == "release":
-                gradle_task = "assembleRelease"
             else:
-                raise BuildInterruptingException(
-                    "Unknown build mode {} for apk()".format(args.build_mode))
+                gradle_task = "assembleRelease"
             output = shprint(gradlew, gradle_task, _tail=20,
                              _critical=True, _env=env)
         return output, build_args
@@ -1079,12 +1074,11 @@ class ToolchainCL:
                 break
         if not package_file:
             info_main('# Android package filename not found in build output. Guessing...')
-            if args.build_mode == "release":
-                suffixes = ("release", "release-unsigned")
+            if args.debuggable:
+                suffixes = ("debug",)
             else:
-                suffixes = ("debug", )
+                suffixes = ("release", "release-unsigned")
             for suffix in suffixes:
-
                 package_files = glob.glob(join(output_dir, package_glob.format(suffix)))
                 if package_files:
                     if len(package_files) > 1:
@@ -1109,7 +1103,10 @@ class ToolchainCL:
     @require_prebuilt_dist
     def apk(self, args):
         output, build_args = self._build_package(args, package_type='apk')
-        output_dir = join(self._dist.dist_dir, "build", "outputs", 'apk', args.build_mode)
+        build_mode = "debug" if args.debuggable else "release"
+        output_dir = join(
+            self._dist.dist_dir, "build", "outputs", 'apk', build_mode,
+        )
         self._finish_package(args, output, build_args, 'apk', output_dir)
 
     @require_prebuilt_dist
