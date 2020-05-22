@@ -7,7 +7,7 @@
     <!-- Android 2.3.3 -->
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
 
-    <application>
+    <application {% if debug %}android:debuggable="true"{% endif %} >
         {% for name in service_names %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
                  android:process=":service_{{ name }}"

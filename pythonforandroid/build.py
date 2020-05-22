@@ -82,8 +82,11 @@ class Context:
     '''A build context. If anything will be built, an instance this class
     will be instantiated and used to hold all the build state.'''
 
-    # Whether to build with debugging symbols
+    # Whether to make a debug or release build
     build_as_debuggable = False
+
+    # Whether to strip debug symbols in `.so` files
+    with_debug_symbols = False
 
     env = environ.copy()
     # the filepath of toolchain.py
@@ -831,7 +834,7 @@ def run_pymodules_install(ctx, modules, project_dir=None,
                 )
 
         # Strip object files after potential Cython or native code builds:
-        if not ctx.build_as_debuggable:
+        if not ctx.with_debug_symbols:
             standard_recipe.strip_object_files(
                 ctx.archs[0], env, build_dir=ctx.build_dir
             )

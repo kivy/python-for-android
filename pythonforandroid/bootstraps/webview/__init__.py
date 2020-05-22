@@ -43,7 +43,7 @@ class WebViewBootstrap(Bootstrap):
                 with open('blacklist.txt', 'a') as fileh:
                     fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
 
-        if not self.ctx.build_as_debuggable:
+        if not self.ctx.with_debug_symbols:
             self.strip_libraries(arch)
         self.fry_eggs(site_packages_dir)
         super().assemble_distribution()
