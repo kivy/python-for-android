@@ -1072,7 +1072,7 @@ class CythonRecipe(PythonRecipe):
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
 
-            if not self.ctx.build_as_debuggable:
+            if not self.ctx.with_debug_symbols:
                 self.strip_object_files(arch, env)
 
     def strip_object_files(self, arch, env, build_dir=None):

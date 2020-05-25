@@ -680,6 +680,9 @@ tools directory of the Android SDK.
                     const='release', default='debug',
                     help='Build your app as a non-debug release build. '
                          '(Disables gdb debugging among other things)')
+    ap.add_argument('--with-debug-symbols', dest='with_debug_symbols',
+                    action='store_const', const=True, default=False,
+                    help='Will keep debug symbols from `.so` files.')
     ap.add_argument('--add-jar', dest='add_jar', action='append',
                     help=('Add a Java .jar to the libs, so you can access its '
                           'classes with pyjnius. You can specify this '

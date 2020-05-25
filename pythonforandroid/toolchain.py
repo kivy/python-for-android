@@ -196,6 +196,14 @@ def build_dist_from_args(ctx, dist, args):
         ctx.recipe_build_order))
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
+    info(
+        'Dist will be build in mode {build_mode}{with_debug_symbols}'.format(
+            build_mode='debug' if ctx.build_as_debuggable else 'release',
+            with_debug_symbols=' (with debug symbols)'
+            if ctx.with_debug_symbols
+            else '',
+        )
+    )
 
     ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
@@ -519,6 +527,10 @@ class ToolchainCL:
             help='Build your app as a non-debug release build. '
                  '(Disables gdb debugging among other things)')
         parser_packaging.add_argument(
+            '--with-debug-symbols', dest='with_debug_symbols',
+            action='store_const', const=True, default=False,
+            help='Will keep debug symbols from `.so` files.')
+        parser_packaging.add_argument(
             '--keystore', dest='keystore', action='store', default=None,
             help=('Keystore for JAR signing key, will use jarsigner '
                   'default if not specified (release build only)'))
@@ -593,6 +605,8 @@ class ToolchainCL:
             args.unknown_args += ["--private", args.private]
         if hasattr(args, "build_mode") and args.build_mode == "release":
             args.unknown_args += ["--release"]
+        if hasattr(args, "with_debug_symbols") and args.with_debug_symbols:
+            args.unknown_args += ["--with-debug-symbols"]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
@@ -612,6 +626,9 @@ class ToolchainCL:
         self.ctx.build_as_debuggable = getattr(
             args, "build_mode", "debug"
         ) == "debug"
+        self.ctx.with_debug_symbols = getattr(
+            args, "with_debug_symbols", False
+        )
 
         have_setup_py_or_similar = False
         if getattr(args, "private", None) is not None:
