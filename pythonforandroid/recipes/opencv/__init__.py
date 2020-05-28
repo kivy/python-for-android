@@ -31,8 +31,7 @@ class OpenCVRecipe(NDKRecipe):
         'libopencv_video.so',
         'libopencv_dnn.so',
         'libopencv_imgcodecs.so',
-        'libopencv_photo.so'
-        # todo: add opencv_extras libraries
+        'libopencv_photo.so',
     ]
 
     def get_lib_dir(self, arch):
