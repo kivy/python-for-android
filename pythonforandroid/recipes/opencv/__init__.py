@@ -31,7 +31,7 @@ class OpenCVRecipe(NDKRecipe):
         'libopencv_video.so',
         'libopencv_dnn.so',
         'libopencv_imgcodecs.so',
-        'libopencv_photo.so'
+        'libopencv_photo.so',
     ]
 
     def get_lib_dir(self, arch):
@@ -46,6 +46,16 @@ class OpenCVRecipe(NDKRecipe):
     def build_arch(self, arch):
         build_dir = join(self.get_build_dir(arch.arch), 'build')
         shprint(sh.mkdir, '-p', build_dir)
+
+        opencv_extras = []
+        if 'opencv_extras' in self.ctx.recipe_build_order:
+            opencv_extras_dir = self.get_recipe(
+                'opencv_extras', self.ctx).get_build_dir(arch.arch)
+            opencv_extras = [
+                f'-DOPENCV_EXTRA_MODULES_PATH={opencv_extras_dir}/modules',
+                '-DBUILD_opencv_legacy=OFF',
+            ]
+
         with current_directory(build_dir):
             env = self.get_recipe_env(arch)
 
@@ -119,6 +129,8 @@ class OpenCVRecipe(NDKRecipe):
                         major=python_major, numpy_include=python_include_numpy),
                     '-DPYTHON{major}_PACKAGES_PATH={site_packages}'.format(
                         major=python_major, site_packages=python_site_packages),
+
+                    *opencv_extras,
 
                     self.get_build_dir(arch.arch),
                     _env=env)
