@@ -207,4 +207,15 @@ SSLError("Can't connect to HTTPS URL because the SSL module is not available.")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Your `hostpython3` was compiled without SSL support. You need to install the SSL development files before rebuilding the `hostpython3` recipe.
-On Ubuntu and derivatives these come from the `libssl-dev` package (then `p4a clean builds`, or with buildozer `buildozer android clean`).
+Remember to always clean the build before rebuilding (`p4a clean builds`, or with buildozer `buildozer android clean`).
+
+On Ubuntu and derivatives::
+
+    apt install openssl
+    p4a clean builds # or with: buildozer `buildozer android clean
+
+On macOS::
+
+    brew install openssl
+    sudo ln -sfn /usr/local/opt/openssl /usr/local/ssl
+    p4a clean builds # or with: buildozer `buildozer android clean
