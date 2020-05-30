@@ -1,23 +1,24 @@
 <!--
-The issue tracker is a tool to address bugs.
-Please use the Disord community or Stack Overflow for support questions,
+The issue tracker is a tool to address bugs NOT a support platform.
+Please use the Discord community or Stack Overflow for support questions,
 more information at https://github.com/kivy/python-for-android#support
-
-Before opening a new issue, make sure you do the following:
-    * check that your issue isn't already filed: https://github.com/kivy/python-for-android/issues
-    * prepare a short, runnable example that reproduces the issue
-    * make sure to have `log_level = 2` in your `buildozer.spec`
-    * reproduce the problem with the latest development version (`p4a.branch = master`)
-    * double-check that the issue is indeed a bug and not a support request
-    * please use backticks to format code or logs
 -->
+
+### Checklist
+
+- [ ] the issue is indeed a bug and not a support request
+- [ ] issue doesn't already exist: https://github.com/kivy/python-for-android/issues
+- [ ] I have a short, runnable example that reproduces the issue
+- [ ] I reproduced the problem with the latest development version (`p4a.branch = develop`)
+- [ ] I used the grave accent (aka backticks) to format code or logs when appropriated
 
 ### Versions
 
-* Python:
-* OS:
-* Kivy:
-* Cython:
+- Python:
+- OS:
+- Kivy:
+- Cython:
+- OpenJDK:
 
 ### Description
 
@@ -28,6 +29,7 @@ Before opening a new issue, make sure you do the following:
 Command:
 ```sh
 // REPLACE ME: buildozer command ran? e.g. buildozer android debug
+// Keep the triple grave accent (aka backquote/backtick) to have the code formatted
 ```
 
 Spec file:
@@ -38,5 +40,6 @@ Spec file:
 ### Logs
 
 ```
-// REPLACE ME: Paste the build ouput containing the error
+// REPLACE ME: Paste the build output containing the error
+// Keep the triple grave accent (a.k.a. backquote/backtick) to have the code formatted
 ```
