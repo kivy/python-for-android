@@ -22,9 +22,9 @@ class ReportLabRecipe(CompiledComponentsPythonRecipe):
             font_dir = os.path.join(recipe_dir,
                                     "src", "reportlab", "fonts")
             if os.path.exists(font_dir):
-                for l in os.listdir(font_dir):
-                    if l.lower().startswith('darkgarden'):
-                        os.remove(os.path.join(font_dir, l))
+                for file in os.listdir(font_dir):
+                    if file.lower().startswith('darkgarden'):
+                        os.remove(os.path.join(font_dir, file))
 
             # Apply patches:
             self.apply_patch('patches/fix-setup.patch', arch.arch)

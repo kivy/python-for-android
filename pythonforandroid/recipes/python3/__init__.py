@@ -4,17 +4,23 @@ import subprocess
 
 from multiprocessing import cpu_count
 from os import environ
-from os.path import dirname, exists, join, isfile
+from os.path import dirname, exists, join
+from pathlib import Path
 from shutil import copy2
 
 from pythonforandroid.logger import info, warning, shprint
-from pythonforandroid.patching import version_starts_with
+from pythonforandroid.patching import version_starts_with, is_version_lt
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
 from pythonforandroid.util import (
     current_directory,
     ensure_dir,
     walk_valid_filens,
     BuildInterruptingException,
+)
+
+NDK_API_LOWER_THAN_SUPPORTED_MESSAGE = (
+    'Target ndk-api is {ndk_api}, '
+    'but the python3 recipe supports only {min_ndk_api}+'
 )
 
 
@@ -55,6 +61,8 @@ class Python3Recipe(TargetPythonRecipe):
     name = 'python3'
 
     patches = [
+        ('patches/pyconfig_detection.patch', is_version_lt("3.8.3")),
+
         # Python 3.7.1
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
         ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
@@ -158,7 +166,7 @@ class Python3Recipe(TargetPythonRecipe):
         return join(self.get_build_dir(arch_name), 'android-build')
 
     def should_build(self, arch):
-        return not isfile(join(self.link_root(arch.arch), self._libpython))
+        return not Path(self.link_root(arch.arch), self._libpython).is_file()
 
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
@@ -268,8 +276,10 @@ class Python3Recipe(TargetPythonRecipe):
     def build_arch(self, arch):
         if self.ctx.ndk_api < self.MIN_NDK_API:
             raise BuildInterruptingException(
-                'Target ndk-api is {}, but the python3 recipe supports only'
-                ' {}+'.format(self.ctx.ndk_api, self.MIN_NDK_API))
+                NDK_API_LOWER_THAN_SUPPORTED_MESSAGE.format(
+                    ndk_api=self.ctx.ndk_api, min_ndk_api=self.MIN_NDK_API
+                ),
+            )
 
         recipe_build_dir = self.get_build_dir(arch.arch)
 
@@ -281,14 +291,14 @@ class Python3Recipe(TargetPythonRecipe):
         sys_prefix = '/usr/local'
         sys_exec_prefix = '/usr/local'
 
+        env = self.get_recipe_env(arch)
+        env = self.set_libs_flags(env, arch)
+
+        android_build = sh.Command(
+            join(recipe_build_dir,
+                 'config.guess'))().stdout.strip().decode('utf-8')
+
         with current_directory(build_dir):
-            env = self.get_recipe_env(arch)
-            env = self.set_libs_flags(env, arch)
-
-            android_build = sh.Command(
-                join(recipe_build_dir,
-                     'config.guess'))().stdout.strip().decode('utf-8')
-
             if not exists('config.status'):
                 shprint(
                     sh.Command(join(recipe_build_dir, 'configure')),

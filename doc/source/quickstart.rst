@@ -62,14 +62,16 @@ Installing Dependencies
 p4a has several dependencies that must be installed:
 
 - ant
-- autoconf (for ffpyplayer_codecs recipe)
+- autoconf (for libffi and other recipes)
+- automake
 - ccache (optional)
 - cmake (required for some native code recipes like jpeg's recipe)
 - cython (can be installed via pip)
 - gcc
 - git
 - libncurses (including 32 bit)
-- libtool (for ffpyplayer_codecs recipe)
+- libtool (for libffi and recipes)
+- libssl-dev (for TLS/SSL support on hostpython3 and recipe)
 - openjdk-8
 - patch
 - python3
@@ -83,13 +85,19 @@ install most of these with::
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python3 python3-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool
+    sudo apt-get install -y build-essential ccache git zlib1g-dev python3 python3-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool libssl-dev
 
 On Arch Linux you should be able to run the following to
 install most of the dependencies (note: this list may not be
 complete)::
 
     sudo pacman -S core/autoconf core/automake core/gcc core/make core/patch core/pkgconf extra/cmake extra/jdk8-openjdk extra/python-pip extra/unzip extra/zip
+
+On macOS::
+
+    brew install autoconf automake libtool openssl pkg-config
+    brew tap homebrew/cask-versions
+    brew cask install homebrew/cask-versions/adoptopenjdk8
 
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~

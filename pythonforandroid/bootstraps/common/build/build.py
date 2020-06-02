@@ -87,11 +87,6 @@ environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
 
 
-def try_unlink(fn):
-    if exists(fn):
-        os.unlink(fn)
-
-
 def ensure_dir(path):
     if not exists(path):
         makedirs(path)
@@ -239,8 +234,7 @@ main.py that loads it.''')
     assets_dir = "src/main/assets"
 
     # Delete the old assets.
-    try_unlink(join(assets_dir, 'public.mp3'))
-    try_unlink(join(assets_dir, 'private.mp3'))
+    shutil.rmtree(assets_dir, ignore_errors=True)
     ensure_dir(assets_dir)
 
     # Add extra environment variable file into tar-able directory:
@@ -304,6 +298,15 @@ main.py that loads it.''')
                 tar_dirs.append(python_bundle_dir)
         if get_bootstrap_name() == "webview":
             tar_dirs.append('webview_includes')
+
+        for asset in args.assets:
+            asset_src, asset_dest = asset.split(":")
+            if isfile(realpath(asset_src)):
+                ensure_dir(dirname(join(assets_dir, asset_dest)))
+                shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
+            else:
+                shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
+
         if args.private or args.launcher:
             make_tar(
                 join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
@@ -380,6 +383,9 @@ main.py that loads it.''')
         for spec in args.extra_source_dirs:
             if ':' in spec:
                 specdir, specincludes = spec.split(':')
+                print('WARNING: Currently gradle builds only support including source '
+                      'directories, so when building using gradle all files in '
+                      '{} will be included.'.format(specdir))
             else:
                 specdir = spec
                 specincludes = '**'
@@ -524,24 +530,28 @@ main.py that loads it.''')
         for patch_name in os.listdir(join('src', 'patches')):
             patch_path = join('src', 'patches', patch_name)
             print("Applying patch: " + str(patch_path))
+
+            # -N: insist this is FORWARD patch, don't reverse apply
+            # -p1: strip first path component
+            # -t: batch mode, don't ask questions
+            patch_command = ["patch", "-N", "-p1", "-t", "-i", patch_path]
+
             try:
-                subprocess.check_output([
-                    # -N: insist this is FORWARd patch, don't reverse apply
-                    # -p1: strip first path component
-                    # -t: batch mode, don't ask questions
-                    "patch", "-N", "-p1", "-t", "-i", patch_path
-                ])
+                # Use a dry run to establish whether the patch is already applied.
+                # If we don't check this, the patch may be partially applied (which is bad!)
+                subprocess.check_output(patch_command + ["--dry-run"])
             except subprocess.CalledProcessError as e:
                 if e.returncode == 1:
-                    # Return code 1 means it didn't apply, this will
-                    # usually mean it is already applied.
-                    print("Warning: failed to apply patch (" +
-                          "exit code 1), " +
-                          "assuming it is already applied: " +
-                          str(patch_path)
-                         )
+                    # Return code 1 means not all hunks could be applied, this usually
+                    # means the patch is already applied.
+                    print("Warning: failed to apply patch (exit code 1), "
+                          "assuming it is already applied: ",
+                          str(patch_path))
                 else:
                     raise e
+            else:
+                # The dry run worked, so do the real thing
+                subprocess.check_output(patch_command)
 
 
 def parse_args_and_make_package(args=None):
@@ -599,6 +609,10 @@ tools directory of the Android SDK.
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
+    ap.add_argument('--asset', dest='assets',
+                    action="append", default=[],
+                    metavar="/path/to/source:dest",
+                    help='Put this in the assets folder at assets/dest')
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
@@ -666,6 +680,9 @@ tools directory of the Android SDK.
                     const='release', default='debug',
                     help='Build your app as a non-debug release build. '
                          '(Disables gdb debugging among other things)')
+    ap.add_argument('--with-debug-symbols', dest='with_debug_symbols',
+                    action='store_const', const=True, default=False,
+                    help='Will keep debug symbols from `.so` files.')
     ap.add_argument('--add-jar', dest='add_jar', action='append',
                     help=('Add a Java .jar to the libs, so you can access its '
                           'classes with pyjnius. You can specify this '

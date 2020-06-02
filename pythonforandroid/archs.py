@@ -145,9 +145,9 @@ class Arch:
             + " ".join(
                 [
                     "-L'"
-                    + l.replace("'", "'\"'\"'")
+                    + link_path.replace("'", "'\"'\"'")
                     + "'"  # no shlex.quote in py2
-                    for l in self.extra_global_link_paths
+                    for link_path in self.extra_global_link_paths
                 ]
             )
             + ' ' + ' '.join(self.common_ldflags).format(

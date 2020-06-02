@@ -2,33 +2,30 @@
 // spaces amount
 package org.renpy.android;
 
-import java.io.*;
-
-import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.File;
 
 import java.util.zip.GZIPInputStream;
 
 import android.content.res.AssetManager;
-
-import org.kamranzafar.jtar.*;
+import org.kamranzafar.jtar.TarEntry;
+import org.kamranzafar.jtar.TarInputStream;
 
 public class AssetExtract {
 
     private AssetManager mAssetManager = null;
-    private Activity mActivity = null;
 
-    public AssetExtract(Activity act) {
-        mActivity = act;
-        mAssetManager = act.getAssets();
+    public AssetExtract(Context context) {
+        mAssetManager = context.getAssets();
     }
 
     public boolean extractTar(String asset, String target) {
@@ -51,7 +48,7 @@ public class AssetExtract {
 
             try {
                 entry = tis.getNextEntry();
-            } catch ( java.io.IOException e ) {
+            } catch ( IOException e ) {
                 Log.e("python", "extracting tar", e);
                 return false;
             }
@@ -76,8 +73,7 @@ public class AssetExtract {
 
             try {
                 out = new BufferedOutputStream(new FileOutputStream(path), 8192);
-            } catch ( FileNotFoundException e ) {
-            } catch ( SecurityException e ) { };
+            } catch ( FileNotFoundException | SecurityException e ) {}
 
             if ( out == null ) {
                 Log.e("python", "could not open " + path);
@@ -97,7 +93,7 @@ public class AssetExtract {
 
                 out.flush();
                 out.close();
-            } catch ( java.io.IOException e ) {
+            } catch ( IOException e ) {
                 Log.e("python", "extracting zip", e);
                 return false;
             }

@@ -1,4 +1,3 @@
-
 from pythonforandroid.recipe import PythonRecipe
 
 

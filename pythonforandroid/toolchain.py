@@ -196,6 +196,14 @@ def build_dist_from_args(ctx, dist, args):
         ctx.recipe_build_order))
     info('Dist will also contain modules ({}) installed from pip'.format(
         ', '.join(ctx.python_modules)))
+    info(
+        'Dist will be build in mode {build_mode}{with_debug_symbols}'.format(
+            build_mode='debug' if ctx.build_as_debuggable else 'release',
+            with_debug_symbols=' (with debug symbols)'
+            if ctx.with_debug_symbols
+            else '',
+        )
+    )
 
     ctx.distribution = dist
     ctx.prepare_bootstrap(bs)
@@ -209,17 +217,17 @@ def build_dist_from_args(ctx, dist, args):
                   ),
                  )
 
-    ctx.bootstrap.run_distribute()
+    ctx.bootstrap.assemble_distribution()
 
     info_main('# Your distribution was created successfully, exiting.')
     info('Dist can be found at (for now) {}'
          .format(join(ctx.dist_dir, ctx.distribution.dist_dir)))
 
 
-def split_argument_list(l):
-    if not len(l):
+def split_argument_list(arg_list):
+    if not len(arg_list):
         return []
-    return re.split(r'[ ,]+', l)
+    return re.split(r'[ ,]+', arg_list)
 
 
 class NoAbbrevParser(argparse.ArgumentParser):
@@ -492,6 +500,10 @@ class ToolchainCL:
         # assembled for locating the setup.py / other build systems, which
         # is why we also add it here:
         parser_packaging.add_argument(
+            '--add-asset', dest='assets',
+            action="append", default=[],
+            help='Put this in the assets folder in the apk.')
+        parser_packaging.add_argument(
             '--private', dest='private',
             help='the directory with the app source code files' +
                  ' (containing your main.py entrypoint)',
@@ -514,6 +526,10 @@ class ToolchainCL:
             const='release', default='debug',
             help='Build your app as a non-debug release build. '
                  '(Disables gdb debugging among other things)')
+        parser_packaging.add_argument(
+            '--with-debug-symbols', dest='with_debug_symbols',
+            action='store_const', const=True, default=False,
+            help='Will keep debug symbols from `.so` files.')
         parser_packaging.add_argument(
             '--keystore', dest='keystore', action='store', default=None,
             help=('Keystore for JAR signing key, will use jarsigner '
@@ -589,6 +605,8 @@ class ToolchainCL:
             args.unknown_args += ["--private", args.private]
         if hasattr(args, "build_mode") and args.build_mode == "release":
             args.unknown_args += ["--release"]
+        if hasattr(args, "with_debug_symbols") and args.with_debug_symbols:
+            args.unknown_args += ["--with-debug-symbols"]
         if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
             args.use_setup_py = False
 
@@ -608,6 +626,9 @@ class ToolchainCL:
         self.ctx.build_as_debuggable = getattr(
             args, "build_mode", "debug"
         ) == "debug"
+        self.ctx.with_debug_symbols = getattr(
+            args, "with_debug_symbols", False
+        )
 
         have_setup_py_or_similar = False
         if getattr(args, "private", None) is not None:
@@ -949,6 +970,14 @@ class ToolchainCL:
         fix_args = ('--dir', '--private', '--add-jar', '--add-source',
                     '--whitelist', '--blacklist', '--presplash', '--icon')
         unknown_args = args.unknown_args
+
+        for asset in args.assets:
+            if ":" in asset:
+                asset_src, asset_dest = asset.split(":")
+            else:
+                asset_src = asset_dest = asset
+            # take abspath now, because build.py will be run in bootstrap dir
+            unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
             if argx[0] in fix_args:
@@ -1039,7 +1068,7 @@ class ToolchainCL:
                     "Unknown build mode {} for apk()".format(args.build_mode))
             output = shprint(gradlew, gradle_task, _tail=20,
                              _critical=True, _env=env)
-            return output, build_args
+        return output, build_args
 
     def _finish_package(self, args, output, build_args, package_type, output_dir):
         """
@@ -1132,7 +1161,7 @@ class ToolchainCL:
 
         if dists:
             print('{Style.BRIGHT}Distributions currently installed are:'
-                  '{Style.RESET_ALL}'.format(Style=Out_Style, Fore=Out_Fore))
+                  '{Style.RESET_ALL}'.format(Style=Out_Style))
             pretty_log_dists(dists, print)
         else:
             print('{Style.BRIGHT}There are no dists currently built.'

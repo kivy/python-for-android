@@ -51,6 +51,7 @@
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true"
                  android:usesCleartextTraffic="true"
+                 {% if debug %}android:debuggable="true"{% endif %}
                  >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />

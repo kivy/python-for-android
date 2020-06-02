@@ -4,7 +4,6 @@ import java.io.File;
 
 import android.util.Log;
 import java.util.ArrayList;
-import java.io.FilenameFilter;
 import java.util.regex.Pattern;
 
 
@@ -34,8 +33,13 @@ public class PythonUtil {
         ArrayList<String> libsList = new ArrayList<String>();
         addLibraryIfExists(libsList, "sqlite3", libsDir);
         addLibraryIfExists(libsList, "ffi", libsDir);
+        addLibraryIfExists(libsList, "png16", libsDir);
         addLibraryIfExists(libsList, "ssl.*", libsDir);
         addLibraryIfExists(libsList, "crypto.*", libsDir);
+        addLibraryIfExists(libsList, "SDL2", libsDir);
+        addLibraryIfExists(libsList, "SDL2_image", libsDir);
+        addLibraryIfExists(libsList, "SDL2_mixer", libsDir);
+        addLibraryIfExists(libsList, "SDL2_ttf", libsDir);
         libsList.add("python3.5m");
         libsList.add("python3.6m");
         libsList.add("python3.7m");
@@ -45,7 +49,6 @@ public class PythonUtil {
     }
 
     public static void loadLibraries(File filesDir, File libsDir) {
-        String filesDirPath = filesDir.getAbsolutePath();
         boolean foundPython = false;
 
         for (String lib : getLibraries(libsDir)) {
@@ -61,7 +64,7 @@ public class PythonUtil {
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
                 if (lib.startsWith("python3.8") && !foundPython) {
-                    throw new java.lang.RuntimeException("Could not load any libpythonXXX.so");
+                    throw new RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;
                 } else {
@@ -72,5 +75,5 @@ public class PythonUtil {
         }
 
         Log.v(TAG, "Loaded everything!");
-	}
+    }
 }

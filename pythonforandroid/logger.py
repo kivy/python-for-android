@@ -199,9 +199,9 @@ def shprint(command, *args, **kwargs):
                           re_filter_in=None, re_filter_out=None):
                 lines = out.splitlines()
                 if re_filter_in is not None:
-                    lines = [l for l in lines if re_filter_in.search(l)]
+                    lines = [line for line in lines if re_filter_in.search(line)]
                 if re_filter_out is not None:
-                    lines = [l for l in lines if not re_filter_out.search(l)]
+                    lines = [line for line in lines if not re_filter_out.search(line)]
                 if tail_n == 0 or len(lines) <= tail_n:
                     info('{}:\n{}\t{}{}'.format(
                         name, forecolor, '\t\n'.join(lines), Out_Fore.RESET))

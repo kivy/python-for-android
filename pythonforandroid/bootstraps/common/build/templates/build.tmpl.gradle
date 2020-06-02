@@ -85,6 +85,13 @@ android {
     sourceSets {
         main {
             jniLibs.srcDir 'libs'
+            java {
+
+                {%- for adir, pattern in args.extra_source_dirs -%}
+                    srcDir '{{adir}}'
+                {%- endfor -%}
+
+            }
         }
     }
 

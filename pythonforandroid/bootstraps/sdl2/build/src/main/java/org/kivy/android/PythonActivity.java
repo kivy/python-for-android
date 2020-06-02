@@ -1,14 +1,10 @@
-
 package org.kivy.android;
 
 import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.UnsatisfiedLinkError;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -21,33 +17,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.Manifest;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import org.libsdl.app.SDL;
 import org.libsdl.app.SDLActivity;
 
-import org.kivy.android.PythonUtil;
 import org.kivy.android.launcher.Project;
 
 import org.renpy.android.ResourceManager;
-import org.renpy.android.AssetExtract;
 
 
 public class PythonActivity extends SDLActivity {
@@ -58,7 +45,6 @@ public class PythonActivity extends SDLActivity {
     private ResourceManager resourceManager = null;
     private Bundle mMetaData = null;
     private PowerManager.WakeLock mWakeLock = null;
-    private static boolean appliedWindowedModeHack = false;
 
     public String getAppRoot() {
         String app_root =  getFilesDir().getAbsolutePath() + "/app";
@@ -85,15 +71,6 @@ public class PythonActivity extends SDLActivity {
         File app_root_file = new File(app_root);
         PythonUtil.loadLibraries(app_root_file,
             new File(getApplicationInfo().nativeLibraryDir));
-    }
-
-    public void recursiveDelete(File f) {
-        if (f.isDirectory()) {
-            for (File r : f.listFiles()) {
-                recursiveDelete(r);
-            }
-        }
-        f.delete();
     }
 
     /**
@@ -124,7 +101,8 @@ public class PythonActivity extends SDLActivity {
         protected String doInBackground(String... params) {
             File app_root_file = new File(params[0]);
             Log.v(TAG, "Ready to unpack");
-            unpackData("private", app_root_file);
+            PythonActivityUtil pythonActivityUtil = new PythonActivityUtil(mActivity, resourceManager);
+            pythonActivityUtil.unpackData("private", app_root_file);
             return null;
         }
 
@@ -228,63 +206,6 @@ public class PythonActivity extends SDLActivity {
 
         @Override
         protected void onProgressUpdate(Void... values) {
-        }
-    }
-
-    public void unpackData(final String resource, File target) {
-
-        Log.v(TAG, "UNPACKING!!! " + resource + " " + target.getName());
-
-        // The version of data in memory and on disk.
-        String data_version = resourceManager.getString(resource + "_version");
-        String disk_version = null;
-
-        Log.v(TAG, "Data version is " + data_version);
-
-        // If no version, no unpacking is necessary.
-        if (data_version == null) {
-            return;
-        }
-
-        // Check the current disk version, if any.
-        String filesDir = target.getAbsolutePath();
-        String disk_version_fn = filesDir + "/" + resource + ".version";
-
-        try {
-            byte buf[] = new byte[64];
-            InputStream is = new FileInputStream(disk_version_fn);
-            int len = is.read(buf);
-            disk_version = new String(buf, 0, len);
-            is.close();
-        } catch (Exception e) {
-            disk_version = "";
-        }
-
-        // If the disk data is out of date, extract it and write the
-        // version file.
-        // if (! data_version.equals(disk_version)) {
-        if (! data_version.equals(disk_version)) {
-            Log.v(TAG, "Extracting " + resource + " assets.");
-
-            recursiveDelete(target);
-            target.mkdirs();
-
-            AssetExtract ae = new AssetExtract(this);
-            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
-                toastError("Could not extract " + resource + " data.");
-            }
-
-            try {
-                // Write .nomedia.
-                new File(target, ".nomedia").createNewFile();
-
-                // Write version file.
-                FileOutputStream os = new FileOutputStream(disk_version_fn);
-                os.write(data_version.getBytes());
-                os.close();
-            } catch (Exception e) {
-                Log.w("python", e);
-            }
         }
     }
 
@@ -393,7 +314,6 @@ public class PythonActivity extends SDLActivity {
             ) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
-        String filesDirectory = argument;
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
         String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
         serviceIntent.putExtra("androidPrivate", argument);
@@ -646,7 +566,7 @@ public class PythonActivity extends SDLActivity {
 
         try {
             java.lang.reflect.Method methodCheckPermission =
-                Activity.class.getMethod("checkSelfPermission", java.lang.String.class);
+                Activity.class.getMethod("checkSelfPermission", String.class);
             Object resultObj = methodCheckPermission.invoke(this, permission);
             int result = Integer.parseInt(resultObj.toString());
             if (result == PackageManager.PERMISSION_GRANTED) 
@@ -666,7 +586,7 @@ public class PythonActivity extends SDLActivity {
         try {
             java.lang.reflect.Method methodRequestPermission =
                 Activity.class.getMethod("requestPermissions",
-                java.lang.String[].class, int.class);
+                String[].class, int.class);
             methodRequestPermission.invoke(this, permissions, requestCode);
         } catch (IllegalAccessException | NoSuchMethodException |
                  InvocationTargetException e) {

@@ -11,7 +11,7 @@ install_java:
 	/usr/libexec/java_home -V
 
 upgrade_cython:
-	pip3 install --upgrade Cython==0.28.6
+	pip3 install --upgrade Cython==0.29.19
 
 install_android_ndk_sdk:
 	mkdir -p $(ANDROID_HOME)
