@@ -211,7 +211,7 @@ Remember to always clean the build before rebuilding (`p4a clean builds`, or wit
 
 On Ubuntu and derivatives::
 
-    apt install openssl
+    apt install libssl-dev
     p4a clean builds # or with: buildozer `buildozer android clean
 
 On macOS::
