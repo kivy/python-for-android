@@ -1,24 +1,28 @@
 # Downloads and installs the Android SDK depending on supplied platform: darwin or linux
 
-# We must provide a platform (darwin or linux) and we need JAVA_HOME defined
-ifndef target_os
-    $(error target_os is not set...aborted!)
-endif
-
 # Those android NDK/SDK variables can be override when running the file
 ANDROID_NDK_VERSION ?= 19b
-ANDROID_SDK_TOOLS_VERSION ?= 4333796
-ANDROID_SDK_BUILD_TOOLS_VERSION ?= 28.0.2
+ANDROID_SDK_TOOLS_VERSION ?= 6514223
+ANDROID_SDK_BUILD_TOOLS_VERSION ?= 29.0.3
 ANDROID_HOME ?= $(HOME)/.android
 ANDROID_API_LEVEL ?= 27
 
+# per OS dictionary-like
+UNAME_S := $(shell uname -s)
+TARGET_OS_Linux = linux
+TARGET_OS_ALIAS_Linux = $(TARGET_OS_Linux)
+TARGET_OS_Darwin = darwin
+TARGET_OS_ALIAS_Darwin = mac
+TARGET_OS = $(TARGET_OS_$(UNAME_S))
+TARGET_OS_ALIAS = $(TARGET_OS_ALIAS_$(UNAME_S))
+
 ANDROID_SDK_HOME=$(ANDROID_HOME)/android-sdk
-ANDROID_SDK_TOOLS_ARCHIVE=sdk-tools-$(target_os)-$(ANDROID_SDK_TOOLS_VERSION).zip
+ANDROID_SDK_TOOLS_ARCHIVE=commandlinetools-$(TARGET_OS_ALIAS)-$(ANDROID_SDK_TOOLS_VERSION)_latest.zip
 ANDROID_SDK_TOOLS_DL_URL=https://dl.google.com/android/repository/$(ANDROID_SDK_TOOLS_ARCHIVE)
 
 ANDROID_NDK_HOME=$(ANDROID_HOME)/android-ndk
 ANDROID_NDK_FOLDER=$(ANDROID_HOME)/android-ndk-r$(ANDROID_NDK_VERSION)
-ANDROID_NDK_ARCHIVE=android-ndk-r$(ANDROID_NDK_VERSION)-$(target_os)-x86_64.zip
+ANDROID_NDK_ARCHIVE=android-ndk-r$(ANDROID_NDK_VERSION)-$(TARGET_OS)-x86_64.zip
 ANDROID_NDK_DL_URL=https://dl.google.com/android/repository/$(ANDROID_NDK_ARCHIVE)
 
 $(info Target install OS is          : $(target_os))
@@ -61,8 +65,8 @@ extract_android_ndk:
 # updates Android SDK, install Android API, Build Tools and accept licenses
 update_android_sdk:
 	touch $(ANDROID_HOME)/repositories.cfg
-	yes | $(ANDROID_SDK_HOME)/tools/bin/sdkmanager --licenses > /dev/null
-	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager "build-tools;$(ANDROID_SDK_BUILD_TOOLS_VERSION)" > /dev/null
-	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager "platforms;android-$(ANDROID_API_LEVEL)" > /dev/null
+	yes | $(ANDROID_SDK_HOME)/tools/bin/sdkmanager --sdk_root=$(ANDROID_SDK_HOME) --licenses > /dev/null
+	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager --sdk_root=$(ANDROID_SDK_HOME) "build-tools;$(ANDROID_SDK_BUILD_TOOLS_VERSION)" > /dev/null
+	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager --sdk_root=$(ANDROID_SDK_HOME) "platforms;android-$(ANDROID_API_LEVEL)" > /dev/null
 	# Set avdmanager permissions (executable)
 	chmod +x $(ANDROID_SDK_HOME)/tools/bin/avdmanager

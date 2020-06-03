@@ -145,45 +145,6 @@ the build (e.g. if buildozer was previously used). Removing this
 directory should fix the problem, and is desirable anyway since you
 don't want it in the APK.
 
-Errors related to Java version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The errors listed below are related to Java version mismatch, it should be
-fixed by installing Java 8.
-
-- :code:`java.lang.UnsupportedClassVersionError: com/android/dx/command/Main`
-- :code:`java.lang.NoClassDefFoundError: sun/misc/BASE64Encoder`
-- :code:`java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema`
-
-On Ubuntu fix it my making sure only the :code:`openjdk-8-jdk` package is installed::
-
-    apt remove --purge openjdk-*-jdk
-    apt install openjdk-8-jdk
-
-In the similar fashion for macOS you need to install the :code:`java8` package::
-
-    brew cask install java8
-    export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
-
-
-Error: Cask 'java8' is unavailable: No Cask with this name exists
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In order to install Java 8 on macOS you may need extra steps::
-
-    brew tap homebrew/cask-versions
-    brew cask install homebrew/cask-versions/adoptopenjdk8
-    export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
-
-
-JNI DETECTED ERROR IN APPLICATION: static jfieldID 0x0000000 not valid for class java.lang.Class<org.renpy.android.PythonActivity>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This error appears in the logcat log if you try to access
-``org.renpy.android.PythonActivity`` from within the new toolchain. To
-fix it, change your code to reference
-``org.kivy.android.PythonActivity`` instead.
-
 Requested API target 19 is not available, install it with the SDK android tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
