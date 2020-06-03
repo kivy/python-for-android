@@ -13,7 +13,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -25,6 +27,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 import android.widget.ImageView;
