@@ -4,17 +4,7 @@ from os import getcwd, chdir, makedirs, walk, uname
 import shutil
 from fnmatch import fnmatch
 from tempfile import mkdtemp
-
-from urllib.request import FancyURLopener
-
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
-
-
-class WgetDownloader(FancyURLopener):
-    version = ('Wget/1.17.1')
-
-
-urlretrieve = WgetDownloader().retrieve
 
 
 build_platform = '{system}-{machine}'.format(
@@ -82,6 +72,20 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
                     break
             else:
                 yield join(dirn, filen)
+
+
+def load_source(module, filename):
+    # Python 3.5+
+    import importlib.util
+    if hasattr(importlib.util, 'module_from_spec'):
+        spec = importlib.util.spec_from_file_location(module, filename)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    else:
+        # Python 3.3 and 3.4:
+        from importlib.machinery import SourceFileLoader
+        return SourceFileLoader(module, filename).load_module()
 
 
 class BuildInterruptingException(Exception):

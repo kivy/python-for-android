@@ -11,7 +11,7 @@ from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
-from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.util import BuildInterruptingException, load_source
 from pythonforandroid.entrypoints import main
 
 
@@ -81,7 +81,6 @@ from functools import wraps
 
 import argparse
 import sh
-import imp
 from appdirs import user_data_dir
 import logging
 from distutils.version import LooseVersion
@@ -752,8 +751,8 @@ class ToolchainCL:
             return
         if not hasattr(self, "hook_module"):
             # first time, try to load the hook module
-            self.hook_module = imp.load_source("pythonforandroid.hook",
-                                               self.args.hook)
+            self.hook_module = load_source(
+                "pythonforandroid.hook", self.args.hook)
         if hasattr(self.hook_module, name):
             info("Hook: execute {}".format(name))
             getattr(self.hook_module, name)(self)
@@ -1025,7 +1024,7 @@ class ToolchainCL:
         with current_directory(dist.dist_dir):
             self.hook("before_apk_build")
             os.environ["ANDROID_API"] = str(self.ctx.android_api)
-            build = imp.load_source('build', join(dist.dist_dir, 'build.py'))
+            build = load_source('build', join(dist.dist_dir, 'build.py'))
             build_args = build.parse_args_and_make_package(
                 args.unknown_args
             )
