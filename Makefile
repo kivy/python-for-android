@@ -20,7 +20,7 @@ all: virtualenv
 
 $(VIRTUAL_ENV):
 	python3 -m venv $(VIRTUAL_ENV)
-	$(PIP) install Cython==0.29.19
+	$(PIP) install Cython
 	$(PIP) install -e .
 
 virtualenv: $(VIRTUAL_ENV)

@@ -45,7 +45,7 @@ ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}/app" \
     PATH="${HOME_DIR}/.local/bin:${PATH}" \
     ANDROID_HOME="${HOME_DIR}/.android" \
-    JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+    JAVA_HOME="/usr/lib/jvm/java-13-openjdk-amd64"
 
 
 # install system dependencies
@@ -69,7 +69,7 @@ RUN dpkg --add-architecture i386 \
     libssl-dev \
     libstdc++6:i386 \
     libtool \
-    openjdk-8-jdk \
+    openjdk-13-jdk \
     patch \
     pkg-config \
     python3 \
@@ -99,7 +99,7 @@ USER ${USER}
 
 # Download and install android's NDK/SDK
 COPY ci/makefiles/android.mk /tmp/android.mk
-RUN make --file /tmp/android.mk target_os=linux \
+RUN make --file /tmp/android.mk \
     && sudo rm /tmp/android.mk
 
 # install python-for-android from current branch
