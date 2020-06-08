@@ -5,7 +5,7 @@ buildscript {
        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.5.2'
     }
 }
 
@@ -99,14 +99,15 @@ android {
 
 dependencies {
     {%- for aar in aars %}
-    compile(name: '{{ aar }}', ext: 'aar')
+    implementation(name: '{{ aar }}', ext: 'aar')
     {%- endfor -%}
     {%- for jar in jars %}
-    compile files('src/main/libs/{{ jar }}')
+    implementation files('src/main/libs/{{ jar }}')
     {%- endfor -%}
     {%- if args.depends -%}
     {%- for depend in args.depends %}
-    compile '{{ depend }}'
+    implementation '{{ depend }}'
     {%- endfor %}
     {%- endif %}
 }
+
