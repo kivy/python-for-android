@@ -49,9 +49,8 @@ jobs:
       os: osx
       osx_image: xcode11  # since xcode1.3, python3 is the default interpreter
       before_script:
-        # installs java 1.8, android's SDK/NDK and p4a
+        # installs OpenJDK, Android's SDK/NDK and p4a
         - make -f ci/makefiles/osx.mk
-        - export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
       script: make testapps/armeabi-v7a
     - <<: *testapps
       name: Rebuild updated recipes
