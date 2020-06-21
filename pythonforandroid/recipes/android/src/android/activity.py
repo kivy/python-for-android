@@ -1,7 +1,7 @@
 from jnius import PythonJavaClass, autoclass, java_method
-from android.config import JAVA_NAMESPACE, JNI_NAMESPACE
+from android.config import ACTIVITY_CLASS_NAME, ACTIVITY_CLASS_NAMESPACE
 
-_activity = autoclass(JAVA_NAMESPACE + '.PythonActivity').mActivity
+_activity = autoclass(ACTIVITY_CLASS_NAME).mActivity
 
 _callbacks = {
     'on_new_intent': [],
@@ -10,7 +10,7 @@ _callbacks = {
 
 
 class NewIntentListener(PythonJavaClass):
-    __javainterfaces__ = [JNI_NAMESPACE + '/PythonActivity$NewIntentListener']
+    __javainterfaces__ = [ACTIVITY_CLASS_NAMESPACE + '$NewIntentListener']
     __javacontext__ = 'app'
 
     def __init__(self, callback, **kwargs):
@@ -23,7 +23,7 @@ class NewIntentListener(PythonJavaClass):
 
 
 class ActivityResultListener(PythonJavaClass):
-    __javainterfaces__ = [JNI_NAMESPACE + '/PythonActivity$ActivityResultListener']
+    __javainterfaces__ = [ACTIVITY_CLASS_NAMESPACE + '$ActivityResultListener']
     __javacontext__ = 'app'
 
     def __init__(self, callback):

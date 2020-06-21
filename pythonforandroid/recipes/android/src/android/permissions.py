@@ -9,6 +9,9 @@ except ImportError:
         raise RuntimeError("pyjnius not available")
 
 
+from android.config import ACTIVITY_CLASS_NAME, ACTIVITY_CLASS_NAMESPACE
+
+
 class Permission:
     ACCEPT_HANDOVER = "android.permission.ACCEPT_HANDOVER"
     ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION"
@@ -431,7 +434,7 @@ class _onRequestPermissionsCallback(PythonJavaClass):
     """Callback class for registering a Python callback from
     onRequestPermissionsResult in PythonActivity.
     """
-    __javainterfaces__ = ['org.kivy.android.PythonActivity$PermissionsCallback']
+    __javainterfaces__ = [ACTIVITY_CLASS_NAMESPACE + '$PermissionsCallback']
     __javacontext__ = 'app'
 
     def __init__(self, func):
@@ -484,7 +487,7 @@ class _RequestPermissionsManager:
     def register_callback(cls):
         """Register Java callback for requestPermissions."""
         cls._java_callback = _onRequestPermissionsCallback(cls.python_callback)
-        python_activity = autoclass('org.kivy.android.PythonActivity')
+        python_activity = autoclass(ACTIVITY_CLASS_NAME)
         python_activity.addPermissionsCallback(cls._java_callback)
 
     @classmethod
@@ -508,7 +511,7 @@ class _RequestPermissionsManager:
         with cls._lock:
             if not cls._java_callback:
                 cls.register_callback()
-            python_activity = autoclass('org.kivy.android.PythonActivity')
+            python_activity = autoclass(ACTIVITY_CLASS_NAME)
             if not callback:
                 python_activity.requestPermissions(permissions)
             else:
@@ -583,7 +586,7 @@ def check_permission(permission):
     Returns:
         bool: True if the app holds the permission given, False otherwise.
     """
-    python_activity = autoclass('org.kivy.android.PythonActivity')
+    python_activity = autoclass(ACTIVITY_CLASS_NAME)
     result = bool(python_activity.checkCurrentPermission(
         permission + ""
     ))
