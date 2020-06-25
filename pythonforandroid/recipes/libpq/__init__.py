@@ -4,9 +4,15 @@ import os.path
 
 
 class LibpqRecipe(Recipe):
-    version = '9.5.3'
+    version = '10.12'
     url = 'http://ftp.postgresql.org/pub/source/v{version}/postgresql-{version}.tar.bz2'
     depends = []
+
+    def get_recipe_env(self, arch):
+        env = super().get_recipe_env(arch)
+        env['USE_DEV_URANDOM'] = '1'
+
+        return env
 
     def should_build(self, arch):
         return not os.path.isfile('{}/libpq.a'.format(self.ctx.get_libs_dir(arch.arch)))
