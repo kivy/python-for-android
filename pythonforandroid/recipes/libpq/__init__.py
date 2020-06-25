@@ -22,14 +22,11 @@ class LibpqRecipe(Recipe):
 
         with current_directory(self.get_build_dir(arch.arch)):
             configure = sh.Command('./configure')
-            shprint(configure, '--without-readline', '--host=arm-linux', _env=env)
+            shprint(configure, '--without-readline', '--host=arm-linux',
+                    _env=env)
             shprint(sh.make, 'submake-libpq', _env=env)
-            shprint(
-                sh.cp,
-                '-a',
-                'src/interfaces/libpq/libpq.a',
-                self.ctx.get_libs_dir(arch.arch),
-            )
+            shprint(sh.cp, '-a', 'src/interfaces/libpq/libpq.a',
+                    self.ctx.get_libs_dir(arch.arch))
 
 
 recipe = LibpqRecipe()
