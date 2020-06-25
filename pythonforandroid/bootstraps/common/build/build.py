@@ -461,6 +461,7 @@ main.py that loads it.''')
         "service_names": service_names,
         "android_api": android_api,
         "debug": "debug" in args.build_mode,
+        "native_services": args.native_services
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
@@ -619,6 +620,9 @@ tools directory of the Android SDK.
     ap.add_argument('--service', dest='services', action='append', default=[],
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
+    ap.add_argument('--native-service', dest='native_services', action='append', default=[],
+                    help='Declare a new native service: '
+                         'package.name.service')
     if get_bootstrap_name() != "service_only":
         ap.add_argument('--presplash', dest='presplash',
                         help=('A jpeg file to use as a screen while the '
