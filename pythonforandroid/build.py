@@ -447,6 +447,8 @@ class Context:
         self.local_recipes = None
         self.copy_libs = False
 
+        self.activity_class_name = u'org.kivy.android.PythonActivity'
+
         # this list should contain all Archs, it is pruned later
         self.archs = (
             ArchARM(self),

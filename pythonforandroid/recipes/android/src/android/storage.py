@@ -1,6 +1,8 @@
 from jnius import autoclass, cast
 import os
 
+from android.config import JAVA_NAMESPACE, ACTIVITY_CLASS_NAME
+
 
 Environment = autoclass('android.os.Environment')
 File = autoclass('java.io.File')
@@ -28,11 +30,11 @@ def _get_activity():
     """
     Retrieves the activity from `PythonActivity` fallback to `PythonService`.
     """
-    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    PythonActivity = autoclass(ACTIVITY_CLASS_NAME)
     activity = PythonActivity.mActivity
     if activity is None:
         # assume we're running from the background service
-        PythonService = autoclass('org.kivy.android.PythonService')
+        PythonService = autoclass(JAVA_NAMESPACE + '.' + 'PythonService')
         activity = PythonService.mService
     return activity
 

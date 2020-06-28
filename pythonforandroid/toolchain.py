@@ -376,6 +376,11 @@ class ToolchainCL:
             help='Directory to look for local recipes')
 
         generic_parser.add_argument(
+            '--activity-class-name',
+            dest='activity_class_name', default='org.kivy.android.PythonActivity',
+            help='The full java class name of the main activity')
+
+        generic_parser.add_argument(
             '--java-build-tool',
             dest='java_build_tool', default='auto',
             choices=['auto', 'ant', 'gradle'],
@@ -702,6 +707,8 @@ class ToolchainCL:
 
         self.ctx.local_recipes = args.local_recipes
         self.ctx.copy_libs = args.copy_libs
+
+        self.ctx.activity_class_name = args.activity_class_name
 
         # Each subparser corresponds to a method
         command = args.subparser_name.replace('-', '_')

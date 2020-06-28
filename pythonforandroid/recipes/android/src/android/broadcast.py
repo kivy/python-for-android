@@ -2,7 +2,7 @@
 # Broadcast receiver bridge
 
 from jnius import autoclass, PythonJavaClass, java_method
-from android.config import JAVA_NAMESPACE, JNI_NAMESPACE
+from android.config import JAVA_NAMESPACE, JNI_NAMESPACE, ACTIVITY_CLASS_NAME
 
 
 class BroadcastReceiver(object):
@@ -74,5 +74,5 @@ class BroadcastReceiver(object):
         if 'PYTHON_SERVICE_ARGUMENT' in environ:
             PythonService = autoclass(JAVA_NAMESPACE + '.PythonService')
             return PythonService.mService
-        PythonActivity = autoclass(JAVA_NAMESPACE + '.PythonActivity')
+        PythonActivity = autoclass(ACTIVITY_CLASS_NAME)
         return PythonActivity.mActivity
