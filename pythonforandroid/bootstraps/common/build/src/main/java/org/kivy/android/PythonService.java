@@ -101,6 +101,7 @@ public class PythonService extends Service implements Runnable {
     }
 
     protected void doStartForeground(Bundle extras) {
+        Log.v("python service", "doStartForeground");
         String serviceTitle = extras.getString("serviceTitle");
         String serviceDescription = extras.getString("serviceDescription");
         Notification notification;
@@ -146,6 +147,7 @@ public class PythonService extends Service implements Runnable {
 
     @Override
     public void onDestroy() {
+        Log.v("python service", "onDestroy");
         super.onDestroy();
         pythonThread = null;
         if (autoRestartService && startIntent != null) {
@@ -161,6 +163,7 @@ public class PythonService extends Service implements Runnable {
      */
     @Override
     public void onTaskRemoved(Intent rootIntent) {
+        Log.v("python service", "onTaskRemoved");
         super.onTaskRemoved(rootIntent);
         //sticky servcie runtime/restart is managed by the OS. leave it running when app is closed
         if (startType() != START_STICKY) {
@@ -170,11 +173,13 @@ public class PythonService extends Service implements Runnable {
 
     @Override
     public void run(){
+        Log.v("python service", "run");
         String app_root =  getFilesDir().getAbsolutePath() + "/app";
         File app_root_file = new File(app_root);
         PythonUtil.loadLibraries(app_root_file,
             new File(getApplicationInfo().nativeLibraryDir));
         this.mService = this;
+        Log.v("python service", "run before nativeStart");
         nativeStart(
             androidPrivate, androidArgument,
             serviceEntrypoint, pythonName,
