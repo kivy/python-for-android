@@ -38,8 +38,8 @@ testapps-with-numpy/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
-    --arch=$($@_APP_ARCH)
+    --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy,libwebp,pillow \
+    --arch=$($@_APP_ARCH) --debug
 
 testapps/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
