@@ -62,7 +62,14 @@
                  {{ args.extra_manifest_application_arguments }}
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
                  android:hardwareAccelerated="true"
-                 android:extractNativeLibs="true" >
+                 android:extractNativeLibs="true" 
+                 {% if args.network_security_config %}
+                 android:networkSecurityConfig="{{ args.network_security_config }}"
+                 {% endif %}
+                 {% if args.uses_cleartext_traffic %}
+                 android:usesCleartextTraffic="{{ args.uses_cleartext_traffic }}"
+                 {% endif %}
+                 >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
         {% endfor %}
