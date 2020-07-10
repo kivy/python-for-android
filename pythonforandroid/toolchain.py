@@ -386,6 +386,16 @@ class ToolchainCL:
             help='Full java package name of the PythonService class')
 
         generic_parser.add_argument(
+            '--network-security-config',
+            dest='network_security_config', default=None,
+            help='Add a Network Security Configuration file path to AndroidManifest.xml')
+
+        generic_parser.add_argument(
+            '--uses-cleartext-traffic',
+            dest='uses_cleartext_traffic', default=None,
+            help='Indicate that app intends to use cleartext network traffic in AndroidManifest.xml')
+
+        generic_parser.add_argument(
             '--java-build-tool',
             dest='java_build_tool', default='auto',
             choices=['auto', 'ant', 'gradle'],
@@ -627,6 +637,10 @@ class ToolchainCL:
             args.unknown_args += ["--activity-class-name", args.activity_class_name]
         if hasattr(args, "service_class_name") and args.service_class_name != 'org.kivy.android.PythonService':
             args.unknown_args += ["--service-class-name", args.service_class_name]
+        if hasattr(args, "network_security_config") and args.network_security_config is not None:
+            args.unknown_args += ["--network-security-config", args.network_security_config]
+        if hasattr(args, "uses_cleartext_traffic") and args.uses_cleartext_traffic is not None:
+            args.unknown_args += ["--uses-cleartext-traffic", args.uses_cleartext_traffic]
 
         self.args = args
 
