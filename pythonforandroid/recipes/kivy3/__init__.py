@@ -12,8 +12,6 @@ class Kivy3Recipe(PythonRecipe):
     '''Due to setuptools.'''
     call_hostpython_via_targetpython = False
 
-    # install_in_hostpython = True
-
     def build_arch(self, arch):
         super().build_arch(arch)
         suffix = '/kivy3/default.glsl'
