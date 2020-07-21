@@ -8,7 +8,7 @@ class TwistedRecipe(CythonRecipe):
     version = '20.3.0'
     url = 'https://github.com/twisted/twisted/archive/twisted-{version}.tar.gz'
 
-    depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']
+    depends = ['setuptools', 'zope_interface', 'attrs', 'incremental', 'constantly']
     patches = ['incremental.patch', 'remove_tests.patch']
 
     call_hostpython_via_targetpython = False
