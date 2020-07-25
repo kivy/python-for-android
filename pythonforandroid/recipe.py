@@ -956,11 +956,11 @@ class PythonRecipe(Recipe):
         hostpython = sh.Command(self.hostpython_location)
         hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
-            shprint(hostpython, 'setup.py', 
+            shprint(hostpython, 'setup.py',
                     *self.setup_global_extra_args,
                     'install', '-O2',
                     '--root={}'.format(self.ctx.get_python_install_dir()),
-                    '--install-lib=.', 
+                    '--install-lib=.',
                     _env=hpenv, *self.setup_extra_args, *self.setup_install_extra_args)
 
             # If asked, also install in the hostpython build dir
@@ -975,11 +975,11 @@ class PythonRecipe(Recipe):
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
         real_hostpython = sh.Command(self.real_hostpython_location)
-        shprint(real_hostpython, 'setup.py', 
-               *self.setup_global_extra_args,
+        shprint(real_hostpython, 'setup.py',
+                *self.setup_global_extra_args,
                 'install', '-O2',
                 '--root={}'.format(dirname(self.real_hostpython_location)),
-                '--install-lib=Lib/site-packages', 
+                '--install-lib=Lib/site-packages',
                 _env=env, *self.setup_extra_args, *self.setup_install_extra_args)
 
 
@@ -1004,7 +1004,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             if self.install_in_hostpython:
                 shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
-            shprint(hostpython, 'setup.py', 
+            shprint(hostpython, 'setup.py',
                     *self.setup_global_extra_args,
                     self.build_cmd, '-v',
                     _env=env, *self.setup_extra_args, *self.setup_build_extra_args)
@@ -1022,7 +1022,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
         hostpython = sh.Command(self.real_hostpython_location)
         shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
-        shprint(hostpython, 'setup.py', 
+        shprint(hostpython, 'setup.py',
                 *self.setup_global_extra_args,
                 self.build_cmd, '-v', _env=env,
                 *self.setup_extra_args, *self.setup_build_extra_args)
@@ -1062,7 +1062,7 @@ class CythonRecipe(PythonRecipe):
 
             manually_cythonise = False
             try:
-                shprint(hostpython, 'setup.py', 
+                shprint(hostpython, 'setup.py',
                         *self.setup_global_extra_args,
                         'build_ext', '-v', _env=env,
                         *self.setup_extra_args, *self.setup_build_extra_args)
@@ -1073,7 +1073,7 @@ class CythonRecipe(PythonRecipe):
 
             if manually_cythonise:
                 self.cythonize_build(env=env)
-                shprint(hostpython, 'setup.py', 
+                shprint(hostpython, 'setup.py',
                         *self.setup_global_extra_args,
                         'build_ext', '-v', _env=env,
                         _tail=20, _critical=True, *self.setup_extra_args, *self.setup_build_extra_args)
