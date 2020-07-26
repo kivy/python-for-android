@@ -771,6 +771,7 @@ class NDKRecipe(Recipe):
 
         for lib in self.generated_libraries:
             if not exists(join(lib_dir, lib)):
+                print("** Missing library", join(lib_dir, lib))
                 return True
 
         return False

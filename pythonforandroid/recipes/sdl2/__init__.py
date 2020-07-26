@@ -1,6 +1,7 @@
 from pythonforandroid.recipe import BootstrapNDKRecipe
 from pythonforandroid.toolchain import current_directory, shprint
 import sh
+from os.path import exists, join
 
 
 class LibSDL2Recipe(BootstrapNDKRecipe):
@@ -28,6 +29,10 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
                 "NDK_DEBUG=" + ("1" if self.ctx.build_as_debuggable else "0"),
                 _env=env
             )
+
+    def should_build(self, arch):
+        return not exists(join(self.ctx.bootstrap.build_dir, "libs", arch.arch, 'libSDL2.so'))
+
 
 
 recipe = LibSDL2Recipe()
