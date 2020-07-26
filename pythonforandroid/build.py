@@ -510,12 +510,6 @@ class Context:
         ensure_dir(directory)
         return directory
 
-    def get_jar_dir(self):
-        '''The jar dir for a given arch.'''
-        directory = join(self.jar_dir, self.bootstrap.distribution.name)
-        ensure_dir(directory)
-        return directory
-
     def has_lib(self, arch, lib):
         return exists(join(self.get_libs_dir(arch), lib))
 
