@@ -69,7 +69,7 @@ public class PythonActivity extends Activity {
         List<String> entryPoints = new ArrayList<String>();
         entryPoints.add("main.pyo");  // python 2 compiled files
         entryPoints.add("main.pyc");  // python 3 compiled files
-		for (String value : entryPoints) {
+        for (String value : entryPoints) {
             File mainFile = new File(search_dir + "/" + value);
             if (mainFile.exists()) {
                 return value;
@@ -303,7 +303,7 @@ public class PythonActivity extends Activity {
         mImageView.setImageBitmap(bitmap);
 
         /*
-     * Set the presplash loading screen background color
+         * Set the presplash loading screen background color
          * https://developer.android.com/reference/android/graphics/Color.html
          * Parse the color string, and return the corresponding color-int.
          * If the string cannot be parsed, throws an IllegalArgumentException exception.
