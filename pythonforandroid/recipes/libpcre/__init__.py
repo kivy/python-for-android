@@ -5,6 +5,7 @@ import sh
 from multiprocessing import cpu_count
 from os.path import join
 
+
 class LibpcreRecipe(Recipe):
     version = '8.44'
     url = 'https://ftp.pcre.org/pub/pcre/pcre-{version}.tar.bz2'
@@ -25,5 +26,6 @@ class LibpcreRecipe(Recipe):
 
     def get_lib_dir(self, arch):
         return join(self.get_build_dir(arch), '.libs')
+
 
 recipe = LibpcreRecipe()
