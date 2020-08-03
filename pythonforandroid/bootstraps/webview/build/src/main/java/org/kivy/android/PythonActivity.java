@@ -156,6 +156,8 @@ public class PythonActivity extends Activity {
             mWebView = new WebView(PythonActivity.mActivity);
             mWebView.getSettings().setJavaScriptEnabled(true);
             mWebView.getSettings().setDomStorageEnabled(true);
+            mWebView.getSettings().setBuiltInZoomControls(true);
+            mWebView.getSettings().setDisplayZoomControls(false);
             mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
 
             mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
