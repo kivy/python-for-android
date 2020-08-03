@@ -13,7 +13,7 @@ import android.os.Handler;
 import org.kivy.android.PythonActivity;
 
 public class WebViewLoader {
-	private static final String TAG = "WebViewLoader";
+    private static final String TAG = "WebViewLoader";
 
     public static void testConnection() {
 
