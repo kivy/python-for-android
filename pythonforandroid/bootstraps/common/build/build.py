@@ -232,6 +232,7 @@ main.py that loads it.''')
             sys.exit(1)
 
     assets_dir = "src/main/assets"
+    res_dir = "src/main/res"
 
     # Delete the old assets.
     shutil.rmtree(assets_dir, ignore_errors=True)
@@ -307,6 +308,14 @@ main.py that loads it.''')
             else:
                 shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
 
+        for res in args.resources:
+            res_src, res_dest = res.split(":")
+            if isfile(realpath(res_src)):
+                ensure_dir(dirname(join(res_dir, res_dest)))
+                shutil.copy(realpath(res_src), join(res_dir, res_dest))
+            else:
+                shutil.copytree(realpath(res_src), join(res_dir, res_dest))
+
         if args.private or args.launcher:
             make_tar(
                 join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
@@ -319,7 +328,6 @@ main.py that loads it.''')
     shutil.rmtree(env_vars_tarpath)
 
     # Prepare some variables for templating process
-    res_dir = "src/main/res"
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
     shutil.copy(
@@ -626,6 +634,10 @@ tools directory of the Android SDK.
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
+    ap.add_argument('--resource', dest='resources',
+                    action="append", default=[],
+                    metavar="/path/to/res/source:dest",
+                    help='Put this in the resources folder at /dest')
     ap.add_argument('--asset', dest='assets',
                     action="append", default=[],
                     metavar="/path/to/source:dest",
