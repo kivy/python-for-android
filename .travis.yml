@@ -22,7 +22,7 @@ jobs:
         # We need to escape virtualenv for `test_pythonpackage_basic.test_virtualenv`
         #   See also: https://github.com/travis-ci/travis-ci/issues/8589
         - type -t deactivate && deactivate || true
-        - export PATH=/opt/python/3.7/bin:$PATH
+        - export PATH=/opt/python/3.7.1/bin:$PATH
         # Install tox
         - pip3.7 install tox>=2.0
         # Install coveralls & dependencies
