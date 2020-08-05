@@ -5,9 +5,9 @@ import sh
 
 
 class Sqlite3Recipe(NDKRecipe):
-    version = '3.15.1'
+    version = '3.32.3'
     # Don't forget to change the URL when changing the version
-    url = 'https://www.sqlite.org/2016/sqlite-amalgamation-3150100.zip'
+    url = 'https://www.sqlite.org/2020/sqlite-amalgamation-3320300.zip'
     generated_libraries = ['sqlite3']
 
     def should_build(self, arch):
