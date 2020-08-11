@@ -33,6 +33,7 @@ import android.view.ViewGroup.LayoutParams;
 
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
+import android.net.Uri;
 
 import org.renpy.android.ResourceManager;
 
@@ -162,6 +163,11 @@ public class PythonActivity extends Activity {
             mWebView.setWebViewClient(new WebViewClient() {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        if(!(url.startsWith("file:") || url.startsWith("http://127.0.0.1:"))) {
+                            Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            startActivity(i);
+                            return true;
+                        }
                         view.loadUrl(url);
                         return false;
                     }
