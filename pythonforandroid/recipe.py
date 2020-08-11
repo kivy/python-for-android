@@ -191,15 +191,17 @@ class Recipe(with_metaclass(RecipeMeta)):
 
             # Download item with multiple attempts (for bad connections):
             attempts = 0
+            seconds = 1
             while True:
                 try:
                     urlretrieve(url, target, report_hook)
-                except OSError:
+                except OSError as e:
                     attempts += 1
                     if attempts >= 5:
                         raise
-                    stdout.write('Download failed retrying in a second...')
-                    time.sleep(1)
+                    stdout.write('Download failed: {}; retrying in {} second(s)...'.format(e, seconds))
+                    time.sleep(seconds)
+                    seconds *= 2
                     continue
                 break
             return target
