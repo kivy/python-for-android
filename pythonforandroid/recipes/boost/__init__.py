@@ -36,7 +36,7 @@ class BoostRecipe(Recipe):
     '''
     version = '1.69.0'
     url = (
-        'http://downloads.sourceforge.net/project/boost/'
+        'https://downloads.sourceforge.net/project/boost/'
         'boost/{version}/boost_{version_underscore}.tar.bz2'
     )
     depends = ['python3']
