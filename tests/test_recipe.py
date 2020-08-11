@@ -179,7 +179,7 @@ class TestRecipe(unittest.TestCase):
         retry = 5
         expected_call_args_list = [mock.call(url, filename, mock.ANY)] * retry
         assert m_urlretrieve.call_args_list == expected_call_args_list
-        expected_call_args_list = [mock.call(1)] * (retry - 1)
+        expected_call_args_list = [mock.call(2**i) for i in range(retry - 1)]
         assert m_sleep.call_args_list == expected_call_args_list
 
 
