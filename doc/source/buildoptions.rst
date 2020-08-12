@@ -74,6 +74,8 @@ options (this list may not be exhaustive):
   the application is loading.
 - ``--presplash-color``: The presplash screen background color, of the
   form ``#RRGGBB`` or a color name ``red``, ``green``, ``blue`` etc.
+- ``--presplash-lottie``: use a lottie (json) file as a presplash animation. If
+  used, this will replace the static presplash image.
 - ``--wakelock``: If the argument is included, the application will
   prevent the device from sleeping.
 - ``--window``: If the argument is included, the application will not
