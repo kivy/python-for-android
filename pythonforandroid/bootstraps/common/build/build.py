@@ -326,11 +326,28 @@ main.py that loads it.''')
         args.icon or default_icon,
         join(res_dir, 'drawable/icon.png')
     )
+
     if get_bootstrap_name() != "service_only":
-        shutil.copy(
-            args.presplash or default_presplash,
-            join(res_dir, 'drawable/presplash.jpg')
-        )
+        lottie_splashscreen = join(res_dir, 'raw/splashscreen.json')
+        if args.presplash_lottie:
+            shutil.copy(
+                'templates/lottie.xml',
+                join(res_dir, 'layout/lottie.xml')
+            )
+            ensure_dir(join(res_dir, 'raw'))
+            shutil.copy(
+                args.presplash_lottie,
+                join(res_dir, 'raw/splashscreen.json')
+            )
+        else:
+            if exists(lottie_splashscreen):
+                remove(lottie_splashscreen)
+                remove(join(res_dir, 'layout/lottie.xml'))
+
+            shutil.copy(
+                args.presplash or default_presplash,
+                join(res_dir, 'drawable/presplash.jpg')
+            )
 
     # If extra Java jars were requested, copy them into the libs directory
     jars = []
@@ -622,6 +639,9 @@ tools directory of the Android SDK.
     if get_bootstrap_name() != "service_only":
         ap.add_argument('--presplash', dest='presplash',
                         help=('A jpeg file to use as a screen while the '
+                              'application is loading.'))
+        ap.add_argument('--presplash-lottie', dest='presplash_lottie',
+                        help=('A lottie (json) file to use as an animation while the '
                               'application is loading.'))
         ap.add_argument('--presplash-color',
                         dest='presplash_color',

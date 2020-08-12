@@ -109,4 +109,7 @@ dependencies {
     compile '{{ depend }}'
     {%- endfor %}
     {%- endif %}
+    {% if args.presplash_lottie %}
+    implementation 'com.airbnb.android:lottie:3.4.0'
+    {%- endif %}
 }
