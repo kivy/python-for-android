@@ -116,6 +116,9 @@
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
                  android:process=":service_{{ name }}" />
         {% endfor %}
+        {% for name in native_services %}
+        <service android:name="{{ name }}" />
+        {% endfor %}
 
         {% if args.billing_pubkey %}
         <service android:name="org.kivy.android.billing.BillingReceiver"
