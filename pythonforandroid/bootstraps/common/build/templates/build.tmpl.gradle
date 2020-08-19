@@ -36,6 +36,7 @@ android {
         targetSdkVersion {{ android_api }}
         versionCode {{ args.numeric_version }}
         versionName '{{ args.version }}'
+        manifestPlaceholders = {{ args.manifest_placeholders}}
     }
 
 	{% if debug_build -%}
