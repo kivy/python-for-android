@@ -474,7 +474,7 @@ main.py that loads it.''')
     if args.backup_rules:
         res_xml_dir = join(res_dir, 'xml')
         ensure_dir(res_xml_dir)
-        shutil.copy(args.backup_rules, res_xml_dir)
+        shutil.copy(join(args.private, args.backup_rules), res_xml_dir)
         args.backup_rules = split(args.backup_rules)[1][:-4]
 
     # Render out android manifest:
@@ -764,10 +764,10 @@ tools directory of the Android SDK.
     ap.add_argument('--backup-rules', dest='backup_rules', default='',
                     help=('Backup rules for Android Auto Backup. Argument is a '
                           'filename containing xml. The filename should be '
-                          'located relative to the python-for-android'
-                          'directory. See https://developer.android.com/'
-                          'guide/topics/data/autobackup#IncludingFiles for '
-                          'more information'))
+                          'located relative to the private directory containing your source code '
+                          'files (containing your main.py entrypoint). '
+                          'See https://developer.android.com/guide/topics/data/'
+                          'autobackup#IncludingFiles for more information'))
     ap.add_argument('--no-optimize-python', dest='optimize_python',
                     action='store_false', default=True,
                     help=('Whether to compile to optimised .pyo files, using -OO '
