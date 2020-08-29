@@ -448,14 +448,29 @@ public class PythonActivity extends SDLActivity {
         }
     }
 
-    protected View getLoadingScreen() {
-        // load the bitmap
-        // 1. if the image is valid and we don't have layout yet, assign this bitmap
-        // as main view.
-        // 2. if we have a layout, just set it in the layout.
-        // 3. If we have an mImageView already, then do nothing because it will have
-        // already been made the content view or added to the layout.
+    protected void setBackgroundColor(View view) {
+        /*
+         * Set the presplash loading screen background color
+         * https://developer.android.com/reference/android/graphics/Color.html
+         * Parse the color string, and return the corresponding color-int.
+         * If the string cannot be parsed, throws an IllegalArgumentException exception.
+         * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
+         * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
+         * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
+         * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
+         */
+        String backgroundColor = resourceManager.getString("presplash_color");
+        if (backgroundColor != null) {
+            try {
+                view.setBackgroundColor(Color.parseColor(backgroundColor));
+            } catch (IllegalArgumentException e) {}
+        }
+    }
 
+    protected View getLoadingScreen() {
+        // If we have an mLottieView or mImageView already, then do
+        // nothing because it will have already been made the content
+        // view or added to the layout.
         if (mLottieView != null || mImageView != null) {
             // we already have a splash screen
             return mLottieView != null ? mLottieView : mImageView;
@@ -480,13 +495,14 @@ public class PythonActivity extends SDLActivity {
                 // (Gives error "The specified child already has a parent.
                 // You must call removeView() on the child's parent first.")
             }
+            setBackgroundColor(mLottieView);
             return mLottieView;
         }
         catch (NotFoundException e) {
             Log.v("SDL", "couldn't find lottie layout or animation, trying static splash");
         }
 
-        // try to load the static image then
+        // no lottie asset, try to load the static image then
         int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
         InputStream is = this.getResources().openRawResource(presplashId);
         Bitmap bitmap = null;
@@ -500,23 +516,8 @@ public class PythonActivity extends SDLActivity {
 
         mImageView = new ImageView(this);
         mImageView.setImageBitmap(bitmap);
+        setBackgroundColor(mImageView);
 
-        /*
-         * Set the presplash loading screen background color
-         * https://developer.android.com/reference/android/graphics/Color.html
-         * Parse the color string, and return the corresponding color-int.
-         * If the string cannot be parsed, throws an IllegalArgumentException exception.
-         * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
-         * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
-         * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
-         * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
-         */
-        String backgroundColor = resourceManager.getString("presplash_color");
-        if (backgroundColor != null) {
-            try {
-                mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
-            } catch (IllegalArgumentException e) {}
-        }
         mImageView.setLayoutParams(new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.FILL_PARENT,
             ViewGroup.LayoutParams.FILL_PARENT));
