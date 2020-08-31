@@ -470,6 +470,13 @@ main.py that loads it.''')
     # Folder name for launcher (used by SDL2 bootstrap)
     url_scheme = 'kivy'
 
+    # Copy backup rules file if specified and update the argument
+    if args.backup_rules:
+        res_xml_dir = join(res_dir, 'xml')
+        ensure_dir(res_xml_dir)
+        shutil.copy(join(args.private, args.backup_rules), res_xml_dir)
+        args.backup_rules = split(args.backup_rules)[1][:-4]
+
     # Render out android manifest:
     manifest_path = "src/main/AndroidManifest.xml"
     render_args = {
@@ -754,6 +761,13 @@ tools directory of the Android SDK.
                     help='Set the launch mode of the main activity in the manifest.')
     ap.add_argument('--allow-backup', dest='allow_backup', default='true',
                     help="if set to 'false', then android won't backup the application.")
+    ap.add_argument('--backup-rules', dest='backup_rules', default='',
+                    help=('Backup rules for Android Auto Backup. Argument is a '
+                          'filename containing xml. The filename should be '
+                          'located relative to the private directory containing your source code '
+                          'files (containing your main.py entrypoint). '
+                          'See https://developer.android.com/guide/topics/data/'
+                          'autobackup#IncludingFiles for more information'))
     ap.add_argument('--no-optimize-python', dest='optimize_python',
                     action='store_false', default=True,
                     help=('Whether to compile to optimised .pyo files, using -OO '
