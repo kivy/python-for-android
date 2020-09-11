@@ -7,7 +7,7 @@ diff -Nru Python-3.8.2/Lib/site.py Python-3.8.2-new/Lib/site.py
                      elif key == 'home':
 -                        sys._home = value
 +                        # this is breaking pyconfig.h path detection with venv
-+                        print('Ignoring "sys._home = value" override')
++                        print('Ignoring "sys._home = value" override', file=sys.stderr)
  
          sys.prefix = sys.exec_prefix = site_prefix
  
