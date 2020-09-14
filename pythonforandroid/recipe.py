@@ -1092,7 +1092,8 @@ class CythonRecipe(PythonRecipe):
         python_command = sh.Command("python{}".format(
             self.ctx.python_recipe.major_minor_version_string.split(".")[0]
         ))
-        shprint(python_command, "-m", "Cython.Build.Cythonize",
+        shprint(python_command, "-c"
+                "import sys; from Cython.Compiler.Main import setuptools_main; sys.exit(setuptools_main());",
                 filename, *self.cython_args, _env=cyenv)
 
     def cythonize_build(self, env, build_dir="."):
