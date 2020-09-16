@@ -133,6 +133,9 @@
     {% for a in args.add_activity  %}
     <activity android:name="{{ a }}"></activity>
     {% endfor %}
+
+    {{ args.extra_manifest_application_xml }}
+
     </application>
 
 </manifest>
