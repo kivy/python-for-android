@@ -629,6 +629,8 @@ tools directory of the Android SDK.
                               'launcher, rather than a single app.'))
     ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
+    ap.add_argument('--feature', dest='features', action='append', default=[],
+                    help='Add uses-feature keys to manifest', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
                     help='Custom key=value to add in application metadata')
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
@@ -826,6 +828,9 @@ tools directory of the Android SDK.
 
     if args.permissions and isinstance(args.permissions[0], list):
         args.permissions = [p for perm in args.permissions for p in perm]
+
+    if args.features and isinstance(args.features[0], list):
+        args.features = [f for feat in args.features for f in feat]
 
     if args.try_system_python_compile:
         # Hardcoding python2.7 is okay for now, as python3 skips the
