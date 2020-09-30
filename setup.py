@@ -1,4 +1,4 @@
-
+#importing modules
 import glob
 from io import open  # for open(..,encoding=...) parameter in python 2
 from os import walk
