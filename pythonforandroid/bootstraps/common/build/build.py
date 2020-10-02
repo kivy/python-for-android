@@ -837,6 +837,9 @@ tools directory of the Android SDK.
     if args.permissions and isinstance(args.permissions[0], list):
         args.permissions = [p for perm in args.permissions for p in perm]
 
+    if args.res_xmls and isinstance(args.res_xmls[0], list):
+        args.res_xmls = [x for res in args.res_xmls for x in res]
+
     if args.try_system_python_compile:
         # Hardcoding python2.7 is okay for now, as python3 skips the
         # compilation anyway
