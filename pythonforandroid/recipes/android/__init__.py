@@ -77,6 +77,11 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
                 fh.write(
                     '#define SDL_ANDROID_GetJNIEnv SDL_AndroidGetJNIEnv\n'
                 )
+            else:
+                fh.write('JNIEnv *WebView_AndroidGetJNIEnv(void);\n')
+                fh.write(
+                    '#define SDL_ANDROID_GetJNIEnv WebView_AndroidGetJNIEnv\n'
+                )
 
 
 recipe = AndroidRecipe()
