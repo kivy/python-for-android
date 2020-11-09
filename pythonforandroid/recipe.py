@@ -59,6 +59,18 @@ class Recipe(with_metaclass(RecipeMeta)):
     finished correctly.
     '''
 
+    sha512sum = None
+    '''The sha512sum of the source from the :attr:`url`. Non-essential, but
+    you should try to include this, it is used to check that the download
+    finished correctly.
+    '''
+
+    blake2bsum = None
+    '''The blake2bsum of the source from the :attr:`url`. Non-essential, but
+    you should try to include this, it is used to check that the download
+    finished correctly.
+    '''
+
     depends = []
     '''A list containing the names of any recipes that this recipe depends on.
     '''
@@ -342,16 +354,19 @@ class Recipe(with_metaclass(RecipeMeta)):
             return
 
         url = self.versioned_url
-        ma = match(u'^(.+)#md5=([0-9a-f]{32})$', url)
-        if ma:                  # fragmented URL?
-            if self.md5sum:
-                raise ValueError(
-                    ('Received md5sum from both the {} recipe '
-                     'and its url').format(self.name))
-            url = ma.group(1)
-            expected_md5 = ma.group(2)
-        else:
-            expected_md5 = self.md5sum
+        expected_digests = {}
+        for alg in set(hashlib.algorithms_guaranteed) | set(('md5', 'sha512', 'blake2b')):
+            expected_digest = getattr(self, alg + 'sum') if hasattr(self, alg + 'sum') else None
+            ma = match(u'^(.+)#' + alg + u'=([0-9a-f]{32,})$', url)
+            if ma:                # fragmented URL?
+                if expected_digest:
+                    raise ValueError(
+                        ('Received {}sum from both the {} recipe '
+                         'and its url').format(alg, self.name))
+                url = ma.group(1)
+                expected_digest = ma.group(2)
+            if expected_digest:
+                expected_digests[alg] = expected_digest
 
         shprint(sh.mkdir, '-p', join(self.ctx.packages_path, self.name))
 
@@ -363,16 +378,17 @@ class Recipe(with_metaclass(RecipeMeta)):
             if exists(filename) and isfile(filename):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
-                elif expected_md5:
-                    current_md5 = md5sum(filename)
-                    if current_md5 != expected_md5:
-                        debug('* Generated md5sum: {}'.format(current_md5))
-                        debug('* Expected md5sum: {}'.format(expected_md5))
-                        raise ValueError(
-                            ('Generated md5sum does not match expected md5sum '
-                             'for {} recipe').format(self.name))
-                    do_download = False
                 else:
+                    for alg, expected_digest in expected_digests.items():
+                        current_digest = algsum(alg, filename)
+                        if current_digest != expected_digest:
+                            debug('* Generated {}sum: {}'.format(alg,
+                                                                 current_digest))
+                            debug('* Expected {}sum: {}'.format(alg,
+                                                                expected_digest))
+                            raise ValueError(
+                                ('Generated {0}sum does not match expected {0}sum '
+                                 'for {1} recipe').format(alg, self.name))
                     do_download = False
 
             # If we got this far, we will download
@@ -383,15 +399,17 @@ class Recipe(with_metaclass(RecipeMeta)):
                 self.download_file(self.versioned_url, filename)
                 shprint(sh.touch, marker_filename)
 
-                if exists(filename) and isfile(filename) and expected_md5:
-                    current_md5 = md5sum(filename)
-                    if expected_md5 is not None:
-                        if current_md5 != expected_md5:
-                            debug('* Generated md5sum: {}'.format(current_md5))
-                            debug('* Expected md5sum: {}'.format(expected_md5))
+                if exists(filename) and isfile(filename):
+                    for alg, expected_digest in expected_digests.items():
+                        current_digest = algsum(alg, filename)
+                        if current_digest != expected_digest:
+                            debug('* Generated {}sum: {}'.format(alg,
+                                                                 current_digest))
+                            debug('* Expected {}sum: {}'.format(alg,
+                                                                expected_digest))
                             raise ValueError(
-                                ('Generated md5sum does not match expected md5sum '
-                                 'for {} recipe').format(self.name))
+                                ('Generated {0}sum does not match expected {0}sum '
+                                 'for {1} recipe').format(alg, self.name))
             else:
                 info('{} download already cached, skipping'.format(self.name))
 
@@ -419,7 +437,7 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         filename = shprint(
             sh.basename, self.versioned_url).stdout[:-1].decode('utf-8')
-        ma = match(u'^(.+)#md5=([0-9a-f]{32})$', filename)
+        ma = match(u'^(.+)#[a-z0-9_]{3,}=([0-9a-f]{32,})$', filename)
         if ma:                  # fragmented URL?
             filename = ma.group(1)
 
@@ -1177,10 +1195,10 @@ class TargetPythonRecipe(Recipe):
             shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
 
-def md5sum(filen):
-    '''Calculate the md5sum of a file.
+def algsum(alg, filen):
+    '''Calculate the digest of a file.
     '''
     with open(filen, 'rb') as fileh:
-        md5 = hashlib.md5(fileh.read())
+        digest = getattr(hashlib, alg)(fileh.read())
 
-    return md5.hexdigest()
+    return digest.hexdigest()
