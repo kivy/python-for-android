@@ -4,7 +4,6 @@ import sh
 import unittest
 
 from unittest import mock
-from platform import system
 
 from pythonforandroid.bootstrap import (
     _cmp_bootstraps_by_priority, Bootstrap, expand_dependencies,
@@ -13,7 +12,7 @@ from pythonforandroid.distribution import Distribution, generate_dist_folder_nam
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
-from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.util import BuildInterruptingException, build_platform
 
 from test_graph import get_fake_recipe
 
@@ -531,7 +530,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            f"toolchains/llvm/prebuilt/{system().lower()}-x86_64/bin/clang",
+            f"toolchains/llvm/prebuilt/{build_platform}/bin/clang",
         )
         mock_glob.return_value = [
             os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
