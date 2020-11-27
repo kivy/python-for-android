@@ -25,6 +25,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 import android.view.View;
@@ -631,5 +632,13 @@ public class PythonActivity extends SDLActivity {
 
     public void requestPermissions(String[] permissions) {
         requestPermissionsWithRequestCode(permissions, 1);
+    }
+
+    public static void changeKeyboard(int inputType) {
+      if (SDLActivity.keyboardInputType != inputType){
+          SDLActivity.keyboardInputType = inputType;
+          InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.restartInput(mTextEdit);
+          }
     }
 }
