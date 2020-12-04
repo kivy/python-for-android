@@ -1,7 +1,8 @@
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe, sh, info, current_directory, shprint
 from multiprocessing import cpu_count
-from os.path import join, exists
+from os.path import join
 import glob
+
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):
 
@@ -19,7 +20,6 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
         join('patches', 'compiler_cxx_fix.patch'),
         ]
 
-    #add clean --force
     def _build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
 
@@ -35,7 +35,6 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
 
-    #add clean --force
     def _rebuild_compiled_components(self, arch, env):
         info('Rebuilding compiled components in {}'.format(self.name))
 
@@ -44,12 +43,10 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
         shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
                 *self.setup_extra_args)
 
-
     def build_compiled_components(self, arch):
         self.setup_extra_args = ['-j', str(cpu_count())]
         self._build_compiled_components(arch)
         self.setup_extra_args = []
-
 
     def rebuild_compiled_components(self, arch, env):
         self.setup_extra_args = ['-j', str(cpu_count())]

@@ -12,13 +12,13 @@ class This(Recipe):
     version = 'v3.9.0'
     url = 'https://github.com/Reference-LAPACK/lapack/archive/{version}.tar.gz'
     libdir = 'build/install/lib'
-    built_libraries = {'libblas.so': libdir, 'liblapack.so': libdir, 'libcblas.so' :libdir} 
+    built_libraries = {'libblas.so': libdir, 'liblapack.so': libdir, 'libcblas.so': libdir}
     need_stl_shared = True
 
-    def get_recipe_env(self, arch):	 
+    def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
         sysroot = f"{self.ctx.ndk_dir}/platforms/{env['NDK_API']}/{arch.platform_dir}"
-        FC =f"{env['TOOLCHAIN_PREFIX']}-gfortran"
+        FC = f"{env['TOOLCHAIN_PREFIX']}-gfortran"
         env['FC'] = f'{FC} --sysroot={sysroot}'
         if sh.which(FC) is None:
             raise Exception(f"{FC} not found. See https://github.com/mzakharo/android-gfortran")
