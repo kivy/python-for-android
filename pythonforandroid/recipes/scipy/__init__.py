@@ -28,8 +28,6 @@ class ThisRecipe(CompiledComponentsPythonRecipe):
         HOST = 'linux-x86_64'
         LIB = 'lib64'
 
-        assert env.get('USE_CCACHE') != '1'
-
         prefix = env['TOOLCHAIN_PREFIX']
         lapack_dir = join(Recipe.get_recipe('lapack', self.ctx).get_build_dir(arch.arch), 'build', 'install')
         sysroot = f"{self.ctx.ndk_dir}/platforms/{env['NDK_API']}/{arch.platform_dir}"
