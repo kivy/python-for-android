@@ -26,6 +26,8 @@ BROKEN_RECIPES_PYTHON3 = set([
     # mpmath package with a version >= 0.19 required
     'sympy',
     'vlc',
+    # need extra gfortran NDK system add-on
+    'lapack', 'scipy',
 ])
 
 BROKEN_RECIPES = {
