@@ -4,7 +4,7 @@ import sh
 
 
 class FFMpegRecipe(Recipe):
-    version = '007e03348dbd8d3de3eb09022d72c734a8608144'
+    version = 'n4.3.1'
     # Moved to github.com instead of ffmpeg.org to improve download speed
     url = 'https://github.com/FFmpeg/FFmpeg/archive/{version}.zip'
     depends = ['sdl2']  # Need this to build correct recipe order
@@ -44,6 +44,9 @@ class FFMpegRecipe(Recipe):
                 ldflags += ['-L' + build_dir]
 
             if 'ffpyplayer_codecs' in self.ctx.recipe_build_order:
+                # Enable GPL
+                flags += ['--enable-gpl']
+
                 # libx264
                 flags += ['--enable-libx264']
                 build_dir = Recipe.get_recipe(
@@ -93,7 +96,6 @@ class FFMpegRecipe(Recipe):
                 '--enable-protocol=file,http,hls',
                 '--enable-small',
                 '--enable-hwaccels',
-                '--enable-gpl',
                 '--enable-pic',
                 '--disable-static',
                 '--disable-debug',
@@ -103,6 +105,10 @@ class FFMpegRecipe(Recipe):
             if 'arm64' in arch.arch:
                 cross_prefix = 'aarch64-linux-android-'
                 arch_flag = 'aarch64'
+            elif 'x86' in arch.arch:
+                cross_prefix = 'i686-linux-android-'
+                arch_flag = 'x86'
+                flags += ['--disable-asm']
             else:
                 cross_prefix = 'arm-linux-androideabi-'
                 arch_flag = 'arm'
