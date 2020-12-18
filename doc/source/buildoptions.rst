@@ -196,6 +196,7 @@ options (this list may not be exhaustive):
 - ``add-source``: Add a source directory to the app's Java code.
 - ``--compile-pyo``: Optimise .py files to .pyo.
 - ``--resource``: A key=value pair to add in the string.xml resource file.
+- ``--enable-androidx``: If the argument is included, build.tmpl.gradle is modified. 
 
 
 Requirements blacklist (APK size optimization)

@@ -96,6 +96,13 @@ android {
         }
     }
 
+    {% if args.enable_androidx %}
+    ext {
+        useAndroidX=true
+        enableJetifier=true
+    }
+    {% endif %}
+
 }
 
 dependencies {

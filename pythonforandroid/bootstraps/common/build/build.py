@@ -675,6 +675,11 @@ tools directory of the Android SDK.
                               'topics/manifest/'
                               'activity-element.html'))
 
+    ap.add_argument('--enable-androidx', dest='enable_androidx',
+                    action='store_true',
+                    help=('Enable the AndroidX support library, ' 
+                          'add a library using gradle_dependencies, '
+                          'requires api = 28 or greater'))
     ap.add_argument('--android-entrypoint', dest='android_entrypoint',
                     default='org.kivy.android.PythonActivity',
                     help='Defines which java class will be used for startup, usually a subclass of PythonActivity')
