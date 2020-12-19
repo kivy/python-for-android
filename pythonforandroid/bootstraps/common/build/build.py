@@ -677,7 +677,7 @@ tools directory of the Android SDK.
 
     ap.add_argument('--enable-androidx', dest='enable_androidx',
                     action='store_true',
-                    help=('Enable the AndroidX support library, ' 
+                    help=('Enable the AndroidX support library, '
                           'add a library using gradle_dependencies, '
                           'requires api = 28 or greater'))
     ap.add_argument('--android-entrypoint', dest='android_entrypoint',
