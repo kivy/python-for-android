@@ -1,7 +1,10 @@
-from pythonforandroid.recipe import CompiledComponentsPythonRecipe, sh, info, current_directory, shprint
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.logger import shprint, info
+from pythonforandroid.util import current_directory
 from multiprocessing import cpu_count
 from os.path import join
 import glob
+import sh
 
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):

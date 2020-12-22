@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from os.path import join
 
 
-class ThisRecipe(CompiledComponentsPythonRecipe):
+class ScipyRecipe(CompiledComponentsPythonRecipe):
 
     version = '1.5.4'
     url = f'https://github.com/scipy/scipy/releases/download/v{version}/scipy-{version}.zip'
@@ -46,4 +46,4 @@ class ThisRecipe(CompiledComponentsPythonRecipe):
         return env
 
 
-recipe = ThisRecipe()
+recipe = ScipyRecipe()

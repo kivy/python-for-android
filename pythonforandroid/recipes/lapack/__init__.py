@@ -1,12 +1,12 @@
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
-from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.util import current_directory, ensure_dir, BuildInterruptingException
 from multiprocessing import cpu_count
 from os.path import join
 import sh
 
 
-class This(Recipe):
+class LapackRecipe(Recipe):
 
     name = 'lapack'
     version = 'v3.9.0'
@@ -21,7 +21,7 @@ class This(Recipe):
         FC = f"{env['TOOLCHAIN_PREFIX']}-gfortran"
         env['FC'] = f'{FC} --sysroot={sysroot}'
         if sh.which(FC) is None:
-            raise Exception(f"{FC} not found. See https://github.com/mzakharo/android-gfortran")
+            raise BuildInterruptingException(f"{FC} not found. See https://github.com/mzakharo/android-gfortran")
         return env
 
     def build_arch(self, arch):
@@ -50,4 +50,4 @@ class This(Recipe):
             shprint(sh.make, 'install', _env=env)
 
 
-recipe = This()
+recipe = LapackRecipe()
