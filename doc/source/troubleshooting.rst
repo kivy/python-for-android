@@ -72,7 +72,7 @@ particular.
 Unpacking an APK
 ----------------
 
-It is sometimes useful to unpack a pacakged APK to see what is inside,
+It is sometimes useful to unpack a packaged APK to see what is inside,
 especially when debugging python-for-android itself.
 
 APKs are just zip files, so you can extract the contents easily::
