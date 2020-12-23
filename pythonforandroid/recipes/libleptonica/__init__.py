@@ -25,7 +25,8 @@ class LibLeptonicaRecipe(Recipe):
 
         with current_directory(build_dir):
             shprint(sh.cmake, source_dir,
-                    '-DANDROID_ABI={}'.format(arch.arch),
+                    '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
+                    '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,
                     '-DANDROID_NATIVE_API_LEVEL={}'.format(self.ctx.ndk_api),
 
                     '-DCMAKE_TOOLCHAIN_FILE={}'.format(
@@ -35,6 +36,7 @@ class LibLeptonicaRecipe(Recipe):
                     '-DCMAKE_BUILD_TYPE=Release',
 
                     '-DBUILD_SHARED_LIBS=1',
+                    '-DPKG_CONFIG_EXECUTABLE=/bin/false',
 
                     '-DPNG_PNG_INCLUDE_DIR=' + self.get_recipe('png', self.ctx).get_build_dir(arch.arch),
                     '-DJPEG_INCLUDE_DIR=' + self.get_recipe('jpeg', self.ctx).get_build_dir(arch.arch),

@@ -13,8 +13,9 @@ class TesseractRecipe(Recipe):
     sha256sum = '494d64ffa7069498a97b909a0e65a35a213989e0184f1ea15332933a90d43445'
 
     depends = ['libleptonica']
+    need_stl_shared = True
     built_libraries = {'libtesseract.so': os.path.join('api', '.libs')}
-    patches = ["android_rt.patch"]
+    patches = ['android_rt.patch', 'remove-version-info-3.patch']
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
@@ -30,6 +31,7 @@ class TesseractRecipe(Recipe):
         env = self.get_recipe_env(arch)
 
         source_dir = self.get_build_dir(arch.arch)
+        install_dir = self.ctx.get_python_install_dir()
 
         with current_directory(source_dir):
             shprint(sh.Command('./autogen.sh'))
@@ -37,7 +39,7 @@ class TesseractRecipe(Recipe):
                 sh.Command('./configure'),
                 '--host={}'.format(arch.command_prefix),
                 '--target={}'.format(arch.toolchain_prefix),
-                '--prefix={}'.format(self.ctx.get_python_install_dir()),
+                '--prefix={}'.format(install_dir),
                 '--enable-embedded',
                 '--enable-shared=yes',
                 '--enable-static=no',
