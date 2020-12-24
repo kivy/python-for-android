@@ -378,7 +378,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 else:
-                    self.verify_algsum(expected_digests, filename)
+                    verify_algsum(self, expected_digests, filename)
                     do_download = False
 
             # If we got this far, we will download
@@ -390,7 +390,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                 shprint(sh.touch, marker_filename)
 
                 if exists(filename) and isfile(filename):
-                    self.verify_algsum(expected_digests, filename)
+                    verify_algsum(self, expected_digests, filename)
             else:
                 info('{} download already cached, skipping'.format(self.name))
 
@@ -1175,28 +1175,28 @@ class TargetPythonRecipe(Recipe):
                 continue
             shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
-    def verify_algsum(self, algs, filen):
-        '''Verify digest of a file.
-        '''
+def verify_algsum(recipe, algs, filen):
+    '''Verify digest of a file.
+    '''
 
-        for alg, expected_digest in algs.items():
+    for alg, expected_digest in algs.items():
 
-            with open(filen, 'rb') as fileh:
-                func = getattr(hashlib, alg, None)
-                if func is not None:
-                    digest = func(fileh.read())
-                elif '_' in alg:  # for custom digest_sizes, such as blake2b_256
-                    offset = alg.rfind('_')
-                    func = getattr(hashlib, alg[:offset])
-                    digest_size = int(alg[offset + 1:])
-                    digest = func(fileh.read(), digest_size=digest_size)
-            current_digest = digest.hexdigest()
+        with open(filen, 'rb') as fileh:
+            func = getattr(hashlib, alg, None)
+            if func is not None:
+                digest = func(fileh.read())
+            elif '_' in alg:  # for custom digest_sizes, such as blake2b_256
+                offset = alg.rfind('_')
+                func = getattr(hashlib, alg[:offset])
+                digest_size = int(alg[offset + 1:])
+                digest = func(fileh.read(), digest_size=digest_size)
+        current_digest = digest.hexdigest()
 
-            if current_digest != expected_digest:
-                debug('* Generated {}sum: {}'.format(alg,
-                                                     current_digest))
-                debug('* Expected {}sum: {}'.format(alg,
-                                                    expected_digest))
-                raise ValueError(
-                    ('Generated {0}sum does not match expected {0}sum '
-                     'for {1} recipe').format(alg, self.name))
+        if current_digest != expected_digest:
+            debug('* Generated {}sum: {}'.format(alg,
+                                                 current_digest))
+            debug('* Expected {}sum: {}'.format(alg,
+                                                expected_digest))
+            raise ValueError(
+                ('Generated {0}sum does not match expected {0}sum '
+                 'for {1} recipe').format(alg, recipe.name))
