@@ -1175,6 +1175,7 @@ class TargetPythonRecipe(Recipe):
                 continue
             shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
+
 def verify_algsum(recipe, algs, filen):
     '''Verify digest of a file.
     '''
