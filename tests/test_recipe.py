@@ -115,7 +115,7 @@ class TestRecipe(unittest.TestCase):
             mock.call('Skipping test_recipe download as no URL is set')]
 
     @staticmethod
-    def get_dummy_python_recipe_for_download_tests(good_digests = [], bad_digest = []):
+    def get_dummy_python_recipe_for_download_tests(good_digests=[], bad_digests=[]):
         """
         Helper method for creating a test recipe used in download tests.
         """
@@ -164,16 +164,16 @@ class TestRecipe(unittest.TestCase):
                 tempfile.TemporaryDirectory()) as temp_dir:
             digests = set(('sha256', 'md5', 'blake2b_256', 'sha512'))
             recipe, filename = self.get_dummy_python_recipe_for_download_tests(
-                                   good_digests = digests)
+                                   good_digests=digests)
             recipe.ctx.setup_dirs(temp_dir)
             recipe.download()
             for bad_digest in digests:
                 good_digests = digests - set([bad_digest])
                 recipe, filename = self.get_dummy_python_recipe_for_download_tests(
-                                       good_digests = good_digests,
-                                       bad_digests = [bad_digest])
+                                       good_digests=good_digests,
+                                       bad_digests=[bad_digest])
                 recipe.ctx.setup_dirs(temp_dir)
-                with self.assertRaises(ValueError) as e:
+                with self.assertRaises(ValueError):
                     recipe.download()
 
     def test_download_file_scheme_https(self):

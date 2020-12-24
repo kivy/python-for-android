@@ -1175,24 +1175,23 @@ class TargetPythonRecipe(Recipe):
                 continue
             shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
-
     def verify_algsum(self, algs, filen):
         '''Verify digest of a file.
         '''
-    
+
         for alg, expected_digest in algs.items():
-    
+
             with open(filen, 'rb') as fileh:
                 func = getattr(hashlib, alg, None)
                 if func is not None:
                     digest = func(fileh.read())
-                elif '_' in alg: # for custom digest_sizes, such as blake2b_256
+                elif '_' in alg:  # for custom digest_sizes, such as blake2b_256
                     offset = alg.rfind('_')
                     func = getattr(hashlib, alg[:offset])
                     digest_size = int(alg[offset + 1:])
-                    digest = func(fileh.read(), digest_size = digest_size)
+                    digest = func(fileh.read(), digest_size=digest_size)
             current_digest = digest.hexdigest()
-    
+
             if current_digest != expected_digest:
                 debug('* Generated {}sum: {}'.format(alg,
                                                      current_digest))
