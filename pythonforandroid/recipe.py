@@ -53,22 +53,21 @@ class Recipe(with_metaclass(RecipeMeta)):
     '''A string giving the version of the software the recipe describes,
     e.g. ``2.0.3`` or ``master``.'''
 
+    sha256sum = None
+    '''The sha256sum of the source from the :attr:`url`. As of 2020, pip
+    recommendes use of this hash.  You should try to include this.  It
+    is used to check that the download finished correctly.
+    '''
+
     md5sum = None
-    '''The md5sum of the source from the :attr:`url`. Non-essential, but
-    you should try to include this, it is used to check that the download
-    finished correctly.
+    '''The md5sum of the source from the :attr:`url`. Non-essential.  It
+    is used to check that the download finished correctly.
     '''
 
-    sha512sum = None
-    '''The sha512sum of the source from the :attr:`url`. Non-essential, but
-    you should try to include this, it is used to check that the download
-    finished correctly.
-    '''
-
-    blake2bsum = None
-    '''The blake2bsum of the source from the :attr:`url`. Non-essential, but
-    you should try to include this, it is used to check that the download
-    finished correctly.
+    blake2b_256sum = None
+    '''The blake2b_256sum of the source from the :attr:`url`. Non-essential,
+    but you should try to include this, it is used to check that the
+    download finished correctly.
     '''
 
     depends = []
@@ -355,8 +354,8 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         url = self.versioned_url
         expected_digests = {}
-        for alg in set(hashlib.algorithms_guaranteed) | set(('md5', 'sha512', 'blake2b')):
-            expected_digest = getattr(self, alg + 'sum') if hasattr(self, alg + 'sum') else None
+        for alg in set(hashlib.algorithms_guaranteed) | set(('sha256', 'md5', 'blake2b_256')):
+            expected_digest = getattr(self, alg + 'sum', None)
             ma = match(u'^(.+)#' + alg + u'=([0-9a-f]{32,})$', url)
             if ma:                # fragmented URL?
                 if expected_digest:
@@ -379,16 +378,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                 if not exists(marker_filename):
                     shprint(sh.rm, filename)
                 else:
-                    for alg, expected_digest in expected_digests.items():
-                        current_digest = algsum(alg, filename)
-                        if current_digest != expected_digest:
-                            debug('* Generated {}sum: {}'.format(alg,
-                                                                 current_digest))
-                            debug('* Expected {}sum: {}'.format(alg,
-                                                                expected_digest))
-                            raise ValueError(
-                                ('Generated {0}sum does not match expected {0}sum '
-                                 'for {1} recipe').format(alg, self.name))
+                    self.verify_algsum(expected_digests, filename)
                     do_download = False
 
             # If we got this far, we will download
@@ -400,16 +390,7 @@ class Recipe(with_metaclass(RecipeMeta)):
                 shprint(sh.touch, marker_filename)
 
                 if exists(filename) and isfile(filename):
-                    for alg, expected_digest in expected_digests.items():
-                        current_digest = algsum(alg, filename)
-                        if current_digest != expected_digest:
-                            debug('* Generated {}sum: {}'.format(alg,
-                                                                 current_digest))
-                            debug('* Expected {}sum: {}'.format(alg,
-                                                                expected_digest))
-                            raise ValueError(
-                                ('Generated {0}sum does not match expected {0}sum '
-                                 'for {1} recipe').format(alg, self.name))
+                    self.verify_algsum(expected_digests, filename)
             else:
                 info('{} download already cached, skipping'.format(self.name))
 
@@ -1195,10 +1176,28 @@ class TargetPythonRecipe(Recipe):
             shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
 
 
-def algsum(alg, filen):
-    '''Calculate the digest of a file.
-    '''
-    with open(filen, 'rb') as fileh:
-        digest = getattr(hashlib, alg)(fileh.read())
-
-    return digest.hexdigest()
+    def verify_algsum(self, algs, filen):
+        '''Verify digest of a file.
+        '''
+    
+        for alg, expected_digest in algs.items():
+    
+            with open(filen, 'rb') as fileh:
+                func = getattr(hashlib, alg, None)
+                if func is not None:
+                    digest = func(fileh.read())
+                elif '_' in alg: # for custom digest_sizes, such as blake2b_256
+                    offset = alg.rfind('_')
+                    func = getattr(hashlib, alg[:offset])
+                    digest_size = int(alg[offset + 1:])
+                    digest = func(fileh.read(), digest_size = digest_size)
+            current_digest = digest.hexdigest()
+    
+            if current_digest != expected_digest:
+                debug('* Generated {}sum: {}'.format(alg,
+                                                     current_digest))
+                debug('* Expected {}sum: {}'.format(alg,
+                                                    expected_digest))
+                raise ValueError(
+                    ('Generated {0}sum does not match expected {0}sum '
+                     'for {1} recipe').format(alg, self.name))

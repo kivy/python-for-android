@@ -115,13 +115,23 @@ class TestRecipe(unittest.TestCase):
             mock.call('Skipping test_recipe download as no URL is set')]
 
     @staticmethod
-    def get_dummy_python_recipe_for_download_tests():
+    def get_dummy_python_recipe_for_download_tests(good_digests = [], bad_digest = []):
         """
         Helper method for creating a test recipe used in download tests.
         """
         recipe = DummyRecipe()
         filename = 'Python-3.7.4.tgz'
         url = 'https://www.python.org/ftp/python/3.7.4/{}'.format(filename)
+        for bad_digest in bad_digests:
+            setattr(recipe, bad_digest + 'sum', 'x')
+        if 'sha256' in good_digests:
+            recipe.sha256sum = 'd63e63e14e6d29e17490abbe6f7d17afb3db182dbd801229f14e55f4157c4ba3'
+        if 'md5' in good_digests:
+            recipe.md5sum = '68111671e5b2db4aef7b9ab01bf0f9be'
+        if 'blake2b_256' in good_digests:
+            recipe.blake2b_256sum = '24a28aeace25e4397edc62ede83790541257e7281cc33539cece84dd3371f640'
+        if 'sha512' in good_digests:
+            recipe.sha512sum = 'c25a72ad792f7c1b4c2f79faebbe9608d04b04b2fe58ab804cb4732cdaa75ea93d175f5e52b38e91cb6ae0559ea6b645d802c8b6a869584e8bb9b5018367ce3d'
         recipe._url = url
         recipe.ctx = Context()
         return recipe, filename
@@ -145,6 +155,26 @@ class TestRecipe(unittest.TestCase):
                 'Downloading test_recipe from '
                 'https://www.python.org/ftp/python/3.7.4/Python-3.7.4.tgz')]
         assert m_touch.call_count == 1
+
+    def test_hashes(self):
+        """
+        Verifies digest hashes are enforced.
+        """
+        with (
+                tempfile.TemporaryDirectory()) as temp_dir:
+            digests = set(('sha256', 'md5', 'blake2b_256', 'sha512'))
+            recipe, filename = self.get_dummy_python_recipe_for_download_tests(
+                                   good_digests = digests)
+            recipe.ctx.setup_dirs(temp_dir)
+            recipe.download()
+            for bad_digest in digests:
+                good_digests = digests - set([bad_digest])
+                recipe, filename = self.get_dummy_python_recipe_for_download_tests(
+                                       good_digests = good_digests,
+                                       bad_digests = [bad_digest])
+                recipe.ctx.setup_dirs(temp_dir)
+                with self.assertRaises(ValueError) as e:
+                    recipe.download()
 
     def test_download_file_scheme_https(self):
         """
