@@ -65,6 +65,9 @@
                   android:label="@string/app_name"
                   android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 8 %}|uiMode{% endif %}{% if args.min_sdk_version >= 13 %}|screenSize|smallestScreenSize{% endif %}{% if args.min_sdk_version >= 17 %}|layoutDirection{% endif %}{% if args.min_sdk_version >= 24 %}|density{% endif %}"
                   android:screenOrientation="{{ args.orientation }}"
+                  {% if args.activity_launch_mode %}
+                  android:launchMode="{{ args.activity_launch_mode }}"
+                  {% endif %}
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
