@@ -1,12 +1,13 @@
+import glob
+from os.path import basename, exists, join
+
+import sh
 from pythonforandroid.recipe import CythonRecipe
 from pythonforandroid.toolchain import current_directory, shprint
-from os.path import exists, join, basename
-import sh
-import glob
 
 
 class KivyRecipe(CythonRecipe):
-    version = '1.11.1'
+    version = '2.0.0'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
@@ -47,7 +48,7 @@ class KivyRecipe(CythonRecipe):
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer'),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
-                ])
+            ])
 
         return env
 
