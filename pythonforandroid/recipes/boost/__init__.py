@@ -92,11 +92,7 @@ class BoostRecipe(Recipe):
         env['PYTHON_ROOT'] = self.ctx.python_recipe.link_root(arch.arch)
         env['PYTHON_INCLUDE'] = self.ctx.python_recipe.include_root(arch.arch)
         env['PYTHON_MAJOR_MINOR'] = self.ctx.python_recipe.version[:3]
-        env[
-            'PYTHON_LINK_VERSION'
-        ] = self.ctx.python_recipe.major_minor_version_string
-        if 'python3' in self.ctx.python_recipe.name:
-            env['PYTHON_LINK_VERSION'] += 'm'
+        env['PYTHON_LINK_VERSION'] = self.ctx.python_recipe.link_version
 
         env['ARCH'] = arch.arch.replace('-', '')
         env['TARGET_TRIPLET'] = arch.target
