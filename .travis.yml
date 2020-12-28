@@ -24,11 +24,11 @@ jobs:
         - type -t deactivate && deactivate || true
         - export PATH=/opt/python/3.7.1/bin:$PATH
         # Install tox
-        - pip3.7 install tox>=2.0
+        - python3.7 -m pip install tox>=2.0
         # Install coveralls & dependencies
         #   Note: pyOpenSSL needed to send the coveralls reports
-        - pip3.7 install pyOpenSSL
-        - pip3.7 install coveralls
+        - python3.7 -m pip install pyOpenSSL
+        - python3.7 -m pip install coveralls
       script:
         # ignores test_pythonpackage.py since it runs for too long
         - tox -- tests/ --ignore tests/test_pythonpackage.py
