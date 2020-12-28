@@ -7,7 +7,7 @@ all: install_java upgrade_cython install_android_ndk_sdk install_p4a
 
 install_java:
 	brew tap adoptopenjdk/openjdk
-	brew cask install adoptopenjdk13
+	brew install --cask adoptopenjdk13
 	/usr/libexec/java_home -V
 
 upgrade_cython:
