@@ -327,6 +327,9 @@ main.py that loads it.''')
         join(res_dir, 'drawable/icon.png')
     )
 
+    if args.enable_androidx:
+        shutil.copy('templates/gradle.properties','gradle.properties')
+        
     if get_bootstrap_name() != "service_only":
         lottie_splashscreen = join(res_dir, 'raw/splashscreen.json')
         if args.presplash_lottie:
@@ -679,6 +682,10 @@ tools directory of the Android SDK.
                               'topics/manifest/'
                               'activity-element.html'))
 
+    ap.add_argument('--enable-androidx', dest='enable_androidx',
+                    action='store_true',
+                    help=('Enable the AndroidX support library, '
+                          'requires api = 28 or greater'))
     ap.add_argument('--android-entrypoint', dest='android_entrypoint',
                     default='org.kivy.android.PythonActivity',
                     help='Defines which java class will be used for startup, usually a subclass of PythonActivity')
