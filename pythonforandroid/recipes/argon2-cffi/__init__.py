@@ -1,10 +1,10 @@
 from pythonforandroid.recipe import PythonRecipe
 
 
-class PycryptodomeRecipe(PythonRecipe):
+class Argon2Recipe(PythonRecipe):
     version = '20.1.0'
     url = 'https://github.com/hynek/argon2-cffi/archive/master.zip'
-    depends = ['cffi']
+    depends = ['setuptools', 'cffi']
 
 
-recipe = PycryptodomeRecipe()
+recipe = Argon2Recipe()
