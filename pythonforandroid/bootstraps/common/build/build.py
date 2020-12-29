@@ -328,8 +328,8 @@ main.py that loads it.''')
     )
 
     if args.enable_androidx:
-        shutil.copy('templates/gradle.properties','gradle.properties')
-        
+        shutil.copy('templates/gradle.properties', 'gradle.properties')
+
     if get_bootstrap_name() != "service_only":
         lottie_splashscreen = join(res_dir, 'raw/splashscreen.json')
         if args.presplash_lottie:
