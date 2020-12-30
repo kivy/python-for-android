@@ -33,7 +33,7 @@ class HostPython3Recipe(Recipe):
         :class:`~pythonforandroid.python.HostPythonRecipe`
     '''
 
-    version = '3.8.5'
+    version = '3.9.2'
     name = 'hostpython3'
 
     build_subdir = 'native-build'
