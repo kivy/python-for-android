@@ -234,6 +234,12 @@ class Arch:
 
         env['PATH'] = environ['PATH']
 
+        # for reproducible builds
+        if 'SOURCE_DATE_EPOCH' in environ:
+            for k in 'LC_ALL TZ SOURCE_DATE_EPOCH PYTHONHASHSEED BUILD_DATE BUILD_TIME'.split():
+                if k in environ:
+                    env[k] = environ[k]
+
         return env
 
 

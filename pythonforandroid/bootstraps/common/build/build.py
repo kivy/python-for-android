@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+from gzip import GzipFile
+import hashlib
 import json
 from os.path import (
     dirname, join, isfile, realpath,
     relpath, split, exists, basename
 )
-from os import listdir, makedirs, remove
+from os import environ, listdir, makedirs, remove
 import os
 import shlex
 import shutil
@@ -161,6 +163,13 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
             return False
         return not is_blacklist(fn)
 
+    def clean(tinfo):
+        """cleaning function (for reproducible builds)"""
+        tinfo.uid = tinfo.gid = 0
+        tinfo.uname = tinfo.gname = ''
+        tinfo.mtime = 0
+        return tinfo
+
     # get the files and relpath file of all the directory we asked for
     files = []
     for sd in source_dirs:
@@ -168,9 +177,11 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
         compile_dir(sd, optimize_python=optimize_python)
         files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd)
                   if select(x)]
+    files.sort()  # deterministic
 
     # create tar.gz of thoses files
-    tf = tarfile.open(tfn, 'w:gz', format=tarfile.USTAR_FORMAT)
+    gf = GzipFile(tfn, 'wb', mtime=0)  # deterministic
+    tf = tarfile.open(None, 'w', gf, format=tarfile.USTAR_FORMAT)
     dirs = []
     for fn, afn in files:
         dn = dirname(afn)
@@ -189,8 +200,9 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
                 tf.addfile(tinfo)
 
         # put the file
-        tf.add(fn, afn)
+        tf.add(fn, afn, filter=clean)
     tf.close()
+    gf.close()
 
 
 def compile_dir(dfn, optimize_python=True):
@@ -521,9 +533,18 @@ main.py that loads it.''')
         versioned_name=versioned_name)
 
     # String resources:
+    timestamp = time.time()
+    if 'SOURCE_DATE_EPOCH' in environ:
+        # for reproducible builds
+        timestamp = int(environ['SOURCE_DATE_EPOCH'])
+    private_version = "{} {} {}".format(
+        args.version,
+        args.numeric_version,
+        timestamp
+    )
     render_args = {
         "args": args,
-        "private_version": str(time.time())
+        "private_version": hashlib.sha1(private_version.encode()).hexdigest()
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
