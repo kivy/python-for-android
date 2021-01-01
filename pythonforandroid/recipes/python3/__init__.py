@@ -1,22 +1,18 @@
 import glob
-import sh
 import subprocess
-
 from multiprocessing import cpu_count
 from os import environ
 from os.path import dirname, exists, join
 from pathlib import Path
 from shutil import copy2
 
-from pythonforandroid.logger import info, warning, shprint
+import sh
+from pythonforandroid.logger import info, shprint, warning
 from pythonforandroid.patching import version_starts_with
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
-from pythonforandroid.util import (
-    current_directory,
-    ensure_dir,
-    walk_valid_filens,
-    BuildInterruptingException,
-)
+from pythonforandroid.util import (BuildInterruptingException,
+                                   current_directory, ensure_dir,
+                                   walk_valid_filens)
 
 NDK_API_LOWER_THAN_SUPPORTED_MESSAGE = (
     'Target ndk-api is {ndk_api}, '
@@ -67,14 +63,16 @@ class Python3Recipe(TargetPythonRecipe):
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
         ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
 
-        # Python 3.8.1
-        ('patches/py3.8.1.patch', version_starts_with("3.8"))
+        # Python 3.8.1 and Python 3.9.1
+        ('patches/py3.8_3.9.patch', version_starts_with("3.8")),
+        ('patches/py3.8_3.9.patch', version_starts_with("3.9"))
     ]
 
     if sh.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8_3.9_fix_cortex_a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8_3.9_fix_cortex_a8.patch", version_starts_with("3.9"))
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
