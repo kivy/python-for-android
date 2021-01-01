@@ -71,7 +71,7 @@ class Python3Recipe(TargetPythonRecipe):
     if sh.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8_3.9_fix_cortex_a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8_3.9_fix_cortex_a8.patch", version_starts_with("3.8")),
             ("patches/py3.8_3.9_fix_cortex_a8.patch", version_starts_with("3.9"))
         ]
 
