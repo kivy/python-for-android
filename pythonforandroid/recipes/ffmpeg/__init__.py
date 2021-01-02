@@ -122,7 +122,7 @@ class FFMpegRecipe(Recipe):
                 '--strip={}strip'.format(cross_prefix),
                 '--sysroot={}'.format(join(self.ctx.ndk_dir, 'toolchains',
                                            'llvm', 'prebuilt', 'linux-x86_64',
-                                           'sysroot')),
+                                           'sysroot')),  # FIXME
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]

@@ -39,7 +39,7 @@ class OpenCVRecipe(NDKRecipe):
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
-        env['ANDROID_NDK'] = self.ctx.ndk_dir
+        env['ANDROID_NDK'] = self.ctx.ndk_dir  # FIXME
         env['ANDROID_SDK'] = self.ctx.sdk_dir
         return env
 

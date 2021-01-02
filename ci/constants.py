@@ -28,6 +28,16 @@ BROKEN_RECIPES_PYTHON3 = set([
     'vlc',
     # need extra gfortran NDK system add-on
     'lapack', 'scipy',
+    # 403 on https://jqueryui.com/resources/download/jquery-ui-1.12.1.zip
+    'matplotlib',
+    # requires kernel headers
+    'evdev',
+    # xslt-config: not found (missing dev packages of libxml2 and libxslt)
+    'lxml',
+    # The headers or library files could not be found for zlib
+    'Pillow',
+    # OpenCV requires Android SDK Tools revision 14 or newer
+    'opencv',
 ])
 
 BROKEN_RECIPES = {

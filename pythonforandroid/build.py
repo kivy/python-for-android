@@ -12,9 +12,10 @@ import sh
 import shutil
 import subprocess
 from contextlib import suppress
+from distutils.version import LooseVersion
 
 from pythonforandroid.util import (
-    current_directory, ensure_dir,
+    build_platform, current_directory, ensure_dir,
     BuildInterruptingException,
 )
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
@@ -23,7 +24,7 @@ from pythonforandroid.pythonpackage import get_package_name
 from pythonforandroid.recipe import CythonRecipe, Recipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
+    read_ndk_version, RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 
 
 def get_ndk_platform_dir(ndk_dir, ndk_api, arch):
@@ -38,6 +39,21 @@ def get_ndk_platform_dir(ndk_dir, ndk_api, arch):
         warning("ndk_platform doesn't exist: {}".format(ndk_platform))
         ndk_platform_dir_exists = False
     return ndk_platform, ndk_platform_dir_exists
+
+
+def get_ndk_standalone(ndk_dir):
+    return join(ndk_dir, 'toolchains', 'llvm', 'prebuilt', build_platform)
+
+
+def get_ndk_sysroot(ndk_dir):
+    sysroot = join(get_ndk_standalone(ndk_dir), 'sysroot')
+    if not exists(sysroot):
+        warning("sysroot doesn't exist: {}".format(sysroot))
+    return sysroot
+
+
+def get_ndk_lib_dir(sysroot, ndk_api, arch):
+    return join(sysroot, 'usr', 'lib', arch.command_prefix, str(ndk_api))
 
 
 def get_toolchain_versions(ndk_dir, arch):
@@ -115,6 +131,10 @@ class Context:
     ccache = None  # whether to use ccache
 
     ndk_platform = None  # the ndk platform directory
+    ndk_standalone = None  # ndk >= r22 doesn't have platform/ & sysroot/
+    ndk_sysroot = None
+    ndk_lib_dir = None  # usr/lib
+    ndk_include_dir = None  # usr/include
 
     bootstrap = None
     bootstrap_build_dir = None
@@ -378,9 +398,19 @@ class Context:
         # This would need to be changed if supporting multiarch APKs
         arch = self.archs[0]
         toolchain_prefix = arch.toolchain_prefix
-        self.ndk_platform, ndk_platform_dir_exists = get_ndk_platform_dir(
-            self.ndk_dir, self.ndk_api, arch)
-        ok = ok and ndk_platform_dir_exists
+        ndk_version = read_ndk_version(ndk_dir)
+        if ndk_version is None or ndk_version < LooseVersion('22'):
+            self.ndk_platform, ndk_platform_dir_exists = get_ndk_platform_dir(
+                self.ndk_dir, self.ndk_api, arch)
+            ok = ok and ndk_platform_dir_exists
+            self.ndk_sysroot = join(self.ndk_dir, 'sysroot')
+            self.ndk_lib_dir = join(self.ndk_dir, 'usr', 'lib')
+        else:
+            self.ndk_standalone = get_ndk_standalone(self.ndk_dir)
+            self.ndk_sysroot = get_ndk_sysroot(self.ndk_dir)
+            self.ndk_lib_dir = get_ndk_lib_dir(self.ndk_sysroot, self.ndk_api, arch)
+            ok = ok and exists(self.ndk_sysroot)
+        self.ndk_include_dir = join(self.ndk_sysroot, 'usr', 'include')
 
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
@@ -878,7 +908,7 @@ def biglink(ctx, arch):
 
     # Move to the directory containing crtstart_so.o and crtend_so.o
     # This is necessary with newer NDKs? A gcc bug?
-    with current_directory(join(ctx.ndk_platform, 'usr', 'lib')):
+    with current_directory(ctx.ndk_lib_dir):
         do_biglink(
             join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
             obj_dir.split(' '),

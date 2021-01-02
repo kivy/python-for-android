@@ -265,8 +265,8 @@ class Python3Recipe(TargetPythonRecipe):
         # the build of zlib module, here we search for android's zlib version
         # and sets the right flags, so python can be build with android's zlib
         info("Activating flags for android's zlib")
-        zlib_lib_path = join(self.ctx.ndk_platform, 'usr', 'lib')
-        zlib_includes = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        zlib_lib_path = self.ctx.ndk_lib_dir
+        zlib_includes = self.ctx.ndk_include_dir
         zlib_h = join(zlib_includes, 'zlib.h')
         try:
             with open(zlib_h) as fileh:

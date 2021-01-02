@@ -98,7 +98,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
 
         with open(join(self.get_build_dir(arch), 'setup.cfg'), 'w') as fileh:
             fileh.write(setup_cfg.format(
-                ndk_sysroot_usr=join(self.ctx.ndk_dir, 'sysroot', 'usr')))
+                ndk_sysroot_usr=join(self.ctx.ndk_sysroot, 'usr')))  # FIXME
 
         self.generate_libraries_pc_files(arch)
         self.download_web_backend_dependencies(arch)

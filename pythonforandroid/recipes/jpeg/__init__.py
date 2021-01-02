@@ -33,7 +33,7 @@ class JpegRecipe(Recipe):
                     '-DCMAKE_SYSTEM_PROCESSOR={cpu}'.format(cpu='arm'),
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',
                     '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
-                    '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,
+                    '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,  # FIXME
                     '-DCMAKE_C_COMPILER={cc}'.format(cc=arch.get_clang_exe()),
                     '-DCMAKE_CXX_COMPILER={cc_plus}'.format(
                         cc_plus=arch.get_clang_exe(plus_plus=True)),

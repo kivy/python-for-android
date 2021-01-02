@@ -59,7 +59,7 @@ class VlcRecipe(Recipe):
                 env = dict(environ)
                 env.update({
                     'ANDROID_ABI': arch.arch,
-                    'ANDROID_NDK': self.ctx.ndk_dir,
+                    'ANDROID_NDK': self.ctx.ndk_dir,  # FIXME
                     'ANDROID_SDK': self.ctx.sdk_dir,
                 })
                 info("compiling vlc from sources")

@@ -1052,7 +1052,7 @@ class ToolchainCL:
             if not exists("gradlew"):
                 raise BuildInterruptingException("gradlew file is missing")
 
-            env["ANDROID_NDK_HOME"] = self.ctx.ndk_dir
+            env['ANDROID_NDK_HOME'] = self.ctx.ndk_dir  # FIXME
             env["ANDROID_HOME"] = self.ctx.sdk_dir
 
             gradlew = sh.Command('./gradlew')

@@ -20,7 +20,7 @@ class LibRt(Recipe):
 
     @property
     def libc_path(self):
-        return join(self.ctx.ndk_platform, 'usr', 'lib', 'libc')
+        return join(self.ctx.ndk_lib_dir, 'libc')  # FIXME
 
     def build_arch(self, arch):
         # Create a temporary folder to add to link path with a fake librt.so:

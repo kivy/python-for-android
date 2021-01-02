@@ -1,0 +1,34 @@
+--- a/Configurations/15-android.conf	2021-01-02 03:49:06.227255874 +0100
++++ b/Configurations/15-android.conf	2021-01-02 05:57:26.205585631 +0100
+@@ -8,7 +8,7 @@
+ 
+     my $android_ndk = {};
+     my %triplet = (
+-        arm    => "arm-linux-androideabi",
++        arm    => "armv7a-linux-androideabi",
+         arm64  => "aarch64-linux-android",
+         mips   => "mipsel-linux-android",
+         mips64 => "mips64el-linux-android",
+@@ -107,16 +107,19 @@
+                 }
+             } elsif (-f "$ndk/AndroidVersion.txt") {    #"standalone toolchain"
+                 my $cc = $user{CC} // "clang";
++                if ($ENV{NDK_API} =~ m|^android-(\d+)$|) {
++                  $api = $1;
++                }
+                 # One can probably argue that both clang and gcc should be
+                 # probed, but support for "standalone toolchain" was added
+                 # *after* announcement that gcc is being phased out, so
+                 # favouring clang is considered adequate. Those who insist
+                 # have option to enforce test for gcc with CC=gcc.
+-                if (which("$triarch-$cc") !~ m|^$ndk|) {
++                if (which("$triarch$api-$cc") !~ m|^$ndk|) {
+                     die "no NDK $triarch-$cc on \$PATH";
+                 }
+-                $user{CC} = $cc;
+-                $user{CROSS_COMPILE} = "$triarch-";
++                $user{CC} = "$triarch$api-$cc";
++                $user{CROSS_COMPILE} = "";
+             } elsif ($user{CC} eq "clang") {
+                 die "no NDK clang on \$PATH";
+             } else {

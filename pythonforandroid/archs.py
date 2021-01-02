@@ -30,7 +30,7 @@ class Arch:
     common_cppflags = [
         '-DANDROID',
         '-D__ANDROID_API__={ctx.ndk_api}',
-        '-I{ctx.ndk_dir}/sysroot/usr/include/{command_prefix}',
+        '-I{ctx.ndk_sysroot}/usr/include/{command_prefix}',
         '-I{python_includes}',
     ]
 

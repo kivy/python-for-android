@@ -48,6 +48,9 @@ class RecipeCtx:
             f"{self.ctx._ndk_dir}/platforms/"
             f"android-{self.ctx.ndk_api}/{self.arch.platform_dir}"
         )
+        self.ctx.ndk_sysroot = f'{self.ctx._ndk_dir}/sysroot'
+        self.ctx.ndk_lib_dir = f'{self.ctx._ndk_dir}/usr/lib'
+        self.ctx.ndk_include_dir = f'{self.ctx.ndk_sysroot}/usr/include'
         self.recipe = Recipe.get_recipe(self.recipe_name, self.ctx)
 
     def tearDown(self):
