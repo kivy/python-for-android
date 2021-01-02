@@ -67,14 +67,16 @@ class Python3Recipe(TargetPythonRecipe):
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
         ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
 
-        # Python 3.8.1
-        ('patches/py3.8.1.patch', version_starts_with("3.8"))
+        # Python 3.8.1 & 3.9.X
+        ('patches/py3.8.1.patch', version_starts_with("3.8")),
+        ('patches/py3.8.1.patch', version_starts_with("3.9"))
     ]
 
     if sh.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8")),
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.9"))
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
