@@ -249,6 +249,16 @@ public class PythonActivity extends Activity {
         mActivity.runOnUiThread(new LoadUrl(url));
     }
 
+    public static void enableZoom() {
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mWebView.getSettings().setBuiltInZoomControls(true);
+                mWebView.getSettings().setDisplayZoomControls(false);
+            }
+        });
+    }
+
     public static ViewGroup getLayout() {
         return   mLayout;
     }
