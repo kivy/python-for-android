@@ -7,5 +7,5 @@ class Argon2Recipe(CompiledComponentsPythonRecipe):
     depends = ['setuptools', 'cffi']
     call_hostpython_via_targetpython = False
 
-    
+
 recipe = Argon2Recipe()
