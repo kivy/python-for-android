@@ -6,6 +6,7 @@ class Argon2Recipe(CompiledComponentsPythonRecipe):
     url = 'git+https://github.com/hynek/argon2-cffi'
     depends = ['setuptools', 'cffi']
     call_hostpython_via_targetpython = False
+    build_cmd = 'build'
 
 
 recipe = Argon2Recipe()
