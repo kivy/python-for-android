@@ -220,11 +220,13 @@ class Recipe(with_metaclass(RecipeMeta)):
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
                 with current_directory(target):
-                    shprint(sh.git, 'fetch', '--tags')
+                    shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
                     if self.version:
                         shprint(sh.git, 'checkout', self.version)
-                    shprint(sh.git, 'pull')
-                    shprint(sh.git, 'pull', '--recurse-submodules')
+                    branch = sh.git('branch', '--show-current')
+                    if branch:
+                        shprint(sh.git, 'pull')
+                        shprint(sh.git, 'pull', '--recurse-submodules')
                     shprint(sh.git, 'submodule', 'update', '--recursive')
             else:
                 if url.startswith('git+'):
