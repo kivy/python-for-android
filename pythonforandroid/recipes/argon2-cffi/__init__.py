@@ -8,5 +8,10 @@ class Argon2Recipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
     build_cmd = 'build'
 
+    def get_recipe_env(self, arch):
+        env = super().get_recipe_env(arch)
+        env['ARGON2_CFFI_USE_SSE2'] = '0'
+        return env
+
 
 recipe = Argon2Recipe()
