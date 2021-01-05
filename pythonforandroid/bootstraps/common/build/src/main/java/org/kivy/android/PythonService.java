@@ -25,14 +25,14 @@ public class PythonService extends Service implements Runnable {
     private Thread pythonThread = null;
 
     // Python environment variables
-    private String androidPrivate;
-    private String androidArgument;
-    private String pythonName;
-    private String pythonHome;
-    private String pythonPath;
-    private String serviceEntrypoint;
+    public String androidPrivate;
+    public String androidArgument;
+    public String pythonName;
+    public String pythonHome;
+    public String pythonPath;
+    public String serviceEntrypoint;
     // Argument to pass to Python code,
-    private String pythonServiceArgument;
+    public String pythonServiceArgument;
 
 
     public static PythonService mService = null;
@@ -60,28 +60,35 @@ public class PythonService extends Service implements Runnable {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+	startIntent = intent;
         if (pythonThread != null) {
             Log.v("python service", "service exists, do not start again");
-            return START_NOT_STICKY;
+            return startType();
         }
+        if (intent != null) {
 
-		startIntent = intent;
-        Bundle extras = intent.getExtras();
-        androidPrivate = extras.getString("androidPrivate");
-        androidArgument = extras.getString("androidArgument");
-        serviceEntrypoint = extras.getString("serviceEntrypoint");
-        pythonName = extras.getString("pythonName");
-        pythonHome = extras.getString("pythonHome");
-        pythonPath = extras.getString("pythonPath");
-        boolean serviceStartAsForeground = (
-            extras.getString("serviceStartAsForeground").equals("true")
-        );
-        pythonServiceArgument = extras.getString("pythonServiceArgument");
-        pythonThread = new Thread(this);
-        pythonThread.start();
+            Bundle extras = intent.getExtras();
+            androidPrivate = extras.getString("androidPrivate");
+            androidArgument = extras.getString("androidArgument");
+            serviceEntrypoint = extras.getString("serviceEntrypoint");
+            pythonName = extras.getString("pythonName");
+            pythonHome = extras.getString("pythonHome");
+            pythonPath = extras.getString("pythonPath");
+            boolean serviceStartAsForeground = false;
+            String foreground = extras.getString("serviceStartAsForeground");
+            if (foreground != null) {
+                serviceStartAsForeground = foreground.equals("true");
+            }
+            pythonServiceArgument = extras.getString("pythonServiceArgument");
+            pythonThread = new Thread(this);
+            pythonThread.start();
 
-        if (serviceStartAsForeground) {
-            doStartForeground(extras);
+            if (serviceStartAsForeground) {
+                doStartForeground(extras);
+            }
+        } else {
+            pythonThread = new Thread(this);
+            pythonThread.start();
         }
 
         return startType();
@@ -153,7 +160,9 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        stopSelf();
+        if (startType() == START_NOT_STICKY) {
+            stopSelf();
+        }
     }
 
     @Override
