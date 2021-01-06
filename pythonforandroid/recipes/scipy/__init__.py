@@ -26,7 +26,7 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
 
         GCC_VER = '4.9'
         HOST = 'linux-x86_64'
-        LIB = 'lib64'
+        LIB = 'lib64' if '64' in arch.arch else 'lib'
 
         prefix = env['TOOLCHAIN_PREFIX']
         lapack_dir = join(Recipe.get_recipe('lapack', self.ctx).get_build_dir(arch.arch), 'build', 'install')
@@ -43,6 +43,8 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
         env['CPPFLAGS'] += f' --sysroot={sysroot} -I{sysroot_include}/c++/v1 -I{sysroot_include}'
         env['LDSHARED'] = 'clang'
         env['LDFLAGS'] += f' {LDSHARED_opts} --sysroot={sysroot} -L{libgfortran} -L{numpylib}'
+        env['LDFLAGS'] += f' -L{self.ctx.ndk_dir}/sources/cxx-stl/llvm-libc++/libs/{arch.arch}/'
+
         return env
 
 
