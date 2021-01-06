@@ -5,6 +5,8 @@ from multiprocessing import cpu_count
 from os.path import join
 import sh
 
+# known to build with cmake version 3.19.2 and NDK r19c. See https://gitlab.kitware.com/cmake/cmake/-/issues/18739
+
 
 class LapackRecipe(Recipe):
 
