@@ -25,14 +25,14 @@ public class PythonService extends Service implements Runnable {
     private Thread pythonThread = null;
 
     // Python environment variables
-    public String androidPrivate;
-    public String androidArgument;
-    public String pythonName;
-    public String pythonHome;
-    public String pythonPath;
-    public String serviceEntrypoint;
+    protected String androidPrivate;
+    protected String androidArgument;
+    protected String pythonName;
+    protected String pythonHome;
+    protected String pythonPath;
+    protected String serviceEntrypoint;
     // Argument to pass to Python code,
-    public String pythonServiceArgument;
+    protected String pythonServiceArgument;
 
 
     public static PythonService mService = null;
@@ -65,6 +65,7 @@ public class PythonService extends Service implements Runnable {
             Log.v("python service", "service exists, do not start again");
             return startType();
         }
+        //when app is closed, OS will restart the service with null intent See #2401
         if (intent != null) {
 
             Bundle extras = intent.getExtras();

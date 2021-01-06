@@ -3,7 +3,6 @@ package {{ args.package }};
 import android.content.Intent;
 import android.content.Context;
 import org.kivy.android.PythonService;
-import org.kivy.android.PythonUtil;
 import java.io.File;
 
 
@@ -41,10 +40,6 @@ public class Service{{ name|capitalize }} extends PythonService {
         String package_root = getFilesDir().getAbsolutePath();
         String app_root =  package_root + "/app";
         File app_root_file = new File(app_root);
-        PythonUtil.loadLibraries(app_root_file,
-            new File(getApplicationInfo().nativeLibraryDir));
-        this.mService = this;
-
         if (androidPrivate == null) {
             androidPrivate = package_root;
         }
@@ -66,12 +61,7 @@ public class Service{{ name|capitalize }} extends PythonService {
         if (pythonServiceArgument == null) {
             pythonServiceArgument = app_root+":"+app_root+"/lib";
         }
-        nativeStart(
-            androidPrivate, androidArgument,
-            serviceEntrypoint, pythonName,
-            pythonHome, pythonPath,
-            pythonServiceArgument);
-        stopSelf();
+        super.run();
     }
 
     static public void stop(Context ctx) {
