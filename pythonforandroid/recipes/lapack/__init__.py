@@ -1,3 +1,8 @@
+'''
+known to build with cmake version 3.19.2 and NDK r19c.
+See https://gitlab.kitware.com/cmake/cmake/-/issues/18739
+'''
+
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from pythonforandroid.util import current_directory, ensure_dir, BuildInterruptingException

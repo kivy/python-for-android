@@ -1,0 +1,13 @@
+# DP: Build getbuildinfo.o with DATE/TIME values when defined
+
+--- a/Makefile.pre.in
++++ b/Makefile.pre.in
+@@ -785,6 +785,8 @@ Modules/getbuildinfo.o: $(PARSER_OBJS) \
+ 	      -DGITVERSION="\"`LC_ALL=C $(GITVERSION)`\"" \
+ 	      -DGITTAG="\"`LC_ALL=C $(GITTAG)`\"" \
+ 	      -DGITBRANCH="\"`LC_ALL=C $(GITBRANCH)`\"" \
++	      $(if $(BUILD_DATE),-DDATE='"$(BUILD_DATE)"') \
++	      $(if $(BUILD_TIME),-DTIME='"$(BUILD_TIME)"') \
+ 	      -o $@ $(srcdir)/Modules/getbuildinfo.c
+ 
+ Modules/getpath.o: $(srcdir)/Modules/getpath.c Makefile
