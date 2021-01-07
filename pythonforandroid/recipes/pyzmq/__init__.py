@@ -10,10 +10,10 @@ import glob
 
 class PyZMQRecipe(CythonRecipe):
     name = 'pyzmq'
-    version = 'master'
-    url = 'https://github.com/zeromq/pyzmq/archive/{version}.zip'
+    version = '20.0.0'
+    url = 'https://github.com/zeromq/pyzmq/archive/v{version}.zip'
     site_packages_name = 'zmq'
-    depends = ['libzmq']
+    depends = ['setuptools', 'libzmq']
     cython_args = ['-Izmq/utils',
                    '-Izmq/backend/cython',
                    '-Izmq/devices']
