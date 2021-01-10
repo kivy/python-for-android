@@ -1,9 +1,18 @@
 --- a/src/main/java/org/libsdl/app/SDLActivity.java
 +++ b/src/main/java/org/libsdl/app/SDLActivity.java
-@@ -196,6 +196,15 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -94,6 +94,8 @@
+     // This is what SDL runs in. It invokes SDL_main(), eventually
+     protected static Thread mSDLThread;
+
++    public static int keyboardInputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
++
+     protected static SDLGenericMotionListener_API12 getMotionListener() {
+         if (mMotionListener == null) {
+             if (Build.VERSION.SDK_INT >= 26) {
+@@ -196,6 +198,15 @@
          Log.v(TAG, "onCreate()");
          super.onCreate(savedInstanceState);
- 
+
 +        SDLActivity.initialize();
 +        // So we can call stuff from static callbacks
 +        mSingleton = this;
@@ -16,19 +25,19 @@
          // Load shared libraries
          String errorMsgBrokenLib = "";
          try {
-@@ -639,7 +648,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -639,7 +650,7 @@
      Handler commandHandler = new SDLCommandHandler();
- 
+
      // Send a message from the SDLMain thread
 -    boolean sendCommand(int command, Object data) {
 +    protected boolean sendCommand(int command, Object data) {
          Message msg = commandHandler.obtainMessage();
          msg.arg1 = command;
          msg.obj = data;
-@@ -1051,6 +1061,21 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -1051,6 +1062,21 @@
          return Arrays.copyOf(filtered, used);
      }
- 
+
 +    /**
 +     * Calls turnActive() on singleton to keep loading screen active
 +     */
@@ -45,11 +54,11 @@
 +
 +
      // APK expansion files support
- 
+
      /** com.android.vending.expansion.zipfile.ZipResourceFile object or null. */
-@@ -1341,14 +1366,13 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -1341,14 +1367,13 @@
      };
- 
+
      public void onSystemUiVisibilityChange(int visibility) {
 -        if (SDLActivity.mFullscreenModeActive && (visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0 || (visibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
 -
@@ -62,13 +71,21 @@
              }
 -
          }
-     }    
- 
-@@ -1475,6 +1499,7 @@ class SDLMain implements Runnable {
+     }
+
+@@ -1475,6 +1500,7 @@
          String[] arguments = SDLActivity.mSingleton.getArguments();
- 
+
          Log.v("SDL", "Running main function " + function + " from library " + library);
 +        SDLActivity.mSingleton.appConfirmedActive();
          SDLActivity.nativeRunMain(library, function, arguments);
- 
+
          Log.v("SDL", "Finished main function");
+@@ -2002,7 +2028,7 @@
+     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+         ic = new SDLInputConnection(this, true);
+
+-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
++        outAttrs.inputType = SDLActivity.keyboardInputType;
+         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                 | EditorInfo.IME_FLAG_NO_FULLSCREEN /* API 11 */;
