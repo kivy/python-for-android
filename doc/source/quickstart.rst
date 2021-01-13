@@ -97,7 +97,7 @@ On macOS::
 
     brew install autoconf automake libtool openssl pkg-config
     brew tap homebrew/cask-versions
-    brew cask install homebrew/cask-versions/adoptopenjdk8
+    brew install --cask homebrew/cask-versions/adoptopenjdk8
 
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
