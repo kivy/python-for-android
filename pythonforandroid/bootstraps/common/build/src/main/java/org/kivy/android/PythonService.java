@@ -25,14 +25,14 @@ public class PythonService extends Service implements Runnable {
     private Thread pythonThread = null;
 
     // Python environment variables
-    protected String androidPrivate;
-    protected String androidArgument;
-    protected String pythonName;
-    protected String pythonHome;
-    protected String pythonPath;
-    protected String serviceEntrypoint;
+    private String androidPrivate;
+    private String androidArgument;
+    private String pythonName;
+    private String pythonHome;
+    private String pythonPath;
+    private String serviceEntrypoint;
     // Argument to pass to Python code,
-    protected String pythonServiceArgument;
+    private String pythonServiceArgument;
 
 
     public static PythonService mService = null;
@@ -60,36 +60,33 @@ public class PythonService extends Service implements Runnable {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-	startIntent = intent;
         if (pythonThread != null) {
             Log.v("python service", "service exists, do not start again");
             return startType();
         }
-        //when app is closed, OS will restart the service with null intent See #2401
-        if (intent != null) {
+	//intent is null if OS restarts a STICKY service
+        if (intent == null) {
+            Context context = getApplicationContext();
+            intent = getThisDefaultIntent(context, "");
+        }
 
-            Bundle extras = intent.getExtras();
-            androidPrivate = extras.getString("androidPrivate");
-            androidArgument = extras.getString("androidArgument");
-            serviceEntrypoint = extras.getString("serviceEntrypoint");
-            pythonName = extras.getString("pythonName");
-            pythonHome = extras.getString("pythonHome");
-            pythonPath = extras.getString("pythonPath");
-            boolean serviceStartAsForeground = false;
-            String foreground = extras.getString("serviceStartAsForeground");
-            if (foreground != null) {
-                serviceStartAsForeground = foreground.equals("true");
-            }
-            pythonServiceArgument = extras.getString("pythonServiceArgument");
-            pythonThread = new Thread(this);
-            pythonThread.start();
+        startIntent = intent;
+        Bundle extras = intent.getExtras();
+        androidPrivate = extras.getString("androidPrivate");
+        androidArgument = extras.getString("androidArgument");
+        serviceEntrypoint = extras.getString("serviceEntrypoint");
+        pythonName = extras.getString("pythonName");
+        pythonHome = extras.getString("pythonHome");
+        pythonPath = extras.getString("pythonPath");
+        boolean serviceStartAsForeground = (
+            extras.getString("serviceStartAsForeground").equals("true")
+        );
+        pythonServiceArgument = extras.getString("pythonServiceArgument");
+        pythonThread = new Thread(this);
+        pythonThread.start();
 
-            if (serviceStartAsForeground) {
-                doStartForeground(extras);
-            }
-        } else {
-            pythonThread = new Thread(this);
-            pythonThread.start();
+        if (serviceStartAsForeground) {
+            doStartForeground(extras);
         }
 
         return startType();
@@ -97,6 +94,10 @@ public class PythonService extends Service implements Runnable {
 
     protected int getServiceId() {
         return 1;
+    }
+
+    protected Intent getThisDefaultIntent(Context ctx, String pythonServiceArgument) {
+        return null;
     }
 
     protected void doStartForeground(Bundle extras) {
@@ -161,7 +162,8 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        if (startType() == START_NOT_STICKY) {
+        //sticky servcie runtime/restart is managed by the OS. leave it running when app is closed
+        if (startType() != START_STICKY) {
             stopSelf();
         }
     }

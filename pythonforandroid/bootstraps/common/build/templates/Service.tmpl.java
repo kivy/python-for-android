@@ -3,7 +3,6 @@ package {{ args.package }};
 import android.content.Intent;
 import android.content.Context;
 import org.kivy.android.PythonService;
-import java.io.File;
 
 
 public class Service{{ name|capitalize }} extends PythonService {
@@ -20,6 +19,11 @@ public class Service{{ name|capitalize }} extends PythonService {
     }
 
     static public void start(Context ctx, String pythonServiceArgument) {
+        Intent intent = getDefaultIntent(ctx, pythonServiceArgument);
+        ctx.startService(intent);
+    }
+
+    static public Intent getDefaultIntent(Context ctx, String pythonServiceArgument) {
         Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
         String argument = ctx.getFilesDir().getAbsolutePath() + "/app";
         intent.putExtra("androidPrivate", ctx.getFilesDir().getAbsolutePath());
@@ -32,36 +36,12 @@ public class Service{{ name|capitalize }} extends PythonService {
         intent.putExtra("pythonHome", argument);
         intent.putExtra("pythonPath", argument + ":" + argument + "/lib");
         intent.putExtra("pythonServiceArgument", pythonServiceArgument);
-        ctx.startService(intent);
+        return intent;
     }
 
     @Override
-    public void run(){
-        String package_root = getFilesDir().getAbsolutePath();
-        String app_root =  package_root + "/app";
-        File app_root_file = new File(app_root);
-        if (androidPrivate == null) {
-            androidPrivate = package_root;
-        }
-        if (androidArgument == null) {
-            androidArgument = app_root;
-        }
-        if (serviceEntrypoint == null) {
-            serviceEntrypoint ="{{ entrypoint }}";
-        }
-        if (pythonName == null) {
-            pythonName = "{{ name }}";
-        }
-        if (pythonHome == null) {
-            pythonHome = app_root;
-        }
-        if (pythonPath == null) {
-            pythonPath = package_root;
-        }
-        if (pythonServiceArgument == null) {
-            pythonServiceArgument = app_root+":"+app_root+"/lib";
-        }
-        super.run();
+    protected Intent getThisDefaultIntent(Context ctx, String pythonServiceArgument) {
+        return Service{{ name|capitalize }}.getDefaultIntent(ctx, pythonServiceArgument);
     }
 
     static public void stop(Context ctx) {
