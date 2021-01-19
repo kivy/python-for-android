@@ -69,6 +69,7 @@
                  {% if args.uses_cleartext_traffic %}
                  android:usesCleartextTraffic="{{ args.uses_cleartext_traffic }}"
                  {% endif %}
+                 android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
                  >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
