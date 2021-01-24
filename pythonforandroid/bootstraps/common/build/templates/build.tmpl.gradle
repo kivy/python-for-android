@@ -76,8 +76,13 @@ android {
     }
 
     compileOptions {
+    	{% if args.enable_androidx %}
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+	{% else %}
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
+	{% endif %}
         {%- for option in args.compile_options %}
         {{option}}
         {%- endfor %}
