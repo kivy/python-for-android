@@ -684,7 +684,6 @@ tools directory of the Android SDK.
 
     ap.add_argument('--enable-androidx', dest='enable_androidx',
                     action='store_true',
-                    default=True,# TEMP for DEMO ONLY
                     help=('Enable the AndroidX support library, '
                           'requires api = 28 or greater'))
     ap.add_argument('--android-entrypoint', dest='android_entrypoint',
