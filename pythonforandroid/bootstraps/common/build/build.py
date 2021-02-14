@@ -89,6 +89,10 @@ environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
 
 
+DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS = 'org.kivy.android.PythonActivity'
+DEFAULT_PYTHON_SERVICE_JAVA_CLASS = 'org.kivy.android.PythonService'
+
+
 def ensure_dir(path):
     if not exists(path):
         makedirs(path)
@@ -430,6 +434,7 @@ main.py that loads it.''')
             service = True
 
     service_names = []
+    base_service_class = args.service_class_name.split('.')[-1]
     for sid, spec in enumerate(args.services):
         spec = spec.split(':')
         name = spec[0]
@@ -454,6 +459,7 @@ main.py that loads it.''')
             foreground=foreground,
             sticky=sticky,
             service_id=sid + 1,
+            base_service_class=base_service_class,
         )
 
     # Find the SDK directory and target API
@@ -701,7 +707,7 @@ tools directory of the Android SDK.
                               'activity-element.html'))
 
     ap.add_argument('--android-entrypoint', dest='android_entrypoint',
-                    default='org.kivy.android.PythonActivity',
+                    default=DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS,
                     help='Defines which java class will be used for startup, usually a subclass of PythonActivity')
     ap.add_argument('--android-apptheme', dest='android_apptheme',
                     default='@android:style/Theme.NoTitleBar',
@@ -800,9 +806,16 @@ tools directory of the Android SDK.
     ap.add_argument('--extra-manifest-xml', default='',
                     help=('Extra xml to write directly inside the <manifest> element of'
                           'AndroidManifest.xml'))
+    ap.add_argument('--extra-manifest-application-arguments', default='',
+                    help='Extra arguments to be added to the <manifest><application> tag of'
+                         'AndroidManifest.xml')
     ap.add_argument('--manifest-placeholders', dest='manifest_placeholders',
                     default='[:]', help=('Inject build variables into the manifest '
                                          'via the manifestPlaceholders property'))
+    ap.add_argument('--service-class-name', dest='service_class_name', default=DEFAULT_PYTHON_SERVICE_JAVA_CLASS,
+                    help='Use that parameter if you need to implement your own PythonServive Java class')
+    ap.add_argument('--activity-class-name', dest='activity_class_name', default=DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS,
+                    help='The full java class name of the main activity')
 
     # Put together arguments, and add those from .p4a config file:
     if args is None:
@@ -822,6 +835,7 @@ tools directory of the Android SDK.
     _read_configuration()
 
     args = ap.parse_args(args)
+
     args.ignore_path = []
 
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
