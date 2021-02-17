@@ -23,6 +23,8 @@ jobs:
         #   See also: https://github.com/travis-ci/travis-ci/issues/8589
         - type -t deactivate && deactivate || true
         - export PATH=/opt/python/3.7.1/bin:$PATH
+        # Update pip
+        - python3.7 -m pip install --upgrade pip
         # Install tox
         - python3.7 -m pip install tox>=2.0
         # Install coveralls & dependencies
