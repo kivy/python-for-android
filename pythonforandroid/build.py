@@ -448,6 +448,7 @@ class Context:
         self.copy_libs = False
 
         self.activity_class_name = u'org.kivy.android.PythonActivity'
+        self.service_class_name = u'org.kivy.android.PythonService'
 
         # this list should contain all Archs, it is pruned later
         self.archs = (

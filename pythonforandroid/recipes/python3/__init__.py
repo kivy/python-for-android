@@ -3,7 +3,7 @@ import sh
 import subprocess
 
 from multiprocessing import cpu_count
-from os import environ
+from os import environ, utime
 from os.path import dirname, exists, join
 from pathlib import Path
 from shutil import copy2
@@ -62,19 +62,22 @@ class Python3Recipe(TargetPythonRecipe):
 
     patches = [
         'patches/pyconfig_detection.patch',
+        'patches/reproducible-buildinfo.diff',
 
         # Python 3.7.1
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
         ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
 
-        # Python 3.8.1
-        ('patches/py3.8.1.patch', version_starts_with("3.8"))
+        # Python 3.8.1 & 3.9.X
+        ('patches/py3.8.1.patch', version_starts_with("3.8")),
+        ('patches/py3.8.1.patch', version_starts_with("3.9"))
     ]
 
     if sh.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8")),
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.9"))
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
@@ -385,8 +388,14 @@ class Python3Recipe(TargetPythonRecipe):
         with current_directory(join(self.get_build_dir(arch.arch), 'Lib')):
             stdlib_filens = list(walk_valid_filens(
                 '.', self.stdlib_dir_blacklist, self.stdlib_filen_blacklist))
+            if 'SOURCE_DATE_EPOCH' in environ:
+                # for reproducible builds
+                stdlib_filens.sort()
+                timestamp = int(environ['SOURCE_DATE_EPOCH'])
+                for filen in stdlib_filens:
+                    utime(filen, (timestamp, timestamp))
             info("Zip {} files into the bundle".format(len(stdlib_filens)))
-            shprint(sh.zip, stdlib_zip, *stdlib_filens)
+            shprint(sh.zip, '-X', stdlib_zip, *stdlib_filens)
 
         # copy the site-packages into place
         ensure_dir(join(dirn, 'site-packages'))

@@ -2,10 +2,10 @@ package {{ args.package }};
 
 import android.content.Intent;
 import android.content.Context;
-import org.kivy.android.PythonService;
+import {{ args.service_class_name }};
 
 
-public class Service{{ name|capitalize }} extends PythonService {
+public class Service{{ name|capitalize }} extends {{ base_service_class }} {
     {% if sticky %}
     @Override
     public int startType() {

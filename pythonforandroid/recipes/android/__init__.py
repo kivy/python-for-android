@@ -53,6 +53,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
             'JNI_NAMESPACE': jni_ns,
             'ACTIVITY_CLASS_NAME': self.ctx.activity_class_name,
             'ACTIVITY_CLASS_NAMESPACE': self.ctx.activity_class_name.replace('.', '/'),
+            'SERVICE_CLASS_NAME': self.ctx.service_class_name,
         }
 
         # create config files for Cython, C and Python
