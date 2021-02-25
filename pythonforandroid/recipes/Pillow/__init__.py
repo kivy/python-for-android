@@ -91,7 +91,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
             env['LDFLAGS'] += f' -L{join(webp_install, "lib")}'
         env['LDFLAGS'] += f' -L{ndk_lib_dir}'
         if cflags not in env['CFLAGS']:
-            env['CFLAGS'] += cflags
+            env['CFLAGS'] += cflags + " -lm"
         return env
 
 
