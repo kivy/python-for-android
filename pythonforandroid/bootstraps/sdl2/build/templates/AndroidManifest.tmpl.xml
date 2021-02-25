@@ -61,6 +61,7 @@
                  {% if args.backup_rules %}android:fullBackupContent="@xml/{{ args.backup_rules }}"{% endif %}
                  {{ args.extra_manifest_application_arguments }}
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
+                 android:requestLegacyExternalStorage="true"
                  android:hardwareAccelerated="true"
                  >
         {% for l in args.android_used_libs %}
