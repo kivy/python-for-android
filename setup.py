@@ -11,7 +11,8 @@ from setuptools import setup, find_packages
 packages = find_packages()
 
 package_data = {'': ['*.tmpl',
-                     '*.patch', ], }
+                     '*.patch',
+                     '*.diff', ], }
 
 data_files = []
 
