@@ -9,6 +9,7 @@ from re import match
 import sh
 import shutil
 import fnmatch
+import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, mkdir, curdir, walk
 from sys import stdout
@@ -21,6 +22,11 @@ from pythonforandroid.logger import (logger, info, warning, debug, shprint, info
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    BuildInterruptingException)
 from pythonforandroid.util import load_source as import_recipe
+
+
+url_opener = urllib.request.build_opener()
+url_orig_headers = url_opener.addheaders
+urllib.request.install_opener(url_opener)
 
 
 class RecipeMeta(type):
@@ -206,6 +212,8 @@ class Recipe(with_metaclass(RecipeMeta)):
             seconds = 1
             while True:
                 try:
+                    # jqueryui.com returns a 403 w/ the default user agent
+                    url_opener.addheaders = [('User-agent', 'Mozilla/5.0')]
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
@@ -215,6 +223,8 @@ class Recipe(with_metaclass(RecipeMeta)):
                     time.sleep(seconds)
                     seconds *= 2
                     continue
+                finally:
+                    url_opener.addheaders = url_orig_headers
                 break
             return target
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
