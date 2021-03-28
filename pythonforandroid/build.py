@@ -143,6 +143,13 @@ class Context:
         return directory
 
     @property
+    def jar_dir(self):
+        directory = join(self.build_dir, 'jar_collections',
+                         self.bootstrap.distribution.name)
+        ensure_dir(directory)
+        return directory
+
+    @property
     def javaclass_dir(self):
         # Was previously hardcoded as self.build_dir/java
         directory = join(self.build_dir, 'javaclasses',
@@ -500,8 +507,9 @@ class Context:
 
     def get_libs_dir(self, arch):
         '''The libs dir for a given arch.'''
-        ensure_dir(join(self.libs_dir, arch))
-        return join(self.libs_dir, arch)
+        directory = join(self.libs_dir, arch)
+        ensure_dir(directory)
+        return directory
 
     def has_lib(self, arch, lib):
         return exists(join(self.get_libs_dir(arch), lib))

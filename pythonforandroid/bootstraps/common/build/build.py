@@ -518,6 +518,12 @@ main.py that loads it.''')
         remove('AndroidManifest.xml')
     shutil.copy(manifest_path, 'AndroidManifest.xml')
 
+    # Add the source compability
+    if not any(["sourceCompatibility" in i for i in args.compile_options]):
+        args.compile_options.append('sourceCompatibility JavaVersion.VERSION_1_7')
+    if not any(["targetCompatibility" in i for i in args.compile_options]):
+        args.compile_options.append('targetCompatibility JavaVersion.VERSION_1_7')
+
     # gradle build templates
     render(
         'build.tmpl.gradle',

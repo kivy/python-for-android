@@ -801,6 +801,7 @@ class NDKRecipe(Recipe):
 
         for lib in self.generated_libraries:
             if not exists(join(lib_dir, lib)):
+                print("** Missing library", join(lib_dir, lib))
                 return True
 
         return False
@@ -850,7 +851,16 @@ class PythonRecipe(Recipe):
     This is almost always what you want to do.'''
 
     setup_extra_args = []
+    '''List of extra arguments to pass to setup.py for all targets'''
+
+    setup_global_extra_args = []
     '''List of extra arguments to pass to setup.py'''
+
+    setup_build_extra_args = []
+    '''List of extra arguments to pass to setup.py for build'''
+
+    setup_install_extra_args = []
+    '''List of extra arguments to pass to setup.py for install'''
 
     depends = ['python3']
     '''
@@ -974,10 +984,12 @@ class PythonRecipe(Recipe):
         hostpython = sh.Command(self.hostpython_location)
         hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
-            shprint(hostpython, 'setup.py', 'install', '-O2',
+            shprint(hostpython, 'setup.py',
+                    *self.setup_global_extra_args,
+                    'install', '-O2',
                     '--root={}'.format(self.ctx.get_python_install_dir()),
                     '--install-lib=.',
-                    _env=hpenv, *self.setup_extra_args)
+                    _env=hpenv, *self.setup_extra_args, *self.setup_install_extra_args)
 
             # If asked, also install in the hostpython build dir
             if self.install_in_hostpython:
@@ -991,10 +1003,12 @@ class PythonRecipe(Recipe):
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
         real_hostpython = sh.Command(self.real_hostpython_location)
-        shprint(real_hostpython, 'setup.py', 'install', '-O2',
+        shprint(real_hostpython, 'setup.py',
+                *self.setup_global_extra_args,
+                'install', '-O2',
                 '--root={}'.format(dirname(self.real_hostpython_location)),
                 '--install-lib=Lib/site-packages',
-                _env=env, *self.setup_extra_args)
+                _env=env, *self.setup_extra_args, *self.setup_install_extra_args)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
@@ -1018,8 +1032,10 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             if self.install_in_hostpython:
                 shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
-            shprint(hostpython, 'setup.py', self.build_cmd, '-v',
-                    _env=env, *self.setup_extra_args)
+            shprint(hostpython, 'setup.py',
+                    *self.setup_global_extra_args,
+                    self.build_cmd, '-v',
+                    _env=env, *self.setup_extra_args, *self.setup_build_extra_args)
             build_dir = glob.glob('build/lib.*')[0]
             shprint(sh.find, build_dir, '-name', '"*.o"', '-exec',
                     env['STRIP'], '{}', ';', _env=env)
@@ -1034,8 +1050,10 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
 
         hostpython = sh.Command(self.real_hostpython_location)
         shprint(hostpython, 'setup.py', 'clean', '--all', _env=env)
-        shprint(hostpython, 'setup.py', self.build_cmd, '-v', _env=env,
-                *self.setup_extra_args)
+        shprint(hostpython, 'setup.py',
+                *self.setup_global_extra_args,
+                self.build_cmd, '-v', _env=env,
+                *self.setup_extra_args, *self.setup_build_extra_args)
 
 
 class CppCompiledComponentsPythonRecipe(CompiledComponentsPythonRecipe):
@@ -1072,8 +1090,10 @@ class CythonRecipe(PythonRecipe):
 
             manually_cythonise = False
             try:
-                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
-                        *self.setup_extra_args)
+                shprint(hostpython, 'setup.py',
+                        *self.setup_global_extra_args,
+                        'build_ext', '-v', _env=env,
+                        *self.setup_extra_args, *self.setup_build_extra_args)
             except sh.ErrorReturnCode_1:
                 print()
                 info('{} first build failed (as expected)'.format(self.name))
@@ -1081,8 +1101,10 @@ class CythonRecipe(PythonRecipe):
 
             if manually_cythonise:
                 self.cythonize_build(env=env)
-                shprint(hostpython, 'setup.py', 'build_ext', '-v', _env=env,
-                        _tail=20, _critical=True, *self.setup_extra_args)
+                shprint(hostpython, 'setup.py',
+                        *self.setup_global_extra_args,
+                        'build_ext', '-v', _env=env,
+                        _tail=20, _critical=True, *self.setup_extra_args, *self.setup_build_extra_args)
             else:
                 info('First build appeared to complete correctly, skipping manual'
                      'cythonising.')
