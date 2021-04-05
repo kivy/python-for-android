@@ -81,7 +81,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
 
         # Link the basic Pillow libraries...no need to add webp's libraries
         # since it seems that the linkage is properly made without it :)
-        env['LIBS'] = ' -lpng -lfreetype -lharfbuzz -ljpeg -lturbojpeg'
+        env['LIBS'] = ' -lpng -lfreetype -lharfbuzz -ljpeg -lturbojpeg -lm'
 
         # Add libraries locations to LDFLAGS
         env['LDFLAGS'] += f' -L{png_lib_dir}'
@@ -91,7 +91,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
             env['LDFLAGS'] += f' -L{join(webp_install, "lib")}'
         env['LDFLAGS'] += f' -L{ndk_lib_dir}'
         if cflags not in env['CFLAGS']:
-            env['CFLAGS'] += cflags + " -lm"
+            env['CFLAGS'] += cflags
         return env
 
 
