@@ -201,6 +201,7 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
                 dirs.append(d)
                 tinfo = tarfile.TarInfo(d)
                 tinfo.type = tarfile.DIRTYPE
+                clean(tinfo)
                 tf.addfile(tinfo)
 
         # put the file
