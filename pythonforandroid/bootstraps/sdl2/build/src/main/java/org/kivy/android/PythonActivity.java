@@ -32,6 +32,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 import android.content.res.Resources.NotFoundException;
+import android.view.Window;
+import android.view.WindowManager;
 
 import org.libsdl.app.SDLActivity;
 
@@ -68,6 +70,19 @@ public class PythonActivity extends SDLActivity {
 
         new UnpackFilesTask().execute(getAppRoot());
     }
+	
+	public void changeStatusBarColor(int alpha,int red,int green,int blue){
+		final int new_status_bar_color = Color.argb(alpha,red,green,blue);
+		final Window app_window = this.getWindow();
+		runOnUiThread(new Runnable () {
+			public void run() {
+				app_window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+				app_window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+				app_window.setStatusBarColor(new_status_bar_color);
+			}
+		}
+	);
+	}
 
     public void loadLibraries() {
         String app_root = new String(getAppRoot());
