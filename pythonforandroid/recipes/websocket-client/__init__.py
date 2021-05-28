@@ -17,7 +17,7 @@ class WebSocketClient(Recipe):
 
     url = 'https://github.com/websocket-client/websocket-client/archive/v{version}.tar.gz'
 
-    version = '0.40.0'
+    version = '1.0.1'
 
     # patches = ['websocket.patch']  # Paths relative to the recipe dir
 
