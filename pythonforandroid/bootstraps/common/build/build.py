@@ -467,6 +467,20 @@ main.py that loads it.''')
             base_service_class=base_service_class,
         )
 
+        if get_bootstrap_name() == "service_library" \
+                and os.environ.get("INCLUDE_ANDROID_WORKER"):
+            worker_target_path = \
+                'src/main/java/{}/{}Worker.java'.format(
+                    args.package.replace(".", "/"),
+                    name.capitalize()
+                )
+            render(
+                'Worker.tmpl.java',
+                worker_target_path,
+                name=name,
+                args=args,
+            )
+
     # Find the SDK directory and target API
     with open('project.properties', 'r') as fileh:
         target = fileh.read().strip()
