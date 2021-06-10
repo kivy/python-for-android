@@ -71,7 +71,7 @@ int file_exists(const char *filename) {
 }
 
 /* int main(int argc, char **argv) { */
-int main(int argc, char *argv[]) {
+int main_(int argc, char *argv[], int call_exit) {
 
   char *env_argument = NULL;
   char *env_entrypoint = NULL;
@@ -333,13 +333,14 @@ int main(int argc, char *argv[]) {
 
      https://github.com/kivy/kivy/pull/6107#issue-246120816
    */
-  char terminatecmd[256];
-  snprintf(
-    terminatecmd, sizeof(terminatecmd),
-    "import sys; sys.exit(%d)\n", ret
-  );
-  // XXX: exit() won't work with workers
-  // PyRun_SimpleString(terminatecmd);
+  if (call_exit) {
+    char terminatecmd[256];
+    snprintf(
+      terminatecmd, sizeof(terminatecmd),
+      "import sys; sys.exit(%d)\n", ret
+    );
+    PyRun_SimpleString(terminatecmd);
+  }
 
   /* This should never actually be reached, but we'll leave the clean-up
    * here just to be safe.
@@ -397,7 +398,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   /* ANDROID_ARGUMENT points to service subdir,
    * so main() will run main.py from this dir
    */
-  main(1, argv);
+  main_(1, argv, 1);
 }
 
 #if defined(BOOTSTRAP_NAME_SERVICELIBRARY)
@@ -438,7 +439,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonWorker_nativeStart(
   /* ANDROID_ARGUMENT points to service subdir,
    * so main() will run main.py from this dir
    */
-  main(1, argv);
+  main_(1, argv, 0);
 }
 #endif
 
@@ -478,7 +479,7 @@ void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jo
   argv[1] = NULL;
   /* status = SDL_main(1, argv); */
 
-  main(1, argv);
+  main_(1, argv, 1);
 
   /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
   /* exit(status); */
