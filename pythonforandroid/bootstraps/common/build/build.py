@@ -478,6 +478,7 @@ main.py that loads it.''')
                 'Worker.tmpl.java',
                 worker_target_path,
                 name=name,
+                entrypoint=entrypoint,
                 args=args,
             )
 
