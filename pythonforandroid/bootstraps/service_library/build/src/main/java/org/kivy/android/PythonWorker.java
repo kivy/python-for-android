@@ -73,25 +73,21 @@ public class PythonWorker extends ListenableWorker implements Runnable {
             new File(getApplicationContext().getApplicationInfo().nativeLibraryDir)
         );
 
-        Log.d("python worker", "androidPrivate: " + androidPrivate);
-        Log.d("python worker", "androidArgument: " + androidArgument);
-        Log.d("python worker", "workerEntrypoint: " + workerEntrypoint);
-        Log.d("python worker", "pythonName: " + pythonName);
-        Log.d("python worker", "pythonHome: " + pythonHome);
-        Log.d("python worker", "pythonPath: " + pythonPath);
-
+        Log.d("python worker", "####### before native start");
         nativeStart(
             androidPrivate, androidArgument,
             workerEntrypoint, pythonName,
             pythonHome, pythonPath
         );
+        Log.d("python worker", "#######++++++++++++++++ after native start");
 
         workCompleter.set(Result.success());
         Log.d("python worker", "ThreadWorker Thread terminating");
     }
 
     // Native part
-    public static native void nativeStart(
+    // XXX: p4a crashes if nativeStart in worker not syncronized
+    public static synchronized native void nativeStart(
         String androidPrivate, String androidArgument,
         String workerEntrypoint, String pythonName,
         String pythonHome, String pythonPath

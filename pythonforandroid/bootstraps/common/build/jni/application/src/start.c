@@ -338,7 +338,8 @@ int main(int argc, char *argv[]) {
     terminatecmd, sizeof(terminatecmd),
     "import sys; sys.exit(%d)\n", ret
   );
-  PyRun_SimpleString(terminatecmd);
+  // XXX: exit() won't work with workers
+  // PyRun_SimpleString(terminatecmd);
 
   /* This should never actually be reached, but we'll leave the clean-up
    * here just to be safe.
