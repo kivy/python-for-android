@@ -2,7 +2,8 @@ package org.kivy.android;
 
 import android.app.Activity;
 import android.util.Log;
-import android.widget.Toast;
+
+import java.io.File;
 
 import org.renpy.android.ResourceManager;
 
@@ -19,25 +20,6 @@ public class PythonActivityUtil {
     public PythonActivityUtil(Activity activity, ResourceManager resourceManager) {
         this.mActivity = activity;
         this.mResourceManager = resourceManager;
-    }
-
-    /**
-     * Show an error using a toast. (Only makes sense from non-UI threads.)
-     */
-    private void toastError(final String msg) {
-        mActivity.runOnUiThread(new Runnable () {
-            public void run() {
-                Toast.makeText(mActivity, msg, Toast.LENGTH_LONG).show();
-            }
-        });
-
-        // Wait to show the error.
-        synchronized (mActivity) {
-            try {
-                mActivity.wait(1000);
-            } catch (InterruptedException e) {
-            }
-        }
     }
 
     public void unpackData(final String resource, File target) {
