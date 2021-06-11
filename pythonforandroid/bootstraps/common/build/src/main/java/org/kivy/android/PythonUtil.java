@@ -102,7 +102,7 @@ public class PythonUtil {
     /**
      * Show an error using a toast. (Only makes sense from non-UI threads.)
      */
-    protected static void toastError(Activity activity, final String msg) {
+    protected static void toastError(final Activity activity, final String msg) {
         activity.runOnUiThread(new Runnable () {
             public void run() {
                 Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
