@@ -14,7 +14,6 @@ public class {{ name|capitalize }}Worker extends PythonWorker {
         @NonNull WorkerParameters params) {
         super(context, params);
         setPythonName("{{ name }}");
-        // setServiceEntrypoint("{{ entrypoint }}");
-        setWorkerEntrypoint("worker.py");
+        setWorkerEntrypoint("{{ entrypoint }}");
     }
 }

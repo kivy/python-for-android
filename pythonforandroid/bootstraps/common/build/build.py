@@ -467,20 +467,23 @@ main.py that loads it.''')
             base_service_class=base_service_class,
         )
 
-        if get_bootstrap_name() == "service_library" \
-                and os.environ.get("INCLUDE_ANDROID_WORKER"):
-            worker_target_path = \
-                'src/main/java/{}/{}Worker.java'.format(
-                    args.package.replace(".", "/"),
-                    name.capitalize()
-                )
-            render(
-                'Worker.tmpl.java',
-                worker_target_path,
-                name=name,
-                entrypoint=entrypoint,
-                args=args,
+    for spec in args.workers:
+        spec = spec.split(':')
+        name = spec[0]
+        entrypoint = spec[1]
+
+        worker_target_path = \
+            'src/main/java/{}/{}Worker.java'.format(
+                args.package.replace(".", "/"),
+                name.capitalize()
             )
+        render(
+            'Worker.tmpl.java',
+            worker_target_path,
+            name=name,
+            entrypoint=entrypoint,
+            args=args
+        )
 
     # Find the SDK directory and target API
     with open('project.properties', 'r') as fileh:
@@ -691,6 +694,9 @@ tools directory of the Android SDK.
     ap.add_argument('--service', dest='services', action='append', default=[],
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
+    ap.add_argument('--worker', dest='workers', action='append', default=[],
+                    help='Declare a new worker entrypoint: '
+                         'NAME:PATH_TO_PY')
     ap.add_argument('--native-service', dest='native_services', action='append', default=[],
                     help='Declare a new native service: '
                          'package.name.service')
