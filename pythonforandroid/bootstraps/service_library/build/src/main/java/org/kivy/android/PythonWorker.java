@@ -9,11 +9,8 @@ import androidx.work.ListenableWorker.Result;
 import androidx.work.ListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
-
 import com.google.common.util.concurrent.ListenableFuture;
-
 import java.io.File;
-
 import org.kivy.android.PythonUtil;
 
 public class PythonWorker extends ListenableWorker implements Runnable {
