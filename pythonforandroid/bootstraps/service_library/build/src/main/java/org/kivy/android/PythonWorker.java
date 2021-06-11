@@ -58,9 +58,8 @@ public class PythonWorker extends ListenableWorker implements Runnable {
             pythonThread = new Thread(this);
             pythonThread.start();
 
-            String msg = "PythonWorker started";
-            Log.d("python worker", msg);
-            return msg;
+            Log.d("python worker", "PythonWorker thread started");
+            return "PythonWorker started";
         });
     }
 
@@ -73,16 +72,14 @@ public class PythonWorker extends ListenableWorker implements Runnable {
             new File(getApplicationContext().getApplicationInfo().nativeLibraryDir)
         );
 
-        Log.d("python worker", "####### before native start");
         nativeStart(
             androidPrivate, androidArgument,
             workerEntrypoint, pythonName,
             pythonHome, pythonPath
         );
-        Log.d("python worker", "#######++++++++++++++++ after native start");
 
         workCompleter.set(Result.success());
-        Log.d("python worker", "ThreadWorker Thread terminating");
+        Log.d("python worker", "PythonWorker thread terminating");
     }
 
     // Native part
