@@ -5,7 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -94,6 +99,25 @@ public class PythonUtil {
         return res.getString(id);
     }
 
+    /**
+     * Show an error using a toast. (Only makes sense from non-UI threads.)
+     */
+    protected static void toastError(Activity activity, final String msg) {
+        activity.runOnUiThread(new Runnable () {
+            public void run() {
+                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // Wait to show the error.
+        synchronized (activity) {
+            try {
+                activity.wait(1000);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+
     protected static void recursiveDelete(File f) {
         if (f.isDirectory()) {
             for (File r : f.listFiles()) {
@@ -147,7 +171,12 @@ public class PythonUtil {
 
             AssetExtract ae = new AssetExtract(ctx);
             if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
-                toastError("Could not extract " + resource + " data.");
+                String msg = "Could not extract " + resource + " data.";
+                if (ctx instanceof Activity) {
+                    toastError((Activity)ctx, msg);
+                } else {
+                    Log.v(TAG, msg);
+                }
             }
 
             try {
