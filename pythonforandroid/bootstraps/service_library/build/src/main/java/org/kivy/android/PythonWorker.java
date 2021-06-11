@@ -9,8 +9,12 @@ import androidx.work.ListenableWorker.Result;
 import androidx.work.ListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+
 import com.google.common.util.concurrent.ListenableFuture;
+
 import java.io.File;
+
+import org.kivy.android.PythonUtil;
 
 public class PythonWorker extends ListenableWorker implements Runnable {
     // Completer for worker notification
@@ -34,11 +38,16 @@ public class PythonWorker extends ListenableWorker implements Runnable {
         @NonNull Context context,
         @NonNull WorkerParameters params) {
         super(context, params);
-        appRoot = context.getFilesDir().getAbsolutePath() + "/app";
+
+        appRoot = PythonUtil.getAppRoot(context);
+
         androidPrivate = appRoot;
         androidArgument = appRoot;
         pythonHome = appRoot;
         pythonPath = appRoot + ":" + appRoot + "/lib";
+
+        File appRootFile = new File(appRoot);
+        PythonUtil.unpackData(context, "private", appRootFile, false);
     }
 
     public void setPythonName(String value) {
@@ -65,10 +74,10 @@ public class PythonWorker extends ListenableWorker implements Runnable {
 
     @Override
     public void run() {
-        File app_root_file = new File(appRoot);
+        File appRootFile = new File(appRoot);
 
         PythonUtil.loadLibraries(
-            app_root_file,
+            appRootFile,
             new File(getApplicationContext().getApplicationInfo().nativeLibraryDir)
         );
 
