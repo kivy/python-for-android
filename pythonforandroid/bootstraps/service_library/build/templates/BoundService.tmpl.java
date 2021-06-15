@@ -16,8 +16,6 @@ public class Service{{ name|capitalize }} extends PythonBoundService {
     // Class used for the client Binder. Because we know this service always
     // runs in the same process as its clients, we don't need to deal with IPC.
     public class {{ name|capitalize }}Binder extends Binder {
-        Log.d(TAG, "{{ name|capitalize }}Binder()");
-
         public Service{{ name|capitalize }} getService() {
             // Return this instance of LocalService so clients can call public methods
             return Service{{ name|capitalize }}.this;
@@ -25,9 +23,10 @@ public class Service{{ name|capitalize }} extends PythonBoundService {
     }
 
     public Service{{ name|capitalize }}() {
+        super();
+
         Log.d(TAG, "Contructor()");
 
-        super();
         setPythonName("{{ name }}");
         setWorkerEntrypoint("{{ entrypoint }}");
     }

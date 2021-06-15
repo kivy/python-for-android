@@ -51,9 +51,9 @@ public abstract class PythonBoundService extends Service implements Runnable {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate()");
-
         super.onCreate();
+
+        Log.d(TAG, "onCreate()");
 
         Context context = getApplicationContext();
         appRoot = PythonUtil.getAppRoot(context);
@@ -76,9 +76,10 @@ public abstract class PythonBoundService extends Service implements Runnable {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
+
         Log.d(TAG, "onDestroy()");
 
-        super.onDestroy();
         pythonThread = null;
         Process.killProcess(Process.myPid());
     }
