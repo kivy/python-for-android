@@ -468,18 +468,13 @@ main.py that loads it.''')
 
         if not bound:
             service_template_path = 'Service.tmpl.java'
-            service_target_path =\
-                'src/main/java/{}/Service{}.java'.format(
-                    args.package.replace(".", "/"),
-                    name.capitalize()
-                )
         else:
             service_template_path = 'BoundService.tmpl.java'
-            service_target_path =\
-                'src/main/java/{}/{}BoundService.java'.format(
-                    args.package.replace(".", "/"),
-                    name.capitalize()
-                )
+
+        service_target_path = 'src/main/java/{}/Service{}.java'.format(
+            args.package.replace(".", "/"),
+            name.capitalize()
+        )
 
         render(
             service_template_path,

@@ -2,19 +2,15 @@ package org.kivy.android;
 
 import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Binder;
-import android.os.IBinder;
 import android.os.Process;
 import android.util.Log;
+
 import java.io.File;
+
 import org.kivy.android.PythonUtil;
 
 
-public class PythonBoundService extends Service implements Runnable {
-    // Binder given to clients
-    private final IBinder binder = new PythonBoundServiceBinder();
-
+public abstract class PythonBoundService extends Service implements Runnable {
     // Thread for Python code
     private Thread pythonThread = null;
 
@@ -29,17 +25,6 @@ public class PythonBoundService extends Service implements Runnable {
     private String pythonPath;
     private String workerEntrypoint;
 
-    /**
-     * Class used for the client Binder. Because we know this service always
-     * runs in the same process as its clients, we don't need to deal with IPC.
-     */
-    public class PythonBoundServiceBinder extends Binder {
-        PythonBoundService getService() {
-            // Return this instance of LocalService so clients can call public methods
-            return PythonBoundService.this;
-        }
-    }
-
     public void setPythonName(String value) {
         pythonName = value;
     }
@@ -48,12 +33,9 @@ public class PythonBoundService extends Service implements Runnable {
         workerEntrypoint = value;
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
+    public void startPythonThread() {
         pythonThread = new Thread(this);
         pythonThread.start();
-
-        return binder;
     }
 
     @Override
