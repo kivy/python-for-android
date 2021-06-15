@@ -441,6 +441,49 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonWorker_nativeStart(
    */
   main_(1, argv, 0);
 }
+
+JNIEXPORT void JNICALL Java_org_kivy_android_PythonBoundService_nativeStart(
+    JNIEnv *env,
+    jobject thiz,
+    jstring j_android_private,
+    jstring j_android_argument,
+    jstring j_service_entrypoint,
+    jstring j_python_name,
+    jstring j_python_home,
+    jstring j_python_path,
+    jstring j_arg) {
+  jboolean iscopy;
+  const char *android_private =
+      (*env)->GetStringUTFChars(env, j_android_private, &iscopy);
+  const char *android_argument =
+      (*env)->GetStringUTFChars(env, j_android_argument, &iscopy);
+  const char *service_entrypoint =
+      (*env)->GetStringUTFChars(env, j_service_entrypoint, &iscopy);
+  const char *python_name =
+      (*env)->GetStringUTFChars(env, j_python_name, &iscopy);
+  const char *python_home =
+      (*env)->GetStringUTFChars(env, j_python_home, &iscopy);
+  const char *python_path =
+      (*env)->GetStringUTFChars(env, j_python_path, &iscopy);
+  const char *arg = (*env)->GetStringUTFChars(env, j_arg, &iscopy);
+
+  setenv("ANDROID_PRIVATE", android_private, 1);
+  setenv("ANDROID_ARGUMENT", android_argument, 1);
+  setenv("ANDROID_APP_PATH", android_argument, 1);
+  setenv("ANDROID_ENTRYPOINT", service_entrypoint, 1);
+  setenv("PYTHONOPTIMIZE", "2", 1);
+  setenv("PYTHON_NAME", python_name, 1);
+  setenv("PYTHONHOME", python_home, 1);
+  setenv("PYTHONPATH", python_path, 1);
+  setenv("PYTHON_SERVICE_ARGUMENT", arg, 1);
+  setenv("P4A_BOOTSTRAP", bootstrap_name, 1);
+
+  char *argv[] = {"."};
+  /* ANDROID_ARGUMENT points to service subdir,
+   * so main() will run main.py from this dir
+   */
+  main_(1, argv, 1);
+}
 #endif
 
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)

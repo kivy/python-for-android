@@ -25,6 +25,9 @@ public abstract class PythonBoundService extends Service implements Runnable {
     private String pythonPath;
     private String workerEntrypoint;
 
+    // Argument to pass to Python code,
+    private String pythonServiceArgument;
+
     public void setPythonName(String value) {
         pythonName = value;
     }
@@ -50,6 +53,8 @@ public abstract class PythonBoundService extends Service implements Runnable {
         pythonHome = appRoot;
         pythonPath = appRoot + ":" + appRoot + "/lib";
 
+        pythonServiceArgument = "";
+
         File appRootFile = new File(appRoot);
         PythonUtil.unpackData(context, "private", appRootFile, false);
     }
@@ -73,7 +78,8 @@ public abstract class PythonBoundService extends Service implements Runnable {
         nativeStart(
             androidPrivate, androidArgument,
             workerEntrypoint, pythonName,
-            pythonHome, pythonPath
+            pythonHome, pythonPath,
+            pythonServiceArgument
         );
         Log.d("python bound service", "Python thread terminating");
     }
@@ -82,6 +88,7 @@ public abstract class PythonBoundService extends Service implements Runnable {
     public static native void nativeStart(
         String androidPrivate, String androidArgument,
         String workerEntrypoint, String pythonName,
-        String pythonHome, String pythonPath
+        String pythonHome, String pythonPath,
+        String pythonServiceArgument
     );
 }
