@@ -37,6 +37,9 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
     private String pythonPath;
     private String workerEntrypoint;
 
+    // Argument to pass to Python code,
+    private String pythonServiceArgument;
+
     public PythonWorker(
         @NonNull Context context,
         @NonNull WorkerParameters params) {
@@ -48,6 +51,8 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
         androidArgument = appRoot;
         pythonHome = appRoot;
         pythonPath = appRoot + ":" + appRoot + "/lib";
+
+        pythonServiceArgument = "";
 
         File appRootFile = new File(appRoot);
         PythonUtil.unpackData(context, "private", appRootFile, false);
@@ -102,7 +107,8 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
         nativeStart(
             androidPrivate, androidArgument,
             workerEntrypoint, pythonName,
-            pythonHome, pythonPath
+            pythonHome, pythonPath,
+            pythonServiceArgument
         );
 
         workCompleter.set(Result.success());
@@ -111,9 +117,19 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
 
     // Native part
     // XXX: p4a crashes if nativeStart in worker not syncronized
+    // public static synchronized native void nativeStart(
+    //     String androidPrivate, String androidArgument,
+    //     String workerEntrypoint, String pythonName,
+    //     String pythonHome, String pythonPath
+    // );
+
+    // Native part
+    // synchronized is still needed, startRemoteWork gets called on the same service instance
+    // XXX: check out how to start a service for each worker
     public static synchronized native void nativeStart(
         String androidPrivate, String androidArgument,
         String workerEntrypoint, String pythonName,
-        String pythonHome, String pythonPath
+        String pythonHome, String pythonPath,
+        String pythonServiceArgument
     );
 }
