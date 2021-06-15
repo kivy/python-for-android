@@ -4,7 +4,6 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.work.WorkerParameters;
 import org.kivy.android.PythonWorker;
-import org.kivy.android.PythonActivity;
 
 
 public class {{ name|capitalize }}Worker extends PythonWorker {

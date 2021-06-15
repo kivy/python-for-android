@@ -1,3 +1,5 @@
+package org.kivy.android;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +50,9 @@ public class PythonBoundService extends Service implements Runnable {
 
     @Override
     public IBinder onBind(Intent intent) {
+        pythonThread = new Thread(this);
+        pythonThread.start();
+
         return binder;
     }
 
@@ -65,9 +70,6 @@ public class PythonBoundService extends Service implements Runnable {
 
         File appRootFile = new File(appRoot);
         PythonUtil.unpackData(context, "private", appRootFile, false);
-
-        pythonThread = new Thread(this);
-        pythonThread.start();
     }
 
     @Override

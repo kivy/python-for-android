@@ -462,14 +462,27 @@ main.py that loads it.''')
         foreground = 'foreground' in options
         sticky = 'sticky' in options
 
+        bound = 'bound' in options
+
         service_names.append(name)
-        service_target_path =\
-            'src/main/java/{}/Service{}.java'.format(
-                args.package.replace(".", "/"),
-                name.capitalize()
-            )
+
+        if not bound:
+            service_template_path = 'Service.tmpl.java'
+            service_target_path =\
+                'src/main/java/{}/Service{}.java'.format(
+                    args.package.replace(".", "/"),
+                    name.capitalize()
+                )
+        else:
+            service_template_path = 'BoundService.tmpl.java'
+            service_target_path =\
+                'src/main/java/{}/{}BoundService.java'.format(
+                    args.package.replace(".", "/"),
+                    name.capitalize()
+                )
+
         render(
-            'Service.tmpl.java',
+            service_template_path,
             service_target_path,
             name=name,
             entrypoint=entrypoint,
