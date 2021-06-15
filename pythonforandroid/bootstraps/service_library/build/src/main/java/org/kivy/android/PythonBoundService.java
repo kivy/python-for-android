@@ -11,6 +11,8 @@ import org.kivy.android.PythonUtil;
 
 
 public abstract class PythonBoundService extends Service implements Runnable {
+    private static final String TAG = "python bound service";
+
     // Thread for Python code
     private Thread pythonThread = null;
 
@@ -29,20 +31,28 @@ public abstract class PythonBoundService extends Service implements Runnable {
     private String pythonServiceArgument;
 
     public void setPythonName(String value) {
+        Log.d(TAG, "setPythonName()");
+
         pythonName = value;
     }
 
     public void setWorkerEntrypoint(String value) {
+        Log.d(TAG, "setWorkerEntrypoint()");
+
         workerEntrypoint = value;
     }
 
     public void startPythonThread() {
+        Log.d(TAG, "startPythonThread()");
+
         pythonThread = new Thread(this);
         pythonThread.start();
     }
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "onCreate()");
+
         super.onCreate();
 
         Context context = getApplicationContext();
@@ -56,11 +66,18 @@ public abstract class PythonBoundService extends Service implements Runnable {
         pythonServiceArgument = "";
 
         File appRootFile = new File(appRoot);
+
+        Log.d(TAG, "unpack Data");
+
         PythonUtil.unpackData(context, "private", appRootFile, false);
+
+        Log.d(TAG, "data unpacked");
     }
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestroy()");
+
         super.onDestroy();
         pythonThread = null;
         Process.killProcess(Process.myPid());
@@ -68,6 +85,8 @@ public abstract class PythonBoundService extends Service implements Runnable {
 
     @Override
     public void run() {
+        Log.d(TAG, "run()");
+
         File appRootFile = new File(appRoot);
 
         PythonUtil.loadLibraries(
@@ -75,13 +94,16 @@ public abstract class PythonBoundService extends Service implements Runnable {
             new File(getApplicationContext().getApplicationInfo().nativeLibraryDir)
         );
 
+        Log.d(TAG, "Call native start");
+
         nativeStart(
             androidPrivate, androidArgument,
             workerEntrypoint, pythonName,
             pythonHome, pythonPath,
             pythonServiceArgument
         );
-        Log.d("python bound service", "Python thread terminating");
+
+        Log.d(TAG, "Python thread terminating");
     }
 
     // Native part
