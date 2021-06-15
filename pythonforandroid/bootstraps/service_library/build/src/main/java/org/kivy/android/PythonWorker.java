@@ -2,18 +2,24 @@ package org.kivy.android;
 
 import android.content.Context;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.concurrent.futures.CallbackToFutureAdapter.Completer;
 import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.work.ListenableWorker.Result;
-import androidx.work.ListenableWorker;
+// import androidx.work.ListenableWorker;
+import androidx.work.multiprocess.RemoteListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+
 import com.google.common.util.concurrent.ListenableFuture;
+
 import java.io.File;
+
 import org.kivy.android.PythonUtil;
 
-public class PythonWorker extends ListenableWorker implements Runnable {
+// public class PythonWorker extends ListenableWorker implements Runnable {
+public class PythonWorker extends RemoteListenableWorker implements Runnable {
     // Completer for worker notification
     private Completer workCompleter = null;
 
@@ -55,10 +61,25 @@ public class PythonWorker extends ListenableWorker implements Runnable {
         workerEntrypoint = value;
     }
 
-    @NonNull
+    // @NonNull
+    // @Override
+    // public ListenableFuture<Result> startWork() {
+    //     return CallbackToFutureAdapter.getFuture(completer -> {
+    //         workCompleter = completer;
+
+    //         pythonThread = new Thread(this);
+    //         pythonThread.start();
+
+    //         Log.d("python worker", "PythonWorker thread started");
+    //         return "PythonWorker started";
+    //     });
+    // }
+
     @Override
-    public ListenableFuture<Result> startWork() {
+    public ListenableFuture<Result> startRemoteWork() {
         return CallbackToFutureAdapter.getFuture(completer -> {
+            Log.i("python worker", "Starting ");
+
             workCompleter = completer;
 
             pythonThread = new Thread(this);
