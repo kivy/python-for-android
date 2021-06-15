@@ -13,7 +13,7 @@ class OpenCVRecipe(NDKRecipe):
         build of most of the libraries of the opencv's package, so we can
         process images, videos, objects, photos...
     '''
-    version = '4.0.1'
+    version = '4.5.1'
     url = 'https://github.com/opencv/opencv/archive/{version}.zip'
     depends = ['numpy']
     patches = ['patches/p4a_build.patch']
@@ -75,6 +75,8 @@ class OpenCVRecipe(NDKRecipe):
                     '-DANDROID_STANDALONE_TOOLCHAIN={}'.format(self.ctx.ndk_dir),
                     '-DANDROID_NATIVE_API_LEVEL={}'.format(self.ctx.ndk_api),
                     '-DANDROID_EXECUTABLE={}/tools/android'.format(env['ANDROID_SDK']),
+                    '-DANDROID_SDK_TOOLS_VERSION=6514223',
+                    '-DANDROID_PROJECTS_SUPPORT_GRADLE=ON',
 
                     '-DCMAKE_TOOLCHAIN_FILE={}'.format(
                         join(self.ctx.ndk_dir, 'build', 'cmake',

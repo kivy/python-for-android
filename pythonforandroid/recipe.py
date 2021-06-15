@@ -213,7 +213,8 @@ class Recipe(with_metaclass(RecipeMeta)):
             while True:
                 try:
                     # jqueryui.com returns a 403 w/ the default user agent
-                    url_opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+                    # Mozilla/5.0 doesnt handle redirection for liblzma
+                    url_opener.addheaders = [('User-agent', 'Wget/1.0')]
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
