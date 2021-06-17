@@ -38,4 +38,19 @@ public class Service{{ name|capitalize }} extends PythonBoundService {
         startPythonThread();
         return binder;
     }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "onUnbind()");
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.d(TAG, "onRebind()");
+
+        super.onRebind(intent);
+    }
+
+
 }
