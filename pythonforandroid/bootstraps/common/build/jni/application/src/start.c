@@ -358,7 +358,7 @@ int main_(int argc, char *argv[], int call_exit) {
   return ret;
 }
 
-JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
+JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
     JNIEnv *env,
     jobject thiz,
     jstring j_android_private,
@@ -398,7 +398,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   /* ANDROID_ARGUMENT points to service subdir,
    * so main() will run main.py from this dir
    */
-  main_(1, argv, 1);
+  return main_(1, argv, 1);
 }
 
 #if defined(BOOTSTRAP_NAME_SERVICELIBRARY)
@@ -442,7 +442,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
 //   main_(1, argv, 0);
 // }
 
-JNIEXPORT void JNICALL Java_org_kivy_android_PythonWorker_nativeStart(
+JNIEXPORT int JNICALL Java_org_kivy_android_PythonWorker_nativeStart(
     JNIEnv *env,
     jobject thiz,
     jstring j_android_private,
@@ -483,10 +483,10 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonWorker_nativeStart(
    * so main() will run main.py from this dir
    */
   // main_(1, argv, 1);
-  main_(1, argv, 0);
+  return main_(1, argv, 0);
 }
 
-JNIEXPORT void JNICALL Java_org_kivy_android_PythonBoundService_nativeStart(
+JNIEXPORT int JNICALL Java_org_kivy_android_PythonBoundService_nativeStart(
     JNIEnv *env,
     jobject thiz,
     jstring j_android_private,
@@ -526,7 +526,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonBoundService_nativeStart(
   /* ANDROID_ARGUMENT points to service subdir,
    * so main() will run main.py from this dir
    */
-  main_(1, argv, 1);
+  return main_(1, argv, 1);
 }
 #endif
 
@@ -550,7 +550,7 @@ void Java_org_kivy_android_PythonActivity_nativeSetenv(
 }
 
 
-void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
+int Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
 {
   /* This nativeInit follows SDL2 */
 
@@ -566,7 +566,7 @@ void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jo
   argv[1] = NULL;
   /* status = SDL_main(1, argv); */
 
-  main_(1, argv, 1);
+  return main_(1, argv, 1);
 
   /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
   /* exit(status); */
