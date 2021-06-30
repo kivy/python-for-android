@@ -13,8 +13,8 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
         not part of the build. It's usable, but not complete.
     """
 
-    version = '2.0.0-dev7'
-    url = 'https://github.com/pygame/pygame/archive/android-{version}.tar.gz'
+    version = '2.0.1'
+    url = 'https://github.com/pygame/pygame/archive/{version}.tar.gz'
 
     site_packages_name = 'pygame'
     name = 'pygame'
