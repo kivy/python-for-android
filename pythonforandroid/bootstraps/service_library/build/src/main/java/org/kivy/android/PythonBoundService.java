@@ -1,9 +1,22 @@
 package org.kivy.android;
 
+import android.app.Notification;
+import android.content.Intent;
+import android.app.PendingIntent;
+
 import android.app.Service;
 import android.content.Context;
 import android.os.Process;
 import android.util.Log;
+
+//imports for channel definition
+import android.os.Build;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+
+import android.app.NotificationManager;
+import android.app.NotificationChannel;
+import android.graphics.Color;
 
 import java.io.File;
 
@@ -29,6 +42,7 @@ public abstract class PythonBoundService extends Service implements Runnable {
 
     // Argument to pass to Python code,
     private String pythonServiceArgument;
+    public static PythonBoundService mService = null;
 
     public void setPythonName(String value) {
         Log.d(TAG, "setPythonName()");
@@ -52,6 +66,7 @@ public abstract class PythonBoundService extends Service implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
+        this.mService = this;
 
         Log.d(TAG, "onCreate()");
 
@@ -104,6 +119,8 @@ public abstract class PythonBoundService extends Service implements Runnable {
             pythonServiceArgument
         );
 
+        this.mService = this;
+
         Log.d(TAG, "Python thread terminating");
     }
 
@@ -114,4 +131,56 @@ public abstract class PythonBoundService extends Service implements Runnable {
         String pythonHome, String pythonPath,
         String pythonServiceArgument
     );
+
+    /**
+    * change the bound service to foreground service
+    * automatically creates notification
+    * @param serviceTitle: this text appears as notification title
+    * @param serviceDescription: this text as notification description
+    */
+    public void doStartForeground(String serviceTitle, String serviceDescription) {
+        Notification notification;
+        Context context = getApplicationContext();
+        Intent contextIntent = new Intent(context, PythonActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            notification = new Notification(
+                context.getApplicationInfo().icon, serviceTitle, System.currentTimeMillis());
+            try {
+                // prevent using NotificationCompat, this saves 100kb on apk
+                Method func = notification.getClass().getMethod(
+                    "setLatestEventInfo", Context.class, CharSequence.class,
+                    CharSequence.class, PendingIntent.class);
+                func.invoke(notification, context, serviceTitle, serviceDescription, pIntent);
+            } catch (NoSuchMethodException | IllegalAccessException |
+                     IllegalArgumentException | InvocationTargetException e) {
+            }
+        } else {
+            // for android 8+ we need to create our own channel
+            // https://stackoverflow.com/questions/47531742/startforeground-fail-after-upgrade-to-android-8-1
+            String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a";    //TODO: make this configurable
+            String channelName = "Background Service";                //TODO: make this configurable
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName,
+                NotificationManager.IMPORTANCE_NONE);
+
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(chan);
+
+            Notification.Builder builder = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID);
+            builder.setContentTitle(serviceTitle);
+            builder.setContentText(serviceDescription);
+            builder.setContentIntent(pIntent);
+            builder.setSmallIcon(context.getApplicationInfo().icon);
+            notification = builder.build();
+        }
+        startForeground(getServiceId(), notification);
+    }
+
+    int getServiceId() {
+        return 1;
+    }
 }
