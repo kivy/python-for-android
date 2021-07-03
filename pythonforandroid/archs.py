@@ -133,7 +133,7 @@ class Arch:
             ctx=self.ctx,
             command_prefix=self.command_prefix,
             python_includes=join(
-                self.ctx.get_python_install_dir(),
+                self.ctx.get_python_install_dir(self.arch),
                 'include/python{}'.format(self.ctx.python_recipe.version[0:3]),
             ),
         )

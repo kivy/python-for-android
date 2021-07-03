@@ -370,7 +370,7 @@ class Python3Recipe(TargetPythonRecipe):
         # Compile to *.pyc/*.pyo the standard python library
         self.compile_python_files(join(self.get_build_dir(arch.arch), 'Lib'))
         # Compile to *.pyc/*.pyo the other python packages (site-packages)
-        self.compile_python_files(self.ctx.get_python_install_dir())
+        self.compile_python_files(self.ctx.get_python_install_dir(arch.arch))
 
         # Bundle compiled python modules to a folder
         modules_dir = join(dirn, 'modules')
@@ -399,9 +399,9 @@ class Python3Recipe(TargetPythonRecipe):
 
         # copy the site-packages into place
         ensure_dir(join(dirn, 'site-packages'))
-        ensure_dir(self.ctx.get_python_install_dir())
+        ensure_dir(self.ctx.get_python_install_dir(arch.arch))
         # TODO: Improve the API around walking and copying the files
-        with current_directory(self.ctx.get_python_install_dir()):
+        with current_directory(self.ctx.get_python_install_dir(arch.arch)):
             filens = list(walk_valid_filens(
                 '.', self.site_packages_dir_blacklist,
                 self.site_packages_filen_blacklist))

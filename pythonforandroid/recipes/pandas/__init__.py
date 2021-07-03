@@ -20,7 +20,7 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
         # we need the includes from our installed numpy at site packages
         # because we need some includes generated at numpy's compile time
         env['NUMPY_INCLUDES'] = join(
-            self.ctx.get_python_install_dir(), "numpy/core/include",
+            self.ctx.get_python_install_dir(arch.arch), "numpy/core/include",
         )
 
         # this flag below is to fix a runtime error:

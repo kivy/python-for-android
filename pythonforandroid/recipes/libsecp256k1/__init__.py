@@ -20,7 +20,7 @@ class LibSecp256k1Recipe(Recipe):
             shprint(
                 sh.Command('./configure'),
                 '--host=' + arch.toolchain_prefix,
-                '--prefix=' + self.ctx.get_python_install_dir(),
+                '--prefix=' + self.ctx.get_python_install_dir(arch.arch),
                 '--enable-shared',
                 '--enable-module-recovery',
                 '--enable-experimental',

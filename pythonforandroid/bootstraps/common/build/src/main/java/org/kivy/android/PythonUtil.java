@@ -127,7 +127,7 @@ public class PythonUtil {
         f.delete();
     }
 
-    public static void unpackData(
+    public static void unpackAsset(
         Context ctx,
         final String resource,
         File target,
@@ -170,7 +170,74 @@ public class PythonUtil {
             target.mkdirs();
 
             AssetExtract ae = new AssetExtract(ctx);
-            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
+            if (!ae.extractTar(resource + ".tar", target.getAbsolutePath(), "private")) {
+                String msg = "Could not extract " + resource + " data.";
+                if (ctx instanceof Activity) {
+                    toastError((Activity)ctx, msg);
+                } else {
+                    Log.v(TAG, msg);
+                }
+            }
+
+            try {
+                // Write .nomedia.
+                new File(target, ".nomedia").createNewFile();
+
+                // Write version file.
+                FileOutputStream os = new FileOutputStream(diskVersionFn);
+                os.write(dataVersion.getBytes());
+                os.close();
+            } catch (Exception e) {
+                Log.w("python", e);
+            }
+        }
+    }
+
+    public static void unpackPyBundle(
+        Context ctx,
+        final String resource,
+        File target,
+        boolean cleanup_on_version_update) {
+
+        Log.v(TAG, "Unpacking " + resource + " " + target.getName());
+
+        // The version of data in memory and on disk.
+        String dataVersion = "p4aisawesome"; // FIXME: Assets method is not usable for fake .so files bundled as a library.
+        String diskVersion = null;
+
+        Log.v(TAG, "Data version is " + dataVersion);
+
+        // If no version, no unpacking is necessary.
+        if (dataVersion == null) {
+            return;
+        }
+
+        // Check the current disk version, if any.
+        String filesDir = target.getAbsolutePath();
+        String diskVersionFn = filesDir + "/" + resource + ".version";
+
+        // FIXME: Keeping that for later. Now it is surely failing.
+        try {
+            byte buf[] = new byte[64];
+            InputStream is = new FileInputStream(diskVersionFn);
+            int len = is.read(buf);
+            diskVersion = new String(buf, 0, len);
+            is.close();
+        } catch (Exception e) {
+            diskVersion = "";
+        }
+
+        // If the disk data is out of date, extract it and write the version file.
+        if (! dataVersion.equals(diskVersion)) {
+            Log.v(TAG, "Extracting " + resource + " assets.");
+
+            if (cleanup_on_version_update) {
+                recursiveDelete(target);
+            }
+            target.mkdirs();
+
+            AssetExtract ae = new AssetExtract(ctx);
+            if (!ae.extractTar(resource + ".so", target.getAbsolutePath(), "pybundle")) {
                 String msg = "Could not extract " + resource + " data.";
                 if (ctx instanceof Activity) {
                     toastError((Activity)ctx, msg);
