@@ -7,6 +7,7 @@ import org.kivy.android.PythonWorker;
 
 
 public class {{ name|capitalize }}Worker extends PythonWorker {
+    public static {{ name|capitalize }}Worker mWorker = null;
 
     public {{ name|capitalize }}Worker (
         @NonNull Context context,
@@ -14,5 +15,6 @@ public class {{ name|capitalize }}Worker extends PythonWorker {
         super(context, params);
         setPythonName("{{ name }}");
         setWorkerEntrypoint("{{ entrypoint }}");
+        mWorker = this;
     }
 }

@@ -42,7 +42,7 @@ public abstract class PythonBoundService extends Service implements Runnable {
 
     // Argument to pass to Python code,
     private String pythonServiceArgument;
-    public static PythonBoundService mService = null;
+    public static PythonBoundService mService = null;  // XXX: should be moved to .tmpl, so we have mService for each service class individually
 
     public void setPythonName(String value) {
         Log.d(TAG, "setPythonName()");
@@ -58,6 +58,7 @@ public abstract class PythonBoundService extends Service implements Runnable {
 
     public void startPythonThread() {
         Log.d(TAG, "startPythonThread()");
+        this.mService = this;
 
         pythonThread = new Thread(this);
         pythonThread.start();

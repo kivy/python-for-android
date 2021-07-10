@@ -40,6 +40,11 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
     // Argument to pass to Python code,
     private String pythonServiceArgument;
 
+    // params passed to constructor
+    public WorkerParameters params = null;
+    public Context context = null;
+
+
     public PythonWorker(
         @NonNull Context context,
         @NonNull WorkerParameters params) {
@@ -57,6 +62,8 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
 
         File appRootFile = new File(appRoot);
         PythonUtil.unpackData(context, "private", appRootFile, false);
+        this.context = context;
+        this.params = params;
     }
 
     public void setPythonName(String value) {
