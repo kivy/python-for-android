@@ -62,6 +62,8 @@ class TestToolchainCL:
             '--dist-name=test_toolchain',
             '--activity-class-name=abc.myapp.android.CustomPythonActivity',
             '--service-class-name=xyz.myapp.android.CustomPythonService',
+            '--arch=arm64-v8a',
+            '--arch=armeabi-v7a'
         ]
         with patch_sys_argv(argv), mock.patch(
             'pythonforandroid.build.get_available_apis'
@@ -116,7 +118,7 @@ class TestToolchainCL:
         """
         The `--sdk-dir` is mandatory to `create` a distribution.
         """
-        argv = ['toolchain.py', 'create']
+        argv = ['toolchain.py', 'create', '--arch=arm64-v8a', '--arch=armeabi-v7a']
         with patch_sys_argv(argv), pytest.raises(
             BuildInterruptingException
         ) as ex_info:

@@ -4,6 +4,7 @@ from unittest import mock
 import jinja2
 
 from pythonforandroid.build import run_pymodules_install
+from pythonforandroid.archs import ArchARMv7_a, ArchAarch_64
 
 
 class TestBuildBasic(unittest.TestCase):
@@ -14,6 +15,7 @@ class TestBuildBasic(unittest.TestCase):
         `project_dir` optional parameter is None, refs #1898
         """
         ctx = mock.Mock()
+        ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
         modules = []
         project_dir = None
         with mock.patch('pythonforandroid.build.info') as m_info:
