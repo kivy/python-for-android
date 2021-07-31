@@ -143,6 +143,14 @@ class BdistAAR(Bdist):
     package_type = 'aar'
 
 
+class BdistAAB(Bdist):
+    """
+    distutil command handler for 'aab'
+    """
+    description = 'Create an AAB with python-for-android'
+    package_type = 'aab'
+
+
 def _set_user_options():
     # This seems like a silly way to do things, but not sure if there's a
     # better way to pass arbitrary options onwards to p4a
