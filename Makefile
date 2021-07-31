@@ -34,12 +34,17 @@ rebuild_updated_recipes: virtualenv
 	ANDROID_SDK_HOME=$(ANDROID_SDK_HOME) ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) \
 	$(PYTHON) ci/rebuild_updated_recipes.py
 
-testapps-with-numpy/%: virtualenv
-	$(eval $@_APP_ARCH := $(shell basename $*))
+testapps-with-numpy: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
-    --arch=$($@_APP_ARCH)
+    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86
+
+testapps-with-numpy-aab: virtualenv
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py aab --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
+    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 --release
 
 testapps/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
