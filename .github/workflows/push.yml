@@ -63,7 +63,7 @@ jobs:
     - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
       run: |
         mkdir -p apks
-        make docker/run/make/with-artifact/testapps-with-numpy
+        make docker/run/make/with-artifact/apk/testapps-with-numpy
     - uses: actions/upload-artifact@v1
       with:
         name: bdist_unit_tests_app-debug-1.1-.apk
@@ -91,7 +91,7 @@ jobs:
     - name: Build Android App Bundle Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
       run: |
         mkdir -p aabs
-        make docker/run/make/with-artifact/testapps-with-numpy-aab
+        make docker/run/make/with-artifact/aab/testapps-with-numpy-aab
     - uses: actions/upload-artifact@v1
       with:
         name: bdist_unit_tests_app-release-1.1-.aab

@@ -74,14 +74,18 @@ docker/run/test: docker/build
 docker/run/command: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) /bin/sh -c "$(COMMAND)"
 
+docker/run/make/with-artifact/apk/%: docker/build
+	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
+	docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/bdist_unit_tests_app-debug-1.1-.apk ./apks
+	docker rm -fv p4a-latest
+
+docker/run/make/with-artifact/aab/%: docker/build
+	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
+	docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/bdist_unit_tests_app-release-1.1-.aab ./aabs
+	docker rm -fv p4a-latest
+
 docker/run/make/%: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) make $*
-
-docker/run/make/with-artifact/%: docker/build
-	$(eval $@_APP_ARCH := $(shell basename $*))
-	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
-	docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/bdist_unit_tests_app__$($@_APP_ARCH)-debug-1.1-.apk ./apks
-	docker rm -fv p4a-latest
 
 docker/run/shell: docker/build
 	docker run --rm --env-file=.env -it $(DOCKER_IMAGE)

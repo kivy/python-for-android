@@ -164,6 +164,7 @@ def _set_user_options():
                 user_options.append((arg[2:], None, None))
 
     BdistAPK.user_options = user_options
+    BdistAAB.user_options = user_options
 
 
 _set_user_options()
