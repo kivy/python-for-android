@@ -80,6 +80,9 @@ int main(int argc, char *argv[]) {
   int ret = 0;
   FILE *fd;
 
+  char *workSpace = NULL;
+  char *pyScript = NULL;
+
   LOGP("Initializing Python for Android");
 
   // Set a couple of built-in environment vars:
@@ -96,6 +99,9 @@ int main(int argc, char *argv[]) {
     env_logname = "python";
     setenv("PYTHON_NAME", "python", 1);
   }
+
+  workSpace = getenv("WORKSPACE");
+  pyScript = getenv("PYSCRIPT");
 
   // Set additional file-provided environment vars:
   LOGP("Setting additional env vars from p4a_env_vars.txt");
@@ -140,25 +146,15 @@ int main(int argc, char *argv[]) {
     LOGP("Warning: no p4a_env_vars.txt found / failed to open!");
   }
 
-  LOGP("Changing directory to the one provided by ANDROID_ARGUMENT");
-  LOGP(env_argument);
-  chdir(env_argument);
+   LOGP("Changing directory to the one provided by ANDROID_ARGUMENT");
+   LOGP(env_argument);
+//  chdir(env_argument);
+   chdir(workSpace);
 
-#if PY_MAJOR_VERSION < 3
-  Py_NoSiteFlag=1;
-#endif
-
-#if PY_MAJOR_VERSION < 3
-  Py_SetProgramName("android_python");
-#else
-  Py_SetProgramName(L"android_python");
-#endif
-
-#if PY_MAJOR_VERSION >= 3
-  /* our logging module for android
+   Py_SetProgramName(L"android_python");
+   /* our logging module for android
    */
   PyImport_AppendInittab("androidembed", initandroidembed);
-#endif
 
   LOGP("Preparing to initialize python");
 
@@ -195,10 +191,6 @@ int main(int argc, char *argv[]) {
    */
   LOGP("AND: Init threads");
   PyEval_InitThreads();
-
-#if PY_MAJOR_VERSION < 3
-  initandroidembed();
-#endif
 
   PyRun_SimpleString("import androidembed\nandroidembed.log('testing python "
                      "print redirection')");
@@ -241,10 +233,6 @@ int main(int argc, char *argv[]) {
       "print('os.environ is', os.environ)\n"
       "print('Android kivy bootstrap done. __name__ is', __name__)");
 
-#if PY_MAJOR_VERSION < 3
-  PyRun_SimpleString("import site; print site.getsitepackages()\n");
-#endif
-
   LOGP("AND: Ran string");
 
   /* run it !
@@ -253,66 +241,17 @@ int main(int argc, char *argv[]) {
 
   /* Get the entrypoint, search the .pyo then .py
    */
-  char *dot = strrchr(env_entrypoint, '.');
-#if PY_MAJOR_VERSION > 2
-  char *ext = ".pyc";
-#else
-  char *ext = ".pyo";
-#endif
-  if (dot <= 0) {
-    LOGP("Invalid entrypoint, abort.");
-    return -1;
-  }
-  if (strlen(env_entrypoint) > ENTRYPOINT_MAXLEN - 2) {
-      LOGP("Entrypoint path is too long, try increasing ENTRYPOINT_MAXLEN.");
-      return -1;
-  }
-  if (!strcmp(dot, ext)) {
-    if (!file_exists(env_entrypoint)) {
-      /* fallback on .py */
-      strcpy(entrypoint, env_entrypoint);
-      entrypoint[strlen(env_entrypoint) - 1] = '\0';
-      LOGP(entrypoint);
-      if (!file_exists(entrypoint)) {
-        LOGP("Entrypoint not found (.pyc, fallback on .py), abort");
-        return -1;
-      }
-    } else {
-      strcpy(entrypoint, env_entrypoint);
-    }
-  } else if (!strcmp(dot, ".py")) {
-    /* if .py is passed, check the pyo version first */
-    strcpy(entrypoint, env_entrypoint);
-    entrypoint[strlen(env_entrypoint) + 1] = '\0';
-#if PY_MAJOR_VERSION > 2
-    entrypoint[strlen(env_entrypoint)] = 'c';
-#else
-    entrypoint[strlen(env_entrypoint)] = 'o';
-#endif
-    if (!file_exists(entrypoint)) {
-      /* fallback on pure python version */
-      if (!file_exists(env_entrypoint)) {
-        LOGP("Entrypoint not found (.py), abort.");
-        return -1;
-      }
-      strcpy(entrypoint, env_entrypoint);
-    }
-  } else {
-    LOGP("Entrypoint have an invalid extension (must be .py or .pyc), abort.");
-    return -1;
-  }
   // LOGP("Entrypoint is:");
-  // LOGP(entrypoint);
-  fd = fopen(entrypoint, "r");
+  fd = fopen(pyScript, "r");
   if (fd == NULL) {
     LOGP("Open the entrypoint failed");
-    LOGP(entrypoint);
+    LOGP(pyScript);
     return -1;
   }
 
   /* run python !
    */
-  ret = PyRun_SimpleFile(fd, entrypoint);
+  ret = PyRun_SimpleFile(fd, pyScript);
   fclose(fd);
 
   if (PyErr_Occurred() != NULL) {
