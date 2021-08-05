@@ -257,9 +257,10 @@ int main(int argc, char *argv[]) {
   if (PyErr_Occurred() != NULL) {
     ret = 1;
     PyErr_Print(); /* This exits with the right code if SystemExit. */
-    PyObject *f = PySys_GetObject("stdout");
-    if (PyFile_WriteString("\n", f))
-      PyErr_Clear();
+    PyErr_Clear();
+//    PyObject *f = PySys_GetObject("stdout");
+//    if (PyFile_WriteString("\n", f))
+//      PyErr_Clear();
   }
 
   LOGP("Python for android ended.");
@@ -272,25 +273,21 @@ int main(int argc, char *argv[]) {
 
      https://github.com/kivy/kivy/pull/6107#issue-246120816
    */
-  char terminatecmd[256];
+
+/*  char terminatecmd[256];
   snprintf(
     terminatecmd, sizeof(terminatecmd),
     "import sys; sys.exit(%d)\n", ret
   );
-  PyRun_SimpleString(terminatecmd);
+  PyRun_SimpleString(terminatecmd);*/
 
   /* This should never actually be reached, but we'll leave the clean-up
    * here just to be safe.
    */
-#if PY_MAJOR_VERSION < 3
-  Py_Finalize();
-  LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
-#else
   if (Py_FinalizeEx() != 0)  // properly check success on Python 3
-    LOGP("Unexpectedly reached Py_FinalizeEx(), and got error!");
+      LOGP("Unexpectedly reached Py_FinalizeEx(), and got error!");
   else
-    LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
-#endif
+      LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
 
   return ret;
 }
