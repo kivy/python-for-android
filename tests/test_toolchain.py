@@ -70,8 +70,6 @@ class TestToolchainCL:
         ) as m_get_available_apis, mock.patch(
             'pythonforandroid.build.get_toolchain_versions'
         ) as m_get_toolchain_versions, mock.patch(
-            'pythonforandroid.build.get_ndk_platform_dir'
-        ) as m_get_ndk_platform_dir, mock.patch(
             'pythonforandroid.toolchain.build_recipes'
         ) as m_build_recipes, mock.patch(
             'pythonforandroid.bootstraps.service_only.'
@@ -79,8 +77,6 @@ class TestToolchainCL:
         ) as m_run_distribute:
             m_get_available_apis.return_value = [27]
             m_get_toolchain_versions.return_value = (['4.9'], True)
-            m_get_ndk_platform_dir.return_value = (
-                '/tmp/android-ndk/platforms/android-21/arch-arm', True)
             tchain = ToolchainCL()
             assert tchain.ctx.activity_class_name == 'abc.myapp.android.CustomPythonActivity'
             assert tchain.ctx.service_class_name == 'xyz.myapp.android.CustomPythonService'

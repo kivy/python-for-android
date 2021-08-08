@@ -53,7 +53,6 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
         mock_archs_glob.return_value = [
             os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
         ]
-        self.ctx.toolchain_prefix = self.arch.toolchain_prefix
         self.ctx.toolchain_version = "4.9"
         self.recipe.build_arch(self.arch)
 

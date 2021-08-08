@@ -24,20 +24,18 @@ from pythonforandroid.recipe import CythonRecipe, Recipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
+from pythonforandroid.util import build_platform
 
 
-def get_ndk_platform_dir(ndk_dir, ndk_api, arch):
-    ndk_platform_dir_exists = True
-    platform_dir = arch.platform_dir
-    ndk_platform = join(
-        ndk_dir,
-        'platforms',
-        'android-{}'.format(ndk_api),
-        platform_dir)
-    if not exists(ndk_platform):
-        warning("ndk_platform doesn't exist: {}".format(ndk_platform))
-        ndk_platform_dir_exists = False
-    return ndk_platform, ndk_platform_dir_exists
+def get_ndk_standalone(ndk_dir):
+    return join(ndk_dir, 'toolchains', 'llvm', 'prebuilt', build_platform)
+
+
+def get_ndk_sysroot(ndk_dir):
+    sysroot = join(get_ndk_standalone(ndk_dir), 'sysroot')
+    if not exists(sysroot):
+        warning("sysroot doesn't exist: {}".format(sysroot))
+    return sysroot
 
 
 def get_toolchain_versions(ndk_dir, arch):
@@ -114,7 +112,9 @@ class Context:
 
     ccache = None  # whether to use ccache
 
-    ndk_platform = None  # the ndk platform directory
+    ndk_standalone = None
+    ndk_sysroot = None
+    ndk_include_dir = None  # usr/include
 
     bootstrap = None
     bootstrap_build_dir = None
@@ -296,7 +296,9 @@ class Context:
         android_api = int(android_api)
         self.android_api = android_api
 
-        check_target_api(android_api, self.archs[0].arch)
+        for arch in self.archs:
+            # Maybe We could remove this one in a near future (ARMv5 is definitely old)
+            check_target_api(android_api, arch)
         apis = get_available_apis(self.sdk_dir)
         info('Available Android APIs are ({})'.format(
             ', '.join(map(str, apis))))
@@ -375,60 +377,61 @@ class Context:
                     ' a python 3 target (which is the default)'
                     ' then THINGS WILL BREAK.')
 
-        # This would need to be changed if supporting multiarch APKs
-        arch = self.archs[0]
-        toolchain_prefix = arch.toolchain_prefix
-        self.ndk_platform, ndk_platform_dir_exists = get_ndk_platform_dir(
-            self.ndk_dir, self.ndk_api, arch)
-        ok = ok and ndk_platform_dir_exists
-
         py_platform = sys.platform
         if py_platform in ['linux2', 'linux3']:
             py_platform = 'linux'
-        toolchain_versions, toolchain_path_exists = get_toolchain_versions(
-            self.ndk_dir, arch)
-        ok = ok and toolchain_path_exists
-        toolchain_versions.sort()
 
-        toolchain_versions_gcc = []
-        for toolchain_version in toolchain_versions:
-            if toolchain_version[0].isdigit():
-                # GCC toolchains begin with a number
-                toolchain_versions_gcc.append(toolchain_version)
+        self.ndk_standalone = get_ndk_standalone(self.ndk_dir)
+        self.ndk_sysroot = get_ndk_sysroot(self.ndk_dir)
+        ok = ok and exists(self.ndk_sysroot)
+        self.ndk_include_dir = join(self.ndk_sysroot, 'usr', 'include')
 
-        if toolchain_versions:
-            info('Found the following toolchain versions: {}'.format(
-                toolchain_versions))
-            info('Picking the latest gcc toolchain, here {}'.format(
-                toolchain_versions_gcc[-1]))
-            toolchain_version = toolchain_versions_gcc[-1]
-        else:
-            warning('Could not find any toolchain for {}!'.format(
-                toolchain_prefix))
-            ok = False
+        for arch in self.archs:
 
-        self.toolchain_prefix = toolchain_prefix
-        self.toolchain_version = toolchain_version
-        # Modify the path so that sh finds modules appropriately
-        environ['PATH'] = (
-            '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
-            'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
-            '{toolchain_prefix}-{toolchain_version}/prebuilt/'
-            '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
-            'tools:{path}').format(
-                sdk_dir=self.sdk_dir, ndk_dir=self.ndk_dir,
-                toolchain_prefix=toolchain_prefix,
-                toolchain_version=toolchain_version,
-                py_platform=py_platform, path=environ.get('PATH'))
+            toolchain_versions, toolchain_path_exists = get_toolchain_versions(
+                self.ndk_dir, arch)
+            ok = ok and toolchain_path_exists
+            toolchain_versions.sort()
 
-        for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
-                           "tar", "bzip2", "unzip", "make", "gcc", "g++"):
-            if not sh.which(executable):
-                warning(f"Missing executable: {executable} is not installed")
+            toolchain_versions_gcc = []
+            for toolchain_version in toolchain_versions:
+                if toolchain_version[0].isdigit():
+                    # GCC toolchains begin with a number
+                    toolchain_versions_gcc.append(toolchain_version)
 
-        if not ok:
-            raise BuildInterruptingException(
-                'python-for-android cannot continue due to the missing executables above')
+            if toolchain_versions:
+                info('Found the following toolchain versions: {}'.format(
+                    toolchain_versions))
+                info('Picking the latest gcc toolchain, here {}'.format(
+                    toolchain_versions_gcc[-1]))
+                toolchain_version = toolchain_versions_gcc[-1]
+            else:
+                warning('Could not find any toolchain for {}!'.format(
+                    arch.toolchain_prefix))
+                ok = False
+
+            # Modify the path so that sh finds modules appropriately
+            environ['PATH'] = (
+                '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
+                'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
+                '{toolchain_prefix}-{toolchain_version}/prebuilt/'
+                '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
+                'tools:{path}').format(
+                    sdk_dir=self.sdk_dir, ndk_dir=self.ndk_dir,
+                    toolchain_prefix=arch.toolchain_prefix,
+                    toolchain_version=toolchain_version,
+                    py_platform=py_platform, path=environ.get('PATH'))
+
+            for executable in ("pkg-config", "autoconf", "automake", "libtoolize",
+                               "tar", "bzip2", "unzip", "make", "gcc", "g++"):
+                if not sh.which(executable):
+                    warning(f"Missing executable: {executable} is not installed")
+
+            if not ok:
+                raise BuildInterruptingException(
+                    'python-for-android cannot continue due to the missing executables above')
+
+        self.toolchain_version = toolchain_version  # We assume that the toolchain version is the same for all the archs
 
     def __init__(self):
         self.include_dirs = []
@@ -441,7 +444,6 @@ class Context:
         self._ndk_api = None
         self.ndk = None
 
-        self.toolchain_prefix = None
         self.toolchain_version = None
 
         self.local_recipes = None
@@ -887,7 +889,7 @@ def biglink(ctx, arch):
 
     # Move to the directory containing crtstart_so.o and crtend_so.o
     # This is necessary with newer NDKs? A gcc bug?
-    with current_directory(join(ctx.ndk_platform, 'usr', 'lib')):
+    with current_directory(arch.ndk_lib_dir):
         do_biglink(
             join(ctx.get_libs_dir(arch.arch), 'libpymodules.so'),
             obj_dir.split(' '),

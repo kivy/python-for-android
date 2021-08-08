@@ -153,6 +153,7 @@ def check_target_api(api, arch):
     recommendation
     """
 
+    # FIXME: Should We remove support for armeabi (ARMv5)?
     if api >= ARMEABI_MAX_TARGET_API and arch == 'armeabi':
         raise BuildInterruptingException(
             UNSUPPORTED_NDK_API_FOR_ARMEABI_MESSAGE.format(
