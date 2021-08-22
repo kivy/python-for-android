@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {},
   "devDependencies": {
-    "grunt": "~0.4.1",
+    "grunt": ">=1.3.0",
     "grunt-contrib-sass": "~0.7.2",
     "grunt-contrib-watch": "~0.4.3",
     "grunt-contrib-connect": "0.5.0",
