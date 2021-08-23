@@ -33,9 +33,11 @@ def get_ndk_standalone(ndk_dir):
 
 def get_ndk_sysroot(ndk_dir):
     sysroot = join(get_ndk_standalone(ndk_dir), 'sysroot')
+    sysroot_exists = True
     if not exists(sysroot):
         warning("sysroot doesn't exist: {}".format(sysroot))
-    return sysroot
+        sysroot_exists = False
+    return sysroot, sysroot_exists
 
 
 def get_toolchain_versions(ndk_dir, arch):
@@ -382,8 +384,8 @@ class Context:
             py_platform = 'linux'
 
         self.ndk_standalone = get_ndk_standalone(self.ndk_dir)
-        self.ndk_sysroot = get_ndk_sysroot(self.ndk_dir)
-        ok = ok and exists(self.ndk_sysroot)
+        self.ndk_sysroot, ndk_sysroot_exists = get_ndk_sysroot(self.ndk_dir)
+        ok = ok and ndk_sysroot_exists
         self.ndk_include_dir = join(self.ndk_sysroot, 'usr', 'include')
 
         for arch in self.archs:

@@ -50,7 +50,7 @@ class BaseClassSetupBootstrap(object):
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
             self.ctx, name="test_prj",
             recipes=["python3", "kivy"],
-            arch_name=self.TEST_ARCH,
+            archs=[self.TEST_ARCH],
         )
 
     def tearDown(self):

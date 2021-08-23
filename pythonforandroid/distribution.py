@@ -46,7 +46,7 @@ class Distribution:
             cls,
             ctx,
             *,
-            arch_name,  # required keyword argument: there is no sensible default
+            archs,  # required keyword argument: there is no sensible default
             name=None,
             recipes=[],
             ndk_api=None,
@@ -70,8 +70,8 @@ class Distribution:
         ndk_api : int
             The NDK API to compile against, included in the dist because it cannot
             be changed later during APK packaging.
-        arch_name : str
-            The target architecture name to compile against, included in the dist because
+        archs : list
+            The target architectures list to compile against, included in the dist because
             it cannot be changed later during APK packaging.
         recipes : list
             The recipes that the distribution must contain.
@@ -99,7 +99,7 @@ class Distribution:
         if name is not None and name:
             possible_dists = [
                 d for d in possible_dists if
-                (d.name == name) and (arch_name in d.archs)]
+                (d.name == name) and all(arch_name in d.archs for arch_name in archs)]
 
             if possible_dists:
                 # There should only be one folder with a given dist name *and* arch.
@@ -136,7 +136,7 @@ class Distribution:
                 continue
             if ndk_api is not None and dist.ndk_api != ndk_api:
                 continue
-            if arch_name is not None and arch_name not in dist.archs:
+            if not all(arch_name in dist.archs for arch_name in archs):
                 continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and
@@ -179,7 +179,7 @@ class Distribution:
             name)
         dist.recipes = recipes
         dist.ndk_api = ctx.ndk_api
-        dist.archs = [arch_name]
+        dist.archs = archs
 
         return dist
 

@@ -64,7 +64,7 @@ class ArchSetUpBaseClass(object):
             self.ctx,
             name="sdl2",
             recipes=["python3", "kivy"],
-            arch_name=self.TEST_ARCH,
+            archs=[self.TEST_ARCH],
         )
         self.ctx.python_recipe = Recipe.get_recipe("python3", self.ctx)
         # Here we define the expected compiler, which, as per ndk >= r19,
