@@ -1079,6 +1079,11 @@ class ToolchainCL:
                     _tail=20, _critical=True, _env=env
                 )
             if args.build_mode == "debug":
+                if package_type == "aab":
+                    raise BuildInterruptingException(
+                        "aab is meant only for distribution and is not available in debug mode. "
+                        "Instead, you can use apk while building for debugging purposes."
+                    )
                 gradle_task = "assembleDebug"
             elif args.build_mode == "release":
                 if package_type == "apk":
