@@ -120,7 +120,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
         # we have the proper package already downloaded, it will use the cached
         # package to successfully finish the installation.
         # Note: this may not be necessary for some local systems, but it is
-        #       for our CI providers: `gh-actions` and travis, which will
+        #       for our CI provider: `gh-actions`, which will
         #       fail trying to download the `jquery-ui` package
         env['XDG_CACHE_HOME'] = join(self.get_build_dir(arch), 'p4a_files')
         # we make use of the same directory than `XDG_CACHE_HOME`, for our
