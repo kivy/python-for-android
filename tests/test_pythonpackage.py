@@ -1,5 +1,5 @@
 """
-THESE TESTS DON'T RUN IN TRAVIS (takes too long!!)
+THESE TESTS DON'T RUN IN GITHUB-ACTIONS (takes too long!!)
 ONLY THE BASIC ONES IN test_pythonpackage_basic.py DO.
 
 (This file basically covers all tests for any of the

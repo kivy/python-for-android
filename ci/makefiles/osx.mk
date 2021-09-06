@@ -7,15 +7,15 @@ all: install_java upgrade_cython install_android_ndk_sdk install_p4a
 
 install_java:
 	brew tap adoptopenjdk/openjdk
-	brew cask install adoptopenjdk8
+	brew install --cask adoptopenjdk13
 	/usr/libexec/java_home -V
 
 upgrade_cython:
-	pip3 install --upgrade Cython==0.29.19
+	pip3 install --upgrade Cython
 
 install_android_ndk_sdk:
 	mkdir -p $(ANDROID_HOME)
-	make -f ci/makefiles/android.mk target_os=darwin JAVA_HOME=`/usr/libexec/java_home -v 1.8`
+	make -f ci/makefiles/android.mk JAVA_HOME=`/usr/libexec/java_home -v 13`
 
 install_p4a:
 	# check python version and install p4a

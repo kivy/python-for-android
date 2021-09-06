@@ -10,7 +10,7 @@ class Psycopg2Recipe(PythonRecipe):
     `ANDROID_API` (`ndk-api`) >= 26, see:
     https://github.com/kivy/python-for-android/issues/1711#issuecomment-465747557
     """
-    version = '2.8.4'
+    version = '2.8.5'
     url = 'https://pypi.python.org/packages/source/p/psycopg2/psycopg2-{version}.tar.gz'
     depends = ['libpq', 'setuptools']
     site_packages_name = 'psycopg2'

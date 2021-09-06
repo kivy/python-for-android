@@ -19,7 +19,7 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
     def test_property__libpython(self):
         self.assertEqual(
             self.recipe._libpython,
-            f'libpython{self.recipe.major_minor_version_string}m.so'
+            f'libpython{self.recipe.link_version}.so'
         )
 
     @mock.patch('pythonforandroid.recipes.python3.Path.is_file')

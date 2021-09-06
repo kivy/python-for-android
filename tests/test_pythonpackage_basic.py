@@ -1,7 +1,7 @@
 """
 ONLY BASIC TEST SET. The additional ones are in test_pythonpackage.py.
 
-These are in a separate file because these were picked to run in travis,
+These are in a separate file because these were picked to run in github-actions,
 while the other additional ones aren't (for build time reasons).
 """
 

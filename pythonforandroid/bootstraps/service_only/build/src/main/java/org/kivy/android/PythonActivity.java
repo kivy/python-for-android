@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.view.KeyEvent;
 import android.util.Log;
 import android.widget.Toast;
 import android.os.Bundle;
@@ -71,8 +74,7 @@ public class PythonActivity extends Activity {
 
         Log.v(TAG, "Ready to unpack");
         File app_root_file = new File(getAppRoot());
-        PythonActivityUtil pythonActivityUtil = new PythonActivityUtil(mActivity, resourceManager);
-        pythonActivityUtil.unpackData("private", app_root_file);
+        PythonUtil.unpackData(mActivity, "private", app_root_file, true);
 
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);

@@ -6,7 +6,7 @@ from os.path import join
 class ZopeRecipe(PythonRecipe):
     name = 'zope'
     version = '4.1.3'
-    url = 'http://pypi.python.org/packages/source/z/zope.interface/zope.interface-{version}.tar.gz'
+    url = 'https://pypi.python.org/packages/source/z/zope.interface/zope.interface-{version}.tar.gz'
 
     depends = []
 

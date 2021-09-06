@@ -3,13 +3,13 @@ import sh
 import subprocess
 
 from multiprocessing import cpu_count
-from os import environ
+from os import environ, utime
 from os.path import dirname, exists, join
 from pathlib import Path
 from shutil import copy2
 
 from pythonforandroid.logger import info, warning, shprint
-from pythonforandroid.patching import version_starts_with, is_version_lt
+from pythonforandroid.patching import version_starts_with
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
 from pythonforandroid.util import (
     current_directory,
@@ -56,25 +56,28 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.8.1'
+    version = '3.8.9'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
     patches = [
-        ('patches/pyconfig_detection.patch', is_version_lt("3.8.3")),
+        'patches/pyconfig_detection.patch',
+        'patches/reproducible-buildinfo.diff',
 
         # Python 3.7.1
         ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
         ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
 
-        # Python 3.8.1
-        ('patches/py3.8.1.patch', version_starts_with("3.8"))
+        # Python 3.8.1 & 3.9.X
+        ('patches/py3.8.1.patch', version_starts_with("3.8")),
+        ('patches/py3.8.1.patch', version_starts_with("3.9"))
     ]
 
     if sh.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8"))
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8")),
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.9"))
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
@@ -94,7 +97,8 @@ class Python3Recipe(TargetPythonRecipe):
         '--without-ensurepip',
         'ac_cv_little_endian_double=yes',
         '--prefix={prefix}',
-        '--exec-prefix={exec_prefix}')
+        '--exec-prefix={exec_prefix}',
+        '--enable-loadable-sqlite-extensions')
     '''The configure arguments needed to build the python recipe. Those are
     used in method :meth:`build_arch` (if not overwritten like python3's
     recipe does).
@@ -154,10 +158,22 @@ class Python3Recipe(TargetPythonRecipe):
     @property
     def _libpython(self):
         '''return the python's library name (with extension)'''
-        py_version = self.major_minor_version_string
-        if self.major_minor_version_string[0] == '3':
-            py_version += 'm'
-        return 'libpython{version}.so'.format(version=py_version)
+        return 'libpython{link_version}.so'.format(
+            link_version=self.link_version
+        )
+
+    @property
+    def link_version(self):
+        '''return the python's library link version e.g. 3.7m, 3.8'''
+        major, minor = self.major_minor_version_string.split('.')
+        flags = ''
+        if major == '3' and int(minor) < 8:
+            flags += 'm'
+        return '{major}.{minor}{flags}'.format(
+            major=major,
+            minor=minor,
+            flags=flags
+        )
 
     def include_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'Include')
@@ -372,8 +388,14 @@ class Python3Recipe(TargetPythonRecipe):
         with current_directory(join(self.get_build_dir(arch.arch), 'Lib')):
             stdlib_filens = list(walk_valid_filens(
                 '.', self.stdlib_dir_blacklist, self.stdlib_filen_blacklist))
+            if 'SOURCE_DATE_EPOCH' in environ:
+                # for reproducible builds
+                stdlib_filens.sort()
+                timestamp = int(environ['SOURCE_DATE_EPOCH'])
+                for filen in stdlib_filens:
+                    utime(filen, (timestamp, timestamp))
             info("Zip {} files into the bundle".format(len(stdlib_filens)))
-            shprint(sh.zip, stdlib_zip, *stdlib_filens)
+            shprint(sh.zip, '-X', stdlib_zip, *stdlib_filens)
 
         # copy the site-packages into place
         ensure_dir(join(dirn, 'site-packages'))
@@ -392,9 +414,7 @@ class Python3Recipe(TargetPythonRecipe):
         # copy the python .so files into place
         python_build_dir = join(self.get_build_dir(arch.arch),
                                 'android-build')
-        python_lib_name = 'libpython' + self.major_minor_version_string
-        if self.major_minor_version_string[0] == '3':
-            python_lib_name += 'm'
+        python_lib_name = 'libpython' + self.link_version
         shprint(
             sh.cp,
             join(python_build_dir, python_lib_name + '.so'),

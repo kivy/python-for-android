@@ -70,9 +70,8 @@ Release checklist
 ::
 
     - [ ] Check that the builds are passing
-      - [ ] [Travis build](https://travis-ci.org/kivy/python-for-android)
       - [ ] [GitHub Action](https://github.com/kivy/python-for-android/actions)
-    - [ ] Run the tests locally via `tox`: this performs some long-running tests that are skipped on Travis.
+    - [ ] Run the tests locally via `tox`: this performs some long-running tests that are skipped on github-actions.
     - [ ] Build and run the [on_device_unit_tests](https://github.com/kivy/python-for-android/tree/master/testapps/on_device_unit_tests) app using buildozer. Check that they all pass.
     - [ ] Build (or download from github actions) and run the following [testapps](https://github.com/kivy/python-for-android/tree/master/testapps/on_device_unit_tests) for arch `armeabi-v7a` and `arm64-v8a`:
       - [ ] on_device_unit_tests

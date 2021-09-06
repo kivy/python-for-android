@@ -25,10 +25,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.content.res.Resources.NotFoundException;
 
 import org.libsdl.app.SDLActivity;
 
@@ -61,7 +64,7 @@ public class PythonActivity extends SDLActivity {
         Log.v(TAG, "Did super onCreate");
 
         this.mActivity = this;
-        this.showLoadingScreen();
+        this.showLoadingScreen(this.getLoadingScreen());
 
         new UnpackFilesTask().execute(getAppRoot());
     }
@@ -101,8 +104,7 @@ public class PythonActivity extends SDLActivity {
         protected String doInBackground(String... params) {
             File app_root_file = new File(params[0]);
             Log.v(TAG, "Ready to unpack");
-            PythonActivityUtil pythonActivityUtil = new PythonActivityUtil(mActivity, resourceManager);
-            pythonActivityUtil.unpackData("private", app_root_file);
+            PythonUtil.unpackData(mActivity, "private", app_root_file, true);
             return null;
         }
 
@@ -121,7 +123,7 @@ public class PythonActivity extends SDLActivity {
             // removed the loading screen. However, we still need it to
             // show until the app is ready to render, so pop it back up
             // on top of the SDL view.
-            mActivity.showLoadingScreen();
+            mActivity.showLoadingScreen(getLoadingScreen());
 
             String app_root_dir = getAppRoot();
             if (getIntent() != null && getIntent().getAction() != null &&
@@ -338,6 +340,7 @@ public class PythonActivity extends SDLActivity {
 
     /** Loading screen view **/
     public static ImageView mImageView = null;
+    public static View mLottieView = null;
     /** Whether main routine/actual app has started yet **/
     protected boolean mAppConfirmedActive = false;
     /** Timer for delayed loading screen removal. **/
@@ -404,11 +407,11 @@ public class PythonActivity extends SDLActivity {
     public void removeLoadingScreen() {
         runOnUiThread(new Runnable() {
             public void run() {
-                if (PythonActivity.mImageView != null && 
-                        PythonActivity.mImageView.getParent() != null) {
-                    ((ViewGroup)PythonActivity.mImageView.getParent()).removeView(
-                        PythonActivity.mImageView);
-                    PythonActivity.mImageView = null;
+                View view = mLottieView != null ? mLottieView : mImageView;
+                if (view != null && view.getParent() != null) {
+                    ((ViewGroup)view.getParent()).removeView(view);
+                    mLottieView = null;
+                    mImageView = null;
                 }
             }
         });
@@ -430,56 +433,12 @@ public class PythonActivity extends SDLActivity {
         return "main.py";
     }
 
-    protected void showLoadingScreen() {
-        // load the bitmap
-        // 1. if the image is valid and we don't have layout yet, assign this bitmap
-        // as main view.
-        // 2. if we have a layout, just set it in the layout.
-        // 3. If we have an mImageView already, then do nothing because it will have
-        // already been made the content view or added to the layout.
-
-        if (mImageView == null) {
-            int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
-            InputStream is = this.getResources().openRawResource(presplashId);
-            Bitmap bitmap = null;
-            try {
-                bitmap = BitmapFactory.decodeStream(is);
-            } finally {
-                try {
-                    is.close();
-                } catch (IOException e) {};
-            }
-
-            mImageView = new ImageView(this);
-            mImageView.setImageBitmap(bitmap);
-
-            /*
-             * Set the presplash loading screen background color
-             * https://developer.android.com/reference/android/graphics/Color.html
-             * Parse the color string, and return the corresponding color-int.
-             * If the string cannot be parsed, throws an IllegalArgumentException exception.
-             * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
-             * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
-             * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
-             * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
-             */
-            String backgroundColor = resourceManager.getString("presplash_color");
-            if (backgroundColor != null) {
-                try {
-                    mImageView.setBackgroundColor(Color.parseColor(backgroundColor));
-                } catch (IllegalArgumentException e) {}
-            }   
-            mImageView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.FILL_PARENT,
-                ViewGroup.LayoutParams.FILL_PARENT));
-            mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        }
-
+    protected void showLoadingScreen(View view) {
         try {
             if (mLayout == null) {
-                setContentView(mImageView);
-            } else if (PythonActivity.mImageView.getParent() == null) {
-                mLayout.addView(mImageView);
+                setContentView(view);
+            } else if (view.getParent() == null) {
+                mLayout.addView(view);
             }
         } catch (IllegalStateException e) {
             // The loading screen can be attempted to be applied twice if app
@@ -488,7 +447,84 @@ public class PythonActivity extends SDLActivity {
             // You must call removeView() on the child's parent first.")
         }
     }
-    
+
+    protected void setBackgroundColor(View view) {
+        /*
+         * Set the presplash loading screen background color
+         * https://developer.android.com/reference/android/graphics/Color.html
+         * Parse the color string, and return the corresponding color-int.
+         * If the string cannot be parsed, throws an IllegalArgumentException exception.
+         * Supported formats are: #RRGGBB #AARRGGBB or one of the following names:
+         * 'red', 'blue', 'green', 'black', 'white', 'gray', 'cyan', 'magenta', 'yellow',
+         * 'lightgray', 'darkgray', 'grey', 'lightgrey', 'darkgrey', 'aqua', 'fuchsia',
+         * 'lime', 'maroon', 'navy', 'olive', 'purple', 'silver', 'teal'.
+         */
+        String backgroundColor = resourceManager.getString("presplash_color");
+        if (backgroundColor != null) {
+            try {
+                view.setBackgroundColor(Color.parseColor(backgroundColor));
+            } catch (IllegalArgumentException e) {}
+        }
+    }
+
+    protected View getLoadingScreen() {
+        // If we have an mLottieView or mImageView already, then do
+        // nothing because it will have already been made the content
+        // view or added to the layout.
+        if (mLottieView != null || mImageView != null) {
+            // we already have a splash screen
+            return mLottieView != null ? mLottieView : mImageView;
+        }
+
+        // first try to load the lottie one
+        try {
+            mLottieView = getLayoutInflater().inflate(
+                this.resourceManager.getIdentifier("lottie", "layout"),
+                mLayout,
+                false
+            );
+            try {
+                if (mLayout == null) {
+                    setContentView(mLottieView);
+                } else if (PythonActivity.mLottieView.getParent() == null) {
+                    mLayout.addView(mLottieView);
+                }
+            } catch (IllegalStateException e) {
+                // The loading screen can be attempted to be applied twice if app
+                // is tabbed in/out, quickly.
+                // (Gives error "The specified child already has a parent.
+                // You must call removeView() on the child's parent first.")
+            }
+            setBackgroundColor(mLottieView);
+            return mLottieView;
+        }
+        catch (NotFoundException e) {
+            Log.v("SDL", "couldn't find lottie layout or animation, trying static splash");
+        }
+
+        // no lottie asset, try to load the static image then
+        int presplashId = this.resourceManager.getIdentifier("presplash", "drawable");
+        InputStream is = this.getResources().openRawResource(presplashId);
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapFactory.decodeStream(is);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {};
+        }
+
+        mImageView = new ImageView(this);
+        mImageView.setImageBitmap(bitmap);
+        setBackgroundColor(mImageView);
+
+        mImageView.setLayoutParams(new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.FILL_PARENT,
+            ViewGroup.LayoutParams.FILL_PARENT));
+        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        return mImageView;
+    }
+
     @Override
     protected void onPause() {
         if (this.mWakeLock != null && mWakeLock.isHeld()) {
@@ -595,5 +631,13 @@ public class PythonActivity extends SDLActivity {
 
     public void requestPermissions(String[] permissions) {
         requestPermissionsWithRequestCode(permissions, 1);
+    }
+
+    public static void changeKeyboard(int inputType) {
+      if (SDLActivity.keyboardInputType != inputType){
+          SDLActivity.keyboardInputType = inputType;
+          InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.restartInput(mTextEdit);
+          }
     }
 }

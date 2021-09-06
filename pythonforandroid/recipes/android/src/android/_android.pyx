@@ -159,7 +159,7 @@ api_version = autoclass('android.os.Build$VERSION').SDK_INT
 version_codes = autoclass('android.os.Build$VERSION_CODES')
 
 
-python_act = autoclass(JAVA_NAMESPACE + u'.PythonActivity')
+python_act = autoclass(ACTIVITY_CLASS_NAME)
 Rect = autoclass(u'android.graphics.Rect')
 mActivity = python_act.mActivity
 if mActivity:
@@ -293,7 +293,7 @@ def start_service(title="Background Service",
         arg = ""
 
     # Start service:
-    mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+    mActivity = autoclass(ACTIVITY_CLASS_NAME).mActivity
     if as_foreground:
         mActivity.start_service(
             title, description, arg

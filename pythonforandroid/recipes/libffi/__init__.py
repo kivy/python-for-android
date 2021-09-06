@@ -12,21 +12,9 @@ class LibffiRecipe(Recipe):
         - `automake` for the `aclocal` binary
         - `autoconf` for the `autoreconf` binary
         - `libltdl-dev` which defines the `LT_SYS_SYMBOL_USCORE` macro
-
-    .. note::
-        Some notes about libffi version:
-
-            - v3.2.1 it's from year 2014...it's a little outdated and has
-              problems with clang (see issue #1525)
-            - v3.3-rc0 it was released at april 2018 (it's a pre-release), and
-              it lacks some commits that we are interested, specially those
-              ones that fixes specific issues for Arm64, you can check those
-              commits at (search for commit `8fa8837` and look at the below
-              commits): https://github.com/libffi/libffi/commits/master
     """
     name = 'libffi'
-    # Version pinned to post `v3.3RC0`
-    version = '8fa8837'
+    version = 'v3.3'
     url = 'https://github.com/libffi/libffi/archive/{version}.tar.gz'
 
     patches = ['remove-version-info.patch']

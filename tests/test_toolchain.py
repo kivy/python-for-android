@@ -60,6 +60,8 @@ class TestToolchainCL:
             '--bootstrap=service_only',
             '--requirements=python3',
             '--dist-name=test_toolchain',
+            '--activity-class-name=abc.myapp.android.CustomPythonActivity',
+            '--service-class-name=xyz.myapp.android.CustomPythonService',
         ]
         with patch_sys_argv(argv), mock.patch(
             'pythonforandroid.build.get_available_apis'
@@ -77,7 +79,9 @@ class TestToolchainCL:
             m_get_toolchain_versions.return_value = (['4.9'], True)
             m_get_ndk_platform_dir.return_value = (
                 '/tmp/android-ndk/platforms/android-21/arch-arm', True)
-            ToolchainCL()
+            tchain = ToolchainCL()
+            assert tchain.ctx.activity_class_name == 'abc.myapp.android.CustomPythonActivity'
+            assert tchain.ctx.service_class_name == 'xyz.myapp.android.CustomPythonService'
         assert m_get_available_apis.call_args_list in [
             [mock.call('/tmp/android-sdk')],  # linux case
             [mock.call('/private/tmp/android-sdk')]  # macos case

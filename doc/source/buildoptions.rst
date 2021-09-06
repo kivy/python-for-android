@@ -74,6 +74,8 @@ options (this list may not be exhaustive):
   the application is loading.
 - ``--presplash-color``: The presplash screen background color, of the
   form ``#RRGGBB`` or a color name ``red``, ``green``, ``blue`` etc.
+- ``--presplash-lottie``: use a lottie (json) file as a presplash animation. If
+  used, this will replace the static presplash image.
 - ``--wakelock``: If the argument is included, the application will
   prevent the device from sleeping.
 - ``--window``: If the argument is included, the application will not
@@ -90,6 +92,7 @@ options (this list may not be exhaustive):
   run. See :ref:`arbitrary_scripts_services`.
 - ``--add-source``: Add a source directory to the app's Java code.
 - ``--no-compile-pyo``: Do not optimise .py files to .pyo.
+- ``--enable-androidx``: Enable AndroidX support library.
 
 
 webview
@@ -126,7 +129,7 @@ ready.
   ``android:screenOrientation`` in the `Android documentation
   <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
 - ``--icon``: A path to the png file to use as the application icon.
-- ``-- permission``: A permission name for the app,
+- ``--permission``: A permission name for the app,
   e.g. ``--permission VIBRATE``. For multiple permissions, add
   multiple ``--permission`` arguments.
 - ``--meta-data``: Custom key=value pairs to add in the application metadata.

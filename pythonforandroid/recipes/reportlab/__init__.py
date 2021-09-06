@@ -6,8 +6,8 @@ from pythonforandroid.logger import (info, shprint)
 
 
 class ReportLabRecipe(CompiledComponentsPythonRecipe):
-    version = 'c088826211ca'
-    url = 'https://bitbucket.org/rptlab/reportlab/get/{version}.tar.gz'
+    version = 'fe660f227cac'
+    url = 'https://hg.reportlab.com/hg-public/reportlab/archive/{version}.tar.gz'
     depends = ['freetype']
     call_hostpython_via_targetpython = False
 

@@ -1,7 +1,7 @@
 --- Pillow-7.0.0/setup.py.orig	2020-01-02 06:19:26.000000000 +0100
-+++ Pillow-7.0.0/setup.py	2020-02-22 17:33:03.121976748 +0100
++++ Pillow-7.0.0/setup.py	2020-07-05 12:26:18.882948858 +0200
 @@ -29,13 +29,13 @@ def get_version():
- 
+
  NAME = "Pillow"
  PILLOW_VERSION = get_version()
 -FREETYPE_ROOT = None
@@ -14,12 +14,12 @@
  TIFF_ROOT = None
 -ZLIB_ROOT = None
 +ZLIB_ROOT = tuple(os.environ['ZLIB_ROOT'].split('|')) if 'ZLIB_ROOT' in os.environ else None
- 
- 
+
+
  if sys.platform == "win32" and sys.version_info >= (3, 9):
 @@ -317,7 +317,7 @@ class pil_build_ext(build_ext):
      )
- 
+
      def initialize_options(self):
 -        self.disable_platform_guessing = None
 +        self.disable_platform_guessing = True
@@ -28,7 +28,7 @@
          for x in self.feature:
 @@ -567,62 +567,6 @@ class pil_build_ext(build_ext):
                      feature.jpeg = "libjpeg"  # alternative name
- 
+
          feature.openjpeg_version = None
 -        if feature.want("jpeg2000"):
 -            _dbg("Looking for jpeg2000")
@@ -86,13 +86,13 @@
 -                    self, "libtiff"
 -                ):
 -                    feature.tiff = "libtiff"
- 
+
          if feature.want("freetype"):
              _dbg("Looking for freetype")
-@@ -647,40 +591,6 @@ class pil_build_ext(build_ext):
+@@ -647,15 +591,6 @@ class pil_build_ext(build_ext):
                      if subdir:
                          _add_directory(self.compiler.include_dirs, subdir, 0)
- 
+
 -        if feature.want("lcms"):
 -            _dbg("Looking for lcms")
 -            if _find_include_file(self, "lcms2.h"):
@@ -102,35 +102,10 @@
 -                    # alternate Windows name.
 -                    feature.lcms = "lcms2_static"
 -
--        if feature.want("webp"):
--            _dbg("Looking for webp")
--            if _find_include_file(self, "webp/encode.h") and _find_include_file(
--                self, "webp/decode.h"
--            ):
--                # In Google's precompiled zip it is call "libwebp":
--                if _find_library_file(self, "webp"):
--                    feature.webp = "webp"
--                elif _find_library_file(self, "libwebp"):
--                    feature.webp = "libwebp"
--
--        if feature.want("webpmux"):
--            _dbg("Looking for webpmux")
--            if _find_include_file(self, "webp/mux.h") and _find_include_file(
--                self, "webp/demux.h"
--            ):
--                if _find_library_file(self, "webpmux") and _find_library_file(
--                    self, "webpdemux"
--                ):
--                    feature.webpmux = "webpmux"
--                if _find_library_file(self, "libwebpmux") and _find_library_file(
--                    self, "libwebpdemux"
--                ):
--                    feature.webpmux = "libwebpmux"
--
-         for f in feature:
-             if not getattr(feature, f) and feature.require(f):
-                 if f in ("jpeg", "zlib"):
-@@ -717,8 +627,8 @@ class pil_build_ext(build_ext):
+         if feature.want("webp"):
+             _dbg("Looking for webp")
+             if _find_include_file(self, "webp/encode.h") and _find_include_file(
+@@ -717,8 +652,8 @@ class pil_build_ext(build_ext):
              defs.append(("HAVE_LIBTIFF", None))
          if sys.platform == "win32":
              libs.extend(["kernel32", "user32", "gdi32"])
@@ -138,13 +113,13 @@
 -            defs.append(("WORDS_BIGENDIAN", None))
 +        # if struct.unpack("h", b"\0\1")[0] == 1:
 +        #     defs.append(("WORDS_BIGENDIAN", None))
- 
+
          if sys.platform == "win32" and not (PLATFORM_PYPY or PLATFORM_MINGW):
              defs.append(("PILLOW_VERSION", '"\\"%s\\""' % PILLOW_VERSION))
-@@ -769,16 +679,6 @@ class pil_build_ext(build_ext):
+@@ -769,16 +704,6 @@ class pil_build_ext(build_ext):
                  )
              )
- 
+
 -        tk_libs = ["psapi"] if sys.platform == "win32" else []
 -        exts.append(
 -            Extension(
@@ -157,4 +132,4 @@
 -
          exts.append(Extension("PIL._imagingmath", ["src/_imagingmath.c"]))
          exts.append(Extension("PIL._imagingmorph", ["src/_imagingmorph.c"]))
- 
+
