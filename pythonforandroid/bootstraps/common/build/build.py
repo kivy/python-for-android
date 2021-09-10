@@ -201,6 +201,7 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
                 dirs.append(d)
                 tinfo = tarfile.TarInfo(d)
                 tinfo.type = tarfile.DIRTYPE
+                clean(tinfo)
                 tf.addfile(tinfo)
 
         # put the file
@@ -313,7 +314,8 @@ main.py that loads it.''')
             if exists(python_bundle_dir):
                 tar_dirs.append(python_bundle_dir)
         if get_bootstrap_name() == "webview":
-            tar_dirs.append('webview_includes')
+            for asset in listdir('webview_includes'):
+                shutil.copy(join('webview_includes', asset), join(assets_dir, asset))
 
         for asset in args.assets:
             asset_src, asset_dest = asset.split(":")
@@ -340,8 +342,24 @@ main.py that loads it.''')
     default_presplash = 'templates/kivy-presplash.jpg'
     shutil.copy(
         args.icon or default_icon,
-        join(res_dir, 'drawable/icon.png')
+        join(res_dir, 'mipmap/icon.png')
     )
+    if args.icon_fg and args.icon_bg:
+        shutil.copy(args.icon_fg, join(res_dir, 'mipmap/icon_foreground.png'))
+        shutil.copy(args.icon_bg, join(res_dir, 'mipmap/icon_background.png'))
+        with open(join(res_dir, 'mipmap-anydpi-v26/icon.xml'), "w") as fd:
+            fd.write("""<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/icon_background"/>
+    <foreground android:drawable="@mipmap/icon_foreground"/>
+</adaptive-icon>
+""")
+    elif args.icon_fg or args.icon_bg:
+        print("WARNING: Received an --icon_fg or an --icon_bg argument, but not both. "
+              "Ignoring.")
+
+    if args.enable_androidx:
+        shutil.copy('templates/gradle.properties', 'gradle.properties')
 
     if get_bootstrap_name() != "service_only":
         lottie_splashscreen = join(res_dir, 'raw/splashscreen.json')
@@ -668,6 +686,12 @@ tools directory of the Android SDK.
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
+    ap.add_argument('--icon-fg', dest='icon_fg',
+                    help=('A png file to use as the foreground of the adaptive icon '
+                          'for the application.'))
+    ap.add_argument('--icon-bg', dest='icon_bg',
+                    help=('A png file to use as the background of the adaptive icon '
+                          'for the application.'))
     ap.add_argument('--service', dest='services', action='append', default=[],
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
@@ -706,6 +730,10 @@ tools directory of the Android SDK.
                               'topics/manifest/'
                               'activity-element.html'))
 
+    ap.add_argument('--enable-androidx', dest='enable_androidx',
+                    action='store_true',
+                    help=('Enable the AndroidX support library, '
+                          'requires api = 28 or greater'))
     ap.add_argument('--android-entrypoint', dest='android_entrypoint',
                     default=DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS,
                     help='Defines which java class will be used for startup, usually a subclass of PythonActivity')

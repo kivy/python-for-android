@@ -1,7 +1,6 @@
 python-for-android
 ==================
 
-[![Build Status](https://travis-ci.org/kivy/python-for-android.svg?branch=develop)](https://travis-ci.org/kivy/python-for-android)
 [![Unit tests & build apps](https://github.com/kivy/python-for-android/workflows/Unit%20tests%20&%20build%20apps/badge.svg?branch=develop)](https://github.com/kivy/python-for-android/actions?query=workflow%3A%22Unit+tests+%26+build+apps%22)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=develop&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=develop)
 [![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)

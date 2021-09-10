@@ -34,6 +34,7 @@ import android.view.ViewGroup.LayoutParams;
 
 import android.webkit.WebViewClient;
 import android.webkit.WebView;
+import android.webkit.CookieManager;
 import android.net.Uri;
 
 import org.renpy.android.ResourceManager;
@@ -105,8 +106,7 @@ public class PythonActivity extends Activity {
         protected String doInBackground(String... params) {
             File app_root_file = new File(params[0]);
             Log.v(TAG, "Ready to unpack");
-            PythonActivityUtil pythonActivityUtil = new PythonActivityUtil(mActivity, resourceManager);
-            pythonActivityUtil.unpackData("private", app_root_file);
+            PythonUtil.unpackData(mActivity, "private", app_root_file, true);
             return null;
         }
 
@@ -159,21 +159,26 @@ public class PythonActivity extends Activity {
             mWebView = new WebView(PythonActivity.mActivity);
             mWebView.getSettings().setJavaScriptEnabled(true);
             mWebView.getSettings().setDomStorageEnabled(true);
-            mWebView.loadUrl("file:///" + app_root_dir + "/_load.html");
+            mWebView.loadUrl("file:///android_asset/_load.html");
 
             mWebView.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
             mWebView.setWebViewClient(new WebViewClient() {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        Uri u = Uri.parse(url);
                         if (mOpenExternalLinksInBrowser) {
-                            if (!(url.startsWith("file:") || url.startsWith("http://127.0.0.1:"))) {
-                                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            if (!(u.getScheme().equals("file") || u.getHost().equals("127.0.0.1"))) {
+                                Intent i = new Intent(Intent.ACTION_VIEW, u);
                                 startActivity(i);
                                 return true;
                             }
                         }
-                        view.loadUrl(url);
                         return false;
+                    }
+
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        CookieManager.getInstance().flush();
                     }
                 });
             mLayout = new AbsoluteLayout(PythonActivity.mActivity);

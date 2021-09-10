@@ -11,7 +11,8 @@ from setuptools import setup, find_packages
 packages = find_packages()
 
 package_data = {'': ['*.tmpl',
-                     '*.patch', ], }
+                     '*.patch',
+                     '*.diff', ], }
 
 data_files = []
 
@@ -44,7 +45,7 @@ def recursively_include(results, directory, patterns):
 
 recursively_include(package_data, 'pythonforandroid/recipes',
                     ['*.patch', 'Setup*', '*.pyx', '*.py', '*.c', '*.h',
-                     '*.mk', '*.jam', ])
+                     '*.mk', '*.jam', '*.diff', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
                      '*.mk', '*.c', '*.h', '*.py', '*.sh', '*.jpg', '*.aidl',
