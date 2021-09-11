@@ -194,7 +194,7 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         expected_sp_paths = [
             modules_build_dir,
             join(recipe_build_dir, 'Lib'),
-            self.ctx.get_python_install_dir(),
+            self.ctx.get_python_install_dir(self.arch.arch),
         ]
         for n, (sp_call, kw) in enumerate(mock_subprocess.call_args_list):
             self.assertEqual(sp_call[0][-1], expected_sp_paths[n])

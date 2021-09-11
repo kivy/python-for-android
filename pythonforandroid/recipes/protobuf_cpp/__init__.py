@@ -115,7 +115,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
 
             hpenv = env.copy()
             shprint(hostpython, 'setup.py', 'install', '-O2',
-                    '--root={}'.format(self.ctx.get_python_install_dir()),
+                    '--root={}'.format(self.ctx.get_python_install_dir(arch.arch)),
                     '--install-lib=.',
                     _env=hpenv, *self.setup_extra_args)
 

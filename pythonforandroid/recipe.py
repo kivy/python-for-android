@@ -949,7 +949,7 @@ class PythonRecipe(Recipe):
 
     def should_build(self, arch):
         name = self.folder_name
-        if self.ctx.has_package(name):
+        if self.ctx.has_package(name, arch):
             info('Python package already exists in site-packages')
             return False
         info('{} apparently isn\'t already in site-packages'.format(name))
@@ -976,7 +976,7 @@ class PythonRecipe(Recipe):
         hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(hostpython, 'setup.py', 'install', '-O2',
-                    '--root={}'.format(self.ctx.get_python_install_dir()),
+                    '--root={}'.format(self.ctx.get_python_install_dir(arch.arch)),
                     '--install-lib=.',
                     _env=hpenv, *self.setup_extra_args)
 
@@ -1142,7 +1142,7 @@ class CythonRecipe(PythonRecipe):
         env['LDSHARED'] = env['CC'] + ' -shared'
         # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
-        env['NDKPLATFORM'] = self.ctx.ndk_platform
+        env['NDKPLATFORM'] = self.ctx.ndk_sysroot  # FIXME?
         if self.ctx.copy_libs:
             env['COPYLIBS'] = '1'
 

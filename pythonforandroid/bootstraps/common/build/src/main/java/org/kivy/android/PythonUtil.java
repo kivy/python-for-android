@@ -127,7 +127,7 @@ public class PythonUtil {
         f.delete();
     }
 
-    public static void unpackData(
+    public static void unpackAsset(
         Context ctx,
         final String resource,
         File target,
@@ -170,7 +170,7 @@ public class PythonUtil {
             target.mkdirs();
 
             AssetExtract ae = new AssetExtract(ctx);
-            if (!ae.extractTar(resource + ".mp3", target.getAbsolutePath())) {
+            if (!ae.extractTar(resource + ".tar", target.getAbsolutePath(), "private")) {
                 String msg = "Could not extract " + resource + " data.";
                 if (ctx instanceof Activity) {
                     toastError((Activity)ctx, msg);
@@ -189,6 +189,35 @@ public class PythonUtil {
                 os.close();
             } catch (Exception e) {
                 Log.w("python", e);
+            }
+        }
+    }
+
+    public static void unpackPyBundle(
+        Context ctx,
+        final String resource,
+        File target,
+        boolean cleanup_on_version_update) {
+
+        Log.v(TAG, "Unpacking " + resource + " " + target.getName());
+
+        // FIXME: Implement a versioning logic to speed-up the startup process (maybe hash-based?).
+
+        // If the disk data is out of date, extract it and write the version file.
+        Log.v(TAG, "Extracting " + resource + " assets.");
+
+        if (cleanup_on_version_update) {
+            recursiveDelete(target);
+        }
+        target.mkdirs();
+
+        AssetExtract ae = new AssetExtract(ctx);
+        if (!ae.extractTar(resource + ".so", target.getAbsolutePath(), "pybundle")) {
+            String msg = "Could not extract " + resource + " data.";
+            if (ctx instanceof Activity) {
+                toastError((Activity)ctx, msg);
+            } else {
+                Log.v(TAG, msg);
             }
         }
     }

@@ -1,10 +1,12 @@
 import io
 import sys
+from os.path import join
 import pytest
 from unittest import mock
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import ToolchainCL
 from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.build import get_ndk_standalone
 
 
 def patch_sys_argv(argv):
@@ -62,14 +64,16 @@ class TestToolchainCL:
             '--dist-name=test_toolchain',
             '--activity-class-name=abc.myapp.android.CustomPythonActivity',
             '--service-class-name=xyz.myapp.android.CustomPythonService',
+            '--arch=arm64-v8a',
+            '--arch=armeabi-v7a'
         ]
         with patch_sys_argv(argv), mock.patch(
             'pythonforandroid.build.get_available_apis'
         ) as m_get_available_apis, mock.patch(
             'pythonforandroid.build.get_toolchain_versions'
         ) as m_get_toolchain_versions, mock.patch(
-            'pythonforandroid.build.get_ndk_platform_dir'
-        ) as m_get_ndk_platform_dir, mock.patch(
+            'pythonforandroid.build.get_ndk_sysroot'
+        ) as m_get_ndk_sysroot, mock.patch(
             'pythonforandroid.toolchain.build_recipes'
         ) as m_build_recipes, mock.patch(
             'pythonforandroid.bootstraps.service_only.'
@@ -77,8 +81,10 @@ class TestToolchainCL:
         ) as m_run_distribute:
             m_get_available_apis.return_value = [27]
             m_get_toolchain_versions.return_value = (['4.9'], True)
-            m_get_ndk_platform_dir.return_value = (
-                '/tmp/android-ndk/platforms/android-21/arch-arm', True)
+            m_get_ndk_sysroot.return_value = (
+                join(get_ndk_standalone("/tmp/android-ndk"), "sysroot"),
+                True,
+            )
             tchain = ToolchainCL()
             assert tchain.ctx.activity_class_name == 'abc.myapp.android.CustomPythonActivity'
             assert tchain.ctx.service_class_name == 'xyz.myapp.android.CustomPythonService'
@@ -86,10 +92,11 @@ class TestToolchainCL:
             [mock.call('/tmp/android-sdk')],  # linux case
             [mock.call('/private/tmp/android-sdk')]  # macos case
         ]
-        assert m_get_toolchain_versions.call_args_list in [
-            [mock.call('/tmp/android-ndk', mock.ANY)],  # linux case
-            [mock.call('/private/tmp/android-ndk', mock.ANY)],  # macos case
-        ]
+        for callargs in m_get_toolchain_versions.call_args_list:
+            assert callargs in [
+                mock.call("/tmp/android-ndk", mock.ANY),  # linux case
+                mock.call("/private/tmp/android-ndk", mock.ANY),  # macos case
+            ]
         build_order = [
             'hostpython3', 'libffi', 'openssl', 'sqlite3', 'python3',
             'genericndkbuild', 'setuptools', 'six', 'pyjnius', 'android',
@@ -116,7 +123,7 @@ class TestToolchainCL:
         """
         The `--sdk-dir` is mandatory to `create` a distribution.
         """
-        argv = ['toolchain.py', 'create']
+        argv = ['toolchain.py', 'create', '--arch=arm64-v8a', '--arch=armeabi-v7a']
         with patch_sys_argv(argv), pytest.raises(
             BuildInterruptingException
         ) as ex_info:

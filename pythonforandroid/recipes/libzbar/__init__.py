@@ -34,7 +34,7 @@ class LibZBarRecipe(Recipe):
                 sh.Command('./configure'),
                 '--host=' + arch.command_prefix,
                 '--target=' + arch.toolchain_prefix,
-                '--prefix=' + self.ctx.get_python_install_dir(),
+                '--prefix=' + self.ctx.get_python_install_dir(arch.arch),
                 # Python bindings are compiled in a separated recipe
                 '--with-python=no',
                 '--with-gtk=no',

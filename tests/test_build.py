@@ -4,6 +4,7 @@ from unittest import mock
 import jinja2
 
 from pythonforandroid.build import run_pymodules_install
+from pythonforandroid.archs import ArchARMv7_a, ArchAarch_64
 
 
 class TestBuildBasic(unittest.TestCase):
@@ -14,10 +15,11 @@ class TestBuildBasic(unittest.TestCase):
         `project_dir` optional parameter is None, refs #1898
         """
         ctx = mock.Mock()
+        ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
         modules = []
         project_dir = None
         with mock.patch('pythonforandroid.build.info') as m_info:
-            assert run_pymodules_install(ctx, modules, project_dir) is None
+            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
         assert m_info.call_args_list[-1] == mock.call(
             'No Python modules and no setup.py to process, skipping')
 
@@ -42,13 +44,13 @@ class TestBuildBasic(unittest.TestCase):
 
             # Make sure it is NOT called when `with_debug_symbols` is true:
             ctx.with_debug_symbols = True
-            assert run_pymodules_install(ctx, modules, project_dir) is None
+            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
             assert m_CythonRecipe().strip_object_files.called is False
 
             # Make sure strip object files IS called when
             # `with_debug_symbols` is fasle:
             ctx.with_debug_symbols = False
-            assert run_pymodules_install(ctx, modules, project_dir) is None
+            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
             assert m_CythonRecipe().strip_object_files.called is True
 
 

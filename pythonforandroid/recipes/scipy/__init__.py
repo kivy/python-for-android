@@ -33,7 +33,7 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
         sysroot = f"{self.ctx.ndk_dir}/platforms/{env['NDK_API']}/{arch.platform_dir}"
         sysroot_include = f'{self.ctx.ndk_dir}/toolchains/llvm/prebuilt/{HOST}/sysroot/usr/include'
         libgfortran = f'{self.ctx.ndk_dir}/toolchains/{prefix}-{GCC_VER}/prebuilt/{HOST}/{prefix}/{LIB}'
-        numpylib = self.ctx.get_python_install_dir() + '/numpy/core/lib'
+        numpylib = self.ctx.get_python_install_dir(arch.arch) + '/numpy/core/lib'
         LDSHARED_opts = env['LDSHARED'].split('clang')[1]
 
         env['LAPACK'] = f'{lapack_dir}/lib'

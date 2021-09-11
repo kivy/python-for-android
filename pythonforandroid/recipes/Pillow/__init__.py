@@ -35,9 +35,9 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
 
-        env['ANDROID_ROOT'] = join(self.ctx.ndk_platform, 'usr')
-        ndk_lib_dir = join(self.ctx.ndk_platform, 'usr', 'lib')
-        ndk_include_dir = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        env['ANDROID_ROOT'] = join(arch.ndk_platform, 'usr')
+        ndk_lib_dir = arch.ndk_lib_dir
+        ndk_include_dir = self.ctx.ndk_include_dir
 
         png = self.get_recipe('png', self.ctx)
         png_lib_dir = join(png.get_build_dir(arch.arch), '.libs')

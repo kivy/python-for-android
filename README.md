@@ -8,7 +8,7 @@ python-for-android
 
 python-for-android is a packaging tool for Python apps on Android. You can
 create your own Python distribution including the modules and
-dependencies you want, and bundle it in an APK along with your own code.
+dependencies you want, and bundle it in an APK or AAB along with your own code.
 
 Features include:
 
@@ -19,6 +19,7 @@ Features include:
    sqlalchemy.
 -  Multiple architecture targets, for APKs optimised on any given
    device.
+-  AAB: Android App Bundle support.
 
 For documentation and support, see:
 
@@ -30,7 +31,7 @@ For documentation and support, see:
 
 Follow the [quickstart
 instructions](<https://python-for-android.readthedocs.org/en/latest/quickstart/>)
-to install and begin creating APKs.
+to install and begin creating APKs and AABs.
 
 **Quick instructions**: install python-for-android with:
 
@@ -51,6 +52,8 @@ other API levels may not work.
 With everything installed, build an APK with SDL2 with e.g.:
 
     p4a apk --requirements=kivy --private /home/username/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
+
+**If you need to deploy your app on Google Play, Android App Bundle (aab) is required since 1 August 2021:**
 
 **For full instructions and parameter options,** see [the
 documentation](https://python-for-android.readthedocs.io/en/latest/quickstart/#usage).
@@ -108,6 +111,9 @@ api level below 21, you should use an older version of python-for-android
 
 On March of 2020 we dropped support for creating apps that use Python 2. The latest
 python-for-android release that supported building Python 2 was version 2019.10.6.
+
+On August of 2021, we added support for Android App Bundle (aab). As a collateral,
+now We support multi-arch apk.
 
 ## Contributors
 

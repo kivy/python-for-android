@@ -265,8 +265,8 @@ class Python3Recipe(TargetPythonRecipe):
         # the build of zlib module, here we search for android's zlib version
         # and sets the right flags, so python can be build with android's zlib
         info("Activating flags for android's zlib")
-        zlib_lib_path = join(self.ctx.ndk_platform, 'usr', 'lib')
-        zlib_includes = join(self.ctx.ndk_dir, 'sysroot', 'usr', 'include')
+        zlib_lib_path = arch.ndk_lib_dir
+        zlib_includes = self.ctx.ndk_include_dir
         zlib_h = join(zlib_includes, 'zlib.h')
         try:
             with open(zlib_h) as fileh:
@@ -370,7 +370,7 @@ class Python3Recipe(TargetPythonRecipe):
         # Compile to *.pyc/*.pyo the standard python library
         self.compile_python_files(join(self.get_build_dir(arch.arch), 'Lib'))
         # Compile to *.pyc/*.pyo the other python packages (site-packages)
-        self.compile_python_files(self.ctx.get_python_install_dir())
+        self.compile_python_files(self.ctx.get_python_install_dir(arch.arch))
 
         # Bundle compiled python modules to a folder
         modules_dir = join(dirn, 'modules')
@@ -399,9 +399,9 @@ class Python3Recipe(TargetPythonRecipe):
 
         # copy the site-packages into place
         ensure_dir(join(dirn, 'site-packages'))
-        ensure_dir(self.ctx.get_python_install_dir())
+        ensure_dir(self.ctx.get_python_install_dir(arch.arch))
         # TODO: Improve the API around walking and copying the files
-        with current_directory(self.ctx.get_python_install_dir()):
+        with current_directory(self.ctx.get_python_install_dir(arch.arch)):
             filens = list(walk_valid_filens(
                 '.', self.site_packages_dir_blacklist,
                 self.site_packages_filen_blacklist))
