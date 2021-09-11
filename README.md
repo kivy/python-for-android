@@ -112,7 +112,7 @@ api level below 21, you should use an older version of python-for-android
 On March of 2020 we dropped support for creating apps that use Python 2. The latest
 python-for-android release that supported building Python 2 was version 2019.10.6.
 
-On August of 2021, We added support for Android App Bundle (aab). As a collateral,
+On August of 2021, we added support for Android App Bundle (aab). As a collateral,
 now We support multi-arch apk.
 
 ## Contributors

@@ -214,7 +214,7 @@ Replace ``--port=5000`` with the port on which your app will serve a
 website. The default for Flask is 5000.
 
 Exporting the Android App Bundle (aab) for distributing it on Google Play
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Starting from August 2021 for new apps and from November 2021 for updates to existings apps,
 Google Play Console will require the Android App Bundle instead of the long lived apk.
