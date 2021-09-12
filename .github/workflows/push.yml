@@ -40,6 +40,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install tox>=2.0
         make test
+    - name: Coveralls
+      uses: AndreMiras/coveralls-python-action@develop
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+      with:
+        parallel: true
+        flag-name: run-${{ matrix.os }}-${{ matrix.python-version }}
 
   build_apk:
     name: Unit test apk
@@ -123,3 +129,12 @@ jobs:
     - name: Rebuild updated recipes
       run: |
         make docker/run/make/rebuild_updated_recipes
+
+  coveralls_finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel-finished: true
