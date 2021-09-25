@@ -108,12 +108,10 @@ jobs:
     needs: [flake8]
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout python-for-android (current branch)
-      uses: actions/checkout@v2
-    - name: Checkout python-for-android (develop branch)
+    - name: Checkout python-for-android
       uses: actions/checkout@v2
       with:
-        ref: 'develop'
+        fetch-depth: 0
     # helps with GitHub runner getting out of space
     - name: Free disk space
       run: |
