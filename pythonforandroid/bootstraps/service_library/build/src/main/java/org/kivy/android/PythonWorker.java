@@ -96,7 +96,9 @@ public class PythonWorker extends RemoteListenableWorker implements Runnable {
             workCompleter = completer;
 
             pythonThread = new Thread(this);
+            pythonThread.setName("python_worker_thread");
             pythonThread.start();
+            pythonThread.join();
 
             Log.d("python worker", "PythonWorker thread started");
             return "PythonWorker started";
