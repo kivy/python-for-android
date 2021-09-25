@@ -51,10 +51,8 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         env['LIBS'] += ' -lxml2'
 
         # android's ndk flags
-        ndk_lib_dir = arch.ndk_lib_dir
-        ndk_include_dir = self.ndk_include_dir
-        cflags += ' -I' + ndk_include_dir
-        env['LDFLAGS'] += ' -L' + ndk_lib_dir
+        cflags += ' -I' + self.ctx.ndk_include_dir
+        env['LDFLAGS'] += ' -L' + arch.ndk_lib_dir
         env['LIBS'] += ' -lz -lm -lc'
 
         if cflags not in env['CFLAGS']:
