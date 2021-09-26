@@ -70,7 +70,7 @@ int file_exists(const char *filename) {
   return 0;
 }
 
-/* int main(int argc, char **argv) { */
+
 int main_(int argc, char *argv[], int call_exit) {
 
   char *env_argument = NULL;
@@ -356,6 +356,10 @@ int main_(int argc, char *argv[], int call_exit) {
 #endif
 
   return ret;
+}
+
+int main(int argc, char **argv) {
+    return main_(argc, argv, 0);
 }
 
 JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
