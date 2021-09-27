@@ -201,16 +201,32 @@ int main(int argc, char *argv[]) {
   PyRun_SimpleString("import sys, posix\n");
 
   char add_site_packages_dir[256];
+  char add_prefix[256];
+  char add_lib_path[256];
+  char add_current_workspace_path[256];
 
   if (dir_exists(python_bundle_dir)) {
     snprintf(add_site_packages_dir, 256,
              "sys.path.append('%s/site-packages')",
              python_bundle_dir);
+    snprintf(add_lib_path, 256,
+             "sys.path.append('%s/lib/python3.8/site-packages')",
+              getenv("ANDROID_UNPACK"));
+
+    snprintf(add_current_workspace_path, 256,
+             "sys.path.append('%s')", workSpace);
+
+    snprintf(add_prefix, 256,
+             "sys.prefix = '%s'",
+             getenv("ANDROID_UNPACK"));
 
     PyRun_SimpleString("import sys\n"
                        "sys.argv = ['notaninterpreterreally']\n"
                        "from os.path import realpath, join, dirname");
+    PyRun_SimpleString(add_prefix);
     PyRun_SimpleString(add_site_packages_dir);
+    PyRun_SimpleString(add_lib_path);
+    PyRun_SimpleString(add_current_workspace_path);
     /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
     PyRun_SimpleString("sys.path = ['.'] + sys.path");
   }
