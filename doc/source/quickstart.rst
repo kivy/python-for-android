@@ -112,7 +112,7 @@ Basic SDK install
 You need to download and unpack the Android SDK and NDK to a directory (let's say $HOME/Documents/):
 
 - `Android SDK <https://developer.android.com/studio/index.html>`_
-- `Android NDK <https://developer.android.com/ndk/downloads/index.html>`_
+- `Android NDK <https://github.com/android/ndk/wiki/Unsupported-Downloads#r19c>`_
 
 For the Android SDK, you can download 'just the command line
 tools'. When you have extracted these you'll see only a directory
@@ -122,7 +122,7 @@ the SDK packages needed.
 For Android NDK, note that modern releases will only work on a 64-bit
 operating system. **The minimal, and recommended, NDK version to use is r19b:**
 
- - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
+ - `Go to ndk downloads page <https://github.com/android/ndk/wiki/Unsupported-Downloads#r19c>`_
  - Windows users should create a virtual machine with an GNU Linux os
    installed, and then you can follow the described instructions from within
    your virtual machine.
