@@ -37,7 +37,7 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
         # required for libc and libdl
         env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir)
         env['PYTHONPATH'] = ':'.join([
-            self.ctx.get_site_packages_dir(),
+            self.ctx.get_site_packages_dir(arch),
             env['BUILDLIB_PATH'],
         ])
         env['LDFLAGS'] += ' -L{}'.format(self.ctx.python_recipe.link_root(arch.arch))
