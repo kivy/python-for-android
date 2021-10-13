@@ -124,7 +124,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
         #   - https://stackoverflow.com/questions/13862562/
         #   google-protocol-buffers-not-found-when-trying-to-freeze-python-app
         open(
-            join(self.ctx.get_site_packages_dir(), 'google', '__init__.py'),
+            join(self.ctx.get_site_packages_dir(arch), 'google', '__init__.py'),
             'a',
         ).close()
 

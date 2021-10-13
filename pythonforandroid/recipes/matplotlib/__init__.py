@@ -132,7 +132,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
         # the matplotlib script where to find our numpy without importing it
         # (which will fail, because numpy isn't installed in our hostpython)
         env['NUMPY_INCLUDES'] = join(
-            self.ctx.get_site_packages_dir(),
+            self.ctx.get_site_packages_dir(arch),
             'numpy', 'core', 'include',
         )
 
