@@ -70,7 +70,7 @@ We also have [#support Discord channel](https://chat.kivy.org/).
 ## Contributing
 
 We love pull requests and discussing novel ideas. Check out the Kivy
-project [contribution guide](http://kivy.org/docs/contribute.html) and
+project [contribution guide](https://kivy.org/doc/stable/contribute.html) and
 feel free to improve python-for-android.
 
 See [our
