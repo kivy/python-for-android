@@ -70,7 +70,7 @@ We also have [#support Discord channel](https://chat.kivy.org/).
 ## Contributing
 
 We love pull requests and discussing novel ideas. Check out the Kivy
-project [contribution guide](http://kivy.org/docs/contribute.html) and
+project [contribution guide](https://kivy.org/doc/stable/contribute.html) and
 feel free to improve python-for-android.
 
 See [our
@@ -117,7 +117,7 @@ now We support multi-arch apk.
 
 ## Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute. [[Contribute](https://kivy.org/doc/stable/contribute.html)].
 <a href="https://github.com/kivy/python-for-android/graphs/contributors"><img src="https://opencollective.com/kivy/contributors.svg?width=890&button=false" /></a>
 
 
