@@ -231,14 +231,33 @@ class Recipe(with_metaclass(RecipeMeta)):
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
                 with current_directory(target):
-                    shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
-                    if self.version:
-                        shprint(sh.git, 'checkout', self.version)
                     branch = sh.git('branch', '--show-current')
-                    if branch:
-                        shprint(sh.git, 'pull')
-                        shprint(sh.git, 'pull', '--recurse-submodules')
-                    shprint(sh.git, 'submodule', 'update', '--recursive')
+                    if self.version:
+                        # if on branch, we want to stay updated.
+                        if branch:
+                            info('On branch, fetching remote..')
+                            shprint(sh.git, 'fetch')
+                            update = sh.git('diff','--shortstat','HEAD','FETCH_HEAD')
+                            if update:
+                                shprint(sh.git, 'pull')
+                                shprint(sh.git, 'pull', '--recurse-submodules')
+                        # if requested version changed, we checkout again
+                        head = sh.git('rev-parse','HEAD').strip()
+                        try:
+                            update = sh.git('diff', '--shortstat', head, self.version)
+                        except:
+                            info('Unknown version {}, fetching..'.format(self.version))
+                            shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
+                            update = sh.git('diff', '--shortstat', head, self.version)
+                        if update:
+                            info('Current HEAD is not {}, trying checkout..'.format(self.version))
+                            shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
+                            shprint(sh.git, 'checkout', self.version)
+                            shprint(sh.git, 'submodule', 'update', '--recursive')
+                    else:
+                        if branch:
+                            shprint(sh.git, 'pull')
+                            shprint(sh.git, 'pull', '--recurse-submodules')
             else:
                 if url.startswith('git+'):
                     url = url[4:]
