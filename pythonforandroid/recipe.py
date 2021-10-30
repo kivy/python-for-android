@@ -237,15 +237,15 @@ class Recipe(with_metaclass(RecipeMeta)):
                         if branch:
                             info('On branch, fetching remote..')
                             shprint(sh.git, 'fetch')
-                            update = sh.git('diff','--shortstat','HEAD','FETCH_HEAD')
+                            update = sh.git('diff', '--shortstat', 'HEAD', 'FETCH_HEAD')
                             if update:
                                 shprint(sh.git, 'pull')
                                 shprint(sh.git, 'pull', '--recurse-submodules')
                         # if requested version changed, we checkout again
-                        head = sh.git('rev-parse','HEAD').strip()
+                        head = sh.git('rev-parse', 'HEAD').strip()
                         try:
                             update = sh.git('diff', '--shortstat', head, self.version)
-                        except:
+                        except sh.ErrorReturnCode:
                             info('Unknown version {}, fetching..'.format(self.version))
                             shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
                             update = sh.git('diff', '--shortstat', head, self.version)
