@@ -231,24 +231,24 @@ class Recipe(with_metaclass(RecipeMeta)):
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
             if isdir(target):
                 with current_directory(target):
-                    branch = sh.git('branch', '--show-current')
+                    branch = sh.git('branch', '--show-current', _tty_out=False).strip()
                     if self.version:
                         # if on branch, we want to stay updated.
                         if branch:
                             info('On branch, fetching remote..')
                             shprint(sh.git, 'fetch')
-                            update = sh.git('diff', '--shortstat', 'HEAD', 'FETCH_HEAD')
+                            update = sh.git('diff', '--shortstat', 'HEAD', 'FETCH_HEAD', _tty_out=False).strip()
                             if update:
                                 shprint(sh.git, 'pull')
                                 shprint(sh.git, 'pull', '--recurse-submodules')
                         # if requested version changed, we checkout again
                         head = sh.git('rev-parse', 'HEAD').strip()
                         try:
-                            update = sh.git('diff', '--shortstat', head, self.version)
+                            update = sh.git('diff', '--shortstat', head, self.version, _tty_out=False).strip()
                         except sh.ErrorReturnCode:
                             info('Unknown version {}, fetching..'.format(self.version))
                             shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
-                            update = sh.git('diff', '--shortstat', head, self.version)
+                            update = sh.git('diff', '--shortstat', head, self.version, _tty_out=False).strip()
                         if update:
                             info('Current HEAD is not {}, trying checkout..'.format(self.version))
                             shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
