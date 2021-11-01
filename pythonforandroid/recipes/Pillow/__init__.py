@@ -23,7 +23,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         - libwebp: library to encode and decode images in WebP format.
     """
 
-    version = '7.0.0'
+    version = '8.4.0'
     url = 'https://github.com/python-pillow/Pillow/archive/{version}.tar.gz'
     site_packages_name = 'Pillow'
     depends = ['png', 'jpeg', 'freetype', 'setuptools']
@@ -35,7 +35,6 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
 
-        env['ANDROID_ROOT'] = join(arch.ndk_platform, 'usr')
         ndk_lib_dir = arch.ndk_lib_dir
         ndk_include_dir = self.ctx.ndk_include_dir
 
@@ -55,11 +54,6 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         harfbuzz = self.get_recipe('harfbuzz', self.ctx)
         harf_lib_dir = join(harfbuzz.get_build_dir(arch.arch), 'src', '.libs')
         harf_inc_dir = harfbuzz.get_build_dir(arch.arch)
-
-        # these below env variables are defined at Pillow's `setup.py`
-        env['JPEG_ROOT'] = f'{jpeg_lib_dir}|{jpeg_inc_dir}'
-        env['FREETYPE_ROOT'] = f'{free_lib_dir}|{free_inc_dir}'
-        env['ZLIB_ROOT'] = f'{ndk_lib_dir}|{ndk_include_dir}'
 
         # libwebp is an optional dependency, so we add the
         # flags if we have it in our `ctx.recipe_build_order`
@@ -85,6 +79,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
 
         # Add libraries locations to LDFLAGS
         env['LDFLAGS'] += f' -L{png_lib_dir}'
+        env['LDFLAGS'] += f' -L{free_lib_dir}'
         env['LDFLAGS'] += f' -L{harf_lib_dir}'
         env['LDFLAGS'] += f' -L{jpeg_lib_dir}'
         if build_with_webp_support:
