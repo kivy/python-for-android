@@ -6,7 +6,7 @@ from pythonforandroid.recipe import CythonRecipe  # type: ignore
 class AIOHTTPRecipe(CythonRecipe):  # type: ignore # pylint: disable=R0903
     """Build AIOHTTP"""
 
-    version = "v3.6.2"
+    version = "v3.8.0"
     url = "https://github.com/aio-libs/aiohttp/archive/{version}.zip"
     name = "aiohttp"
 
