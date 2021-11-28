@@ -316,6 +316,7 @@ main.py that loads it.''')
 
         for asset in args.assets:
             asset_src, asset_dest = asset.split(":")
+            print('=============build',asset_src,realpath(asset_src))
             if isfile(realpath(asset_src)):
                 ensure_dir(dirname(join(assets_dir, asset_dest)))
                 shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))

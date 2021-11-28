@@ -996,6 +996,7 @@ class ToolchainCL:
             else:
                 asset_src = asset_dest = asset
             # take abspath now, because build.py will be run in bootstrap dir
+            print('=========fix',asset_src,os.path.abspath(asset_src))
             unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
