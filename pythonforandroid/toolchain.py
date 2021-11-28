@@ -990,6 +990,8 @@ class ToolchainCL:
                     '--whitelist', '--blacklist', '--presplash', '--icon')
         unknown_args = args.unknown_args
 
+        info_notify('===========================next assets')
+
         for asset in args.assets:
             if ":" in asset:
                 asset_src, asset_dest = asset.split(":")
