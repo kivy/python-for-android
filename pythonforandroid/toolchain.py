@@ -990,17 +990,12 @@ class ToolchainCL:
                     '--whitelist', '--blacklist', '--presplash', '--icon')
         unknown_args = args.unknown_args
 
-        info_notify('===========================next assets')
-
         for asset in args.assets:
             if ":" in asset:
                 asset_src, asset_dest = asset.split(":")
             else:
                 asset_src = asset_dest = asset
             # take abspath now, because build.py will be run in bootstrap dir
-            info_notify('===========================fix')
-            info_notify(asset_src)
-            info_notify(os.path.abspath(asset_src))
             unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
         for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
