@@ -316,10 +316,10 @@ main.py that loads it.''')
 
         for asset in args.assets:
             asset_src, asset_dest = asset.split(":")
-            from pythonforandroid.logger import info
-            info('=============build')
-            info(asset_src)
-            info(realpath(asset_src))
+            from pythonforandroid.logger import info_notify
+            info_notify('=============build')
+            info_notify(asset_src)
+            info_notify(realpath(asset_src))
             if isfile(realpath(asset_src)):
                 ensure_dir(dirname(join(assets_dir, asset_dest)))
                 shutil.copy(realpath(asset_src), join(assets_dir, asset_dest))
