@@ -1,0 +1,15 @@
+diff --git a/ifaddr/_posix.py b/ifaddr/_posix.py
+index 2903ee7..546e3ce 100644
+--- a/ifaddr/_posix.py
++++ b/ifaddr/_posix.py
+@@ -39,6 +39,10 @@ ifaddrs._fields_ = [('ifa_next', ctypes.POINTER(ifaddrs)),
+ 
+ libc = ctypes.CDLL(ctypes.util.find_library("socket" if os.uname()[0] == "SunOS" else "c"), use_errno=True)
+ 
++# On old Androids getifaddrs is not available in libc => use libifaddrs instead
++if not hasattr(libc, 'getifaddrs'):
++    libc = ctypes.CDLL(ctypes.util.find_library('ifaddrs'), use_errno=True)
++
+ def get_adapters():
+ 
+     addr0 = addr = ctypes.POINTER(ifaddrs)()
