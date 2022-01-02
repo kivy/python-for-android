@@ -101,6 +101,8 @@ USER ${USER}
 COPY --chown=user:user ci/makefiles/android.mk /tmp/android.mk
 RUN make --file /tmp/android.mk \
     && sudo rm /tmp/android.mk
+ENV ANDROIDSDK="${ANDROID_HOME}/android-sdk" \
+    ANDROIDNDK="${ANDROID_HOME}/android-ndk"
 
 # install python-for-android from current branch
 COPY --chown=user:user Makefile README.md setup.py pythonforandroid/__init__.py ${WORK_DIR}/
