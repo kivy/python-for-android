@@ -189,7 +189,7 @@ class Python3Recipe(TargetPythonRecipe):
         self.ctx.python_recipe = self
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = environ.copy()
+        env = super().get_recipe_env(arch)
         env['HOSTARCH'] = arch.command_prefix
 
         env['CC'] = arch.get_clang_exe(with_target=True)
@@ -203,8 +203,7 @@ class Python3Recipe(TargetPythonRecipe):
         env['CFLAGS'] = ' '.join(
             [
                 '-fPIC',
-                '-DANDROID',
-                '-D__ANDROID_API__={}'.format(self.ctx.ndk_api),
+                '-DANDROID'
             ]
         )
 

@@ -1,7 +1,7 @@
 # Downloads and installs the Android SDK depending on supplied platform: darwin or linux
 
 # Those android NDK/SDK variables can be override when running the file
-ANDROID_NDK_VERSION ?= 19b
+ANDROID_NDK_VERSION ?= 23b
 ANDROID_SDK_TOOLS_VERSION ?= 6514223
 ANDROID_SDK_BUILD_TOOLS_VERSION ?= 29.0.3
 ANDROID_HOME ?= $(HOME)/.android
@@ -22,7 +22,7 @@ ANDROID_SDK_TOOLS_DL_URL=https://dl.google.com/android/repository/$(ANDROID_SDK_
 
 ANDROID_NDK_HOME=$(ANDROID_HOME)/android-ndk
 ANDROID_NDK_FOLDER=$(ANDROID_HOME)/android-ndk-r$(ANDROID_NDK_VERSION)
-ANDROID_NDK_ARCHIVE=android-ndk-r$(ANDROID_NDK_VERSION)-$(TARGET_OS)-x86_64.zip
+ANDROID_NDK_ARCHIVE=android-ndk-r$(ANDROID_NDK_VERSION)-$(TARGET_OS).zip
 ANDROID_NDK_DL_URL=https://dl.google.com/android/repository/$(ANDROID_NDK_ARCHIVE)
 
 $(info Target install OS is          : $(target_os))
@@ -59,7 +59,7 @@ extract_android_sdk:
 extract_android_ndk:
 	mkdir -p $(ANDROID_NDK_FOLDER) \
 	&& unzip -q $(ANDROID_NDK_ARCHIVE) -d $(ANDROID_HOME) \
-	&& ln -sfn $(ANDROID_NDK_FOLDER) $(ANDROID_NDK_HOME) \
+	&& mv $(ANDROID_NDK_FOLDER) $(ANDROID_NDK_HOME) \
 	&& rm -f $(ANDROID_NDK_ARCHIVE)
 
 # updates Android SDK, install Android API, Build Tools and accept licenses

@@ -268,11 +268,10 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
             ),
         )
 
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch('pythonforandroid.archs.find_executable')
     @mock.patch('pythonforandroid.build.ensure_dir')
     def test_get_recipe_env_with(
-        self, mock_ensure_dir, mock_find_executable, mock_glob
+        self, mock_ensure_dir, mock_find_executable
     ):
         """
         Test that :meth:`~pythonforandroid.recipe.STLRecipe.get_recipe_env`
@@ -287,14 +286,12 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
             f"llvm/prebuilt/{build_platform}/bin/clang"
         )
         mock_find_executable.return_value = expected_compiler
-        mock_glob.return_value = ["llvm"]
 
         arch = ArchAarch_64(self.ctx)
         recipe = Recipe.get_recipe('icu', self.ctx)
         assert recipe.need_stl_shared, True
         env = recipe.get_recipe_env(arch)
         #  check that the mocks have been called
-        mock_glob.assert_called()
         mock_ensure_dir.assert_called()
         mock_find_executable.assert_called_once_with(
             expected_compiler, path=os.environ['PATH']

@@ -70,8 +70,6 @@ class TestToolchainCL:
         with patch_sys_argv(argv), mock.patch(
             'pythonforandroid.build.get_available_apis'
         ) as m_get_available_apis, mock.patch(
-            'pythonforandroid.build.get_toolchain_versions'
-        ) as m_get_toolchain_versions, mock.patch(
             'pythonforandroid.build.get_ndk_sysroot'
         ) as m_get_ndk_sysroot, mock.patch(
             'pythonforandroid.toolchain.build_recipes'
@@ -80,7 +78,6 @@ class TestToolchainCL:
             'ServiceOnlyBootstrap.assemble_distribution'
         ) as m_run_distribute:
             m_get_available_apis.return_value = [27]
-            m_get_toolchain_versions.return_value = (['4.9'], True)
             m_get_ndk_sysroot.return_value = (
                 join(get_ndk_standalone("/tmp/android-ndk"), "sysroot"),
                 True,
@@ -92,11 +89,6 @@ class TestToolchainCL:
             [mock.call('/tmp/android-sdk')],  # linux case
             [mock.call('/private/tmp/android-sdk')]  # macos case
         ]
-        for callargs in m_get_toolchain_versions.call_args_list:
-            assert callargs in [
-                mock.call("/tmp/android-ndk", mock.ANY),  # linux case
-                mock.call("/private/tmp/android-ndk", mock.ANY),  # macos case
-            ]
         build_order = [
             'hostpython3', 'libffi', 'openssl', 'sqlite3', 'python3',
             'genericndkbuild', 'setuptools', 'six', 'pyjnius', 'android',

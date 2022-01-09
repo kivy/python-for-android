@@ -1,6 +1,5 @@
 from os.path import (
-    abspath, join, realpath, dirname, expanduser, exists,
-    split, isdir
+    abspath, join, realpath, dirname, expanduser, exists
 )
 from os import environ
 import copy
@@ -38,78 +37,6 @@ def get_ndk_sysroot(ndk_dir):
         warning("sysroot doesn't exist: {}".format(sysroot))
         sysroot_exists = False
     return sysroot, sysroot_exists
-
-
-def get_toolchain_versions(ndk_dir, arch):
-    toolchain_versions = []
-    toolchain_path_exists = True
-    toolchain_prefix = arch.toolchain_prefix
-    toolchain_path = join(ndk_dir, 'toolchains')
-    if isdir(toolchain_path):
-        toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
-                                                        toolchain_prefix))
-        toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
-                              for path in toolchain_contents]
-    else:
-        warning('Could not find toolchain subdirectory!')
-        toolchain_path_exists = False
-    return toolchain_versions, toolchain_path_exists
-
-
-def select_and_check_toolchain_version(sdk_dir, ndk_dir, arch, ndk_sysroot_exists, py_platform):
-    toolchain_versions, toolchain_path_exists = get_toolchain_versions(ndk_dir, arch)
-    ok = ndk_sysroot_exists and toolchain_path_exists
-    toolchain_versions.sort()
-
-    toolchain_versions_gcc = []
-    for toolchain_version in toolchain_versions:
-        if toolchain_version[0].isdigit():
-            # GCC toolchains begin with a number
-            toolchain_versions_gcc.append(toolchain_version)
-
-    if toolchain_versions:
-        info('Found the following toolchain versions: {}'.format(
-            toolchain_versions))
-        info('Picking the latest gcc toolchain, here {}'.format(
-            toolchain_versions_gcc[-1]))
-        toolchain_version = toolchain_versions_gcc[-1]
-    else:
-        warning('Could not find any toolchain for {}!'.format(
-            arch.toolchain_prefix))
-        ok = False
-
-    # Modify the path so that sh finds modules appropriately
-    environ['PATH'] = (
-        '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
-        'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
-        '{toolchain_prefix}-{toolchain_version}/prebuilt/'
-        '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
-        'tools:{path}').format(
-            sdk_dir=sdk_dir, ndk_dir=ndk_dir,
-            toolchain_prefix=arch.toolchain_prefix,
-            toolchain_version=toolchain_version,
-            py_platform=py_platform, path=environ.get('PATH'))
-
-    for executable in (
-        "pkg-config",
-        "autoconf",
-        "automake",
-        "libtoolize",
-        "tar",
-        "bzip2",
-        "unzip",
-        "make",
-        "gcc",
-        "g++",
-    ):
-        if not sh.which(executable):
-            warning(f"Missing executable: {executable} is not installed")
-
-    if not ok:
-        raise BuildInterruptingException(
-            'python-for-android cannot continue due to the missing executables above')
-
-    return toolchain_version
 
 
 def get_targets(sdk_dir):
@@ -441,11 +368,14 @@ class Context:
         self.ndk_sysroot, ndk_sysroot_exists = get_ndk_sysroot(self.ndk_dir)
         self.ndk_include_dir = join(self.ndk_sysroot, 'usr', 'include')
 
-        for arch in self.archs:
-            # We assume that the toolchain version is the same for all the archs.
-            self.toolchain_version = select_and_check_toolchain_version(
-                self.sdk_dir, self.ndk_dir, arch, ndk_sysroot_exists, py_platform
-            )
+        self.env["PATH"] = ":".join(
+            [
+                f"{ndk_dir}/toolchains/llvm/prebuilt/{py_platform}-x86_64/bin",
+                ndk_dir,
+                f"{sdk_dir}/tools",
+                environ.get("PATH"),
+            ]
+        )
 
     def __init__(self):
         self.include_dirs = []
@@ -457,8 +387,6 @@ class Context:
         self._android_api = None
         self._ndk_api = None
         self.ndk = None
-
-        self.toolchain_version = None
 
         self.local_recipes = None
         self.copy_libs = False

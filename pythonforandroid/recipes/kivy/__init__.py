@@ -40,6 +40,8 @@ class KivyRecipe(CythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
+        # NDKPLATFORM is our switch for detecting Android platform, so can't be None
+        env['NDKPLATFORM'] = "NOTNONE"
         if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
             env['KIVY_SPLIT_EXAMPLES'] = '1'

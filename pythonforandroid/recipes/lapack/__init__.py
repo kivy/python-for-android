@@ -23,7 +23,7 @@ class LapackRecipe(Recipe):
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
         sysroot = f"{self.ctx.ndk_dir}/platforms/{env['NDK_API']}/{arch.platform_dir}"
-        FC = f"{env['TOOLCHAIN_PREFIX']}-gfortran"
+        FC = f"{env['TOOLCHAIN_PREFIX']}-gfortran"  # FIXME
         env['FC'] = f'{FC} --sysroot={sysroot}'
         if sh.which(FC) is None:
             raise BuildInterruptingException(f"{FC} not found. See https://github.com/mzakharo/android-gfortran")

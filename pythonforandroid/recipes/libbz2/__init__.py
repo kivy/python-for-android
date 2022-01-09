@@ -23,8 +23,6 @@ class LibBz2Recipe(Recipe):
                 "-j",
                 str(cpu_count()),
                 f'CC={env["CC"]}',
-                f'AR={env["AR"]}',
-                f'RANLIB={env["RANLIB"]}',
                 "-f",
                 "Makefile-libbz2_so",
                 _env=env,

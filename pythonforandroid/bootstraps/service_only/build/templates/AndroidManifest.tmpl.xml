@@ -50,7 +50,8 @@
                  android:allowBackup="{{ args.allow_backup }}"
                  {% if args.backup_rules %}android:fullBackupContent="@xml/{{ args.backup_rules }}"{% endif %}
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
-                 android:hardwareAccelerated="true" >
+                 android:hardwareAccelerated="true"
+                 android:extractNativeLibs="true" >
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
         {% endfor %}

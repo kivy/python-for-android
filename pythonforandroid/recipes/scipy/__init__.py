@@ -28,10 +28,10 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
         HOST = 'linux-x86_64'
         LIB = 'lib64' if '64' in arch.arch else 'lib'
 
-        prefix = env['TOOLCHAIN_PREFIX']
         lapack_dir = join(Recipe.get_recipe('lapack', self.ctx).get_build_dir(arch.arch), 'build', 'install')
         sysroot = f"{self.ctx.ndk_dir}/platforms/{env['NDK_API']}/{arch.platform_dir}"
         sysroot_include = f'{self.ctx.ndk_dir}/toolchains/llvm/prebuilt/{HOST}/sysroot/usr/include'
+        prefix = ""  # FIXME
         libgfortran = f'{self.ctx.ndk_dir}/toolchains/{prefix}-{GCC_VER}/prebuilt/{HOST}/{prefix}/{LIB}'
         numpylib = self.ctx.get_python_install_dir(arch.arch) + '/numpy/core/lib'
         LDSHARED_opts = env['LDSHARED'].split('clang')[1]
