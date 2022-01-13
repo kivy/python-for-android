@@ -15,7 +15,7 @@ class OpenCVExtrasRecipe(Recipe):
     .. seealso:: https://github.com/opencv/opencv_contrib
 
     """
-    version = '4.0.1'
+    version = '4.5.1'
     url = 'https://github.com/opencv/opencv_contrib/archive/{version}.zip'
     depends = ['opencv']
 

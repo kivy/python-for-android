@@ -9,7 +9,7 @@ using headless VirtualBox and a small distro to run itself on.
 
 While this is not the actively supported way to build applications, if you are
 willing to play with the approach, you can use the ``Dockerfile`` to build
-the Docker image we use in ``.travis.yml`` for CI builds and create an Android
+the Docker image we use for CI builds and create an Android
 application with that in a container. This approach allows you to build Android
 applications on all platforms Docker engine supports. These steps assume you
 already have Docker preinstalled and set up.

@@ -53,7 +53,7 @@ class TestDistribution(unittest.TestCase):
             self.ctx,
             name=kwargs.pop("name", "test_prj"),
             recipes=kwargs.pop("recipes", ["python3", "kivy"]),
-            arch_name=self.TEST_ARCH,
+            archs=[self.TEST_ARCH],
             **kwargs
         )
 
@@ -111,7 +111,7 @@ class TestDistribution(unittest.TestCase):
         returns the proper result which should `unnamed_dist_1`."""
         mock_exists.return_value = False
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
-        dist = Distribution.get_distribution(self.ctx, arch_name=self.TEST_ARCH)
+        dist = Distribution.get_distribution(self.ctx, archs=[self.TEST_ARCH])
         self.assertEqual(dist.name, "unnamed_dist_1")
 
     @mock.patch("pythonforandroid.util.chdir")
@@ -213,7 +213,7 @@ class TestDistribution(unittest.TestCase):
             self.ctx,
             name="test_prj",
             recipes=["python3", "kivy"],
-            arch_name=self.TEST_ARCH,
+            archs=[self.TEST_ARCH],
         )
         mock_get_dists.return_value = [expected_dist]
         mock_glob.return_value = ["sdl2-python3"]
@@ -264,7 +264,7 @@ class TestDistribution(unittest.TestCase):
             self.ctx,
             name="test_prj",
             recipes=["python3", "kivy"],
-            arch_name=self.TEST_ARCH,
+            archs=[self.TEST_ARCH],
         )
         mock_get_dists.return_value = [expected_dist]
         self.setUp_distribution_with_bootstrap(

@@ -9,6 +9,7 @@ from re import match
 import sh
 import shutil
 import fnmatch
+import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, mkdir, curdir, walk
 from sys import stdout
@@ -21,6 +22,11 @@ from pythonforandroid.logger import (logger, info, warning, debug, shprint, info
 from pythonforandroid.util import (current_directory, ensure_dir,
                                    BuildInterruptingException)
 from pythonforandroid.util import load_source as import_recipe
+
+
+url_opener = urllib.request.build_opener()
+url_orig_headers = url_opener.addheaders
+urllib.request.install_opener(url_opener)
 
 
 class RecipeMeta(type):
@@ -206,6 +212,9 @@ class Recipe(with_metaclass(RecipeMeta)):
             seconds = 1
             while True:
                 try:
+                    # jqueryui.com returns a 403 w/ the default user agent
+                    # Mozilla/5.0 doesnt handle redirection for liblzma
+                    url_opener.addheaders = [('User-agent', 'Wget/1.0')]
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
@@ -215,6 +224,8 @@ class Recipe(with_metaclass(RecipeMeta)):
                     time.sleep(seconds)
                     seconds *= 2
                     continue
+                finally:
+                    url_opener.addheaders = url_orig_headers
                 break
             return target
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
@@ -938,7 +949,7 @@ class PythonRecipe(Recipe):
 
     def should_build(self, arch):
         name = self.folder_name
-        if self.ctx.has_package(name):
+        if self.ctx.has_package(name, arch):
             info('Python package already exists in site-packages')
             return False
         info('{} apparently isn\'t already in site-packages'.format(name))
@@ -965,7 +976,7 @@ class PythonRecipe(Recipe):
         hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(hostpython, 'setup.py', 'install', '-O2',
-                    '--root={}'.format(self.ctx.get_python_install_dir()),
+                    '--root={}'.format(self.ctx.get_python_install_dir(arch.arch)),
                     '--install-lib=.',
                     _env=hpenv, *self.setup_extra_args)
 
@@ -1131,7 +1142,7 @@ class CythonRecipe(PythonRecipe):
         env['LDSHARED'] = env['CC'] + ' -shared'
         # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
-        env['NDKPLATFORM'] = self.ctx.ndk_platform
+        env['NDKPLATFORM'] = self.ctx.ndk_sysroot  # FIXME?
         if self.ctx.copy_libs:
             env['COPYLIBS'] = '1'
 

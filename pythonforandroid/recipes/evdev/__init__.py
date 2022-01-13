@@ -18,7 +18,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch=None):
         env = super().get_recipe_env(arch)
-        env['NDKPLATFORM'] = self.ctx.ndk_platform
+        env['NDKPLATFORM'] = arch.ndk_platform
         return env
 
 

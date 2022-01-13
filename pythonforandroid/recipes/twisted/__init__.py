@@ -29,7 +29,7 @@ class TwistedRecipe(CythonRecipe):
         env = super().get_recipe_env(arch)
         # We add BUILDLIB_PATH to PYTHONPATH so twisted can find _io.so
         env['PYTHONPATH'] = ':'.join([
-            self.ctx.get_site_packages_dir(),
+            self.ctx.get_site_packages_dir(arch),
             env['BUILDLIB_PATH'],
         ])
         return env

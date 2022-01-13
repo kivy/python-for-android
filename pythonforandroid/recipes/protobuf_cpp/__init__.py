@@ -115,7 +115,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
 
             hpenv = env.copy()
             shprint(hostpython, 'setup.py', 'install', '-O2',
-                    '--root={}'.format(self.ctx.get_python_install_dir()),
+                    '--root={}'.format(self.ctx.get_python_install_dir(arch.arch)),
                     '--install-lib=.',
                     _env=hpenv, *self.setup_extra_args)
 
@@ -124,7 +124,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
         #   - https://stackoverflow.com/questions/13862562/
         #   google-protocol-buffers-not-found-when-trying-to-freeze-python-app
         open(
-            join(self.ctx.get_site_packages_dir(), 'google', '__init__.py'),
+            join(self.ctx.get_site_packages_dir(arch), 'google', '__init__.py'),
             'a',
         ).close()
 

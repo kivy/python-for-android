@@ -28,6 +28,10 @@ BROKEN_RECIPES_PYTHON3 = set([
     'vlc',
     # need extra gfortran NDK system add-on
     'lapack', 'scipy',
+    # Outdated and there's a chance that is now useless.
+    'zope_interface',
+    # Requires zope_interface, which is broken.
+    'twisted',
 ])
 
 BROKEN_RECIPES = {

@@ -98,7 +98,7 @@ RUN mkdir ${ANDROID_HOME} && chown --recursive ${USER} ${HOME_DIR} ${ANDROID_HOM
 USER ${USER}
 
 # Download and install android's NDK/SDK
-COPY ci/makefiles/android.mk /tmp/android.mk
+COPY --chown=user:user ci/makefiles/android.mk /tmp/android.mk
 RUN make --file /tmp/android.mk \
     && sudo rm /tmp/android.mk
 

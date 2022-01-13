@@ -36,7 +36,7 @@ class PyCryptoRecipe(CompiledComponentsPythonRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             configure = sh.Command('./configure')
             shprint(configure, '--host=arm-eabi',
-                    '--prefix={}'.format(self.ctx.get_python_install_dir()),
+                    '--prefix={}'.format(self.ctx.get_python_install_dir(arch.arch)),
                     '--enable-shared', _env=env)
         super().build_compiled_components(arch)
 

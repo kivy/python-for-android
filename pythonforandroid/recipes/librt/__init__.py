@@ -18,11 +18,8 @@ class LibRt(Recipe):
         libc, so we create a symbolic link which we will remove when our build
         finishes'''
 
-    @property
-    def libc_path(self):
-        return join(self.ctx.ndk_platform, 'usr', 'lib', 'libc')
-
     def build_arch(self, arch):
+        libc_path = join(arch.ndk_platform, 'usr', 'lib', 'libc')
         # Create a temporary folder to add to link path with a fake librt.so:
         fake_librt_temp_folder = join(
             self.get_build_dir(arch.arch),
@@ -35,13 +32,13 @@ class LibRt(Recipe):
         if exists(join(fake_librt_temp_folder, "librt.so")):
             remove(join(fake_librt_temp_folder, "librt.so"))
         shprint(sh.ln, '-sf',
-                self.libc_path + '.so',
+                libc_path + '.so',
                 join(fake_librt_temp_folder, "librt.so"),
                 )
         if exists(join(fake_librt_temp_folder, "librt.a")):
             remove(join(fake_librt_temp_folder, "librt.a"))
         shprint(sh.ln, '-sf',
-                self.libc_path + '.a',
+                libc_path + '.a',
                 join(fake_librt_temp_folder, "librt.a"),
                )
 

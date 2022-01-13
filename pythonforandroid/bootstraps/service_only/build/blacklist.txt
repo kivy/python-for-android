@@ -1,5 +1,7 @@
 # prevent user to include invalid extensions
 *.apk
+*.aab
+*.apks
 *.pxd
 
 # eggs

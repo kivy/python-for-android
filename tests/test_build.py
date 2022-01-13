@@ -1,7 +1,10 @@
 import unittest
 from unittest import mock
 
+import jinja2
+
 from pythonforandroid.build import run_pymodules_install
+from pythonforandroid.archs import ArchARMv7_a, ArchAarch_64
 
 
 class TestBuildBasic(unittest.TestCase):
@@ -12,10 +15,11 @@ class TestBuildBasic(unittest.TestCase):
         `project_dir` optional parameter is None, refs #1898
         """
         ctx = mock.Mock()
+        ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
         modules = []
         project_dir = None
         with mock.patch('pythonforandroid.build.info') as m_info:
-            assert run_pymodules_install(ctx, modules, project_dir) is None
+            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
         assert m_info.call_args_list[-1] == mock.call(
             'No Python modules and no setup.py to process, skipping')
 
@@ -40,11 +44,48 @@ class TestBuildBasic(unittest.TestCase):
 
             # Make sure it is NOT called when `with_debug_symbols` is true:
             ctx.with_debug_symbols = True
-            assert run_pymodules_install(ctx, modules, project_dir) is None
+            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
             assert m_CythonRecipe().strip_object_files.called is False
 
             # Make sure strip object files IS called when
             # `with_debug_symbols` is fasle:
             ctx.with_debug_symbols = False
-            assert run_pymodules_install(ctx, modules, project_dir) is None
+            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
             assert m_CythonRecipe().strip_object_files.called is True
+
+
+class TestTemplates(unittest.TestCase):
+
+    def test_android_manifest_xml(self):
+        args = mock.Mock()
+        args.min_sdk_version = 12
+        args.build_mode = 'debug'
+        args.native_services = ['abcd', ]
+        args.permissions = []
+        args.add_activity = []
+        args.android_used_libs = []
+        args.meta_data = []
+        args.extra_manifest_xml = '<tag-a><tag-b></tag-b></tag-a>'
+        args.extra_manifest_application_arguments = 'android:someParameter="true" android:anotherParameter="false"'
+        render_args = {
+            "args": args,
+            "service": False,
+            "service_names": [],
+            "android_api": 1234,
+            "debug": "debug" in args.build_mode,
+            "native_services": args.native_services
+        }
+        environment = jinja2.Environment(
+            loader=jinja2.FileSystemLoader('pythonforandroid/bootstraps/sdl2/build/templates/')
+        )
+        template = environment.get_template('AndroidManifest.tmpl.xml')
+        xml = template.render(**render_args)
+        assert xml.count('android:minSdkVersion="12"') == 1
+        assert xml.count('android:anotherParameter="false"') == 1
+        assert xml.count('android:someParameter="true"') == 1
+        assert xml.count('<tag-a><tag-b></tag-b></tag-a>') == 1
+        assert xml.count('android:process=":service_') == 0
+        assert xml.count('targetSdkVersion="1234"') == 1
+        assert xml.count('android:debuggable="true"') == 1
+        assert xml.count('<service android:name="abcd" />') == 1
+        # TODO: potentially some other checks to be added here to cover other "logic" (flags and loops) in the template

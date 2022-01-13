@@ -132,7 +132,7 @@ class LibtorrentRecipe(Recipe):
 
         python_libtorrent = get_lib_from(join(build_dir, 'bindings/python/bin'))
         shutil.copyfile(python_libtorrent,
-                        join(self.ctx.get_site_packages_dir(arch.arch), 'libtorrent.so'))
+                        join(self.ctx.get_site_packages_dir(arch), 'libtorrent.so'))
 
     def get_recipe_env(self, arch):
         # Use environment from boost recipe, cause we use b2 tool from boost

@@ -13,7 +13,7 @@ class PyICURecipe(CppCompiledComponentsPythonRecipe):
         env = super().get_recipe_env(arch)
 
         icu_include = join(
-            self.ctx.get_python_install_dir(), "include", "icu")
+            self.ctx.get_python_install_dir(arch.arch), "include", "icu")
 
         icu_recipe = self.get_recipe('icu', self.ctx)
         icu_link_libs = icu_recipe.built_libraries.keys()

@@ -13,13 +13,14 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
     patches = ['fix_numpy_includes.patch']
 
     call_hostpython_via_targetpython = False
+    need_stl_shared = True
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
         # we need the includes from our installed numpy at site packages
         # because we need some includes generated at numpy's compile time
         env['NUMPY_INCLUDES'] = join(
-            self.ctx.get_python_install_dir(), "numpy/core/include",
+            self.ctx.get_python_install_dir(arch.arch), "numpy/core/include",
         )
 
         # this flag below is to fix a runtime error:
@@ -27,7 +28,7 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
         #   "_ZTVSt12length_error" referenced by
         #   "/data/data/org.test.matplotlib_testapp/files/app/_python_bundle
         #   /site-packages/pandas/_libs/window/aggregations.so"...
-        env['LDFLAGS'] += ' -landroid'
+        env['LDFLAGS'] += f' -landroid  -l{self.stl_lib_name}'
         return env
 
 

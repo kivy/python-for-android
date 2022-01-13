@@ -104,8 +104,8 @@ public class PythonActivity extends SDLActivity {
         protected String doInBackground(String... params) {
             File app_root_file = new File(params[0]);
             Log.v(TAG, "Ready to unpack");
-            PythonActivityUtil pythonActivityUtil = new PythonActivityUtil(mActivity, resourceManager);
-            pythonActivityUtil.unpackData("private", app_root_file);
+            PythonUtil.unpackAsset(mActivity, "private", app_root_file, true);
+            PythonUtil.unpackPyBundle(mActivity, getApplicationInfo().nativeLibraryDir + "/" + "libpybundle", app_root_file, false);
             return null;
         }
 
