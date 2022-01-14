@@ -27,7 +27,7 @@ BROKEN_RECIPES_PYTHON3 = set([
     'sympy',
     'vlc',
     # need extra gfortran NDK system add-on
-    'lapack', 'scipy',
+    'lapack', 'scipy', 'scikit-learn',
     # Outdated and there's a chance that is now useless.
     'zope_interface',
     # Requires zope_interface, which is broken.

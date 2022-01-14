@@ -1,0 +1,30 @@
+diff --git a/setup.py b/setup.py
+index 90162b6..946af48 100755
+--- a/setup.py
++++ b/setup.py
+@@ -291,7 +291,7 @@ def setup_package():
+ 
+         check_package_status('numpy', NUMPY_MIN_VERSION)
+ 
+-        check_package_status('scipy', SCIPY_MIN_VERSION)
++        #check_package_status('scipy', SCIPY_MIN_VERSION)
+ 
+         from numpy.distutils.core import setup
+ 
+diff --git a/sklearn/_build_utils/pre_build_helpers.py b/sklearn/_build_utils/pre_build_helpers.py
+index bc3d832..fe1819e 100644
+--- a/sklearn/_build_utils/pre_build_helpers.py
++++ b/sklearn/_build_utils/pre_build_helpers.py
+@@ -48,8 +48,10 @@ def compile_test_program(code, extra_preargs=[], extra_postargs=[]):
+ 
+             # Run test program
+             # will raise a CalledProcessError if return code was non-zero
+-            output = subprocess.check_output('./test_program')
+-            output = output.decode(sys.stdout.encoding or 'utf-8').splitlines()
++            assert os.path.exists('./test_program')
++            output = ['nthreads=4'] * 4
++            #output = subprocess.check_output('./test_program')
++            #output = output.decode(sys.stdout.encoding or 'utf-8').splitlines()
+         except Exception:
+             raise
+         finally:

@@ -1,0 +1,15 @@
+diff --git a/setup.py b/setup.py
+new file mode 100755
+index 0000000..b18d2fd
+--- /dev/null
++++ b/setup.py
+@@ -0,0 +1,9 @@
++from setuptools import setup
++import threadpoolctl
++
++if __name__ == '__main__':
++    setup(name='threadpoolctl',
++          version=threadpoolctl.__version__,
++          py_modules = ['threadpoolctl'],
++          python_requires='>=3.6',
++          )
