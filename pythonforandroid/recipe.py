@@ -728,7 +728,7 @@ class Recipe(with_metaclass(RecipeMeta)):
             if recipe_file is not None:
                 break
 
-        if not recipe_file:
+        else:
             raise ValueError('Recipe does not exist: {}'.format(name))
 
         mod = import_recipe('pythonforandroid.recipes.{}'.format(name), recipe_file)
