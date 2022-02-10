@@ -75,6 +75,7 @@
                   android:label="@string/app_name"
                   android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 8 %}|uiMode{% endif %}{% if args.min_sdk_version >= 13 %}|screenSize|smallestScreenSize{% endif %}{% if args.min_sdk_version >= 17 %}|layoutDirection{% endif %}{% if args.min_sdk_version >= 24 %}|density{% endif %}"
                   android:screenOrientation="{{ args.orientation }}"
+                  android:exported="true"
                   {% if args.activity_launch_mode %}
                   android:launchMode="{{ args.activity_launch_mode }}"
                   {% endif %}
@@ -101,7 +102,8 @@
         {% if args.launcher %}
         <activity android:name="org.kivy.android.launcher.ProjectChooser"
                   android:icon="@mipmap/icon"
-                  android:label="@string/app_name">
+                  android:label="@string/app_name"
+                  android:exported="true">
 
           <intent-filter>
             <action android:name="android.intent.action.MAIN" />
@@ -127,7 +129,8 @@
         <service android:name="org.kivy.android.billing.BillingReceiver"
                  android:process=":pythonbilling" />
         <receiver android:name="org.kivy.android.billing.BillingReceiver"
-                  android:process=":pythonbillingreceiver">
+                  android:process=":pythonbillingreceiver"
+                  android:exported="false">
             <intent-filter>
                 <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
                 <action android:name="com.android.vending.billing.RESPONSE_CODE" />
