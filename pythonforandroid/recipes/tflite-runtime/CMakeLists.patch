@@ -1,0 +1,28 @@
+--- tflite-runtime/tensorflow/lite/CMakeLists.txt	2022-01-27 17:29:49.460000000 -1000
++++ CMakeLists.txt	2022-02-21 15:03:09.568367300 -1000
+@@ -220,6 +220,9 @@
+ if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
+   list(FILTER TFLITE_SRCS EXCLUDE REGEX ".*minimal_logging_ios\\.cc$")
+ endif()
++if("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
++  list(FILTER TFLITE_SRCS EXCLUDE REGEX ".*minimal_logging_default\\.cc$")
++endif()
+ populate_tflite_source_vars("core" TFLITE_CORE_SRCS)
+ populate_tflite_source_vars("core/api" TFLITE_CORE_API_SRCS)
+ populate_tflite_source_vars("c" TFLITE_C_SRCS)
+@@ -505,6 +508,7 @@
+     ruy
+     ${CMAKE_DL_LIBS}
+     ${TFLITE_TARGET_DEPENDENCIES}
++    ${ANDROID_LOG_LIB}
+ )
+ 
+ if (NOT BUILD_SHARED_LIBS)
+@@ -550,6 +554,7 @@
+   tensorflow-lite
+   ${CMAKE_DL_LIBS}
+ )
++
+ target_compile_options(_pywrap_tensorflow_interpreter_wrapper
+   PUBLIC ${TFLITE_TARGET_PUBLIC_OPTIONS}
+   PRIVATE ${TFLITE_TARGET_PRIVATE_OPTIONS}
