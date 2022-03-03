@@ -39,9 +39,9 @@ class TFLiteRuntimeRecipe(PythonRecipe):
             warning("ModuleNotFoundError: No module named 'tflite_runtime'")
             warning("Use x86 not x86_64")
             return
-  
+
         env = self.get_recipe_env(arch)
-  
+
         # Directories
         root_dir = self.get_build_dir(arch.arch)
         script_dir = join(root_dir,
@@ -96,5 +96,5 @@ class TFLiteRuntimeRecipe(PythonRecipe):
                     '--install-lib=.',
                     _env=env)
 
-            
+    
 recipe = TFLiteRuntimeRecipe()
