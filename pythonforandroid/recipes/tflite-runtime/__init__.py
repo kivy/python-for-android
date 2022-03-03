@@ -4,8 +4,9 @@ from pythonforandroid.logger import error
 from os.path import join
 import sh
 
+
 class TFLiteRuntimeRecipe(PythonRecipe):
-    
+
     ###############################################################
     #
     # tflite-runtime README:
@@ -38,9 +39,9 @@ class TFLiteRuntimeRecipe(PythonRecipe):
             warning("ModuleNotFoundError: No module named 'tflite_runtime'")
             warning("Use x86 not x86_64")
             return
-        
+  
         env = self.get_recipe_env(arch)
-        
+  
         # Directories
         root_dir = self.get_build_dir(arch.arch)
         script_dir = join(root_dir,
@@ -66,12 +67,12 @@ class TFLiteRuntimeRecipe(PythonRecipe):
         ########
         with current_directory(root_dir):
             env.update({
-                'TENSORFLOW_TARGET' : 'android',
-                'CMAKE_TOOLCHAIN_FILE' : toolchain,
-                'ANDROID_PLATFORM' : str(self.ctx.ndk_api),
-                'ANDROID_ABI' : arch.arch,
-                'WRAPPER_INCLUDES' : includes,
-                'CMAKE_SHARED_LINKER_FLAGS' : env['LDFLAGS'],
+                'TENSORFLOW_TARGET': 'android',
+                'CMAKE_TOOLCHAIN_FILE': toolchain,
+                'ANDROID_PLATFORM': str(self.ctx.ndk_api),
+                'ANDROID_ABI': arch.arch,
+                'WRAPPER_INCLUDES': includes,
+                'CMAKE_SHARED_LINKER_FLAGS': env['LDFLAGS'],
             })
 
             try:
@@ -95,5 +96,5 @@ class TFLiteRuntimeRecipe(PythonRecipe):
                     '--install-lib=.',
                     _env=env)
 
+            
 recipe = TFLiteRuntimeRecipe()
-
