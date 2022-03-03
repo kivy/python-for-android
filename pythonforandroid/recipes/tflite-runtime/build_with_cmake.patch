@@ -1,5 +1,5 @@
 --- tflite-runtime/tensorflow/lite/tools/pip_package/build_pip_package_with_cmake.sh	2022-01-22 08:57:16.000000000 -1000
-+++ build_pip_package_with_cmake.sh	2022-03-02 16:09:39.825550500 -1000
++++ build_pip_package_with_cmake.sh	2022-03-02 17:29:45.465550500 -1000
 @@ -28,7 +28,7 @@
    export TENSORFLOW_TARGET="armhf"
  fi
@@ -37,3 +37,12 @@
    *)
      BUILD_FLAGS=${BUILD_FLAGS:-"-I${PYTHON_INCLUDE} -I${PYBIND11_INCLUDE}"}
      cmake \
+@@ -162,7 +174,7 @@
+       ${PYTHON} setup.py bdist --plat-name=${WHEEL_PLATFORM_NAME} \
+                          bdist_wheel --plat-name=${WHEEL_PLATFORM_NAME}
+     else
+-      ${PYTHON} setup.py bdist bdist_wheel
++      ${PYTHON} setup.py bdist bdist
+     fi
+     ;;
+ esac
