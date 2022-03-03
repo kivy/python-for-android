@@ -9,6 +9,6 @@ class Pybind11Recipe(Recipe):
 
     def get_include_dir(self, arch):
         return join(self.get_build_dir(arch.arch), 'include')
-    
-    
+
+
 recipe = Pybind11Recipe()
