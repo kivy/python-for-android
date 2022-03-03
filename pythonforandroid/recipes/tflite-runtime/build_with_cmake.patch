@@ -1,5 +1,14 @@
 --- tflite-runtime/tensorflow/lite/tools/pip_package/build_pip_package_with_cmake.sh	2022-01-22 08:57:16.000000000 -1000
-+++ build_pip_package_with_cmake.sh	2022-02-22 07:18:37.248367300 -1000
++++ build_pip_package_with_cmake.sh	2022-03-02 16:09:39.825550500 -1000
+@@ -28,7 +28,7 @@
+   export TENSORFLOW_TARGET="armhf"
+ fi
+ PYTHON_INCLUDE=$(${PYTHON} -c "from sysconfig import get_paths as gp; print(gp()['include'])")
+-PYBIND11_INCLUDE=$(${PYTHON} -c "import pybind11; print (pybind11.get_include())")
++# PYBIND11_INCLUDE=$(${PYTHON} -c "import pybind11; print (pybind11.get_include())")
+ export CROSSTOOL_PYTHON_INCLUDE_PATH=${PYTHON_INCLUDE}
+ 
+ # Fix container image for cross build.
 @@ -58,7 +58,7 @@
     "${TENSORFLOW_LITE_DIR}/python/metrics/metrics_portable.py" \
     "${BUILD_DIR}/tflite_runtime"
