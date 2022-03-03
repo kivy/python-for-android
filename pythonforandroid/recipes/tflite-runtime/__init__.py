@@ -96,5 +96,5 @@ class TFLiteRuntimeRecipe(PythonRecipe):
                     '--install-lib=.',
                     _env=env)
 
-    
+
 recipe = TFLiteRuntimeRecipe()
