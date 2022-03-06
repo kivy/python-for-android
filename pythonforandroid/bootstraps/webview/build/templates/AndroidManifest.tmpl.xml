@@ -46,7 +46,7 @@
          An example Java class can be found in README-android.txt
     -->
     <application android:label="@string/app_name"
-                 android:icon="@drawable/icon"
+                 android:icon="@mipmap/icon"
                  android:allowBackup="{{ args.allow_backup }}"
                  {% if args.backup_rules %}android:fullBackupContent="@xml/{{ args.backup_rules }}"{% endif %}
                  android:theme="{{args.android_apptheme}}{% if not args.window %}.Fullscreen{% endif %}"
