@@ -8,5 +8,5 @@ class FreetypePyRecipe(PythonRecipe):
     patches = ['fall-back-to-distutils.patch']
     site_packages_name = 'freetype'
 
-    
+
 recipe = FreetypePyRecipe()
