@@ -25,7 +25,7 @@ class AudiostreamRecipe(CythonRecipe):
                               jni_path=join(self.ctx.bootstrap.build_dir, 'jni'),
                               sdl_include=sdl_include,
                               sdl_mixer_include=sdl_mixer_include)
-        env['NDKPLATFORM'] = self.ctx.ndk_platform
+        env['NDKPLATFORM'] = arch.ndk_platform
         env['LIBLINK'] = 'NOTNONE'  # Hacky fix. Needed by audiostream setup.py
         return env
 

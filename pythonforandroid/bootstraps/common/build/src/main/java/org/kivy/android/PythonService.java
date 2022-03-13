@@ -62,10 +62,15 @@ public class PythonService extends Service implements Runnable {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (pythonThread != null) {
             Log.v("python service", "service exists, do not start again");
-            return START_NOT_STICKY;
+            return startType();
+        }
+	//intent is null if OS restarts a STICKY service
+        if (intent == null) {
+            Context context = getApplicationContext();
+            intent = getThisDefaultIntent(context, "");
         }
 
-		startIntent = intent;
+        startIntent = intent;
         Bundle extras = intent.getExtras();
         androidPrivate = extras.getString("androidPrivate");
         androidArgument = extras.getString("androidArgument");
@@ -89,6 +94,10 @@ public class PythonService extends Service implements Runnable {
 
     protected int getServiceId() {
         return 1;
+    }
+
+    protected Intent getThisDefaultIntent(Context ctx, String pythonServiceArgument) {
+        return null;
     }
 
     protected void doStartForeground(Bundle extras) {
@@ -153,7 +162,10 @@ public class PythonService extends Service implements Runnable {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        stopSelf();
+        //sticky servcie runtime/restart is managed by the OS. leave it running when app is closed
+        if (startType() != START_STICKY) {
+            stopSelf();
+        }
     }
 
     @Override

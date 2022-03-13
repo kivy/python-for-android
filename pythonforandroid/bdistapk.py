@@ -128,19 +128,21 @@ class Bdist(Command):
 
 
 class BdistAPK(Bdist):
-    """
-    distutil command handler for 'apk'
-    """
+    """distutil command handler for 'apk'."""
     description = 'Create an APK with python-for-android'
     package_type = 'apk'
 
 
 class BdistAAR(Bdist):
-    """
-    distutil command handler for 'aar'
-    """
+    """distutil command handler for 'aar'."""
     description = 'Create an AAR with python-for-android'
     package_type = 'aar'
+
+
+class BdistAAB(Bdist):
+    """distutil command handler for 'aab'."""
+    description = 'Create an AAB with python-for-android'
+    package_type = 'aab'
 
 
 def _set_user_options():
@@ -156,6 +158,7 @@ def _set_user_options():
                 user_options.append((arg[2:], None, None))
 
     BdistAPK.user_options = user_options
+    BdistAAB.user_options = user_options
 
 
 _set_user_options()

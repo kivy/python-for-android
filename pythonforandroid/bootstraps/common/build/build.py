@@ -267,7 +267,7 @@ main.py that loads it.''')
     # Package up the private data (public not supported).
     use_setup_py = get_dist_info_for("use_setup_py",
                                      error_if_missing=False) is True
-    tar_dirs = [env_vars_tarpath]
+    private_tar_dirs = [env_vars_tarpath]
     _temp_dirs_to_clean = []
     try:
         if args.private:
@@ -277,7 +277,7 @@ main.py that loads it.''')
                     ):
                 print('No setup.py/pyproject.toml used, copying '
                       'full private data into .apk.')
-                tar_dirs.append(args.private)
+                private_tar_dirs.append(args.private)
             else:
                 print("Copying main.py's ONLY, since other app data is "
                       "expected in site-packages.")
@@ -309,10 +309,7 @@ main.py that loads it.''')
                             )
 
                 # Append directory with all main.py's to result apk paths:
-                tar_dirs.append(main_py_only_dir)
-        for python_bundle_dir in ('private', '_python_bundle'):
-            if exists(python_bundle_dir):
-                tar_dirs.append(python_bundle_dir)
+                private_tar_dirs.append(main_py_only_dir)
         if get_bootstrap_name() == "webview":
             for asset in listdir('webview_includes'):
                 shutil.copy(join('webview_includes', asset), join(assets_dir, asset))
@@ -326,8 +323,13 @@ main.py that loads it.''')
                 shutil.copytree(realpath(asset_src), join(assets_dir, asset_dest))
 
         if args.private or args.launcher:
+            for arch in get_dist_info_for("archs"):
+                libs_dir = f"libs/{arch}"
+                make_tar(
+                    join(libs_dir, 'libpybundle.so'), [f'_python_bundle__{arch}'], args.ignore_path,
+                    optimize_python=args.optimize_python)
             make_tar(
-                join(assets_dir, 'private.mp3'), tar_dirs, args.ignore_path,
+                join(assets_dir, 'private.tar'), private_tar_dirs, args.ignore_path,
                 optimize_python=args.optimize_python)
     finally:
         for directory in _temp_dirs_to_clean:
@@ -357,9 +359,6 @@ main.py that loads it.''')
     elif args.icon_fg or args.icon_bg:
         print("WARNING: Received an --icon_fg or an --icon_bg argument, but not both. "
               "Ignoring.")
-
-    if args.enable_androidx:
-        shutil.copy('templates/gradle.properties', 'gradle.properties')
 
     if get_bootstrap_name() != "service_only":
         lottie_splashscreen = join(res_dir, 'raw/splashscreen.json')
@@ -409,15 +408,17 @@ main.py that loads it.''')
 
     version_code = 0
     if not args.numeric_version:
-        # Set version code in format (arch-minsdk-app_version)
-        arch = get_dist_info_for("archs")[0]
-        arch_dict = {"x86_64": "9", "arm64-v8a": "8", "armeabi-v7a": "7", "x86": "6"}
-        arch_code = arch_dict.get(arch, '1')
+        """
+        Set version code in format (10 + minsdk + app_version)
+        Historically versioning was (arch + minsdk + app_version),
+        with arch expressed with a single digit from 6 to 9.
+        Since the multi-arch support, has been changed to 10.
+        """
         min_sdk = args.min_sdk_version
         for i in args.version.split('.'):
             version_code *= 100
             version_code += int(i)
-        args.numeric_version = "{}{}{}".format(arch_code, min_sdk, version_code)
+        args.numeric_version = "{}{}{}".format("10", min_sdk, version_code)
 
     if args.intent_filters:
         with open(args.intent_filters) as fd:
@@ -548,6 +549,12 @@ main.py that loads it.''')
         debug_build="debug" in args.build_mode,
         is_library=(get_bootstrap_name() == 'service_library'),
         )
+
+    # gradle properties
+    render(
+        'gradle.tmpl.properties',
+        'gradle.properties',
+        args=args)
 
     # ant build templates
     render(

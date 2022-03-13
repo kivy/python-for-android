@@ -43,7 +43,7 @@ class Psycopg2Recipe(PythonRecipe):
             shprint(hostpython, 'setup.py', 'build_ext', '--static-libpq',
                     _env=env)
             shprint(hostpython, 'setup.py', 'install', '-O2',
-                    '--root={}'.format(self.ctx.get_python_install_dir()),
+                    '--root={}'.format(self.ctx.get_python_install_dir(arch.arch)),
                     '--install-lib=.', _env=env)
 
 

@@ -114,7 +114,7 @@ class ICURecipe(Recipe):
         src_include = join(
             self.get_build_dir(arch.arch), "icu_build", "include")
         dst_include = join(
-            self.ctx.get_python_install_dir(), "include", "icu")
+            self.ctx.get_python_install_dir(arch.arch), "include", "icu")
         ensure_dir(dst_include)
         shprint(sh.cp, "-r", join(src_include, "layout"), dst_include)
         shprint(sh.cp, "-r", join(src_include, "unicode"), dst_include)

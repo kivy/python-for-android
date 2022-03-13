@@ -374,7 +374,7 @@ class Bootstrap:
         if len(tokens) > 1:
             strip = strip.bake(tokens[1:])
 
-        libs_dir = join(self.dist_dir, '_python_bundle',
+        libs_dir = join(self.dist_dir, f'_python_bundle__{arch.arch}',
                         '_python_bundle', 'modules')
         filens = shprint(sh.find, libs_dir, join(self.dist_dir, 'libs'),
                          '-iname', '*.so', _env=env).stdout.decode('utf-8')

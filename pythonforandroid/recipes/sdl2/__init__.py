@@ -1,3 +1,5 @@
+from os.path import exists, join
+
 from pythonforandroid.recipe import BootstrapNDKRecipe
 from pythonforandroid.toolchain import current_directory, shprint
 import sh
@@ -17,6 +19,11 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
             arch=arch, with_flags_in_cc=with_flags_in_cc, with_python=with_python)
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
         return env
+
+    def should_build(self, arch):
+        libdir = join(self.get_build_dir(arch.arch), "../..", "libs", arch.arch)
+        libs = ['libhidapi.so', 'libmain.so', 'libSDL2.so', 'libSDL2_image.so', 'libSDL2_mixer.so', 'libSDL2_ttf.so']
+        return not all(exists(join(libdir, x)) for x in libs)
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)

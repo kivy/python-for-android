@@ -1,9 +1,10 @@
 from distutils.spawn import find_executable
 from os import environ
-from os.path import join, split
+from os.path import join, split, exists
 from multiprocessing import cpu_count
 from glob import glob
 
+from pythonforandroid.logger import warning
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException, build_platform
 
@@ -30,7 +31,7 @@ class Arch:
     common_cppflags = [
         '-DANDROID',
         '-D__ANDROID_API__={ctx.ndk_api}',
-        '-I{ctx.ndk_dir}/sysroot/usr/include/{command_prefix}',
+        '-I{ctx.ndk_sysroot}/usr/include/{command_prefix}',
         '-I{python_includes}',
     ]
 
@@ -56,6 +57,24 @@ class Arch:
 
     def __str__(self):
         return self.arch
+
+    @property
+    def ndk_lib_dir(self):
+        return join(self.ctx.ndk_sysroot, 'usr', 'lib', self.command_prefix, str(self.ctx.ndk_api))
+
+    @property
+    def ndk_platform(self):
+        warning("ndk_platform is deprecated and should be avoided in new recipes")
+        ndk_platform = join(
+            self.ctx.ndk_dir,
+            'platforms',
+            'android-{}'.format(self.ctx.ndk_api),
+            self.platform_dir)
+        if not exists(ndk_platform):
+            BuildInterruptingException(
+                "The requested platform folder doesn't exist. If you're building on ndk >= r22, and seeing this error, one of the required recipe is using a removed feature."
+            )
+        return ndk_platform
 
     @property
     def include_dirs(self):
@@ -133,7 +152,7 @@ class Arch:
             ctx=self.ctx,
             command_prefix=self.command_prefix,
             python_includes=join(
-                self.ctx.get_python_install_dir(),
+                self.ctx.get_python_install_dir(self.arch),
                 'include/python{}'.format(self.ctx.python_recipe.version[0:3]),
             ),
         )
@@ -213,7 +232,7 @@ class Arch:
         # Android's arch/toolchain
         env['ARCH'] = self.arch
         env['NDK_API'] = 'android-{}'.format(str(self.ctx.ndk_api))
-        env['TOOLCHAIN_PREFIX'] = self.ctx.toolchain_prefix
+        env['TOOLCHAIN_PREFIX'] = self.toolchain_prefix
         env['TOOLCHAIN_VERSION'] = self.ctx.toolchain_version
 
         # Custom linker options

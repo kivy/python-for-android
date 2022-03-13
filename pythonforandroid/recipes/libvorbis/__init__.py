@@ -21,8 +21,8 @@ class VorbisRecipe(NDKRecipe):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
             flags = [
-                '--with-sysroot=' + self.ctx.ndk_platform,
-                '--host=' + arch.toolchain_prefix,
+                '--with-sysroot=' + arch.ndk_platform,
+                '--host=' + arch.command_prefix,
             ]
             configure = sh.Command('./configure')
             shprint(configure, *flags, _env=env)

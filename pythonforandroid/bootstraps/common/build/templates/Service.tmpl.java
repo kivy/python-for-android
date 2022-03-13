@@ -19,6 +19,11 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
     }
 
     static public void start(Context ctx, String pythonServiceArgument) {
+        Intent intent = getDefaultIntent(ctx, pythonServiceArgument);
+        ctx.startService(intent);
+    }
+
+    static public Intent getDefaultIntent(Context ctx, String pythonServiceArgument) {
         Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
         String argument = ctx.getFilesDir().getAbsolutePath() + "/app";
         intent.putExtra("androidPrivate", ctx.getFilesDir().getAbsolutePath());
@@ -31,7 +36,12 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
         intent.putExtra("pythonHome", argument);
         intent.putExtra("pythonPath", argument + ":" + argument + "/lib");
         intent.putExtra("pythonServiceArgument", pythonServiceArgument);
-        ctx.startService(intent);
+        return intent;
+    }
+
+    @Override
+    protected Intent getThisDefaultIntent(Context ctx, String pythonServiceArgument) {
+        return Service{{ name|capitalize }}.getDefaultIntent(ctx, pythonServiceArgument);
     }
 
     static public void stop(Context ctx) {

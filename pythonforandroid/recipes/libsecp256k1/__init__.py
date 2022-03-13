@@ -19,8 +19,8 @@ class LibSecp256k1Recipe(Recipe):
                 shprint(sh.Command('./autogen.sh'), _env=env)
             shprint(
                 sh.Command('./configure'),
-                '--host=' + arch.toolchain_prefix,
-                '--prefix=' + self.ctx.get_python_install_dir(),
+                '--host=' + arch.command_prefix,
+                '--prefix=' + self.ctx.get_python_install_dir(arch.arch),
                 '--enable-shared',
                 '--enable-module-recovery',
                 '--enable-experimental',

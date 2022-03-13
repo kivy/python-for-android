@@ -71,8 +71,9 @@ supply those that you need.
   Whether the distribution must be compiled from scratch.
 
 ``--arch``
-  The architecture to build for. Currently only one architecture can be 
-  targeted at a time, and a given distribution can only include one architecture.
+  The architecture to build for. You can specify multiple architectures to build for
+  at the same time. As an example ``p4a ... --arch arm64-v8a --arch armeabi-v7a ...``
+  will build a distribution for both ``arm64-v8a`` and ``armeabi-v7a``.
   
 ``--bootstrap BOOTSTRAP``
   The Java bootstrap to use for your application. You mostly don't

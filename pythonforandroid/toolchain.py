@@ -99,8 +99,6 @@ user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
 sys.path.insert(0, join(toolchain_dir, "tools", "external"))
 
-APK_SUFFIX = '.apk'
-
 
 def add_boolean_option(parser, names, no_names=None,
                        default=True, dest=None, description=None):
@@ -163,7 +161,7 @@ def dist_from_args(ctx, args):
         ctx,
         name=args.dist_name,
         recipes=split_argument_list(args.requirements),
-        arch_name=args.arch,
+        archs=args.arch,
         ndk_api=args.ndk_api,
         force_build=args.force_build,
         require_perfect_match=args.require_perfect_match,
@@ -313,8 +311,8 @@ class ToolchainCL:
                   '(default: {})'.format(default_storage_dir)))
 
         generic_parser.add_argument(
-            '--arch', help='The arch to build for.',
-            default='armeabi-v7a')
+            '--arch', help='The archs to build for.',
+            action='append', default=[])
 
         # Options for specifying the Distribution
         generic_parser.add_argument(
@@ -565,6 +563,11 @@ class ToolchainCL:
 
         add_parser(
             subparsers,
+            'aab', help='Build an AAB',
+            parents=[parser_packaging])
+
+        add_parser(
+            subparsers,
             'create', help='Compile a set of requirements into a dist',
             parents=[generic_parser])
         add_parser(
@@ -712,7 +715,7 @@ class ToolchainCL:
         self.ctx.symlink_bootstrap_files = args.symlink_bootstrap_files
         self.ctx.java_build_tool = args.java_build_tool
 
-        self._archs = split_argument_list(args.arch)
+        self._archs = args.arch
 
         self.ctx.local_recipes = args.local_recipes
         self.ctx.copy_libs = args.copy_libs
@@ -1028,7 +1031,7 @@ class ToolchainCL:
         """
         Creates an android package using gradle
         :param args: parser args
-        :param package_type: one of 'apk', 'aar'
+        :param package_type: one of 'apk', 'aar', 'aab'
         :return (gradle output, build_args)
         """
         ctx = self.ctx
@@ -1076,9 +1079,17 @@ class ToolchainCL:
                     _tail=20, _critical=True, _env=env
                 )
             if args.build_mode == "debug":
+                if package_type == "aab":
+                    raise BuildInterruptingException(
+                        "aab is meant only for distribution and is not available in debug mode. "
+                        "Instead, you can use apk while building for debugging purposes."
+                    )
                 gradle_task = "assembleDebug"
             elif args.build_mode == "release":
-                gradle_task = "assembleRelease"
+                if package_type == "apk":
+                    gradle_task = "assembleRelease"
+                elif package_type == "aab":
+                    gradle_task = "bundleRelease"
             else:
                 raise BuildInterruptingException(
                     "Unknown build mode {} for apk()".format(args.build_mode))
@@ -1092,7 +1103,7 @@ class ToolchainCL:
         :param args: the parser args
         :param output: RunningCommand output
         :param build_args: build args as returned by build.parse_args
-        :param package_type: one of 'apk', 'aar'
+        :param package_type: one of 'apk', 'aar', 'aab'
         :param output_dir: where to put the package file
         """
 
@@ -1129,11 +1140,12 @@ class ToolchainCL:
                 raise BuildInterruptingException('Couldn\'t find the built APK')
 
         info_main('# Found android package file: {}'.format(package_file))
+        package_extension = f".{package_type}"
         if package_add_version:
             info('# Add version number to android package')
-            package_name = basename(package_file)[:-len(APK_SUFFIX)]
+            package_name = basename(package_file)[:-len(package_extension)]
             package_file_dest = "{}-{}-{}".format(
-                package_name, build_args.version, APK_SUFFIX)
+                package_name, build_args.version, package_extension)
             info('# Android package renamed to {}'.format(package_file_dest))
             shprint(sh.cp, package_file, package_file_dest)
         else:
@@ -1150,6 +1162,12 @@ class ToolchainCL:
         output, build_args = self._build_package(args, package_type='aar')
         output_dir = join(self._dist.dist_dir, "build", "outputs", 'aar')
         self._finish_package(args, output, build_args, 'aar', output_dir)
+
+    @require_prebuilt_dist
+    def aab(self, args):
+        output, build_args = self._build_package(args, package_type='aab')
+        output_dir = join(self._dist.dist_dir, "build", "outputs", 'bundle', args.build_mode)
+        self._finish_package(args, output, build_args, 'aab', output_dir)
 
     @require_prebuilt_dist
     def create(self, args):

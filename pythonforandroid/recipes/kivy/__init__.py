@@ -7,7 +7,7 @@ from pythonforandroid.toolchain import current_directory, shprint
 
 
 class KivyRecipe(CythonRecipe):
-    version = '2.0.0'
+    version = '2.1.0'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 

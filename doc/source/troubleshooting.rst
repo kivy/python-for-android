@@ -85,31 +85,35 @@ At the top level, this will always contain the same set of files::
   AndroidManifest.xml  classes.dex  META-INF     res
   assets               lib          YourApk.apk  resources.arsc
 
-The Python distribution is in the assets folder::
+The user app data (code, images, fonts ..) is packaged into a single tarball contained in the assets folder::
 
   $ cd assets
   $ ls
-  private.mp3
+  private.tar
 
-``private.mp3`` is actually a tarball containing all your packaged
-data, and the Python distribution. Extract it::
+``private.tar`` is a tarball containing all your packaged
+data. Extract it::
 
-  $ tar xf private.mp3
+  $ tar xf private.tar
 
-This will reveal all the Python-related files::
+This will reveal all the user app data (the files shown below are from the touchtracer demo)::
 
   $ ls
-  android_runnable.pyo  include          interpreter_subprocess  main.kv   pipinterface.kv   settings.pyo
-  assets                __init__.pyo     interpreterwrapper.pyo  main.pyo  pipinterface.pyo  utils.pyo
-  editor.kv             interpreter.kv   _python_bundle          menu.kv   private.mp3       widgets.pyo
-  editor.pyo            interpreter.pyo  libpymodules.so         menu.pyo  settings.kv
+  README.txt		android.txt		icon.png		main.pyc		p4a_env_vars.txt	particle.png
+  private.tar		touchtracer.kv
 
-Most of these files have been included by the user (in this case, they
-come from one of my own apps), the rest relate to the python
-distribution.
+Due to how We're required to ship ABI-specific things in Android App Bundle,
+the Python installation is packaged separately, as (most of it) is ABI-specific.
 
-The python installation, along with all side-packages, is mostly contained
-inside the `_python_bundle` folder.
+For example, the Python installation for ``arm64-v8a`` is available in ``lib/arm64-v8a/libpybundle.so``
+
+``libpybundle.so`` is a tarball (but named like a library for packaging requirements), that contains our ``_python_bundle``::
+
+  $ tar xf libpybundle.so
+  $ cd _python_bundle
+  $ ls
+  modules		site-packages	stdlib.zip
+
 
 
 Common errors

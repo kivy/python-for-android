@@ -22,7 +22,7 @@ class OpenALRecipe(NDKRecipe):
             env = self.get_recipe_env(arch)
             cmake_args = [
                 '-DCMAKE_TOOLCHAIN_FILE={}'.format('XCompile-Android.txt'),
-                '-DHOST={}'.format(self.ctx.toolchain_prefix)
+                '-DHOST={}'.format(arch.toolchain_prefix)
             ]
             shprint(
                 sh.cmake, '.',

@@ -19,7 +19,7 @@ class ZopeInterfaceRecipe(PythonRecipe):
         # folders (once is installed), that leads into an ImportError.
         # Here we intentionally apply a patch to solve that, so, in case that
         # this is solved in the future an error will be triggered
-        zope_install = join(self.ctx.get_site_packages_dir(arch.arch), 'zope')
+        zope_install = join(self.ctx.get_site_packages_dir(arch), 'zope')
         self.apply_patch('fix-init.patch', arch.arch, build_dir=zope_install)
 
     def prebuild_arch(self, arch):

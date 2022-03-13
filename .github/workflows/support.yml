@@ -1,0 +1,32 @@
+name: 'Support Requests'
+
+on:
+  issues:
+    types: [labeled, unlabeled, reopened]
+
+permissions:
+  issues: write
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/support-requests@v2
+        with:
+          github-token: ${{ github.token }}
+          support-label: 'support'
+          issue-comment: >
+            👋 We use the issue tracker exclusively for bug reports and feature requests.
+            However, this issue appears to be a support request. Please use our
+            [support channels](https://github.com/kivy/python-for-android/blob/master/README.md#support)
+            to get help with the project.
+            
+            
+            If you're having trouble installing or using python-for-android,
+            maybe you could be interested in our [quickstart](https://python-for-android.readthedocs.io/en/latest/quickstart) guide.
+            
+            
+            Let us know if this comment was made in error, and we'll be happy
+            to reopen the issue.
+          close-issue: true
+          lock-issue: false
