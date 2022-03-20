@@ -188,7 +188,7 @@ public class PythonUtil {
                 os.write(dataVersion.getBytes());
                 os.close();
             } catch (Exception e) {
-                Log.w("python", e);
+                Log.w(TAG, e);
             }
         }
     }
@@ -201,23 +201,57 @@ public class PythonUtil {
 
         Log.v(TAG, "Unpacking " + resource + " " + target.getName());
 
-        // FIXME: Implement a versioning logic to speed-up the startup process (maybe hash-based?).
+        // The version of data in memory and on disk.
+        String dataVersion = getResourceString(ctx, "private_version");
+        String diskVersion = null;
 
-        // If the disk data is out of date, extract it and write the version file.
-        Log.v(TAG, "Extracting " + resource + " assets.");
+        Log.v(TAG, "Data version is " + dataVersion);
 
-        if (cleanup_on_version_update) {
-            recursiveDelete(target);
+        // If no version, no unpacking is necessary.
+        if (dataVersion == null) {
+            return;
         }
-        target.mkdirs();
 
-        AssetExtract ae = new AssetExtract(ctx);
-        if (!ae.extractTar(resource + ".so", target.getAbsolutePath(), "pybundle")) {
-            String msg = "Could not extract " + resource + " data.";
-            if (ctx instanceof Activity) {
-                toastError((Activity)ctx, msg);
-            } else {
-                Log.v(TAG, msg);
+        // Check the current disk version, if any.
+        String filesDir = target.getAbsolutePath();
+        String diskVersionFn = filesDir + "/" + "libpybundle" + ".version";
+
+        try {
+            byte buf[] = new byte[64];
+            InputStream is = new FileInputStream(diskVersionFn);
+            int len = is.read(buf);
+            diskVersion = new String(buf, 0, len);
+            is.close();
+        } catch (Exception e) {
+            diskVersion = "";
+        }
+
+        if (! dataVersion.equals(diskVersion)) {
+            // If the disk data is out of date, extract it and write the version file.
+            Log.v(TAG, "Extracting " + resource + " assets.");
+
+            if (cleanup_on_version_update) {
+                recursiveDelete(target);
+            }
+            target.mkdirs();
+
+            AssetExtract ae = new AssetExtract(ctx);
+            if (!ae.extractTar(resource + ".so", target.getAbsolutePath(), "pybundle")) {
+                String msg = "Could not extract " + resource + " data.";
+                if (ctx instanceof Activity) {
+                    toastError((Activity)ctx, msg);
+                } else {
+                    Log.v(TAG, msg);
+                }
+            }
+
+            try {
+                // Write version file.
+                FileOutputStream os = new FileOutputStream(diskVersionFn);
+                os.write(dataVersion.getBytes());
+                os.close();
+            } catch (Exception e) {
+                Log.w(TAG, e);
             }
         }
     }
