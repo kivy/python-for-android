@@ -2,7 +2,7 @@ from pythonforandroid.recipe import CompiledComponentsPythonRecipe, Recipe
 from multiprocessing import cpu_count
 
 
-class ThisRecipe(CompiledComponentsPythonRecipe):
+class ScikitlearnRecipe(CompiledComponentsPythonRecipe):
 
     site_packages_name = 'scikit-learn'
     version = '0.23.2'
@@ -37,4 +37,4 @@ class ThisRecipe(CompiledComponentsPythonRecipe):
         return env
 
 
-recipe = ThisRecipe()
+recipe = ScikitlearnRecipe()

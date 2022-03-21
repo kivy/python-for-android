@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe
 
 
-class ThisRecipe(PythonRecipe):
+class JoblibRecipe(PythonRecipe):
     org = 'joblib'
     name = 'joblib'
     version = '0.17.0'
@@ -11,4 +11,4 @@ class ThisRecipe(PythonRecipe):
     patches = ['multiprocessing.patch']
 
 
-recipe = ThisRecipe()
+recipe = JoblibRecipe()

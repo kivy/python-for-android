@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe
 
 
-class ThisRecipe(PythonRecipe):
+class ThreadpoolctlRecipe(PythonRecipe):
     org = 'joblib'
     name = 'threadpoolctl'
     version = '2.1.0'
@@ -11,4 +11,4 @@ class ThisRecipe(PythonRecipe):
     patches = ['docstring.patch', 'setuptools.patch']
 
 
-recipe = ThisRecipe()
+recipe = ThreadpoolctlRecipe()
