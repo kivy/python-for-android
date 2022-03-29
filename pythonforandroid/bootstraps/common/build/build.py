@@ -873,6 +873,9 @@ tools directory of the Android SDK.
     ap.add_argument('--extra-manifest-application-arguments', default='',
                     help='Extra arguments to be added to the <manifest><application> tag of'
                          'AndroidManifest.xml')
+    ap.add_argument('--extra-manifest-receiver-arguments', default='',
+                    help='Extra xml to write directly inside the <manifest><application> element of'
+                         'AndroidManifest.xml')
     ap.add_argument('--manifest-placeholders', dest='manifest_placeholders',
                     default='[:]', help=('Inject build variables into the manifest '
                                          'via the manifestPlaceholders property'))
