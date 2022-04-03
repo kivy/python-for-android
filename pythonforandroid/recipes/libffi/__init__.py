@@ -21,13 +21,6 @@ class LibffiRecipe(Recipe):
 
     built_libraries = {'libffi.so': '.libs'}
 
-    """
-    def get_recipe_env(self, arch=None):
-        env = super().get_recipe_env(arch)
-        env['STRIP'] = ''
-        return env
-    """
-
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):

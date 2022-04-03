@@ -29,7 +29,6 @@ class ICURecipe(Recipe):
         'libicutu{}.so'.format(major_version): 'build_icu_android/lib',
         'libiculx{}.so'.format(major_version): 'build_icu_android/lib',
     }
-    need_stl_shared = True
 
     @property
     def versioned_url(self):
@@ -94,7 +93,6 @@ class ICURecipe(Recipe):
                     _env=host_env)
                 shprint(sh.make, "-j", str(cpu_count()), _env=host_env)
                 shprint(sh.make, "install", _env=host_env)
-
         build_android, exists = make_build_dest("build_icu_android")
         if not exists:
             configure = sh.Command(join(build_root, "source", "configure"))

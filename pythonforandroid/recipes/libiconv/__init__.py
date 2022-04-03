@@ -13,8 +13,6 @@ class LibIconvRecipe(Recipe):
 
     built_libraries = {'libiconv.so': 'lib/.libs'}
 
-    # patches = ['libiconv-1.15-no-gets.patch']
-
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):

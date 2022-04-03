@@ -5,6 +5,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
     name = 'evdev'
     version = 'v0.4.7'
     url = 'https://github.com/gvalkov/python-evdev/archive/{version}.zip'
+    call_hostpython_via_targetpython = False
 
     depends = []
 

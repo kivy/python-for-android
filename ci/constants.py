@@ -32,10 +32,8 @@ BROKEN_RECIPES_PYTHON3 = set([
     'zope_interface',
     # Requires zope_interface, which is broken.
     'twisted',
-    # Mirko: FIXME
-    'icu',
+    # genericndkbuild is incompatible with sdl2 (which is build by default when targeting sdl2 bootstrap)
     'genericndkbuild',
-    'evdev'
 ])
 
 BROKEN_RECIPES = {
