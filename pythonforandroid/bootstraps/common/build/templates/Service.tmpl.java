@@ -1,5 +1,6 @@
 package {{ args.package }};
 
+import android.os.Build;
 import android.content.Intent;
 import android.content.Context;
 import {{ args.service_class_name }};
@@ -20,7 +21,16 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
 
     static public void start(Context ctx, String pythonServiceArgument) {
         Intent intent = getDefaultIntent(ctx, pythonServiceArgument);
+        //foreground: {{foreground}}
+        {% if foreground %}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ctx.startForegroundService(intent);
+        } else {
+            ctx.startService(intent);
+        }
+        {% else %}
         ctx.startService(intent);
+        {% endif %}
     }
 
     static public Intent getDefaultIntent(Context ctx, String pythonServiceArgument) {
