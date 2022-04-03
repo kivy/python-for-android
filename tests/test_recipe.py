@@ -256,7 +256,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         returns the expected path for the stl library
         """
         arch = ArchAarch_64(self.ctx)
-        recipe = Recipe.get_recipe('icu', self.ctx)
+        recipe = Recipe.get_recipe('libgeos', self.ctx)
         self.assertTrue(recipe.need_stl_shared)
         self.assertEqual(
             recipe.get_stl_lib_dir(arch),
@@ -288,7 +288,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         mock_find_executable.return_value = expected_compiler
 
         arch = ArchAarch_64(self.ctx)
-        recipe = Recipe.get_recipe('icu', self.ctx)
+        recipe = Recipe.get_recipe('libgeos', self.ctx)
         assert recipe.need_stl_shared, True
         env = recipe.get_recipe_env(arch)
         #  check that the mocks have been called
@@ -333,7 +333,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         mock_isfile.return_value = False
 
         arch = ArchAarch_64(self.ctx)
-        recipe = Recipe.get_recipe('icu', self.ctx)
+        recipe = Recipe.get_recipe('libgeos', self.ctx)
         recipe.ctx = self.ctx
         assert recipe.need_stl_shared, True
         recipe.install_stl_lib(arch)
@@ -351,7 +351,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
     @mock.patch('pythonforandroid.recipe.Recipe.install_stl_lib')
     def test_postarch_build(self, mock_install_stl_lib):
         arch = ArchAarch_64(self.ctx)
-        recipe = Recipe.get_recipe('icu', self.ctx)
+        recipe = Recipe.get_recipe('libgeos', self.ctx)
         assert recipe.need_stl_shared, True
         recipe.postbuild_arch(arch)
         mock_install_stl_lib.assert_called_once_with(arch)
