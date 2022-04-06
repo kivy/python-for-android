@@ -98,10 +98,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependencies
         run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
           brew install autoconf automake libtool openssl pkg-config
           make --file ci/makefiles/osx.mk
       - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
         run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
           make testapps-with-numpy
 
   ubuntu_build_aab:
@@ -155,10 +159,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependencies
         run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
           brew install autoconf automake libtool openssl pkg-config
           make --file ci/makefiles/osx.mk
       - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
         run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
           make testapps-with-numpy-aab
 
   ubuntu_rebuild_updated_recipes:
@@ -209,10 +217,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependencies
         run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
           brew install autoconf automake libtool openssl pkg-config
           make --file ci/makefiles/osx.mk
       - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
         run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
           make rebuild_updated_recipes
 
   coveralls_finish:
