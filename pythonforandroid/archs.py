@@ -1,18 +1,13 @@
 from distutils.spawn import find_executable
 from os import environ
-from os.path import join, split, exists
+from os.path import join
 from multiprocessing import cpu_count
-from glob import glob
 
-from pythonforandroid.logger import warning
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException, build_platform
 
 
 class Arch:
-
-    toolchain_prefix = None
-    '''The prefix for the toolchain dir in the NDK.'''
 
     command_prefix = None
     '''The prefix for NDK commands such as gcc.'''
@@ -30,8 +25,7 @@ class Arch:
 
     common_cppflags = [
         '-DANDROID',
-        '-D__ANDROID_API__={ctx.ndk_api}',
-        '-I{ctx.ndk_sysroot}/usr/include/{command_prefix}',
+        '-I{ctx.ndk_sysroot}/usr/include',
         '-I{python_includes}',
     ]
 
@@ -63,20 +57,6 @@ class Arch:
         return join(self.ctx.ndk_sysroot, 'usr', 'lib', self.command_prefix, str(self.ctx.ndk_api))
 
     @property
-    def ndk_platform(self):
-        warning("ndk_platform is deprecated and should be avoided in new recipes")
-        ndk_platform = join(
-            self.ctx.ndk_dir,
-            'platforms',
-            'android-{}'.format(self.ctx.ndk_api),
-            self.platform_dir)
-        if not exists(ndk_platform):
-            BuildInterruptingException(
-                "The requested platform folder doesn't exist. If you're building on ndk >= r22, and seeing this error, one of the required recipe is using a removed feature."
-            )
-        return ndk_platform
-
-    @property
     def include_dirs(self):
         return [
             "{}/{}".format(
@@ -97,13 +77,10 @@ class Arch:
     @property
     def clang_path(self):
         """Full path of the clang compiler"""
-        llvm_dirname = split(
-            glob(join(self.ctx.ndk_dir, 'toolchains', 'llvm*'))[-1]
-        )[-1]
         return join(
             self.ctx.ndk_dir,
             'toolchains',
-            llvm_dirname,
+            'llvm',
             'prebuilt',
             build_platform,
             'bin',
@@ -190,12 +167,10 @@ class Arch:
             )
 
         # Compiler: `CC` and `CXX` (and make sure that the compiler exists)
-        environ['PATH'] = '{clang_path}:{path}'.format(
-            clang_path=self.clang_path, path=environ['PATH']
-        )
-        cc = find_executable(self.clang_exe, path=environ['PATH'])
+        env['PATH'] = self.ctx.env['PATH']
+        cc = find_executable(self.clang_exe, path=env['PATH'])
         if cc is None:
-            print('Searching path are: {!r}'.format(environ['PATH']))
+            print('Searching path are: {!r}'.format(env['PATH']))
             raise BuildInterruptingException(
                 'Couldn\'t find executable for CC. This indicates a '
                 'problem locating the {} executable in the Android '
@@ -219,21 +194,18 @@ class Arch:
                 execxx=self.clang_exe_cxx,
                 ccache=ccache)
 
-        # Android's binaries
-        command_prefix = self.command_prefix
-        env['AR'] = '{}-ar'.format(command_prefix)
-        env['RANLIB'] = '{}-ranlib'.format(command_prefix)
-        env['STRIP'] = '{}-strip --strip-unneeded'.format(command_prefix)
+        # Android's LLVM binutils
+        env['AR'] = f'{self.clang_path}/llvm-ar'
+        env['RANLIB'] = f'{self.clang_path}/llvm-ranlib'
+        env['STRIP'] = f'{self.clang_path}/llvm-strip --strip-unneeded'
+        env['READELF'] = f'{self.clang_path}/llvm-readelf'
+        env['OBJCOPY'] = f'{self.clang_path}/llvm-objcopy'
+
         env['MAKE'] = 'make -j{}'.format(str(cpu_count()))
-        env['READELF'] = '{}-readelf'.format(command_prefix)
-        env['NM'] = '{}-nm'.format(command_prefix)
-        env['LD'] = '{}-ld'.format(command_prefix)
 
         # Android's arch/toolchain
         env['ARCH'] = self.arch
         env['NDK_API'] = 'android-{}'.format(str(self.ctx.ndk_api))
-        env['TOOLCHAIN_PREFIX'] = self.toolchain_prefix
-        env['TOOLCHAIN_VERSION'] = self.ctx.toolchain_version
 
         # Custom linker options
         env['LDSHARED'] = env['CC'] + ' ' + ' '.join(self.common_ldshared)
@@ -251,8 +223,6 @@ class Arch:
             ),
         )
 
-        env['PATH'] = environ['PATH']
-
         # for reproducible builds
         if 'SOURCE_DATE_EPOCH' in environ:
             for k in 'LC_ALL TZ SOURCE_DATE_EPOCH PYTHONHASHSEED BUILD_DATE BUILD_TIME'.split():
@@ -264,9 +234,7 @@ class Arch:
 
 class ArchARM(Arch):
     arch = "armeabi"
-    toolchain_prefix = 'arm-linux-androideabi'
     command_prefix = 'arm-linux-androideabi'
-    platform_dir = 'arch-arm'
 
     @property
     def target(self):
@@ -290,12 +258,9 @@ class ArchARMv7_a(ArchARM):
 
 class Archx86(Arch):
     arch = 'x86'
-    toolchain_prefix = 'x86'
     command_prefix = 'i686-linux-android'
-    platform_dir = 'arch-x86'
     arch_cflags = [
         '-march=i686',
-        '-mtune=intel',
         '-mssse3',
         '-mfpmath=sse',
         '-m32',
@@ -304,26 +269,22 @@ class Archx86(Arch):
 
 class Archx86_64(Arch):
     arch = 'x86_64'
-    toolchain_prefix = 'x86_64'
     command_prefix = 'x86_64-linux-android'
-    platform_dir = 'arch-x86_64'
     arch_cflags = [
         '-march=x86-64',
         '-msse4.2',
         '-mpopcnt',
         '-m64',
-        '-mtune=intel',
         '-fPIC',
     ]
 
 
 class ArchAarch_64(Arch):
     arch = 'arm64-v8a'
-    toolchain_prefix = 'aarch64-linux-android'
     command_prefix = 'aarch64-linux-android'
-    platform_dir = 'arch-arm64'
     arch_cflags = [
         '-march=armv8-a',
+        '-fPIC'
         # '-I' + join(dirname(__file__), 'includes', 'arm64-v8a'),
     ]
 

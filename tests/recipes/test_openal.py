@@ -14,12 +14,10 @@ class TestOpenalRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
     @mock.patch("pythonforandroid.recipes.openal.sh.cp")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_prebuild_arch(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_current_directory,
         mock_sh_cp,
@@ -30,11 +28,9 @@ class TestOpenalRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
             "/opt/android/android-ndk/toolchains/"
             "llvm/prebuilt/linux-x86_64/bin/clang"
         )
-        mock_glob.return_value = ["llvm"]
         self.recipe.build_arch(self.arch)
 
         # make sure that the mocked methods are actually called
-        mock_glob.assert_called()
         mock_ensure_dir.assert_called()
         mock_current_directory.assert_called()
         mock_find_executable.assert_called()
@@ -45,12 +41,10 @@ class TestOpenalRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
     @mock.patch("pythonforandroid.recipes.openal.sh.cp")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_build_arch(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_current_directory,
         mock_sh_cp,

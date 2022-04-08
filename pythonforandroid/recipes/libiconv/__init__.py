@@ -7,13 +7,11 @@ import sh
 
 class LibIconvRecipe(Recipe):
 
-    version = '1.15'
+    version = '1.16'
 
     url = 'https://ftp.gnu.org/pub/gnu/libiconv/libiconv-{version}.tar.gz'
 
     built_libraries = {'libiconv.so': 'lib/.libs'}
-
-    patches = ['libiconv-1.15-no-gets.patch']
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)

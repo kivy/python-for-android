@@ -6,7 +6,7 @@ from unittest import mock
 from pythonforandroid.recipes.python3 import (
     NDK_API_LOWER_THAN_SUPPORTED_MESSAGE,
 )
-from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.util import BuildInterruptingException, build_platform
 from tests.recipes.recipe_lib_test import RecipeCtx
 
 
@@ -15,6 +15,10 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
     TestCase for recipe :mod:`~pythonforandroid.recipes.python3`
     """
     recipe_name = "python3"
+    expected_compiler = (
+        f"/opt/android/android-ndk/toolchains/"
+        f"llvm/prebuilt/{build_platform}/bin/clang"
+    )
 
     def test_property__libpython(self):
         self.assertEqual(
@@ -56,10 +60,10 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         )
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
-    @mock.patch("pythonforandroid.archs.glob")
+    @mock.patch("pythonforandroid.archs.find_executable")
     def test_get_recipe_env(
         self,
-        mock_glob,
+        mock_find_executable,
         mock_check_recipe_choices,
     ):
         """
@@ -67,20 +71,16 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         :meth:`~pythonforandroid.recipes.python3.Python3Recipe.get_recipe_env`
         returns the expected flags
         """
-
-        mock_glob.return_value = ["llvm"]
+        mock_find_executable.return_value = self.expected_compiler
         mock_check_recipe_choices.return_value = sorted(
             self.ctx.recipe_build_order
         )
         env = self.recipe.get_recipe_env(self.arch)
 
-        self.assertIn(
-            f'-fPIC -DANDROID -D__ANDROID_API__={self.ctx.ndk_api}',
-            env["CFLAGS"])
+        self.assertIn('-fPIC -DANDROID', env["CFLAGS"])
         self.assertEqual(env["CC"], self.arch.get_clang_exe(with_target=True))
 
         # make sure that the mocked methods are actually called
-        mock_glob.assert_called()
         mock_check_recipe_choices.assert_called()
 
     def test_set_libs_flags(self):
@@ -91,13 +91,13 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
     # and `set_libs_flags`, since these calls are tested separately
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.util.makedirs")
-    @mock.patch("pythonforandroid.archs.glob")
+    @mock.patch("pythonforandroid.archs.find_executable")
     def test_build_arch(
             self,
-            mock_glob,
+            mock_find_executable,
             mock_makedirs,
-            mock_chdir,):
-        mock_glob.return_value = ["llvm"]
+            mock_chdir):
+        mock_find_executable.return_value = self.expected_compiler
 
         # specific `build_arch` mocks
         with mock.patch(

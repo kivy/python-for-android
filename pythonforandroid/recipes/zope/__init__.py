@@ -17,6 +17,7 @@ class ZopeRecipe(PythonRecipe):
         env['LDFLAGS'] = env['LDFLAGS'] + ' -L{}'.format(
             self.ctx.get_libs_dir(arch.arch))
         env['LDSHARED'] = join(self.ctx.root_dir, 'tools', 'liblink')
+        return env
 
     def postbuild_arch(self, arch):
         super().postbuild_arch(arch)
@@ -25,3 +26,5 @@ class ZopeRecipe(PythonRecipe):
 
 
 recipe = ZopeRecipe()
+
+# FIXME: @mirko liblink & LD

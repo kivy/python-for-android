@@ -518,12 +518,10 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstrap.shprint")
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_bootstrap_strip(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_sh_command,
         mock_sh_print,
@@ -532,9 +530,6 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             self.ctx._ndk_dir,
             f"toolchains/llvm/prebuilt/{build_platform}/bin/clang",
         )
-        mock_glob.return_value = [
-            os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
-        ]
         # prepare arch, bootstrap, distribution and PythonRecipe
         arch = ArchARMv7_a(self.ctx)
         bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
@@ -549,7 +544,13 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             mock_find_executable.call_args[0][0],
             mock_find_executable.return_value,
         )
-        mock_sh_command.assert_called_once_with("arm-linux-androideabi-strip")
+        mock_sh_command.assert_called_once_with(
+            os.path.join(
+                self.ctx._ndk_dir,
+                f"toolchains/llvm/prebuilt/{build_platform}/bin",
+                "llvm-strip",
+            )
+        )
         # check that the other mocks we made are actually called
         mock_ensure_dir.assert_called()
         mock_sh_print.assert_called()

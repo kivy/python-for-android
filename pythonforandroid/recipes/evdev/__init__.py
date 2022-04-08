@@ -5,6 +5,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
     name = 'evdev'
     version = 'v0.4.7'
     url = 'https://github.com/gvalkov/python-evdev/archive/{version}.zip'
+    call_hostpython_via_targetpython = False
 
     depends = []
 
@@ -18,7 +19,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch=None):
         env = super().get_recipe_env(arch)
-        env['NDKPLATFORM'] = arch.ndk_platform
+        env['SYSROOT'] = self.ctx.ndk_sysroot
         return env
 
 

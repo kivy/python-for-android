@@ -25,7 +25,8 @@ class AudiostreamRecipe(CythonRecipe):
                               jni_path=join(self.ctx.bootstrap.build_dir, 'jni'),
                               sdl_include=sdl_include,
                               sdl_mixer_include=sdl_mixer_include)
-        env['NDKPLATFORM'] = arch.ndk_platform
+        # NDKPLATFORM is our switch for detecting Android platform, so can't be None
+        env['NDKPLATFORM'] = "NOTNONE"
         env['LIBLINK'] = 'NOTNONE'  # Hacky fix. Needed by audiostream setup.py
         return env
 
