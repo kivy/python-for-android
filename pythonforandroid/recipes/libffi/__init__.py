@@ -14,7 +14,7 @@ class LibffiRecipe(Recipe):
         - `libltdl-dev` which defines the `LT_SYS_SYMBOL_USCORE` macro
     """
     name = 'libffi'
-    version = 'v3.3'
+    version = 'v3.4.2'
     url = 'https://github.com/libffi/libffi/archive/{version}.tar.gz'
 
     patches = ['remove-version-info.patch']
