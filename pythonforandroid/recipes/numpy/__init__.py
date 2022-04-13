@@ -9,7 +9,7 @@ import sh
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):
 
-    version = '1.18.1'
+    version = '1.22.3'
     url = 'https://pypi.python.org/packages/source/n/numpy/numpy-{version}.zip'
     site_packages_name = 'numpy'
     depends = ['setuptools', 'cython']
@@ -17,11 +17,22 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
     call_hostpython_via_targetpython = False
 
     patches = [
-        join('patches', 'hostnumpy-xlocale.patch'),
-        join('patches', 'remove-default-paths.patch'),
-        join('patches', 'add_libm_explicitly_to_build.patch'),
-        join('patches', 'compiler_cxx_fix.patch'),
-        ]
+        join("patches", "remove-default-paths.patch"),
+        join("patches", "add_libm_explicitly_to_build.patch"),
+    ]
+
+    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
+        env = super().get_recipe_env(arch, with_flags_in_cc)
+
+        # _PYTHON_HOST_PLATFORM declares that we're cross-compiling
+        # and avoids issues when building on macOS for Android targets.
+        env["_PYTHON_HOST_PLATFORM"] = arch.command_prefix
+
+        # NPY_DISABLE_SVML=1 allows numpy to build for non-AVX512 CPUs
+        # See: https://github.com/numpy/numpy/issues/21196
+        env["NPY_DISABLE_SVML"] = "1"
+
+        return env
 
     def _build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
