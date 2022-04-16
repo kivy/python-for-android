@@ -264,6 +264,7 @@ class Archx86(Arch):
         '-mssse3',
         '-mfpmath=sse',
         '-m32',
+        '-fPIC',
     ]
 
 
