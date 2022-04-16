@@ -215,6 +215,8 @@ jobs:
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Install dependencies
         run: |
           source ci/osx_ci.sh
