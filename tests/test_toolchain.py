@@ -1,12 +1,10 @@
 import io
 import sys
-from os.path import join
 import pytest
 from unittest import mock
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import ToolchainCL
 from pythonforandroid.util import BuildInterruptingException
-from pythonforandroid.build import get_ndk_standalone
 
 
 def patch_sys_argv(argv):
@@ -70,18 +68,12 @@ class TestToolchainCL:
         with patch_sys_argv(argv), mock.patch(
             'pythonforandroid.build.get_available_apis'
         ) as m_get_available_apis, mock.patch(
-            'pythonforandroid.build.get_ndk_sysroot'
-        ) as m_get_ndk_sysroot, mock.patch(
             'pythonforandroid.toolchain.build_recipes'
         ) as m_build_recipes, mock.patch(
             'pythonforandroid.bootstraps.service_only.'
             'ServiceOnlyBootstrap.assemble_distribution'
         ) as m_run_distribute:
             m_get_available_apis.return_value = [27]
-            m_get_ndk_sysroot.return_value = (
-                join(get_ndk_standalone("/tmp/android-ndk"), "sysroot"),
-                True,
-            )
             tchain = ToolchainCL()
             assert tchain.ctx.activity_class_name == 'abc.myapp.android.CustomPythonActivity'
             assert tchain.ctx.service_class_name == 'xyz.myapp.android.CustomPythonService'

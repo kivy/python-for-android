@@ -35,9 +35,6 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
 
-        ndk_lib_dir = arch.ndk_lib_dir
-        ndk_include_dir = self.ctx.ndk_include_dir
-
         png = self.get_recipe('png', self.ctx)
         png_lib_dir = join(png.get_build_dir(arch.arch), '.libs')
         png_inc_dir = png.get_build_dir(arch)
@@ -71,7 +68,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         cflags += f' -I{jpeg_inc_dir}'
         if build_with_webp_support:
             cflags += f' -I{join(webp_install, "include")}'
-        cflags += f' -I{ndk_include_dir}'
+        cflags += f' -I{self.ctx.ndk.sysroot_include_dir}'
 
         # Link the basic Pillow libraries...no need to add webp's libraries
         # since it seems that the linkage is properly made without it :)
@@ -84,7 +81,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += f' -L{jpeg_lib_dir}'
         if build_with_webp_support:
             env['LDFLAGS'] += f' -L{join(webp_install, "lib")}'
-        env['LDFLAGS'] += f' -L{ndk_lib_dir}'
+        env['LDFLAGS'] += f' -L{arch.ndk_lib_dir_versioned}'
         if cflags not in env['CFLAGS']:
             env['CFLAGS'] += cflags + " -lm"
         return env

@@ -1,0 +1,11 @@
+diff -Naur numpy.orig/numpy/distutils/unixccompiler.py numpy/numpy/distutils/unixccompiler.py
+--- numpy.orig/numpy/distutils/unixccompiler.py	2022-05-28 10:22:10.000000000 +0200
++++ numpy/numpy/distutils/unixccompiler.py	2022-05-28 10:22:24.000000000 +0200
+@@ -124,6 +124,7 @@
+         # platform intelligence here to skip ranlib if it's not
+         # needed -- or maybe Python's configure script took care of
+         # it for us, hence the check for leading colon.
++        self.ranlib = [os.environ.get('RANLIB')]
+         if self.ranlib:
+             display = '%s:@ %s' % (os.path.basename(self.ranlib[0]),
+                                    output_filename)

@@ -19,6 +19,7 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
     patches = [
         join("patches", "remove-default-paths.patch"),
         join("patches", "add_libm_explicitly_to_build.patch"),
+        join("patches", "ranlib.patch"),
     ]
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
@@ -39,9 +40,6 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
 
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            hostpython = sh.Command(self.real_hostpython_location)
-            if self.install_in_hostpython:
-                shprint(hostpython, 'setup.py', 'clean', '--all', '--force', _env=env)
             hostpython = sh.Command(self.hostpython_location)
             shprint(hostpython, 'setup.py', self.build_cmd, '-v',
                     _env=env, *self.setup_extra_args)
@@ -66,6 +64,11 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
         self.setup_extra_args = ['-j', str(cpu_count())]
         self._rebuild_compiled_components(arch, env)
         self.setup_extra_args = []
+
+    def get_hostrecipe_env(self, arch):
+        env = super().get_hostrecipe_env(arch)
+        env['RANLIB'] = sh.which('ranlib')
+        return env
 
 
 recipe = NumpyRecipe()

@@ -5,6 +5,7 @@ from pythonforandroid.distribution import Distribution
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.build import Context
 from pythonforandroid.archs import ArchAarch_64
+from pythonforandroid.androidndk import AndroidNDK
 
 
 class RecipeCtx:
@@ -36,6 +37,7 @@ class RecipeCtx:
         self.ctx.android_api = 27
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
+        self.ctx.ndk = AndroidNDK(self.ctx._ndk_dir)
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         self.ctx.bootstrap.distribution = Distribution.get_distribution(

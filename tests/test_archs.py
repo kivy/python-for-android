@@ -7,7 +7,7 @@ from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.build import Context
-from pythonforandroid.util import BuildInterruptingException, build_platform
+from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.archs import (
     Arch,
     ArchARM,
@@ -16,6 +16,7 @@ from pythonforandroid.archs import (
     Archx86,
     Archx86_64,
 )
+from pythonforandroid.androidndk import AndroidNDK
 
 expected_env_gcc_keys = {
     "CFLAGS",
@@ -52,6 +53,7 @@ class ArchSetUpBaseClass(object):
         self.ctx.android_api = 27
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
+        self.ctx.ndk = AndroidNDK(self.ctx._ndk_dir)
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
@@ -65,7 +67,7 @@ class ArchSetUpBaseClass(object):
         # should be the same for all the tests (no more gcc compiler)
         self.expected_compiler = (
             f"/opt/android/android-ndk/toolchains/"
-            f"llvm/prebuilt/{build_platform}/bin/clang"
+            f"llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang"
         )
 
 
@@ -137,7 +139,7 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
             env["STRIP"].split()[0],
             os.path.join(
                 self.ctx._ndk_dir,
-                f"toolchains/llvm/prebuilt/{build_platform}/bin",
+                f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin",
                 "llvm-strip",
             )
         )
@@ -145,7 +147,7 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
             env["READELF"].split()[0],
             os.path.join(
                 self.ctx._ndk_dir,
-                f"toolchains/llvm/prebuilt/{build_platform}/bin",
+                f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin",
                 "llvm-readelf",
             )
         )
@@ -211,21 +213,18 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
         )
 
         # check clang
-        build_platform = "{system}-{machine}".format(
-            system=os.uname()[0], machine=os.uname()[-1]
-        ).lower()
         self.assertEqual(
             env["CC"].split()[0],
             "{ndk_dir}/toolchains/llvm/prebuilt/"
-            "{build_platform}/bin/clang".format(
-                ndk_dir=self.ctx._ndk_dir, build_platform=build_platform
+            "{host_tag}/bin/clang".format(
+                ndk_dir=self.ctx._ndk_dir, host_tag=self.ctx.ndk.host_tag
             ),
         )
         self.assertEqual(
             env["CXX"].split()[0],
             "{ndk_dir}/toolchains/llvm/prebuilt/"
-            "{build_platform}/bin/clang++".format(
-                ndk_dir=self.ctx._ndk_dir, build_platform=build_platform
+            "{host_tag}/bin/clang++".format(
+                ndk_dir=self.ctx._ndk_dir, host_tag=self.ctx.ndk.host_tag
             ),
         )
 

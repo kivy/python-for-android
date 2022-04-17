@@ -6,7 +6,7 @@ import sh
 
 
 class LibxsltRecipe(Recipe):
-    version = '1.1.32'
+    version = '1.1.34'
     url = 'http://xmlsoft.org/sources/libxslt-{version}.tar.gz'
     depends = ['libxml2']
     patches = ['fix-dlopen.patch']
@@ -43,6 +43,8 @@ class LibxsltRecipe(Recipe):
                     '--disable-shared',
                     _env=env)
             shprint(sh.make, "V=1", _env=env)
+
+            shprint(sh.Command('chmod'), '+x', 'xslt-config')
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)

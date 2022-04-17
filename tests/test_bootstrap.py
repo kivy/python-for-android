@@ -12,7 +12,8 @@ from pythonforandroid.distribution import Distribution
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
-from pythonforandroid.util import BuildInterruptingException, build_platform
+from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.androidndk import AndroidNDK
 
 from test_graph import get_fake_recipe
 
@@ -33,6 +34,7 @@ class BaseClassSetupBootstrap(object):
         self.ctx.android_api = 27
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
+        self.ctx.ndk = AndroidNDK(self.ctx._ndk_dir)
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.recipe_build_order = [
             "hostpython3",
@@ -528,7 +530,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            f"toolchains/llvm/prebuilt/{build_platform}/bin/clang",
+            f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang",
         )
         # prepare arch, bootstrap, distribution and PythonRecipe
         arch = ArchARMv7_a(self.ctx)
@@ -547,7 +549,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_sh_command.assert_called_once_with(
             os.path.join(
                 self.ctx._ndk_dir,
-                f"toolchains/llvm/prebuilt/{build_platform}/bin",
+                f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin",
                 "llvm-strip",
             )
         )
