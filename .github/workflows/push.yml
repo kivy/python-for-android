@@ -3,9 +3,9 @@ name: Unit tests & build apps
 on: ['push', 'pull_request']
 
 env:
-  APK_ARTIFACT_FILENAME: bdist_unit_tests_app-debug-1.1-.apk
-  AAB_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1-.aab
-  AAR_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1-.aar
+  APK_ARTIFACT_FILENAME: bdist_unit_tests_app-debug-1.1.apk
+  AAB_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aab
+  AAR_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aar
   PYTHONFORANDROID_PREREQUISITES_INSTALL_INTERACTIVE: 0
 
 jobs:
