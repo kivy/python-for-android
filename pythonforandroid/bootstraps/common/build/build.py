@@ -4,7 +4,7 @@ from gzip import GzipFile
 import hashlib
 import json
 from os.path import (
-    dirname, join, isfile, realpath,
+    dirname, join, isfile, isdir, realpath,
     relpath, split, exists, basename
 )
 from os import environ, listdir, makedirs, remove
@@ -342,10 +342,37 @@ main.py that loads it.''')
     res_dir = "src/main/res"
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
+
+    if args.res:
+        target_res_dirs = [
+            filename for filename in listdir(res_dir)
+            if isdir(join(res_dir, filename))
+        ]
+        source_res_dirs = [
+            filename for filename in listdir(args.res)
+            if isdir(join(args.res, filename))
+        ]
+        for directory in source_res_dirs:
+            if directory not in target_res_dirs:
+                ensure_dir(join(res_dir, directory))
+            source_dir = join(args.res, directory)
+            target_dir = join(res_dir, directory)
+
+            source_dir_files = [
+                filename for filename in listdir(source_dir)
+                if isfile(join(source_dir, filename))
+            ]
+            for filename in source_dir_files:
+                shutil.copy(
+                    join(source_dir, filename),
+                    join(target_dir, filename)
+                )
+
     shutil.copy(
         args.icon or default_icon,
         join(res_dir, 'mipmap/icon.png')
     )
+
     if args.icon_fg and args.icon_bg:
         shutil.copy(args.icon_fg, join(res_dir, 'mipmap/icon_foreground.png'))
         shutil.copy(args.icon_bg, join(res_dir, 'mipmap/icon_background.png'))
@@ -690,6 +717,8 @@ tools directory of the Android SDK.
                     action="append", default=[],
                     metavar="/path/to/source:dest",
                     help='Put this in the assets folder at assets/dest')
+    ap.add_argument('--add-res', dest='res',
+                    help=('Copy/overwrite directories and its files in the android res directory'))
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
