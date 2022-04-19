@@ -370,9 +370,9 @@ class Context:
 
         self.env["PATH"] = ":".join(
             [
-                f"{ndk_dir}/toolchains/llvm/prebuilt/{py_platform}-x86_64/bin",
-                ndk_dir,
-                f"{sdk_dir}/tools",
+                f"{self.ndk_dir}/toolchains/llvm/prebuilt/{py_platform}-x86_64/bin",
+                self.ndk_dir,
+                f"{self.sdk_dir}/tools",
                 environ.get("PATH"),
             ]
         )
