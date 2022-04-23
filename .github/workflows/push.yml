@@ -223,7 +223,7 @@ jobs:
           arm64_set_path_and_python_version 3.9.7
           brew install autoconf automake libtool openssl pkg-config
           make --file ci/makefiles/osx.mk
-      - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
+      - name: Rebuild updated recipes
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
