@@ -2,6 +2,10 @@ name: Unit tests & build apps
 
 on: ['push', 'pull_request']
 
+env:
+  APK_ARTIFACT_FILENAME: bdist_unit_tests_app-debug-1.1-.apk
+  AAB_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1-.aab
+
 jobs:
 
   flake8:
@@ -48,9 +52,13 @@ jobs:
         flag-name: run-${{ matrix.os }}-${{ matrix.python-version }}
 
   ubuntu_build_apk:
-    name: Unit test apk [ ubuntu-latest ]
+    name: Unit test apk [ ${{ matrix.runs_on }} ]
     needs: [flake8]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      matrix:
+        include:
+          - runs_on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v2
@@ -70,9 +78,12 @@ jobs:
       run: |
         mkdir -p apks
         make docker/run/make/with-artifact/apk/testapps-with-numpy
+    - name: Rename artifact to include the build platform name
+      run: |
+        mv apks/${{ env.APK_ARTIFACT_FILENAME }} apks/${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
     - uses: actions/upload-artifact@v1
       with:
-        name: bdist_unit_tests_app-debug-1.1-.apk
+        name: ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
         path: apks
 
   macos_build_apk:
@@ -107,11 +118,22 @@ jobs:
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           make testapps-with-numpy
+      - name: Rename artifact to include the build platform name
+        run: |
+          mv testapps/on_device_unit_tests/${{ env.APK_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
+          path: ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
 
   ubuntu_build_aab:
-    name: Unit test aab [ ubuntu-latest ]
+    name: Unit test aab [ ${{ matrix.runs_on }} ]
     needs: [flake8]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      matrix:
+        include:
+          - runs_on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v2
@@ -131,9 +153,12 @@ jobs:
       run: |
         mkdir -p aabs
         make docker/run/make/with-artifact/aab/testapps-with-numpy-aab
+    - name: Rename artifact to include the build platform name
+      run: |
+        mv aabs/${{ env.AAB_ARTIFACT_FILENAME }} aabs/${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
     - uses: actions/upload-artifact@v1
       with:
-        name: bdist_unit_tests_app-release-1.1-.aab
+        name: ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
         path: aabs
 
   macos_build_aab:
@@ -163,11 +188,18 @@ jobs:
           arm64_set_path_and_python_version 3.9.7
           brew install autoconf automake libtool openssl pkg-config
           make --file ci/makefiles/osx.mk
-      - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
+      - name: Build multi-arch aab Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           make testapps-with-numpy-aab
+      - name: Rename artifact to include the build platform name
+        run: |
+          mv testapps/on_device_unit_tests/${{ env.AAB_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
+          path: ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
 
   ubuntu_rebuild_updated_recipes:
     name: Test updated recipes [ ubuntu-latest ]
