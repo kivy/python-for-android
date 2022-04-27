@@ -294,7 +294,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         #  check that the mocks have been called
         mock_ensure_dir.assert_called()
         mock_find_executable.assert_called_once_with(
-            expected_compiler, path=os.environ['PATH']
+            expected_compiler, path=self.ctx.env['PATH']
         )
         self.assertIsInstance(env, dict)
 

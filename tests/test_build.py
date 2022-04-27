@@ -1,9 +1,13 @@
+import os
+import sys
 import unittest
 from unittest import mock
 
 import jinja2
 
-from pythonforandroid.build import run_pymodules_install
+from pythonforandroid.build import (
+    Context, RECOMMENDED_TARGET_API, run_pymodules_install,
+)
 from pythonforandroid.archs import ArchARMv7_a, ArchAarch_64
 
 
@@ -89,3 +93,42 @@ class TestTemplates(unittest.TestCase):
         assert xml.count('android:debuggable="true"') == 1
         assert xml.count('<service android:name="abcd" />') == 1
         # TODO: potentially some other checks to be added here to cover other "logic" (flags and loops) in the template
+
+
+class TestContext(unittest.TestCase):
+
+    @mock.patch.dict('pythonforandroid.build.Context.env')
+    @mock.patch('pythonforandroid.build.get_available_apis')
+    @mock.patch('pythonforandroid.build.ensure_dir')
+    def test_sdk_ndk_paths(
+            self,
+            mock_ensure_dir,
+            mock_get_available_apis,
+    ):
+        mock_get_available_apis.return_value = [RECOMMENDED_TARGET_API]
+        context = Context()
+        context.setup_dirs(os.getcwd())
+        context.prepare_build_environment(
+            user_sdk_dir='sdk',
+            user_ndk_dir='ndk',
+            user_android_api=None,
+            user_ndk_api=None,
+        )
+
+        # The context was supplied with relative SDK and NDK dirs. Check
+        # that it resolved them to absolute paths.
+        real_sdk_dir = os.path.join(os.getcwd(), 'sdk')
+        real_ndk_dir = os.path.join(os.getcwd(), 'ndk')
+        assert context.sdk_dir == real_sdk_dir
+        assert context.ndk_dir == real_ndk_dir
+
+        py_platform = sys.platform
+        if py_platform in ['linux2', 'linux3']:
+            py_platform = 'linux'
+
+        context_paths = context.env['PATH'].split(':')
+        assert context_paths[0:3] == [
+            f'{real_ndk_dir}/toolchains/llvm/prebuilt/{py_platform}-x86_64/bin',
+            real_ndk_dir,
+            f'{real_sdk_dir}/tools'
+        ]
