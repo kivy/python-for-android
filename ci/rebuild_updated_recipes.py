@@ -22,6 +22,8 @@ Current limitations:
 """
 import sh
 import os
+import sys
+import argparse
 from pythonforandroid.build import Context
 from pythonforandroid import logger
 from pythonforandroid.toolchain import current_directory
@@ -46,7 +48,7 @@ def modified_recipes(branch='origin/develop'):
     return recipes
 
 
-def build(target_python, requirements):
+def build(target_python, requirements, archs):
     """
     Builds an APK given a target Python and a set of requirements.
     """
@@ -57,16 +59,29 @@ def build(target_python, requirements):
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
+
     with current_directory('testapps/on_device_unit_tests/'):
         # iterates to stream the output
         for line in sh.python(
                 'setup.py', 'apk', '--sdk-dir', android_sdk_home,
                 '--ndk-dir', android_ndk_home, '--requirements',
-                requirements, _err_to_out=True, _iter=True):
+                requirements, *[f"--arch={arch}" for arch in archs],
+                _err_to_out=True, _iter=True):
             print(line)
 
 
 def main():
+    parser = argparse.ArgumentParser("rebuild_updated_recipes")
+    parser.add_argument(
+        "--arch",
+        help="The archs to build for during tests",
+        action="append",
+        default=[],
+    )
+    args, unknown = parser.parse_known_args(sys.argv[1:])
+
+    logger.info(f"Building updated recipes for the following archs: {args.arch}")
+
     target_python = TargetPython.python3
     recipes = modified_recipes()
     logger.info('recipes modified: {}'.format(recipes))
@@ -89,7 +104,7 @@ def main():
     broken_recipes = BROKEN_RECIPES[target_python]
     recipes -= broken_recipes
     logger.info('recipes to build (no broken): {}'.format(recipes))
-    build(target_python, recipes)
+    build(target_python, recipes, args.arch)
 
 
 if __name__ == '__main__':

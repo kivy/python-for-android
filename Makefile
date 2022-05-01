@@ -14,6 +14,7 @@ PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
 DOCKER_IMAGE=kivy/python-for-android
 ANDROID_SDK_HOME ?= $(HOME)/.android/android-sdk
 ANDROID_NDK_HOME ?= $(HOME)/.android/android-ndk
+REBUILD_UPDATED_RECIPES_EXTRA_ARGS ?= ''
 
 
 all: virtualenv
@@ -32,7 +33,7 @@ test:
 rebuild_updated_recipes: virtualenv
 	. $(ACTIVATE) && \
 	ANDROID_SDK_HOME=$(ANDROID_SDK_HOME) ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) \
-	$(PYTHON) ci/rebuild_updated_recipes.py
+	$(PYTHON) ci/rebuild_updated_recipes.py $(REBUILD_UPDATED_RECIPES_EXTRA_ARGS)
 
 testapps-with-numpy: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
@@ -83,6 +84,9 @@ docker/run/make/with-artifact/aab/%: docker/build
 	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
 	docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/bdist_unit_tests_app-release-1.1-.aab ./aabs
 	docker rm -fv p4a-latest
+
+docker/run/make/rebuild_updated_recipes: docker/build
+	docker run --name p4a-latest -e REBUILD_UPDATED_RECIPES_EXTRA_ARGS --env-file=.env $(DOCKER_IMAGE) make rebuild_updated_recipes
 
 docker/run/make/%: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) make $*
