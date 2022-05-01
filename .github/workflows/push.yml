@@ -5,6 +5,7 @@ on: ['push', 'pull_request']
 env:
   APK_ARTIFACT_FILENAME: bdist_unit_tests_app-debug-1.1-.apk
   AAB_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1-.aab
+  PYTHONFORANDROID_PREREQUISITES_INSTALL_INTERACTIVE: 0
 
 jobs:
 
@@ -107,6 +108,16 @@ jobs:
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v2
+      - name: Install python-for-android
+        run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
+          python3 -m pip install -e .
+      - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
+        run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
+          python3 pythonforandroid/prerequisites.py
       - name: Install dependencies
         run: |
           source ci/osx_ci.sh
@@ -182,6 +193,16 @@ jobs:
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v2
+      - name: Install python-for-android
+        run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
+          python3 -m pip install -e .
+      - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
+        run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
+          python3 pythonforandroid/prerequisites.py
       - name: Install dependencies
         run: |
           source ci/osx_ci.sh
@@ -258,6 +279,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Install python-for-android
+        run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
+          python3 -m pip install -e .
+      - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
+        run: |
+          source ci/osx_ci.sh
+          arm64_set_path_and_python_version 3.9.7
+          python3 pythonforandroid/prerequisites.py
       - name: Install dependencies
         run: |
           source ci/osx_ci.sh
