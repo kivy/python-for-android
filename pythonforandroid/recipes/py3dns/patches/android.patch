@@ -1,0 +1,21 @@
+diff --git a/DNS/Base.py b/DNS/Base.py
+index 34a6da7..15f83a2 100644
+--- a/DNS/Base.py
++++ b/DNS/Base.py
+@@ -49,9 +49,13 @@ defaults= { 'protocol':'udp', 'port':53, 'opcode':Opcode.QUERY,
+             'server': [] }
+ 
+ def ParseResolvConf(resolv_path="/etc/resolv.conf"):
+-    "parses the /etc/resolv.conf file and sets defaults for name servers"
+-    with open(resolv_path, 'r') as stream:
+-        return ParseResolvConfFromIterable(stream)
++    try:
++        "parses the /etc/resolv.conf file and sets defaults for name servers"
++        with open(resolv_path, 'r') as stream:
++            return ParseResolvConfFromIterable(stream)
++    except FileNotFoundError:
++        defaults['server'].append('127.0.0.1')
++        return
+ 
+ def ParseResolvConfFromIterable(lines):
+     "parses a resolv.conf formatted stream and sets defaults for name servers"
