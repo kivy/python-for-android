@@ -216,7 +216,7 @@ class JDKPrerequisite(Prerequisite):
         os.environ["JAVA_HOME"] = jdk_path
 
 
-if __name__ == "__main__":
+def check_and_install_default_prerequisites():
     DEFAULT_PREREQUISITES = dict(darwin=[JDKPrerequisite()], linux=[], all_platforms=[])
 
     required_prerequisites = (
@@ -242,3 +242,7 @@ if __name__ == "__main__":
         prerequisite.show_helper()
         if prerequisite.install_is_supported():
             prerequisite.install()
+
+
+if __name__ == "__main__":
+    check_and_install_default_prerequisites()
