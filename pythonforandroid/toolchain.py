@@ -13,6 +13,7 @@ from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import BuildInterruptingException, load_source
 from pythonforandroid.entrypoints import main
+from pythonforandroid.prerequisites import check_and_install_default_prerequisites
 
 
 def check_python_dependencies():
@@ -66,6 +67,7 @@ def check_python_dependencies():
         exit(1)
 
 
+check_and_install_default_prerequisites()
 check_python_dependencies()
 
 
