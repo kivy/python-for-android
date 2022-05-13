@@ -4,20 +4,20 @@ import sys
 import platform
 import os
 import subprocess
+import shutil
 from pythonforandroid.logger import info, warning, error
 
 
 class Prerequisite(object):
     name = "Default"
-    mandatory = True
-    darwin_installer_is_supported = False
-    linux_installer_is_supported = False
+    mandatory = dict(linux=False, darwin=False)
+    installer_is_supported = dict(linux=False, darwin=False)
 
     def is_valid(self):
         if self.checker():
             info(f"Prerequisite {self.name} is met")
             return (True, "")
-        elif not self.mandatory:
+        elif not self.mandatory[sys.platform]:
             warning(
                 f"Prerequisite {self.name} is not met, but is marked as non-mandatory"
             )
@@ -73,10 +73,7 @@ class Prerequisite(object):
             raise Exception("Unsupported platform")
 
     def install_is_supported(self):
-        if sys.platform == "darwin":
-            return self.darwin_installer_is_supported
-        elif sys.platform == "linux":
-            return self.linux_installer_is_supported
+        return self.installer_is_supported[sys.platform]
 
     def linux_checker(self):
         raise Exception(f"Unsupported prerequisite check on linux for {self.name}")
@@ -96,11 +93,42 @@ class Prerequisite(object):
     def linux_helper(self):
         info(f"No helper available for prerequisite: {self.name} on linux")
 
+    def _darwin_get_brew_formula_location_prefix(self, formula, installed=False):
+        opts = ["--installed"] if installed else []
+        p = subprocess.Popen(
+            ["brew", "--prefix", formula, *opts],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        _stdout_res, _stderr_res = p.communicate()
+
+        if p.returncode != 0:
+            error(_stderr_res.decode("utf-8").strip())
+            return None
+        else:
+            return _stdout_res.decode("utf-8").strip()
+
+
+class HomebrewPrerequisite(Prerequisite):
+    name = "homebrew"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=False)
+
+    def darwin_checker(self):
+        return shutil.which("brew") is not None
+
+    def darwin_helper(self):
+        info(
+            "Installer for homebrew is not yet supported on macOS,"
+            "the nice news is that the installation process is easy!"
+            "See: https://brew.sh for further instructions."
+        )
+
 
 class JDKPrerequisite(Prerequisite):
     name = "JDK"
-    mandatory = True
-    darwin_installer_is_supported = True
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
     min_supported_version = 11
 
     def darwin_checker(self):
@@ -216,12 +244,122 @@ class JDKPrerequisite(Prerequisite):
         os.environ["JAVA_HOME"] = jdk_path
 
 
-def check_and_install_default_prerequisites():
-    DEFAULT_PREREQUISITES = dict(darwin=[JDKPrerequisite()], linux=[], all_platforms=[])
+class OpenSSLPrerequisite(Prerequisite):
+    name = "openssl@1.1"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
 
-    required_prerequisites = (
-        DEFAULT_PREREQUISITES["all_platforms"] + DEFAULT_PREREQUISITES[sys.platform]
+    def darwin_checker(self):
+        return (
+            self._darwin_get_brew_formula_location_prefix("openssl@1.1", installed=True)
+            is not None
+        )
+
+    def darwin_installer(self):
+        info("Installing OpenSSL ...")
+        subprocess.check_output(["brew", "install", "openssl@1.1"])
+
+
+class AutoconfPrerequisite(Prerequisite):
+    name = "autoconf"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
+
+    def darwin_checker(self):
+        return (
+            self._darwin_get_brew_formula_location_prefix("autoconf", installed=True)
+            is not None
+        )
+
+    def darwin_installer(self):
+        info("Installing Autoconf ...")
+        subprocess.check_output(["brew", "install", "autoconf"])
+
+
+class AutomakePrerequisite(Prerequisite):
+    name = "automake"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
+
+    def darwin_checker(self):
+        return (
+            self._darwin_get_brew_formula_location_prefix("automake", installed=True)
+            is not None
+        )
+
+    def darwin_installer(self):
+        info("Installing Automake ...")
+        subprocess.check_output(["brew", "install", "automake"])
+
+
+class LibtoolPrerequisite(Prerequisite):
+    name = "libtool"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
+
+    def darwin_checker(self):
+        return (
+            self._darwin_get_brew_formula_location_prefix("libtool", installed=True)
+            is not None
+        )
+
+    def darwin_installer(self):
+        info("Installing Libtool ...")
+        subprocess.check_output(["brew", "install", "libtool"])
+
+
+class PkgConfigPrerequisite(Prerequisite):
+    name = "pkg-config"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
+
+    def darwin_checker(self):
+        return (
+            self._darwin_get_brew_formula_location_prefix("pkg-config", installed=True)
+            is not None
+        )
+
+    def darwin_installer(self):
+        info("Installing Pkg-Config ...")
+        subprocess.check_output(["brew", "install", "pkg-config"])
+
+
+class CmakePrerequisite(Prerequisite):
+    name = "cmake"
+    mandatory = dict(linux=False, darwin=True)
+    installer_is_supported = dict(linux=False, darwin=True)
+
+    def darwin_checker(self):
+        return (
+            self._darwin_get_brew_formula_location_prefix("cmake", installed=True)
+            is not None
+        )
+
+    def darwin_installer(self):
+        info("Installing cmake ...")
+        subprocess.check_output(["brew", "install", "cmake"])
+
+
+def get_required_prerequisites(platform="linux"):
+    DEFAULT_PREREQUISITES = dict(
+        darwin=[
+            HomebrewPrerequisite(),
+            AutoconfPrerequisite(),
+            AutomakePrerequisite(),
+            LibtoolPrerequisite(),
+            PkgConfigPrerequisite(),
+            CmakePrerequisite(),
+            OpenSSLPrerequisite(),
+            JDKPrerequisite(),
+        ],
+        linux=[],
+        all_platforms=[],
     )
+
+    return DEFAULT_PREREQUISITES["all_platforms"] + DEFAULT_PREREQUISITES[platform]
+
+
+def check_and_install_default_prerequisites():
 
     prerequisites_not_met = []
 
@@ -232,7 +370,7 @@ def check_and_install_default_prerequisites():
 
     # Phase 1: Check if all prerequisites are met and add the ones
     # which are not to `prerequisites_not_met`
-    for prerequisite in required_prerequisites:
+    for prerequisite in get_required_prerequisites(sys.platform):
         if not prerequisite.is_valid():
             prerequisites_not_met.append(prerequisite)
 

@@ -67,7 +67,8 @@ def check_python_dependencies():
         exit(1)
 
 
-check_and_install_default_prerequisites()
+if not environ.get('SKIP_PREREQUISITES_CHECK', '0') == '1':
+    check_and_install_default_prerequisites()
 check_python_dependencies()
 
 
