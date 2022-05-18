@@ -90,6 +90,50 @@
          }
         </script>
     </div>
+
+    <div>
+        <button onClick="start_service()">
+            start service
+        </button>
+
+        <button onClick="stop_service()">
+            stop service
+        </button>
+
+        <div id="service-status">
+            {{ 'Service started' if service_running else 'Service stopped' }}
+        </div>
+
+        <script>
+         function start_service() {
+             var request = new XMLHttpRequest();
+             request.onload = function() {
+                 var elem = document.getElementById('service-status');
+                 if (this.status >= 400)
+                     elem.textContent = `Service start failed: ${this.statusText}`;
+                 else
+                     elem.textContent = 'Service started';
+             };
+             request.open('GET', 'service?action=start', true);
+             request.send();
+         }
+
+         function stop_service() {
+             var request = new XMLHttpRequest();
+             request.onload = function() {
+                 var elem = document.getElementById('service-status');
+                 if (this.status >= 400)
+                     elem.textContent = `Service stop failed: ${this.statusText}`;
+                 else
+                     elem.textContent = 'Service stopped';
+             };
+             request.open('GET', 'service?action=stop', true);
+             request.send();
+             alert('Service stopped')
+         }
+        </script>
+    </div>
+
     <br>
     <br>
 </div>
