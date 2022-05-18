@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <jni.h>
@@ -70,7 +71,7 @@ static int file_exists(const char *filename) {
   return 0;
 }
 
-static int run_python(int argc, char *argv[]) {
+static int run_python(int argc, char *argv[], bool call_exit) {
 
   char *env_argument = NULL;
   char *env_entrypoint = NULL;
@@ -332,24 +333,24 @@ static int run_python(int argc, char *argv[]) {
 
      https://github.com/kivy/kivy/pull/6107#issue-246120816
    */
-  char terminatecmd[256];
-  snprintf(
-    terminatecmd, sizeof(terminatecmd),
-    "import sys; sys.exit(%d)\n", ret
-  );
-  PyRun_SimpleString(terminatecmd);
+  if (call_exit) {
+    char terminatecmd[256];
+    snprintf(
+      terminatecmd, sizeof(terminatecmd),
+      "import sys; sys.exit(%d)\n", ret
+    );
+    PyRun_SimpleString(terminatecmd);
+  }
 
-  /* This should never actually be reached, but we'll leave the clean-up
-   * here just to be safe.
+  /* This should never actually be reached with call_exit.
    */
+  if (call_exit)
+    LOGP("Unexpectedly reached python finalization");
 #if PY_MAJOR_VERSION < 3
   Py_Finalize();
-  LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
 #else
   if (Py_FinalizeEx() != 0)  // properly check success on Python 3
-    LOGP("Unexpectedly reached Py_FinalizeEx(), and got error!");
-  else
-    LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
+    LOGP("Py_FinalizeEx() returned an error!");
 #endif
 
   return ret;
@@ -358,7 +359,7 @@ static int run_python(int argc, char *argv[]) {
 #ifdef BOOTSTRAP_NAME_SDL2
 int SDL_main(int argc, char *argv[]) {
   LOGP("Entering SDL_main");
-  return run_python(argc, argv);
+  return run_python(argc, argv, true);
 }
 #endif
 
@@ -371,7 +372,8 @@ static int native_service_start(
     jstring j_python_name,
     jstring j_python_home,
     jstring j_python_path,
-    jstring j_arg) {
+    jstring j_arg,
+    bool call_exit) {
   jboolean iscopy;
   const char *android_private =
       (*env)->GetStringUTFChars(env, j_android_private, &iscopy);
@@ -402,7 +404,7 @@ static int native_service_start(
   /* ANDROID_ARGUMENT points to service subdir,
    * so run_python() will run main.py from this dir
    */
-  return run_python(1, argv);
+  return run_python(1, argv, call_exit);
 }
 
 JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
@@ -424,7 +426,8 @@ JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
                               j_python_name,
                               j_python_home,
                               j_python_path,
-                              j_arg);
+                              j_arg,
+                              true);
 }
 
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)
@@ -463,7 +466,7 @@ int Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, job
   argv[1] = NULL;
   /* status = SDL_main(1, argv); */
 
-  return run_python(1, argv);
+  return run_python(1, argv, true);
 
   /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
   /* exit(status); */
