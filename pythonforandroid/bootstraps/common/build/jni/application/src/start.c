@@ -356,7 +356,7 @@ int main(int argc, char *argv[]) {
   return ret;
 }
 
-JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
+JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
     JNIEnv *env,
     jobject thiz,
     jstring j_android_private,
@@ -396,7 +396,7 @@ JNIEXPORT void JNICALL Java_org_kivy_android_PythonService_nativeStart(
   /* ANDROID_ARGUMENT points to service subdir,
    * so main() will run main.py from this dir
    */
-  main(1, argv);
+  return main(1, argv);
 }
 
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)
@@ -419,7 +419,7 @@ void Java_org_kivy_android_PythonActivity_nativeSetenv(
 }
 
 
-void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
+int Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jobject obj)
 {
   /* This nativeInit follows SDL2 */
 
@@ -435,7 +435,7 @@ void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jo
   argv[1] = NULL;
   /* status = SDL_main(1, argv); */
 
-  main(1, argv);
+  return main(1, argv);
 
   /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
   /* exit(status); */
