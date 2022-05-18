@@ -52,7 +52,7 @@ PyMODINIT_FUNC initandroidembed(void) {
 }
 #endif
 
-int dir_exists(char *filename) {
+static int dir_exists(char *filename) {
   struct stat st;
   if (stat(filename, &st) == 0) {
     if (S_ISDIR(st.st_mode))
@@ -61,7 +61,7 @@ int dir_exists(char *filename) {
   return 0;
 }
 
-int file_exists(const char *filename) {
+static int file_exists(const char *filename) {
   FILE *file;
   if ((file = fopen(filename, "r"))) {
     fclose(file);
@@ -70,8 +70,7 @@ int file_exists(const char *filename) {
   return 0;
 }
 
-/* int main(int argc, char **argv) { */
-int main(int argc, char *argv[]) {
+static int run_python(int argc, char *argv[]) {
 
   char *env_argument = NULL;
   char *env_entrypoint = NULL;
@@ -356,6 +355,13 @@ int main(int argc, char *argv[]) {
   return ret;
 }
 
+#ifdef BOOTSTRAP_NAME_SDL2
+int SDL_main(int argc, char *argv[]) {
+  LOGP("Entering SDL_main");
+  return run_python(argc, argv);
+}
+#endif
+
 JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
     JNIEnv *env,
     jobject thiz,
@@ -394,9 +400,9 @@ JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
 
   char *argv[] = {"."};
   /* ANDROID_ARGUMENT points to service subdir,
-   * so main() will run main.py from this dir
+   * so run_python() will run main.py from this dir
    */
-  return main(1, argv);
+  return run_python(1, argv);
 }
 
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)
@@ -435,7 +441,7 @@ int Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, job
   argv[1] = NULL;
   /* status = SDL_main(1, argv); */
 
-  return main(1, argv);
+  return run_python(1, argv);
 
   /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
   /* exit(status); */
