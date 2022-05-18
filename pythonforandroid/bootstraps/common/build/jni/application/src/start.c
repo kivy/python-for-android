@@ -362,7 +362,7 @@ int SDL_main(int argc, char *argv[]) {
 }
 #endif
 
-JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
+static int native_service_start(
     JNIEnv *env,
     jobject thiz,
     jstring j_android_private,
@@ -403,6 +403,28 @@ JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
    * so run_python() will run main.py from this dir
    */
   return run_python(1, argv);
+}
+
+JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
+    JNIEnv *env,
+    jobject thiz,
+    jstring j_android_private,
+    jstring j_android_argument,
+    jstring j_service_entrypoint,
+    jstring j_python_name,
+    jstring j_python_home,
+    jstring j_python_path,
+    jstring j_arg) {
+  LOGP("Entering org.kivy.android.PythonService.nativeStart");
+  return native_service_start(env,
+                              thiz,
+                              j_android_private,
+                              j_android_argument,
+                              j_service_entrypoint,
+                              j_python_name,
+                              j_python_home,
+                              j_python_path,
+                              j_arg);
 }
 
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)
