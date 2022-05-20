@@ -85,10 +85,15 @@ elif 'flask' in requirements:
     app_flask.TESTS_TO_PERFORM = tests_to_perform
 
     print('Current directory is ', realpath(curdir))
-    if realpath(curdir).startswith('/data'):
-        app_flask.app.run(debug=False)
-    else:
-        app_flask.app.run(debug=True)
+    flask_debug = not realpath(curdir).startswith('/data')
+
+    # Flask is run non-threaded since it tries to resolve app classes
+    # through pyjnius from request handlers. That doesn't work since the
+    # JNI ends up using the Java system class loader in new native
+    # threads.
+    #
+    # https://github.com/kivy/python-for-android/issues/2533
+    app_flask.app.run(threaded=False, debug=flask_debug)
 else:
     # we don't have kivy or flask in our
     # requirements, so we run unittests in terminal
