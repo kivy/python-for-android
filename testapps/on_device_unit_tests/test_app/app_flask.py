@@ -110,6 +110,7 @@ def loadUrl():
     print('asked to open url', args['url'])
     activity = get_android_python_activity()
     activity.loadUrl(args['url'])
+    return ('', 204)
 
 
 @app.route('/vibrate')
@@ -122,7 +123,8 @@ def vibrate():
     if 'time' not in args:
         print('ERROR: asked to vibrate but without time argument')
     print('asked to vibrate', args['time'])
-    return vibrate_with_pyjnius(int(float(args['time']) * 1000))
+    vibrate_with_pyjnius(int(float(args['time']) * 1000))
+    return ('', 204)
 
 
 @app.route('/orientation')
@@ -135,4 +137,5 @@ def orientation():
         print('ERROR: asked to orient but no dir specified')
         return 'No direction specified '
     direction = args['dir']
-    return set_device_orientation(direction)
+    set_device_orientation(direction)
+    return ('', 204)
