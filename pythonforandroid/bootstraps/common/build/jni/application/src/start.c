@@ -430,6 +430,29 @@ JNIEXPORT int JNICALL Java_org_kivy_android_PythonService_nativeStart(
                               true);
 }
 
+JNIEXPORT int JNICALL Java_org_kivy_android_PythonWorker_nativeStart(
+    JNIEnv *env,
+    jobject thiz,
+    jstring j_android_private,
+    jstring j_android_argument,
+    jstring j_service_entrypoint,
+    jstring j_python_name,
+    jstring j_python_home,
+    jstring j_python_path,
+    jstring j_arg) {
+  LOGP("Entering org.kivy.android.PythonWorker.nativeStart");
+  return native_service_start(env,
+                              thiz,
+                              j_android_private,
+                              j_android_argument,
+                              j_service_entrypoint,
+                              j_python_name,
+                              j_python_home,
+                              j_python_path,
+                              j_arg,
+                              false);
+}
+
 #if defined(BOOTSTRAP_NAME_WEBVIEW) || defined(BOOTSTRAP_NAME_SERVICEONLY)
 // Webview and service_only uses some more functions:
 
