@@ -10,6 +10,7 @@ from pythonforandroid.logger import info, warning, error
 
 class Prerequisite(object):
     name = "Default"
+    homebrew_formula_name = ""
     mandatory = dict(linux=False, darwin=False)
     installer_is_supported = dict(linux=False, darwin=False)
 
@@ -107,6 +108,25 @@ class Prerequisite(object):
             return None
         else:
             return _stdout_res.decode("utf-8").strip()
+
+    def darwin_pkg_config_location(self):
+        warning(
+            f"pkg-config location is not supported on macOS for prerequisite: {self.name}"
+        )
+        return ""
+
+    def linux_pkg_config_location(self):
+        warning(
+            f"pkg-config location is not supported on linux for prerequisite: {self.name}"
+        )
+        return ""
+
+    @property
+    def pkg_config_location(self):
+        if sys.platform == "darwin":
+            return self.darwin_pkg_config_location()
+        elif sys.platform == "linux":
+            return self.linux_pkg_config_location()
 
 
 class HomebrewPrerequisite(Prerequisite):
@@ -245,19 +265,28 @@ class JDKPrerequisite(Prerequisite):
 
 
 class OpenSSLPrerequisite(Prerequisite):
-    name = "openssl@1.1"
+    name = "openssl"
+    homebrew_formula_name = "openssl@1.1"
     mandatory = dict(linux=False, darwin=True)
     installer_is_supported = dict(linux=False, darwin=True)
 
     def darwin_checker(self):
         return (
-            self._darwin_get_brew_formula_location_prefix("openssl@1.1", installed=True)
+            self._darwin_get_brew_formula_location_prefix(
+                self.homebrew_formula_name, installed=True
+            )
             is not None
+        )
+
+    def darwin_pkg_config_location(self):
+        return os.path.join(
+            self._darwin_get_brew_formula_location_prefix(self.homebrew_formula_name),
+            "lib/pkgconfig",
         )
 
     def darwin_installer(self):
         info("Installing OpenSSL ...")
-        subprocess.check_output(["brew", "install", "openssl@1.1"])
+        subprocess.check_output(["brew", "install", self.homebrew_formula_name])
 
 
 class AutoconfPrerequisite(Prerequisite):

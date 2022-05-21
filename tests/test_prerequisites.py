@@ -1,5 +1,7 @@
 import unittest
-from unittest import mock
+from unittest import mock, skipIf
+
+import sys
 
 from pythonforandroid.prerequisites import (
     JDKPrerequisite,
@@ -18,6 +20,7 @@ class PrerequisiteSetUpBaseClass:
     def setUp(self):
         self.mandatory = dict(linux=False, darwin=False)
         self.installer_is_supported = dict(linux=False, darwin=False)
+        self.expected_homebrew_formula_name = ""
 
     def test_is_mandatory_on_darwin(self):
         assert self.prerequisite.mandatory["darwin"] == self.mandatory["darwin"]
@@ -35,6 +38,26 @@ class PrerequisiteSetUpBaseClass:
         assert (
             self.prerequisite.installer_is_supported["linux"]
             == self.installer_is_supported["linux"]
+        )
+
+    def test_darwin_pkg_config_location(self):
+        self.assertEqual(self.prerequisite.darwin_pkg_config_location(), "")
+
+    def test_linux_pkg_config_location(self):
+        self.assertEqual(self.prerequisite.linux_pkg_config_location(), "")
+
+    @skipIf(sys.platform != "darwin", "Only run on macOS")
+    def test_pkg_config_location_property__darwin(self):
+        self.assertEqual(
+            self.prerequisite.pkg_config_location,
+            self.prerequisite.darwin_pkg_config_location(),
+        )
+
+    @skipIf(sys.platform != "linux", "Only run on Linux")
+    def test_pkg_config_location_property__linux(self):
+        self.assertEqual(
+            self.prerequisite.pkg_config_location,
+            self.prerequisite.linux_pkg_config_location(),
         )
 
 
@@ -76,6 +99,8 @@ class TestOpenSSLPrerequisite(PrerequisiteSetUpBaseClass, unittest.TestCase):
         self.mandatory = dict(linux=False, darwin=True)
         self.installer_is_supported = dict(linux=False, darwin=True)
         self.prerequisite = OpenSSLPrerequisite()
+        self.expected_homebrew_formula_name = "openssl@1.1"
+        self.expected_homebrew_location_prefix = "/opt/homebrew/opt/openssl@1.1"
 
     @mock.patch(
         "pythonforandroid.prerequisites.Prerequisite._darwin_get_brew_formula_location_prefix"
@@ -84,17 +109,31 @@ class TestOpenSSLPrerequisite(PrerequisiteSetUpBaseClass, unittest.TestCase):
         _darwin_get_brew_formula_location_prefix.return_value = None
         self.assertFalse(self.prerequisite.darwin_checker())
         _darwin_get_brew_formula_location_prefix.return_value = (
-            "/opt/homebrew/opt/openssl@1.1"
+            self.expected_homebrew_location_prefix
         )
         self.assertTrue(self.prerequisite.darwin_checker())
         _darwin_get_brew_formula_location_prefix.assert_called_with(
-            "openssl@1.1", installed=True
+            self.expected_homebrew_formula_name, installed=True
         )
 
     @mock.patch("pythonforandroid.prerequisites.subprocess.check_output")
     def test_darwin_installer(self, check_output):
         self.prerequisite.darwin_installer()
-        check_output.assert_called_once_with(["brew", "install", "openssl@1.1"])
+        check_output.assert_called_once_with(
+            ["brew", "install", self.expected_homebrew_formula_name]
+        )
+
+    @mock.patch(
+        "pythonforandroid.prerequisites.Prerequisite._darwin_get_brew_formula_location_prefix"
+    )
+    def test_darwin_pkg_config_location(self, _darwin_get_brew_formula_location_prefix):
+        _darwin_get_brew_formula_location_prefix.return_value = (
+            self.expected_homebrew_location_prefix
+        )
+        self.assertEqual(
+            self.prerequisite.darwin_pkg_config_location(),
+            f"{self.expected_homebrew_location_prefix}/lib/pkgconfig",
+        )
 
 
 class TestAutoconfPrerequisite(PrerequisiteSetUpBaseClass, unittest.TestCase):
