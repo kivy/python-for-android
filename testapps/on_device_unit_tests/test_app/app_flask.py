@@ -29,6 +29,7 @@ from tools import (
 
 
 app = Flask(__name__)
+service_running = False
 TESTS_TO_PERFORM = dict()
 NON_ANDROID_DEVICE_MSG = 'Not running from Android device'
 
@@ -50,11 +51,34 @@ def get_html_for_tested_modules(tested_modules, failed_tests):
     return Markup(modules_text)
 
 
+def get_test_service():
+    from jnius import autoclass
+
+    return autoclass('org.test.unit_tests_app.ServiceP4a_test_service')
+
+
+def start_service():
+    global service_running
+    activity = get_android_python_activity()
+    test_service = get_test_service()
+    test_service.start(activity, 'Some argument')
+    service_running = True
+
+
+def stop_service():
+    global service_running
+    activity = get_android_python_activity()
+    test_service = get_test_service()
+    test_service.stop(activity)
+    service_running = False
+
+
 @app.route('/')
 def index():
     return render_template(
         'index.html',
         platform='Android' if RUNNING_ON_ANDROID else 'Desktop',
+        service_running=service_running,
     )
 
 
@@ -138,4 +162,22 @@ def orientation():
         return 'No direction specified '
     direction = args['dir']
     set_device_orientation(direction)
+    return ('', 204)
+
+
+@app.route('/service')
+def service():
+    if not RUNNING_ON_ANDROID:
+        print(NON_ANDROID_DEVICE_MSG, '...cancelled service.')
+        return (NON_ANDROID_DEVICE_MSG, 400)
+    args = request.args
+    if 'action' not in args:
+        print('ERROR: asked to manage service but no action specified')
+        return ('No action specified', 400)
+
+    action = args['action']
+    if action == 'start':
+        start_service()
+    else:
+        stop_service()
     return ('', 204)
