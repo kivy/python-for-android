@@ -47,6 +47,20 @@ testapps-with-numpy-aab: virtualenv
     --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
     --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 --release
 
+testapps-webview: virtualenv
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --bootstrap webview \
+    --requirements sqlite3,libffi,openssl,pyjnius,flask,python3,genericndkbuild \
+    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86
+
+testapps-webview-aab: virtualenv
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py aab --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --bootstrap webview \
+    --requirements sqlite3,libffi,openssl,pyjnius,flask,python3,genericndkbuild \
+    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 --release
+
 testapps/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \

@@ -53,13 +53,18 @@ jobs:
         flag-name: run-${{ matrix.os }}-${{ matrix.python-version }}
 
   ubuntu_build_apk:
-    name: Unit test apk [ ${{ matrix.runs_on }} ]
+    name: Unit test apk [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
     needs: [flake8]
     runs-on: ${{ matrix.runs_on }}
+    continue-on-error: true
     strategy:
       matrix:
-        include:
-          - runs_on: ubuntu-latest
+        runs_on: [ubuntu-latest]
+        bootstrap:
+          - name: sdl2
+            target: testapps-with-numpy
+          - name: webview
+            target: testapps-webview
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v2
@@ -78,26 +83,33 @@ jobs:
     - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
       run: |
         mkdir -p apks
-        make docker/run/make/with-artifact/apk/testapps-with-numpy
-    - name: Rename artifact to include the build platform name
+        make docker/run/make/with-artifact/apk/${{ matrix.bootstrap.target }}
+    - name: Rename apk artifact to include the build platform name
       run: |
-        mv apks/${{ env.APK_ARTIFACT_FILENAME }} apks/${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
-    - uses: actions/upload-artifact@v1
+        mv apks/${{ env.APK_ARTIFACT_FILENAME }} apks/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
+    - name: Upload apk artifact
+      uses: actions/upload-artifact@v1
       with:
-        name: ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
-        path: apks
+        name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
+        path: apks/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
 
   macos_build_apk:
-    name: Unit test apk [ ${{ matrix.runs_on }} ]
+    name: Unit test apk [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
     needs: [flake8]
     defaults:
       run:
         shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}
     runs-on: ${{ matrix.runs_on }}
+    continue-on-error: true
     strategy:
       matrix:
+        runs_on: [macos-latest, apple-silicon-m1]
+        bootstrap:
+          - name: sdl2
+            target: testapps-with-numpy
+          - name: webview
+            target: testapps-webview
         include:
-          - runs_on: macos-latest
           - runs_on: apple-silicon-m1
             run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
     env:
@@ -127,23 +139,29 @@ jobs:
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
-          make testapps-with-numpy
-      - name: Rename artifact to include the build platform name
+          make ${{ matrix.bootstrap.target }}
+      - name: Rename apk artifact to include the build platform name
         run: |
-          mv testapps/on_device_unit_tests/${{ env.APK_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
-      - uses: actions/upload-artifact@v1
+          mv testapps/on_device_unit_tests/${{ env.APK_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
+      - name: Upload apk artifact
+        uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
-          path: ${{ matrix.runs_on }}-${{ env.APK_ARTIFACT_FILENAME }}
+          name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
+          path: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
 
   ubuntu_build_aab:
     name: Unit test aab [ ${{ matrix.runs_on }} ]
     needs: [flake8]
     runs-on: ${{ matrix.runs_on }}
+    continue-on-error: true
     strategy:
       matrix:
-        include:
-          - runs_on: ubuntu-latest
+        runs_on: [ubuntu-latest]
+        bootstrap:
+          - name: sdl2
+            target: testapps-with-numpy-aab
+          - name: webview
+            target: testapps-webview-aab
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v2
@@ -162,26 +180,33 @@ jobs:
     - name: Build Android App Bundle Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
       run: |
         mkdir -p aabs
-        make docker/run/make/with-artifact/aab/testapps-with-numpy-aab
+        make docker/run/make/with-artifact/aab/${{ matrix.bootstrap.target }}
     - name: Rename artifact to include the build platform name
       run: |
-        mv aabs/${{ env.AAB_ARTIFACT_FILENAME }} aabs/${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
-    - uses: actions/upload-artifact@v1
+        mv aabs/${{ env.AAB_ARTIFACT_FILENAME }} aabs/${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAB_ARTIFACT_FILENAME }}
+    - name: Upload apk artifact
+      uses: actions/upload-artifact@v1
       with:
-        name: ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
-        path: aabs
+        name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAB_ARTIFACT_FILENAME }}
+        path: aabs/${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAB_ARTIFACT_FILENAME }}
 
   macos_build_aab:
-    name: Unit test aab [ ${{ matrix.runs_on }} ]
+    name: Unit test aab [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
     needs: [flake8]
     defaults:
       run:
         shell: ${{ matrix.run_wrapper || 'bash --noprofile --norc -eo pipefail {0}' }}
     runs-on: ${{ matrix.runs_on }}
+    continue-on-error: true
     strategy:
       matrix:
+        runs_on: [macos-latest, apple-silicon-m1]
+        bootstrap:
+          - name: sdl2
+            target: testapps-with-numpy-aab
+          - name: webview
+            target: testapps-webview-aab
         include:
-          - runs_on: macos-latest
           - runs_on: apple-silicon-m1
             run_wrapper: arch -arm64 bash --noprofile --norc -eo pipefail {0}
     env:
@@ -207,18 +232,19 @@ jobs:
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           make --file ci/makefiles/osx.mk
-      - name: Build multi-arch aab Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
+      - name: Build multi-arch sdl2 aab Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
-          make testapps-with-numpy-aab
-      - name: Rename artifact to include the build platform name
+          make ${{ matrix.bootstrap.target }}
+      - name: Rename sdl2 artifact to include the build platform name
         run: |
-          mv testapps/on_device_unit_tests/${{ env.AAB_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
-      - uses: actions/upload-artifact@v1
+          mv testapps/on_device_unit_tests/${{ env.AAB_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}
+      - name: Upload sdl2 apk artifact
+        uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
-          path: ${{ matrix.runs_on }}-${{ env.AAB_ARTIFACT_FILENAME }}
+          name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}
+          path: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}
 
   ubuntu_rebuild_updated_recipes:
     name: Test updated recipes for arch ${{ matrix.android_arch }} [ ubuntu-latest ]
