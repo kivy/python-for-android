@@ -134,18 +134,66 @@
         </script>
     </div>
 
+    <div>
+        <button onClick="start_worker()">
+            start worker
+        </button>
+
+        <button onClick="stop_worker()">
+            stop worker
+        </button>
+
+        <div id="worker-status">
+            {{ 'Worker started' if worker_running else 'Worker stopped' }}
+        </div>
+
+        <script>
+         function start_worker() {
+             var request = new XMLHttpRequest();
+             request.onload = function() {
+                 var elem = document.getElementById('worker-status');
+                 if (this.status >= 400)
+                     elem.textContent = `Worker start failed: ${this.statusText}`;
+                 else
+                     elem.textContent = 'Worker started';
+             };
+             request.open('GET', 'worker?action=start', true);
+             request.send();
+         }
+
+         function stop_worker() {
+             var request = new XMLHttpRequest();
+             request.onload = function() {
+                 var elem = document.getElementById('worker-status');
+                 if (this.status >= 400)
+                     elem.textContent = `Worker stop failed: ${this.statusText}`;
+                 else
+                     elem.textContent = 'Worker stopped';
+             };
+             request.open('GET', 'worker?action=stop', true);
+             request.send();
+         }
+        </script>
+    </div>
+
     <script>
       function update_status() {
           var request = new XMLHttpRequest();
           request.onload = function() {
               var service_status = document.getElementById('service-status');
+              var worker_status = document.getElementById('worker-status');
+
               if (this.status >= 400) {
-                  service_status.textContent = `App status failed: ${this.statusText}`;
+                  service_status.textContent = worker_status.textContent =
+                      `App status failed: ${this.statusText}`;
               } else {
                   var status = JSON.parse(this.responseText);
                   service_status.textContent = status.service_running
                       ? 'Service started'
                       : 'Service stopped';
+                  worker_status.textContent = status.worker_running
+                      ? 'Worker started'
+                      : 'Worker stopped';
               }
           };
           request.open('GET', 'status', true);

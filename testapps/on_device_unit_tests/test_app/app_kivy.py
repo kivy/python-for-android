@@ -2,12 +2,15 @@
 
 import subprocess
 
+from android.runnable import run_on_ui_thread
 from os.path import split
 
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.event import EventDispatcher
 from kivy.properties import (
     BooleanProperty,
+    BoundedNumericProperty,
     DictProperty,
     ListProperty,
     StringProperty,
@@ -19,10 +22,12 @@ from tools import (
     get_android_python_activity,
     get_failed_unittests_from,
     get_images_with_extension,
+    get_work_manager,
     load_kv_from,
     raise_error,
     run_test_suites_into_buffer,
     vibrate_with_pyjnius,
+    work_info_observer,
 )
 from widgets import TestImage
 
@@ -33,11 +38,79 @@ ScreenManager:
     ScreenKeyboard:
     ScreenOrientation:
     ScreenService:
+    ScreenWorker:
 '''
 load_kv_from('screen_unittests.kv')
 load_kv_from('screen_keyboard.kv')
 load_kv_from('screen_orientation.kv')
 load_kv_from('screen_service.kv')
+load_kv_from('screen_worker.kv')
+
+
+class Work(EventDispatcher):
+    '''Event dispatcher for WorkRequests'''
+
+    progress = BoundedNumericProperty(0, min=0, max=100)
+    state = StringProperty()
+    running = BooleanProperty(False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._request = None
+        self._observer = work_info_observer(self.update)
+        self._live_data = None
+
+    def update(self, work_info):
+        progress_data = work_info.getProgress()
+        self.progress = progress_data.getInt('PROGRESS', 0)
+
+        state = work_info.getState()
+        self.state = state.name()
+        if state.isFinished():
+            self.running = False
+            self._live_data.removeObserver(self._observer)
+
+    def enqueue(self, data):
+        from jnius import autoclass
+
+        OneTimeWorkRequestBuilder = autoclass('androidx.work.OneTimeWorkRequest$Builder')
+        Worker = autoclass('org.test.unit_tests_app.P4a_test_workerWorker')
+
+        input_data = Worker.buildInputData(data)
+        self._request = (
+            OneTimeWorkRequestBuilder(Worker._class)
+            .setInputData(input_data)
+            .build()
+        )
+
+        work_manager = get_work_manager()
+        op = work_manager.enqueue(self._request)
+        op.getResult().get()
+
+        self.running = True
+        request_id = self._request.getId()
+        self._live_data = work_manager.getWorkInfoByIdLiveData(request_id)
+        self._add_observer()
+
+    def cancel(self):
+        if not self.running:
+            return
+
+        work_manager = get_work_manager()
+        request_id = self._request.getId()
+        op = work_manager.cancelWorkById(request_id)
+        op.getResult().get()
+
+    @run_on_ui_thread
+    def _add_observer(self):
+        self._live_data.observeForever(self._observer)
+
+    def on_progress(self, instance, progress):
+        print('work progress: {}%'.format(progress))
+
+    def on_state(self, instance, state):
+        print('work state:', state)
 
 
 class TestKivyApp(App):
@@ -50,6 +123,7 @@ class TestKivyApp(App):
 
     def build(self):
         self.reset_unittests_results()
+        self.work = Work()
         self.sm = Builder.load_string(screen_manager_app)
         return self.sm
 
@@ -161,3 +235,20 @@ class TestKivyApp(App):
         service = self.service_time
         activity = get_android_python_activity()
         service.stop(activity)
+
+    def worker_button_pressed(self, *args):
+        if RUNNING_ON_ANDROID:
+            if not self.work.running:
+                print('Starting worker')
+                self.start_worker()
+            else:
+                print('Stopping worker')
+                self.stop_worker()
+        else:
+            raise_error('Worker test not supported on desktop')
+
+    def start_worker(self):
+        self.work.enqueue('10')
+
+    def stop_worker(self):
+        self.work.cancel()

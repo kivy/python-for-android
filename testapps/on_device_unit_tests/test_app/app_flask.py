@@ -26,6 +26,7 @@ from tools import (
     get_failed_unittests_from,
     vibrate_with_pyjnius,
     get_android_python_activity,
+    get_work_manager,
     set_device_orientation,
     skip_if_not_running_from_android_device,
 )
@@ -35,10 +36,12 @@ class App(Flask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.service_running = False
+        self.work_request = None
 
     def get_status(self):
         return jsonify({
             'service_running': self.service_running,
+            'worker_running': self.worker_running,
         })
 
     @property
@@ -59,6 +62,58 @@ class App(Flask):
         activity = get_android_python_activity()
         self.service.stop(activity)
         self.service_running = False
+
+    @property
+    @skip_if_not_running_from_android_device
+    def P4a_test_workerWorker(self):
+        from jnius import autoclass
+
+        return autoclass('org.test.unit_tests_app.P4a_test_workerWorker')
+
+    @skip_if_not_running_from_android_device
+    def worker_start(self):
+        from jnius import autoclass
+
+        if self.worker_running:
+            return
+
+        OneTimeWorkRequestBuilder = autoclass('androidx.work.OneTimeWorkRequest$Builder')
+        data = self.P4a_test_workerWorker.buildInputData('10')
+        self.work_request = (
+            OneTimeWorkRequestBuilder(self.P4a_test_workerWorker._class)
+            .setInputData(data)
+            .build()
+        )
+        work_manager = get_work_manager()
+        op = work_manager.enqueue(self.work_request)
+        op.getResult().get()
+
+    @skip_if_not_running_from_android_device
+    def worker_stop(self):
+        if self.worker_running:
+            work_manager = get_work_manager()
+            op = work_manager.cancelWorkById(self.work_request.getId())
+            op.getResult().get()
+
+    @property
+    @skip_if_not_running_from_android_device
+    def work_info(self):
+        if self.work_request is None:
+            return None
+
+        work_manager = get_work_manager()
+        return work_manager.getWorkInfoById(self.work_request.getId()).get()
+
+    @property
+    @skip_if_not_running_from_android_device
+    def worker_running(self):
+        info = self.work_info
+        if info is None:
+            print('Work request not started')
+            return False
+        state = info.getState()
+        print('Work request state:', state.toString())
+        return not state.isFinished()
 
 
 app = App(__name__)
@@ -89,6 +144,7 @@ def index():
         'index.html',
         platform='Android' if RUNNING_ON_ANDROID else 'Desktop',
         service_running=current_app.service_running,
+        worker_running=current_app.worker_running,
     )
 
 
@@ -195,4 +251,24 @@ def service():
         current_app.service_start()
     else:
         current_app.service_stop()
+    return ('', 204)
+
+
+@app.route('/worker')
+def worker():
+    if not RUNNING_ON_ANDROID:
+        print(NON_ANDROID_DEVICE_MSG, '...cancelled worker.')
+        return (NON_ANDROID_DEVICE_MSG, 400)
+    args = request.args
+    if 'action' not in args:
+        print('ERROR: asked to manage worker but no action specified')
+        return ('No action specified', 400)
+
+    action = args['action']
+    if action == 'start':
+        current_app.worker_start()
+    elif action == 'stop':
+        current_app.worker_stop()
+    else:
+        return ('Invalid action "{}"'.format(action), 400)
     return ('', 204)
