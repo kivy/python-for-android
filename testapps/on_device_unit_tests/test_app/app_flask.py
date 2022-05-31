@@ -11,6 +11,7 @@ print('contents of this dir', os.listdir('./'))
 
 from flask import (
     Flask,
+    current_app,
     render_template,
     request,
     Markup
@@ -25,11 +26,36 @@ from tools import (
     vibrate_with_pyjnius,
     get_android_python_activity,
     set_device_orientation,
+    skip_if_not_running_from_android_device,
 )
 
 
-app = Flask(__name__)
-service_running = False
+class App(Flask):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.service_running = False
+
+    @property
+    @skip_if_not_running_from_android_device
+    def service(self):
+        from jnius import autoclass
+
+        return autoclass('org.test.unit_tests_app.ServiceP4a_test_service')
+
+    @skip_if_not_running_from_android_device
+    def service_start(self):
+        activity = get_android_python_activity()
+        self.service.start(activity, 'Some argument')
+        self.service_running = True
+
+    @skip_if_not_running_from_android_device
+    def service_stop(self):
+        activity = get_android_python_activity()
+        self.service.stop(activity)
+        self.service_running = False
+
+
+app = App(__name__)
 TESTS_TO_PERFORM = dict()
 NON_ANDROID_DEVICE_MSG = 'Not running from Android device'
 
@@ -51,34 +77,12 @@ def get_html_for_tested_modules(tested_modules, failed_tests):
     return Markup(modules_text)
 
 
-def get_test_service():
-    from jnius import autoclass
-
-    return autoclass('org.test.unit_tests_app.ServiceP4a_test_service')
-
-
-def start_service():
-    global service_running
-    activity = get_android_python_activity()
-    test_service = get_test_service()
-    test_service.start(activity, 'Some argument')
-    service_running = True
-
-
-def stop_service():
-    global service_running
-    activity = get_android_python_activity()
-    test_service = get_test_service()
-    test_service.stop(activity)
-    service_running = False
-
-
 @app.route('/')
 def index():
     return render_template(
         'index.html',
         platform='Android' if RUNNING_ON_ANDROID else 'Desktop',
-        service_running=service_running,
+        service_running=current_app.service_running,
     )
 
 
@@ -177,7 +181,7 @@ def service():
 
     action = args['action']
     if action == 'start':
-        start_service()
+        current_app.service_start()
     else:
-        stop_service()
+        current_app.service_stop()
     return ('', 204)
