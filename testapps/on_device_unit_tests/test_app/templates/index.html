@@ -134,6 +134,27 @@
         </script>
     </div>
 
+    <script>
+      function update_status() {
+          var request = new XMLHttpRequest();
+          request.onload = function() {
+              var service_status = document.getElementById('service-status');
+              if (this.status >= 400) {
+                  service_status.textContent = `App status failed: ${this.statusText}`;
+              } else {
+                  var status = JSON.parse(this.responseText);
+                  service_status.textContent = status.service_running
+                      ? 'Service started'
+                      : 'Service stopped';
+              }
+          };
+          request.open('GET', 'status', true);
+          request.send();
+      }
+
+      setInterval(update_status, 2000);
+    </script>
+
     <br>
     <br>
 </div>
