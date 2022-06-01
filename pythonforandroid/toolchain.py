@@ -1081,6 +1081,8 @@ class ToolchainCL:
                     sh.Command('dos2unix'), gradlew._path.decode('utf8'),
                     _tail=20, _critical=True, _env=env
                 )
+
+
             if args.build_mode == "debug":
                 if package_type == "aab":
                     raise BuildInterruptingException(
@@ -1093,6 +1095,8 @@ class ToolchainCL:
                     gradle_task = "assembleRelease"
                 elif package_type == "aab":
                     gradle_task = "bundleRelease"
+                else:
+                    gradle_task = "assembleRelease"
             else:
                 raise BuildInterruptingException(
                     "Unknown build mode {} for apk()".format(args.build_mode))
