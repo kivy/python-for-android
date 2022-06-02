@@ -195,8 +195,8 @@ jobs:
       matrix:
         runs_on: [ubuntu-latest]
         bootstrap:
-          - name: service_only
-            target: testapps-with-numpy-aar
+          - name: service_library
+            target: testapps-service_library-aar
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v2
@@ -212,7 +212,7 @@ jobs:
     - name: Pull docker image
       run: |
         make docker/pull
-    - name: Build Android Aar Python 3 (arm64-v8a)
+    - name: Build Android AAR Python 3 (arm64-v8a)
       run: |
         mkdir -p aars
         make docker/run/make/with-artifact/aar/${{ matrix.bootstrap.target }}
