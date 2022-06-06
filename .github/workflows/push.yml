@@ -63,6 +63,8 @@ jobs:
         bootstrap:
           - name: sdl2
             target: testapps-with-numpy
+          - name: sdl2_scipy
+            target: testapps-with-scipy
           - name: webview
             target: testapps-webview
     steps:
