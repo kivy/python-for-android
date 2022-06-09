@@ -46,7 +46,7 @@ testapps-with-scipy: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
 	export LEGACY_NDK=$(ANDROID_NDK_HOME_LEGACY)  && \
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements python3,scipy \
+    --requirements python3,scipy,kivy \
     --arch=armeabi-v7a --arch=arm64-v8a
 
 testapps-with-numpy-aab: virtualenv
