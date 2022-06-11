@@ -14,6 +14,7 @@ PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
 DOCKER_IMAGE=kivy/python-for-android
 ANDROID_SDK_HOME ?= $(HOME)/.android/android-sdk
 ANDROID_NDK_HOME ?= $(HOME)/.android/android-ndk
+ANDROID_NDK_HOME_LEGACY ?= $(HOME)/.android/android-ndk-legacy
 REBUILD_UPDATED_RECIPES_EXTRA_ARGS ?= ''
 
 
@@ -40,6 +41,13 @@ testapps-with-numpy: virtualenv
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
     --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86
+
+testapps-with-scipy: virtualenv
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+	export LEGACY_NDK=$(ANDROID_NDK_HOME_LEGACY)  && \
+    python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --requirements python3,scipy,kivy \
+    --arch=armeabi-v7a --arch=arm64-v8a
 
 testapps-with-numpy-aab: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
