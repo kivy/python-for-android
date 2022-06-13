@@ -1,5 +1,5 @@
 '''
-known to build with cmake version 3.19.2 and NDK r19c.
+known to build with cmake version 3.23.2 and NDK r21e.
 See https://gitlab.kitware.com/cmake/cmake/-/issues/18739
 '''
 
@@ -15,10 +15,16 @@ from pythonforandroid.util import build_platform
 arch_to_sysroot = {'armeabi': 'arm', 'armeabi-v7a': 'arm', 'arm64-v8a': 'arm64'}
 
 
+def arch_to_toolchain(arch):
+    if 'arm' in arch.arch:
+        return arch.command_prefix
+    return arch.arch
+
+
 class LapackRecipe(Recipe):
 
     name = 'lapack'
-    version = 'v3.9.0'
+    version = 'v3.10.1'
     url = 'https://github.com/Reference-LAPACK/lapack/archive/{version}.tar.gz'
     libdir = 'build/install/lib'
     built_libraries = {'libblas.so': libdir, 'liblapack.so': libdir, 'libcblas.so': libdir}
@@ -28,14 +34,14 @@ class LapackRecipe(Recipe):
 
         ndk_dir = environ.get("LEGACY_NDK")
         if ndk_dir is None:
-            raise BuildInterruptingException("Please set the environment variable 'LEGACY_NDK' to point to a NDK location with gcc/gfortran support (last tested NDK version was 'r19c')")
+            raise BuildInterruptingException("Please set the environment variable 'LEGACY_NDK' to point to a NDK location with gcc/gfortran support (supported NDK version: 'r21e')")
 
         GCC_VER = '4.9'
         HOST = build_platform
 
         sysroot_suffix = arch_to_sysroot.get(arch.arch, arch.arch)
         sysroot = f"{ndk_dir}/platforms/{env['NDK_API']}/arch-{sysroot_suffix}"
-        FC = f"{ndk_dir}/toolchains/{arch.command_prefix}-{GCC_VER}/prebuilt/{HOST}/bin/{arch.command_prefix}-gfortran"
+        FC = f"{ndk_dir}/toolchains/{arch_to_toolchain(arch)}-{GCC_VER}/prebuilt/{HOST}/bin/{arch.command_prefix}-gfortran"
         env['FC'] = f'{FC} --sysroot={sysroot}'
         if sh.which(FC) is None:
             raise BuildInterruptingException(f"{FC} not found. See https://github.com/mzakharo/android-gfortran")
@@ -51,19 +57,20 @@ class LapackRecipe(Recipe):
             env = self.get_recipe_env(arch)
             ndk_dir = environ["LEGACY_NDK"]
             shprint(sh.rm, '-rf', 'CMakeFiles/', 'CMakeCache.txt', _env=env)
-            shprint(sh.cmake, source_dir,
+            opts = [
                     '-DCMAKE_SYSTEM_NAME=Android',
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',
                     '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
                     '-DCMAKE_ANDROID_NDK=' + ndk_dir,
+                    '-DCMAKE_ANDROID_API={api}'.format(api=self.ctx.ndk_api),
                     '-DCMAKE_BUILD_TYPE=Release',
                     '-DCMAKE_INSTALL_PREFIX={}'.format(install_target),
-                    '-DANDROID_ABI={arch}'.format(arch=arch.arch),
-                    '-DANDROID_ARM_NEON=ON',
-                    '-DENABLE_NEON=ON',
                     '-DCBLAS=ON',
                     '-DBUILD_SHARED_LIBS=ON',
-                    _env=env)
+                    ]
+            if arch.arch == 'armeabi-v7a':
+                opts.append('-DCMAKE_ANDROID_ARM_NEON=ON')
+            shprint(sh.cmake, source_dir, *opts, _env=env)
             shprint(sh.make, '-j' + str(cpu_count()), _env=env)
             shprint(sh.make, 'install', _env=env)
 
