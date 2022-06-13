@@ -2,7 +2,7 @@
 
 # Those android NDK/SDK variables can be override when running the file
 ANDROID_NDK_VERSION ?= 23b
-ANDROID_NDK_VERSION_LEGACY ?= 19c
+ANDROID_NDK_VERSION_LEGACY ?= 21e
 ANDROID_SDK_TOOLS_VERSION ?= 6514223
 ANDROID_SDK_BUILD_TOOLS_VERSION ?= 29.0.3
 ANDROID_HOME ?= $(HOME)/.android
@@ -93,12 +93,14 @@ extract_android_ndk_legacy:
 	&& rm -f $(ANDROID_NDK_ARCHIVE_LEGACY)
 
 extract_android_ndk_gfortran:
-	rm -rf $(ANDROID_NDK_HOME_LEGACY)/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/
-	mkdir  $(ANDROID_NDK_HOME_LEGACY)/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/
-	tar -xvf $(ANDROID_NDK_GFORTRAN_ARCHIVE_ARM64) -C $(ANDROID_NDK_HOME_LEGACY)/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/ --strip-components 1
-	rm -rf $(ANDROID_NDK_HOME_LEGACY)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/
-	mkdir  $(ANDROID_NDK_HOME_LEGACY)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/
-	tar -xvf $(ANDROID_NDK_GFORTRAN_ARCHIVE_ARM) -C $(ANDROID_NDK_HOME_LEGACY)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/ --strip-components 1
+	rm -rf $(ANDROID_NDK_HOME_LEGACY)/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/ \
+	&& mkdir  $(ANDROID_NDK_HOME_LEGACY)/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/ \
+	&& tar -xf $(ANDROID_NDK_GFORTRAN_ARCHIVE_ARM64) -C $(ANDROID_NDK_HOME_LEGACY)/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/ --strip-components 1 \
+	&& rm -f $(ANDROID_NDK_GFORTRAN_ARCHIVE_ARM64) \
+	&& rm -rf $(ANDROID_NDK_HOME_LEGACY)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/ \
+	&& mkdir  $(ANDROID_NDK_HOME_LEGACY)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/ \
+	&& tar -xf $(ANDROID_NDK_GFORTRAN_ARCHIVE_ARM) -C $(ANDROID_NDK_HOME_LEGACY)/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/ --strip-components 1 \
+	&& rm -f $(ANDROID_NDK_GFORTRAN_ARCHIVE_ARM)
 
 
 

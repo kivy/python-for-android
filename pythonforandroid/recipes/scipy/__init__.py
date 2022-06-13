@@ -4,7 +4,11 @@ from os.path import join
 from os import environ
 from pythonforandroid.util import build_platform
 
-arch_to_sysroot = {'armeabi': 'arm', 'armeabi-v7a': 'arm', 'arm64-v8a': 'arm64'}
+
+def arch_to_toolchain(arch):
+    if 'arm' in arch.arch:
+        return arch.command_prefix
+    return arch.arch
 
 
 class ScipyRecipe(CompiledComponentsPythonRecipe):
@@ -35,16 +39,12 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
         suffix = '64' if '64' in arch.arch else ''
 
         prefix = arch.command_prefix
-        sysroot_suffix = arch_to_sysroot.get(arch.arch, arch.arch)
-        sysroot = f"{ndk_dir}/platforms/{env['NDK_API']}/arch-{sysroot_suffix}"
-        sysroot_include = f'{ndk_dir}/toolchains/llvm/prebuilt/{HOST}/sysroot/usr/include'
         CLANG_BIN = f'{ndk_dir}/toolchains/llvm/prebuilt/{HOST}/bin/'
-        GCC = f'{ndk_dir}/toolchains/{prefix}-{GCC_VER}/prebuilt/{HOST}'
+        GCC = f'{ndk_dir}/toolchains/{arch_to_toolchain(arch)}-{GCC_VER}/prebuilt/{HOST}'
         libgfortran = f'{GCC}/{prefix}/lib{suffix}'
-
         numpylib = self.ctx.get_python_install_dir(arch.arch) + '/numpy'
-        LDSHARED_opts = env['LDSHARED'].split('clang')[1]
         arch_cflags = ' '.join(arch.arch_cflags)
+        LDSHARED_opts = f'-target {arch.target} {arch_cflags} ' + ' '.join(arch.common_ldshared)
 
         # TODO: add pythran support
         env['SCIPY_USE_PYTHRAN'] = '0'
@@ -58,13 +58,16 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
         env['F90'] = f'{GCC}/bin/{prefix}-gfortran'
         env['CC'] = f'{CLANG_BIN}/clang -target {arch.target} {arch_cflags}'
         env['CXX'] = f'{CLANG_BIN}/clang++ -target {arch.target} {arch_cflags}'
+
+        # scipy expects ldshared to be a single executable without options
         env['LDSHARED'] = f'{CLANG_BIN}/clang'
 
-        # flags
-        env['CPPFLAGS'] = f'-DANDROID -I{sysroot_include}/{prefix} --sysroot={sysroot} -I{sysroot_include}/c++/v1 -I{sysroot_include}'
-        env['LDFLAGS'] += f' {LDSHARED_opts} --sysroot={sysroot} -L{libgfortran} -L{numpylib}/core/lib -L{numpylib}/random/lib'
-        env['LDFLAGS'] += f' -l{self.stl_lib_name} '
-        env['LDFLAGS'] += f' -L{ndk_dir}/sources/cxx-stl/llvm-libc++/libs/{arch.arch}/'  # for arm32 - unwind
+        # erase the default NDK C++ include options
+        env['CPPFLAGS'] = '-DANDROID'
+
+        # configure linker
+        env['LDFLAGS'] += f' {LDSHARED_opts} -L{libgfortran} -L{numpylib}/core/lib -L{numpylib}/random/lib'
+        env['LDFLAGS'] += f' -l{self.stl_lib_name}'
         return env
 
 
