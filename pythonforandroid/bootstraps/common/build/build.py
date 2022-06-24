@@ -684,6 +684,8 @@ tools directory of the Android SDK.
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
                     help='Custom key=value to add in application metadata')
+    ap.add_argument('--activity-meta-data', dest='activity_meta_data', action='append', default=[],
+                    help='Custom key=value to add in activity metadata')
     ap.add_argument('--uses-library', dest='android_used_libs', action='append', default=[],
                     help='Used shared libraries included using <uses-library> tag in AndroidManifest.xml')
     ap.add_argument('--asset', dest='assets',
