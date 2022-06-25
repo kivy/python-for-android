@@ -6,6 +6,9 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.1.2'
+        {%- for depend in args.gradle_buildscript_depends %}
+        classpath '{{depend}}'
+        {%- endfor %}
     }
 }
 

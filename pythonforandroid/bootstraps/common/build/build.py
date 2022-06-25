@@ -753,6 +753,10 @@ tools directory of the Android SDK.
                     default=[],
                     action='append',
                     help='Ddd a repository for gradle')
+    ap.add_argument('--add-gradle-buildscript-depends', dest='gradle_buildscript_depends',
+                    default=[],
+                    action='append',
+                    help='Add a buildscript dependencies for gradle')
     ap.add_argument('--add-packaging-option', dest='packaging_options',
                     default=[],
                     action='append',
