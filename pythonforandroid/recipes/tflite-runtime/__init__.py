@@ -30,7 +30,17 @@ class TFLiteRuntimeRecipe(PythonRecipe):
     patches = ['CMakeLists.patch', 'build_with_cmake.patch']
     site_packages_name = 'tflite-runtime'
     call_hostpython_via_targetpython = False
-    install_in_hostpython = True
+    
+    def should_build(self, arch):
+        name = self.folder_name.replace('-', '_')
+        
+        if self.ctx.has_package(name, arch):
+            info_main('Python package already exists in site-packages')
+            return False
+        
+        info_main('{} apparently isn\'t already in site-packages'.format(name))
+        
+        return True
 
     def build_arch(self, arch):
         if arch.arch == 'x86_64':
