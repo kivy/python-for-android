@@ -349,7 +349,10 @@ main.py that loads it.''')
     if args.icon_fg and args.icon_bg:
         shutil.copy(args.icon_fg, join(res_dir, 'mipmap/icon_foreground.png'))
         shutil.copy(args.icon_bg, join(res_dir, 'mipmap/icon_background.png'))
-        with open(join(res_dir, 'mipmap-anydpi-v26/icon.xml'), "w") as fd:
+        mipmap_anydpi = join(res_dir, 'mipmap-anydpi-v26')
+        if not exists(mipmap_anydpi):
+            os.mkdir(mipmap_anydpi)
+        with open(join(mipmap_anydpi, 'icon.xml'), "w") as fd:
             fd.write("""<?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@mipmap/icon_background"/>
