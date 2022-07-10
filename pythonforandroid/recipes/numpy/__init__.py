@@ -19,7 +19,6 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
     patches = [
         join("patches", "remove-default-paths.patch"),
         join("patches", "add_libm_explicitly_to_build.patch"),
-        join("patches", "fix-missing-threads.h.patch"),
     ]
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
