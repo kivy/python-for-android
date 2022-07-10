@@ -60,7 +60,7 @@ testapps-service_library-aar: virtualenv
     python setup.py aar --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --bootstrap service_library \
     --requirements python3 \
-    --arch=arm64-v8a --release
+    --arch=arm64-v8a --arch=x86 --release
 
 testapps-webview: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
