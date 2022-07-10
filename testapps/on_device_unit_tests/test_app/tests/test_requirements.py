@@ -12,6 +12,25 @@ class NumpyTestCase(PythonTestMixIn, TestCase):
         arr = np.random.random((3, 3))
         det = np.linalg.det(arr)
 
+class ScipyTestCase(PythonTestMixIn, TestCase):
+    module_import = 'scipy'
+
+    def test_run_module(self):
+        import numpy as np
+        from scipy.cluster.vq import vq, kmeans, whiten
+        features  = np.array([[ 1.9,2.3],
+                        [ 1.5,2.5],
+                        [ 0.8,0.6],
+                        [ 0.4,1.8],
+                        [ 0.1,0.1],
+                        [ 0.2,1.8],
+                        [ 2.0,0.5],
+                        [ 0.3,1.5],
+                        [ 1.0,1.0]])
+        whitened = whiten(features)
+        book = np.array((whitened[0],whitened[2]))
+        print('kmeans', kmeans(whitened,book))
+
 
 class OpensslTestCase(PythonTestMixIn, TestCase):
     module_import = '_ssl'
