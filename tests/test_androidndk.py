@@ -1,5 +1,5 @@
 import unittest
-import sys
+from unittest import mock
 
 from pythonforandroid.androidndk import AndroidNDK
 
@@ -15,13 +15,17 @@ class TestAndroidNDK(unittest.TestCase):
         perform our unittests"""
         self.ndk = AndroidNDK("/opt/android/android-ndk")
 
-    def test_host_tag(self):
+    @mock.patch("sys.platform", "linux")
+    def test_host_tag_linux(self):
         """Test the `host_tag` property of the :class:`~pythonforandroid.androidndk.AndroidNDK`
-        class."""
-        if sys.platform == "linux":
-            self.assertEqual(self.ndk.host_tag, "linux-x86_64")
-        elif sys.platform == "darwin":
-            self.assertEqual(self.ndk.host_tag, "darwin-x86_64")
+        class when the host is Linux."""
+        self.assertEqual(self.ndk.host_tag, "linux-x86_64")
+
+    @mock.patch("sys.platform", "darwin")
+    def test_host_tag_darwin(self):
+        """Test the `host_tag` property of the :class:`~pythonforandroid.androidndk.AndroidNDK`
+        class when the host is Darwin."""
+        self.assertEqual(self.ndk.host_tag, "darwin-x86_64")
 
     def test_llvm_prebuilt_dir(self):
         """Test the `llvm_prebuilt_dir` property of the
