@@ -2,7 +2,7 @@ import sys
 import os
 
 
-class AndroidNDK(object):
+class AndroidNDK:
     """
     This class is used to get the current NDK information.
     """
