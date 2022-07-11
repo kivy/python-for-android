@@ -1089,7 +1089,7 @@ class ToolchainCL:
                     )
                 gradle_task = "assembleDebug"
             elif args.build_mode == "release":
-                if package_type == "apk":
+                if package_type in ["apk", "aar"]:
                     gradle_task = "assembleRelease"
                 elif package_type == "aab":
                     gradle_task = "bundleRelease"

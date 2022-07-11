@@ -55,6 +55,13 @@ testapps-with-numpy-aab: virtualenv
     --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
     --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 --release
 
+testapps-service_library-aar: virtualenv
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py aar --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --bootstrap service_library \
+    --requirements python3 \
+    --arch=arm64-v8a --arch=x86 --release
+
 testapps-webview: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
@@ -100,6 +107,11 @@ docker/run/command: docker/build
 docker/run/make/with-artifact/apk/%: docker/build
 	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
 	docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/bdist_unit_tests_app-debug-1.1-.apk ./apks
+	docker rm -fv p4a-latest
+
+docker/run/make/with-artifact/aar/%: docker/build
+	docker run --name p4a-latest --env-file=.env $(DOCKER_IMAGE) make $*
+	docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/bdist_unit_tests_app-release-1.1-.aar ./aars
 	docker rm -fv p4a-latest
 
 docker/run/make/with-artifact/aab/%: docker/build
