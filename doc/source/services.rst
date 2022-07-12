@@ -52,11 +52,20 @@ more flexible, supporting multiple services and a wider range of
 options.
 
 To create the service, create a python script with your service code
-and add a :code:`--service=myservice:/path/to/myservice.py` argument
+and add a :code:`--service=myservice:myservice.py` argument
 when calling python-for-android, or in buildozer.spec, a
-:code:`services = myservice:/path/to/myservice.py` [app] setting.
+:code:`services = myservice:myservice.py` [app] setting.
 The ``myservice`` name before the colon is the name of the service
-class, via which you will interact with it later. You can add multiple
+class, via which you will interact with it later. 
+
+You can optionally specify the following parameters:
+ - :code:`:foreground` for launching a service as an Android foreground service
+ - :code:`:sticky` for launching a service that gets restarted by the Android OS on exit/error
+
+Full command with all the optional parameters included would be: 
+:code:`--service=myservice:myservice.py:foreground:sticky`
+
+You can add multiple
 :code:`--service` arguments to include multiple services, or separate
 them with a comma in buildozer.spec, all of which you will later be
 able to stop and start from your app.
