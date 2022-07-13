@@ -19,7 +19,7 @@ class LibRt(Recipe):
         finishes'''
 
     def build_arch(self, arch):
-        libc_path = join(arch.ndk_lib_dir, 'libc')
+        libc_path = join(arch.ndk_lib_dir_versioned, 'libc')
         # Create a temporary folder to add to link path with a fake librt.so:
         fake_librt_temp_folder = join(
             self.get_build_dir(arch.arch),

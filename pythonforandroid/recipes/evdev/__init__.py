@@ -19,7 +19,7 @@ class EvdevRecipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch=None):
         env = super().get_recipe_env(arch)
-        env['SYSROOT'] = self.ctx.ndk_sysroot
+        env['SYSROOT'] = self.ctx.ndk.sysroot
         return env
 
 

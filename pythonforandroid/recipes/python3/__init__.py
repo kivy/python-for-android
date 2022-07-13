@@ -56,7 +56,7 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.8.9'
+    version = '3.9.9'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
@@ -264,8 +264,8 @@ class Python3Recipe(TargetPythonRecipe):
         # the build of zlib module, here we search for android's zlib version
         # and sets the right flags, so python can be build with android's zlib
         info("Activating flags for android's zlib")
-        zlib_lib_path = arch.ndk_lib_dir
-        zlib_includes = self.ctx.ndk_include_dir
+        zlib_lib_path = arch.ndk_lib_dir_versioned
+        zlib_includes = self.ctx.ndk.sysroot_include_dir
         zlib_h = join(zlib_includes, 'zlib.h')
         try:
             with open(zlib_h) as fileh:

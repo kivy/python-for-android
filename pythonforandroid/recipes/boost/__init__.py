@@ -1,4 +1,4 @@
-from pythonforandroid.util import current_directory, build_platform
+from pythonforandroid.util import current_directory
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import shprint
 from os.path import join, exists
@@ -97,12 +97,7 @@ class BoostRecipe(Recipe):
         env['ARCH'] = arch.arch.replace('-', '')
         env['TARGET_TRIPLET'] = arch.target
         env['CROSSHOST'] = arch.command_prefix
-        env['CROSSHOME'] = join(
-            self.ctx.ndk_dir,
-            'toolchains/llvm/prebuilt/{build_platform}'.format(
-                build_platform=build_platform
-            ),
-        )
+        env['CROSSHOME'] = self.ctx.ndk.llvm_prebuilt_dir
         return env
 
 

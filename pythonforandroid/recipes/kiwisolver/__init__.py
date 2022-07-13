@@ -19,10 +19,10 @@ class KiwiSolverRecipe(CppCompiledComponentsPythonRecipe):
             # kiwisolver compile flags does not honor the standard flags:
             # `CPPFLAGS` and `LDLIBS`, so we put in `CFLAGS` and `LDFLAGS` to
             # correctly link with the `c++_shared` library
-            env['CFLAGS'] += f' -I{self.stl_include_dir}'
+            env['CFLAGS'] += f' -I{self.ctx.ndk.libcxx_include_dir}'
             env['CFLAGS'] += ' -frtti -fexceptions'
 
-            env['LDFLAGS'] += f' -L{self.get_stl_lib_dir(arch)}'
+            env['LDFLAGS'] += f' -L{arch.ndk_lib_dir}'
             env['LDFLAGS'] += f' -l{self.stl_lib_name}'
         return env
 

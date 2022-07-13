@@ -1,5 +1,4 @@
 import os
-import sys
 import unittest
 from unittest import mock
 
@@ -122,13 +121,9 @@ class TestContext(unittest.TestCase):
         assert context.sdk_dir == real_sdk_dir
         assert context.ndk_dir == real_ndk_dir
 
-        py_platform = sys.platform
-        if py_platform in ['linux2', 'linux3']:
-            py_platform = 'linux'
-
         context_paths = context.env['PATH'].split(':')
         assert context_paths[0:3] == [
-            f'{real_ndk_dir}/toolchains/llvm/prebuilt/{py_platform}-x86_64/bin',
+            f'{real_ndk_dir}/toolchains/llvm/prebuilt/{context.ndk.host_tag}/bin',
             real_ndk_dir,
             f'{real_sdk_dir}/tools'
         ]

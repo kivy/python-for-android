@@ -32,6 +32,13 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
+        arch_env = arch.get_env()
+
+        env['LDFLAGS'] = arch_env['LDFLAGS']
+        env['LDFLAGS'] += ' -L{} -lpython{}'.format(
+            self.ctx.python_recipe.link_root(arch.arch),
+            self.ctx.python_recipe.link_version,
+        )
 
         ndk_dir = environ["LEGACY_NDK"]
         GCC_VER = '4.9'
@@ -56,8 +63,8 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
         # compilers
         env['F77'] = f'{GCC}/bin/{prefix}-gfortran'
         env['F90'] = f'{GCC}/bin/{prefix}-gfortran'
-        env['CC'] = f'{CLANG_BIN}/clang -target {arch.target} {arch_cflags}'
-        env['CXX'] = f'{CLANG_BIN}/clang++ -target {arch.target} {arch_cflags}'
+        env['CC'] = f'{CLANG_BIN}clang -target {arch.target} {arch_cflags}'
+        env['CXX'] = f'{CLANG_BIN}clang++ -target {arch.target} {arch_cflags}'
 
         # scipy expects ldshared to be a single executable without options
         env['LDSHARED'] = f'{CLANG_BIN}/clang'

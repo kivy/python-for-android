@@ -110,14 +110,11 @@ class FFMpegRecipe(Recipe):
             ]
 
             if 'arm64' in arch.arch:
-                cross_prefix = 'aarch64-linux-android-'
                 arch_flag = 'aarch64'
             elif 'x86' in arch.arch:
-                cross_prefix = 'i686-linux-android-'
                 arch_flag = 'x86'
                 flags += ['--disable-asm']
             else:
-                cross_prefix = 'arm-linux-androideabi-'
                 arch_flag = 'arm'
 
             # android:
@@ -126,10 +123,8 @@ class FFMpegRecipe(Recipe):
                 '--enable-cross-compile',
                 '--cross-prefix={}-'.format(arch.target),
                 '--arch={}'.format(arch_flag),
-                '--strip={}strip'.format(cross_prefix),
-                '--sysroot={}'.format(join(self.ctx.ndk_dir, 'toolchains',
-                                           'llvm', 'prebuilt', 'linux-x86_64',
-                                           'sysroot')),
+                '--strip={}'.format(self.ctx.ndk.llvm_strip),
+                '--sysroot={}'.format(self.ctx.ndk.sysroot),
                 '--enable-neon',
                 '--prefix={}'.format(realpath('.')),
             ]

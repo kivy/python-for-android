@@ -47,8 +47,8 @@ class FreetypeRecipe(Recipe):
             )
 
         # android's zlib support
-        zlib_lib_path = arch.ndk_lib_dir
-        zlib_includes = self.ctx.ndk_include_dir
+        zlib_lib_path = arch.ndk_lib_dir_versioned
+        zlib_includes = self.ctx.ndk.sysroot_include_dir
 
         def add_flag_if_not_added(flag, env_key):
             if flag not in env[env_key]:

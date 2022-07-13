@@ -4,7 +4,7 @@ from os import uname
 
 
 class LXMLRecipe(CompiledComponentsPythonRecipe):
-    version = '4.2.5'
+    version = '4.8.0'
     url = 'https://pypi.python.org/packages/source/l/lxml/lxml-{version}.tar.gz'  # noqa
     depends = ['librt', 'libxml2', 'libxslt', 'setuptools']
     name = 'lxml'
@@ -15,11 +15,16 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         super().should_build(arch)
 
         py_ver = self.ctx.python_recipe.major_minor_version_string
-        build_platform = '{system}-{machine}'.format(
-            system=uname()[0], machine=uname()[-1]).lower()
-        build_dir = join(self.get_build_dir(arch.arch), 'build',
-                         'lib.' + build_platform + '-' + py_ver, 'lxml')
-        py_libs = ['_elementpath.so', 'builder.so', 'etree.so', 'objectify.so']
+        build_platform = "{system}-{machine}".format(
+            system=uname()[0], machine=uname()[-1]
+        ).lower()
+        build_dir = join(
+            self.get_build_dir(arch.arch),
+            "build",
+            "lib." + build_platform + "-" + py_ver,
+            "lxml",
+        )
+        py_libs = ["_elementpath.so", "builder.so", "etree.so", "objectify.so"]
 
         return not all([exists(join(build_dir, lib)) for lib in py_libs])
 
@@ -30,33 +35,29 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         libxslt_recipe = Recipe.get_recipe('libxslt', self.ctx)
         libxslt_build_dir = libxslt_recipe.get_build_dir(arch.arch)
 
-        cflags = ' -I' + libxslt_build_dir
-        cflags += ' -I' + join(libxslt_build_dir, 'libxslt')
-        cflags += ' -I' + join(libxslt_build_dir, 'libexslt')
-
-        env['LDFLAGS'] += ' -L' + join(libxslt_build_dir, 'libxslt', '.libs')
-        env['LDFLAGS'] += ' -L' + join(libxslt_build_dir, 'libexslt', '.libs')
-        env['LIBS'] = '-lxslt -lexslt'
-
         # libxml2 flags
         libxml2_recipe = Recipe.get_recipe('libxml2', self.ctx)
         libxml2_build_dir = libxml2_recipe.get_build_dir(arch.arch)
-        libxml2_libs_dir = join(libxml2_build_dir, '.libs')
 
-        cflags += ' -I' + libxml2_build_dir
-        cflags += ' -I' + join(libxml2_build_dir, 'include')
-        cflags += ' -I' + join(libxml2_build_dir, 'include', 'libxml')
-        cflags += ' -I' + self.get_build_dir(arch.arch)
-        env['LDFLAGS'] += ' -L' + libxml2_libs_dir
-        env['LIBS'] += ' -lxml2'
+        env["STATIC"] = "true"
 
-        # android's ndk flags
-        cflags += ' -I' + self.ctx.ndk_include_dir
-        env['LDFLAGS'] += ' -L' + arch.ndk_lib_dir
-        env['LIBS'] += ' -lz -lm -lc'
+        env["LXML_STATIC_INCLUDE_DIRS"] = "{}:{}".format(
+            join(libxml2_build_dir, "include"), join(libxslt_build_dir)
+        )
+        env["LXML_STATIC_LIBRARY_DIRS"] = "{}:{}:{}".format(
+            join(libxml2_build_dir, ".libs"),
+            join(libxslt_build_dir, "libxslt", ".libs"),
+            join(libxslt_build_dir, "libexslt", ".libs"),
+        )
 
-        if cflags not in env['CFLAGS']:
-            env['CFLAGS'] += cflags
+        env["WITH_XML2_CONFIG"] = join(libxml2_build_dir, "xml2-config")
+        env["WITH_XSLT_CONFIG"] = join(libxslt_build_dir, "xslt-config")
+
+        env["LXML_STATIC_BINARIES"] = "{}:{}:{}".format(
+            join(libxml2_build_dir, ".libs", "libxml2.a"),
+            join(libxslt_build_dir, "libxslt", ".libs", "libxslt.a"),
+            join(libxslt_build_dir, "libexslt", ".libs", "libexslt.a"),
+        )
 
         return env
 

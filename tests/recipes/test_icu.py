@@ -4,7 +4,6 @@ from unittest import mock
 
 from tests.recipes.recipe_ctx import RecipeCtx
 from pythonforandroid.recipes.icu import ICURecipe
-from pythonforandroid.util import build_platform
 
 
 class TestIcuRecipe(RecipeCtx, unittest.TestCase):
@@ -46,7 +45,7 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            f"toolchains/llvm/prebuilt/{build_platform}/bin/clang",
+            f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang",
         )
         self.ctx.toolchain_version = "4.9"
         self.recipe.build_arch(self.arch)

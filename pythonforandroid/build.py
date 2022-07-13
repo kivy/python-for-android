@@ -5,7 +5,6 @@ from os import environ
 import copy
 import os
 import glob
-import sys
 import re
 import sh
 import shutil
@@ -23,20 +22,7 @@ from pythonforandroid.recipe import CythonRecipe, Recipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
-from pythonforandroid.util import build_platform
-
-
-def get_ndk_standalone(ndk_dir):
-    return join(ndk_dir, 'toolchains', 'llvm', 'prebuilt', build_platform)
-
-
-def get_ndk_sysroot(ndk_dir):
-    sysroot = join(get_ndk_standalone(ndk_dir), 'sysroot')
-    sysroot_exists = True
-    if not exists(sysroot):
-        warning("sysroot doesn't exist: {}".format(sysroot))
-        sysroot_exists = False
-    return sysroot, sysroot_exists
+from pythonforandroid.androidndk import AndroidNDK
 
 
 def get_targets(sdk_dir):
@@ -101,9 +87,7 @@ class Context:
 
     ccache = None  # whether to use ccache
 
-    ndk_standalone = None
-    ndk_sysroot = None
-    ndk_include_dir = None  # usr/include
+    ndk = None
 
     bootstrap = None
     bootstrap_build_dir = None
@@ -330,7 +314,6 @@ class Context:
         if ndk_dir is None:
             raise BuildInterruptingException('Android NDK dir was not specified')
         self.ndk_dir = realpath(ndk_dir)
-
         check_ndk_version(ndk_dir)
 
         ndk_api = None
@@ -350,6 +333,8 @@ class Context:
 
         check_ndk_api(ndk_api, self.android_api)
 
+        self.ndk = AndroidNDK(self.ndk_dir)
+
         # path to some tools
         self.ccache = sh.which("ccache")
         if not self.ccache:
@@ -364,17 +349,9 @@ class Context:
                     ' a python 3 target (which is the default)'
                     ' then THINGS WILL BREAK.')
 
-        py_platform = sys.platform
-        if py_platform in ['linux2', 'linux3']:
-            py_platform = 'linux'
-
-        self.ndk_standalone = get_ndk_standalone(self.ndk_dir)
-        self.ndk_sysroot, ndk_sysroot_exists = get_ndk_sysroot(self.ndk_dir)
-        self.ndk_include_dir = join(self.ndk_sysroot, 'usr', 'include')
-
         self.env["PATH"] = ":".join(
             [
-                f"{self.ndk_dir}/toolchains/llvm/prebuilt/{py_platform}-x86_64/bin",
+                self.ndk.llvm_bin_dir,
                 self.ndk_dir,
                 f"{self.sdk_dir}/tools",
                 environ.get("PATH"),

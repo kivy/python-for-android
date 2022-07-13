@@ -25,7 +25,7 @@ class Arch:
 
     common_cppflags = [
         '-DANDROID',
-        '-I{ctx.ndk_sysroot}/usr/include',
+        '-I{ctx.ndk.sysroot_include_dir}',
         '-I{python_includes}',
     ]
 
@@ -54,7 +54,11 @@ class Arch:
 
     @property
     def ndk_lib_dir(self):
-        return join(self.ctx.ndk_sysroot, 'usr', 'lib', self.command_prefix, str(self.ctx.ndk_api))
+        return join(self.ctx.ndk.sysroot_lib_dir, self.command_prefix)
+
+    @property
+    def ndk_lib_dir_versioned(self):
+        return join(self.ndk_lib_dir, str(self.ctx.ndk_api))
 
     @property
     def include_dirs(self):
@@ -72,18 +76,6 @@ class Arch:
         # See: https://developer.android.com/ndk/guides/other_build_systems
         return '{triplet}{ndk_api}'.format(
             triplet=self.command_prefix, ndk_api=self.ctx.ndk_api
-        )
-
-    @property
-    def clang_path(self):
-        """Full path of the clang compiler"""
-        return join(
-            self.ctx.ndk_dir,
-            'toolchains',
-            'llvm',
-            'prebuilt',
-            build_platform,
-            'bin',
         )
 
     @property
@@ -112,7 +104,7 @@ class Arch:
             )
         if plus_plus:
             compiler += '++'
-        return join(self.clang_path, compiler)
+        return join(self.ctx.ndk.llvm_bin_dir, compiler)
 
     def get_env(self, with_flags_in_cc=True):
         env = {}
@@ -195,11 +187,11 @@ class Arch:
                 ccache=ccache)
 
         # Android's LLVM binutils
-        env['AR'] = f'{self.clang_path}/llvm-ar'
-        env['RANLIB'] = f'{self.clang_path}/llvm-ranlib'
-        env['STRIP'] = f'{self.clang_path}/llvm-strip --strip-unneeded'
-        env['READELF'] = f'{self.clang_path}/llvm-readelf'
-        env['OBJCOPY'] = f'{self.clang_path}/llvm-objcopy'
+        env['AR'] = self.ctx.ndk.llvm_ar
+        env['RANLIB'] = self.ctx.ndk.llvm_ranlib
+        env['STRIP'] = f'{self.ctx.ndk.llvm_strip} --strip-unneeded'
+        env['READELF'] = self.ctx.ndk.llvm_readelf
+        env['OBJCOPY'] = self.ctx.ndk.llvm_objcopy
 
         env['MAKE'] = 'make -j{}'.format(str(cpu_count()))
 

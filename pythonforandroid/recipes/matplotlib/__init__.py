@@ -98,7 +98,7 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
 
         with open(join(self.get_build_dir(arch), 'setup.cfg'), 'w') as fileh:
             fileh.write(setup_cfg.format(
-                ndk_sysroot_usr=join(self.ctx.ndk_dir, 'sysroot', 'usr')))
+                ndk_sysroot_usr=join(self.ctx.ndk.sysroot, 'usr')))
 
         self.generate_libraries_pc_files(arch)
         self.download_web_backend_dependencies(arch)
@@ -109,10 +109,10 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
             # matplotlib compile flags does not honor the standard flags:
             # `CPPFLAGS` and `LDLIBS`, so we put in `CFLAGS` and `LDFLAGS` to
             # correctly link with the `c++_shared` library
-            env['CFLAGS'] += ' -I{}'.format(self.stl_include_dir)
+            env['CFLAGS'] += ' -I{}'.format(self.ctx.ndk.libcxx_include_dir)
             env['CFLAGS'] += ' -frtti -fexceptions'
 
-            env['LDFLAGS'] += ' -L{}'.format(self.get_stl_lib_dir(arch))
+            env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir)
             env['LDFLAGS'] += ' -l{}'.format(self.stl_lib_name)
 
         # we modify `XDG_CACHE_HOME` to download `jquery-ui` into that folder,

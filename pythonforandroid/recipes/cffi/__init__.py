@@ -35,7 +35,7 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
                           self.ctx.get_libs_dir(arch.arch))
         env['LDFLAGS'] += ' -L{}'.format(os.path.join(self.ctx.bootstrap.build_dir, 'libs', arch.arch))
         # required for libc and libdl
-        env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir)
+        env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir_versioned)
         env['PYTHONPATH'] = ':'.join([
             self.ctx.get_site_packages_dir(arch),
             env['BUILDLIB_PATH'],

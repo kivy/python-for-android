@@ -109,11 +109,17 @@ jobs:
             target: testapps-with-numpy
           - name: webview
             target: testapps-webview
+        include:
+          - runs_on: macos-latest
+            ndk_version: '23b'
+          - runs_on: apple-silicon-m1
+            ndk_version: '24'
     env:
       ANDROID_HOME: ${HOME}/.android
       ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
       ANDROID_SDK_HOME: ${HOME}/.android/android-sdk
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
+      ANDROID_NDK_VERSION: ${{ matrix.ndk_version }}
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v2
@@ -127,7 +133,7 @@ jobs:
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           python3 pythonforandroid/prerequisites.py
-      - name: Install dependencies
+      - name: Install dependencies (Legacy)
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
@@ -241,11 +247,17 @@ jobs:
             target: testapps-with-numpy-aab
           - name: webview
             target: testapps-webview-aab
+        include:
+          - runs_on: macos-latest
+            ndk_version: '23b'
+          - runs_on: apple-silicon-m1
+            ndk_version: '24'
     env:
       ANDROID_HOME: ${HOME}/.android
       ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
       ANDROID_SDK_HOME: ${HOME}/.android/android-sdk
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
+      ANDROID_NDK_VERSION: ${{ matrix.ndk_version }}
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v2
@@ -259,7 +271,7 @@ jobs:
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           python3 pythonforandroid/prerequisites.py
-      - name: Install dependencies
+      - name: Install dependencies (Legacy)
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
@@ -318,12 +330,18 @@ jobs:
       matrix:
         android_arch: ["arm64-v8a", "armeabi-v7a", "x86_64", "x86"]
         runs_on: [macos-latest, apple-silicon-m1]
+        include:
+          - runs_on: macos-latest
+            ndk_version: '23b'
+          - runs_on: apple-silicon-m1
+            ndk_version: '24'
     env:
       ANDROID_HOME: ${HOME}/.android
       ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
       ANDROID_SDK_HOME: ${HOME}/.android/android-sdk
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
+      ANDROID_NDK_VERSION: ${{ matrix.ndk_version }}
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v2
@@ -339,7 +357,7 @@ jobs:
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           python3 pythonforandroid/prerequisites.py
-      - name: Install dependencies
+      - name: Install dependencies (Legacy)
         run: |
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7

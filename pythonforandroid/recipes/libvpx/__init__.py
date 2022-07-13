@@ -8,11 +8,13 @@ import sh
 TARGETS = {
     'armeabi-v7a': 'armv7-android-gcc',
     'arm64-v8a': 'arm64-android-gcc',
+    'x86': 'x86-android-gcc',
+    'x86_64': 'x86_64-android-gcc',
 }
 
 
 class VPXRecipe(Recipe):
-    version = '1.9.0'
+    version = '1.11.0'
     url = 'https://github.com/webmproject/libvpx/archive/v{version}.tar.gz'
 
     patches = [
@@ -22,21 +24,7 @@ class VPXRecipe(Recipe):
 
     def get_recipe_env(self, arch=None):
         env = super().get_recipe_env(arch)
-        cxx_include_dir = join(
-            self.ctx.ndk_dir,
-            'toolchains',
-            'llvm',
-            'prebuilt',
-            'linux-x86_64',
-            'sysroot',
-            'usr',
-            'include',
-            'c++',
-            'v1',
-        )
-        env['CXXFLAGS'] += f' -I{cxx_include_dir}'
-        if 'arm64' not in arch.arch:
-            env['AS'] = arch.command_prefix + '-as'
+        env['CXXFLAGS'] += f' -I{self.ctx.ndk.libcxx_include_dir}'
         return env
 
     def build_arch(self, arch):
@@ -56,6 +44,7 @@ class VPXRecipe(Recipe):
                 '--disable-docs',
                 '--disable-install-docs',
                 '--disable-realtime-only',
+                '--enable-external-build',
                 f'--prefix={realpath(".")}',
             ]
             configure = sh.Command('./configure')
