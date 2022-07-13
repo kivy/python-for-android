@@ -218,7 +218,7 @@ Build a Service library archive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To build an android archive (.aar), containing an android service , you need a name, version, package identifier, explicitly use the 
-service_library bootstrap, and declare service entry point (See :ref:`services <arbitrary_scripts_services>` formore options), as well as the requirements and arch(s)::
+service_library bootstrap, and declare service entry point (See :ref:`services <arbitrary_scripts_services>` for more options), as well as the requirements and arch(s)::
 
     p4a aar --private $HOME/code/myapp --package=org.example.myapp --name "My library" --version 0.1 --bootstrap=service_library --requirements=python3 --release --service=myservice:service.py --arch=arm64-v8a --arch=armeabi-v7a
 
