@@ -14,7 +14,7 @@ version in your requirements, use e.g. ``--requirements=python3==3.7.1,hostpytho
 The last python-for-android version supporting Python2 was `v2019.10.06 <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 
 Python-for-android no longer supports building for Python 3 using the CrystaX
-NDK. The last python-for-android version supporting CrystaX was `0.7.0. <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__
+NDK. The last python-for-android version supporting CrystaX was `0.7.0 <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__
 
 .. _bootstrap_build_options:
 
