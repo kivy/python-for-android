@@ -11,12 +11,10 @@ Python versions
 python-for-android supports using Python 3.7 or higher. To explicitly select a Python
 version in your requirements, use e.g. ``--requirements=python3==3.7.1,hostpython3==3.7.1``.
 
-The last python-for-android version supporting Python2 was `v2019.10.06
-          <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
+The last python-for-android version supporting Python2 was `v2019.10.06 <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 
 Python-for-android no longer supports building for Python 3 using the CrystaX
-NDK. The last python-for-android version supporting CrystaX was `0.7.0.
-          <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__
+NDK. The last python-for-android version supporting CrystaX was `0.7.0 <https://github.com/kivy/python-for-android/archive/0.7.0.zip>`__
 
 .. _bootstrap_build_options:
 
@@ -156,47 +154,29 @@ ready.
   access. Defaults to 5000.
 
 
-Build options
-%%%%%%%%%%%%%
+service_library
+~~~~~~~~~~~~~~~
 
-The sdl2 bootstrap supports the following additional command line
-options (this list may not be exhaustive):
+You can use this with ``--bootstrap=service_library`` option.
+
+
+This bootstrap can be used together with ``aar`` output target to generate
+a library, containing Python services that can be used with other build 
+systems and frameworks.
 
 - ``--private``: The directory containing your project files.
-- ``--dir``: The directory containing your project files if you want
-  them to be unpacked to the external storage directory rather than
-  the app private directory.
 - ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
-- ``--name``: The app name.
+- ``--name``: The library name.
 - ``--version``: The version number.
-- ``--orientation``: One of ``portait``, ``landscape`` or ``sensor``
-  to automatically rotate according to the device orientation.
-- ``--icon``: A path to the png file to use as the application icon.
-- ``--ignore-path``: A path to ignore when including the app
-  files. Pass multiple times to ignore multiple paths.
-- ``-- permission``: A permission name for the app,
-  e.g. ``--permission VIBRATE``. For multiple permissions, add
-  multiple ``--permission`` arguments.
-- ``--meta-data``: Custom key=value pairs to add in the application metadata.
-- ``--presplash``: A path to the image file to use as a screen while
-  the application is loading.
-- ``--wakelock``: If the argument is included, the application will
-  prevent the device from sleeping.
-- ``--window``: If the argument is included, the application will not
-  cover the Android status bar.
-- ``--blacklist``: The path to a file containing blacklisted patterns
-  that will be excluded from the final APK. Defaults to ``./blacklist.txt``.
-- ``--whitelist``: The path to a file containing whitelisted patterns
-  that will be included in the APK even if also blacklisted.
-- ``--add-jar``: The path to a .jar file to include in the APK. To
-  include multiple jar files, pass this argument multiple times.
-- ``--intent-filters``: A file path containing intent filter xml to be
-  included in AndroidManifest.xml.
 - ``--service``: A service name and the Python script it should
   run. See :ref:`arbitrary_scripts_services`.
+- ``--blacklist``: The path to a file containing blacklisted patterns
+  that will be excluded from the final AAR. Defaults to ``./blacklist.txt``.
+- ``--whitelist``: The path to a file containing whitelisted patterns
+  that will be included in the AAR even if also blacklisted.
+- ``--add-jar``: The path to a .jar file to include in the APK. To
+  include multiple jar files, pass this argument multiple times.
 - ``add-source``: Add a source directory to the app's Java code.
-- ``--compile-pyo``: Optimise .py files to .pyo.
-- ``--resource``: A key=value pair to add in the string.xml resource file.
 
 
 Requirements blacklist (APK size optimization)

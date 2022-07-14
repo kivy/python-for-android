@@ -26,7 +26,7 @@ Concepts
 
 - **bootstrap:** A bootstrap is the app backend that will start your
   application. The default for graphical applications is SDL2.
-  You can also use e.g. the webview for web apps, or service_only for
+  You can also use e.g. the webview for web apps, or service_only/service_library  for
   background services. Different bootstraps have different additional
   build options.
 
@@ -212,6 +212,19 @@ You can also replace flask with another web framework.
 
 Replace ``--port=5000`` with the port on which your app will serve a
 website. The default for Flask is 5000.
+
+
+Build a Service library archive
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To build an android archive (.aar), containing an android service , you need a name, version, package identifier, explicitly use the 
+service_library bootstrap, and declare service entry point (See :ref:`services <arbitrary_scripts_services>` for more options), as well as the requirements and arch(s)::
+
+    p4a aar --private $HOME/code/myapp --package=org.example.myapp --name "My library" --version 0.1 --bootstrap=service_library --requirements=python3 --release --service=myservice:service.py --arch=arm64-v8a --arch=armeabi-v7a
+
+
+You can then call the generated Java entrypoint(s) for your Python service(s) in other apk build frameworks.
+
 
 Exporting the Android App Bundle (aab) for distributing it on Google Play
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
