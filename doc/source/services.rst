@@ -59,7 +59,7 @@ when calling python-for-android, or in buildozer.spec, a
 The ``myservice`` name before the colon is the name of the service
 class, via which you will interact with it later. 
 
-The ``PATH_TO_SERVICE_PY`` is the realtive path to the service entry point (like ``services/myservice.py``)
+The ``PATH_TO_SERVICE_PY`` is the relative path to the service entry point (like ``services/myservice.py``)
 
 You can optionally specify the following parameters:
  - :code:`:foreground` for launching a service as an Android foreground service
