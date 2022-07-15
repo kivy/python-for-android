@@ -424,6 +424,10 @@ main.py that loads it.''')
         with open(args.intent_filters) as fd:
             args.intent_filters = fd.read()
 
+    if args.content_providers:
+        with open(args.content_providers) as f:
+            args.content_providers = f.read()
+
     if not args.add_activity:
         args.add_activity = []
 
@@ -583,6 +587,14 @@ main.py that loads it.''')
         'strings.tmpl.xml',
         join(res_dir, 'values/strings.xml'),
         **render_args)
+
+    # extra xml resources
+    if args.add_xml_resource:
+        xml_res_dir = join(res_dir, 'xml')
+        if not exists(xml_res_dir):
+            os.mkdir(xml_res_dir)
+        for file_path in args.add_xml_resource:
+            shutil.copy(file_path, join(xml_res_dir, basename(file_path)))
 
     if exists(join("templates", "custom_rules.tmpl.xml")):
         render(
@@ -803,6 +815,16 @@ tools directory of the Android SDK.
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
+    ap.add_argument('--content-providers', dest='content_providers',
+                    help=('Add providers xml rules to the '
+                          'AndroidManifest.xml file. The argument is a '
+                          'filename containing xml. The filename should be '
+                          'located relative to the python-for-android '
+                          'directory'))
+    ap.add_argument('--add-xml-resource', dest='add_xml_resource',
+                    action='append',
+                    help=('Copy this file to the src/main/res/xml '
+                          'subdirectory of the build.'))
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',

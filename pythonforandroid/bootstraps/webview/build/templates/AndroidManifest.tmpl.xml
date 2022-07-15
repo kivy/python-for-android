@@ -102,6 +102,10 @@
             </intent-filter>
         </receiver>
         {% endif %}
+
+        {%- if args.content_providers -%}
+        {{- args.content_providers -}}
+        {%- endif -%}
     </application>
 
 </manifest>
