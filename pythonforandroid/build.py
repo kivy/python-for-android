@@ -336,7 +336,7 @@ class Context:
         self.ndk = AndroidNDK(self.ndk_dir)
 
         # path to some tools
-        self.ccache = sh.which("ccache")
+        self.ccache = shutil.which("ccache")
         if not self.ccache:
             info('ccache is missing, the build will not be optimized in the '
                  'future.')
@@ -905,7 +905,7 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=None, env=None):
     elif 'READELF' in os.environ:
         readelf = os.environ['READELF']
     else:
-        readelf = sh.which('readelf').strip()
+        readelf = shutil.which('readelf').strip()
     readelf = sh.Command(readelf).bake('-d')
 
     dest = dirname(soname)

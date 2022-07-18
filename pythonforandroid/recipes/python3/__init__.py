@@ -6,7 +6,7 @@ from multiprocessing import cpu_count
 from os import environ, utime
 from os.path import dirname, exists, join
 from pathlib import Path
-from shutil import copy2
+import shutil
 
 from pythonforandroid.logger import info, warning, shprint
 from pythonforandroid.patching import version_starts_with
@@ -73,7 +73,7 @@ class Python3Recipe(TargetPythonRecipe):
         ('patches/py3.8.1.patch', version_starts_with("3.9"))
     ]
 
-    if sh.which('lld') is not None:
+    if shutil.which('lld') is not None:
         patches = patches + [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
             ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8")),
@@ -208,7 +208,7 @@ class Python3Recipe(TargetPythonRecipe):
         )
 
         env['LDFLAGS'] = env.get('LDFLAGS', '')
-        if sh.which('lld') is not None:
+        if shutil.which('lld') is not None:
             # Note: The -L. is to fix a bug in python 3.7.
             # https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234409
             env['LDFLAGS'] += ' -L. -fuse-ld=lld'
@@ -380,7 +380,7 @@ class Python3Recipe(TargetPythonRecipe):
         info("Copy {} files into the bundle".format(len(module_filens)))
         for filen in module_filens:
             info(" - copy {}".format(filen))
-            copy2(filen, modules_dir)
+            shutil.copy2(filen, modules_dir)
 
         # zip up the standard library
         stdlib_zip = join(dirn, 'stdlib.zip')
@@ -408,7 +408,7 @@ class Python3Recipe(TargetPythonRecipe):
             for filen in filens:
                 info(" - copy {}".format(filen))
                 ensure_dir(join(dirn, 'site-packages', dirname(filen)))
-                copy2(filen, join(dirn, 'site-packages', filen))
+                shutil.copy2(filen, join(dirn, 'site-packages', filen))
 
         # copy the python .so files into place
         python_build_dir = join(self.get_build_dir(arch.arch),
