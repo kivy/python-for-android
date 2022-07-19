@@ -5,6 +5,7 @@ from multiprocessing import cpu_count
 from os.path import join
 import glob
 import sh
+import shutil
 
 
 class NumpyRecipe(CompiledComponentsPythonRecipe):
@@ -67,7 +68,7 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
 
     def get_hostrecipe_env(self, arch):
         env = super().get_hostrecipe_env(arch)
-        env['RANLIB'] = sh.which('ranlib')
+        env['RANLIB'] = shutil.which('ranlib')
         return env
 
 

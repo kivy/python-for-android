@@ -9,6 +9,7 @@ from pythonforandroid.util import current_directory, ensure_dir, BuildInterrupti
 from multiprocessing import cpu_count
 from os.path import join
 import sh
+import shutil
 from os import environ
 from pythonforandroid.util import build_platform
 
@@ -43,7 +44,7 @@ class LapackRecipe(Recipe):
         sysroot = f"{ndk_dir}/platforms/{env['NDK_API']}/arch-{sysroot_suffix}"
         FC = f"{ndk_dir}/toolchains/{arch_to_toolchain(arch)}-{GCC_VER}/prebuilt/{HOST}/bin/{arch.command_prefix}-gfortran"
         env['FC'] = f'{FC} --sysroot={sysroot}'
-        if sh.which(FC) is None:
+        if shutil.which(FC) is None:
             raise BuildInterruptingException(f"{FC} not found. See https://github.com/mzakharo/android-gfortran")
         return env
 
