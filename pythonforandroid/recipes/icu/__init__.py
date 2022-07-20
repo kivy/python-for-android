@@ -1,5 +1,6 @@
 import sh
 import os
+import platform
 from os.path import join, isdir, exists
 from multiprocessing import cpu_count
 from pythonforandroid.recipe import Recipe
@@ -11,8 +12,10 @@ class ICURecipe(Recipe):
     name = 'icu4c'
     version = '57.1'
     major_version = version.split('.')[0]
-    url = ('http://download.icu-project.org/files/icu4c/'
-           '{version}/icu4c-{version_underscore}-src.tgz')
+    url = (
+        "https://github.com/unicode-org/icu/releases/download/"
+        "release-{version_hyphen}/icu4c-{version_underscore}-src.tgz"
+    )
 
     depends = ['hostpython3']  # installs in python
     patches = ['disable-libs-version.patch']
@@ -26,7 +29,6 @@ class ICURecipe(Recipe):
         'libicutu{}.so'.format(major_version): 'build_icu_android/lib',
         'libiculx{}.so'.format(major_version): 'build_icu_android/lib',
     }
-    need_stl_shared = True
 
     @property
     def versioned_url(self):
@@ -34,7 +36,8 @@ class ICURecipe(Recipe):
             return None
         return self.url.format(
             version=self.version,
-            version_underscore=self.version.replace('.', '_'))
+            version_underscore=self.version.replace('.', '_'),
+            version_hyphen=self.version.replace('.', '-'))
 
     def get_recipe_dir(self):
         """
@@ -61,7 +64,7 @@ class ICURecipe(Recipe):
             return build_dest, True
 
         icu_build = join(build_root, "icu_build")
-        build_linux, exists = make_build_dest("build_icu_linux")
+        build_host, exists = make_build_dest("build_icu_host")
 
         host_env = os.environ.copy()
         # reduce the function set
@@ -72,12 +75,15 @@ class ICURecipe(Recipe):
             "-DUCONFIG_NO_TRANSLITERATION=0 ")
 
         if not exists:
+            icu4c_host_platform = platform.system()
+            if icu4c_host_platform == "Darwin":
+                icu4c_host_platform = "MacOSX"
             configure = sh.Command(
                 join(build_root, "source", "runConfigureICU"))
-            with current_directory(build_linux):
+            with current_directory(build_host):
                 shprint(
                     configure,
-                    "Linux",
+                    icu4c_host_platform,
                     "--prefix="+icu_build,
                     "--enable-extras=no",
                     "--enable-strict=no",
@@ -87,22 +93,20 @@ class ICURecipe(Recipe):
                     _env=host_env)
                 shprint(sh.make, "-j", str(cpu_count()), _env=host_env)
                 shprint(sh.make, "install", _env=host_env)
-
         build_android, exists = make_build_dest("build_icu_android")
         if not exists:
-
             configure = sh.Command(join(build_root, "source", "configure"))
 
             with current_directory(build_android):
                 shprint(
                     configure,
-                    "--with-cross-build="+build_linux,
+                    "--with-cross-build="+build_host,
                     "--enable-extras=no",
                     "--enable-strict=no",
                     "--enable-static=no",
                     "--enable-tests=no",
                     "--enable-samples=no",
-                    "--host="+env["TOOLCHAIN_PREFIX"],
+                    "--host="+arch.command_prefix,
                     "--prefix="+icu_build,
                     _env=env)
                 shprint(sh.make, "-j", str(cpu_count()), _env=env)

@@ -7,7 +7,7 @@ from pythonforandroid.bootstrap import Bootstrap
 from pythonforandroid.distribution import Distribution
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.build import Context
-from pythonforandroid.util import BuildInterruptingException, build_platform
+from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.archs import (
     Arch,
     ArchARM,
@@ -16,23 +16,18 @@ from pythonforandroid.archs import (
     Archx86,
     Archx86_64,
 )
+from pythonforandroid.androidndk import AndroidNDK
 
 expected_env_gcc_keys = {
     "CFLAGS",
     "LDFLAGS",
     "CXXFLAGS",
-    "TOOLCHAIN_PREFIX",
-    "TOOLCHAIN_VERSION",
     "CC",
     "CXX",
-    "AR",
-    "RANLIB",
-    "LD",
     "LDSHARED",
     "STRIP",
     "MAKE",
     "READELF",
-    "NM",
     "BUILDLIB_PATH",
     "PATH",
     "ARCH",
@@ -58,6 +53,7 @@ class ArchSetUpBaseClass(object):
         self.ctx.android_api = 27
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
+        self.ctx.ndk = AndroidNDK(self.ctx._ndk_dir)
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.bootstrap = Bootstrap().get_bootstrap("sdl2", self.ctx)
         self.ctx.bootstrap.distribution = Distribution.get_distribution(
@@ -71,7 +67,7 @@ class ArchSetUpBaseClass(object):
         # should be the same for all the tests (no more gcc compiler)
         self.expected_compiler = (
             f"/opt/android/android-ndk/toolchains/"
-            f"llvm/prebuilt/{build_platform}/bin/clang"
+            f"llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang"
         )
 
 
@@ -86,7 +82,6 @@ class TestArch(ArchSetUpBaseClass, unittest.TestCase):
         arch = Arch(self.ctx)
         self.assertEqual(arch.__str__(), arch.arch)
         self.assertEqual(arch.target, "None21")
-        self.assertIsNone(arch.toolchain_prefix)
         self.assertIsNone(arch.command_prefix)
         self.assertIsInstance(arch.include_dirs, list)
 
@@ -97,10 +92,9 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
     will be used to perform tests for :class:`~pythonforandroid.archs.ArchARM`.
     """
 
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    def test_arch_arm(self, mock_ensure_dir, mock_find_executable, mock_glob):
+    def test_arch_arm(self, mock_ensure_dir, mock_find_executable):
         """
         Test that class :class:`~pythonforandroid.archs.ArchARM` returns some
         expected attributes and environment variables.
@@ -117,15 +111,12 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
         """
         mock_find_executable.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
-        mock_glob.return_value = ["llvm"]
 
         arch = ArchARM(self.ctx)
         self.assertEqual(arch.arch, "armeabi")
         self.assertEqual(arch.__str__(), "armeabi")
-        self.assertEqual(arch.toolchain_prefix, "arm-linux-androideabi")
         self.assertEqual(arch.command_prefix, "arm-linux-androideabi")
         self.assertEqual(arch.target, "armv7a-linux-androideabi21")
-        self.assertEqual(arch.platform_dir, "arch-arm")
         arch = ArchARM(self.ctx)
 
         # Check environment flags
@@ -135,13 +126,7 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
             expected_env_gcc_keys, set(env.keys()) & expected_env_gcc_keys
         )
 
-        # check glob and find_executable calls
-        self.assertEqual(mock_glob.call_count, 4)
-        for glob_call, kw in mock_glob.call_args_list:
-            self.assertEqual(
-                glob_call[0],
-                "{ndk_dir}/toolchains/llvm*".format(ndk_dir=self.ctx._ndk_dir),
-            )
+        # check find_executable calls
         mock_find_executable.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
@@ -150,16 +135,22 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
         self.assertEqual(env["CC"].split()[0], self.expected_compiler)
         self.assertEqual(env["CXX"].split()[0], self.expected_compiler + "++")
         # check android binaries
-        self.assertEqual(env["AR"], "arm-linux-androideabi-ar")
-        self.assertEqual(env["LD"], "arm-linux-androideabi-ld")
-        self.assertEqual(env["RANLIB"], "arm-linux-androideabi-ranlib")
         self.assertEqual(
-            env["STRIP"].split()[0], "arm-linux-androideabi-strip"
+            env["STRIP"].split()[0],
+            os.path.join(
+                self.ctx._ndk_dir,
+                f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin",
+                "llvm-strip",
+            )
         )
         self.assertEqual(
-            env["READELF"].split()[0], "arm-linux-androideabi-readelf"
+            env["READELF"].split()[0],
+            os.path.join(
+                self.ctx._ndk_dir,
+                f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin",
+                "llvm-readelf",
+            )
         )
-        self.assertEqual(env["NM"].split()[0], "arm-linux-androideabi-nm")
 
         # check that cflags are in gcc
         self.assertIn(env["CFLAGS"], env["CC"])
@@ -191,11 +182,10 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
     :class:`~pythonforandroid.archs.ArchARMv7_a`.
     """
 
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_armv7a(
-        self, mock_ensure_dir, mock_find_executable, mock_glob
+        self, mock_ensure_dir, mock_find_executable
     ):
         """
         Test that class :class:`~pythonforandroid.archs.ArchARMv7_a` returns
@@ -203,52 +193,38 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
 
         .. note::
             Here we mock the same functions than
-            :meth:`TestArchARM.test_arch_arm` plus `glob`, so we make sure that
-            the glob result is the expected even if the folder doesn't exist,
-            which is probably the case. This has to be done because here we
-            tests the `get_env` with clang
+            :meth:`TestArchARM.test_arch_arm`.
+            This has to be done because here we tests the `get_env` with clang
 
         """
         mock_find_executable.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
-        mock_glob.return_value = ["llvm"]
 
         arch = ArchARMv7_a(self.ctx)
         self.assertEqual(arch.arch, "armeabi-v7a")
         self.assertEqual(arch.__str__(), "armeabi-v7a")
-        self.assertEqual(arch.toolchain_prefix, "arm-linux-androideabi")
         self.assertEqual(arch.command_prefix, "arm-linux-androideabi")
         self.assertEqual(arch.target, "armv7a-linux-androideabi21")
-        self.assertEqual(arch.platform_dir, "arch-arm")
 
         env = arch.get_env()
-        # check glob and find_executable calls
-        self.assertEqual(mock_glob.call_count, 4)
-        for glob_call, kw in mock_glob.call_args_list:
-            self.assertEqual(
-                glob_call[0],
-                "{ndk_dir}/toolchains/llvm*".format(ndk_dir=self.ctx._ndk_dir),
-            )
+        # check find_executable calls
         mock_find_executable.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 
         # check clang
-        build_platform = "{system}-{machine}".format(
-            system=os.uname()[0], machine=os.uname()[-1]
-        ).lower()
         self.assertEqual(
             env["CC"].split()[0],
             "{ndk_dir}/toolchains/llvm/prebuilt/"
-            "{build_platform}/bin/clang".format(
-                ndk_dir=self.ctx._ndk_dir, build_platform=build_platform
+            "{host_tag}/bin/clang".format(
+                ndk_dir=self.ctx._ndk_dir, host_tag=self.ctx.ndk.host_tag
             ),
         )
         self.assertEqual(
             env["CXX"].split()[0],
             "{ndk_dir}/toolchains/llvm/prebuilt/"
-            "{build_platform}/bin/clang++".format(
-                ndk_dir=self.ctx._ndk_dir, build_platform=build_platform
+            "{host_tag}/bin/clang++".format(
+                ndk_dir=self.ctx._ndk_dir, host_tag=self.ctx.ndk.host_tag
             ),
         )
 
@@ -265,10 +241,9 @@ class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
     will be used to perform tests for :class:`~pythonforandroid.archs.Archx86`.
     """
 
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    def test_arch_x86(self, mock_ensure_dir, mock_find_executable, mock_glob):
+    def test_arch_x86(self, mock_ensure_dir, mock_find_executable):
         """
         Test that class :class:`~pythonforandroid.archs.Archx86` returns
         some expected attributes and environment variables.
@@ -282,31 +257,22 @@ class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
         """
         mock_find_executable.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
-        mock_glob.return_value = ["llvm"]
 
         arch = Archx86(self.ctx)
         self.assertEqual(arch.arch, "x86")
         self.assertEqual(arch.__str__(), "x86")
-        self.assertEqual(arch.toolchain_prefix, "x86")
         self.assertEqual(arch.command_prefix, "i686-linux-android")
         self.assertEqual(arch.target, "i686-linux-android21")
-        self.assertEqual(arch.platform_dir, "arch-x86")
 
         env = arch.get_env()
-        # check glob and find_executable calls
-        self.assertEqual(mock_glob.call_count, 4)
-        for glob_call, kw in mock_glob.call_args_list:
-            self.assertEqual(
-                glob_call[0],
-                "{ndk_dir}/toolchains/llvm*".format(ndk_dir=self.ctx._ndk_dir),
-            )
+        # check find_executable calls
         mock_find_executable.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 
         # For x86 we expect some extra cflags in our `environment`
         self.assertIn(
-            " -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32",
+            " -march=i686 -mssse3 -mfpmath=sse -m32",
             env["CFLAGS"],
         )
 
@@ -318,11 +284,10 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
     :class:`~pythonforandroid.archs.Archx86_64`.
     """
 
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_x86_64(
-        self, mock_ensure_dir, mock_find_executable, mock_glob
+        self, mock_ensure_dir, mock_find_executable
     ):
         """
         Test that class :class:`~pythonforandroid.archs.Archx86_64` returns
@@ -337,24 +302,15 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
         """
         mock_find_executable.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
-        mock_glob.return_value = ["llvm"]
 
         arch = Archx86_64(self.ctx)
         self.assertEqual(arch.arch, "x86_64")
         self.assertEqual(arch.__str__(), "x86_64")
-        self.assertEqual(arch.toolchain_prefix, "x86_64")
         self.assertEqual(arch.command_prefix, "x86_64-linux-android")
         self.assertEqual(arch.target, "x86_64-linux-android21")
-        self.assertEqual(arch.platform_dir, "arch-x86_64")
 
         env = arch.get_env()
-        # check glob and find_executable calls
-        self.assertEqual(mock_glob.call_count, 4)
-        for glob_call, kw in mock_glob.call_args_list:
-            self.assertEqual(
-                glob_call[0],
-                "{ndk_dir}/toolchains/llvm*".format(ndk_dir=self.ctx._ndk_dir),
-            )
+        # check find_executable calls
         mock_find_executable.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
@@ -362,7 +318,7 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
         # For x86_64 we expect some extra cflags in our `environment`
         mock_find_executable.assert_called_once()
         self.assertIn(
-            " -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel", env["CFLAGS"]
+            " -march=x86-64 -msse4.2 -mpopcnt -m64", env["CFLAGS"]
         )
 
 
@@ -373,11 +329,10 @@ class TestArchAArch64(ArchSetUpBaseClass, unittest.TestCase):
     :class:`~pythonforandroid.archs.ArchAarch_64`.
     """
 
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_aarch_64(
-        self, mock_ensure_dir, mock_find_executable, mock_glob
+        self, mock_ensure_dir, mock_find_executable
     ):
         """
         Test that class :class:`~pythonforandroid.archs.ArchAarch_64` returns
@@ -392,24 +347,15 @@ class TestArchAArch64(ArchSetUpBaseClass, unittest.TestCase):
         """
         mock_find_executable.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
-        mock_glob.return_value = ["llvm"]
 
         arch = ArchAarch_64(self.ctx)
         self.assertEqual(arch.arch, "arm64-v8a")
         self.assertEqual(arch.__str__(), "arm64-v8a")
-        self.assertEqual(arch.toolchain_prefix, "aarch64-linux-android")
         self.assertEqual(arch.command_prefix, "aarch64-linux-android")
         self.assertEqual(arch.target, "aarch64-linux-android21")
-        self.assertEqual(arch.platform_dir, "arch-arm64")
 
         env = arch.get_env()
-        # check glob and find_executable calls
-        self.assertEqual(mock_glob.call_count, 4)
-        for glob_call, kw in mock_glob.call_args_list:
-            self.assertEqual(
-                glob_call[0],
-                "{ndk_dir}/toolchains/llvm*".format(ndk_dir=self.ctx._ndk_dir),
-            )
+        # check find_executable calls
         mock_find_executable.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )

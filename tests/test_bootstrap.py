@@ -12,7 +12,8 @@ from pythonforandroid.distribution import Distribution
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.archs import ArchARMv7_a
 from pythonforandroid.build import Context
-from pythonforandroid.util import BuildInterruptingException, build_platform
+from pythonforandroid.util import BuildInterruptingException
+from pythonforandroid.androidndk import AndroidNDK
 
 from test_graph import get_fake_recipe
 
@@ -33,6 +34,7 @@ class BaseClassSetupBootstrap(object):
         self.ctx.android_api = 27
         self.ctx._sdk_dir = "/opt/android/android-sdk"
         self.ctx._ndk_dir = "/opt/android/android-ndk"
+        self.ctx.ndk = AndroidNDK(self.ctx._ndk_dir)
         self.ctx.setup_dirs(os.getcwd())
         self.ctx.recipe_build_order = [
             "hostpython3",
@@ -518,23 +520,18 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstrap.shprint")
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_bootstrap_strip(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_sh_command,
         mock_sh_print,
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            f"toolchains/llvm/prebuilt/{build_platform}/bin/clang",
+            f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang",
         )
-        mock_glob.return_value = [
-            os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
-        ]
         # prepare arch, bootstrap, distribution and PythonRecipe
         arch = ArchARMv7_a(self.ctx)
         bs = Bootstrap().get_bootstrap(self.bootstrap_name, self.ctx)
@@ -549,7 +546,13 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             mock_find_executable.call_args[0][0],
             mock_find_executable.return_value,
         )
-        mock_sh_command.assert_called_once_with("arm-linux-androideabi-strip")
+        mock_sh_command.assert_called_once_with(
+            os.path.join(
+                self.ctx._ndk_dir,
+                f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin",
+                "llvm-strip",
+            )
+        )
         # check that the other mocks we made are actually called
         mock_ensure_dir.assert_called()
         mock_sh_print.assert_called()

@@ -1,12 +1,10 @@
 from os.path import (
-    abspath, join, realpath, dirname, expanduser, exists,
-    split, isdir
+    abspath, join, realpath, dirname, expanduser, exists
 )
 from os import environ
 import copy
 import os
 import glob
-import sys
 import re
 import sh
 import shutil
@@ -24,96 +22,15 @@ from pythonforandroid.recipe import CythonRecipe, Recipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
-from pythonforandroid.util import build_platform
-
-
-def get_ndk_standalone(ndk_dir):
-    return join(ndk_dir, 'toolchains', 'llvm', 'prebuilt', build_platform)
-
-
-def get_ndk_sysroot(ndk_dir):
-    sysroot = join(get_ndk_standalone(ndk_dir), 'sysroot')
-    sysroot_exists = True
-    if not exists(sysroot):
-        warning("sysroot doesn't exist: {}".format(sysroot))
-        sysroot_exists = False
-    return sysroot, sysroot_exists
-
-
-def get_toolchain_versions(ndk_dir, arch):
-    toolchain_versions = []
-    toolchain_path_exists = True
-    toolchain_prefix = arch.toolchain_prefix
-    toolchain_path = join(ndk_dir, 'toolchains')
-    if isdir(toolchain_path):
-        toolchain_contents = glob.glob('{}/{}-*'.format(toolchain_path,
-                                                        toolchain_prefix))
-        toolchain_versions = [split(path)[-1][len(toolchain_prefix) + 1:]
-                              for path in toolchain_contents]
-    else:
-        warning('Could not find toolchain subdirectory!')
-        toolchain_path_exists = False
-    return toolchain_versions, toolchain_path_exists
-
-
-def select_and_check_toolchain_version(sdk_dir, ndk_dir, arch, ndk_sysroot_exists, py_platform):
-    toolchain_versions, toolchain_path_exists = get_toolchain_versions(ndk_dir, arch)
-    ok = ndk_sysroot_exists and toolchain_path_exists
-    toolchain_versions.sort()
-
-    toolchain_versions_gcc = []
-    for toolchain_version in toolchain_versions:
-        if toolchain_version[0].isdigit():
-            # GCC toolchains begin with a number
-            toolchain_versions_gcc.append(toolchain_version)
-
-    if toolchain_versions:
-        info('Found the following toolchain versions: {}'.format(
-            toolchain_versions))
-        info('Picking the latest gcc toolchain, here {}'.format(
-            toolchain_versions_gcc[-1]))
-        toolchain_version = toolchain_versions_gcc[-1]
-    else:
-        warning('Could not find any toolchain for {}!'.format(
-            arch.toolchain_prefix))
-        ok = False
-
-    # Modify the path so that sh finds modules appropriately
-    environ['PATH'] = (
-        '{ndk_dir}/toolchains/{toolchain_prefix}-{toolchain_version}/'
-        'prebuilt/{py_platform}-x86/bin/:{ndk_dir}/toolchains/'
-        '{toolchain_prefix}-{toolchain_version}/prebuilt/'
-        '{py_platform}-x86_64/bin/:{ndk_dir}:{sdk_dir}/'
-        'tools:{path}').format(
-            sdk_dir=sdk_dir, ndk_dir=ndk_dir,
-            toolchain_prefix=arch.toolchain_prefix,
-            toolchain_version=toolchain_version,
-            py_platform=py_platform, path=environ.get('PATH'))
-
-    for executable in (
-        "pkg-config",
-        "autoconf",
-        "automake",
-        "libtoolize",
-        "tar",
-        "bzip2",
-        "unzip",
-        "make",
-        "gcc",
-        "g++",
-    ):
-        if not sh.which(executable):
-            warning(f"Missing executable: {executable} is not installed")
-
-    if not ok:
-        raise BuildInterruptingException(
-            'python-for-android cannot continue due to the missing executables above')
-
-    return toolchain_version
+from pythonforandroid.androidndk import AndroidNDK
 
 
 def get_targets(sdk_dir):
-    if exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
+    if exists(join(sdk_dir, 'cmdline-tools', 'latest', 'bin', 'avdmanager')):
+        avdmanager = sh.Command(join(sdk_dir, 'cmdline-tools', 'latest', 'bin', 'avdmanager'))
+        targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+
+    elif exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
         avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
         targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
     elif exists(join(sdk_dir, 'tools', 'android')):
@@ -170,9 +87,7 @@ class Context:
 
     ccache = None  # whether to use ccache
 
-    ndk_standalone = None
-    ndk_sysroot = None
-    ndk_include_dir = None  # usr/include
+    ndk = None
 
     bootstrap = None
     bootstrap_build_dir = None
@@ -399,7 +314,6 @@ class Context:
         if ndk_dir is None:
             raise BuildInterruptingException('Android NDK dir was not specified')
         self.ndk_dir = realpath(ndk_dir)
-
         check_ndk_version(ndk_dir)
 
         ndk_api = None
@@ -419,8 +333,10 @@ class Context:
 
         check_ndk_api(ndk_api, self.android_api)
 
+        self.ndk = AndroidNDK(self.ndk_dir)
+
         # path to some tools
-        self.ccache = sh.which("ccache")
+        self.ccache = shutil.which("ccache")
         if not self.ccache:
             info('ccache is missing, the build will not be optimized in the '
                  'future.')
@@ -433,19 +349,14 @@ class Context:
                     ' a python 3 target (which is the default)'
                     ' then THINGS WILL BREAK.')
 
-        py_platform = sys.platform
-        if py_platform in ['linux2', 'linux3']:
-            py_platform = 'linux'
-
-        self.ndk_standalone = get_ndk_standalone(self.ndk_dir)
-        self.ndk_sysroot, ndk_sysroot_exists = get_ndk_sysroot(self.ndk_dir)
-        self.ndk_include_dir = join(self.ndk_sysroot, 'usr', 'include')
-
-        for arch in self.archs:
-            # We assume that the toolchain version is the same for all the archs.
-            self.toolchain_version = select_and_check_toolchain_version(
-                self.sdk_dir, self.ndk_dir, arch, ndk_sysroot_exists, py_platform
-            )
+        self.env["PATH"] = ":".join(
+            [
+                self.ndk.llvm_bin_dir,
+                self.ndk_dir,
+                f"{self.sdk_dir}/tools",
+                environ.get("PATH"),
+            ]
+        )
 
     def __init__(self):
         self.include_dirs = []
@@ -457,8 +368,6 @@ class Context:
         self._android_api = None
         self._ndk_api = None
         self.ndk = None
-
-        self.toolchain_version = None
 
         self.local_recipes = None
         self.copy_libs = False
@@ -996,7 +905,7 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=None, env=None):
     elif 'READELF' in os.environ:
         readelf = os.environ['READELF']
     else:
-        readelf = sh.which('readelf').strip()
+        readelf = shutil.which('readelf').strip()
     readelf = sh.Command(readelf).bake('-d')
 
     dest = dirname(soname)

@@ -6,7 +6,7 @@ diff -Naur orig/setup.py v0.4.7/setup.py
  #-----------------------------------------------------------------------------
  def create_ecodes():
 -    header = '/usr/include/linux/input.h'
-+    header = os.environ['NDKPLATFORM'] + '/usr/include/linux/input.h'
++    header = os.environ['SYSROOT'] + '/usr/include/linux/input.h'
  
      if not os.path.isfile(header):
          msg = '''\

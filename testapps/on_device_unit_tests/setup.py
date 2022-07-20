@@ -64,6 +64,17 @@ options = {
             'permissions': ['INTERNET', 'VIBRATE'],
             'orientation': 'sensor',
             'service': 'P4a_test_service:app_service.py',
+        },
+    'aar':
+        {
+            'requirements' : 'python3',
+            'android-api': 27,
+            'ndk-api': 21,
+            'dist-name': 'bdist_unit_tests_app',
+            'arch': 'arm64-v8a',
+            'bootstrap' : 'service_library',
+            'permissions': ['INTERNET', 'VIBRATE'],
+            'service': 'P4a_test_service:app_service.py',
         }
 }
 

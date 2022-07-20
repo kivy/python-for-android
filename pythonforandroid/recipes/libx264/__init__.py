@@ -7,25 +7,19 @@ import sh
 
 
 class LibX264Recipe(Recipe):
-    version = 'x264-snapshot-20171218-2245-stable'  # using mirror url since can't use ftp
-    url = 'http://mirror.yandex.ru/mirrors/ftp.videolan.org/x264/snapshots/{version}.tar.bz2'
+    version = '5db6aa6cab1b146e07b60cc1736a01f21da01154'  # commit of latest known stable version
+    url = 'https://code.videolan.org/videolan/x264/-/archive/{version}/x264-{version}.zip'
     built_libraries = {'libx264.a': 'lib'}
 
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
-            if 'arm64' in arch.arch:
-                cross_prefix = 'aarch64-linux-android-'
-            else:
-                cross_prefix = 'arm-linux-androideabi-'
             configure = sh.Command('./configure')
             shprint(configure,
-                    '--cross-prefix={}'.format(cross_prefix),
-                    '--host=arm-linux',
+                    f'--host={arch.command_prefix}',
                     '--disable-asm',
                     '--disable-cli',
                     '--enable-pic',
-                    '--disable-shared',
                     '--enable-static',
                     '--prefix={}'.format(realpath('.')),
                     _env=env)

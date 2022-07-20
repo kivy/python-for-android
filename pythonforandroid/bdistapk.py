@@ -159,6 +159,7 @@ def _set_user_options():
 
     BdistAPK.user_options = user_options
     BdistAAB.user_options = user_options
+    BdistAAR.user_options = user_options
 
 
 _set_user_options()

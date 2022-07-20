@@ -6,14 +6,19 @@ from os.path import join
 
 
 class PyjniusRecipe(CythonRecipe):
-    version = '1.3.0'
+    version = '1.4.2'
     url = 'https://github.com/kivy/pyjnius/archive/{version}.zip'
     name = 'pyjnius'
     depends = [('genericndkbuild', 'sdl2'), 'six']
     site_packages_name = 'jnius'
 
-    patches = [('sdl2_jnienv_getter.patch', will_build('sdl2')),
-               ('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild'))]
+    patches = [('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild'))]
+
+    def get_recipe_env(self, arch):
+        env = super().get_recipe_env(arch)
+        # NDKPLATFORM is our switch for detecting Android platform, so can't be None
+        env['NDKPLATFORM'] = "NOTNONE"
+        return env
 
     def postbuild_arch(self, arch):
         super().postbuild_arch(arch)

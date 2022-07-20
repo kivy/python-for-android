@@ -1,0 +1,27 @@
+diff --git a/DNS/Base.py b/DNS/Base.py
+index 34a6da7..a558889 100644
+--- a/DNS/Base.py
++++ b/DNS/Base.py
+@@ -15,6 +15,7 @@ import socket, string, types, time, select
+ import errno
+ from . import Type,Class,Opcode
+ import asyncore
++import os
+ #
+ # This random generator is used for transaction ids and port selection.  This
+ # is important to prevent spurious results from lost packets, and malicious
+@@ -50,8 +51,12 @@ defaults= { 'protocol':'udp', 'port':53, 'opcode':Opcode.QUERY,
+ 
+ def ParseResolvConf(resolv_path="/etc/resolv.conf"):
+     "parses the /etc/resolv.conf file and sets defaults for name servers"
+-    with open(resolv_path, 'r') as stream:
+-        return ParseResolvConfFromIterable(stream)
++    if os.path.exists(resolv_path):
++        with open(resolv_path, 'r') as stream:
++            return ParseResolvConfFromIterable(stream)
++    else:
++        defaults['server'].append('127.0.0.1')
++        return
+ 
+ def ParseResolvConfFromIterable(lines):
+     "parses a resolv.conf formatted stream and sets defaults for name servers"

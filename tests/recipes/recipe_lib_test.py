@@ -35,12 +35,10 @@ class BaseTestForMakeRecipe(RecipeCtx):
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_get_recipe_env(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_check_recipe_choices,
     ):
@@ -51,7 +49,6 @@ class BaseTestForMakeRecipe(RecipeCtx):
         mock_find_executable.return_value = self.expected_compiler.format(
                 android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
-        mock_glob.return_value = ["llvm"]
         mock_check_recipe_choices.return_value = sorted(
             self.ctx.recipe_build_order
         )
@@ -69,26 +66,22 @@ class BaseTestForMakeRecipe(RecipeCtx):
             self.assertIn(value, env[flag])
 
         # make sure that the mocked methods are actually called
-        mock_glob.assert_called()
         mock_ensure_dir.assert_called()
         mock_find_executable.assert_called()
         mock_check_recipe_choices.assert_called()
 
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_build_arch(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_current_directory,
     ):
         mock_find_executable.return_value = self.expected_compiler.format(
                 android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
-        mock_glob.return_value = ["llvm"]
 
         # Since the following mocks are dynamic,
         # we mock it inside a Context Manager
@@ -106,7 +99,6 @@ class BaseTestForMakeRecipe(RecipeCtx):
                 mock_sh_command.mock_calls,
             )
         mock_make.assert_called()
-        mock_glob.assert_called()
         mock_ensure_dir.assert_called()
         mock_current_directory.assert_called()
         mock_find_executable.assert_called()
@@ -124,19 +116,16 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
 
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_build_arch(
         self,
         mock_find_executable,
-        mock_glob,
         mock_ensure_dir,
         mock_current_directory,
     ):
         mock_find_executable.return_value = self.expected_compiler.format(
                 android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
-        mock_glob.return_value = ["llvm"]
 
         # Since the following mocks are dynamic,
         # we mock it inside a Context Manager
@@ -150,7 +139,6 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
         # make sure that the mocked methods are actually called
         mock_cmake.assert_called()
         mock_make.assert_called()
-        mock_glob.assert_called()
         mock_ensure_dir.assert_called()
         mock_current_directory.assert_called()
         mock_find_executable.assert_called()

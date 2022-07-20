@@ -22,6 +22,11 @@ class FFPyPlayerRecipe(CythonRecipe):
         env["USE_SDL2_MIXER"] = '1'
         env["SDL2_MIXER_INCLUDE_DIR"] = join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer')
 
+        # NDKPLATFORM and LIBLINK are our switches for detecting Android platform, so can't be empty
+        # FIXME: We may want to introduce a cleaner approach to this?
+        env['NDKPLATFORM'] = "NOTNONE"
+        env['LIBLINK'] = 'NOTNONE'
+
         # ffmpeg recipe enables GPL components only if ffpyplayer_codecs recipe used.
         # Therefor we need to disable libpostproc if skipped.
         if 'ffpyplayer_codecs' not in self.ctx.recipe_build_order:

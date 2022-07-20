@@ -13,6 +13,7 @@ from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import BuildInterruptingException, load_source
 from pythonforandroid.entrypoints import main
+from pythonforandroid.prerequisites import check_and_install_default_prerequisites
 
 
 def check_python_dependencies():
@@ -66,6 +67,8 @@ def check_python_dependencies():
         exit(1)
 
 
+if not environ.get('SKIP_PREREQUISITES_CHECK', '0') == '1':
+    check_and_install_default_prerequisites()
 check_python_dependencies()
 
 
@@ -1086,7 +1089,7 @@ class ToolchainCL:
                     )
                 gradle_task = "assembleDebug"
             elif args.build_mode == "release":
-                if package_type == "apk":
+                if package_type in ["apk", "aar"]:
                     gradle_task = "assembleRelease"
                 elif package_type == "aab":
                     gradle_task = "bundleRelease"

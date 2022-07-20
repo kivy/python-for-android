@@ -30,7 +30,6 @@ class JpegRecipe(Recipe):
             shprint(sh.rm, '-f', 'CMakeCache.txt', 'CMakeFiles/')
             shprint(sh.cmake, '-G', 'Unix Makefiles',
                     '-DCMAKE_SYSTEM_NAME=Android',
-                    '-DCMAKE_SYSTEM_PROCESSOR={cpu}'.format(cpu='arm'),
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',
                     '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
                     '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,

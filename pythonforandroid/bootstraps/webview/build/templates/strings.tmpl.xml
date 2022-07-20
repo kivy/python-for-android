@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">{{ args.name }}</string>
     <string name="private_version">{{ private_version }}</string>
+    <string name="presplash_color">{{ args.presplash_color }}</string>
 </resources>

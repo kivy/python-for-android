@@ -135,24 +135,9 @@ class Recipe(with_metaclass(RecipeMeta)):
         starting from NDK r18 the `gnustl_shared` lib has been deprecated.
     '''
 
-    stl_lib_source = '{ctx.ndk_dir}/sources/cxx-stl/llvm-libc++'
-    '''
-    The source directory of the selected stl lib, defined in property
-    `stl_lib_name`
-    '''
-
-    @property
-    def stl_include_dir(self):
-        return join(self.stl_lib_source.format(ctx=self.ctx), 'include')
-
-    def get_stl_lib_dir(self, arch):
-        return join(
-            self.stl_lib_source.format(ctx=self.ctx), 'libs', arch.arch
-        )
-
     def get_stl_library(self, arch):
         return join(
-            self.get_stl_lib_dir(arch),
+            arch.ndk_lib_dir,
             'lib{name}.so'.format(name=self.stl_lib_name),
         )
 
@@ -510,14 +495,14 @@ class Recipe(with_metaclass(RecipeMeta)):
 
         if self.need_stl_shared:
             env['CPPFLAGS'] = env.get('CPPFLAGS', '')
-            env['CPPFLAGS'] += ' -I{}'.format(self.stl_include_dir)
+            env['CPPFLAGS'] += ' -I{}'.format(self.ctx.ndk.libcxx_include_dir)
 
             env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
 
             if with_flags_in_cc:
                 env['CXX'] += ' -frtti -fexceptions'
 
-            env['LDFLAGS'] += ' -L{}'.format(self.get_stl_lib_dir(arch))
+            env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir)
             env['LIBS'] = env.get('LIBS', '') + " -l{}".format(
                 self.stl_lib_name
             )
@@ -818,7 +803,7 @@ class NDKRecipe(Recipe):
         env = self.get_recipe_env(arch)
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(
-                sh.ndk_build,
+                sh.Command(join(self.ctx.ndk_dir, "ndk-build")),
                 'V=1',
                 'NDK_DEBUG=' + ("1" if self.ctx.build_as_debuggable else "0"),
                 'APP_PLATFORM=android-' + str(self.ctx.ndk_api),
@@ -1142,7 +1127,6 @@ class CythonRecipe(PythonRecipe):
         env['LDSHARED'] = env['CC'] + ' -shared'
         # shprint(sh.whereis, env['LDSHARED'], _env=env)
         env['LIBLINK'] = 'NOTNONE'
-        env['NDKPLATFORM'] = self.ctx.ndk_sysroot  # FIXME?
         if self.ctx.copy_libs:
             env['COPYLIBS'] = '1'
 

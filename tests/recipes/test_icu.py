@@ -4,7 +4,6 @@ from unittest import mock
 
 from tests.recipes.recipe_ctx import RecipeCtx
 from pythonforandroid.recipes.icu import ICURecipe
-from pythonforandroid.util import build_platform
 
 
 class TestIcuRecipe(RecipeCtx, unittest.TestCase):
@@ -16,7 +15,7 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
 
     def test_url(self):
         self.assertTrue(self.recipe.versioned_url.startswith("http"))
-        self.assertIn(self.recipe.version, self.recipe.versioned_url)
+        self.assertIn(self.recipe.version.replace('.', '-'), self.recipe.versioned_url)
 
     @mock.patch(
         "pythonforandroid.recipe.Recipe.url", new_callable=mock.PropertyMock
@@ -34,12 +33,10 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.recipes.icu.sh.make")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.glob")
     @mock.patch("pythonforandroid.archs.find_executable")
     def test_build_arch(
         self,
         mock_find_executable,
-        mock_archs_glob,
         mock_ensure_dir,
         mock_sh_make,
         mock_sh_command,
@@ -48,11 +45,8 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     ):
         mock_find_executable.return_value = os.path.join(
             self.ctx._ndk_dir,
-            f"toolchains/llvm/prebuilt/{build_platform}/bin/clang",
+            f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang",
         )
-        mock_archs_glob.return_value = [
-            os.path.join(self.ctx._ndk_dir, "toolchains", "llvm")
-        ]
         self.ctx.toolchain_version = "4.9"
         self.recipe.build_arch(self.arch)
 

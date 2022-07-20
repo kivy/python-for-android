@@ -15,14 +15,8 @@ class PngRecipe(Recipe):
         build_dir = self.get_build_dir(arch.arch)
         with current_directory(build_dir):
             env = self.get_recipe_env(arch)
-            build_arch = (
-                shprint(sh.gcc, '-dumpmachine')
-                .stdout.decode('utf-8')
-                .split('\n')[0]
-            )
             shprint(
                 sh.Command('./configure'),
-                '--build=' + build_arch,
                 '--host=' + arch.command_prefix,
                 '--target=' + arch.command_prefix,
                 '--disable-static',

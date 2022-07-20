@@ -12,7 +12,6 @@ class OggRecipe(Recipe):
         with current_directory(self.get_build_dir(arch.arch)):
             env = self.get_recipe_env(arch)
             flags = [
-                '--with-sysroot=' + arch.ndk_platform,
                 '--host=' + arch.command_prefix,
             ]
             configure = sh.Command('./configure')

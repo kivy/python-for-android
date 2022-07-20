@@ -5,7 +5,7 @@ buildscript {
        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.4'
+        classpath 'com.android.tools.build:gradle:7.1.2'
     }
 }
 
@@ -41,6 +41,9 @@ android {
 
 	
 	packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
         {% if debug_build -%}
         doNotStrip '**/*.so'
         {% else %}
