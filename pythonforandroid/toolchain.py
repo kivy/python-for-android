@@ -720,7 +720,7 @@ class ToolchainCL:
 
         self._archs = args.arch
 
-        self.ctx.local_recipes = args.local_recipes
+        self.ctx.local_recipes = realpath(args.local_recipes)
         self.ctx.copy_libs = args.copy_libs
 
         self.ctx.activity_class_name = args.activity_class_name
