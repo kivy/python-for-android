@@ -1147,7 +1147,7 @@ class ToolchainCL:
         if package_add_version:
             info('# Add version number to android package')
             package_name = basename(package_file)[:-len(package_extension)]
-            package_file_dest = "{}-{}-{}".format(
+            package_file_dest = "{}-{}{}".format(
                 package_name, build_args.version, package_extension)
             info('# Android package renamed to {}'.format(package_file_dest))
             shprint(sh.cp, package_file, package_file_dest)
