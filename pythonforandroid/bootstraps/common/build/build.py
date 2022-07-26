@@ -508,11 +508,19 @@ main.py that loads it.''')
     url_scheme = 'kivy'
 
     # Copy backup rules file if specified and update the argument
+    res_xml_dir = join(res_dir, 'xml')
     if args.backup_rules:
-        res_xml_dir = join(res_dir, 'xml')
         ensure_dir(res_xml_dir)
         shutil.copy(join(args.private, args.backup_rules), res_xml_dir)
         args.backup_rules = split(args.backup_rules)[1][:-4]
+
+    # Copy res_xml files to src/main/res/xml
+    if args.res_xmls:
+        ensure_dir(res_xml_dir)
+        for xmlpath in args.res_xmls:
+            if not os.path.exists(xmlpath):
+                xmlpath = join(args.private, xmlpath)
+            shutil.copy(xmlpath, res_xml_dir)
 
     # Render out android manifest:
     manifest_path = "src/main/AndroidManifest.xml"
@@ -803,6 +811,8 @@ tools directory of the Android SDK.
                           'filename containing xml. The filename should be '
                           'located relative to the python-for-android '
                           'directory'))
+    ap.add_argument('--res_xml', dest='res_xmls', action='append', default=[],
+                    help='Add files to res/xml directory (for example device-filters)', nargs='+')
     ap.add_argument('--with-billing', dest='billing_pubkey',
                     help='If set, the billing service will be added (not implemented)')
     ap.add_argument('--add-source', dest='extra_source_dirs', action='append',
@@ -900,6 +910,9 @@ tools directory of the Android SDK.
 
     if args.permissions and isinstance(args.permissions[0], list):
         args.permissions = [p for perm in args.permissions for p in perm]
+
+    if args.res_xmls and isinstance(args.res_xmls[0], list):
+        args.res_xmls = [x for res in args.res_xmls for x in res]
 
     if args.try_system_python_compile:
         # Hardcoding python2.7 is okay for now, as python3 skips the
