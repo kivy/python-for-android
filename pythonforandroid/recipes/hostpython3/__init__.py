@@ -67,7 +67,7 @@ class HostPython3Recipe(Recipe):
         openssl_prereq = OpenSSLPrerequisite()
         if env.get("PKG_CONFIG_PATH", ""):
             env["PKG_CONFIG_PATH"] = os.pathsep.join(
-                openssl_prereq.pkg_config_location, env["PKG_CONFIG_PATH"]
+                [openssl_prereq.pkg_config_location, env["PKG_CONFIG_PATH"]]
             )
         else:
             env["PKG_CONFIG_PATH"] = openssl_prereq.pkg_config_location
