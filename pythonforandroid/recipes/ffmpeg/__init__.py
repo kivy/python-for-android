@@ -82,7 +82,7 @@ class FFMpegRecipe(Recipe):
                     '--enable-parser=aac,ac3,h261,h264,mpegaudio,mpeg4video,mpegvideo,vc1',
                     '--enable-decoder=aac,h264,mpeg4,mpegvideo',
                     '--enable-muxer=h264,mov,mp4,mpeg2video',
-                    '--enable-demuxer=aac,h264,m4v,mov,mpegvideo,vc1',
+                    '--enable-demuxer=aac,h264,m4v,mov,mpegvideo,vc1,rtsp',
                 ]
 
             # needed to prevent _ffmpeg.so: version node not found for symbol av_init_packet@LIBAVFORMAT_52
@@ -100,7 +100,7 @@ class FFMpegRecipe(Recipe):
             # other flags:
             flags += [
                 '--enable-filter=aresample,resample,crop,adelay,volume,scale',
-                '--enable-protocol=file,http,hls',
+                '--enable-protocol=file,http,hls,udp,tcp',
                 '--enable-small',
                 '--enable-hwaccels',
                 '--enable-pic',
