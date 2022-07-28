@@ -5,7 +5,6 @@ Tool for packaging Python apps for Android
 
 This module defines the entry point for command line and programmatic use.
 """
-
 from os import environ
 from pythonforandroid import __version__
 from pythonforandroid.pythonpackage import get_dep_names_of_package
@@ -228,6 +227,251 @@ def split_argument_list(arg_list):
     if not len(arg_list):
         return []
     return re.split(r'[ ,]+', arg_list)
+
+
+def __expand_requirements_arg_from_project_files(ctx, args):
+    """Parse additional requirements from setup.py or pyproject.toml file
+    and add to --requirements arg if --use_setup_py argument was specified"""
+    has_setup_py_or_toml = False
+    if getattr(args, "private", None) is not None:
+        project_dir = getattr(args, "private")
+        has_setup_py = os.path.exists(
+            os.path.join(project_dir, "setup.py"))
+        has_toml = os.path.exists(
+            os.path.join(project_dir, "pyproject.toml"))
+        has_setup_py_or_toml = has_setup_py or has_toml
+
+    # Add dependencies from setup.py, but only if they are recipes
+    # (because otherwise, setup.py itself will install them later)
+    if has_setup_py_or_toml and getattr(args, "use_setup_py", False):
+        try:
+            info("Analyzing package dependencies. MAY TAKE A WHILE.")
+            # Get all the dependencies corresponding to a recipe:
+            dependencies = [
+                dep.lower() for dep in
+                get_dep_names_of_package(
+                    args.private,
+                    keep_version_pins=True,
+                    recursive=True,
+                    verbose=True,
+                )
+            ]
+            info("Dependencies obtained: " + str(dependencies))
+            dependencies = [
+                dependencie for dependencie in dependencies
+                if has_a_recipe(ctx, dependencie)
+            ]
+
+            # Add dependencies to argument list:
+            if len(dependencies) > 0:
+                if len(args.requirements) > 0:
+                    args.requirements += u","
+                args.requirements += u",".join(dependencies)
+
+        except ValueError:
+            # Not a python package, apparently.
+            warning(
+                "Processing failed, is this project a valid "
+                "package? Will continue WITHOUT setup.py deps."
+            )
+
+
+def has_a_recipe(ctx, requirement):
+    all_recipes = [
+        recipe.lower() for recipe in
+        set(Recipe.list_recipes(ctx))
+    ]
+    requirement_name = requirement.split('==')[0]
+    return requirement_name in all_recipes
+
+
+def __run_pip_compile(requirements):
+    return shprint(
+        sh.bash, '-c',
+        "echo -e '{}' > requirements.in && "
+        "{} -m piptools compile --dry-run --annotation-style=line && "
+        "rm requirements.in".format(
+            '\n'.join(requirements), sys.executable))
+
+
+def __parse_pip_compile_output(output):
+    parsed_requirement_info_list = []
+    for line in output.splitlines():
+        match_data = re.match(
+            r'^([\w.-]+)(==([^\s]+)|\s+@\s+([^\s]+)).*'
+            r'#\s+via\s+([\w\s,.-]+)', line)
+
+        if match_data:
+            parent_requirements = match_data.group(5).split(', ')
+            requirement_name = match_data.group(1)
+            requirement_version = match_data.group(3)
+            requirement_url = match_data.group(4)
+
+            # Requirement is a "non-recipe" one we started with.
+            if '-r requirements.in' in parent_requirements:
+                parent_requirements.remove('-r requirements.in')
+
+            if requirement_url:
+                # For wtv reason, pip-compile output truncates the slashes.
+                requirement_url = requirement_url.replace('file:/', 'file:///')
+
+            parsed_requirement_info_list.append([
+                requirement_name,
+                requirement_version,
+                requirement_url,
+                parent_requirements])
+
+    return parsed_requirement_info_list
+
+
+def __run_pip_compile_and_parse_output(requirements):
+    return __parse_pip_compile_output(__run_pip_compile(requirements))
+
+
+def __is_requirement_indirectly_installed_by_recipe(
+        ctx, current_requirement_info, remaining_requirement_names):
+
+    requirement_name, requirement_version, \
+        requirement_url, parent_requirements = current_requirement_info
+
+    # If any parent requirement has a recipe, this
+    # requirement ought also to be installed by it.
+    # Hence, it's better not to add this requirement the
+    # expanded list.
+    parent_requirements_with_recipe = [
+        parent_requirement
+        for parent_requirement in parent_requirements
+        if has_a_recipe(ctx, parent_requirement)
+    ]
+
+    # Any parent requirement removed for the expanded list
+    # implies that it and its own requirements (including
+    # this requirement) will be installed by a recipe.
+    # Hence, it's better not to add this requirement the
+    # expanded list.
+    parent_requirements_not_in_list = [
+        parent_requirement
+        for parent_requirement in parent_requirements
+        if parent_requirement not in remaining_requirement_names
+    ]
+
+    is_indrectly_installed_by_a_recipe = \
+        len(parent_requirements) and \
+        (parent_requirements_with_recipe or parent_requirements_not_in_list)
+
+    if is_indrectly_installed_by_a_recipe and parent_requirements_with_recipe:
+        info('Concluding that {} is installed by {} recipe(s).'.format(requirement_name, parent_requirements_with_recipe))
+
+    elif is_indrectly_installed_by_a_recipe and parent_requirements_not_in_list:
+        info('Previously concluded that {} is/are installed by recipe(s). Consequently, so will {}.'.format(
+            parent_requirements_not_in_list, requirement_name))
+
+    return is_indrectly_installed_by_a_recipe
+
+
+def __prune_requirements_installed_by_recipe(ctx, requirement_info_list):
+    original_requirement_count = -1
+
+    while len(requirement_info_list) != original_requirement_count:
+        original_requirement_count = len(requirement_info_list)
+
+        for i, requirement_info in enumerate(reversed(requirement_info_list)):
+            index = original_requirement_count - i - 1
+
+            remaining_requirement_names = \
+                [x[0] for x in requirement_info_list]
+
+            if __is_requirement_indirectly_installed_by_recipe(
+                    ctx, requirement_info, remaining_requirement_names):
+                info('\tRemoving {} from requirement list expansion.'.format(
+                         requirement_info[0]))
+
+                del requirement_info_list[index]
+
+
+def __add_compiled_requirements_to_args(
+        ctx, args, compiled_requirment_info_list):
+
+    for requirement_info in compiled_requirment_info_list:
+        requirement_name, requirement_version, \
+            requirement_url, parent_requirements = requirement_info
+
+        # If the requirement has a recipe, don't use specific
+        # version constraints determined by pip-compile.  Some
+        # recipes may not support the specified version.  Therefor,
+        # it's probably safer to just let them use their default
+        # version. User can still force the usage of specific
+        # version by explicitly declaring it with --requirements.
+        requirement_str = \
+            requirement_name if has_a_recipe(ctx, requirement_name) else \
+            '{}=={}'.format(requirement_name, requirement_version)
+
+        requirement_names_arg = split_argument_list(re.sub(
+            r'==[^\s,]+', '', args.requirements))
+
+        # This expansion was carried out based on "non-recipe"
+        # requirements.  Hence, the counter-part, requirements
+        # with a recipe, may already be part of list.
+        if not (requirement_url or requirement_name in requirement_names_arg):
+            args.requirements += ',' + requirement_str
+
+        elif requirement_url and requirement_url not in requirement_names_arg:
+            args.requirements += ',' + requirement_url
+
+
+def __expand_requirements_arg_from_pip_compile(ctx, args):
+    """Use pip-compile to generate requirement dependencies and add to
+    --requirements command line argument."""
+
+    non_recipe_requirements = [
+        requirement for requirement in split_argument_list(args.requirements)
+        if not has_a_recipe(ctx, requirement)
+    ]
+    non_recipe_requirements_regex = \
+        r',?\s+' + r'|,?\s+'.join(non_recipe_requirements)
+    args.requirements = \
+        re.sub(non_recipe_requirements_regex, '', args.requirements)
+
+    # Compile "non-recipe" requirements' dependencies and add to
+    # args.requirement. Otherwise, only recipe requirements'
+    # dependencies would get installed.
+    # More info https://github.com/kivy/python-for-android/issues/2529
+    if non_recipe_requirements:
+        info("Compiling dependencies for: "
+             "{}".format(non_recipe_requirements))
+
+        parsed_requirement_info_list = \
+            __run_pip_compile_and_parse_output(non_recipe_requirements)
+
+        info("Requirements obtained from pip-compile: "
+             "{}".format(["{}{}".format(x[0], '==' + x[1] if x[1] else '[' + x[2] + ']')
+                          for x in parsed_requirement_info_list]))
+
+        __prune_requirements_installed_by_recipe(
+            ctx, parsed_requirement_info_list)
+
+        info("Requirements remaining after recipe dependency \"prunage\": "
+             "{}".format(["{}{}".format(x[0], '==' + x[1] if x[1] else '[' + x[2] + ']')
+                          for x in parsed_requirement_info_list]))
+
+        __add_compiled_requirements_to_args(
+            ctx, args, parsed_requirement_info_list)
+
+
+def expand_requirements_args(ctx, args):
+    """Expand --requirements arg value to include what may have not
+    been specified by the user, such as:
+        * requirements specified in local project setup.py or pyproject.toml
+          (if --use_setup_py was used)
+        * indirect requirements (i.e., the requirements of our requirements).
+          (e.g., if user specifies beautifulsoup4, the appropriate version of
+          soupsieve is added).
+    """
+    __expand_requirements_arg_from_project_files(ctx, args)
+    __expand_requirements_arg_from_pip_compile(ctx, args)
+
+    info('Expanded Requirements List: '
+         '{}'.format(split_argument_list(args.requirements)))
 
 
 class NoAbbrevParser(argparse.ArgumentParser):
@@ -648,65 +892,6 @@ class ToolchainCL:
         self.ctx.with_debug_symbols = getattr(
             args, "with_debug_symbols", False
         )
-
-        have_setup_py_or_similar = False
-        if getattr(args, "private", None) is not None:
-            project_dir = getattr(args, "private")
-            if (os.path.exists(os.path.join(project_dir, "setup.py")) or
-                    os.path.exists(os.path.join(project_dir,
-                                                "pyproject.toml"))):
-                have_setup_py_or_similar = True
-
-        # Process requirements and put version in environ
-        if hasattr(args, 'requirements'):
-            requirements = []
-
-            # Add dependencies from setup.py, but only if they are recipes
-            # (because otherwise, setup.py itself will install them later)
-            if (have_setup_py_or_similar and
-                    getattr(args, "use_setup_py", False)):
-                try:
-                    info("Analyzing package dependencies. MAY TAKE A WHILE.")
-                    # Get all the dependencies corresponding to a recipe:
-                    dependencies = [
-                        dep.lower() for dep in
-                        get_dep_names_of_package(
-                            args.private,
-                            keep_version_pins=True,
-                            recursive=True,
-                            verbose=True,
-                        )
-                    ]
-                    info("Dependencies obtained: " + str(dependencies))
-                    all_recipes = [
-                        recipe.lower() for recipe in
-                        set(Recipe.list_recipes(self.ctx))
-                    ]
-                    dependencies = set(dependencies).intersection(
-                        set(all_recipes)
-                    )
-                    # Add dependencies to argument list:
-                    if len(dependencies) > 0:
-                        if len(args.requirements) > 0:
-                            args.requirements += u","
-                        args.requirements += u",".join(dependencies)
-                except ValueError:
-                    # Not a python package, apparently.
-                    warning(
-                        "Processing failed, is this project a valid "
-                        "package? Will continue WITHOUT setup.py deps."
-                    )
-
-            # Parse --requirements argument list:
-            for requirement in split_argument_list(args.requirements):
-                if "==" in requirement:
-                    requirement, version = requirement.split(u"==", 1)
-                    os.environ["VERSION_{}".format(requirement)] = version
-                    info('Recipe {}: version "{}" requested'.format(
-                        requirement, version))
-                requirements.append(requirement)
-            args.requirements = u",".join(requirements)
-
         self.warn_on_deprecated_args(args)
 
         self.storage_dir = args.storage_dir
@@ -725,6 +910,21 @@ class ToolchainCL:
 
         self.ctx.activity_class_name = args.activity_class_name
         self.ctx.service_class_name = args.service_class_name
+
+        # Process requirements and put version in environ:
+        if getattr(args, 'requirements', []):
+            expand_requirements_args(self.ctx, args)
+
+            # Handle specific version requirement constraints (e.g. foo==x.y)
+            requirements = []
+            for requirement in split_argument_list(args.requirements):
+                if "==" in requirement:
+                    requirement, version = requirement.split(u"==", 1)
+                    os.environ["VERSION_{}".format(requirement)] = version
+                    info('Recipe {}: version "{}" requested'.format(
+                        requirement, version))
+                requirements.append(requirement)
+            args.requirements = u",".join(requirements)
 
         # Each subparser corresponds to a method
         command = args.subparser_name.replace('-', '_')
