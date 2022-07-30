@@ -343,6 +343,30 @@ main.py that loads it.''')
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
 
+    # Clean res directory
+    shutil.rmtree(res_dir)
+
+    # Create default p4a res dirs
+    default_res_dirs = [
+        "drawable", "drawable-mdpi", "drawable-hdpi", "drawable-xhdpi",
+        "drawable-xxhdpi", "layout", "mipmap", "mipmap-anydpi-v26", "values",
+        "xml"
+    ]
+    for dir in default_res_dirs:
+        ensure_dir(join(res_dir, dir))
+
+    # Copy default xml layout files
+    if get_bootstrap_name() == "sdl2":
+        default_layout_xmls = [
+            "chooser_item.xml", "main.xml", "project_chooser.xml",
+            "project_empty.xml"
+        ]
+        for xml in default_layout_xmls:
+            shutil.copy(
+                join("templates", xml),
+                join(res_dir, "layout", xml)
+            )
+
     if args.res:
         target_res_dirs = [
             filename for filename in listdir(res_dir)
@@ -367,6 +391,12 @@ main.py that loads it.''')
                     join(source_dir, filename),
                     join(target_dir, filename)
                 )
+
+            # Removes :Zone.Identifier files, for WSL users.
+            # Issue: https://github.com/microsoft/WSL/issues/7456
+            for file in listdir(join(res_dir, directory)):
+                if file.endswith(':Zone.Identifier'):
+                    remove(join(res_dir, directory, file))
 
     shutil.copy(
         args.icon or default_icon,
