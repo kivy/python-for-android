@@ -492,20 +492,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         if arch is None:
             arch = self.filtered_archs[0]
         env = arch.get_env(with_flags_in_cc=with_flags_in_cc)
-
-        if self.need_stl_shared:
-            env['CPPFLAGS'] = env.get('CPPFLAGS', '')
-            env['CPPFLAGS'] += ' -I{}'.format(self.ctx.ndk.libcxx_include_dir)
-
-            env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
-
-            if with_flags_in_cc:
-                env['CXX'] += ' -frtti -fexceptions'
-
-            env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir)
-            env['LIBS'] = env.get('LIBS', '') + " -l{}".format(
-                self.stl_lib_name
-            )
         return env
 
     def prebuild_arch(self, arch):

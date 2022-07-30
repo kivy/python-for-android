@@ -279,25 +279,6 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         )
         self.assertIsInstance(env, dict)
 
-        # check `CPPFLAGS`
-        expected_cppflags = {
-            '-I{libcxx_include}'.format(libcxx_include=self.ctx.ndk.libcxx_include_dir)
-        }
-        self.assertIn('CPPFLAGS', env)
-        for flags in expected_cppflags:
-            self.assertIn(flags, env['CPPFLAGS'])
-
-        # check `LIBS`
-        self.assertIn('LDFLAGS', env)
-        self.assertIn('-L' + arch.ndk_lib_dir, env['LDFLAGS'])
-        self.assertIn('LIBS', env)
-        self.assertIn('-lc++_shared', env['LIBS'])
-
-        # check `CXXFLAGS` and `CXX`
-        for flag in {'CXXFLAGS', 'CXX'}:
-            self.assertIn(flag, env)
-            self.assertIn('-frtti -fexceptions', env[flag])
-
     @mock.patch('pythonforandroid.recipe.Recipe.install_libs')
     @mock.patch('pythonforandroid.recipe.isfile')
     @mock.patch('pythonforandroid.build.ensure_dir')
