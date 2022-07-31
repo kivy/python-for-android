@@ -45,7 +45,7 @@ def get_dependency_tuple_list_for_recipe(recipe, blacklist=None):
     """
     if blacklist is None:
         blacklist = set()
-    assert(type(blacklist) == set)
+    assert type(blacklist) == set
     if recipe.depends is None:
         dependencies = []
     else:
