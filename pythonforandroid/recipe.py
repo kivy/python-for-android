@@ -123,8 +123,8 @@ class Recipe(with_metaclass(RecipeMeta)):
     """
 
     need_stl_shared = False
-    '''Some libraries or python packages may need to be linked with android's
-    stl. We can automatically do this for any recipe if we set this property to
+    '''Some libraries or python packages may need the c++_shared in APK.
+    We can automatically do this for any recipe if we set this property to
     `True`'''
 
     stl_lib_name = 'c++_shared'

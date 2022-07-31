@@ -2,6 +2,7 @@ from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 from pythonforandroid.util import ensure_dir
 
 from os.path import join
+import shutil
 
 
 class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
@@ -12,14 +13,6 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
     depends = ['kiwisolver', 'numpy', 'pillow', 'setuptools', 'freetype']
 
     python_depends = ['cycler', 'fonttools', 'packaging', 'pyparsing', 'python-dateutil']
-
-    # We need to patch to:
-    # - make mpl install work without importing numpy
-    # - make mpl use shared libraries for freetype and png
-    # - make mpl link to png16, to match p4a library name for png
-    # - prevent mpl trying to build TkAgg, which wouldn't work
-    #   on Android anyway but has build issues
-    # patches = ['mpl_android_fixes.patch']
 
     def generate_libraries_pc_files(self, arch):
         """
@@ -63,38 +56,20 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
                 pc_file.write(text_buffer)
 
     def prebuild_arch(self, arch):
-        with open(join(self.get_recipe_dir(), 'setup.cfg.template')) as fileh:
-            setup_cfg = fileh.read()
-
-        with open(join(self.get_build_dir(arch), 'mplsetup.cfg'), 'w') as fileh:
-            fileh.write(setup_cfg.format(
-                ndk_sysroot_usr=join(self.ctx.ndk.sysroot, 'usr')))
-
+        shutil.copyfile(
+            join(self.get_recipe_dir(), "setup.cfg.template"),
+            join(self.get_build_dir(arch), "mplsetup.cfg"),
+        )
         self.generate_libraries_pc_files(arch)
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
 
-        # we modify `XDG_CACHE_HOME` to download `jquery-ui` into that folder,
-        # or mpl install will fail when trying to download/install it, but if
-        # we have the proper package already downloaded, it will use the cached
-        # package to successfully finish the installation.
-        # Note: this may not be necessary for some local systems, but it is
-        #       for our CI provider: `gh-actions`, which will
-        #       fail trying to download the `jquery-ui` package
-        env['XDG_CACHE_HOME'] = join(self.get_build_dir(arch), 'p4a_files')
         # we make use of the same directory than `XDG_CACHE_HOME`, for our
         # custom library pc files, so we have all the install files that we
         # generate at the same place
+        env['XDG_CACHE_HOME'] = join(self.get_build_dir(arch), 'p4a_files')
         env['PKG_CONFIG_PATH'] = env['XDG_CACHE_HOME']
-
-        # We set a new environ variable `NUMPY_INCLUDES` to be able to tell
-        # the matplotlib script where to find our numpy without importing it
-        # (which will fail, because numpy isn't installed in our hostpython)
-        env['NUMPY_INCLUDES'] = join(
-            self.ctx.get_site_packages_dir(arch),
-            'numpy', 'core', 'include',
-        )
 
         # creating proper *.pc files for our libraries does not seem enough to
         # success with our build (without depending on system development
