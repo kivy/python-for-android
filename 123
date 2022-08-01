@@ -1,0 +1,275 @@
+
+from tkinter import *
+import datetime
+import pyodbc
+
+window = Tk()
+window.title("1с План")
+window.geometry('1000x600')
+
+
+def plan1():
+    plan = txt.get()
+    today = datetime.datetime.today()
+    right = str(today)
+    now = datetime.datetime.now()
+    today = str(now)
+    tod = ""
+    # seg = (right[0:10])
+    god = (right[0:4])
+    mes = (right[5:7])
+    # den = (right[8:10])
+    sei = int(right[11:13])
+
+    cnxn1 = pyodbc.connect(
+        'DRIVER={SQL Server};Server=192.168.0.40;PORT=1433;DATABASE=cultraview;UID=sa;PWD=Ctv@123;TDS_Version=7.2;')
+    cur = cnxn1.cursor()
+    reqcon2 = """SELECT RECORD_TIME FROM [cultraview].[dbo].[TEST_PASS_yyyy_mm] WHERE datediff(dd, RECORD_TIME, 
+    getdate()) = 0 """  # datediff возвращает количество (в виде целого числа со знаком) указанных границ datepart,
+    # пересеченных между указанными начальными и конечными датами.DATEDIFF ( datepart , startdate , enddate )
+
+    reqcon2 = reqcon2.replace("yyyy", god)
+    reqcon2 = reqcon2.replace("mm", mes)
+    cur.execute(reqcon2)
+    rqc = cur.fetchall()
+
+    for i in range(10):
+        tod += str(today[i])
+    left = right[10:19]
+    qwe = int(right[10:13])
+    ewq = int(right[14:16])
+    qwe1 = qwe + ((ewq / 0.6) / 100)
+    sp3 = []
+
+    with open('O:/SMT/package/pack.txt') as f:
+        n = 0
+        for line in f:
+            if tod in line:
+                if line[-5::] not in sp3:
+                    sp3.append(line[-7::])
+                    n += 1
+    lbl6.configure(text=n, foreground="red3")
+    sp2 = []
+    with open('O:/SMT/scandata/shoot.txt') as b:
+        q = 0
+        for line in b:
+            if tod in line:
+                if line[-7::] not in sp2:
+                    sp2.append(line[-7::])
+                    q += 1
+    lblsmt1.configure(text=q, foreground="red3")
+    sp1 = []
+    with open('O:/SMT/scandata/dip.txt') as h:
+        z = 0
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp1:
+                    sp1.append(line[-7::])
+                    z += 1
+    lbl4.configure(text=z, foreground="red3")
+    with open('O:/SMT/scandata/dop0.txt') as h:
+        dop0 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop0 += 1
+    with open('O:/SMT/scandata/dop1.txt') as h:
+        dop1 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop1 += 1
+    with open('O:/SMT/scandata/dop2.txt') as h:
+        dop2 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    dop2 += 1
+    with open('O:/SMT/scandata/dop3.txt') as h:
+        dop3 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                sp.append(line[-7::])
+                if line[-7::] not in sp:
+                    dop3 += 1
+    with open('O:/SMT/scandata/dop4.txt') as h:
+        dop4 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                sp.append(line[-7::])
+                if line[-7::] not in sp:
+                    dop4 += 1
+    with open('O:/SMT/scandata/dop5.txt') as h:
+        dop5 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                sp.append(line[-7::])
+                if line[-7::] not in sp:
+                    dop5 += 1
+    with open('O:/SMT/scandata/dop6.txt') as h:
+        dop6 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop6 += 1
+    with open('O:/SMT/scandata/dop7.txt') as h:
+        dop7 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop7 += 1
+    with open('O:/SMT/scandata/dop8.txt') as h:
+        dop8 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop8 += 1
+    with open('O:/SMT/scandata/dop9.txt') as h:
+        dop9 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop9 += 1
+    with open('O:/SMT/scandata/dop10.txt') as h:
+        dop10 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop10 += 1
+    with open('O:/SMT/scandata/dop11.txt') as h:
+        dop11 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop11 += 1
+    with open('O:/SMT/scandata/dop12.txt') as h:
+        dop12 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop12 += 1
+    with open('O:/SMT/scandata/dop13.txt') as h:
+        dop13 = 0
+        sp = []
+        for line in h:
+            if tod in line:
+                if line[-7::] not in sp:
+                    sp.append(line[-7::])
+                    dop13 += 1
+    dopsum = dop0 + dop1 + dop2 + dop3 + dop4 + dop5 + dop6 + dop7 + dop8 + dop9 + dop10 + dop11 + dop12 + dop13
+    lbl5.configure(text=dopsum, foreground="red3")
+    lblfunc1.configure(text=len(rqc), foreground="red3")
+    if int(plan) > z:
+        chet = int(plan) - z
+        lbl7.configure(text="Осталось до плана: " + str(chet))
+    elif int(plan) < z:
+        lbl7.configure(text="Осталось до плана: 0 ")
+    if int(plan) > len(rqc):
+        chet = int(plan) - len(rqc)
+        lblfunc2.configure(text="Осталось до плана: " + str(chet))
+    elif int(plan) < len(rqc):
+        lblfunc2.configure(text="Осталось до плана: 0 ")
+
+    if int(plan) > q:
+        chet = int(plan) - q
+        lblsmt2.configure(text="Осталось до плана: " + str(chet))
+    elif int(plan) < q:
+        lblsmt2.configure(text="Осталось до плана: 0 ")
+    if int(plan) > n:
+        chet1 = int(plan) - n
+        lbl9.configure(text="Осталось до плана: " + str(chet1))
+    elif int(plan) < n:
+        lbl9.configure(text="Осталось до плана: 0 ")
+    if int(plan) > dopsum:
+        chet2 = int(plan) - dopsum
+        lbl8.configure(text="Осталось до плана " + str(chet2))
+    elif int(plan) < dopsum:
+        lbl8.configure(text="Осталось до плана: 0 ")
+    if "20:05:00" in left:
+        sp1.clear()
+        sp2.clear()
+        sp3.clear()
+    if sei <= 8:
+        lblvch1.configure(text=str(round(n / (int(qwe1) - (sei - 1)))), foreground="red3", font="Times 45")
+    elif sei >= 8:
+        lblvch1.configure(text=str(round(n / (int(qwe1) - 8))), foreground="red3", font="Times 45")
+    lblvch2.configure(text='д/ч', font="Times 45")
+    lbltime.configure(text="Время:\n " + left)
+    lbldat.configure(text="Сегодня:\n" + tod)
+    window.after(1000, plan1)
+
+
+txt = Entry(window, font="Times 45", background="SteelBlue1")
+txt.grid(column=3, row=2)
+btnw = Button(window, text="Начать", font="Times 35", command=plan1, background="lime green")
+btnw.grid(column=4, row=2)
+lbltime = Label(window, text="Время:", font="Times 45", background='lime green')
+lbltime.place(x=700, y=700)
+
+lblqw = Label(window, text="", font="Times 45", background="lime green")
+lblqw.grid(column=1, row=3)
+lbldat = Label(window, text="Сегодня: ", font="Times 45", background="lime green")
+lbldat.place(x=200, y=700)
+lbl = Label(window, text="План:", font="Times 45", background="lime green")
+lbl.grid(column=2, row=2)
+lbl1 = Label(window, text="Dip", font="Times 45", background="lime green")
+lbl1.grid(column=2, row=4)
+lbl2 = Label(window, text='Ручная допайка', font="Times 45", background="lime green")
+lbl2.grid(column=2, row=5)
+lbl3 = Label(window, text='Упаковано', font="Times 45", background="lime green")
+lbl3.grid(column=2, row=7)
+lbl4 = Label(window, text="...", font="Times 45", background="lime green")
+lbl4.grid(column=3, row=4)
+lbl5 = Label(window, text="...", font="Times 45", background="lime green")
+lbl5.grid(column=3, row=5)
+lbl6 = Label(window, text="...", font="Times 45", background="lime green")
+lbl6.grid(column=3, row=7)
+lbl7 = Label(window, text="", font="Times 45", background="lime green")
+lbl7.grid(column=4, row=4)
+lbl8 = Label(window, text="", font="Times 45", background="lime green")
+lbl8.grid(column=4, row=5)
+lbl9 = Label(window, text="", font="Times 45", background="lime green")
+lbl9.grid(column=4, row=7)
+lblsmt = Label(window, text="SMT", font="Times 45", background="lime green")
+lblsmt.grid(column=2, row=3)
+lblsmt1 = Label(window, text="...", font="Times 45", background="lime green")
+lblsmt1.grid(column=3, row=3)
+lblsmt2 = Label(window, text="", font="Times 45", background="lime green")
+lblsmt2.grid(column=4, row=3)
+lblvch = Label(window, text='Упаковано в час', font="Times 45", background="lime green")
+lblvch.grid(column=2, row=6)
+lblvch1 = Label(window, text='...', font="Times 45", background="lime green")
+lblvch1.grid(column=3, row=6)
+lblvch2 = Label(window, text='', font="Times 45", background="lime green")
+lblvch2.grid(column=4, row=6)
+lblfunc = Label(window, text="Функционал", font='Times 45', background="lime green")
+lblfunc.grid(column=2, row=8)
+lblfunc1 = Label(window, text="...", font='Times 45', background="lime green")
+lblfunc1.grid(column=3, row=8)
+lblfunc2 = Label(window, text="", font='Times 45', background="lime green")
+lblfunc2.grid(column=4, row=8)
+
+window['bg'] = 'lime green'
+window.mainloop()
