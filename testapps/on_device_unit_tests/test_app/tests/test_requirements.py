@@ -10,26 +10,27 @@ class NumpyTestCase(PythonTestMixIn, TestCase):
         import numpy as np
 
         arr = np.random.random((3, 3))
-        det = np.linalg.det(arr)
+        np.linalg.det(arr)
+
 
 class ScipyTestCase(PythonTestMixIn, TestCase):
     module_import = 'scipy'
 
     def test_run_module(self):
         import numpy as np
-        from scipy.cluster.vq import vq, kmeans, whiten
-        features  = np.array([[ 1.9,2.3],
-                        [ 1.5,2.5],
-                        [ 0.8,0.6],
-                        [ 0.4,1.8],
-                        [ 0.1,0.1],
-                        [ 0.2,1.8],
-                        [ 2.0,0.5],
-                        [ 0.3,1.5],
-                        [ 1.0,1.0]])
+        from scipy.cluster.vq import kmeans, whiten
+        features = np.array([[1.9, 2.3],
+                             [1.5, 2.5],
+                             [0.8, 0.6],
+                             [0.4, 1.8],
+                             [0.1, 0.1],
+                             [0.2, 1.8],
+                             [2.0, 0.5],
+                             [0.3, 1.5],
+                             [1.0, 1.0]])
         whitened = whiten(features)
-        book = np.array((whitened[0],whitened[2]))
-        print('kmeans', kmeans(whitened,book))
+        book = np.array((whitened[0], whitened[2]))
+        print('kmeans', kmeans(whitened, book))
 
 
 class OpensslTestCase(PythonTestMixIn, TestCase):
@@ -58,7 +59,7 @@ class KivyTestCase(PythonTestMixIn, TestCase):
     def test_run_module(self):
         # This import has side effects, if it works then it's an
         # indication that Kivy is okay
-        from kivy.core.window import Window
+        from kivy.core.window import Window  # noqa: F401
 
 
 class PyjniusTestCase(PythonTestMixIn, TestCase):
@@ -102,7 +103,6 @@ class PillowTestCase(PythonTestMixIn, TestCase):
         import os
         from PIL import (
             Image as PilImage,
-            ImageOps,
             ImageFont,
             ImageDraw,
             ImageFilter,
@@ -175,7 +175,7 @@ class CryptographyTestCase(PythonTestMixIn, TestCase):
         f = Fernet(key)
         cryptography_encrypted = f.encrypt(
             b'A really secret message. Not for prying eyes.')
-        cryptography_decrypted = f.decrypt(cryptography_encrypted)
+        f.decrypt(cryptography_encrypted)
 
 
 class PycryptoTestCase(PythonTestMixIn, TestCase):
@@ -187,7 +187,7 @@ class PycryptoTestCase(PythonTestMixIn, TestCase):
         crypto_hash_message = 'A secret message'
         hash = SHA256.new()
         hash.update(crypto_hash_message)
-        crypto_hash_hexdigest = hash.hexdigest()
+        hash.hexdigest()
 
 
 class PycryptodomeTestCase(PythonTestMixIn, TestCase):
@@ -211,7 +211,7 @@ class PycryptodomeTestCase(PythonTestMixIn, TestCase):
             'ok' if os.path.exists("rsa_key.bin") else 'fail'))
         self.assertTrue(os.path.exists("rsa_key.bin"))
 
-        print('\t -> Testing Public key:'.format(key.publickey().export_key()))
+        print('\t -> Testing Public key: {}'.format(key.publickey().export_key()))
 
 
 class ScryptTestCase(PythonTestMixIn, TestCase):
@@ -229,7 +229,7 @@ class M2CryptoTestCase(PythonTestMixIn, TestCase):
 
     def test_run_module(self):
         from M2Crypto import SSL
-        ctx = SSL.Context('sslv23')
+        SSL.Context('sslv23')
 
 
 class Pysha3TestCase(PythonTestMixIn, TestCase):

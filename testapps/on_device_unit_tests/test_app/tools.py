@@ -55,7 +55,7 @@ def raise_error(error):
     try:
         from widgets import ErrorPopup
     except ImportError:
-        print('raise_error:',  error)
+        print('raise_error:', error)
         return
     ErrorPopup(error_text=error).open()
 
