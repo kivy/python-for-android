@@ -78,8 +78,16 @@ options = {
         }
 }
 
+# Try to figure out the build target so we know the default options that
+# will be used.
+target = 'apk'
+for arg in sys.argv:
+    if arg in options:
+        target = arg
+        break
+
 # check if we overwrote the default test_app requirements via `cli`
-requirements = options['apk']['requirements'].rsplit(',')
+requirements = options[target]['requirements'].rsplit(',')
 for n, arg in enumerate(sys.argv):
     if arg == '--requirements':
         print('found requirements')
@@ -89,7 +97,7 @@ for n, arg in enumerate(sys.argv):
 # remove `orientation` in case that we don't detect a kivy or flask app,
 # since the `service_only` bootstrap does not support such argument
 if not ({'kivy', 'flask'} & set(requirements)):
-    options['apk'].pop('orientation')
+    options[target].pop('orientation', None)
 
 # write a file to let the test_app know which requirements we want to test
 # Note: later, when running the app, we will guess if we have the right test.
