@@ -35,6 +35,7 @@ Contents
    recipes
    bootstraps
    services
+   workers
    troubleshooting
    docker
    contribute
