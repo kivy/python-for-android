@@ -1,7 +1,6 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
 from shutil import rmtree
-from six import with_metaclass
 
 import hashlib
 from re import match
@@ -40,7 +39,7 @@ class RecipeMeta(type):
         return super().__new__(cls, name, bases, dct)
 
 
-class Recipe(with_metaclass(RecipeMeta)):
+class Recipe(metaclass=RecipeMeta):
     _url = None
     '''The address from which the recipe may be downloaded. This is not
     essential, it may be omitted if the source is available some other
