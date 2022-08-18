@@ -29,8 +29,7 @@ def check_python_dependencies():
 
     ok = True
 
-    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2',
-               'six']
+    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2']
 
     for module in modules:
         if isinstance(module, tuple):
