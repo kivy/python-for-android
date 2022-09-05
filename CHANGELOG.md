@@ -1,5 +1,48 @@
 # Changelog
 
+## [v2022.09.04](https://github.com/kivy/python-for-android/tree/v2022.09.04) (2022-09-04)
+
+[Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.07.20...v2022.09.04)
+
+**Fixed bugs:**
+
+- Matplotlib failed to import properly on an APK from Buildozer and Kivy [\#2643](https://github.com/kivy/python-for-android/issues/2643)
+
+**Closed issues:**
+
+- KeyError: Matplotlib with kivy android [\#2658](https://github.com/kivy/python-for-android/issues/2658)
+- KeyError: Matplotlib [\#2659](https://github.com/kivy/python-for-android/issues/2659)
+- Upgrade from NDK 19b to 23b causes problems with Pandas library [\#2654](https://github.com/kivy/python-for-android/issues/2654)
+- Update Dockerfile for ARM [\#2653](https://github.com/kivy/python-for-android/issues/2653)
+- Apple M2 chip doesn't generate apk: compiling error on liblzma [\#2652](https://github.com/kivy/python-for-android/issues/2652)
+- aiohttp/\_http\_parser.pyx:46:0: '\_headers.pxi' not found [\#2651](https://github.com/kivy/python-for-android/issues/2651)
+- \[Question\] Pip SSL ? [\#2649](https://github.com/kivy/python-for-android/issues/2649)
+- Colab gives me as error "No module named 'typing\_extensions' ", even if before with the same compilation it worked [\#2648](https://github.com/kivy/python-for-android/issues/2648)
+- \[Question\] Java Files [\#2646](https://github.com/kivy/python-for-android/issues/2646)
+- Using foreground services will cause wired behaviour on Android 8 [\#2641](https://github.com/kivy/python-for-android/issues/2641)
+- Can't apply patches with relative paths for local recipe [\#2623](https://github.com/kivy/python-for-android/issues/2623)
+- Compile for x86 on MacOS [\#2215](https://github.com/kivy/python-for-android/issues/2215)
+- splash always loading  [\#1907](https://github.com/kivy/python-for-android/issues/1907)
+- python-for-android.readthedocs.io has problems updating, apparently [\#1709](https://github.com/kivy/python-for-android/issues/1709)
+- Webview apps not working on Android [\#1644](https://github.com/kivy/python-for-android/issues/1644)
+
+**Merged pull requests:**
+
+- `liblzma`: Use `p4a_install` instead of `install`, as a file named `INSTALL` is already present. [\#2663](https://github.com/kivy/python-for-android/pull/2663) ([misl6](https://github.com/misl6))
+- Force `--platform=linux/amd64` in Dockerfile [\#2660](https://github.com/kivy/python-for-android/pull/2660) ([misl6](https://github.com/misl6))
+- Remove six and enum34 dependency [\#2657](https://github.com/kivy/python-for-android/pull/2657) ([misl6](https://github.com/misl6))
+- Update supported Python versions [\#2656](https://github.com/kivy/python-for-android/pull/2656) ([misl6](https://github.com/misl6))
+- Fixes some E275 - assert is a keyword. [\#2647](https://github.com/kivy/python-for-android/pull/2647) ([misl6](https://github.com/misl6))
+- Updates matplotlib, fixes an issue related to shared libc++ [\#2645](https://github.com/kivy/python-for-android/pull/2645) ([misl6](https://github.com/misl6))
+- RTSP support for ffmpeg [\#2644](https://github.com/kivy/python-for-android/pull/2644) ([alicakici1234](https://github.com/alicakici1234))
+- Fixes TypeError: str.join\(\) takes exactly one argument \(2 given\) in hostpython3/\_\_init\_\_.py", line 69 [\#2642](https://github.com/kivy/python-for-android/pull/2642) ([Furtif](https://github.com/Furtif))
+- Resolve absolute path to local recipes [\#2640](https://github.com/kivy/python-for-android/pull/2640) ([dbnicholson](https://github.com/dbnicholson))
+- Merges master into develop after release 2022.07.20 [\#2639](https://github.com/kivy/python-for-android/pull/2639) ([misl6](https://github.com/misl6))
+- Fix webview Back button behaviour [\#2636](https://github.com/kivy/python-for-android/pull/2636) ([interlark](https://github.com/interlark))
+- Add icon-bg and icon-fg to fix\_args [\#2633](https://github.com/kivy/python-for-android/pull/2633) ([danigm](https://github.com/danigm))
+- Remove stray - in output file name [\#2581](https://github.com/kivy/python-for-android/pull/2581) ([dbnicholson](https://github.com/dbnicholson))
+- Add option for adding files to res/xml without touching manifest [\#2330](https://github.com/kivy/python-for-android/pull/2330) ([rambo](https://github.com/rambo))
+
 ## [v2022.07.20](https://github.com/kivy/python-for-android/tree/v2022.07.20) (2022-07-20)
 
 [Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.03.13...v2022.07.20)
