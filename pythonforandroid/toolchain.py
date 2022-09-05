@@ -29,8 +29,7 @@ def check_python_dependencies():
 
     ok = True
 
-    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2',
-               'six']
+    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2']
 
     for module in modules:
         if isinstance(module, tuple):
@@ -720,7 +719,7 @@ class ToolchainCL:
 
         self._archs = args.arch
 
-        self.ctx.local_recipes = args.local_recipes
+        self.ctx.local_recipes = realpath(args.local_recipes)
         self.ctx.copy_libs = args.copy_libs
 
         self.ctx.activity_class_name = args.activity_class_name
@@ -990,7 +989,8 @@ class ToolchainCL:
         """
 
         fix_args = ('--dir', '--private', '--add-jar', '--add-source',
-                    '--whitelist', '--blacklist', '--presplash', '--icon')
+                    '--whitelist', '--blacklist', '--presplash', '--icon',
+                    '--icon-bg', '--icon-fg')
         unknown_args = args.unknown_args
 
         for asset in args.assets:
@@ -1147,7 +1147,7 @@ class ToolchainCL:
         if package_add_version:
             info('# Add version number to android package')
             package_name = basename(package_file)[:-len(package_extension)]
-            package_file_dest = "{}-{}-{}".format(
+            package_file_dest = "{}-{}{}".format(
                 package_name, build_args.version, package_extension)
             info('# Android package renamed to {}'.format(package_file_dest))
             shprint(sh.cp, package_file, package_file_dest)

@@ -6,18 +6,18 @@ from os.path import exists, join
 from pythonforandroid.archs import Arch
 from pythonforandroid.logger import shprint
 from pythonforandroid.recipe import Recipe
-from pythonforandroid.util import current_directory, ensure_dir
+from pythonforandroid.util import current_directory
 
 
 class LibLzmaRecipe(Recipe):
 
     version = '5.2.4'
     url = 'https://tukaani.org/xz/xz-{version}.tar.gz'
-    built_libraries = {'liblzma.so': 'install/lib'}
+    built_libraries = {'liblzma.so': 'p4a_install/lib'}
 
     def build_arch(self, arch: Arch) -> None:
         env = self.get_recipe_env(arch)
-        install_dir = join(self.get_build_dir(arch.arch), 'install')
+        install_dir = join(self.get_build_dir(arch.arch), 'p4a_install')
         with current_directory(self.get_build_dir(arch.arch)):
             if not exists('configure'):
                 shprint(sh.Command('./autogen.sh'), _env=env)
@@ -42,7 +42,6 @@ class LibLzmaRecipe(Recipe):
                 _env=env
             )
 
-            ensure_dir('install')
             shprint(sh.make, 'install', _env=env)
 
     def get_library_includes(self, arch: Arch) -> str:
@@ -52,7 +51,7 @@ class LibLzmaRecipe(Recipe):
         variable `CPPFLAGS`.
         """
         return " -I" + join(
-            self.get_build_dir(arch.arch), 'install', 'include',
+            self.get_build_dir(arch.arch), 'p4a_install', 'include',
         )
 
     def get_library_ldflags(self, arch: Arch) -> str:

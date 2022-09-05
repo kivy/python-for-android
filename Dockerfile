@@ -15,7 +15,10 @@
 #     Use 'docker run' without '--rm' flag for keeping the container and use
 #     'docker commit <container hash> <new image>' to extend the original image
 
-FROM ubuntu:20.04
+# If platform is not specified, by default the target platform of the build request is used.
+# This is not what we want, as Google doesn't provide a linux/arm64 compatible NDK.
+# See: https://docs.docker.com/engine/reference/builder/#from
+FROM --platform=linux/amd64 ubuntu:20.04
 
 # configure locale
 RUN apt -y update -qq > /dev/null \

@@ -1,7 +1,6 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
 from shutil import rmtree
-from six import with_metaclass
 
 import hashlib
 from re import match
@@ -40,7 +39,7 @@ class RecipeMeta(type):
         return super().__new__(cls, name, bases, dct)
 
 
-class Recipe(with_metaclass(RecipeMeta)):
+class Recipe(metaclass=RecipeMeta):
     _url = None
     '''The address from which the recipe may be downloaded. This is not
     essential, it may be omitted if the source is available some other
@@ -123,8 +122,8 @@ class Recipe(with_metaclass(RecipeMeta)):
     """
 
     need_stl_shared = False
-    '''Some libraries or python packages may need to be linked with android's
-    stl. We can automatically do this for any recipe if we set this property to
+    '''Some libraries or python packages may need the c++_shared in APK.
+    We can automatically do this for any recipe if we set this property to
     `True`'''
 
     stl_lib_name = 'c++_shared'
@@ -492,20 +491,6 @@ class Recipe(with_metaclass(RecipeMeta)):
         if arch is None:
             arch = self.filtered_archs[0]
         env = arch.get_env(with_flags_in_cc=with_flags_in_cc)
-
-        if self.need_stl_shared:
-            env['CPPFLAGS'] = env.get('CPPFLAGS', '')
-            env['CPPFLAGS'] += ' -I{}'.format(self.ctx.ndk.libcxx_include_dir)
-
-            env['CXXFLAGS'] = env['CFLAGS'] + ' -frtti -fexceptions'
-
-            if with_flags_in_cc:
-                env['CXX'] += ' -frtti -fexceptions'
-
-            env['LDFLAGS'] += ' -L{}'.format(arch.ndk_lib_dir)
-            env['LIBS'] = env.get('LIBS', '') + " -l{}".format(
-                self.stl_lib_name
-            )
         return env
 
     def prebuild_arch(self, arch):

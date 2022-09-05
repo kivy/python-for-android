@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 import pytest
 from unittest import mock
@@ -136,3 +137,34 @@ class TestToolchainCL:
             assert expected_string in m_stdout.getvalue()
         # deletes static attribute to not mess with other tests
         del Recipe.recipes
+
+    def test_local_recipes_dir(self):
+        """
+        Checks the `local_recipes` attribute in the Context is absolute.
+        """
+        cwd = os.path.realpath(os.getcwd())
+        common_args = [
+            'toolchain.py',
+            'recommendations',
+        ]
+
+        # Check the default ./p4a-recipes becomes absolute.
+        argv = common_args
+        with patch_sys_argv(argv):
+            toolchain = ToolchainCL()
+        expected_local_recipes = os.path.join(cwd, 'p4a-recipes')
+        assert toolchain.ctx.local_recipes == expected_local_recipes
+
+        # Check a supplied relative directory becomes absolute.
+        argv = common_args + ['--local-recipes=foo']
+        with patch_sys_argv(argv):
+            toolchain = ToolchainCL()
+        expected_local_recipes = os.path.join(cwd, 'foo')
+        assert toolchain.ctx.local_recipes == expected_local_recipes
+
+        # An absolute directory should remain unchanged.
+        local_recipes = os.path.join(cwd, 'foo')
+        argv = common_args + ['--local-recipes={}'.format(local_recipes)]
+        with patch_sys_argv(argv):
+            toolchain = ToolchainCL()
+        assert toolchain.ctx.local_recipes == local_recipes

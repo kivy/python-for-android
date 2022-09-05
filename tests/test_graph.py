@@ -115,7 +115,7 @@ def test_get_dependency_tuple_list_for_recipe(monkeypatch):
     dep_list = get_dependency_tuple_list_for_recipe(
         r, blacklist={"libffi"}
     )
-    assert(dep_list == [("pillow",)])
+    assert dep_list == [("pillow",)]
 
 
 @pytest.mark.parametrize('names,bootstrap', valid_combinations)
