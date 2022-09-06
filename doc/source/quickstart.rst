@@ -120,7 +120,7 @@ named ``tools``, and you will need to run extra commands to install
 the SDK packages needed. 
 
 For Android NDK, note that modern releases will only work on a 64-bit
-operating system. **The minimal, and recommended, NDK version to use is r23b:**
+operating system. **The minimal, and recommended, NDK version to use is r25b:**
 
  - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
  - Windows users should create a virtual machine with an GNU Linux os
