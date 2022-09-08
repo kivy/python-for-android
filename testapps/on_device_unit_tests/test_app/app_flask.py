@@ -25,10 +25,12 @@ from tools import (
     vibrate_with_pyjnius,
     get_android_python_activity,
     set_device_orientation,
+    setup_lifecycle_callbacks,
 )
 
 
 app = Flask(__name__)
+setup_lifecycle_callbacks()
 service_running = False
 TESTS_TO_PERFORM = dict()
 NON_ANDROID_DEVICE_MSG = 'Not running from Android device'

@@ -190,6 +190,51 @@ Example::
         # ...
 
 
+Activity lifecycle handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. module:: android.activity
+
+The Android ``Application`` class provides the `ActivityLifecycleCallbacks
+<https://developer.android.com/reference/android/app/Application.ActivityLifecycleCallbacks>`_
+interface where callbacks can be registered corresponding to `activity
+lifecycle
+<https://developer.android.com/guide/components/activities/activity-lifecycle>`_
+changes. These callbacks can be used to implement logic in the Python app when
+the activity changes lifecycle states.
+
+Note that some of the callbacks are not useful in the Python app. For example,
+an `onActivityCreated` callback will never be run since the the activity's
+`onCreate` callback will complete before the Python app is running. Similarly,
+saving instance state in an `onActivitySaveInstanceState` callback will not be
+helpful since the Python app doesn't have access to the restored instance
+state.
+
+.. function:: register_activity_lifecycle_callbacks(callbackname=callback, ...)
+
+    This allows you to bind a callbacks to Activity lifecycle state changes.
+    The callback names correspond to ``ActivityLifecycleCallbacks`` method
+    names such as ``onActivityStarted``. See the `ActivityLifecycleCallbacks
+    <https://developer.android.com/reference/android/app/Application.ActivityLifecycleCallbacks>`_
+    documentation for names and function signatures for the callbacks.
+
+.. function:: unregister_activity_lifecycle_callbacks(instance)
+
+    Unregister a ``ActivityLifecycleCallbacks`` instance previously registered
+    with :func:`register_activity_lifecycle_callbacks`.
+
+Example::
+
+    from android.activity import register_activity_lifecycle_callbacks
+
+    def on_activity_stopped(activity):
+        print('Activity is stopping')
+
+    register_activity_lifecycle_callbacks(
+        onActivityStopped=on_activity_stopped,
+    )
+
+
 Receiving Broadcast message
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
