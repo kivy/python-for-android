@@ -13,6 +13,12 @@
                  android:process=":service_{{ name }}"
                  android:exported="true" />
         {% endfor %}
+        {% for name in worker_names %}
+        <service android:name="{{ args.package }}.{{ name|capitalize }}WorkerService"
+                 android:process=":worker_{{ name }}"
+                 android:exported="false"
+                 android:stopWithTask="true" />
+        {% endfor %}
     </application>
 
 </manifest>

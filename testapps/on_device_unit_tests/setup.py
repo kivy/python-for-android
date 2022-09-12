@@ -42,44 +42,55 @@ options = {
             'requirements':
                 'sqlite3,libffi,openssl,pyjnius,kivy,python3,requests,urllib3,'
                 'chardet,idna',
-            'android-api': 27,
+            'android-api': 30,
             'ndk-api': 21,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'armeabi-v7a',
-            'bootstrap' : 'sdl2',
+            'bootstrap': 'sdl2',
             'permissions': ['INTERNET', 'VIBRATE'],
             'orientation': 'sensor',
             'service': 'P4a_test_service:app_service.py',
+            'worker': 'P4a_test_worker:app_worker.py',
         },
     'aab':
         {
             'requirements':
                 'sqlite3,libffi,openssl,pyjnius,kivy,python3,requests,urllib3,'
                 'chardet,idna',
-            'android-api': 27,
+            'android-api': 30,
             'ndk-api': 21,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'armeabi-v7a',
-            'bootstrap' : 'sdl2',
+            'bootstrap': 'sdl2',
             'permissions': ['INTERNET', 'VIBRATE'],
             'orientation': 'sensor',
             'service': 'P4a_test_service:app_service.py',
+            'worker': 'P4a_test_worker:app_worker.py',
         },
     'aar':
         {
-            'requirements' : 'python3',
-            'android-api': 27,
+            'requirements': 'python3',
+            'android-api': 30,
             'ndk-api': 21,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'arm64-v8a',
-            'bootstrap' : 'service_library',
+            'bootstrap': 'service_library',
             'permissions': ['INTERNET', 'VIBRATE'],
             'service': 'P4a_test_service:app_service.py',
+            'worker': 'P4a_test_worker:app_worker.py',
         }
 }
 
+# Try to figure out the build target so we know the default options that
+# will be used.
+target = 'apk'
+for arg in sys.argv:
+    if arg in options:
+        target = arg
+        break
+
 # check if we overwrote the default test_app requirements via `cli`
-requirements = options['apk']['requirements'].rsplit(',')
+requirements = options[target]['requirements'].rsplit(',')
 for n, arg in enumerate(sys.argv):
     if arg == '--requirements':
         print('found requirements')
@@ -89,7 +100,7 @@ for n, arg in enumerate(sys.argv):
 # remove `orientation` in case that we don't detect a kivy or flask app,
 # since the `service_only` bootstrap does not support such argument
 if not ({'kivy', 'flask'} & set(requirements)):
-    options['apk'].pop('orientation')
+    options[target].pop('orientation', None)
 
 # write a file to let the test_app know which requirements we want to test
 # Note: later, when running the app, we will guess if we have the right test.

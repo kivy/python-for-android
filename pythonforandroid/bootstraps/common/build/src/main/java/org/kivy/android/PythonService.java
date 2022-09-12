@@ -184,7 +184,7 @@ public class PythonService extends Service implements Runnable {
     }
 
     // Native part
-    public static native void nativeStart(
+    public static native int nativeStart(
             String androidPrivate, String androidArgument,
             String serviceEntrypoint, String pythonName,
             String pythonHome, String pythonPath,
