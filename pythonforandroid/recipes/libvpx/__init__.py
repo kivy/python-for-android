@@ -44,7 +44,6 @@ class VPXRecipe(Recipe):
                 '--disable-docs',
                 '--disable-install-docs',
                 '--disable-realtime-only',
-                '--enable-external-build',
                 f'--prefix={realpath(".")}',
             ]
             configure = sh.Command('./configure')
