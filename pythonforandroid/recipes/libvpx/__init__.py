@@ -44,9 +44,12 @@ class VPXRecipe(Recipe):
                 '--disable-docs',
                 '--disable-install-docs',
                 '--disable-realtime-only',
-                '--enable-external-build',
                 f'--prefix={realpath(".")}',
             ]
+
+            if arch.arch == 'armeabi-v7a':
+                flags.append('--disable-neon-asm')
+
             configure = sh.Command('./configure')
             shprint(configure, *flags, _env=env)
             shprint(sh.make, '-j', str(cpu_count()), _env=env)

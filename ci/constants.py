@@ -16,7 +16,6 @@ BROKEN_RECIPES_PYTHON3 = set([
     # build_dir = glob.glob('build/lib.*')[0]
     # IndexError: list index out of range
     'secp256k1',
-    'ffpyplayer',
     # requires `libpq-dev` system dependency e.g. for `pg_config` binary
     'psycopg2',
     # most likely some setup in the Docker container, because it works in host
