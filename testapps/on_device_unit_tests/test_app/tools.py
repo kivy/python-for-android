@@ -160,3 +160,19 @@ def set_device_orientation(direction):
     else:
         activity.setRequestedOrientation(
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
+
+@skip_if_not_running_from_android_device
+def setup_lifecycle_callbacks():
+    """
+    Register example ActivityLifecycleCallbacks
+    """
+    from android.activity import register_activity_lifecycle_callbacks
+
+    register_activity_lifecycle_callbacks(
+        onActivityStarted=lambda activity: print('onActivityStarted'),
+        onActivityPaused=lambda activity: print('onActivityPaused'),
+        onActivityResumed=lambda activity: print('onActivityResumed'),
+        onActivityStopped=lambda activity: print('onActivityStopped'),
+        onActivityDestroyed=lambda activity: print('onActivityDestroyed'),
+    )
