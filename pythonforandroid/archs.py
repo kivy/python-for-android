@@ -109,6 +109,18 @@ class Arch:
     def get_env(self, with_flags_in_cc=True):
         env = {}
 
+        # HOME: User's home directory
+        #
+        # Many tools including p4a store outputs in the user's home
+        # directory. This is found from the HOME environment variable
+        # and falls back to the system account database. Setting HOME
+        # can be used to globally divert these tools to use a different
+        # path. Furthermore, in containerized environments the user may
+        # not exist in the account database, so if HOME isn't set than
+        # these tools will fail.
+        if 'HOME' in environ:
+            env['HOME'] = environ['HOME']
+
         # CFLAGS/CXXFLAGS: the processor flags
         env['CFLAGS'] = ' '.join(self.common_cflags).format(target=self.target)
         if self.arch_cflags:
