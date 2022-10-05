@@ -304,7 +304,7 @@ class TestGetSystemPythonExecutable():
             ])
             subprocess.check_output([
                 os.path.join(test_dir, "venv", "bin", "pip"),
-                "install", "-U", "pep517<0.7.0"
+                "install", "-U", "pep517"
             ])
             subprocess.check_output([
                 os.path.join(test_dir, "venv", "bin", "pip"),
