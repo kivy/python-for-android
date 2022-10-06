@@ -29,7 +29,9 @@ def get_targets(sdk_dir):
     if exists(join(sdk_dir, 'cmdline-tools', 'latest', 'bin', 'avdmanager')):
         avdmanager = sh.Command(join(sdk_dir, 'cmdline-tools', 'latest', 'bin', 'avdmanager'))
         targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
-
+    elif exists(join(sdk_dir, 'cmdline-tools', 'bin', 'avdmanager')):
+        avdmanager = sh.Command(join(sdk_dir, 'cmdline-tools', 'bin', 'avdmanager'))
+        targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
     elif exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
         avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
         targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
