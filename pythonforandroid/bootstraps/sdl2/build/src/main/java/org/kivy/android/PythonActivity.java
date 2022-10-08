@@ -199,7 +199,7 @@ public class PythonActivity extends SDLActivity {
                     ))) {
                 // Because sometimes the app will get stuck here and never
                 // actually run, ensure that it gets launched if we're active:
-                mActivity.onResume();
+                mActivity.resumeNativeThread();
             }
         }
 

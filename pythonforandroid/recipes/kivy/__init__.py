@@ -1,9 +1,24 @@
 import glob
 from os.path import basename, exists, join
+import sys
+import packaging.version
 
 import sh
 from pythonforandroid.recipe import CythonRecipe
 from pythonforandroid.toolchain import current_directory, shprint
+
+
+def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
+    with current_directory(join(recipe.get_build_dir(arch.arch), "kivy")):
+        kivy_version = shprint(
+            sh.Command(sys.executable),
+            "-c",
+            "import _version; print(_version.__version__)",
+        )
+
+        return packaging.version.parse(
+            str(kivy_version)
+        ) < packaging.version.Version("2.2.0.dev0")
 
 
 class KivyRecipe(CythonRecipe):
@@ -13,6 +28,11 @@ class KivyRecipe(CythonRecipe):
 
     depends = ['sdl2', 'pyjnius', 'setuptools']
     python_depends = ['certifi']
+
+    # sdl-gl-swapwindow-nogil.patch is needed to avoid a deadlock.
+    # See: https://github.com/kivy/kivy/pull/8025
+    # WARNING: Remove this patch when a new Kivy version is released.
+    patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue)]
 
     def cythonize_build(self, env, build_dir='.'):
         super().cythonize_build(env, build_dir=build_dir)
@@ -48,7 +68,7 @@ class KivyRecipe(CythonRecipe):
             env['KIVY_SDL2_PATH'] = ':'.join([
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
-                join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer'),
+                join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer', 'include'),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
             ])
 
