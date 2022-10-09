@@ -341,8 +341,6 @@ main.py that loads it.''')
     # Prepare some variables for templating process
     res_dir = "src/main/res"
     # Add user resouces
-    shutil.rmtree(res_dir, ignore_errors=True)
-    ensure_dir(res_dir)
     for resource in args.resources:
         resource_src, resource_dest = resource.split(":")
         if isfile(realpath(resource_src)):
