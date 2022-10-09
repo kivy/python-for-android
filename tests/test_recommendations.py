@@ -163,7 +163,7 @@ class TestRecommendations(unittest.TestCase):
         self.assertEqual(
             cm.output,
             [
-                "WARNING:p4a:[WARNING]: Target API 25 < 26",
+                "WARNING:p4a:[WARNING]: Target API 29 < 30",
                 "WARNING:p4a:[WARNING]: {old_api_msg}".format(
                     old_api_msg=OLD_API_MESSAGE
                 ),
