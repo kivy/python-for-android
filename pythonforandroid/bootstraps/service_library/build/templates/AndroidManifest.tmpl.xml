@@ -5,7 +5,7 @@
       android:versionName="{{ args.version }}">
 
     <!-- Android 2.3.3 -->
-    <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
+    <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ args.android_target_sdk_version }}" />
 
     <application {% if debug %}android:debuggable="true"{% endif %} >
         {% for name in service_names %}
