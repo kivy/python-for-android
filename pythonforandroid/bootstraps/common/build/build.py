@@ -347,7 +347,7 @@ main.py that loads it.''')
         shutil.copytree(res_dir_initial, res_dir)
     else:
         shutil.copytree(res_dir, res_dir_initial)
-    
+
     # Add user resouces
     for resource in args.resources:
         resource_src, resource_dest = resource.split(":")
