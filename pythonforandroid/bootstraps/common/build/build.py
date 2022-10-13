@@ -340,6 +340,14 @@ main.py that loads it.''')
 
     # Prepare some variables for templating process
     res_dir = "src/main/res"
+    res_dir_initial = "src/res_initial"
+    # make res_dir stateless
+    if exists(res_dir_initial):
+        shutil.rmtree(res_dir, ignore_errors=True)
+        shutil.copytree(res_dir_initial, res_dir)
+    else:
+        shutil.copytree(res_dir, res_dir_initial)
+    
     # Add user resouces
     for resource in args.resources:
         resource_src, resource_dest = resource.split(":")
@@ -347,7 +355,8 @@ main.py that loads it.''')
             ensure_dir(dirname(join(res_dir, resource_dest)))
             shutil.copy(realpath(resource_src), join(res_dir, resource_dest))
         else:
-            shutil.copytree(realpath(resource_src), join(res_dir, resource_dest))
+            shutil.copytree(realpath(resource_src),
+                            join(res_dir, resource_dest), dirs_exist_ok=True)
 
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
