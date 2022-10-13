@@ -1008,7 +1008,8 @@ class ToolchainCL:
             if ":" in resource:
                 resource_src, resource_dest = resource.split(":")
             else:
-                resource_src = resource_dest = resource
+                resource_src = resource
+                resource_dest = ""
             # take abspath now, because build.py will be run in bootstrap dir
             unknown_args += ["--resource", os.path.abspath(resource_src)+":"+resource_dest]
         for i, arg in enumerate(unknown_args):
