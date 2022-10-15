@@ -515,6 +515,8 @@ main.py that loads it.''')
 
     # Render out android manifest:
     manifest_path = "src/main/AndroidManifest.xml"
+    if args.extra_manifest_application_arguments:
+        args.extra_manifest_application_arguments = args.extra_manifest_application_arguments.strip("'")
     render_args = {
         "args": args,
         "service": service,
