@@ -430,9 +430,6 @@ main.py that loads it.''')
     if not args.activity_launch_mode:
         args.activity_launch_mode = ''
 
-    # if not args.service_class_name:
-    #     args.service_class_name = 'org.kivy.android.PythonService'
-
     if args.extra_source_dirs:
         esd = []
         for spec in args.extra_source_dirs:
@@ -527,6 +524,8 @@ main.py that loads it.''')
 
     # Render out android manifest:
     manifest_path = "src/main/AndroidManifest.xml"
+    if args.extra_manifest_application_arguments:
+        args.extra_manifest_application_arguments = args.extra_manifest_application_arguments.strip("'")
     render_args = {
         "args": args,
         "service": service,
@@ -643,7 +642,6 @@ main.py that loads it.''')
 
 
 def parse_args_and_make_package(args=None):
-    print('parse_args_and_make_package', args)
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
     # Get the default minsdk, equal to the NDK API that this dist is built against
@@ -877,10 +875,8 @@ tools directory of the Android SDK.
     # Put together arguments, and add those from .p4a config file:
     if args is None:
         args = sys.argv[1:]
-        print('args was empty, set from sys.argv')
 
     def _read_configuration():
-        print("Looking for p4a configuration file in %r" % os.path.abspath('.p4a'))
         if not exists(".p4a"):
             return
         print("Reading .p4a configuration")
@@ -890,7 +886,6 @@ tools directory of the Android SDK.
                  for line in lines if not line.startswith("#")]
         for line in lines:
             for arg in line:
-                print('Added option: %r' % arg)
                 args.append(arg)
     _read_configuration()
 
@@ -968,5 +963,4 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
-    print('sys.argv', sys.argv)
     parse_args_and_make_package()
