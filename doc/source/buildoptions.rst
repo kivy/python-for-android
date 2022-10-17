@@ -91,6 +91,7 @@ options (this list may not be exhaustive):
 - ``--add-source``: Add a source directory to the app's Java code.
 - ``--no-compile-pyo``: Do not optimise .py files to .pyo.
 - ``--enable-androidx``: Enable AndroidX support library.
+- ``--add-resource``: Put this file or directory in the apk res directory.
 
 
 webview
