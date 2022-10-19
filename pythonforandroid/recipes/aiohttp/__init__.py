@@ -16,4 +16,5 @@ class AIOHTTPRecipe(CppCompiledComponentsPythonRecipe):  # type: ignore # pylint
         env['LDFLAGS'] += ' -lc++_shared'
         return env
 
+
 recipe = AIOHTTPRecipe()
