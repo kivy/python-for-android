@@ -5,7 +5,7 @@ from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
 class AIOHTTPRecipe(CppCompiledComponentsPythonRecipe):  # type: ignore # pylint: disable=R0903
     version = "3.8.3"
-    url = "https://github.com/aio-libs/aiohttp/archive/v{version}.zip"
+    url = "https://pypi.python.org/packages/source/a/aiohttp/aiohttp-{version}.tar.gz"
     name = "aiohttp"
     depends: List[str] = ["setuptools"]
     call_hostpython_via_targetpython = False
