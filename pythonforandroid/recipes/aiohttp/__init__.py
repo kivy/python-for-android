@@ -2,9 +2,10 @@
 from typing import List
 from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
+
 class AIOHTTPRecipe(CppCompiledComponentsPythonRecipe):  # type: ignore # pylint: disable=R0903
-    url = "https://files.pythonhosted.org/packages/ff/4f/62d9859b7d4e6dc32feda67815c5f5ab4421e6909e48cbc970b6a40d60b7/aiohttp-3.8.3.tar.gz"
-    name = "aiohttp"
+    version = "3.8.3"
+    url = "https://github.com/aio-libs/aiohttp/archive/v{version}.zip"name = "aiohttp"
     depends: List[str] = ["setuptools"]
     call_hostpython_via_targetpython = False
     install_in_hostpython = True
