@@ -1,6 +1,6 @@
 --- a/src/main/java/org/libsdl/app/SDLActivity.java
 +++ b/src/main/java/org/libsdl/app/SDLActivity.java
-@@ -225,6 +225,8 @@
+@@ -222,6 +222,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
      // This is what SDL runs in. It invokes SDL_main(), eventually
      protected static Thread mSDLThread;
  
@@ -9,7 +9,7 @@
      protected static SDLGenericMotionListener_API12 getMotionListener() {
          if (mMotionListener == null) {
              if (Build.VERSION.SDK_INT >= 26) {
-@@ -323,6 +325,15 @@
+@@ -324,6 +326,15 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
          Log.v(TAG, "onCreate()");
          super.onCreate(savedInstanceState);
  
@@ -25,7 +25,7 @@
          try {
              Thread.currentThread().setName("SDLActivity");
          } catch (Exception e) {
-@@ -824,7 +835,7 @@
+@@ -835,7 +846,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
      Handler commandHandler = new SDLCommandHandler();
  
      // Send a message from the SDLMain thread
@@ -34,11 +34,11 @@
          Message msg = commandHandler.obtainMessage();
          msg.arg1 = command;
          msg.obj = data;
-@@ -1302,6 +1313,20 @@
+@@ -1384,6 +1395,20 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
          return SDLActivity.mSurface.getNativeSurface();
      }
  
-+     /**
++      /**
 +      * Calls turnActive() on singleton to keep loading screen active
 +      */
 +     public static void triggerAppConfirmedActive() {
@@ -55,21 +55,21 @@
      // Input
  
      /**
-@@ -1795,7 +1820,7 @@
-         }
+@@ -1878,6 +1903,7 @@ class SDLMain implements Runnable {
  
          Log.v("SDL", "Running main function " + function + " from library " + library);
--
+ 
 +        SDLActivity.mSingleton.appConfirmedActive();
          SDLActivity.nativeRunMain(library, function, arguments);
  
          Log.v("SDL", "Finished main function");
-@@ -2316,7 +2341,7 @@
+@@ -1935,8 +1961,7 @@ class DummyEdit extends View implements View.OnKeyListener {
      public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
          ic = new SDLInputConnection(this, true);
  
--        outAttrs.inputType = InputType.TYPE_CLASS_TEXT;
-+        outAttrs.inputType = SDLActivity.keyboardInputType;
-         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
-                 | EditorInfo.IME_FLAG_NO_FULLSCREEN /* API 11 */;
+-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT |
+-                             InputType.TYPE_TEXT_FLAG_MULTI_LINE;
++        outAttrs.inputType = SDLActivity.keyboardInputType | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI |
+                               EditorInfo.IME_FLAG_NO_FULLSCREEN /* API 11 */;
  

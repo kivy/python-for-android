@@ -6,9 +6,13 @@ import sh
 
 
 class LibSDL2Recipe(BootstrapNDKRecipe):
-    version = "2.24.0"
-    url = "https://github.com/libsdl-org/SDL/releases/download/release-{version}/SDL2-{version}.tar.gz"
-    md5sum = 'cf539ffe9e0dd6f943ac9de75fd2e56e'
+    # version = "2.24.0"
+    # url = "https://github.com/libsdl-org/SDL/releases/download/release-{version}/SDL2-{version}.tar.gz"
+    # md5sum = 'cf539ffe9e0dd6f943ac9de75fd2e56e'
+
+    # This hash refers to a post 2.24.0 commit, which fixes a bug in the Android
+    # TextInput / IME
+    url = "https://github.com/libsdl-org/SDL/archive/a905a7869f18332579ff06ba3f7f3777708a3007.zip"
 
     dir_name = 'SDL'
 
