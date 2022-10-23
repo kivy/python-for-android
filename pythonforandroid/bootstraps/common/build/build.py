@@ -40,10 +40,6 @@ def get_hostpython():
     return get_dist_info_for('hostpython')
 
 
-def get_python_version():
-    return get_dist_info_for('python_version')
-
-
 def get_bootstrap_name():
     return get_dist_info_for('bootstrap')
 
@@ -58,7 +54,6 @@ else:
 curdir = dirname(__file__)
 
 PYTHON = get_hostpython()
-PYTHON_VERSION = get_python_version()
 if PYTHON is not None and not exists(PYTHON):
     PYTHON = None
 
@@ -73,16 +68,15 @@ BLACKLIST_PATTERNS = [
     '~',
     '*.bak',
     '*.swp',
+
+    # Android artifacts
+    '*.apk',
+    '*.aab',
 ]
-# pyc/py
-if PYTHON is not None:
-    BLACKLIST_PATTERNS.append('*.py')
 
 WHITELIST_PATTERNS = []
 if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
     WHITELIST_PATTERNS.append('pyconfig.h')
-
-python_files = []
 
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
@@ -150,22 +144,10 @@ def listfiles(d):
             yield fn
 
 
-def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
+def make_tar(tfn, source_dirs, byte_compile_python=False, optimize_python=True):
     '''
     Make a zip file `fn` from the contents of source_dis.
     '''
-
-    # selector function
-    def select(fn):
-        rfn = realpath(fn)
-        for p in ignore_path:
-            if p.endswith('/'):
-                p = p[:-1]
-            if rfn.startswith(p):
-                return False
-        if rfn in python_files:
-            return False
-        return not is_blacklist(fn)
 
     def clean(tinfo):
         """cleaning function (for reproducible builds)"""
@@ -178,9 +160,12 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
     files = []
     for sd in source_dirs:
         sd = realpath(sd)
-        compile_dir(sd, optimize_python=optimize_python)
-        files += [(x, relpath(realpath(x), sd)) for x in listfiles(sd)
-                  if select(x)]
+        for fn in listfiles(sd):
+            if is_blacklist(fn):
+                continue
+            if fn.endswith('.py') and byte_compile_python:
+                fn = compile_py_file(fn, optimize_python=optimize_python)
+            files.append((fn, relpath(realpath(fn), sd)))
     files.sort()  # deterministic
 
     # create tar.gz of thoses files
@@ -210,18 +195,15 @@ def make_tar(tfn, source_dirs, ignore_path=[], optimize_python=True):
     gf.close()
 
 
-def compile_dir(dfn, optimize_python=True):
+def compile_py_file(python_file, optimize_python=True):
     '''
-    Compile *.py in directory `dfn` to *.pyo
+    Compile python_file to *.pyc and return the filename of the *.pyc file.
     '''
 
     if PYTHON is None:
         return
 
-    if int(PYTHON_VERSION[0]) >= 3:
-        args = [PYTHON, '-m', 'compileall', '-b', '-f', dfn]
-    else:
-        args = [PYTHON, '-m', 'compileall', '-f', dfn]
+    args = [PYTHON, '-m', 'compileall', '-b', '-f', python_file]
     if optimize_python:
         # -OO = strip docstrings
         args.insert(1, '-OO')
@@ -233,16 +215,18 @@ def compile_dir(dfn, optimize_python=True):
               'error, see logs above')
         exit(1)
 
+    return ".".join([os.path.splitext(python_file)[0], "pyc"])
+
 
 def make_package(args):
-    # If no launcher is specified, require a main.py/main.pyo:
+    # If no launcher is specified, require a main.py/main.pyc:
     if (get_bootstrap_name() != "sdl" or args.launcher is None) and \
             get_bootstrap_name() not in ["webview", "service_library"]:
         # (webview doesn't need an entrypoint, apparently)
         if args.private is None or (
                 not exists(join(realpath(args.private), 'main.py')) and
-                not exists(join(realpath(args.private), 'main.pyo'))):
-            print('''BUILD FAILURE: No main.py(o) found in your app directory. This
+                not exists(join(realpath(args.private), 'main.pyc'))):
+            print('''BUILD FAILURE: No main.py(c) found in your app directory. This
 file must exist to act as the entry point for you app. If your app is
 started by a file with a different name, rename it to main.py or add a
 main.py that loads it.''')
@@ -290,7 +274,6 @@ main.py that loads it.''')
                     variants = [
                         copy_path,
                         copy_path.partition(".")[0] + ".pyc",
-                        copy_path.partition(".")[0] + ".pyo",
                     ]
                     # Check in all variants with all possible endings:
                     for variant in variants:
@@ -326,11 +309,17 @@ main.py that loads it.''')
             for arch in get_dist_info_for("archs"):
                 libs_dir = f"libs/{arch}"
                 make_tar(
-                    join(libs_dir, 'libpybundle.so'), [f'_python_bundle__{arch}'], args.ignore_path,
-                    optimize_python=args.optimize_python)
+                    join(libs_dir, "libpybundle.so"),
+                    [f"_python_bundle__{arch}"],
+                    byte_compile_python=args.byte_compile_python,
+                    optimize_python=args.optimize_python,
+                )
             make_tar(
-                join(assets_dir, 'private.tar'), private_tar_dirs, args.ignore_path,
-                optimize_python=args.optimize_python)
+                join(assets_dir, "private.tar"),
+                private_tar_dirs,
+                byte_compile_python=args.byte_compile_python,
+                optimize_python=args.optimize_python,
+            )
     finally:
         for directory in _temp_dirs_to_clean:
             shutil.rmtree(directory)
@@ -824,8 +813,6 @@ tools directory of the Android SDK.
     ap.add_argument('--try-system-python-compile', dest='try_system_python_compile',
                     action='store_true',
                     help='Use the system python during compileall if possible.')
-    ap.add_argument('--no-compile-pyo', dest='no_compile_pyo', action='store_true',
-                    help='Do not optimise .py files to .pyo.')
     ap.add_argument('--sign', action='store_true',
                     help=('Try to sign the APK with your credentials. You must set '
                           'the appropriate environment variables.'))
@@ -844,9 +831,12 @@ tools directory of the Android SDK.
                           'files (containing your main.py entrypoint). '
                           'See https://developer.android.com/guide/topics/data/'
                           'autobackup#IncludingFiles for more information'))
+    ap.add_argument('--no-byte-compile-python', dest='byte_compile_python',
+                    action='store_false', default=True,
+                    help='Skip byte compile for .py files.')
     ap.add_argument('--no-optimize-python', dest='optimize_python',
                     action='store_false', default=True,
-                    help=('Whether to compile to optimised .pyo files, using -OO '
+                    help=('Whether to compile to optimised .pyc files, using -OO '
                           '(strips docstrings and asserts)'))
     ap.add_argument('--extra-manifest-xml', default='',
                     help=('Extra xml to write directly inside the <manifest> element of'
@@ -880,8 +870,6 @@ tools directory of the Android SDK.
     _read_configuration()
 
     args = ap.parse_args(args)
-
-    args.ignore_path = []
 
     if args.name and args.name[0] == '"' and args.name[-1] == '"':
         args.name = args.name[1:-1]
@@ -924,10 +912,6 @@ tools directory of the Android SDK.
             pass
         else:
             PYTHON = python_executable
-
-    if args.no_compile_pyo:
-        PYTHON = None
-        BLACKLIST_PATTERNS.remove('*.py')
 
     if args.blacklist:
         with open(args.blacklist) as fd:
