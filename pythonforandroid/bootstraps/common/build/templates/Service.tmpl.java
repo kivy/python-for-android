@@ -19,23 +19,37 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
     }
 
     static public void start(Context ctx, String pythonServiceArgument) {
-        Intent intent = getDefaultIntent(ctx, pythonServiceArgument);
+        Intent intent = getDefaultIntent(ctx, "", "{{ args.name }}",
+					 "{{ name|capitalize }}",
+					 pythonServiceArgument);
         ctx.startService(intent);
     }
 
-    static public Intent getDefaultIntent(Context ctx, String pythonServiceArgument) {
+    static public void start(Context ctx, String smallIconName,
+                             String contentTitle, String contentText, 
+                             String pythonServiceArgument) {
+        Intent intent = getDefaultIntent(ctx, smallIconName, contentTitle,
+					 contentText, pythonServiceArgument);
+        ctx.startService(intent);
+    }    
+
+    static public Intent getDefaultIntent(Context ctx, String smallIconName,
+                                          String contentTitle, String contentText, 
+                                          String pythonServiceArgument) {
         Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
         String argument = ctx.getFilesDir().getAbsolutePath() + "/app";
         intent.putExtra("androidPrivate", ctx.getFilesDir().getAbsolutePath());
         intent.putExtra("androidArgument", argument);
         intent.putExtra("serviceTitle", "{{ args.name }}");
-        intent.putExtra("serviceDescription", "{{ name|capitalize }}");
         intent.putExtra("serviceEntrypoint", "{{ entrypoint }}");
         intent.putExtra("pythonName", "{{ name }}");
         intent.putExtra("serviceStartAsForeground", "{{ foreground|lower }}");
         intent.putExtra("pythonHome", argument);
         intent.putExtra("pythonPath", argument + ":" + argument + "/lib");
         intent.putExtra("pythonServiceArgument", pythonServiceArgument);
+        intent.putExtra("smallIconName", smallIconName);
+        intent.putExtra("contentTitle", contentTitle);
+        intent.putExtra("contentText", contentText);
         return intent;
     }
 
