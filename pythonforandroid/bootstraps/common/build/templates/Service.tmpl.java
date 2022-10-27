@@ -55,7 +55,8 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
 
     @Override
     protected Intent getThisDefaultIntent(Context ctx, String pythonServiceArgument) {
-        return Service{{ name|capitalize }}.getDefaultIntent(ctx, pythonServiceArgument);
+        return Service{{ name|capitalize }}.getDefaultIntent(ctx, "", "", "", 
+							     pythonServiceArgument);
     }
 
     static public void stop(Context ctx) {
