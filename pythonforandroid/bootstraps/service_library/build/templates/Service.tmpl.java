@@ -36,8 +36,27 @@ public class Service{{ name|capitalize }} extends PythonService {
     }
 
     public static void start(Context ctx, String pythonServiceArgument) {
-        Intent intent = getDefaultIntent(ctx, pythonServiceArgument);
-
+        Intent intent = getDefaultIntent(ctx,  "", "{{ args.name }}",
+                                         "{{ name|capitalize }}",
+                                         pythonServiceArgument);
+        //foreground: {{foreground}}
+        {% if foreground %}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ctx.startForegroundService(intent);
+        } else {
+            ctx.startService(intent);
+        }
+        {% else %}
+        ctx.startService(intent);
+        {% endif %}
+    }
+    
+    static public void start(Context ctx, String smallIconName,
+			     String contentTitle,
+			     String contentText,
+			     String pythonServiceArgument) {
+        Intent intent = getDefaultIntent(ctx, smallIconName, contentTitle,
+                                         contentText, pythonServiceArgument);
         //foreground: {{foreground}}
         {% if foreground %}
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -50,26 +69,32 @@ public class Service{{ name|capitalize }} extends PythonService {
         {% endif %}
     }
 
-    static public Intent getDefaultIntent(Context ctx, String pythonServiceArgument) {
+    static public Intent getDefaultIntent(Context ctx, String smallIconName,
+					  String contentTitle,
+					  String contentText,
+					  String pythonServiceArgument) {
         String appRoot = PythonUtil.getAppRoot(ctx);
         Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
         intent.putExtra("androidPrivate", appRoot);
         intent.putExtra("androidArgument", appRoot);
         intent.putExtra("serviceEntrypoint", "{{ entrypoint }}");
         intent.putExtra("serviceTitle", "{{ name|capitalize }}");
-        intent.putExtra("serviceDescription", "");
         intent.putExtra("pythonName", "{{ name }}");
         intent.putExtra("serviceStartAsForeground", "{{ foreground|lower }}");
         intent.putExtra("pythonHome", appRoot);
         intent.putExtra("androidUnpack", appRoot);
         intent.putExtra("pythonPath", appRoot + ":" + appRoot + "/lib");
         intent.putExtra("pythonServiceArgument", pythonServiceArgument);
+        intent.putExtra("smallIconName", smallIconName);
+        intent.putExtra("contentTitle", contentTitle);
+        intent.putExtra("contentText", contentText);
         return intent;
     }
 
     @Override
     protected Intent getThisDefaultIntent(Context ctx, String pythonServiceArgument) {
-        return Service{{ name|capitalize }}.getDefaultIntent(ctx, pythonServiceArgument);
+        return Service{{ name|capitalize }}.getDefaultIntent(ctx,  "", "", "",
+                                                             pythonServiceArgument);
     }
 
 
