@@ -513,6 +513,10 @@ class ToolchainCL:
             action="append", default=[],
             help='Put this in the assets folder in the apk.')
         parser_packaging.add_argument(
+            '--add-resource', dest='resources',
+            action="append", default=[],
+            help='Put this in the res folder in the apk.')
+        parser_packaging.add_argument(
             '--private', dest='private',
             help='the directory with the app source code files' +
                  ' (containing your main.py entrypoint)',
@@ -1000,6 +1004,14 @@ class ToolchainCL:
                 asset_src = asset_dest = asset
             # take abspath now, because build.py will be run in bootstrap dir
             unknown_args += ["--asset", os.path.abspath(asset_src)+":"+asset_dest]
+        for resource in args.resources:
+            if ":" in resource:
+                resource_src, resource_dest = resource.split(":")
+            else:
+                resource_src = resource
+                resource_dest = ""
+            # take abspath now, because build.py will be run in bootstrap dir
+            unknown_args += ["--resource", os.path.abspath(resource_src)+":"+resource_dest]
         for i, arg in enumerate(unknown_args):
             argx = arg.split('=')
             if argx[0] in fix_args:

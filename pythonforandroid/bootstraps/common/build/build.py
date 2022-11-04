@@ -329,6 +329,24 @@ main.py that loads it.''')
 
     # Prepare some variables for templating process
     res_dir = "src/main/res"
+    res_dir_initial = "src/res_initial"
+    # make res_dir stateless
+    if exists(res_dir_initial):
+        shutil.rmtree(res_dir, ignore_errors=True)
+        shutil.copytree(res_dir_initial, res_dir)
+    else:
+        shutil.copytree(res_dir, res_dir_initial)
+
+    # Add user resouces
+    for resource in args.resources:
+        resource_src, resource_dest = resource.split(":")
+        if isfile(realpath(resource_src)):
+            ensure_dir(dirname(join(res_dir, resource_dest)))
+            shutil.copy(realpath(resource_src), join(res_dir, resource_dest))
+        else:
+            shutil.copytree(realpath(resource_src),
+                            join(res_dir, resource_dest), dirs_exist_ok=True)
+
     default_icon = 'templates/kivy-icon.png'
     default_presplash = 'templates/kivy-presplash.jpg'
     shutil.copy(
@@ -687,6 +705,10 @@ tools directory of the Android SDK.
                     action="append", default=[],
                     metavar="/path/to/source:dest",
                     help='Put this in the assets folder at assets/dest')
+    ap.add_argument('--resource', dest='resources',
+                    action="append", default=[],
+                    metavar="/path/to/source:kind/asset",
+                    help='Put this in the res folder at res/kind')
     ap.add_argument('--icon', dest='icon',
                     help=('A png file to use as the icon for '
                           'the application.'))
