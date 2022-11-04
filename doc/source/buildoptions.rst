@@ -89,7 +89,7 @@ options (this list may not be exhaustive):
 - ``--service``: A service name and the Python script it should
   run. See :ref:`arbitrary_scripts_services`.
 - ``--add-source``: Add a source directory to the app's Java code.
-- ``--no-compile-pyo``: Do not optimise .py files to .pyo.
+- ``--no-byte-compile-python``: Skip byte compile for .py files.
 - ``--enable-androidx``: Enable AndroidX support library.
 
 

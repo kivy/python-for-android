@@ -364,11 +364,11 @@ class Python3Recipe(TargetPythonRecipe):
                 self.major_minor_version_string
             ))
 
-        # Compile to *.pyc/*.pyo the python modules
+        # Compile to *.pyc the python modules
         self.compile_python_files(modules_build_dir)
-        # Compile to *.pyc/*.pyo the standard python library
+        # Compile to *.pyc the standard python library
         self.compile_python_files(join(self.get_build_dir(arch.arch), 'Lib'))
-        # Compile to *.pyc/*.pyo the other python packages (site-packages)
+        # Compile to *.pyc the other python packages (site-packages)
         self.compile_python_files(self.ctx.get_python_install_dir(arch.arch))
 
         # Bundle compiled python modules to a folder

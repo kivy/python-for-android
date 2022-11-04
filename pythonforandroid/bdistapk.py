@@ -108,7 +108,7 @@ class Bdist(Command):
                     makedirs(new_dir)
                 print('Including {}'.format(filen))
                 copyfile(filen, join(bdist_dir, filen))
-                if basename(filen) in ('main.py', 'main.pyo'):
+                if basename(filen) in ('main.py', 'main.pyc'):
                     main_py_dirs.append(filen)
 
         # This feels ridiculous, but how else to define the main.py dir?
