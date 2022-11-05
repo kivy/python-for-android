@@ -57,7 +57,7 @@ class Python3Recipe(TargetPythonRecipe):
     '''
 
     version = '3.9.9'
-    url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
+    url = f'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
     patches = [
