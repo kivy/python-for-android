@@ -48,7 +48,7 @@ grab an old (cached) package instead of a fresh one.
 .. warning::
 
     Do not use any of `--private`, `--public`, `--dir` or other arguments for
-    adding `main.py` or `main.pyo` to the app. The argument `--launcher` is
+    adding `main.py` or `main.pyc` to the app. The argument `--launcher` is
     above them and tells the p4a to build the launcher version of the APK.
 
 Usage

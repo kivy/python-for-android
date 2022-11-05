@@ -251,14 +251,10 @@ int main(int argc, char *argv[]) {
    */
   LOGP("Run user program, change dir and execute entrypoint");
 
-  /* Get the entrypoint, search the .pyo then .py
+  /* Get the entrypoint, search the .pyc then .py
    */
   char *dot = strrchr(env_entrypoint, '.');
-#if PY_MAJOR_VERSION > 2
   char *ext = ".pyc";
-#else
-  char *ext = ".pyo";
-#endif
   if (dot <= 0) {
     LOGP("Invalid entrypoint, abort.");
     return -1;
@@ -281,14 +277,10 @@ int main(int argc, char *argv[]) {
       strcpy(entrypoint, env_entrypoint);
     }
   } else if (!strcmp(dot, ".py")) {
-    /* if .py is passed, check the pyo version first */
+    /* if .py is passed, check the pyc version first */
     strcpy(entrypoint, env_entrypoint);
     entrypoint[strlen(env_entrypoint) + 1] = '\0';
-#if PY_MAJOR_VERSION > 2
     entrypoint[strlen(env_entrypoint)] = 'c';
-#else
-    entrypoint[strlen(env_entrypoint)] = 'o';
-#endif
     if (!file_exists(entrypoint)) {
       /* fallback on pure python version */
       if (!file_exists(env_entrypoint)) {

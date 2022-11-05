@@ -456,7 +456,6 @@ class Context:
         return (exists(join(site_packages_dir, name)) or
                 exists(join(site_packages_dir, name + '.py')) or
                 exists(join(site_packages_dir, name + '.pyc')) or
-                exists(join(site_packages_dir, name + '.pyo')) or
                 exists(join(site_packages_dir, name + '.so')) or
                 glob.glob(join(site_packages_dir, name + '-*.egg')))
 
