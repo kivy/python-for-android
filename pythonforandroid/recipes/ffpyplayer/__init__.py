@@ -20,7 +20,11 @@ class FFPyPlayerRecipe(CythonRecipe):
         env["SDL_LIB_DIR"] = join(self.ctx.bootstrap.build_dir, 'libs', arch.arch)
 
         env["USE_SDL2_MIXER"] = '1'
-        env["SDL2_MIXER_INCLUDE_DIR"] = join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer')
+
+        # ffpyplayer does not allow to pass more than one include dir for sdl2_mixer (and ATM is
+        # not needed), so we only pass the first one.
+        sdl2_mixer_recipe = self.get_recipe('sdl2_mixer', self.ctx)
+        env["SDL2_MIXER_INCLUDE_DIR"] = sdl2_mixer_recipe.get_include_dirs(arch)[0]
 
         # NDKPLATFORM and LIBLINK are our switches for detecting Android platform, so can't be empty
         # FIXME: We may want to introduce a cleaner approach to this?
