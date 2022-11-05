@@ -107,6 +107,14 @@ the json module to encode and decode more complex data.
 
     from os import environ
     argument = environ.get('PYTHON_SERVICE_ARGUMENT', '')
+    
+To customize the notification icon, title, and text use three optional
+arguments to service.start()::
+
+    service.start(mActivity, 'small_icon', 'title', 'content' , argument)
+
+Where 'small_icon' is the name of an Android drawable or mipmap resource,
+and 'title' and 'content' are strings in the notification.
 
 Services support a range of options and interactions not yet
 documented here but all accessible via calling other methods of the
