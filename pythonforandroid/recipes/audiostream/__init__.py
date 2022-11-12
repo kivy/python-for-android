@@ -17,14 +17,18 @@ class AudiostreamRecipe(CythonRecipe):
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
         sdl_include = 'SDL2'
-        sdl_mixer_include = 'SDL2_mixer'
+
         env['USE_SDL2'] = 'True'
         env['SDL2_INCLUDE_DIR'] = join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include')
 
-        env['CFLAGS'] += ' -I{jni_path}/{sdl_include}/include -I{jni_path}/{sdl_mixer_include}'.format(
+        env['CFLAGS'] += ' -I{jni_path}/{sdl_include}/include'.format(
                               jni_path=join(self.ctx.bootstrap.build_dir, 'jni'),
-                              sdl_include=sdl_include,
-                              sdl_mixer_include=sdl_mixer_include)
+                              sdl_include=sdl_include)
+
+        sdl2_mixer_recipe = self.get_recipe('sdl2_mixer', self.ctx)
+        for include_dir in sdl2_mixer_recipe.get_include_dirs(arch):
+            env['CFLAGS'] += ' -I{include_dir}'.format(include_dir=include_dir)
+
         # NDKPLATFORM is our switch for detecting Android platform, so can't be None
         env['NDKPLATFORM'] = "NOTNONE"
         env['LIBLINK'] = 'NOTNONE'  # Hacky fix. Needed by audiostream setup.py
