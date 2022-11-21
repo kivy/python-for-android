@@ -1110,7 +1110,7 @@ class ToolchainCL:
                     "Unknown build mode {} for apk()".format(args.build_mode))
 
             # WARNING: We should make sure to clean the build directory before building.
-            # Looks like our private.tar is causing issues to gradle.
+            # See PR: kivy/python-for-android#2705
             output = shprint(gradlew, "clean", gradle_task, _tail=20,
                              _critical=True, _env=env)
         return output, build_args
