@@ -1108,7 +1108,10 @@ class ToolchainCL:
             else:
                 raise BuildInterruptingException(
                     "Unknown build mode {} for apk()".format(args.build_mode))
-            output = shprint(gradlew, gradle_task, _tail=20,
+
+            # WARNING: We should make sure to clean the build directory before building.
+            # See PR: kivy/python-for-android#2705
+            output = shprint(gradlew, "clean", gradle_task, _tail=20,
                              _critical=True, _env=env)
         return output, build_args
 
