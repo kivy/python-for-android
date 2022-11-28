@@ -6,11 +6,13 @@ import sh
 
 
 class LibSDL2Recipe(BootstrapNDKRecipe):
-    version = "2.24.0"
+    version = "2.26.0"
     url = "https://github.com/libsdl-org/SDL/releases/download/release-{version}/SDL2-{version}.tar.gz"
-    md5sum = 'cf539ffe9e0dd6f943ac9de75fd2e56e'
+    md5sum = '35bc58cfe41b8fb6c8e6646be26fa47e'
 
     dir_name = 'SDL'
+
+    patches = ['remove-extra-include.patch']
 
     depends = ['sdl2_image', 'sdl2_mixer', 'sdl2_ttf']
 
