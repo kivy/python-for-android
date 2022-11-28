@@ -631,7 +631,7 @@ class Recipe(metaclass=RecipeMeta):
         shprint(sh.cp, *args)
 
     def has_libs(self, arch, *libs):
-        return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
+        return all(map(lambda lib: self.ctx.has_lib(arch.arch, lib), libs))
 
     def get_libraries(self, arch_name, in_context=False):
         """Return the full path of the library depending on the architecture.
