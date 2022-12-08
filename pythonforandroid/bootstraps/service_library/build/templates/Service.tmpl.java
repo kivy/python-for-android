@@ -34,24 +34,8 @@ public class Service{{ name|capitalize }} extends PythonService {
         PythonUtil.unpackAsset(ctx, "private", app_root_file, true);
         PythonUtil.unpackPyBundle(ctx, ctx.getApplicationInfo().nativeLibraryDir + "/" + "libpybundle", app_root_file, false);
     }
-
-    public static void start(Context ctx, String pythonServiceArgument) {
-        Intent intent = getDefaultIntent(ctx,  "", "{{ args.name }}",
-                                         "{{ name|capitalize }}",
-                                         pythonServiceArgument);
-        //foreground: {{foreground}}
-        {% if foreground %}
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ctx.startForegroundService(intent);
-        } else {
-            ctx.startService(intent);
-        }
-        {% else %}
-        ctx.startService(intent);
-        {% endif %}
-    }
-    
-    static public void start(Context ctx, String smallIconName,
+	
+    static private void _start(Context ctx, String smallIconName,
 			     String contentTitle,
 			     String contentText,
 			     String pythonServiceArgument) {
@@ -67,6 +51,17 @@ public class Service{{ name|capitalize }} extends PythonService {
         {% else %}
         ctx.startService(intent);
         {% endif %}
+    }
+
+    public static void start(Context ctx, String pythonServiceArgument) {
+	_start(ctx,  "", "{{ args.name }}", "{{ name|capitalize }}", pythonServiceArgument);
+    }
+    
+    static public void start(Context ctx, String smallIconName,
+			     String contentTitle,
+			     String contentText,
+			     String pythonServiceArgument) {
+	_start(ctx, smallIconName, contentTitle, contentText, pythonServiceArgument);
     }
 
     static public Intent getDefaultIntent(Context ctx, String smallIconName,
