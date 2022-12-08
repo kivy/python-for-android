@@ -33,7 +33,7 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
     static public void start(Context ctx, String smallIconName,
                              String contentTitle, String contentText, 
                              String pythonServiceArgument) {
-	_start(ctx, smallIconName, contentTitle, ontentText, pythonServiceArgument);
+	_start(ctx, smallIconName, contentTitle, contentText, pythonServiceArgument);
     }    
 
     static public Intent getDefaultIntent(Context ctx, String smallIconName,
