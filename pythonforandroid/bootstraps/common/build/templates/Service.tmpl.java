@@ -17,20 +17,23 @@ public class Service{{ name|capitalize }} extends {{ base_service_class }} {
     protected int getServiceId() {
         return {{ service_id }};
     }
-
-    static public void start(Context ctx, String pythonServiceArgument) {
-        Intent intent = getDefaultIntent(ctx, "", "{{ args.name }}",
-					 "{{ name|capitalize }}",
-					 pythonServiceArgument);
-        ctx.startService(intent);
-    }
-
-    static public void start(Context ctx, String smallIconName,
+	
+    static private void _start(Context ctx, String smallIconName,
                              String contentTitle, String contentText, 
                              String pythonServiceArgument) {
         Intent intent = getDefaultIntent(ctx, smallIconName, contentTitle,
 					 contentText, pythonServiceArgument);
         ctx.startService(intent);
+    }
+
+    static public void start(Context ctx, String pythonServiceArgument) {
+        _start(ctx, "", "{{ args.name }}", "{{ name|capitalize }}", pythonServiceArgument);
+    }
+
+    static public void start(Context ctx, String smallIconName,
+                             String contentTitle, String contentText, 
+                             String pythonServiceArgument) {
+	_start(ctx, smallIconName, contentTitle, ontentText, pythonServiceArgument);
     }    
 
     static public Intent getDefaultIntent(Context ctx, String smallIconName,
