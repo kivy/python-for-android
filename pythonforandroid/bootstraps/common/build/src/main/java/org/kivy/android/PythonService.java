@@ -102,30 +102,47 @@ public class PythonService extends Service implements Runnable {
 
     protected void doStartForeground(Bundle extras) {
         String serviceTitle = extras.getString("serviceTitle");
-        String serviceDescription = extras.getString("serviceDescription");
+        String smallIconName = extras.getString("smallIconName");
+        String contentTitle = extras.getString("contentTitle");
+        String contentText = extras.getString("contentText");
         Notification notification;
         Context context = getApplicationContext();
         Intent contextIntent = new Intent(context, PythonActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+	// Unspecified icon uses default.
+	int smallIconId = context.getApplicationInfo().icon;
+	if (!smallIconName.equals("")){
+	    int resId = getResources().getIdentifier(smallIconName, "mipmap",
+						     getPackageName());
+	    if (resId ==0) {
+		resId = getResources().getIdentifier(smallIconName, "drawable",
+						     getPackageName());
+	    }
+	    if (resId !=0) {
+		smallIconId = resId;
+	    }
+	}
+	    
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+	    // This constructor is deprecated
             notification = new Notification(
-                context.getApplicationInfo().icon, serviceTitle, System.currentTimeMillis());
+                smallIconId, serviceTitle, System.currentTimeMillis());
             try {
                 // prevent using NotificationCompat, this saves 100kb on apk
                 Method func = notification.getClass().getMethod(
                     "setLatestEventInfo", Context.class, CharSequence.class,
                     CharSequence.class, PendingIntent.class);
-                func.invoke(notification, context, serviceTitle, serviceDescription, pIntent);
+                func.invoke(notification, context, contentTitle, contentText, pIntent);
             } catch (NoSuchMethodException | IllegalAccessException |
                      IllegalArgumentException | InvocationTargetException e) {
             }
         } else {
             // for android 8+ we need to create our own channel
             // https://stackoverflow.com/questions/47531742/startforeground-fail-after-upgrade-to-android-8-1
-            String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a";    //TODO: make this configurable
-            String channelName = "Background Service";                //TODO: make this configurable
+            String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a" + getServiceId();
+            String channelName = "Background Service" + getServiceId();
             NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, 
                 NotificationManager.IMPORTANCE_NONE);
             
@@ -135,10 +152,10 @@ public class PythonService extends Service implements Runnable {
             manager.createNotificationChannel(chan);
 
             Notification.Builder builder = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID);
-            builder.setContentTitle(serviceTitle);
-            builder.setContentText(serviceDescription);
+            builder.setContentTitle(contentTitle);
+            builder.setContentText(contentText);
             builder.setContentIntent(pIntent);
-            builder.setSmallIcon(context.getApplicationInfo().icon);
+            builder.setSmallIcon(smallIconId);
             notification = builder.build();
         }
         startForeground(getServiceId(), notification);
