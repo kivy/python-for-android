@@ -69,7 +69,7 @@
  
 -        outAttrs.inputType = InputType.TYPE_CLASS_TEXT |
 -                             InputType.TYPE_TEXT_FLAG_MULTI_LINE;
-+        outAttrs.inputType = SDLActivity.keyboardInputType | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
++        outAttrs.inputType = SDLActivity.keyboardInputType;
          outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI |
                                EditorInfo.IME_FLAG_NO_FULLSCREEN /* API 11 */;
  
