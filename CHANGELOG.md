@@ -1,5 +1,59 @@
 # Changelog
 
+## [v2022.12.20](https://github.com/kivy/python-for-android/tree/v2022.12.20) (2022-12-20)
+
+[Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.09.04...v2022.12.20)
+
+**Fixed bugs:**
+
+- `liblzma` fails to build on macOS \(sh.ErrorReturnCode\_2. when running buildozer android debug\) [\#2343](https://github.com/kivy/python-for-android/issues/2343)
+
+**Closed issues:**
+
+- SDL\_ttf 2.0.15 download missing \(deprecated\) related to \#2698 [\#2710](https://github.com/kivy/python-for-android/issues/2710)
+- Update kivy app that's already published on google play store. [\#2709](https://github.com/kivy/python-for-android/issues/2709)
+- Installing deepspeech [\#2702](https://github.com/kivy/python-for-android/issues/2702)
+- ImportError: dlopen failed: library "libc++\_shared.so" not found [\#2699](https://github.com/kivy/python-for-android/issues/2699)
+- ffpyplayer recipe broken after SDL2 upgrade [\#2698](https://github.com/kivy/python-for-android/issues/2698)
+- ModuleNotFoundError: No module named 'android' [\#2697](https://github.com/kivy/python-for-android/issues/2697)
+- Error When I set android.api = 31 [\#2696](https://github.com/kivy/python-for-android/issues/2696)
+- Is threre any way to protect .py code  [\#2695](https://github.com/kivy/python-for-android/issues/2695)
+- args.service\_class\_name results in link error  [\#2679](https://github.com/kivy/python-for-android/issues/2679)
+- Remove `x86_64` suffix from ndk download link [\#2676](https://github.com/kivy/python-for-android/issues/2676)
+- Pillow 9.2.0 recipe? [\#2671](https://github.com/kivy/python-for-android/issues/2671)
+- `ffmpeg`: unable to find library -lvpx [\#2665](https://github.com/kivy/python-for-android/issues/2665)
+- Buildozer fails while build numpy recipie 'UnixCCompiler' object has no attribute 'cxx\_compiler' [\#2664](https://github.com/kivy/python-for-android/issues/2664)
+- \[PEP 517\] Relax installation-time "pep517\<0.7.0" requirement [\#2573](https://github.com/kivy/python-for-android/issues/2573)
+- Add support for custom resources [\#2298](https://github.com/kivy/python-for-android/issues/2298)
+- Auto-correct / word suggestion does not work with Swiftkey/Samsung keyboard [\#2010](https://github.com/kivy/python-for-android/issues/2010)
+
+**Merged pull requests:**
+
+- `InputType.TYPE_TEXT_FLAG_MULTI_LINE` forces `InputType.TYPE_TEXT` even if `SDLActivity.keyboardInputType` is `NULL` [\#2716](https://github.com/kivy/python-for-android/pull/2716) ([misl6](https://github.com/misl6))
+- secp256k1 Update "--host=" [\#2714](https://github.com/kivy/python-for-android/pull/2714) ([RobertFlatt](https://github.com/RobertFlatt))
+- Delete pythonforandroid/recipes/cdecimal directory [\#2713](https://github.com/kivy/python-for-android/pull/2713) ([RobertFlatt](https://github.com/RobertFlatt))
+- Bump `sdl2` version to `2.26.1` [\#2712](https://github.com/kivy/python-for-android/pull/2712) ([misl6](https://github.com/misl6))
+- Flake8 does not support inline comments for any of the keys. [\#2708](https://github.com/kivy/python-for-android/pull/2708) ([misl6](https://github.com/misl6))
+- Gradle: Run the clean task before anything else to make sure nothing is cached. [\#2705](https://github.com/kivy/python-for-android/pull/2705) ([misl6](https://github.com/misl6))
+- Custom Service notification [\#2703](https://github.com/kivy/python-for-android/pull/2703) ([RobertFlatt](https://github.com/RobertFlatt))
+- Include paths for sdl2\_mixer have changed. Added a method to return the right one. [\#2700](https://github.com/kivy/python-for-android/pull/2700) ([misl6](https://github.com/misl6))
+- WRITE\_EXTERNAL\_STORAGE maxSdk [\#2694](https://github.com/kivy/python-for-android/pull/2694) ([RobertFlatt](https://github.com/RobertFlatt))
+- Fixes an issue regarding blacklist and bytecode compile + some cleanup [\#2693](https://github.com/kivy/python-for-android/pull/2693) ([misl6](https://github.com/misl6))
+- Bump to a version of `SDL` with patches for the TextInput / TextEditing \(SDL `2.26.0`\) [\#2692](https://github.com/kivy/python-for-android/pull/2692) ([misl6](https://github.com/misl6))
+- Make CI compile aiohttp again. [\#2690](https://github.com/kivy/python-for-android/pull/2690) ([xavierfiechter](https://github.com/xavierfiechter))
+- Add resources [\#2684](https://github.com/kivy/python-for-android/pull/2684) ([RobertFlatt](https://github.com/RobertFlatt))
+- Update `MIN_TARGET_API` to `30` and `RECOMMENDED_TARGET_API` to `33` [\#2683](https://github.com/kivy/python-for-android/pull/2683) ([misl6](https://github.com/misl6))
+- recipe.download\_file: implement shallow git cloning [\#2682](https://github.com/kivy/python-for-android/pull/2682) ([SomberNight](https://github.com/SomberNight))
+- requirements: relax version bound on "pep517" [\#2680](https://github.com/kivy/python-for-android/pull/2680) ([SomberNight](https://github.com/SomberNight))
+- Add new Android permissions [\#2677](https://github.com/kivy/python-for-android/pull/2677) ([RobertFlatt](https://github.com/RobertFlatt))
+- Resize webview when keyboard is shown [\#2674](https://github.com/kivy/python-for-android/pull/2674) ([dbnicholson](https://github.com/dbnicholson))
+- Update `SDL2`, `SDL2_ttf`, `SDL2_mixer`, `SDL2_image` to latest releases [\#2673](https://github.com/kivy/python-for-android/pull/2673) ([misl6](https://github.com/misl6))
+- Fixes libvpx build [\#2672](https://github.com/kivy/python-for-android/pull/2672) ([misl6](https://github.com/misl6))
+- `toml` may not be available on systemwide python [\#2670](https://github.com/kivy/python-for-android/pull/2670) ([misl6](https://github.com/misl6))
+- android/activity: Add Application.ActivityLifecycleCallbacks helpers [\#2669](https://github.com/kivy/python-for-android/pull/2669) ([dbnicholson](https://github.com/dbnicholson))
+- Bump minimal and recommended Android NDK version to 25b [\#2668](https://github.com/kivy/python-for-android/pull/2668) ([misl6](https://github.com/misl6))
+- Include HOME in build environment [\#2582](https://github.com/kivy/python-for-android/pull/2582) ([dbnicholson](https://github.com/dbnicholson))
+
 ## [v2022.09.04](https://github.com/kivy/python-for-android/tree/v2022.09.04) (2022-09-04)
 
 [Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.07.20...v2022.09.04)
