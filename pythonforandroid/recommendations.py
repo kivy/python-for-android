@@ -8,11 +8,11 @@ from pythonforandroid.logger import info, warning
 from pythonforandroid.util import BuildInterruptingException
 
 # We only check the NDK major version
-MIN_NDK_VERSION = 23
-MAX_NDK_VERSION = 23
+MIN_NDK_VERSION = 25
+MAX_NDK_VERSION = 25
 
 # DO NOT CHANGE LINE FORMAT: buildozer parses the existence of a RECOMMENDED_NDK_VERSION
-RECOMMENDED_NDK_VERSION = "23b"
+RECOMMENDED_NDK_VERSION = "25b"
 
 NDK_DOWNLOAD_URL = "https://developer.android.com/ndk/downloads/"
 
@@ -135,15 +135,15 @@ def read_ndk_version(ndk_dir):
     return ndk_version
 
 
-MIN_TARGET_API = 26
+MIN_TARGET_API = 30
 
 # highest version tested to work fine with SDL2
 # should be a good default for other bootstraps too
-RECOMMENDED_TARGET_API = 27
+RECOMMENDED_TARGET_API = 33
 
 ARMEABI_MAX_TARGET_API = 21
 OLD_API_MESSAGE = (
-    'Target APIs lower than 26 are no longer supported on Google Play, '
+    'Target APIs lower than 30 are no longer supported on Google Play, '
     'and are not recommended. Note that the Target API can be higher than '
     'your device Android version, and should usually be as high as possible.')
 

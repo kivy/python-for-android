@@ -213,24 +213,26 @@ class Recipe(metaclass=RecipeMeta):
                 break
             return target
         elif parsed_url.scheme in ('git', 'git+file', 'git+ssh', 'git+http', 'git+https'):
-            if isdir(target):
-                with current_directory(target):
-                    shprint(sh.git, 'fetch', '--tags', '--recurse-submodules')
-                    if self.version:
-                        shprint(sh.git, 'checkout', self.version)
-                    branch = sh.git('branch', '--show-current')
-                    if branch:
-                        shprint(sh.git, 'pull')
-                        shprint(sh.git, 'pull', '--recurse-submodules')
-                    shprint(sh.git, 'submodule', 'update', '--recursive')
-            else:
+            if not isdir(target):
                 if url.startswith('git+'):
                     url = url[4:]
-                shprint(sh.git, 'clone', '--recursive', url, target)
+                # if 'version' is specified, do a shallow clone
                 if self.version:
+                    shprint(sh.mkdir, '-p', target)
                     with current_directory(target):
-                        shprint(sh.git, 'checkout', self.version)
-                        shprint(sh.git, 'submodule', 'update', '--recursive')
+                        shprint(sh.git, 'init')
+                        shprint(sh.git, 'remote', 'add', 'origin', url)
+                else:
+                    shprint(sh.git, 'clone', '--recursive', url, target)
+            with current_directory(target):
+                if self.version:
+                    shprint(sh.git, 'fetch', '--depth', '1', 'origin', self.version)
+                    shprint(sh.git, 'checkout', self.version)
+                branch = sh.git('branch', '--show-current')
+                if branch:
+                    shprint(sh.git, 'pull')
+                    shprint(sh.git, 'pull', '--recurse-submodules')
+                shprint(sh.git, 'submodule', 'update', '--recursive', '--init', '--depth', '1')
             return target
 
     def apply_patch(self, filename, arch, build_dir=None):
@@ -629,7 +631,7 @@ class Recipe(metaclass=RecipeMeta):
         shprint(sh.cp, *args)
 
     def has_libs(self, arch, *libs):
-        return all(map(lambda l: self.ctx.has_lib(arch.arch, l), libs))
+        return all(map(lambda lib: self.ctx.has_lib(arch.arch, lib), libs))
 
     def get_libraries(self, arch_name, in_context=False):
         """Return the full path of the library depending on the architecture.

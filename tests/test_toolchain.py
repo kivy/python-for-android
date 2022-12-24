@@ -74,7 +74,7 @@ class TestToolchainCL:
             'pythonforandroid.bootstraps.service_only.'
             'ServiceOnlyBootstrap.assemble_distribution'
         ) as m_run_distribute:
-            m_get_available_apis.return_value = [27]
+            m_get_available_apis.return_value = [33]
             tchain = ToolchainCL()
             assert tchain.ctx.activity_class_name == 'abc.myapp.android.CustomPythonActivity'
             assert tchain.ctx.service_class_name == 'xyz.myapp.android.CustomPythonService'

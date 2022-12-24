@@ -6,7 +6,7 @@ index bba4bce..b86b369 100644
              "--disable-dependency-tracking",
              "--with-pic",
              "--enable-module-recovery",
-+            "--host=%s" % os.environ['TOOLCHAIN_PREFIX'],
++            "--host=" + arch.command_prefix,
              "--prefix",
              os.path.abspath(self.build_clib),
          ]

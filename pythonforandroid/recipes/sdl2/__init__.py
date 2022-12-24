@@ -6,9 +6,9 @@ import sh
 
 
 class LibSDL2Recipe(BootstrapNDKRecipe):
-    version = "2.0.9"
-    url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
-    md5sum = 'f2ecfba915c54f7200f504d8b48a5dfe'
+    version = "2.26.1"
+    url = "https://github.com/libsdl-org/SDL/releases/download/release-{version}/SDL2-{version}.tar.gz"
+    md5sum = 'fba211fe2c67609df6fa3cf55d3c74dc'
 
     dir_name = 'SDL'
 
@@ -22,7 +22,7 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
 
     def should_build(self, arch):
         libdir = join(self.get_build_dir(arch.arch), "../..", "libs", arch.arch)
-        libs = ['libhidapi.so', 'libmain.so', 'libSDL2.so', 'libSDL2_image.so', 'libSDL2_mixer.so', 'libSDL2_ttf.so']
+        libs = ['libmain.so', 'libSDL2.so', 'libSDL2_image.so', 'libSDL2_mixer.so', 'libSDL2_ttf.so']
         return not all(exists(join(libdir, x)) for x in libs)
 
     def build_arch(self, arch):

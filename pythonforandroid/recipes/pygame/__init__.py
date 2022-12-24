@@ -37,6 +37,11 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
             jpeg = self.get_recipe('jpeg', self.ctx)
             jpeg_inc_dir = jpeg_lib_dir = jpeg.get_build_dir(arch.arch)
 
+            sdl_mixer_includes = ""
+            sdl2_mixer_recipe = self.get_recipe('sdl2_mixer', self.ctx)
+            for include_dir in sdl2_mixer_recipe.get_include_dirs(arch):
+                sdl_mixer_includes += f"-I{include_dir} "
+
             setup_file = setup_template.format(
                 sdl_includes=(
                     " -I" + join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include') +
@@ -44,7 +49,7 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
                     " -L" + png_lib_dir + " -L" + jpeg_lib_dir + " -L" + arch.ndk_lib_dir_versioned),
                 sdl_ttf_includes="-I"+join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
                 sdl_image_includes="-I"+join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
-                sdl_mixer_includes="-I"+join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_mixer'),
+                sdl_mixer_includes=sdl_mixer_includes,
                 jpeg_includes="-I"+jpeg_inc_dir,
                 png_includes="-I"+png_inc_dir,
                 freetype_includes=""

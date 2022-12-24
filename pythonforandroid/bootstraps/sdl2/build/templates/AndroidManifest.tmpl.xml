@@ -25,7 +25,7 @@
     <uses-feature android:glEsVersion="0x00020000" />
 
     <!-- Allow writing to external storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
     {% for perm in args.permissions %}
     {% if '.' in perm %}
     <uses-permission android:name="{{ perm }}" />

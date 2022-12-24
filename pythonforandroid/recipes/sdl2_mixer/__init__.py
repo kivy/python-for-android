@@ -1,12 +1,17 @@
+import os
+
 from pythonforandroid.recipe import BootstrapNDKRecipe
 
 
 class LibSDL2Mixer(BootstrapNDKRecipe):
-    version = '2.0.4'
-    url = 'https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-{version}.tar.gz'
+    version = '2.6.2'
+    url = 'https://github.com/libsdl-org/SDL_mixer/releases/download/release-{version}/SDL2_mixer-{version}.tar.gz'
     dir_name = 'SDL2_mixer'
 
-    patches = ['toggle_modplug_mikmod_smpeg_ogg.patch']
+    def get_include_dirs(self, arch):
+        return [
+            os.path.join(self.ctx.bootstrap.build_dir, "jni", "SDL2_mixer", "include")
+        ]
 
 
 recipe = LibSDL2Mixer()

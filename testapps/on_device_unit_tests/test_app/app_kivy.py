@@ -22,6 +22,7 @@ from tools import (
     load_kv_from,
     raise_error,
     run_test_suites_into_buffer,
+    setup_lifecycle_callbacks,
     vibrate_with_pyjnius,
 )
 from widgets import TestImage
@@ -52,6 +53,9 @@ class TestKivyApp(App):
         self.reset_unittests_results()
         self.sm = Builder.load_string(screen_manager_app)
         return self.sm
+
+    def on_start(self):
+        setup_lifecycle_callbacks()
 
     def reset_unittests_results(self, refresh_ui=False):
         for img in get_images_with_extension():

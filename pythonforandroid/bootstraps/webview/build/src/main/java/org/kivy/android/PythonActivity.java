@@ -68,11 +68,10 @@ public class PythonActivity extends Activity {
     }
 
     public String getEntryPoint(String search_dir) {
-        /* Get the main file (.pyc|.pyo|.py) depending on if we
+        /* Get the main file (.pyc|.py) depending on if we
          * have a compiled version or not.
         */
         List<String> entryPoints = new ArrayList<String>();
-        entryPoints.add("main.pyo");  // python 2 compiled files
         entryPoints.add("main.pyc");  // python 3 compiled files
         for (String value : entryPoints) {
             File mainFile = new File(search_dir + "/" + value);
