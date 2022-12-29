@@ -21,11 +21,7 @@
     <!-- Allow writing to external storage -->
     <uses-permission android:name="android.permission.INTERNET" />
     {% for perm in args.permissions %}
-    {% if '.' in perm %}
-    <uses-permission android:name="{{ perm }}" />
-    {% else %}
-    <uses-permission android:name="android.permission.{{ perm }}" />
-    {% endif %}
+        <uses-permission android:name="{{ perm.name }}"{% if perm.maxSdkVersion %} android:maxSdkVersion="{{ perm.maxSdkVersion }}"{% endif %}{% if perm.usesPermissionFlags %} android:usesPermissionFlags="{{ perm.usesPermissionFlags }}"{% endif %} />
     {% endfor %}
 
     {% if args.wakelock %}

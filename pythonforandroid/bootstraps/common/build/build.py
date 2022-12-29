@@ -53,10 +53,6 @@ else:
 
 curdir = dirname(__file__)
 
-PYTHON = get_hostpython()
-if PYTHON is not None and not exists(PYTHON):
-    PYTHON = None
-
 BLACKLIST_PATTERNS = [
     # code versionning
     '^*.hg/*',
@@ -75,9 +71,19 @@ BLACKLIST_PATTERNS = [
 ]
 
 WHITELIST_PATTERNS = []
-if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
-    WHITELIST_PATTERNS.append('pyconfig.h')
 
+if os.environ.get("P4A_BUILD_IS_RUNNING_UNITTESTS", "0") != "1":
+    PYTHON = get_hostpython()
+    _bootstrap_name = get_bootstrap_name()
+else:
+    PYTHON = "python3"
+    _bootstrap_name = "sdl2"
+
+if PYTHON is not None and not exists(PYTHON):
+    PYTHON = None
+
+if _bootstrap_name in ('sdl2', 'webview', 'service_only'):
+    WHITELIST_PATTERNS.append('pyconfig.h')
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
@@ -646,6 +652,44 @@ main.py that loads it.''')
                 subprocess.check_output(patch_command)
 
 
+def parse_permissions(args_permissions):
+    if args_permissions and isinstance(args_permissions[0], list):
+        args_permissions = [p for perm in args_permissions for p in perm]
+
+    def _is_advanced_permission(permission):
+        return permission.startswith("(") and permission.endswith(")")
+
+    def _decode_advanced_permission(permission):
+        SUPPORTED_PERMISSION_PROPERTIES = ["name", "maxSdkVersion", "usesPermissionFlags"]
+        _permission_args = permission[1:-1].split(";")
+        _permission_args = (arg.split("=") for arg in _permission_args)
+        advanced_permission = dict(_permission_args)
+
+        if "name" not in advanced_permission:
+            raise ValueError("Advanced permission must have a name property")
+
+        for key in advanced_permission.keys():
+            if key not in SUPPORTED_PERMISSION_PROPERTIES:
+                raise ValueError(
+                    f"Property '{key}' is not supported. "
+                    "Advanced permission only supports: "
+                    f"{', '.join(SUPPORTED_PERMISSION_PROPERTIES)} properties"
+                )
+
+        return advanced_permission
+
+    _permissions = []
+    for permission in args_permissions:
+        if _is_advanced_permission(permission):
+            _permissions.append(_decode_advanced_permission(permission))
+        else:
+            if "." in permission:
+                _permissions.append(dict(name=permission))
+            else:
+                _permissions.append(dict(name=f"android.permission.{permission}"))
+    return _permissions
+
+
 def parse_args_and_make_package(args=None):
     global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
 
@@ -918,8 +962,7 @@ tools directory of the Android SDK.
               'deprecated and does nothing.')
         args.sdk_version = -1  # ensure it is not used
 
-    if args.permissions and isinstance(args.permissions[0], list):
-        args.permissions = [p for perm in args.permissions for p in perm]
+    args.permissions = parse_permissions(args.permissions)
 
     if args.res_xmls and isinstance(args.res_xmls[0], list):
         args.res_xmls = [x for res in args.res_xmls for x in res]
@@ -959,4 +1002,6 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
+    if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
+        WHITELIST_PATTERNS.append('pyconfig.h')
     parse_args_and_make_package()
