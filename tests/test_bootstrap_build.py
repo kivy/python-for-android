@@ -1,4 +1,5 @@
 import unittest
+import pytest
 import os
 import argparse
 
@@ -80,7 +81,7 @@ class TestParsePermissions(unittest.TestCase):
 
         buildpy = load_source("buildpy", build_src)
 
-        try:
-            parsed_permissions = buildpy.parse_permissions(args.permissions)  # noqa: F841
-        except ValueError as _e:
-            assert "Property 'propertyThatFails' is not supported." in str(_e)
+        with pytest.raises(
+            ValueError, match="Property 'propertyThatFails' is not supported."
+        ):
+            buildpy.parse_permissions(args.permissions)
