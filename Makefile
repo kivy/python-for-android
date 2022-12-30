@@ -40,7 +40,8 @@ testapps-with-numpy: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup.py apk --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
-    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86
+    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 \
+	--permission "(name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)" --permission "(name=android.permission.INTERNET)"
 
 testapps-with-scipy: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
@@ -53,7 +54,8 @@ testapps-with-numpy-aab: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
     python setup.py aab --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
     --requirements libffi,sdl2,pyjnius,kivy,python3,openssl,requests,urllib3,chardet,idna,sqlite3,setuptools,numpy \
-    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 --release
+    --arch=armeabi-v7a --arch=arm64-v8a --arch=x86_64 --arch=x86 --release \
+	--permission "(name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)" --permission "(name=android.permission.INTERNET)"
 
 testapps-service_library-aar: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
