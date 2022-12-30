@@ -26,7 +26,7 @@ class KivyRecipe(CythonRecipe):
     url = 'https://github.com/misl6/kivy/archive/refs/heads/feat/remove-distutils.zip'
     name = 'kivy'
 
-    depends = ['sdl2', 'pyjnius', 'setuptools']
+    depends = ['cython', 'sdl2', 'pyjnius', 'setuptools']
     python_depends = ['certifi']
 
     # sdl-gl-swapwindow-nogil.patch is needed to avoid a deadlock.
