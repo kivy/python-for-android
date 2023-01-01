@@ -27,7 +27,7 @@ class JpegRecipe(Recipe):
             toolchain_file = join(self.ctx.ndk_dir,
                                   'build/cmake/android.toolchain.cmake')
 
-            shprint(sh.rm, '-f', 'CMakeCache.txt', 'CMakeFiles/')
+            shprint(sh.rm, '-rf', 'CMakeCache.txt', 'CMakeFiles/')
             shprint(sh.cmake, '-G', 'Unix Makefiles',
                     '-DCMAKE_SYSTEM_NAME=Android',
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',
