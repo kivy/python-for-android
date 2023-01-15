@@ -43,6 +43,9 @@ class Bdist(Command):
                 if option == 'permissions':
                     for perm in value:
                         sys.argv.append('--permission={}'.format(perm))
+                elif option == 'orientation':
+                    for orient in value:
+                        sys.argv.append('--orientation={}'.format(orient))
                 elif value in (None, 'None'):
                     sys.argv.append('--{}'.format(option))
                 else:
