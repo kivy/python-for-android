@@ -3,8 +3,8 @@ from pythonforandroid.recipe import CythonRecipe
 
 class ScryptRecipe(CythonRecipe):
 
-    version = '0.8.6'
-    url = 'https://bitbucket.org/mhallin/py-scrypt/get/v{version}.zip'
+    version = '0.8.20'
+    url = 'https://github.com/holgern/py-scrypt/archive/refs/tags/v{version}.zip'
     depends = ['setuptools', 'openssl']
     call_hostpython_via_targetpython = False
     patches = ["remove_librt.patch"]
