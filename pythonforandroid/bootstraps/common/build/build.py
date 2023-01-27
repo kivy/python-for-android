@@ -4,7 +4,7 @@ from gzip import GzipFile
 import hashlib
 import json
 from os.path import (
-    dirname, join, isfile, realpath,
+    abspath, dirname, join, isfile, realpath,
     relpath, split, exists, basename
 )
 from os import environ, listdir, makedirs, remove
@@ -245,7 +245,10 @@ main.py that loads it.''')
     ensure_dir(assets_dir)
 
     # Add extra environment variable file into tar-able directory:
-    env_vars_tarpath = tempfile.mkdtemp(prefix="p4a-extra-env-")
+    env_vars_tarpath = abspath('./p4a-env')
+    if exists(env_vars_tarpath):
+        shutil.rmtree(env_vars_tarpath)
+    os.makedirs(env_vars_tarpath)
     with open(os.path.join(env_vars_tarpath, "p4a_env_vars.txt"), "w") as f:
         if hasattr(args, "window"):
             f.write("P4A_IS_WINDOWED=" + str(args.window) + "\n")
@@ -329,9 +332,6 @@ main.py that loads it.''')
     finally:
         for directory in _temp_dirs_to_clean:
             shutil.rmtree(directory)
-
-    # Remove extra env vars tar-able directory:
-    shutil.rmtree(env_vars_tarpath)
 
     # Prepare some variables for templating process
     res_dir = "src/main/res"
