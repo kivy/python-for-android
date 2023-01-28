@@ -53,10 +53,6 @@ else:
 
 curdir = dirname(__file__)
 
-PYTHON = get_hostpython()
-if PYTHON is not None and not exists(PYTHON):
-    PYTHON = None
-
 BLACKLIST_PATTERNS = [
     # code versionning
     '^*.hg/*',
@@ -75,9 +71,19 @@ BLACKLIST_PATTERNS = [
 ]
 
 WHITELIST_PATTERNS = []
-if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
-    WHITELIST_PATTERNS.append('pyconfig.h')
 
+if os.environ.get("P4A_BUILD_IS_RUNNING_UNITTESTS", "0") != "1":
+    PYTHON = get_hostpython()
+    _bootstrap_name = get_bootstrap_name()
+else:
+    PYTHON = "python3"
+    _bootstrap_name = "sdl2"
+
+if PYTHON is not None and not exists(PYTHON):
+    PYTHON = None
+
+if _bootstrap_name in ('sdl2', 'webview', 'service_only'):
+    WHITELIST_PATTERNS.append('pyconfig.h')
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
     join(curdir, 'templates')))
@@ -243,8 +249,8 @@ main.py that loads it.''')
     with open(os.path.join(env_vars_tarpath, "p4a_env_vars.txt"), "w") as f:
         if hasattr(args, "window"):
             f.write("P4A_IS_WINDOWED=" + str(args.window) + "\n")
-        if hasattr(args, "orientation"):
-            f.write("P4A_ORIENTATION=" + str(args.orientation) + "\n")
+        if hasattr(args, "sdl_orientation_hint"):
+            f.write("KIVY_ORIENTATION=" + str(args.sdl_orientation_hint) + "\n")
         f.write("P4A_NUMERIC_VERSION=" + str(args.numeric_version) + "\n")
         f.write("P4A_MINSDK=" + str(args.min_sdk_version) + "\n")
 
@@ -646,20 +652,92 @@ main.py that loads it.''')
                 subprocess.check_output(patch_command)
 
 
-def parse_args_and_make_package(args=None):
-    global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
+def parse_permissions(args_permissions):
+    if args_permissions and isinstance(args_permissions[0], list):
+        args_permissions = [p for perm in args_permissions for p in perm]
 
+    def _is_advanced_permission(permission):
+        return permission.startswith("(") and permission.endswith(")")
+
+    def _decode_advanced_permission(permission):
+        SUPPORTED_PERMISSION_PROPERTIES = ["name", "maxSdkVersion", "usesPermissionFlags"]
+        _permission_args = permission[1:-1].split(";")
+        _permission_args = (arg.split("=") for arg in _permission_args)
+        advanced_permission = dict(_permission_args)
+
+        if "name" not in advanced_permission:
+            raise ValueError("Advanced permission must have a name property")
+
+        for key in advanced_permission.keys():
+            if key not in SUPPORTED_PERMISSION_PROPERTIES:
+                raise ValueError(
+                    f"Property '{key}' is not supported. "
+                    "Advanced permission only supports: "
+                    f"{', '.join(SUPPORTED_PERMISSION_PROPERTIES)} properties"
+                )
+
+        return advanced_permission
+
+    _permissions = []
+    for permission in args_permissions:
+        if _is_advanced_permission(permission):
+            _permissions.append(_decode_advanced_permission(permission))
+        else:
+            if "." in permission:
+                _permissions.append(dict(name=permission))
+            else:
+                _permissions.append(dict(name=f"android.permission.{permission}"))
+    return _permissions
+
+
+def get_sdl_orientation_hint(orientations):
+    SDL_ORIENTATION_MAP = {
+        "landscape": "LandscapeLeft",
+        "portrait": "Portrait",
+        "portrait-reverse": "PortraitUpsideDown",
+        "landscape-reverse": "LandscapeRight",
+    }
+    return " ".join(
+        [SDL_ORIENTATION_MAP[x] for x in orientations if x in SDL_ORIENTATION_MAP]
+    )
+
+
+def get_manifest_orientation(orientations, manifest_orientation=None):
+    # If the user has specifically set an orientation to use in the manifest,
+    # use that.
+    if manifest_orientation is not None:
+        return manifest_orientation
+
+    # If multiple or no orientations are specified, use unspecified in the manifest,
+    # as we can only specify one orientation in the manifest.
+    if len(orientations) != 1:
+        return "unspecified"
+
+    # Convert the orientation to a value that can be used in the manifest.
+    # If the specified orientation is not supported, use unspecified.
+    MANIFEST_ORIENTATION_MAP = {
+        "landscape": "landscape",
+        "portrait": "portrait",
+        "portrait-reverse": "reversePortrait",
+        "landscape-reverse": "reverseLandscape",
+    }
+    return MANIFEST_ORIENTATION_MAP.get(orientations[0], "unspecified")
+
+
+def get_dist_ndk_min_api_level():
     # Get the default minsdk, equal to the NDK API that this dist is built against
     try:
         with open('dist_info.json', 'r') as fileh:
             info = json.load(fileh)
-            default_min_api = int(info['ndk_api'])
-            ndk_api = default_min_api
+            ndk_api = int(info['ndk_api'])
     except (OSError, KeyError, ValueError, TypeError):
         print('WARNING: Failed to read ndk_api from dist info, defaulting to 12')
-        default_min_api = 12  # The old default before ndk_api was introduced
-        ndk_api = 12
+        ndk_api = 12  # The old default before ndk_api was introduced
+    return ndk_api
 
+
+def create_argument_parser():
+    ndk_api = get_dist_ndk_min_api_level()
     import argparse
     ap = argparse.ArgumentParser(description='''\
 Package a Python application for Android (using
@@ -742,19 +820,21 @@ tools directory of the Android SDK.
         ap.add_argument('--window', dest='window', action='store_true',
                         default=False,
                         help='Indicate if the application will be windowed')
+        ap.add_argument('--manifest-orientation', dest='manifest_orientation',
+                        help=('The orientation that will be set in the '
+                              'android:screenOrientation attribute of the activity '
+                              'in the AndroidManifest.xml file. If not set, '
+                              'the value will be synthesized from the --orientation option.'))
         ap.add_argument('--orientation', dest='orientation',
-                        default='portrait',
-                        help=('The orientation that the game will '
-                              'display in. '
-                              'Usually one of "landscape", "portrait", '
-                              '"sensor", or "user" (the same as "sensor" '
-                              'but obeying the '
-                              'user\'s Android rotation setting). '
-                              'The full list of options is given under '
-                              'android_screenOrientation at '
-                              'https://developer.android.com/guide/'
-                              'topics/manifest/'
-                              'activity-element.html'))
+                        action="append", default=[],
+                        choices=['portrait', 'landscape', 'landscape-reverse', 'portrait-reverse'],
+                        help=('The orientations that the app will display in. '
+                              'Since Android ignores android:screenOrientation '
+                              'when in multi-window mode (Which is the default on Android 12+), '
+                              'this option will also set the window orientation hints '
+                              'for apps using the (default) SDL bootstrap.'
+                              'If multiple orientations are given, android:screenOrientation '
+                              'will be set to "unspecified"'))
 
     ap.add_argument('--enable-androidx', dest='enable_androidx',
                     action='store_true',
@@ -809,9 +889,9 @@ tools directory of the Android SDK.
     ap.add_argument('--sdk', dest='sdk_version', default=-1,
                     type=int, help=('Deprecated argument, does nothing'))
     ap.add_argument('--minsdk', dest='min_sdk_version',
-                    default=default_min_api, type=int,
+                    default=ndk_api, type=int,
                     help=('Minimum Android SDK version that the app supports. '
-                          'Defaults to {}.'.format(default_min_api)))
+                          'Defaults to {}.'.format(ndk_api)))
     ap.add_argument('--allow-minsdk-ndkapi-mismatch', default=False,
                     action='store_true',
                     help=('Allow the --minsdk argument to be different from '
@@ -874,6 +954,15 @@ tools directory of the Android SDK.
     ap.add_argument('--activity-class-name', dest='activity_class_name', default=DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS,
                     help='The full java class name of the main activity')
 
+    return ap
+
+
+def parse_args_and_make_package(args=None):
+    global BLACKLIST_PATTERNS, WHITELIST_PATTERNS, PYTHON
+
+    ndk_api = get_dist_ndk_min_api_level()
+    ap = create_argument_parser()
+
     # Put together arguments, and add those from .p4a config file:
     if args is None:
         args = sys.argv[1:]
@@ -918,8 +1007,14 @@ tools directory of the Android SDK.
               'deprecated and does nothing.')
         args.sdk_version = -1  # ensure it is not used
 
-    if args.permissions and isinstance(args.permissions[0], list):
-        args.permissions = [p for perm in args.permissions for p in perm]
+    args.permissions = parse_permissions(args.permissions)
+
+    args.manifest_orientation = get_manifest_orientation(
+        args.orientation, args.manifest_orientation
+    )
+
+    if get_bootstrap_name() == "sdl2":
+        args.sdl_orientation_hint = get_sdl_orientation_hint(args.orientation)
 
     if args.res_xmls and isinstance(args.res_xmls[0], list):
         args.res_xmls = [x for res in args.res_xmls for x in res]
@@ -959,4 +1054,6 @@ tools directory of the Android SDK.
 
 
 if __name__ == "__main__":
+    if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
+        WHITELIST_PATTERNS.append('pyconfig.h')
     parse_args_and_make_package()

@@ -57,16 +57,36 @@ options (this list may not be exhaustive):
 - ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
-- ``--orientation``: Usually one of ``portait``, ``landscape``,
-  ``sensor`` to automatically rotate according to the device
-  orientation, or ``user`` to do the same but obeying the user's
-  settings. The full list of valid options is given under
-  ``android:screenOrientation`` in the `Android documentation
-  <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
+- ``--orientation``: The orientations that the app will display in.
+  (Available options are ``portrait``, ``landscape``, ``portrait-reverse``, ``landscape-reverse``).
+  Since Android ignores ``android:screenOrientation`` when in multi-window mode
+  (Which is the default on Android 12+), this option will also set the window orientation hints
+  for the SDL bootstrap. If multiple orientations are given,
+``android:screenOrientation`` will be set to ``unspecified``.
+- ``--manifest-orientation``: The orientation that will be set for the ``android:screenOrientation``
+  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
+  will be synthesized from the ``--orientation`` option.
+  The full list of valid options is given under ``android:screenOrientation``
+  in the `Android documentation <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
 - ``--icon``: A path to the png file to use as the application icon.
-- ``--permission``: A permission name for the app,
-  e.g. ``--permission VIBRATE``. For multiple permissions, add
-  multiple ``--permission`` arguments.
+- ``--permission``: A permission that needs to be declared into the App ``AndroidManifest.xml``.
+  For multiple permissions, add multiple ``--permission`` arguments.
+
+  .. Note ::
+    ``--permission`` accepts the following syntaxes: 
+    ``--permission (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)``
+    or ``--permission android.permission.WRITE_EXTERNAL_STORAGE``.
+
+    The first syntax is used to set additional properties to the permission 
+    (``android:maxSdkVersion`` and ``android:usesPermissionFlags`` are the only ones supported for now).
+
+    The second one can be used when there's no need to add any additional properties.
+
+  .. Warning ::
+    The syntax ``--permission VIBRATE`` (only the permission name, without the prefix),
+    is also supported for backward compatibility, but it will be removed in the future.
+
+
 - ``--meta-data``: Custom key=value pairs to add in the application metadata.
 - ``--presplash``: A path to the image file to use as a screen while
   the application is loading.
@@ -121,12 +141,16 @@ ready.
 - ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
 - ``--version``: The version number.
-- ``--orientation``: Usually one of ``portait``, ``landscape``,
-  ``sensor`` to automatically rotate according to the device
-  orientation, or ``user`` to do the same but obeying the user's
-  settings. The full list of valid options is given under
-  ``android:screenOrientation`` in the `Android documentation
-  <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
+- ``--orientation``: The orientations that the app will display in.
+  (Available options are ``portrait``, ``landscape``, ``portrait-reverse``, ``landscape-reverse``).
+  Since Android ignores ``android:screenOrientation`` when in multi-window mode
+  (Which is the default on Android 12+), this setting is not guaranteed to work, and
+  you should consider to implement a custom orientation change handler in your app.
+- ``--manifest-orientation``: The orientation that will be set in the ``android:screenOrientation``
+  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
+  will be synthesized from the ``--orientation`` option.
+  The full list of valid options is given under ``android:screenOrientation``
+  in the `Android documentation <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
 - ``--icon``: A path to the png file to use as the application icon.
 - ``--permission``: A permission name for the app,
   e.g. ``--permission VIBRATE``. For multiple permissions, add

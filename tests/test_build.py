@@ -64,7 +64,10 @@ class TestTemplates(unittest.TestCase):
         args.min_sdk_version = 12
         args.build_mode = 'debug'
         args.native_services = ['abcd', ]
-        args.permissions = []
+        args.permissions = [
+            dict(name="android.permission.INTERNET"),
+            dict(name="android.permission.WRITE_EXTERNAL_STORAGE", maxSdkVersion=18),
+            dict(name="android.permission.BLUETOOTH_SCAN", usesPermissionFlags="neverForLocation")]
         args.add_activity = []
         args.android_used_libs = []
         args.meta_data = []
@@ -91,6 +94,9 @@ class TestTemplates(unittest.TestCase):
         assert xml.count('targetSdkVersion="1234"') == 1
         assert xml.count('android:debuggable="true"') == 1
         assert xml.count('<service android:name="abcd" />') == 1
+        assert xml.count('<uses-permission android:name="android.permission.INTERNET" />') == 1
+        assert xml.count('<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />') == 1
+        assert xml.count('<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />') == 1
         # TODO: potentially some other checks to be added here to cover other "logic" (flags and loops) in the template
 
 
