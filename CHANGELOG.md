@@ -1,5 +1,32 @@
 # Changelog
 
+## [Unreleased](https://github.com/kivy/python-for-android/tree/HEAD)
+
+[Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.12.20...HEAD)
+
+**Closed issues:**
+
+- Python
+ [\#2737](https://github.com/kivy/python-for-android/issues/2737)
+- AndroidX Issue [\#2736](https://github.com/kivy/python-for-android/issues/2736)
+- Kivy build failed [\#2735](https://github.com/kivy/python-for-android/issues/2735)
+- Can't build apk using READ\_EXTERNAL\_STORAGE, WRITE\_EXTERNAL\_STORAGE in buildozer.spec [\#2732](https://github.com/kivy/python-for-android/issues/2732)
+- BUILD FAILURE: No main.py\(o\) found in your app directory. [\#2731](https://github.com/kivy/python-for-android/issues/2731)
+- Your app currently targets API level 30 and must target at least API level 31 to ensure that it is built on the latest APIs optimised for security and performance. Change your app's target API level to at least 31 [\#2729](https://github.com/kivy/python-for-android/issues/2729)
+- Your app currently targets API level 30 and must target at least API level 31 to ensure that it is built on the latest APIs optimised for security and performance. Change your app's target API level to at least 31 [\#2727](https://github.com/kivy/python-for-android/issues/2727)
+- `sh.CommandNotFound: ./download.sh` [\#2726](https://github.com/kivy/python-for-android/issues/2726)
+- Setting `android:screenOrientation` via `--orientation` has no effect when targeting API 31 [\#2724](https://github.com/kivy/python-for-android/issues/2724)
+- \[Question\]: How to set 'compileSdkVersion' to 31 or higher. [\#2722](https://github.com/kivy/python-for-android/issues/2722)
+- Bug in the keyboard event listener [\#2423](https://github.com/kivy/python-for-android/issues/2423)
+
+**Merged pull requests:**
+
+- Implements `--manifest-orientation` and changes how `--orientation` works so we can now pass the setting to the SDL orientation hint [\#2739](https://github.com/kivy/python-for-android/pull/2739) ([misl6](https://github.com/misl6))
+- Update \_\_init\_\_.py from `scrypt` recipe [\#2738](https://github.com/kivy/python-for-android/pull/2738) ([FilipeMarch](https://github.com/FilipeMarch))
+- Apply a patch from SDL upstream that fixes orientation settings [\#2730](https://github.com/kivy/python-for-android/pull/2730) ([misl6](https://github.com/misl6))
+- Support permission properties \(`maxSdkVersion` and `usesPermissionFlags`\) + remove `WRITE_EXTERNAL_STORAGE` permission, which has been previously declared by default [\#2725](https://github.com/kivy/python-for-android/pull/2725) ([misl6](https://github.com/misl6))
+- Merge master in develop [\#2721](https://github.com/kivy/python-for-android/pull/2721) ([misl6](https://github.com/misl6))
+
 ## [v2022.12.20](https://github.com/kivy/python-for-android/tree/v2022.12.20) (2022-12-20)
 
 [Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.09.04...v2022.12.20)
