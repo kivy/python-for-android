@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/kivy/python-for-android/tree/HEAD)
+## [v2023.01.28](https://github.com/kivy/python-for-android/tree/v2023.01.28) (2023-01-28)
 
-[Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.12.20...HEAD)
+[Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.12.20...v2023.01.28)
 
 **Closed issues:**
 
