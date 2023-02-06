@@ -48,7 +48,7 @@ options = {
             'arch': 'armeabi-v7a',
             'bootstrap' : 'sdl2',
             'permissions': ['INTERNET', 'VIBRATE'],
-            'orientation': 'sensor',
+            'orientation': ['portrait', 'landscape'],
             'service': 'P4a_test_service:app_service.py',
         },
     'aab':
@@ -62,7 +62,7 @@ options = {
             'arch': 'armeabi-v7a',
             'bootstrap' : 'sdl2',
             'permissions': ['INTERNET', 'VIBRATE'],
-            'orientation': 'sensor',
+            'orientation': ['portrait', 'landscape'],
             'service': 'P4a_test_service:app_service.py',
         },
     'aar':
