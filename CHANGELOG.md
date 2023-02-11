@@ -1,5 +1,20 @@
 # Changelog
 
+## [v2023.02.10](https://github.com/kivy/python-for-android/tree/v2023.02.10) (2023-02-10)
+
+[Full Changelog](https://github.com/kivy/python-for-android/compare/v2023.01.28...v2023.02.10)
+
+**Closed issues:**
+
+- AttributeError: 'str' object has no attribute 'stdout' [\#2745](https://github.com/kivy/python-for-android/issues/2745)
+- Android app crash on starting up by accessing texture. Error:No module named 'typing\_extensions' [\#2743](https://github.com/kivy/python-for-android/issues/2743)
+
+**Merged pull requests:**
+
+- restrict sh version [\#2746](https://github.com/kivy/python-for-android/pull/2746) ([HyTurtle](https://github.com/HyTurtle))
+- 🐛 fix: Update `pydantic` recipe [\#2742](https://github.com/kivy/python-for-android/pull/2742) ([FilipeMarch](https://github.com/FilipeMarch))
+- Merge master into develop [\#2741](https://github.com/kivy/python-for-android/pull/2741) ([misl6](https://github.com/misl6))
+
 ## [v2023.01.28](https://github.com/kivy/python-for-android/tree/v2023.01.28) (2023-01-28)
 
 [Full Changelog](https://github.com/kivy/python-for-android/compare/v2022.12.20...v2023.01.28)
