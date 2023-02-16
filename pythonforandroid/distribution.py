@@ -140,13 +140,13 @@ class Distribution:
         # If any dist has perfect recipes, arch and NDK API, return it
         for dist in possible_dists:
             if force_build:
-                debug(f"Skipping dist due to forced build")
+                debug("Skipping dist due to forced build")
                 continue
             if ndk_api is not None and dist.ndk_api != ndk_api:
-                debug(f"Skipping dist due to ndk_api mismatch")
+                debug("Skipping dist due to ndk_api mismatch")
                 continue
             if not all(arch_name in dist.archs for arch_name in archs):
-                debug(f"Skipping dist due to arch mismatch")
+                debug("Skipping dist due to arch mismatch")
                 continue
             if (set(dist.recipes) == set(recipes) or
                 (set(recipes).issubset(set(dist.recipes)) and
