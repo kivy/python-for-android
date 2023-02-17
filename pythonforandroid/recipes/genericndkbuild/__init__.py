@@ -21,6 +21,8 @@ class GenericNDKBuildRecipe(BootstrapNDKRecipe):
             with_python=with_python,
         )
         env['APP_ALLOW_MISSING_DEPS'] = 'true'
+        # required for Qt bootstrap
+        env['PREFERRED_ABI'] = arch.arch
         return env
 
     def build_arch(self, arch):

@@ -35,7 +35,7 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
             ctx_bootstrap = ctx_bootstrap.decode('utf-8')
         bootstrap = bootstrap_name = ctx_bootstrap
         is_sdl2 = (bootstrap_name == "sdl2")
-        if bootstrap_name in ["sdl2", "webview", "service_only", "service_library"]:
+        if bootstrap_name in ["sdl2", "webview", "service_only", "service_library", "qt"]:
             java_ns = u'org.kivy.android'
             jni_ns = u'org/kivy/android'
         else:

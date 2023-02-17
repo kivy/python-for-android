@@ -144,9 +144,9 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.all_bootstraps `
         returns the expected values, which should be: `empty", `service_only`,
-        `webview` and `sdl2`
+        `webview`, `sdl2` and `qt`
         """
-        expected_bootstraps = {"empty", "service_only", "service_library", "webview", "sdl2"}
+        expected_bootstraps = {"empty", "service_only", "service_library", "webview", "sdl2", "qt"}
         set_of_bootstraps = Bootstrap.all_bootstraps()
         self.assertEqual(
             expected_bootstraps, expected_bootstraps & set_of_bootstraps
@@ -344,6 +344,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         name of the bootstrap to test"""
         raise NotImplementedError("Not implemented in GenericBootstrapTest")
 
+    @mock.patch("pythonforandroid.bootstraps.qt.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.service_only.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.sdl2.open", create=True)
@@ -370,6 +371,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_open_sdl2_files,
         mock_open_webview_files,
         mock_open_service_only_files,
+        mock_open_qt_files
     ):
         """
         A test for any overwritten method of
@@ -410,6 +412,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             "sdl2": mock_open_sdl2_files,
             "webview": mock_open_webview_files,
             "service_only": mock_open_service_only_files,
+            "qt": mock_open_qt_files
         }
         expected_open_calls = {
             "sdl2": [
@@ -418,6 +421,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             ],
             "webview": [mock.call("local.properties", "w")],
             "service_only": [mock.call("local.properties", "w")],
+            "qt": [mock.call("local.properties", "w")]
         }
         mock_open_bs = mock_open_bootstraps[self.bootstrap_name]
         # test that the expected calls has been called
@@ -659,3 +663,15 @@ class TestBootstrapEmpty(GenericBootstrapTest, unittest.TestCase):
         with self.assertRaises(SystemExit) as e:
             bs.assemble_distribution()
         self.assertEqual(e.exception.args[0], 1)
+
+
+class TestBootstrapQt(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.qt.BootstrapQt`.
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "qt"

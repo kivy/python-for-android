@@ -1,0 +1,70 @@
+# prevent user to include invalid extensions
+*.apk
+*.aab
+*.apks
+*.pxd
+
+# eggs
+*.egg-info
+
+# unit test
+unittest/*
+
+# python config
+config/makesetup
+
+# unused encodings
+lib-dynload/*codec*
+encodings/cp*.pyo
+encodings/tis*
+encodings/shift*
+encodings/bz2*
+encodings/iso*
+encodings/undefined*
+encodings/johab*
+encodings/p*
+encodings/m*
+encodings/euc*
+encodings/k*
+encodings/unicode_internal*
+encodings/quo*
+encodings/gb*
+encodings/big5*
+encodings/hp*
+encodings/hz*
+
+# unused python modules
+bsddb/*
+wsgiref/*
+hotshot/*
+pydoc_data/*
+tty.pyo
+anydbm.pyo
+nturl2path.pyo
+LICENCE.txt
+macurl2path.pyo
+dummy_threading.pyo
+audiodev.pyo
+antigravity.pyo
+dumbdbm.pyo
+sndhdr.pyo
+__phello__.foo.pyo
+sunaudio.pyo
+os2emxpath.pyo
+multiprocessing/dummy*
+
+# unused binaries python modules
+lib-dynload/termios.so
+lib-dynload/_lsprof.so
+lib-dynload/*audioop.so
+lib-dynload/_hotshot.so
+lib-dynload/_heapq.so
+lib-dynload/_json.so
+lib-dynload/grp.so
+lib-dynload/resource.so
+lib-dynload/pyexpat.so
+lib-dynload/_ctypes_test.so
+lib-dynload/_testcapi.so
+
+# odd files
+plat-linux3/regen

@@ -1171,6 +1171,9 @@ class TargetPythonRecipe(Recipe):
             parts = file_basename.split('.')
             if len(parts) <= 2:
                 continue
+            # PySide6 libraries end with .abi3.so
+            if parts[1] == "abi3":
+                continue
             move(filen, join(file_dirname, parts[0] + '.so'))
 
 
