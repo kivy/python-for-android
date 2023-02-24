@@ -23,7 +23,7 @@ class TFLiteRuntimeRecipe(PythonRecipe):
     #
     ###############################################################
 
-    version = '2.8.0'
+    version = '2.11.0'
     url = 'https://github.com/tensorflow/tensorflow/archive/refs/tags/v{version}.zip'
     depends = ['pybind11', 'numpy']
     patches = ['CMakeLists.patch', 'build_with_cmake.patch']
@@ -99,6 +99,7 @@ class TFLiteRuntimeRecipe(PythonRecipe):
             hostpython = sh.Command(self.hostpython_location)
             install_dir = self.ctx.get_python_install_dir(arch.arch)
             env['PACKAGE_VERSION'] = self.version
+            env['PROJECT_NAME'] = self.site_packages_name
             shprint(hostpython, 'setup.py', 'install', '-O2',
                     '--root={}'.format(install_dir),
                     '--install-lib=.',
