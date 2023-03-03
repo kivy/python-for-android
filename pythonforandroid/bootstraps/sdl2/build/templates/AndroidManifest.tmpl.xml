@@ -75,7 +75,12 @@
                   android:launchMode="{{ args.activity_launch_mode }}"
                   {% endif %}
                   >
-
+            {% if args.home_app %}
+            <intent-filter>
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            {%- endif -%}
             {% if args.launcher %}
             <intent-filter>
                 <action android:name="org.kivy.LAUNCH" />
@@ -103,10 +108,6 @@
           <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
-            {% if args.home_app %}
-            <category android:name="android.intent.category.HOME" />
-            <category android:name="android.intent.category.DEFAULT" />
-            {%- endif -%}
           </intent-filter>
 
         </activity>
