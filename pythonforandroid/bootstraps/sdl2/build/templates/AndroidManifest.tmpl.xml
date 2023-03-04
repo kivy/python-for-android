@@ -76,18 +76,21 @@
                   {% endif %}
                   >
 
-            {% if args.launcher %}
             <intent-filter>
+            {% if args.launcher %}            
                 <action android:name="org.kivy.LAUNCH" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="{{ url_scheme }}" />
-            </intent-filter>
             {% else  %}
-            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             {% endif %}
+
+            {% if args.home_app %}
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            {% endif %}
+            </intent-filter>
 
             {%- if args.intent_filters -%}
             {{- args.intent_filters -}}
