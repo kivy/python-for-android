@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
   /* inject our bootstrap code to redirect python stdin/stdout
    * replace sys.path with our path
    */
-  PyRun_SimpleString("import sys, posix\n");
+  PyRun_SimpleString("import io, sys, posix\n");
 
   char add_site_packages_dir[256];
 
@@ -224,17 +224,19 @@ int main(int argc, char *argv[]) {
   }
 
   PyRun_SimpleString(
-      "class LogFile(object):\n"
+      "class LogFile(io.IOBase):\n"
       "    def __init__(self):\n"
       "        self.__buffer = ''\n"
+      "    def readable(self):\n"
+      "        return False\n"
+      "    def writable(self):\n"
+      "        return True\n"
       "    def write(self, s):\n"
       "        s = self.__buffer + s\n"
       "        lines = s.split('\\n')\n"
       "        for l in lines[:-1]:\n"
       "            androidembed.log(l.replace('\\x00', ''))\n"
       "        self.__buffer = lines[-1]\n"
-      "    def flush(self):\n"
-      "        return\n"
       "sys.stdout = sys.stderr = LogFile()\n"
       "print('Android path', sys.path)\n"
       "import os\n"
