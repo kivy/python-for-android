@@ -497,7 +497,7 @@ main.py that loads it.''')
     # Find the SDK directory and target API
     with open('project.properties', 'r') as fileh:
         target = fileh.read().strip()
-    android_api = target.split('-')[1]
+    android_api = int(target.split('-')[1])
     try:
         int(android_api)
     except (ValueError, TypeError):
