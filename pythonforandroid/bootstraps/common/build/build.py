@@ -545,7 +545,9 @@ main.py that loads it.''')
         "service_names": service_names,
         "android_api": android_api,
         "debug": "debug" in args.build_mode,
-        "native_services": args.native_services
+        "native_services": args.native_services,
+        "support_cutout": all([android_api >= 28,
+                              args.display_cutout != 'never'])
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
@@ -598,7 +600,8 @@ main.py that loads it.''')
     )
     render_args = {
         "args": args,
-        "private_version": hashlib.sha1(private_version.encode()).hexdigest()
+        "private_version": hashlib.sha1(private_version.encode()).hexdigest(),
+        "android_api": android_api
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
@@ -777,6 +780,8 @@ tools directory of the Android SDK.
                               'launcher, rather than a single app.'))
         ap.add_argument('--home-app', dest='home_app', action='store_true', default=False,
                         help=('Turn your application into a home app (launcher)'))
+    ap.add_argument('--display-cutout', dest='display_cutout', default='never',
+                    help=('Enables display-cutout (notch) to render where the front camera is on newer devices. '))
     ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
