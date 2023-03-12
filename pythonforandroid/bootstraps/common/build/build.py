@@ -497,15 +497,9 @@ main.py that loads it.''')
     # Find the SDK directory and target API
     with open('project.properties', 'r') as fileh:
         target = fileh.read().strip()
-    android_api = int(target.split('-')[1])
-    try:
-        int(android_api)
-    except (ValueError, TypeError):
-        raise ValueError(
-            "failed to extract the Android API level from " +
-            "build.properties. expected int, got: '" +
-            str(android_api) + "'"
-        )
+    aapi = target.split('-')[1]
+    android_api = int(aapi) if aapi.isdigit() else -1
+
     with open('local.properties', 'r') as fileh:
         sdk_dir = fileh.read().strip()
     sdk_dir = sdk_dir[8:]
