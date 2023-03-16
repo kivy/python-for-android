@@ -113,18 +113,20 @@ public class PythonService extends Service implements Runnable {
 
 	// Unspecified icon uses default.
 	int smallIconId = context.getApplicationInfo().icon;
-	if (!smallIconName.equals("")){
-	    int resId = getResources().getIdentifier(smallIconName, "mipmap",
-						     getPackageName());
-	    if (resId ==0) {
-		resId = getResources().getIdentifier(smallIconName, "drawable",
-						     getPackageName());
-	    }
-	    if (resId !=0) {
-		smallIconId = resId;
-	    }
-	}
-	    
+    if (smallIconName != null) {
+        if (!smallIconName.equals("")){
+            int resId = getResources().getIdentifier(smallIconName, "mipmap",
+                                 getPackageName());
+            if (resId ==0) {
+            resId = getResources().getIdentifier(smallIconName, "drawable",
+                                 getPackageName());
+            }
+            if (resId !=0) {
+            smallIconId = resId;
+            }
+        }
+    }
+
 	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
 	    // This constructor is deprecated
             notification = new Notification(
@@ -143,9 +145,9 @@ public class PythonService extends Service implements Runnable {
             // https://stackoverflow.com/questions/47531742/startforeground-fail-after-upgrade-to-android-8-1
             String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a" + getServiceId();
             String channelName = "Background Service" + getServiceId();
-            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, 
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName,
                 NotificationManager.IMPORTANCE_NONE);
-            
+
             chan.setLightColor(Color.BLUE);
             chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
