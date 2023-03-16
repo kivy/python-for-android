@@ -145,7 +145,7 @@ public class PythonService extends Service implements Runnable {
             // https://stackoverflow.com/questions/47531742/startforeground-fail-after-upgrade-to-android-8-1
             String NOTIFICATION_CHANNEL_ID = "org.kivy.p4a" + getServiceId();
             String channelName = "Background Service" + getServiceId();
-            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName);
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
 
             chan.setLightColor(Color.BLUE);
             chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
