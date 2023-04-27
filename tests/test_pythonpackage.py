@@ -42,7 +42,7 @@ def test_get_package_dependencies():
         if "MarkupSafe" in dep
     ]
     # Check setuptools not being in non-recursive deps:
-    # (It will be in recursive ones due to p4a's pep517 dependency)
+    # (It will be in recursive ones due to p4a's build dependency)
     assert "setuptools" not in deps_nonrecursive
     # Check setuptools is present in non-recursive deps,
     # if we also add build requirements:

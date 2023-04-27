@@ -236,7 +236,7 @@ class TestGetSystemPythonExecutable():
             pybin,
             "-c",
             "import importlib\n"
-            "import json\n"
+            "import build.util\n"
             "import os\n"
             "import sys\n"
             "sys.path = [os.path.dirname(sys.argv[1])] + sys.path\n"
@@ -273,8 +273,8 @@ class TestGetSystemPythonExecutable():
             # Some deps may not be installed, so we just avoid to raise
             # an exception here, as a missing dep should not make the test
             # fail.
-            if "pep517" in str(e.args):
-                # System python probably doesn't have pep517 available!
+            if "build" in str(e.args):
+                # System python probably doesn't have build available!
                 pass
             elif "toml" in str(e.args):
                 # System python probably doesn't have toml available!
@@ -304,11 +304,8 @@ class TestGetSystemPythonExecutable():
             ])
             subprocess.check_output([
                 os.path.join(test_dir, "venv", "bin", "pip"),
-                "install", "-U", "pep517"
-            ])
-            subprocess.check_output([
-                os.path.join(test_dir, "venv", "bin", "pip"),
-                "install", "-U", "toml"
+                "install", "-U", "build", "toml", "sh<2.0", "colorama",
+                "appdirs", "jinja2", "packaging"
             ])
             sys_python_path = self.run__get_system_python_executable(
                 os.path.join(test_dir, "venv", "bin", "python")
