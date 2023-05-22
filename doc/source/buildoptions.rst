@@ -71,6 +71,7 @@ options (this list may not be exhaustive):
 - ``--icon``: A path to the png file to use as the application icon.
 - ``--permission``: A permission that needs to be declared into the App ``AndroidManifest.xml``.
   For multiple permissions, add multiple ``--permission`` arguments.
+  ``--home-app`` Gives you the option to set your application as a home app (launcher) on your Android device.
 
   .. Note ::
     ``--permission`` accepts the following syntaxes: 

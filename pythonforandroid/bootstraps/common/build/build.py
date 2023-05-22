@@ -498,14 +498,16 @@ main.py that loads it.''')
     with open('project.properties', 'r') as fileh:
         target = fileh.read().strip()
     android_api = target.split('-')[1]
-    try:
-        int(android_api)
-    except (ValueError, TypeError):
+
+    if android_api.isdigit():
+        android_api = int(android_api)
+    else:
         raise ValueError(
             "failed to extract the Android API level from " +
             "build.properties. expected int, got: '" +
             str(android_api) + "'"
         )
+
     with open('local.properties', 'r') as fileh:
         sdk_dir = fileh.read().strip()
     sdk_dir = sdk_dir[8:]
@@ -773,6 +775,8 @@ tools directory of the Android SDK.
         ap.add_argument('--launcher', dest='launcher', action='store_true',
                         help=('Provide this argument to build a multi-app '
                               'launcher, rather than a single app.'))
+        ap.add_argument('--home-app', dest='home_app', action='store_true', default=False,
+                        help=('Turn your application into a home app (launcher)'))
     ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
