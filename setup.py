@@ -22,9 +22,9 @@ data_files = []
 install_reqs = [
     'appdirs', 'colorama>=0.3.3', 'jinja2',
     'sh>=1.10, <2.0; sys_platform!="nt"',
-    'pep517', 'toml', 'packaging',
+    'build', 'toml', 'packaging',
 ]
-# (pep517 and toml are used by pythonpackage.py)
+# (build and toml are used by pythonpackage.py)
 
 
 # By specifying every file manually, package_data will be able to
