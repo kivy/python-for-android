@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.x
     - name: Run flake8
@@ -36,9 +36,9 @@ jobs:
         os: [ubuntu-latest, macOs-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Tox tests
@@ -70,7 +70,7 @@ jobs:
             target: testapps-webview
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     # helps with GitHub runner getting out of space
     - name: Free disk space
       run: |
@@ -116,7 +116,7 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install python-for-android
         run: |
           source ci/osx_ci.sh
@@ -161,7 +161,7 @@ jobs:
             target: testapps-webview-aab
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     # helps with GitHub runner getting out of space
     - name: Free disk space
       run: |
@@ -201,7 +201,7 @@ jobs:
             target: testapps-service_library-aar
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     # helps with GitHub runner getting out of space
     - name: Free disk space
       run: |
@@ -248,7 +248,7 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install python-for-android
         run: |
           source ci/osx_ci.sh
@@ -289,8 +289,8 @@ jobs:
     env:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v2
+    - name: Checkout python-for-android (all-history)
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
     # helps with GitHub runner getting out of space
@@ -325,8 +325,8 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
-      - name: Checkout python-for-android
-        uses: actions/checkout@v2
+      - name: Checkout python-for-android (all-history)
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install python-for-android
