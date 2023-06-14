@@ -65,15 +65,13 @@
         {% for m in args.meta_data %}
         <meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
         <meta-data android:name="wakelock" android:value="{% if args.wakelock %}1{% else %}0{% endif %}"/>
-
+        <meta-data android:name="{{android_api >= 28}}" data="cutouts" />
         <activity android:name="{{args.android_entrypoint}}"
                   android:label="@string/app_name"
                   android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 8 %}|uiMode{% endif %}{% if args.min_sdk_version >= 13 %}|screenSize|smallestScreenSize{% endif %}{% if args.min_sdk_version >= 17 %}|layoutDirection{% endif %}{% if args.min_sdk_version >= 24 %}|density{% endif %}"
                   android:screenOrientation="{{ args.manifest_orientation }}"
                   android:exported="true"
-                  {% if support_cutout %}
-                  android:theme="@style/BaseStyle"
-                  {% endif %}
+                  {% if android_api >= 28 %}android:theme="@style/KivyManagedStyle"{% endif %}
                   {% if args.activity_launch_mode %}
                   android:launchMode="{{ args.activity_launch_mode }}"
                   {% endif %}

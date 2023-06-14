@@ -545,9 +545,7 @@ main.py that loads it.''')
         "service_names": service_names,
         "android_api": android_api,
         "debug": "debug" in args.build_mode,
-        "native_services": args.native_services,
-        "support_cutout": all([android_api >= 28,
-                              args.display_cutout != 'never'])
+        "native_services": args.native_services
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
@@ -781,7 +779,7 @@ tools directory of the Android SDK.
         ap.add_argument('--home-app', dest='home_app', action='store_true', default=False,
                         help=('Turn your application into a home app (launcher)'))
     ap.add_argument('--display-cutout', dest='display_cutout', default='never',
-                    help=('Enables display-cutout (notch) to render where the front camera is on newer devices. '))
+                    help=('Enables display-cutout that renders around the area (notch) on some devices that extends into the display surface'))
     ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
