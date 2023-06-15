@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="KivyManagedStyle">
-        <!-- Style to be used with Kivy for special operations and API's -->
-        {% if args.display_cutout != 'never' %}
-            <!-- Display cutout is an area on some devices that extends into the display surface -->
-            <item name="android:windowLayoutInDisplayCutoutMode">{{ args.display_cutout }}</item>
-            <item name="android:windowTranslucentStatus">true</item>
-            <item name="android:windowTranslucentNavigation">true</item>
-            <item name="android:windowNoTitle">true</item>
-            <item name="android:windowFullscreen">true</item>
-        {% endif %}
+    <style name="KivySupportCutout">
+        <!-- Display cutout is an area on some devices that extends into the display surface -->
+        <item name="android:windowLayoutInDisplayCutoutMode">{{ args.display_cutout }}</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
     <string name="app_name">{{ args.name }}</string>
     <string name="private_version">{{ private_version }}</string>
