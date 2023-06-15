@@ -13,8 +13,8 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
         not part of the build. It's usable, but not complete.
     """
 
-    version = '2.1.0'
-    url = 'https://github.com/pygame/pygame/archive/{version}.tar.gz'
+    version = '2.3.0'
+    url = 'https://github.com/pygame-community/pygame-ce/archive/{version}.tar.gz'
 
     site_packages_name = 'pygame'
     name = 'pygame'
@@ -58,7 +58,6 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
-        env['USE_SDL2'] = '1'
         env["PYGAME_CROSS_COMPILE"] = "TRUE"
         env["PYGAME_ANDROID"] = "TRUE"
         return env
