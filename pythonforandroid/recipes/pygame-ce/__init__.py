@@ -13,7 +13,7 @@ class PygameCeRecipe(CompiledComponentsPythonRecipe):
         not part of the build. It's usable, but not complete.
     """
 
-    version = '2.2.1'
+    version = '2.3.0'
     url = 'https://github.com/pygame-community/pygame-ce/archive/{version}.tar.gz'
 
     site_packages_name = 'pygame-ce'
