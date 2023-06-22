@@ -35,6 +35,7 @@ while i < len(sys.argv):
 
     if opt.startswith(
             ("-I", "-isystem", "-m", "-f", "-O", "-g", "-D", "-R")):
+        continue
 
     if opt.startswith("-"):
         print(sys.argv)

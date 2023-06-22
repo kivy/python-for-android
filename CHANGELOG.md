@@ -1,5 +1,45 @@
 # Changelog
 
+## [v2023.05.21](https://github.com/kivy/python-for-android/tree/v2023.05.21)
+
+[Full Changelog](https://github.com/kivy/python-for-android/compare/v2023.02.10...v2023.05.21)
+
+**Closed issues:**
+
+- python [\#2795](https://github.com/kivy/python-for-android/issues/2795)
+- Create APK from PyQt app [\#2794](https://github.com/kivy/python-for-android/issues/2794)
+- psutil/\_psutil\_linux.so" is 64-bit instead of 32-bit [\#2785](https://github.com/kivy/python-for-android/issues/2785)
+- pythonforandroid.toolchain.py: error: unrecognized arguments: --dir [\#2775](https://github.com/kivy/python-for-android/issues/2775)
+- App [\#2774](https://github.com/kivy/python-for-android/issues/2774)
+- org.kivy.android.PythonActivity$NewIntentListener is not visible from class loader java.lang.IllegalArgumentException [\#2770](https://github.com/kivy/python-for-android/issues/2770)
+- Service don t start anymore, as smallIconName extra is now mandatory [\#2768](https://github.com/kivy/python-for-android/issues/2768)
+- Start a background sticky service that auto-restart. [\#2767](https://github.com/kivy/python-for-android/issues/2767)
+- Fail installation [\#2764](https://github.com/kivy/python-for-android/issues/2764)
+- Python exception when using colorlog due to incomplete IO implementation in sys.stderr [\#2762](https://github.com/kivy/python-for-android/issues/2762)
+- AttributeError: 'org.kivy.android.PythonService' object has no attribute 'getComponentName' [\#2760](https://github.com/kivy/python-for-android/issues/2760)
+- https://code.videolan.org not available [\#2758](https://github.com/kivy/python-for-android/issues/2758)
+- Cannot install Python-for-Android [\#2754](https://github.com/kivy/python-for-android/issues/2754)
+- c/\_cffi\_backend.c:407:23: error: expression is not assignable [\#2753](https://github.com/kivy/python-for-android/issues/2753)
+- not install [\#2749](https://github.com/kivy/python-for-android/issues/2749)
+- APK crashes upon launch. logcat error: null pointer dereference \(occurs with imported modules\) [\#2358](https://github.com/kivy/python-for-android/issues/2358)
+- Error occured while building the aplication using buildozer [\#2104](https://github.com/kivy/python-for-android/issues/2104)
+- "Could Not Extract Public Data"  Needs very explicit instructions or feedback to the user [\#260](https://github.com/kivy/python-for-android/issues/260)
+
+**Merged pull requests:**
+
+- Update Kivy recipe for 2.2.0 [\#2793](https://github.com/kivy/python-for-android/pull/2793) ([misl6](https://github.com/misl6))
+- Update `pyjnius` version to `1.5.0` [\#2791](https://github.com/kivy/python-for-android/pull/2791) ([misl6](https://github.com/misl6))
+- fix tools/liblink: syntax error [\#2771](https://github.com/kivy/python-for-android/pull/2771) ([SomberNight](https://github.com/SomberNight))
+- fix \#2768 smallIconName null can t be compared to String [\#2769](https://github.com/kivy/python-for-android/pull/2769) ([brvier](https://github.com/brvier))
+- android\_api to integer [\#2765](https://github.com/kivy/python-for-android/pull/2765) ([kuzeyron](https://github.com/kuzeyron))
+- Use io.IOBase for LogFile [\#2763](https://github.com/kivy/python-for-android/pull/2763) ([dylanmccall](https://github.com/dylanmccall))
+- Home app functionality [\#2761](https://github.com/kivy/python-for-android/pull/2761) ([kuzeyron](https://github.com/kuzeyron))
+- Add debug loggings for identifying a matching dist [\#2751](https://github.com/kivy/python-for-android/pull/2751) ([BitcoinWukong](https://github.com/BitcoinWukong))
+- Add PyAV recipe [\#2750](https://github.com/kivy/python-for-android/pull/2750) ([DexerBR](https://github.com/DexerBR))
+- Merge master into develop [\#2748](https://github.com/kivy/python-for-android/pull/2748) ([misl6](https://github.com/misl6))
+- Add support for Python 3.10 and make it the default while building hostpython3 and python3 [\#2577](https://github.com/kivy/python-for-android/pull/2577) ([misl6](https://github.com/misl6))
+
+
 ## [v2023.02.10](https://github.com/kivy/python-for-android/tree/v2023.02.10) (2023-02-10)
 
 [Full Changelog](https://github.com/kivy/python-for-android/compare/v2023.01.28...v2023.02.10)
