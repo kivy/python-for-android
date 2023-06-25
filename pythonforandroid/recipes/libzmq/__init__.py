@@ -6,7 +6,7 @@ import sh
 
 
 class LibZMQRecipe(Recipe):
-    version = '4.3.2'
+    version = '4.3.4'
     url = 'https://github.com/zeromq/libzmq/releases/download/v{version}/zeromq-{version}.zip'
     depends = []
     built_libraries = {'libzmq.so': 'src/.libs'}
@@ -34,6 +34,7 @@ class LibZMQRecipe(Recipe):
                 '--prefix={}'.format(prefix),
                 '--with-libsodium=no',
                 '--disable-libunwind',
+                '--disable-Werror',
                 _env=env)
             shprint(sh.make, _env=env)
             shprint(sh.make, 'install', _env=env)
