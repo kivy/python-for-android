@@ -2,7 +2,6 @@ import glob
 import sh
 import subprocess
 
-from multiprocessing import cpu_count
 from os import environ, utime
 from os.path import dirname, exists, join
 from pathlib import Path
@@ -56,7 +55,7 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.10.10'
+    version = '3.11.5'
     url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
     name = 'python3'
 
@@ -71,15 +70,17 @@ class Python3Recipe(TargetPythonRecipe):
         # Python 3.8.1 & 3.9.X
         ('patches/py3.8.1.patch', version_starts_with("3.8")),
         ('patches/py3.8.1.patch', version_starts_with("3.9")),
-        ('patches/py3.8.1.patch', version_starts_with("3.10"))
+        ('patches/py3.8.1.patch', version_starts_with("3.10")),
+        ('patches/cpython-311-ctypes-find-library.patch', version_starts_with("3.11")),
     ]
 
     if shutil.which('lld') is not None:
-        patches = patches + [
+        patches += [
             ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
             ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8")),
             ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.9")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.10"))
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.10")),
+            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.11")),
         ]
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
@@ -101,7 +102,12 @@ class Python3Recipe(TargetPythonRecipe):
         'ac_cv_header_sys_eventfd_h=no',
         '--prefix={prefix}',
         '--exec-prefix={exec_prefix}',
-        '--enable-loadable-sqlite-extensions')
+        '--enable-loadable-sqlite-extensions'
+    )
+
+    if version_starts_with("3.11"):
+        configure_args += ('--with-build-python={python_host_bin}',)
+
     '''The configure arguments needed to build the python recipe. Those are
     used in method :meth:`build_arch` (if not overwritten like python3's
     recipe does).
@@ -323,12 +329,19 @@ class Python3Recipe(TargetPythonRecipe):
                     *(' '.join(self.configure_args).format(
                                     android_host=env['HOSTARCH'],
                                     android_build=android_build,
+                                    python_host_bin=join(self.get_recipe(
+                                        'host' + self.name, self.ctx
+                                    ).get_path_to_python(), "python3"),
                                     prefix=sys_prefix,
                                     exec_prefix=sys_exec_prefix)).split(' '),
                     _env=env)
 
+            # Python build does not seem to play well with make -j option from Python 3.11 and onwards
+            # Before losing some time, please check issue
+            # https://github.com/python/cpython/issues/101295 , as the root cause looks similar
             shprint(
-                sh.make, 'all', '-j', str(cpu_count()),
+                sh.make,
+                'all',
                 'INSTSONAME={lib_name}'.format(lib_name=self._libpython),
                 _env=env
             )
