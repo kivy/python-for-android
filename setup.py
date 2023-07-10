@@ -21,7 +21,7 @@ data_files = []
 # https://github.com/kivy/buildozer/issues/722
 install_reqs = [
     'appdirs', 'colorama>=0.3.3', 'jinja2',
-    'sh>=1.10, <2.0; sys_platform!="nt"',
+    'sh>=1.10, <2.0; sys_platform!="win32"',
     'build', 'toml', 'packaging',
 ]
 # (build and toml are used by pythonpackage.py)
