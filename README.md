@@ -96,7 +96,7 @@ Please refer to the LICENSE file.
 
 In 2015 these tools were rewritten to provide a new, easier-to-use and
 easier-to-extend interface. If you'd like to browse the old toolchain, its
-status is recorded for posterity at at
+status is recorded for posterity at
 https://github.com/kivy/python-for-android/tree/old_toolchain.
 
 In the last quarter of 2018 the python recipes were changed. The
