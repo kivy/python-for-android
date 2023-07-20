@@ -51,7 +51,7 @@ other API levels may not work.
 
 With everything installed, build an APK with SDL2 with e.g.:
 
-    p4a apk --requirements=kivy --private /home/username/devel/planewave_frozen/ --package=net.inclem.planewavessdl2 --name="planewavessdl2" --version=0.5 --bootstrap=sdl2
+    p4a apk --private $HOME/code/myapp --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python3,kivy
 
 **If you need to deploy your app on Google Play, Android App Bundle (aab) is required since 1 August 2021:**
 
