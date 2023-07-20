@@ -232,7 +232,7 @@ Exporting the Android App Bundle (aab) for distributing it on Google Play
 Starting from August 2021 for new apps and from November 2021 for updates to existings apps,
 Google Play Console will require the Android App Bundle instead of the long lived apk.
 
-python-for-android handles by itself the needed work to accomplish the new requirements:
+python-for-android handles by itself the needed work to accomplish the new requirements::
 
     p4a aab --private $HOME/code/myapp --package=org.example.myapp --name="My App" --version 0.1 --bootstrap=sdl2 --requirements=python3,kivy --arch=arm64-v8a --arch=armeabi-v7a --release
 
