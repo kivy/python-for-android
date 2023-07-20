@@ -1,6 +1,7 @@
 import contextlib
 from os.path import exists, join
-from os import getcwd, chdir, makedirs, walk, uname
+from os import getcwd, chdir, makedirs, walk
+from platform import uname
 import shutil
 from fnmatch import fnmatch
 from tempfile import mkdtemp
@@ -8,7 +9,7 @@ from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
 
 build_platform = '{system}-{machine}'.format(
-    system=uname()[0], machine=uname()[-1]).lower()
+    system=uname().system, machine=uname().machine.lower())
 """the build platform in the format `system-machine`. We use
 this string to define the right build system when compiling some recipes or
 to get the right path for clang compiler"""
