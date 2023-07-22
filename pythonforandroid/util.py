@@ -8,8 +8,9 @@ from tempfile import mkdtemp
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
 
-build_platform = '{system}-{machine}'.format(
-    system=uname().system, machine=uname().machine.lower())
+build_platform = "{system}-{machine}".format(
+    system=uname().system, machine=uname().machine
+).lower()
 """the build platform in the format `system-machine`. We use
 this string to define the right build system when compiling some recipes or
 to get the right path for clang compiler"""
