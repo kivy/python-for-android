@@ -4,17 +4,17 @@
     Usage examples:
 
        # Getting package name from pip reference:
-       from pytonforandroid.pythonpackage import get_package_name
+       from pythonforandroid.pythonpackage import get_package_name
        print(get_package_name("pillow"))
        # Outputs: "Pillow" (note the spelling!)
 
        # Getting package dependencies:
-       from pytonforandroid.pythonpackage import get_package_dependencies
+       from pythonforandroid.pythonpackage import get_package_dependencies
        print(get_package_dependencies("pep517"))
        # Outputs: "['pytoml']"
 
        # Get package name from arbitrary package source:
-       from pytonforandroid.pythonpackage import get_package_name
+       from pythonforandroid.pythonpackage import get_package_name
        print(get_package_name("/some/local/project/folder/"))
        # Outputs package name
 
