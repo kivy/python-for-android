@@ -370,22 +370,19 @@ class CmakePrerequisite(Prerequisite):
 
 
 def get_required_prerequisites(platform="linux"):
-    DEFAULT_PREREQUISITES = dict(
-        darwin=[
-            HomebrewPrerequisite(),
-            AutoconfPrerequisite(),
-            AutomakePrerequisite(),
-            LibtoolPrerequisite(),
-            PkgConfigPrerequisite(),
-            CmakePrerequisite(),
-            OpenSSLPrerequisite(),
-            JDKPrerequisite(),
-        ],
-        linux=[],
-        all_platforms=[],
-    )
-
-    return DEFAULT_PREREQUISITES["all_platforms"] + DEFAULT_PREREQUISITES[platform]
+    return [
+        prerequisite_cls()
+        for prerequisite_cls in [
+            HomebrewPrerequisite,
+            AutoconfPrerequisite,
+            AutomakePrerequisite,
+            LibtoolPrerequisite,
+            PkgConfigPrerequisite,
+            CmakePrerequisite,
+            OpenSSLPrerequisite,
+            JDKPrerequisite,
+        ] if prerequisite_cls.mandatory.get(platform, False)
+    ]
 
 
 def check_and_install_default_prerequisites():
