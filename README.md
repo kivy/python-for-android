@@ -39,7 +39,7 @@ to install and begin creating APKs and AABs.
 
 (for the develop branch: `pip install git+https://github.com/kivy/python-for-android.git`)
 
-Test that theinstall works with:
+Test that the install works with:
 
     p4a --version
 
