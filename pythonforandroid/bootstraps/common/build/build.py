@@ -1006,7 +1006,7 @@ def parse_args_and_make_package(args=None):
         print('Billing not yet supported!')
         sys.exit(1)
 
-    if args.sdk_version == -1:
+    if args.sdk_version != -1:
         print('WARNING: Received a --sdk argument, but this argument is '
               'deprecated and does nothing.')
         args.sdk_version = -1  # ensure it is not used
