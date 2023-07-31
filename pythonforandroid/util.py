@@ -1,12 +1,15 @@
 import contextlib
+from fnmatch import fnmatch
+import logging
 from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk
 from platform import uname
-import shutil
-from fnmatch import fnmatch
+from shutil import rmtree
 from tempfile import mkdtemp
+
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
+LOGGER = logging.getLogger("p4a.util")
 
 build_platform = "{system}-{machine}".format(
     system=uname().system, machine=uname().machine
@@ -36,14 +39,9 @@ def temp_directory():
                               temp_dir, Err_Fore.RESET)))
         yield temp_dir
     finally:
-        shutil.rmtree(temp_dir)
+        rmtree(temp_dir)
         logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ',
                               temp_dir, Err_Fore.RESET)))
-
-
-def ensure_dir(filename):
-    if not exists(filename):
-        makedirs(filename)
 
 
 def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
@@ -106,3 +104,17 @@ def handle_build_exception(exception):
     if exception.instructions is not None:
         info('Instructions: {}'.format(exception.instructions))
     exit(1)
+
+
+def rmdir(dn, ignore_errors=False):
+    if not exists(dn):
+        return
+    LOGGER.debug("Remove directory and subdirectory {}".format(dn))
+    rmtree(dn, ignore_errors)
+
+
+def ensure_dir(dn):
+    if exists(dn):
+        return
+    LOGGER.debug("Create directory {0}".format(dn))
+    makedirs(dn)

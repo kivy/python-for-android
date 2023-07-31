@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import sys
-import platform
 import os
-import subprocess
+import platform
 import shutil
+import subprocess
+import sys
+
 from pythonforandroid.logger import info, warning, error
+from pythonforandroid.util import ensure_dir
 
 
 class Prerequisite(object):
@@ -247,13 +249,7 @@ class JDKPrerequisite(Prerequisite):
                 "~/Library/Java/JavaVirtualMachines"
             )
             info(f"Extracting {filename} to {user_library_java_path}")
-            subprocess.check_output(
-                [
-                    "mkdir",
-                    "-p",
-                    user_library_java_path,
-                ],
-            )
+            ensure_dir(user_library_java_path)
             subprocess.check_output(
                 ["tar", "xzf", f"/tmp/{filename}", "-C", user_library_java_path],
             )

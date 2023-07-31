@@ -1,10 +1,11 @@
-from os.path import exists, join
-import glob
 import json
+import glob
+from os.path import exists, join
 
-from pythonforandroid.logger import (debug, info, info_notify, warning, Err_Style, Err_Fore)
-from pythonforandroid.util import current_directory, BuildInterruptingException
-from shutil import rmtree
+from pythonforandroid.logger import (
+    debug, info, info_notify, warning, Err_Style, Err_Fore)
+from pythonforandroid.util import (
+    current_directory, BuildInterruptingException, rmdir)
 
 
 class Distribution:
@@ -201,7 +202,7 @@ class Distribution:
         return exists(self.dist_dir)
 
     def delete(self):
-        rmtree(self.dist_dir)
+        rmdir(self.dist_dir)
 
     @classmethod
     def get_distributions(cls, ctx, extra_dist_dirs=[]):

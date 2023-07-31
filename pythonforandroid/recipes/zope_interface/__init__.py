@@ -1,7 +1,8 @@
+from os.path import join
+
 from pythonforandroid.recipe import PythonRecipe
 from pythonforandroid.toolchain import current_directory
-from os.path import join
-import sh
+from pythonforandroid.util import rmdir
 
 
 class ZopeInterfaceRecipe(PythonRecipe):
@@ -25,11 +26,8 @@ class ZopeInterfaceRecipe(PythonRecipe):
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
         with current_directory(self.get_build_dir(arch.arch)):
-            sh.rm(
-                '-rf',
-                'src/zope/interface/tests',
-                'src/zope/interface/common/tests',
-            )
+            rmdir('src/zope/interface/tests')
+            rmdir('src/zope/interface/common/tests')
 
 
 recipe = ZopeInterfaceRecipe()

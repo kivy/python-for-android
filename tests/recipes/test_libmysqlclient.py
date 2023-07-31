@@ -23,7 +23,7 @@ class TestLibmysqlclientRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
         mock_sh_rm,
     ):
         # We overwrite the base test method because we need
-        # to mock a little more (`sh.cp` and `sh.rm`)
+        # to mock a little more (`sh.cp` and rmdir)
         super().test_build_arch()
         # make sure that the mocked methods are actually called
         mock_sh_cp.assert_called()

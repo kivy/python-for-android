@@ -1,8 +1,10 @@
+from os.path import join
+
+import sh
+
 from pythonforandroid.toolchain import (
     Bootstrap, shprint, current_directory, info, info_main)
-from pythonforandroid.util import ensure_dir
-from os.path import join
-import sh
+from pythonforandroid.util import ensure_dir, rmdir
 
 
 class SDL2GradleBootstrap(Bootstrap):
@@ -15,8 +17,8 @@ class SDL2GradleBootstrap(Bootstrap):
     def assemble_distribution(self):
         info_main("# Creating Android project ({})".format(self.name))
 
+        rmdir(self.dist_dir)
         info("Copying SDL2/gradle build")
-        shprint(sh.rm, "-rf", self.dist_dir)
         shprint(sh.cp, "-r", self.build_dir, self.dist_dir)
 
         # either the build use environment variable (ANDROID_HOME)
