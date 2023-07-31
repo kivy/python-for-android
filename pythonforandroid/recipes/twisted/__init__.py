@@ -1,7 +1,7 @@
 import os
-import shutil
 
 from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.util import rmdir
 
 
 class TwistedRecipe(CythonRecipe):
@@ -23,7 +23,7 @@ class TwistedRecipe(CythonRecipe):
         for item in os.walk(source_dir):
             if os.path.basename(item[0]) == 'test':
                 full_path = os.path.join(source_dir, item[0])
-                shutil.rmtree(full_path, ignore_errors=True)
+                rmdir(full_path, ignore_errors=True)
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)

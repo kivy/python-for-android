@@ -50,7 +50,7 @@ class TestOpenalRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
         mock_sh_cp,
     ):
         # We overwrite the base test method because we need to mock a little
-        # more with this recipe (`sh.cp` and `sh.rm`)
+        # more with this recipe.
         super().test_build_arch()
         # make sure that the mocked methods are actually called
         mock_sh_cp.assert_called()

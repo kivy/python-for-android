@@ -34,6 +34,7 @@
 
 
 import functools
+from io import open  # needed for python 2
 import os
 import shutil
 import subprocess
@@ -41,13 +42,14 @@ import sys
 import tarfile
 import tempfile
 import time
-import zipfile
-from io import open  # needed for python 2
 from urllib.parse import unquote as urlunquote
 from urllib.parse import urlparse
+import zipfile
 
 import toml
 import build.util
+
+from pythonforandroid.util import rmdir, ensure_dir
 
 
 def transform_dep_for_pip(dependency):
@@ -113,7 +115,7 @@ def extract_metainfo_files_from_package(
 
         _extract_metainfo_files_from_package_unsafe(package, output_folder)
     finally:
-        shutil.rmtree(temp_folder)
+        rmdir(temp_folder)
 
 
 def _get_system_python_executable():
@@ -314,7 +316,7 @@ def get_package_as_folder(dependency):
             )
 
         # Create download subfolder:
-        os.mkdir(os.path.join(venv_path, "download"))
+        ensure_dir(os.path.join(venv_path, "download"))
 
         # Write a requirements.txt with our package and download:
         with open(os.path.join(venv_path, "requirements.txt"),
@@ -394,11 +396,11 @@ def get_package_as_folder(dependency):
         # Copy result to new dedicated folder so we can throw away
         # our entire virtualenv nonsense after returning:
         result_path = tempfile.mkdtemp()
-        shutil.rmtree(result_path)
+        rmdir(result_path)
         shutil.copytree(result_folder_or_file, result_path)
         return (dl_type, result_path)
     finally:
-        shutil.rmtree(venv_parent)
+        rmdir(venv_parent)
 
 
 def _extract_metainfo_files_from_package_unsafe(
@@ -458,7 +460,7 @@ def _extract_metainfo_files_from_package_unsafe(
         shutil.copyfile(metadata_path, os.path.join(output_path, "METADATA"))
     finally:
         if clean_up_path:
-            shutil.rmtree(path)
+            rmdir(path)
 
 
 def is_filesystem_path(dep):
@@ -576,7 +578,7 @@ def _extract_info_from_package(dependency,
 
             return list(set(requirements))  # remove duplicates
     finally:
-        shutil.rmtree(output_folder)
+        rmdir(output_folder)
 
 
 package_name_cache = dict()
