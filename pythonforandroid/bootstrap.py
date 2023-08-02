@@ -70,7 +70,6 @@ class Bootstrap:
     '''An Android project template, containing recipe stuff for
     compilation and templated fields for APK info.
     '''
-    name = ''
     jni_subdir = '/jni'
     ctx = None
 
