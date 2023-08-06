@@ -77,11 +77,6 @@ class Context:
     # the Android project folder where everything ends up
     dist_dir = None
 
-    # where Android libs are cached after build
-    # but before being placed in dists
-    libs_dir = None
-    aars_dir = None
-
     # Whether setup.py or similar should be used if present:
     use_setup_py = False
 
@@ -109,6 +104,10 @@ class Context:
 
     @property
     def libs_dir(self):
+        """
+        where Android libs are cached after build
+        but before being placed in dists
+        """
         # Was previously hardcoded as self.build_dir/libs
         directory = join(self.build_dir, 'libs_collections',
                          self.bootstrap.distribution.name)
