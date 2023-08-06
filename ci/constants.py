@@ -33,6 +33,8 @@ BROKEN_RECIPES_PYTHON3 = set([
     'twisted',
     # genericndkbuild is incompatible with sdl2 (which is build by default when targeting sdl2 bootstrap)
     'genericndkbuild',
+    # libmysqlclient gives a linker failure (See issue #2808)
+    'libmysqlclient',
 ])
 
 BROKEN_RECIPES = {
