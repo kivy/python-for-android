@@ -35,6 +35,7 @@ BROKEN_RECIPES_PYTHON3 = set([
     'genericndkbuild',
     # libmysqlclient gives a linker failure (See issue #2808)
     'libmysqlclient',
+    # libtorrent gives an undeclared identified (See issue #2809)
 ])
 
 BROKEN_RECIPES = {
