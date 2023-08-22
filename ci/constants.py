@@ -35,7 +35,11 @@ BROKEN_RECIPES_PYTHON3 = set([
     'genericndkbuild',
     # libmysqlclient gives a linker failure (See issue #2808)
     'libmysqlclient',
-    # libtorrent gives an undeclared identified (See issue #2809)
+    # boost gives errors (requires numpy? syntax error in .jam?)
+    'boost',
+    # libtorrent gives errors (requires boost. Also, see issue #2809, to start with)
+    'libtorrent',
+
 ])
 
 BROKEN_RECIPES = {
