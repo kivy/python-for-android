@@ -21,20 +21,20 @@ class TestUtil(unittest.TestCase):
         util.ensure_dir("fake_directory")
         mock_makedirs.assert_called_once_with("fake_directory")
 
-    @mock.patch("shutil.rmtree")
+    @mock.patch("pythonforandroid.util.rmtree")
     @mock.patch("pythonforandroid.util.mkdtemp")
-    def test_temp_directory(self, mock_mkdtemp, mock_shutil_rmtree):
+    def test_temp_directory(self, mock_mkdtemp, mock_rmtree):
         """
         Basic test for method :meth:`~pythonforandroid.util.temp_directory`. We
         perform this test by `mocking` the command `mkdtemp` and
-        `shutil.rmtree` and we make sure that those functions are called in the
+        `rmdir` and we make sure that those functions are called in the
         proper place.
         """
         mock_mkdtemp.return_value = "/temp/any_directory"
         with util.temp_directory():
             mock_mkdtemp.assert_called_once()
-            mock_shutil_rmtree.assert_not_called()
-        mock_shutil_rmtree.assert_called_once_with("/temp/any_directory")
+            mock_rmtree.assert_not_called()
+        mock_rmtree.assert_called_once_with("/temp/any_directory")
 
     @mock.patch("pythonforandroid.util.chdir")
     def test_current_directory(self, moch_chdir):

@@ -16,7 +16,6 @@ from os import environ
 from os.path import (join, dirname, realpath, exists, expanduser, basename)
 import re
 import shlex
-import shutil
 import sys
 from sys import platform
 
@@ -42,7 +41,7 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import (
-    current_directory, BuildInterruptingException, load_source)
+    current_directory, BuildInterruptingException, load_source, rmdir)
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -831,18 +830,16 @@ class ToolchainCL:
         """Delete all compiled distributions in the internal distribution
         directory."""
         ctx = self.ctx
-        if exists(ctx.dist_dir):
-            shutil.rmtree(ctx.dist_dir)
+        rmdir(ctx.dist_dir)
 
     def clean_bootstrap_builds(self, _args):
         """Delete all the bootstrap builds."""
-        if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
-            shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
+        rmdir(join(self.ctx.build_dir, 'bootstrap_builds'))
         # for bs in Bootstrap.all_bootstraps():
         #     bs = Bootstrap.get_bootstrap(bs, self.ctx)
         #     if bs.build_dir and exists(bs.build_dir):
         #         info('Cleaning build for {} bootstrap.'.format(bs.name))
-        #         shutil.rmtree(bs.build_dir)
+        #         rmdir(bs.build_dir)
 
     def clean_builds(self, _args):
         """Delete all build caches for each recipe, python-install, java code
@@ -853,13 +850,10 @@ class ToolchainCL:
         of a specific recipe.
         """
         ctx = self.ctx
-        if exists(ctx.build_dir):
-            shutil.rmtree(ctx.build_dir)
-        if exists(ctx.python_installs_dir):
-            shutil.rmtree(ctx.python_installs_dir)
+        rmdir(ctx.build_dir)
+        rmdir(ctx.python_installs_dir)
         libs_dir = join(self.ctx.build_dir, 'libs_collections')
-        if exists(libs_dir):
-            shutil.rmtree(libs_dir)
+        rmdir(libs_dir)
 
     def clean_recipe_build(self, args):
         """Deletes the build files of the given recipe.
@@ -889,14 +883,14 @@ class ToolchainCL:
             for package in args.recipes:
                 remove_path = join(ctx.packages_path, package)
                 if exists(remove_path):
-                    shutil.rmtree(remove_path)
+                    rmdir(remove_path)
                     info('Download cache removed for: "{}"'.format(package))
                 else:
                     warning('No download cache found for "{}", skipping'.format(
                         package))
         else:
             if exists(ctx.packages_path):
-                shutil.rmtree(ctx.packages_path)
+                rmdir(ctx.packages_path)
                 info('Download cache removed.')
             else:
                 print('No cache found at "{}"'.format(ctx.packages_path))

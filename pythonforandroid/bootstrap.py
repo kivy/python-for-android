@@ -10,7 +10,8 @@ import shutil
 
 from pythonforandroid.logger import (shprint, info, logger, debug)
 from pythonforandroid.util import (
-    current_directory, ensure_dir, temp_directory, BuildInterruptingException)
+    current_directory, ensure_dir, temp_directory, BuildInterruptingException,
+    rmdir)
 from pythonforandroid.recipe import Recipe
 
 
@@ -396,7 +397,7 @@ class Bootstrap:
                 files = [join(rd, f) for f in listdir(rd) if f != 'EGG-INFO']
                 if files:
                     shprint(sh.mv, '-t', sitepackages, *files)
-                shprint(sh.rm, '-rf', d)
+                rmdir(d)
 
 
 def expand_dependencies(recipes, ctx):

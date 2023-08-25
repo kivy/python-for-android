@@ -1,6 +1,5 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
-from shutil import rmtree
 
 import hashlib
 from re import match
@@ -10,7 +9,7 @@ import shutil
 import fnmatch
 import urllib.request
 from urllib.request import urlretrieve
-from os import listdir, unlink, environ, mkdir, curdir, walk
+from os import listdir, unlink, environ, curdir, walk
 from sys import stdout
 import time
 try:
@@ -19,7 +18,7 @@ except ImportError:
     from urllib.parse import urlparse
 from pythonforandroid.logger import (logger, info, warning, debug, shprint, info_main)
 from pythonforandroid.util import (current_directory, ensure_dir,
-                                   BuildInterruptingException)
+                                   BuildInterruptingException, rmdir)
 from pythonforandroid.util import load_source as import_recipe
 
 
@@ -218,7 +217,7 @@ class Recipe(metaclass=RecipeMeta):
                     url = url[4:]
                 # if 'version' is specified, do a shallow clone
                 if self.version:
-                    shprint(sh.mkdir, '-p', target)
+                    ensure_dir(target)
                     with current_directory(target):
                         shprint(sh.git, 'init')
                         shprint(sh.git, 'remote', 'add', 'origin', url)
@@ -367,7 +366,7 @@ class Recipe(metaclass=RecipeMeta):
             if expected_digest:
                 expected_digests[alg] = expected_digest
 
-        shprint(sh.mkdir, '-p', join(self.ctx.packages_path, self.name))
+        ensure_dir(join(self.ctx.packages_path, self.name))
 
         with current_directory(join(self.ctx.packages_path, self.name)):
             filename = shprint(sh.basename, url).stdout[:-1].decode('utf-8')
@@ -423,9 +422,7 @@ class Recipe(metaclass=RecipeMeta):
                 self.name.lower()))
             if exists(self.get_build_dir(arch)):
                 return
-            shprint(sh.rm, '-rf', build_dir)
-            shprint(sh.mkdir, '-p', build_dir)
-            shprint(sh.rmdir, build_dir)
+            rmdir(build_dir)
             ensure_dir(build_dir)
             shprint(sh.cp, '-a', user_dir, self.get_build_dir(arch))
             return
@@ -473,7 +470,7 @@ class Recipe(metaclass=RecipeMeta):
                             'Could not extract {} download, it must be .zip, '
                             '.tar.gz or .tar.bz2 or .tar.xz'.format(extraction_filename))
                 elif isdir(extraction_filename):
-                    mkdir(directory_name)
+                    ensure_dir(directory_name)
                     for entry in listdir(extraction_filename):
                         if entry not in ('.git',):
                             shprint(sh.cp, '-Rv',
@@ -614,13 +611,11 @@ class Recipe(metaclass=RecipeMeta):
                     'build dirs'.format(self.name))
 
         for directory in dirs:
-            if exists(directory):
-                info('Deleting {}'.format(directory))
-                shutil.rmtree(directory)
+            rmdir(directory)
 
         # Delete any Python distributions to ensure the recipe build
         # doesn't persist in site-packages
-        shutil.rmtree(self.ctx.python_installs_dir)
+        rmdir(self.ctx.python_installs_dir)
 
     def install_libs(self, arch, *libs):
         libs_dir = self.ctx.get_libs_dir(arch.arch)
@@ -721,7 +716,7 @@ class IncludedFilesBehaviour(object):
         if self.src_filename is None:
             raise BuildInterruptingException(
                 'IncludedFilesBehaviour failed: no src_filename specified')
-        shprint(sh.rm, '-rf', self.get_build_dir(arch))
+        rmdir(self.get_build_dir(arch))
         shprint(sh.cp, '-a', join(self.get_recipe_dir(), self.src_filename),
                 self.get_build_dir(arch))
 
@@ -861,7 +856,7 @@ class PythonRecipe(Recipe):
                 build_dir = join(site_packages_dir[0], name)
                 if exists(build_dir):
                     info('Deleted {}'.format(build_dir))
-                    rmtree(build_dir)
+                    rmdir(build_dir)
 
     @property
     def real_hostpython_location(self):
