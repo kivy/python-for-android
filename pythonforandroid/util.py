@@ -4,7 +4,7 @@ import logging
 from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk
 from platform import uname
-from shutil import rmtree
+import shutil
 from tempfile import mkdtemp
 
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
@@ -39,7 +39,7 @@ def temp_directory():
                               temp_dir, Err_Fore.RESET)))
         yield temp_dir
     finally:
-        rmtree(temp_dir)
+        shutil.rmtree(temp_dir)
         logger.debug(''.join((Err_Fore.CYAN, ' - temp directory deleted ',
                               temp_dir, Err_Fore.RESET)))
 
@@ -110,7 +110,7 @@ def rmdir(dn, ignore_errors=False):
     if not exists(dn):
         return
     LOGGER.debug("Remove directory and subdirectory {}".format(dn))
-    rmtree(dn, ignore_errors)
+    shutil.rmtree(dn, ignore_errors)
 
 
 def ensure_dir(dn):
@@ -118,3 +118,8 @@ def ensure_dir(dn):
         return
     LOGGER.debug("Create directory {0}".format(dn))
     makedirs(dn)
+
+
+def move(source, destination):
+    LOGGER.debug("Moving {} to {}".format(source, destination))
+    shutil.move(source, destination)

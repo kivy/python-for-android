@@ -18,7 +18,7 @@ except ImportError:
     from urllib.parse import urlparse
 from pythonforandroid.logger import (logger, info, warning, debug, shprint, info_main)
 from pythonforandroid.util import (current_directory, ensure_dir,
-                                   BuildInterruptingException, rmdir)
+                                   BuildInterruptingException, rmdir, move)
 from pythonforandroid.util import load_source as import_recipe
 
 
@@ -457,14 +457,14 @@ class Recipe(metaclass=RecipeMeta):
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
                         if root_directory != basename(directory_name):
-                            shprint(sh.mv, root_directory, directory_name)
+                            move(root_directory, directory_name)
                     elif extraction_filename.endswith(
                             ('.tar.gz', '.tgz', '.tar.bz2', '.tbz2', '.tar.xz', '.txz')):
                         sh.tar('xf', extraction_filename)
                         root_directory = sh.tar('tf', extraction_filename).stdout.decode(
                                 'utf-8').split('\n')[0].split('/')[0]
                         if root_directory != basename(directory_name):
-                            shprint(sh.mv, root_directory, directory_name)
+                            move(root_directory, directory_name)
                     else:
                         raise Exception(
                             'Could not extract {} download, it must be .zip, '
@@ -1166,7 +1166,7 @@ class TargetPythonRecipe(Recipe):
             parts = file_basename.split('.')
             if len(parts) <= 2:
                 continue
-            shprint(sh.mv, filen, join(file_dirname, parts[0] + '.so'))
+            move(filen, join(file_dirname, parts[0] + '.so'))
 
 
 def algsum(alg, filen):

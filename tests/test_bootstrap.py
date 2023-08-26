@@ -562,10 +562,10 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
 
     @mock.patch("pythonforandroid.bootstrap.listdir")
     @mock.patch("pythonforandroid.bootstrap.rmdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.mv")
+    @mock.patch("pythonforandroid.bootstrap.move")
     @mock.patch("pythonforandroid.bootstrap.isdir")
     def test_bootstrap_fry_eggs(
-        self, mock_isdir, mock_sh_mv, mock_rmdir, mock_listdir
+        self, mock_isdir, mock_move, mock_rmdir, mock_listdir
     ):
         mock_listdir.return_value = [
             "jnius",
@@ -597,7 +597,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         )
         # check that the other mocks we made are actually called
         mock_isdir.assert_called()
-        mock_sh_mv.assert_called()
+        mock_move.assert_called()
 
 
 class TestBootstrapSdl2(GenericBootstrapTest, unittest.TestCase):

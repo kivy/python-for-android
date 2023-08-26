@@ -11,7 +11,7 @@ import shutil
 from pythonforandroid.logger import (shprint, info, logger, debug)
 from pythonforandroid.util import (
     current_directory, ensure_dir, temp_directory, BuildInterruptingException,
-    rmdir)
+    rmdir, move)
 from pythonforandroid.recipe import Recipe
 
 
@@ -395,8 +395,8 @@ class Bootstrap:
             if isdir(rd) and d.endswith('.egg'):
                 info('  ' + d)
                 files = [join(rd, f) for f in listdir(rd) if f != 'EGG-INFO']
-                if files:
-                    shprint(sh.mv, '-t', sitepackages, *files)
+                for f in files:
+                    move(f, sitepackages)
                 rmdir(d)
 
 
