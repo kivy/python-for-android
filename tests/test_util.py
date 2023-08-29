@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import types
 import unittest
 from unittest import mock
@@ -21,20 +23,21 @@ class TestUtil(unittest.TestCase):
         util.ensure_dir("fake_directory")
         mock_makedirs.assert_called_once_with("fake_directory")
 
-    @mock.patch("pythonforandroid.util.rmtree")
+    @mock.patch("shutil.rmtree")
     @mock.patch("pythonforandroid.util.mkdtemp")
-    def test_temp_directory(self, mock_mkdtemp, mock_rmtree):
+    def test_temp_directory(self, mock_mkdtemp, mock_shutil_rmtree):
+
         """
         Basic test for method :meth:`~pythonforandroid.util.temp_directory`. We
         perform this test by `mocking` the command `mkdtemp` and
-        `rmdir` and we make sure that those functions are called in the
+        `shutil.rmtree` and we make sure that those functions are called in the
         proper place.
         """
         mock_mkdtemp.return_value = "/temp/any_directory"
         with util.temp_directory():
             mock_mkdtemp.assert_called_once()
-            mock_rmtree.assert_not_called()
-        mock_rmtree.assert_called_once_with("/temp/any_directory")
+            mock_shutil_rmtree.assert_not_called()
+        mock_shutil_rmtree.assert_called_once_with("/temp/any_directory")
 
     @mock.patch("pythonforandroid.util.chdir")
     def test_current_directory(self, moch_chdir):
@@ -136,3 +139,42 @@ class TestUtil(unittest.TestCase):
         )
         with self.assertRaises(SystemExit):
             util.handle_build_exception(exc)
+
+    def test_move(self):
+        with mock.patch(
+                "pythonforandroid.util.LOGGER"
+        ) as m_logger, TemporaryDirectory() as base_dir:
+            new_path = Path(base_dir) / "new"
+
+            # Set up source
+            old_path = Path(base_dir) / "old"
+            with open(old_path, "w") as outfile:
+                outfile.write("Temporary content")
+
+            # Non existent source
+            with self.assertRaises(FileNotFoundError):
+                util.move(new_path, new_path)
+            m_logger.debug.assert_called()
+            m_logger.error.assert_not_called()
+            m_logger.reset_mock()
+            assert old_path.exists()
+            assert not new_path.exists()
+
+            # Successful move
+            util.move(old_path, new_path)
+            assert not old_path.exists()
+            assert new_path.exists()
+            m_logger.debug.assert_called()
+            m_logger.error.assert_not_called()
+            m_logger.reset_mock()
+
+            # Move over existing:
+            existing_path = Path(base_dir) / "existing"
+            existing_path.touch()
+
+            util.move(new_path, existing_path)
+            with open(existing_path, "r") as infile:
+                assert infile.read() == "Temporary content"
+            m_logger.debug.assert_called()
+            m_logger.error.assert_not_called()
+            m_logger.reset_mock()
