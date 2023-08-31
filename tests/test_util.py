@@ -178,3 +178,12 @@ class TestUtil(unittest.TestCase):
             m_logger.debug.assert_called()
             m_logger.error.assert_not_called()
             m_logger.reset_mock()
+
+    def test_touch(self):
+        # Just checking the new file case.
+        # Assume the existing file timestamp case will work if this does.
+        with TemporaryDirectory() as base_dir:
+            new_file_path = Path(base_dir) / "new_file"
+            assert not new_file_path.exists()
+            util.touch(new_file_path)
+            assert new_file_path.exists()

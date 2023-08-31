@@ -30,7 +30,7 @@ class TestReportLabRecipe(RecipeCtx, unittest.TestCase):
         # these sh commands are not relevant for the test and need to be mocked
         with \
                 patch('sh.patch'), \
-                patch('sh.touch'), \
+                patch('pythonforandroid.recipe.touch'), \
                 patch('sh.unzip'), \
                 patch('os.path.isfile'):
             self.recipe.prebuild_arch(self.arch)

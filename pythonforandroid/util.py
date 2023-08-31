@@ -3,6 +3,7 @@ from fnmatch import fnmatch
 import logging
 from os.path import exists, join
 from os import getcwd, chdir, makedirs, walk
+from pathlib import Path
 from platform import uname
 import shutil
 from tempfile import mkdtemp
@@ -123,3 +124,7 @@ def ensure_dir(dn):
 def move(source, destination):
     LOGGER.debug("Moving {} to {}".format(source, destination))
     shutil.move(source, destination)
+
+
+def touch(filename):
+    Path(filename).touch()
