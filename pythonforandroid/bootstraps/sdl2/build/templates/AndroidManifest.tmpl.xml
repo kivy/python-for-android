@@ -3,7 +3,6 @@
      com.gamemaker.game
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="{{ args.package }}"
       android:versionCode="{{ args.numeric_version }}"
       android:versionName="{{ args.version }}"
       android:installLocation="auto">
