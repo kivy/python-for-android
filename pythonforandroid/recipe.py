@@ -16,9 +16,11 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
-from pythonforandroid.logger import (logger, info, warning, debug, shprint, info_main)
-from pythonforandroid.util import (current_directory, ensure_dir,
-                                   BuildInterruptingException, rmdir, move)
+from pythonforandroid.logger import (
+    logger, info, warning, debug, shprint, info_main)
+from pythonforandroid.util import (
+    current_directory, ensure_dir, BuildInterruptingException, rmdir, move,
+    touch)
 from pythonforandroid.util import load_source as import_recipe
 
 
@@ -395,7 +397,7 @@ class Recipe(metaclass=RecipeMeta):
 
                 shprint(sh.rm, '-f', marker_filename)
                 self.download_file(self.versioned_url, filename)
-                shprint(sh.touch, marker_filename)
+                touch(marker_filename)
 
                 if exists(filename) and isfile(filename):
                     for alg, expected_digest in expected_digests.items():
@@ -530,7 +532,7 @@ class Recipe(metaclass=RecipeMeta):
                         patch.format(version=self.version, arch=arch.arch),
                         arch.arch, build_dir=build_dir)
 
-            shprint(sh.touch, join(build_dir, '.patched'))
+            touch(join(build_dir, '.patched'))
 
     def should_build(self, arch):
         '''Should perform any necessary test and return True only if it needs
