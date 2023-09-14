@@ -148,7 +148,7 @@ Observing Activity result
 
 .. module:: android.activity
 
-The default PythonActivity has a observer pattern for `onActivityResult <http://developer.android.com/reference/android/app/Activity.html#onActivityResult(int, int, android.content.Intent)>`_ and `onNewIntent <http://developer.android.com/reference/android/app/Activity.html#onNewIntent(android.content.Intent)>`_.
+The default PythonActivity has a observer pattern for `onActivityResult <https://developer.android.com/reference/android/app/Activity#onActivityResult(int, int, android.content.Intent)>`_ and `onNewIntent <https://developer.android.com/reference/android/app/Activity.html#onNewIntent(android.content.Intent)>`_.
 
 .. function:: bind(eventname=callback, ...)
 
@@ -193,7 +193,7 @@ Example::
 Activity lifecycle handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. module:: android.activity
+.. module:: android.activitylifecycle
 
 The Android ``Application`` class provides the `ActivityLifecycleCallbacks
 <https://developer.android.com/reference/android/app/Application.ActivityLifecycleCallbacks>`_
@@ -241,7 +241,7 @@ Receiving Broadcast message
 .. module:: android.broadcast
 
 Implementation of the android `BroadcastReceiver
-<http://developer.android.com/reference/android/content/BroadcastReceiver.html>`_.
+<https://developer.android.com/reference/android/content/BroadcastReceiver.html>`_.
 You can specify the callback that will receive the broadcast event, and actions
 or categories filters.
 
@@ -308,7 +308,7 @@ Runnable
 .. module:: android.runnable
 
 :class:`Runnable` is a wrapper around the Java `Runnable
-<http://developer.android.com/reference/java/lang/Runnable.html>`_ class. This
+<https://developer.android.com/reference/java/lang/Runnable.html>`_ class. This
 class can be used to schedule a call of a Python function into the
 `PythonActivity` thread.
 

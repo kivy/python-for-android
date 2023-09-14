@@ -486,7 +486,7 @@ how to create your own Recipe subclass.
 
 .. autoclass:: toolchain.Recipe
    :members:
-   :member-order: = 'bysource'
+   :member-order: bysource
 
 
 

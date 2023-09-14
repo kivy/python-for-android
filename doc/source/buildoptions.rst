@@ -62,7 +62,7 @@ options (this list may not be exhaustive):
   Since Android ignores ``android:screenOrientation`` when in multi-window mode
   (Which is the default on Android 12+), this option will also set the window orientation hints
   for the SDL bootstrap. If multiple orientations are given,
-``android:screenOrientation`` will be set to ``unspecified``.
+  ``android:screenOrientation`` will be set to ``unspecified``.
 - ``--manifest-orientation``: The orientation that will be set for the ``android:screenOrientation``
   attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
   will be synthesized from the ``--orientation`` option.

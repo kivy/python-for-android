@@ -64,9 +64,9 @@ can also do other debugging tasks such as ``python-for-android adb
 devices`` to get the list of connected devices.
 
 For further information, see the Android docs on `adb
-<http://developer.android.com/intl/zh-cn/tools/help/adb.html>`_, and
+<https://developer.android.com/tools/adb>`_, and
 on `logcat
-<http://developer.android.com/intl/zh-cn/tools/help/logcat.html>`_ in
+<https://developer.android.com/studio/command-line/logcat>`_ in
 particular.
 
 Unpacking an APK

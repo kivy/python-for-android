@@ -72,7 +72,7 @@ release = '0.1'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -293,4 +293,14 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping =  {'python': ('https://docs.python.org/3', None)}
+
+# Ignore some troublesome links that are actually fine.
+linkcheck_ignore = [
+    # Special characters in URL seems to confuse link-checker.
+    r"https://developer.android.com/reference/android/app/Activity#onActivity.*",
+
+    # GitHub parses anchor tags differently to pure HTML
+    r"https://github.com/kivy/python-for-android/blob.*",
+    ]
+

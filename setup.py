@@ -95,6 +95,9 @@ setup(name='python-for-android',
       url='https://github.com/kivy/python-for-android',
       license='MIT',
       install_requires=install_reqs,
+      extras_require={
+          "docs": ["sphinx", "sphinx-rtd-theme"],
+      },
       entry_points={
           'console_scripts': [
               'python-for-android = pythonforandroid.entrypoints:main',
