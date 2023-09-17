@@ -4,17 +4,17 @@
     Usage examples:
 
        # Getting package name from pip reference:
-       from pytonforandroid.pythonpackage import get_package_name
+       from pythonforandroid.pythonpackage import get_package_name
        print(get_package_name("pillow"))
        # Outputs: "Pillow" (note the spelling!)
 
        # Getting package dependencies:
-       from pytonforandroid.pythonpackage import get_package_dependencies
+       from pythonforandroid.pythonpackage import get_package_dependencies
        print(get_package_dependencies("pep517"))
        # Outputs: "['pytoml']"
 
        # Get package name from arbitrary package source:
-       from pytonforandroid.pythonpackage import get_package_name
+       from pythonforandroid.pythonpackage import get_package_name
        print(get_package_name("/some/local/project/folder/"))
        # Outputs package name
 
@@ -34,22 +34,22 @@
 
 
 import functools
+from io import open  # needed for python 2
 import os
 import shutil
 import subprocess
 import sys
 import tarfile
 import tempfile
-import textwrap
 import time
-import zipfile
-from io import open  # needed for python 2
 from urllib.parse import unquote as urlunquote
 from urllib.parse import urlparse
+import zipfile
 
 import toml
-from pep517.envbuild import BuildEnvironment
-from pep517.wrappers import Pep517HookCaller
+import build.util
+
+from pythonforandroid.util import rmdir, ensure_dir
 
 
 def transform_dep_for_pip(dependency):
@@ -113,42 +113,9 @@ def extract_metainfo_files_from_package(
             )
             package = os.path.join(temp_folder, "package")
 
-        # Because PEP517 can be noisy and contextlib.redirect_* fails to
-        # contain it, we will run the actual analysis in a separate process:
-        try:
-            subprocess.check_output([
-                sys.executable,
-                "-c",
-                "import importlib\n"
-                "import json\n"
-                "import os\n"
-                "import sys\n"
-                "sys.path = [os.path.dirname(sys.argv[3])] + sys.path\n"
-                "m = importlib.import_module(\n"
-                "    os.path.basename(sys.argv[3]).partition('.')[0]\n"
-                ")\n"
-                "m._extract_metainfo_files_from_package_unsafe("
-                "    sys.argv[1],"
-                "    sys.argv[2],"
-                ")",
-                package, output_folder, os.path.abspath(__file__)],
-                stderr=subprocess.STDOUT,  # make sure stderr is muted.
-                cwd=os.path.join(os.path.dirname(__file__), "..")
-            )
-        except subprocess.CalledProcessError as e:
-            output = e.output.decode("utf-8", "replace")
-            if debug:
-                print("Got error obtaining meta info.")
-                print("Detail output:")
-                print(output)
-                print("End of Detail output.")
-            raise ValueError(
-                "failed to obtain meta info - "
-                "is '{}' a valid package? "
-                "Detailed output:\n{}".format(package, output)
-                )
+        _extract_metainfo_files_from_package_unsafe(package, output_folder)
     finally:
-        shutil.rmtree(temp_folder)
+        rmdir(temp_folder)
 
 
 def _get_system_python_executable():
@@ -349,7 +316,7 @@ def get_package_as_folder(dependency):
             )
 
         # Create download subfolder:
-        os.mkdir(os.path.join(venv_path, "download"))
+        ensure_dir(os.path.join(venv_path, "download"))
 
         # Write a requirements.txt with our package and download:
         with open(os.path.join(venv_path, "requirements.txt"),
@@ -429,11 +396,11 @@ def get_package_as_folder(dependency):
         # Copy result to new dedicated folder so we can throw away
         # our entire virtualenv nonsense after returning:
         result_path = tempfile.mkdtemp()
-        shutil.rmtree(result_path)
+        rmdir(result_path)
         shutil.copytree(result_folder_or_file, result_path)
         return (dl_type, result_path)
     finally:
-        shutil.rmtree(venv_parent)
+        rmdir(venv_parent)
 
 
 def _extract_metainfo_files_from_package_unsafe(
@@ -461,51 +428,17 @@ def _extract_metainfo_files_from_package_unsafe(
         clean_up_path = True
 
     try:
-        build_requires = []
         metadata_path = None
 
         if path_type != "wheel":
-            # We need to process this first to get the metadata.
-
-            # Ensure pyproject.toml is available (pep517 expects it)
-            if not os.path.exists(os.path.join(path, "pyproject.toml")):
-                with open(os.path.join(path, "pyproject.toml"), "w") as f:
-                    f.write(textwrap.dedent(u"""\
-                    [build-system]
-                    requires = ["setuptools", "wheel"]
-                    build-backend = "setuptools.build_meta"
-                    """))
-
-            # Copy the pyproject.toml:
-            shutil.copyfile(
-                os.path.join(path, 'pyproject.toml'),
-                os.path.join(output_path, 'pyproject.toml')
-            )
-
-            # Get build backend and requirements from pyproject.toml:
-            with open(os.path.join(path, 'pyproject.toml')) as f:
-                build_sys = toml.load(f)['build-system']
-                backend = build_sys["build-backend"]
-                build_requires.extend(build_sys["requires"])
-
-            # Get a virtualenv with build requirements and get all metadata:
-            env = BuildEnvironment()
-            metadata = None
-            with env:
-                hooks = Pep517HookCaller(path, backend)
-                env.pip_install(
-                    [transform_dep_for_pip(req) for req in build_requires]
-                )
-                reqs = hooks.get_requires_for_build_wheel({})
-                env.pip_install([transform_dep_for_pip(req) for req in reqs])
-                try:
-                    metadata = hooks.prepare_metadata_for_build_wheel(path)
-                except Exception:  # sadly, pep517 has no good error here
-                    pass
-            if metadata is not None:
-                metadata_path = os.path.join(
-                    path, metadata, "METADATA"
-                )
+            # Use a build helper function to fetch the metadata directly
+            metadata = build.util.project_wheel_metadata(path)
+            # And write it to a file
+            metadata_path = os.path.join(output_path, "built_metadata")
+            with open(metadata_path, 'w') as f:
+                for key in metadata.keys():
+                    for value in metadata.get_all(key):
+                        f.write("{}: {}\n".format(key, value))
         else:
             # This is a wheel, so metadata should be in *.dist-info folder:
             metadata_path = os.path.join(
@@ -527,7 +460,7 @@ def _extract_metainfo_files_from_package_unsafe(
         shutil.copyfile(metadata_path, os.path.join(output_path, "METADATA"))
     finally:
         if clean_up_path:
-            shutil.rmtree(path)
+            rmdir(path)
 
 
 def is_filesystem_path(dep):
@@ -645,7 +578,7 @@ def _extract_info_from_package(dependency,
 
             return list(set(requirements))  # remove duplicates
     finally:
-        shutil.rmtree(output_folder)
+        rmdir(output_folder)
 
 
 package_name_cache = dict()

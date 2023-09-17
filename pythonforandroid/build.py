@@ -1,28 +1,29 @@
+from contextlib import suppress
+import copy
+import glob
+import os
+from os import environ
 from os.path import (
     abspath, join, realpath, dirname, expanduser, exists
 )
-from os import environ
-import copy
-import os
-import glob
 import re
-import sh
 import shutil
 import subprocess
-from contextlib import suppress
 
-from pythonforandroid.util import (
-    current_directory, ensure_dir,
-    BuildInterruptingException,
-)
-from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
+import sh
+
+from pythonforandroid.androidndk import AndroidNDK
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
+from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
 from pythonforandroid.pythonpackage import get_package_name
 from pythonforandroid.recipe import CythonRecipe, Recipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
-from pythonforandroid.androidndk import AndroidNDK
+from pythonforandroid.util import (
+    current_directory, ensure_dir,
+    BuildInterruptingException, rmdir
+)
 
 
 def get_targets(sdk_dir):
@@ -77,11 +78,6 @@ class Context:
     # the Android project folder where everything ends up
     dist_dir = None
 
-    # where Android libs are cached after build
-    # but before being placed in dists
-    libs_dir = None
-    aars_dir = None
-
     # Whether setup.py or similar should be used if present:
     use_setup_py = False
 
@@ -109,6 +105,10 @@ class Context:
 
     @property
     def libs_dir(self):
+        """
+        where Android libs are cached after build
+        but before being placed in dists
+        """
         # Was previously hardcoded as self.build_dir/libs
         directory = join(self.build_dir, 'libs_collections',
                          self.bootstrap.distribution.name)
@@ -642,7 +642,7 @@ def run_setuppy_install(ctx, project_dir, env=None, arch=None):
             for f in set(copied_over_contents + new_venv_additions):
                 full_path = os.path.join(venv_site_packages_dir, f)
                 if os.path.isdir(full_path):
-                    shutil.rmtree(full_path)
+                    rmdir(full_path)
                 else:
                     os.remove(full_path)
         finally:

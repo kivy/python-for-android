@@ -36,10 +36,10 @@ class TestBuildBasic(unittest.TestCase):
         modules = ["mymodule"]
         project_dir = None
         with mock.patch('pythonforandroid.build.info'), \
-                mock.patch('sh.Command'),\
-                mock.patch('pythonforandroid.build.open'),\
-                mock.patch('pythonforandroid.build.shprint'),\
-                mock.patch('pythonforandroid.build.current_directory'),\
+                mock.patch('sh.Command'), \
+                mock.patch('pythonforandroid.build.open'), \
+                mock.patch('pythonforandroid.build.shprint'), \
+                mock.patch('pythonforandroid.build.current_directory'), \
                 mock.patch('pythonforandroid.build.CythonRecipe') as m_CythonRecipe, \
                 mock.patch('pythonforandroid.build.project_has_setup_py') as m_project_has_setup_py, \
                 mock.patch('pythonforandroid.build.run_setuppy_install'):

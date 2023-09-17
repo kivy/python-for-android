@@ -8,8 +8,8 @@ This page contains instructions for using different build options.
 Python versions
 ---------------
 
-python-for-android supports using Python 3.7 or higher. To explicitly select a Python
-version in your requirements, use e.g. ``--requirements=python3==3.7.1,hostpython3==3.7.1``.
+python-for-android supports using Python 3.8 or higher. To explicitly select a Python
+version in your requirements, use e.g. ``--requirements=python3==3.10.11,hostpython3==3.10.11``.
 
 The last python-for-android version supporting Python2 was `v2019.10.06 <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 

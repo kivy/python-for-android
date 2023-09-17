@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set up Python 3.x
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.x
     - name: Run flake8
@@ -32,13 +32,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
         os: [ubuntu-latest, macOs-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Tox tests
@@ -53,8 +53,8 @@ jobs:
         parallel: true
         flag-name: run-${{ matrix.os }}-${{ matrix.python-version }}
 
-  ubuntu_build_apk:
-    name: Unit test apk [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
+  ubuntu_build:
+    name: Build test APP [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
     needs: [flake8]
     runs-on: ${{ matrix.runs_on }}
     continue-on-error: true
@@ -68,36 +68,41 @@ jobs:
             target: testapps-with-scipy
           - name: webview
             target: testapps-webview
+          - name: service_library
+            target: testapps-service_library-aar
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v2
-    # helps with GitHub runner getting out of space
-    - name: Free disk space
+      uses: actions/checkout@v3
+    - name: Build python-for-android docker image
       run: |
-        df -h
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt -y clean
-        docker rmi $(docker image ls -aq)
-        df -h
-    - name: Pull docker image
+        docker build --tag=kivy/python-for-android .
+    - name: Build multi-arch ${{ matrix.bootstrap.target }} artifact with docker
       run: |
-        make docker/pull
-    - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
+        docker run --name p4a-latest kivy/python-for-android make ${{ matrix.bootstrap.target }}
+    - name: Copy produced artifacts from docker container (*.apk, *.aab)
+      if: matrix.bootstrap.name != 'service_library'
       run: |
-        mkdir -p apks
-        make docker/run/make/with-artifact/apk/${{ matrix.bootstrap.target }}
-    - name: Rename apk artifact to include the build platform name
+        mkdir -p dist
+        docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/${{ env.APK_ARTIFACT_FILENAME }} dist/
+        docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/${{ env.AAB_ARTIFACT_FILENAME }} dist/
+    - name: Copy produced artifacts from docker container (*.aar)
+      if: matrix.bootstrap.name == 'service_library'
       run: |
-        mv apks/${{ env.APK_ARTIFACT_FILENAME }} apks/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
-    - name: Upload apk artifact
-      uses: actions/upload-artifact@v1
+        mkdir -p dist
+        docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/${{ env.AAR_ARTIFACT_FILENAME }} dist/
+    - name: Rename artifacts to include the build platform name (*.apk, *.aab, *.aar)
+      run: |
+        if [ -f dist/${{ env.APK_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.APK_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}; fi
+        if [ -f dist/${{ env.AAB_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAB_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}; fi
+        if [ -f dist/${{ env.AAR_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAR_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAR_ARTIFACT_FILENAME }}; fi
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
-        path: apks/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
+        name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-artifacts
+        path: dist
 
-  macos_build_apk:
-    name: Unit test apk [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
+  macos_build:
+    name: Build test APP [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
     needs: [flake8]
     runs-on: ${{ matrix.runs_on }}
     continue-on-error: true
@@ -116,7 +121,7 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install python-for-android
         run: |
           source ci/osx_ci.sh
@@ -137,146 +142,21 @@ jobs:
           source ci/osx_ci.sh
           arm64_set_path_and_python_version 3.9.7
           make ${{ matrix.bootstrap.target }}
-      - name: Rename apk artifact to include the build platform name
+      - name: Copy produced artifacts into dist/ (*.apk, *.aab)
         run: |
-          mv testapps/on_device_unit_tests/${{ env.APK_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
-      - name: Upload apk artifact
-        uses: actions/upload-artifact@v1
+          mkdir -p dist
+          cp testapps/on_device_unit_tests/*.apk dist/
+          cp testapps/on_device_unit_tests/*.aab dist/
+          ls -l dist/
+      - name: Rename artifacts to include the build platform name (*.apk, *.aab)
+        run: |
+          if [ -f dist/${{ env.APK_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.APK_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}; fi
+          if [ -f dist/${{ env.AAB_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAB_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}; fi
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
-          path: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}
-
-  ubuntu_build_aab:
-    name: Unit test aab [ ${{ matrix.runs_on }} ]
-    needs: [flake8]
-    runs-on: ${{ matrix.runs_on }}
-    continue-on-error: true
-    strategy:
-      matrix:
-        runs_on: [ubuntu-latest]
-        bootstrap:
-          - name: sdl2
-            target: testapps-with-numpy-aab
-          - name: webview
-            target: testapps-webview-aab
-    steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v2
-    # helps with GitHub runner getting out of space
-    - name: Free disk space
-      run: |
-        df -h
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt -y clean
-        docker rmi $(docker image ls -aq)
-        df -h
-    - name: Pull docker image
-      run: |
-        make docker/pull
-    - name: Build Android App Bundle Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
-      run: |
-        mkdir -p aabs
-        make docker/run/make/with-artifact/aab/${{ matrix.bootstrap.target }}
-    - name: Rename artifact to include the build platform name
-      run: |
-        mv aabs/${{ env.AAB_ARTIFACT_FILENAME }} aabs/${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAB_ARTIFACT_FILENAME }}
-    - name: Upload apk artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAB_ARTIFACT_FILENAME }}
-        path: aabs/${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAB_ARTIFACT_FILENAME }}
-
-
-  ubuntu_build_aar:
-    name: Unit test aar [ ${{ matrix.runs_on }} ]
-    needs: [flake8]
-    runs-on: ${{ matrix.runs_on }}
-    continue-on-error: true
-    strategy:
-      matrix:
-        runs_on: [ubuntu-latest]
-        bootstrap:
-          - name: service_library
-            target: testapps-service_library-aar
-    steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v2
-    # helps with GitHub runner getting out of space
-    - name: Free disk space
-      run: |
-        df -h
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt -y clean
-        docker rmi $(docker image ls -aq)
-        df -h
-    - name: Pull docker image
-      run: |
-        make docker/pull
-    - name: Build Android AAR Python 3 (arm64-v8a)
-      run: |
-        mkdir -p aars
-        make docker/run/make/with-artifact/aar/${{ matrix.bootstrap.target }}
-    - name: Rename artifact to include the build platform name
-      run: |
-        mv aars/${{ env.AAR_ARTIFACT_FILENAME }} aars/${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAR_ARTIFACT_FILENAME }}
-    - name: Upload aar artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAR_ARTIFACT_FILENAME }}
-        path: aars/${{ matrix.runs_on }}-${{ matrix.bootstrap.name}}-${{ env.AAR_ARTIFACT_FILENAME }}
-
-
-  macos_build_aab:
-    name: Unit test aab [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
-    needs: [flake8]
-    runs-on: ${{ matrix.runs_on }}
-    continue-on-error: true
-    strategy:
-      matrix:
-        runs_on: [macos-latest, apple-silicon-m1]
-        bootstrap:
-          - name: sdl2
-            target: testapps-with-numpy-aab
-          - name: webview
-            target: testapps-webview-aab
-    env:
-      ANDROID_HOME: ${HOME}/.android
-      ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
-      ANDROID_SDK_HOME: ${HOME}/.android/android-sdk
-      ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
-    steps:
-      - name: Checkout python-for-android
-        uses: actions/checkout@v2
-      - name: Install python-for-android
-        run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
-          python3 -m pip install -e .
-      - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
-        run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
-          python3 pythonforandroid/prerequisites.py
-      - name: Install dependencies (Legacy)
-        run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
-          make --file ci/makefiles/osx.mk
-      - name: Build multi-arch sdl2 aab Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
-        run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
-          make ${{ matrix.bootstrap.target }}
-      - name: Rename sdl2 artifact to include the build platform name
-        run: |
-          mv testapps/on_device_unit_tests/${{ env.AAB_ARTIFACT_FILENAME }} ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}
-      - name: Upload sdl2 apk artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}
-          path: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}
+          name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-artifacts
+          path: dist
 
   ubuntu_rebuild_updated_recipes:
     name: Test updated recipes for arch ${{ matrix.android_arch }} [ ubuntu-latest ]
@@ -289,8 +169,8 @@ jobs:
     env:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
-    - name: Checkout python-for-android
-      uses: actions/checkout@v2
+    - name: Checkout python-for-android (all-history)
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
     # helps with GitHub runner getting out of space
@@ -325,8 +205,8 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
-      - name: Checkout python-for-android
-        uses: actions/checkout@v2
+      - name: Checkout python-for-android (all-history)
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Install python-for-android

@@ -6,96 +6,42 @@ Tool for packaging Python apps for Android
 This module defines the entry point for command line and programmatic use.
 """
 
-from os import environ
-from pythonforandroid import __version__
-from pythonforandroid.pythonpackage import get_dep_names_of_package
-from pythonforandroid.recommendations import (
-    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
-from pythonforandroid.util import BuildInterruptingException, load_source
-from pythonforandroid.entrypoints import main
-from pythonforandroid.prerequisites import check_and_install_default_prerequisites
-
-
-def check_python_dependencies():
-    # Check if the Python requirements are installed. This appears
-    # before the imports because otherwise they're imported elsewhere.
-
-    # Using the ok check instead of failing immediately so that all
-    # errors are printed at once
-
-    from distutils.version import LooseVersion
-    from importlib import import_module
-    import sys
-
-    ok = True
-
-    modules = [('colorama', '0.3.3'), 'appdirs', ('sh', '1.10'), 'jinja2']
-
-    for module in modules:
-        if isinstance(module, tuple):
-            module, version = module
-        else:
-            version = None
-
-        try:
-            import_module(module)
-        except ImportError:
-            if version is None:
-                print('ERROR: The {} Python module could not be found, please '
-                      'install it.'.format(module))
-                ok = False
-            else:
-                print('ERROR: The {} Python module could not be found, '
-                      'please install version {} or higher'.format(
-                          module, version))
-                ok = False
-        else:
-            if version is None:
-                continue
-            try:
-                cur_ver = sys.modules[module].__version__
-            except AttributeError:  # this is sometimes not available
-                continue
-            if LooseVersion(cur_ver) < LooseVersion(version):
-                print('ERROR: {} version is {}, but python-for-android needs '
-                      'at least {}.'.format(module, cur_ver, version))
-                ok = False
-
-    if not ok:
-        print('python-for-android is exiting due to the errors logged above')
-        exit(1)
-
-
-if not environ.get('SKIP_PREREQUISITES_CHECK', '0') == '1':
-    check_and_install_default_prerequisites()
-check_python_dependencies()
-
-
-import sys
-from sys import platform
-from os.path import (join, dirname, realpath, exists, expanduser, basename)
-import os
+from appdirs import user_data_dir
+import argparse
+from functools import wraps
 import glob
-import shutil
+import logging
+import os
+from os import environ
+from os.path import (join, dirname, realpath, exists, expanduser, basename)
 import re
 import shlex
-from functools import wraps
+import sys
+from sys import platform
 
-import argparse
+# This must be imported and run before other third-party or p4a
+# packages.
+from pythonforandroid.checkdependencies import check
+check()
+
+from packaging.version import Version, InvalidVersion
 import sh
-from appdirs import user_data_dir
-import logging
-from distutils.version import LooseVersion
 
-from pythonforandroid.recipe import Recipe
+from pythonforandroid import __version__
+from pythonforandroid.bootstrap import Bootstrap
+from pythonforandroid.build import Context, build_recipes
+from pythonforandroid.distribution import Distribution, pretty_log_dists
+from pythonforandroid.entrypoints import main
+from pythonforandroid.graph import get_recipe_order_and_bootstrap
 from pythonforandroid.logger import (logger, info, warning, setup_color,
                                      Out_Style, Out_Fore,
                                      info_notify, info_main, shprint)
-from pythonforandroid.util import current_directory
-from pythonforandroid.bootstrap import Bootstrap
-from pythonforandroid.distribution import Distribution, pretty_log_dists
-from pythonforandroid.graph import get_recipe_order_and_bootstrap
-from pythonforandroid.build import Context, build_recipes
+from pythonforandroid.pythonpackage import get_dep_names_of_package
+from pythonforandroid.recipe import Recipe
+from pythonforandroid.recommendations import (
+    RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
+from pythonforandroid.util import (
+    current_directory, BuildInterruptingException, load_source, rmdir)
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -884,18 +830,16 @@ class ToolchainCL:
         """Delete all compiled distributions in the internal distribution
         directory."""
         ctx = self.ctx
-        if exists(ctx.dist_dir):
-            shutil.rmtree(ctx.dist_dir)
+        rmdir(ctx.dist_dir)
 
     def clean_bootstrap_builds(self, _args):
         """Delete all the bootstrap builds."""
-        if exists(join(self.ctx.build_dir, 'bootstrap_builds')):
-            shutil.rmtree(join(self.ctx.build_dir, 'bootstrap_builds'))
+        rmdir(join(self.ctx.build_dir, 'bootstrap_builds'))
         # for bs in Bootstrap.all_bootstraps():
         #     bs = Bootstrap.get_bootstrap(bs, self.ctx)
         #     if bs.build_dir and exists(bs.build_dir):
         #         info('Cleaning build for {} bootstrap.'.format(bs.name))
-        #         shutil.rmtree(bs.build_dir)
+        #         rmdir(bs.build_dir)
 
     def clean_builds(self, _args):
         """Delete all build caches for each recipe, python-install, java code
@@ -906,13 +850,10 @@ class ToolchainCL:
         of a specific recipe.
         """
         ctx = self.ctx
-        if exists(ctx.build_dir):
-            shutil.rmtree(ctx.build_dir)
-        if exists(ctx.python_installs_dir):
-            shutil.rmtree(ctx.python_installs_dir)
+        rmdir(ctx.build_dir)
+        rmdir(ctx.python_installs_dir)
         libs_dir = join(self.ctx.build_dir, 'libs_collections')
-        if exists(libs_dir):
-            shutil.rmtree(libs_dir)
+        rmdir(libs_dir)
 
     def clean_recipe_build(self, args):
         """Deletes the build files of the given recipe.
@@ -942,14 +883,14 @@ class ToolchainCL:
             for package in args.recipes:
                 remove_path = join(ctx.packages_path, package)
                 if exists(remove_path):
-                    shutil.rmtree(remove_path)
+                    rmdir(remove_path)
                     info('Download cache removed for: "{}"'.format(package))
                 else:
                     warning('No download cache found for "{}", skipping'.format(
                         package))
         else:
             if exists(ctx.packages_path):
-                shutil.rmtree(ctx.packages_path)
+                rmdir(ctx.packages_path)
                 info('Download cache removed.')
             else:
                 print('No cache found at "{}"'.format(ctx.packages_path))
@@ -1068,13 +1009,22 @@ class ToolchainCL:
             self.hook("before_apk_assemble")
             build_tools_versions = os.listdir(join(ctx.sdk_dir,
                                                    'build-tools'))
-            build_tools_versions = sorted(build_tools_versions,
-                                          key=LooseVersion)
+
+            def sort_key(version_text):
+                try:
+                    # Historically, Android build release candidates have had
+                    # spaces in the version number.
+                    return Version(version_text.replace(" ", ""))
+                except InvalidVersion:
+                    # Put badly named versions at worst position.
+                    return Version("0")
+
+            build_tools_versions.sort(key=sort_key)
             build_tools_version = build_tools_versions[-1]
             info(('Detected highest available build tools '
                   'version to be {}').format(build_tools_version))
 
-            if build_tools_version < '25.0':
+            if Version(build_tools_version.replace(" ", "")) < Version('25.0'):
                 raise BuildInterruptingException(
                     'build_tools >= 25 is required, but %s is installed' % build_tools_version)
             if not exists("gradlew"):

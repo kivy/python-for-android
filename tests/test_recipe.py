@@ -134,7 +134,7 @@ class TestRecipe(unittest.TestCase):
         with (
                 patch_logger_debug()) as m_debug, (
                 mock.patch.object(Recipe, 'download_file')) as m_download_file, (
-                mock.patch('pythonforandroid.recipe.sh.touch')) as m_touch, (
+                mock.patch('pythonforandroid.recipe.touch')) as m_touch, (
                 tempfile.TemporaryDirectory()) as temp_dir:
             recipe.ctx.setup_dirs(temp_dir)
             recipe.download()
