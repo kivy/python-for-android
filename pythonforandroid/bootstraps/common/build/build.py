@@ -21,6 +21,8 @@ from distutils.version import LooseVersion
 from fnmatch import fnmatch
 import jinja2
 
+from pythonforandroid.util import rmdir, ensure_dir
+
 
 def get_dist_info_for(key, error_if_missing=True):
     try:
@@ -91,11 +93,6 @@ environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
 
 DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS = 'org.kivy.android.PythonActivity'
 DEFAULT_PYTHON_SERVICE_JAVA_CLASS = 'org.kivy.android.PythonService'
-
-
-def ensure_dir(path):
-    if not exists(path):
-        makedirs(path)
 
 
 def render(template, dest, **kwargs):
@@ -241,7 +238,7 @@ main.py that loads it.''')
     assets_dir = "src/main/assets"
 
     # Delete the old assets.
-    shutil.rmtree(assets_dir, ignore_errors=True)
+    rmdir(assets_dir, ignore_errors=True)
     ensure_dir(assets_dir)
 
     # Add extra environment variable file into tar-able directory:
@@ -290,7 +287,7 @@ main.py that loads it.''')
                                     not exists(
                                         join(main_py_only_dir, dir_path)
                                     )):
-                                os.mkdir(join(main_py_only_dir, dir_path))
+                                ensure_dir(join(main_py_only_dir, dir_path))
                             # Copy actual file:
                             shutil.copyfile(
                                 join(args.private, variant),
@@ -328,17 +325,17 @@ main.py that loads it.''')
             )
     finally:
         for directory in _temp_dirs_to_clean:
-            shutil.rmtree(directory)
+            rmdir(directory)
 
     # Remove extra env vars tar-able directory:
-    shutil.rmtree(env_vars_tarpath)
+    rmdir(env_vars_tarpath)
 
     # Prepare some variables for templating process
     res_dir = "src/main/res"
     res_dir_initial = "src/res_initial"
     # make res_dir stateless
     if exists(res_dir_initial):
-        shutil.rmtree(res_dir, ignore_errors=True)
+        rmdir(res_dir, ignore_errors=True)
         shutil.copytree(res_dir_initial, res_dir)
     else:
         shutil.copytree(res_dir, res_dir_initial)
@@ -1006,7 +1003,7 @@ def parse_args_and_make_package(args=None):
         print('Billing not yet supported!')
         sys.exit(1)
 
-    if args.sdk_version == -1:
+    if args.sdk_version != -1:
         print('WARNING: Received a --sdk argument, but this argument is '
               'deprecated and does nothing.')
         args.sdk_version = -1  # ensure it is not used

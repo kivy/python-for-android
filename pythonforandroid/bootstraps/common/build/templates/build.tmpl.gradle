@@ -16,9 +16,6 @@ allprojects {
         {%- for repo in args.gradle_repositories %}
         {{repo}}
         {%- endfor %}
-        flatDir {
-            dirs 'libs'
-        }
     }
 }
 

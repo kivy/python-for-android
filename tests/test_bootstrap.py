@@ -352,12 +352,16 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.util.exists")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.bootstrap.listdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.rm")
+    @mock.patch("pythonforandroid.bootstraps.sdl2.rmdir")
+    @mock.patch("pythonforandroid.bootstraps.service_only.rmdir")
+    @mock.patch("pythonforandroid.bootstraps.webview.rmdir")
     @mock.patch("pythonforandroid.bootstrap.sh.cp")
     def test_assemble_distribution(
         self,
         mock_sh_cp,
-        mock_sh_rm,
+        mock_rmdir1,
+        mock_rmdir2,
+        mock_rmdir3,
         mock_listdir,
         mock_chdir,
         mock_ensure_dir,
@@ -433,7 +437,6 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             )
 
         # check that the other mocks we made are actually called
-        mock_sh_rm.assert_called()
         mock_sh_cp.assert_called()
         mock_chdir.assert_called()
         mock_listdir.assert_called()
@@ -558,11 +561,11 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_sh_print.assert_called()
 
     @mock.patch("pythonforandroid.bootstrap.listdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.rm")
-    @mock.patch("pythonforandroid.bootstrap.sh.mv")
+    @mock.patch("pythonforandroid.bootstrap.rmdir")
+    @mock.patch("pythonforandroid.bootstrap.move")
     @mock.patch("pythonforandroid.bootstrap.isdir")
     def test_bootstrap_fry_eggs(
-        self, mock_isdir, mock_sh_mv, mock_sh_rm, mock_listdir
+        self, mock_isdir, mock_move, mock_rmdir, mock_listdir
     ):
         mock_listdir.return_value = [
             "jnius",
@@ -590,11 +593,11 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             ]
         )
         self.assertEqual(
-            mock_sh_rm.call_args[0][1], "pyjnius-1.2.1.dev0-py3.7.egg"
+            mock_rmdir.call_args[0][0], "pyjnius-1.2.1.dev0-py3.7.egg"
         )
         # check that the other mocks we made are actually called
         mock_isdir.assert_called()
-        mock_sh_mv.assert_called()
+        mock_move.assert_called()
 
 
 class TestBootstrapSdl2(GenericBootstrapTest, unittest.TestCase):

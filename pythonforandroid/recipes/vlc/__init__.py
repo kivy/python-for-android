@@ -6,7 +6,7 @@ import sh
 
 
 class VlcRecipe(Recipe):
-    version = '3.0.0'
+    version = '3.0.18'
     url = None
     name = 'vlc'
 
@@ -52,7 +52,7 @@ class VlcRecipe(Recipe):
     def build_arch(self, arch):
         super().build_arch(arch)
         build_dir = self.get_build_dir(arch.arch)
-        port_dir = join(build_dir, 'vlc-port-android')
+        port_dir = join(build_dir, 'vlc-port-android', 'buildsystem')
         aar = self.aars[arch]
         if not isfile(aar):
             with current_directory(port_dir):
@@ -67,7 +67,7 @@ class VlcRecipe(Recipe):
                 if not isfile(join('bin', 'VLC-debug.apk')):
                     shprint(sh.Command('./compile.sh'), _env=env,
                             _tail=50, _critical=True)
-                shprint(sh.Command('./compile-libvlc.sh'), _env=env,
+                shprint(sh.Command('./compile-medialibrary.sh'), _env=env,
                         _tail=50, _critical=True)
         shprint(sh.cp, '-a', aar, self.ctx.aars_dir)
 

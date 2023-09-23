@@ -11,7 +11,7 @@ from os.path import join
 import sh
 import shutil
 from os import environ
-from pythonforandroid.util import build_platform
+from pythonforandroid.util import build_platform, rmdir
 
 arch_to_sysroot = {'armeabi': 'arm', 'armeabi-v7a': 'arm', 'arm64-v8a': 'arm64'}
 
@@ -57,7 +57,8 @@ class LapackRecipe(Recipe):
         with current_directory(build_target):
             env = self.get_recipe_env(arch)
             ndk_dir = environ["LEGACY_NDK"]
-            shprint(sh.rm, '-rf', 'CMakeFiles/', 'CMakeCache.txt', _env=env)
+            rmdir('CMakeFiles')
+            shprint(sh.rm, '-f', 'CMakeCache.txt', _env=env)
             opts = [
                     '-DCMAKE_SYSTEM_NAME=Android',
                     '-DCMAKE_POSITION_INDEPENDENT_CODE=1',

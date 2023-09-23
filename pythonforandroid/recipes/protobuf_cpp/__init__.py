@@ -1,12 +1,13 @@
+from multiprocessing import cpu_count
+import os
+from os.path import exists, join
+from pythonforandroid.toolchain import info
+import sh
+import sys
+
 from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 from pythonforandroid.logger import shprint, info_notify
-from pythonforandroid.util import current_directory
-from os.path import exists, join
-import sh
-from multiprocessing import cpu_count
-from pythonforandroid.toolchain import info
-import sys
-import os
+from pythonforandroid.util import current_directory, touch
 
 
 class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
@@ -30,7 +31,7 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
         patch_mark = join(self.get_build_dir(arch.arch), '.protobuf-patched')
         if self.ctx.python_recipe.name == 'python3' and not exists(patch_mark):
             self.apply_patch('fix-python3-compatibility.patch', arch.arch)
-            shprint(sh.touch, patch_mark)
+            touch(patch_mark)
 
         # During building, host needs to transpile .proto files to .py
         # ideally with the same version as protobuf runtime, or with an older one.

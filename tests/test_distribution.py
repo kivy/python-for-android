@@ -91,8 +91,8 @@ class TestDistribution(unittest.TestCase):
             self.ctx.bootstrap.distribution.dist_dir
         )
 
-    @mock.patch("pythonforandroid.distribution.rmtree")
-    def test_delete(self, mock_rmtree):
+    @mock.patch("pythonforandroid.distribution.rmdir")
+    def test_delete(self, mock_rmdir):
         """Test that method
         :meth:`~pythonforandroid.distribution.Distribution.delete` is
         called once with the proper arguments."""
@@ -100,7 +100,7 @@ class TestDistribution(unittest.TestCase):
             Bootstrap().get_bootstrap("sdl2", self.ctx)
         )
         self.ctx.bootstrap.distribution.delete()
-        mock_rmtree.assert_called_once_with(
+        mock_rmdir.assert_called_once_with(
             self.ctx.bootstrap.distribution.dist_dir
         )
 

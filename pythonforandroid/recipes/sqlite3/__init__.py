@@ -1,7 +1,8 @@
-from pythonforandroid.recipe import NDKRecipe
-from pythonforandroid.toolchain import shutil
 from os.path import join
-import sh
+import shutil
+
+from pythonforandroid.recipe import NDKRecipe
+from pythonforandroid.util import ensure_dir
 
 
 class Sqlite3Recipe(NDKRecipe):
@@ -16,7 +17,7 @@ class Sqlite3Recipe(NDKRecipe):
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
         # Copy the Android make file
-        sh.mkdir('-p', join(self.get_build_dir(arch.arch), 'jni'))
+        ensure_dir(join(self.get_build_dir(arch.arch), 'jni'))
         shutil.copyfile(join(self.get_recipe_dir(), 'Android.mk'),
                         join(self.get_build_dir(arch.arch), 'jni/Android.mk'))
 
