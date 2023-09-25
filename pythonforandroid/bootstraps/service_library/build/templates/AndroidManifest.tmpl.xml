@@ -8,6 +8,9 @@
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
 
     <application {% if debug %}android:debuggable="true"{% endif %} >
+    
+        {{ args.extra_manifest_application_xml }}
+    
         {% for name in service_names %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
                  android:process=":service_{{ name }}"
