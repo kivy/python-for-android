@@ -48,7 +48,7 @@ Requires `Permission.WRITE_EXTERNAL_STORAGE` to read and write to.
 Read more on all the different storage types and what to use them for
 in the Android documentation:
 
-https://developer.android.com/training/data-storage/files
+https://developer.android.com/training/data-storage
 
 A note on permissions
 ~~~~~~~~~~~~~~~~~~~~~
@@ -441,5 +441,5 @@ sometimes a little more involved, particularly if making Java classes
 from Python code), but it's not Pythonic and it's not short. These are
 problems that Plyer, explained below, attempts to address.
 
-You can check the `Pyjnius documentation <https://pyjnius.readthedocs.io/en/stable/>`_ for further details.
+You can check the `Pyjnius documentation <https://pyjnius.readthedocs.io/en/latest/>`_ for further details.
 

@@ -12,7 +12,7 @@ in the compilation and packaging steps.
 
 If reporting a problem by email or Discord, it is usually helpful to
 include this full log, e.g. via a `pastebin
-<http://paste.ubuntu.com/>`_ or `Github gist
+<https://pastebin.ubuntu.com/>`_ or `Github gist
 <https://gist.github.com/>`_.
 
 Getting help
@@ -66,7 +66,7 @@ devices`` to get the list of connected devices.
 For further information, see the Android docs on `adb
 <https://developer.android.com/tools/adb>`_, and
 on `logcat
-<https://developer.android.com/studio/command-line/logcat>`_ in
+<https://developer.android.com/tools/logcat>`_ in
 particular.
 
 Unpacking an APK
