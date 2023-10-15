@@ -193,8 +193,6 @@ Example::
 Activity lifecycle handling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. module:: android.activitylifecycle
-
 The Android ``Application`` class provides the `ActivityLifecycleCallbacks
 <https://developer.android.com/reference/android/app/Application.ActivityLifecycleCallbacks>`_
 interface where callbacks can be registered corresponding to `activity
