@@ -404,7 +404,7 @@
 
 **Closed issues:**
 
-- Global varible/objetct isn't being shared between multiple files on Android, while the same code works normally under Windows. [\#2485](https://github.com/kivy/python-for-android/issues/2485)
+- Global variable/objetct isn't being shared between multiple files on Android, while the same code works normally under Windows. [\#2485](https://github.com/kivy/python-for-android/issues/2485)
 - audiostream recipe does not copy .java files, leading to a crash when trying to open mic on android [\#2483](https://github.com/kivy/python-for-android/issues/2483)
 - Applying patches for hostpython3 fails [\#2476](https://github.com/kivy/python-for-android/issues/2476)
 - p4a failing to build webapp [\#2475](https://github.com/kivy/python-for-android/issues/2475)
