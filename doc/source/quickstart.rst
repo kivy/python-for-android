@@ -366,5 +366,4 @@ See the other pages of this doc for more information on specific topics:
 - :doc:`bootstraps`
 - :doc:`apis`
 - :doc:`troubleshooting`
-- :doc:`launcher`
 - :doc:`contribute`

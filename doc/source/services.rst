@@ -15,8 +15,8 @@ the ``android:process`` attribute of the ``AndroidManifest.xml`` file.
 This is not the default behavior, see `Android service documentation
 <https://developer.android.com/guide/topics/manifest/service-element>`__.
 You can communicate with the service process from your app using e.g.
-`osc <https://pypi.python.org/pypi/python-osc>`__ or (a heavier option)
-`twisted <https://twistedmatrix.com/trac/>`__.
+`osc <https://pypi.org/project/python-osc/>`__ or (a heavier option)
+`twisted <https://twisted.org/>`__.
 
 Service creation
 ----------------
