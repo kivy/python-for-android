@@ -16,6 +16,9 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
+
+import packaging.version
+
 from pythonforandroid.logger import (
     logger, info, warning, debug, shprint, info_main)
 from pythonforandroid.util import (
@@ -1145,8 +1148,8 @@ class TargetPythonRecipe(Recipe):
 
     @property
     def major_minor_version_string(self):
-        from distutils.version import LooseVersion
-        return '.'.join([str(v) for v in LooseVersion(self.version).version[:2]])
+        parsed_version = packaging.version.parse(self.version)
+        return f"{parsed_version.major}.{parsed_version.minor}"
 
     def create_python_bundle(self, dirn, arch):
         """

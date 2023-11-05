@@ -523,15 +523,15 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstrap.shprint")
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_bootstrap_strip(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_sh_command,
         mock_sh_print,
     ):
-        mock_find_executable.return_value = os.path.join(
+        mock_shutil_which.return_value = os.path.join(
             self.ctx._ndk_dir,
             f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang",
         )
@@ -544,10 +544,9 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         # test that strip_libraries runs with a fake distribution
         bs.strip_libraries(arch)
 
-        mock_find_executable.assert_called_once()
         self.assertEqual(
-            mock_find_executable.call_args[0][0],
-            mock_find_executable.return_value,
+            mock_shutil_which.call_args[0][0],
+            mock_shutil_which.return_value,
         )
         mock_sh_command.assert_called_once_with(
             os.path.join(

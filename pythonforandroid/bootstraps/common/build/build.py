@@ -17,11 +17,10 @@ import tarfile
 import tempfile
 import time
 
-from distutils.version import LooseVersion
 from fnmatch import fnmatch
 import jinja2
 
-from pythonforandroid.util import rmdir, ensure_dir
+from pythonforandroid.util import rmdir, ensure_dir, max_build_tool_version
 
 
 def get_dist_info_for(key, error_if_missing=True):
@@ -512,9 +511,7 @@ main.py that loads it.''')
     # Try to build with the newest available build tools
     ignored = {".DS_Store", ".ds_store"}
     build_tools_versions = [x for x in listdir(join(sdk_dir, 'build-tools')) if x not in ignored]
-    build_tools_versions = sorted(build_tools_versions,
-                                  key=LooseVersion)
-    build_tools_version = build_tools_versions[-1]
+    build_tools_version = max_build_tool_version(build_tools_versions)
 
     # Folder name for launcher (used by SDL2 bootstrap)
     url_scheme = 'kivy'

@@ -1,7 +1,7 @@
-from distutils.spawn import find_executable
 from os import environ
 from os.path import join
 from multiprocessing import cpu_count
+import shutil
 
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import BuildInterruptingException, build_platform
@@ -172,7 +172,7 @@ class Arch:
 
         # Compiler: `CC` and `CXX` (and make sure that the compiler exists)
         env['PATH'] = self.ctx.env['PATH']
-        cc = find_executable(self.clang_exe, path=env['PATH'])
+        cc = shutil.which(self.clang_exe, path=env['PATH'])
         if cc is None:
             print('Searching path are: {!r}'.format(env['PATH']))
             raise BuildInterruptingException(

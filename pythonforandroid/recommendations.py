@@ -1,8 +1,9 @@
 """Simple functions for checking dependency versions."""
 
 import sys
-from distutils.version import LooseVersion
 from os.path import join
+
+import packaging.version
 
 from pythonforandroid.logger import info, warning
 from pythonforandroid.util import BuildInterruptingException
@@ -59,9 +60,9 @@ def check_ndk_version(ndk_dir):
         rewrote to raise an exception in case that an NDK version lower than
         the minimum supported is detected.
     """
-    version = read_ndk_version(ndk_dir)
+    ndk_version = read_ndk_version(ndk_dir)
 
-    if version is None:
+    if ndk_version is None:
         warning(READ_ERROR_NDK_MESSAGE.format(ndk_dir=ndk_dir))
         warning(
             ENSURE_RIGHT_NDK_MESSAGE.format(
@@ -81,16 +82,11 @@ def check_ndk_version(ndk_dir):
     minor_to_letter.update(
         {n + 1: chr(i) for n, i in enumerate(range(ord('b'), ord('b') + 25))}
     )
-
-    major_version = version.version[0]
-    letter_version = minor_to_letter[version.version[1]]
-    string_version = '{major_version}{letter_version}'.format(
-        major_version=major_version, letter_version=letter_version
-    )
+    string_version = f"{ndk_version.major}{minor_to_letter[ndk_version.minor]}"
 
     info(CURRENT_NDK_VERSION_MESSAGE.format(ndk_version=string_version))
 
-    if major_version < MIN_NDK_VERSION:
+    if ndk_version.major < MIN_NDK_VERSION:
         raise BuildInterruptingException(
             NDK_LOWER_THAN_SUPPORTED_MESSAGE.format(
                 min_supported=MIN_NDK_VERSION, ndk_url=NDK_DOWNLOAD_URL
@@ -104,7 +100,7 @@ def check_ndk_version(ndk_dir):
                 )
             ),
         )
-    elif major_version > MAX_NDK_VERSION:
+    elif ndk_version.major > MAX_NDK_VERSION:
         warning(
             RECOMMENDED_NDK_VERSION_MESSAGE.format(
                 recommended_ndk_version=RECOMMENDED_NDK_VERSION
@@ -130,9 +126,9 @@ def read_ndk_version(ndk_dir):
         return
 
     # Line should have the form "Pkg.Revision = ..."
-    ndk_version = LooseVersion(line.split('=')[-1].strip())
+    unparsed_ndk_version = line.split('=')[-1].strip()
 
-    return ndk_version
+    return packaging.version.parse(unparsed_ndk_version)
 
 
 MIN_TARGET_API = 30
@@ -191,8 +187,9 @@ def check_ndk_api(ndk_api, android_api):
 
 MIN_PYTHON_MAJOR_VERSION = 3
 MIN_PYTHON_MINOR_VERSION = 6
-MIN_PYTHON_VERSION = LooseVersion('{major}.{minor}'.format(major=MIN_PYTHON_MAJOR_VERSION,
-                                                           minor=MIN_PYTHON_MINOR_VERSION))
+MIN_PYTHON_VERSION = packaging.version.Version(
+    f"{MIN_PYTHON_MAJOR_VERSION}.{MIN_PYTHON_MINOR_VERSION}"
+)
 PY2_ERROR_TEXT = (
     'python-for-android no longer supports running under Python 2. Either upgrade to '
     'Python {min_version} or higher (recommended), or revert to python-for-android 2019.07.08.'

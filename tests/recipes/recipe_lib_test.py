@@ -35,10 +35,10 @@ class BaseTestForMakeRecipe(RecipeCtx):
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_get_recipe_env(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_check_recipe_choices,
     ):
@@ -46,7 +46,7 @@ class BaseTestForMakeRecipe(RecipeCtx):
         Test that get_recipe_env contains some expected arch flags and that
         some internal methods has been called.
         """
-        mock_find_executable.return_value = self.expected_compiler.format(
+        mock_shutil_which.return_value = self.expected_compiler.format(
                 android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
         mock_check_recipe_choices.return_value = sorted(
@@ -67,19 +67,19 @@ class BaseTestForMakeRecipe(RecipeCtx):
 
         # make sure that the mocked methods are actually called
         mock_ensure_dir.assert_called()
-        mock_find_executable.assert_called()
+        mock_shutil_which.assert_called()
         mock_check_recipe_choices.assert_called()
 
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_build_arch(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_current_directory,
     ):
-        mock_find_executable.return_value = self.expected_compiler.format(
+        mock_shutil_which.return_value = self.expected_compiler.format(
                 android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
 
@@ -101,7 +101,7 @@ class BaseTestForMakeRecipe(RecipeCtx):
         mock_make.assert_called()
         mock_ensure_dir.assert_called()
         mock_current_directory.assert_called()
-        mock_find_executable.assert_called()
+        mock_shutil_which.assert_called()
 
 
 class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
@@ -116,14 +116,14 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
 
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_build_arch(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_current_directory,
     ):
-        mock_find_executable.return_value = self.expected_compiler.format(
+        mock_shutil_which.return_value = self.expected_compiler.format(
                 android_ndk=self.ctx._ndk_dir, system=system().lower()
         )
 
@@ -141,4 +141,4 @@ class BaseTestForCmakeRecipe(BaseTestForMakeRecipe):
         mock_make.assert_called()
         mock_ensure_dir.assert_called()
         mock_current_directory.assert_called()
-        mock_find_executable.assert_called()
+        mock_shutil_which.assert_called()

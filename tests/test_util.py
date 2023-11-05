@@ -187,3 +187,46 @@ class TestUtil(unittest.TestCase):
             assert not new_file_path.exists()
             util.touch(new_file_path)
             assert new_file_path.exists()
+
+    def test_build_tools_version_sort_key(self):
+
+        build_tools_versions = [
+            "26.0.1",
+            "26.0.0",
+            "26.0.2",
+            "32.0.0 rc1",
+            "31.0.0",
+            "999something",
+        ]
+
+        expected_result = [
+            "999something",  # invalid version
+            "26.0.0",
+            "26.0.1",
+            "26.0.2",
+            "31.0.0",
+            "32.0.0 rc1",
+        ]
+
+        result = sorted(
+            build_tools_versions, key=util.build_tools_version_sort_key
+        )
+
+        self.assertEqual(result, expected_result)
+
+    def test_max_build_tool_version(self):
+
+        build_tools_versions = [
+            "26.0.1",
+            "26.0.0",
+            "26.0.2",
+            "32.0.0 rc1",
+            "31.0.0",
+            "999something",
+        ]
+
+        expected_result = "32.0.0 rc1"
+
+        result = util.max_build_tool_version(build_tools_versions)
+
+        self.assertEqual(result, expected_result)
