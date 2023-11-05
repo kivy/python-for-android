@@ -22,11 +22,10 @@ docker run \
 
 # pylint: disable=import-error,no-name-in-module
 from subprocess import Popen
-from distutils.core import setup
 from os import listdir
 from os.path import join, dirname, abspath, exists
 from pprint import pprint
-from setuptools import find_packages
+from setuptools import setup, find_packages
 
 ROOT = dirname(abspath(__file__))
 LAUNCHER = join(ROOT, 'launcherapp')

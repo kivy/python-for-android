@@ -1,6 +1,4 @@
-
-from distutils.core import setup
-from setuptools import find_packages
+from setuptools import setup, find_packages
 
 options = {'apk': {'requirements': 'requests,peewee,sdl2,pyjnius,kivy,python3',
                    'android-api': 27,
