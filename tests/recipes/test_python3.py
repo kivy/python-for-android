@@ -60,10 +60,10 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         )
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_get_recipe_env(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_check_recipe_choices,
     ):
         """
@@ -71,7 +71,7 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         :meth:`~pythonforandroid.recipes.python3.Python3Recipe.get_recipe_env`
         returns the expected flags
         """
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
         mock_check_recipe_choices.return_value = sorted(
             self.ctx.recipe_build_order
         )
@@ -91,13 +91,13 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
     # and `set_libs_flags`, since these calls are tested separately
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.util.makedirs")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_build_arch(
             self,
-            mock_find_executable,
+            mock_shutil_which,
             mock_makedirs,
             mock_chdir):
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
 
         # specific `build_arch` mocks
         with mock.patch(

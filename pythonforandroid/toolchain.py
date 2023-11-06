@@ -24,7 +24,7 @@ from sys import platform
 from pythonforandroid.checkdependencies import check
 check()
 
-from packaging.version import Version, InvalidVersion
+from packaging.version import Version
 import sh
 
 from pythonforandroid import __version__
@@ -41,7 +41,12 @@ from pythonforandroid.recipe import Recipe
 from pythonforandroid.recommendations import (
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API, print_recommendations)
 from pythonforandroid.util import (
-    current_directory, BuildInterruptingException, load_source, rmdir)
+    current_directory,
+    BuildInterruptingException,
+    load_source,
+    rmdir,
+    max_build_tool_version,
+)
 
 user_dir = dirname(realpath(os.path.curdir))
 toolchain_dir = dirname(__file__)
@@ -1009,18 +1014,7 @@ class ToolchainCL:
             self.hook("before_apk_assemble")
             build_tools_versions = os.listdir(join(ctx.sdk_dir,
                                                    'build-tools'))
-
-            def sort_key(version_text):
-                try:
-                    # Historically, Android build release candidates have had
-                    # spaces in the version number.
-                    return Version(version_text.replace(" ", ""))
-                except InvalidVersion:
-                    # Put badly named versions at worst position.
-                    return Version("0")
-
-            build_tools_versions.sort(key=sort_key)
-            build_tools_version = build_tools_versions[-1]
+            build_tools_version = max_build_tool_version(build_tools_versions)
             info(('Detected highest available build tools '
                   'version to be {}').format(build_tools_version))
 
