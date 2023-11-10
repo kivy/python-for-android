@@ -244,7 +244,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Requirements
-      run: python3 -m pip install .[docs]
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r doc/requirements.txt
     - name: Check links
       run: sphinx-build -b linkcheck doc/source doc/build
     - name: Generate documentation
