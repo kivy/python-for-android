@@ -3,7 +3,7 @@
 ## Introduction
 
 [python-for-android](https://python-for-android.readthedocs.io/) is an open
-source build tool to let you package Python code into standalone android APKs.
+source build tool to let you package Python code into standalone Android artifacts (APKs, AABs, AARs).
 These can be passed around, installed, or uploaded to marketplaces such as the
 Play Store just like any other Android app.
 
@@ -31,13 +31,6 @@ lines to the xml configuration, and you're done.
 
 The following are common problems and resolutions that users have reported.
 
-#### AttributeError: ‘AnsiCodes’ object has no attribute ‘LIGHTBLUE_EX’
-
-This occurs if your version of `colorama` is too low, install version 0.3.3 or
-higher.
-
-If you install python-for-android with pip or via setup.py, this dependency
-should be taken care of automatically.
 
 #### AttributeError: ‘Context’ object has no attribute ‘hostpython’
 
@@ -54,14 +47,14 @@ normally happen but can occur accidentally if the p4a directory contains a
 was previously used). Removing this directory should fix the problem, and is
 desirable anyway since you don’t want it in the APK.
 
-#### Requested API target 19 is not available, install it with the SDK android tool
+#### Requested API target XX is not available, install it with the SDK android tool
 
 This means that your SDK is missing the required platform tools. You need to
-install the `platforms;android-19` package in your SDK, using the android or
+install the `platforms;android-XX` package in your SDK, using the android or
 sdkmanager tools (depending on SDK version).
 
 If using buildozer this should be done automatically, but as a workaround you
-can run these from `~/.buildozer/android/platform/android-sdk-20/tools/android`.
+can run these from `~/.buildozer/android/platform/android-sdk-XX/tools/android`
 
 #### ModuleNotFoundError: No module named ‘_ctypes’
 
@@ -87,5 +80,4 @@ On Ubuntu and derivatives:
 On macOS:
 
     brew install openssl
-    sudo ln -sfn /usr/local/opt/openssl /usr/local/ssl
     p4a clean builds # or with: buildozer `buildozer android clean
