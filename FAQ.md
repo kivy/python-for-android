@@ -56,16 +56,6 @@ sdkmanager tools (depending on SDK version).
 If using buildozer this should be done automatically, but as a workaround you
 can run these from `~/.buildozer/android/platform/android-sdk-XX/tools/android`
 
-#### ModuleNotFoundError: No module named ‘_ctypes’
-
-You do not have the libffi headers available to python-for-android, so you need
-to install them. On Ubuntu and derivatives these come from the `libffi-dev`
-package.
-
-After installing the headers, clean the build (p4a clean builds, or with
-buildozer delete the .buildozer directory within your app directory) and run
-python-for-android again.
-
 #### SSLError(“Can’t connect to HTTPS URL because the SSL module is not available.”)
 Your hostpython3 was compiled without SSL support. You need to install the SSL
 development files before rebuilding the hostpython3 recipe. Remember to always
