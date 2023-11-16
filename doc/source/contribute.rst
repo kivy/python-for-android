@@ -1,24 +1,33 @@
-Development and Contributing
-============================
+.. _contributing:
 
-The development of python-for-android is managed by the Kivy team `via
-Github <https://github.com/kivy/python-for-android>`_.
+Contribution Guidelines
+=======================
 
-Issues and pull requests are welcome via the integrated `issue tracker
-<https://github.com/kivy/python-for-android/issues>`_.
+python-for-android is a complex product used by a large community of developers for free,
+but it is built entirely by the contributions of volunteers. We welcome (and rely on)
+users who want to give back to the community by contributing to the project.
 
-Read on for more information about how we manage development and
-releases, but don't worry about the details! Pull requests are welcome
-and we'll deal with the rest.
+Contributions can come in many forms.
+
+The latest `Kivy Contribution Guidelines
+<https://kivy.readthedocs.io/en/master/>`_explain how you can help us, how to submit code, and our
+community code of conduct.
+
+.. warning::
+   The python-for-android process differs in small but important ways from the Kivy framework's process.
+   Please read below.
 
 Development model
 -----------------
 
-python-for-android is developed using the following model:
+Unlike the Kivy framework, python-for-android is developed using the following model:
 
 - The ``master`` branch always represents the latest stable release.
 - The ``develop`` branch is the most up to date with new contributions.
 - Releases happen periodically, and consist of merging the current ``develop`` branch into ``master``.
+
+This means pull requests for python-for-android code and documentation submissions should be made
+to the ``develop`` branch, not the ``master`` branch.
 
 For reference, this is based on a `Git flow
 <https://nvie.com/posts/a-successful-git-branching-model/>`__ model,
@@ -29,8 +38,7 @@ Versioning
 
 python-for-android releases currently use `calendar versioning
 <https://calver.org/>`__. Release numbers are of the form
-YYYY.MM.DD. We aim to create a new release every four weeks, but more
-frequent releases are also possible.
+YYYY.MM.DD.
 
 We use calendar versioning because in practice, changes in
 python-for-android are often driven by updates or adjustments in the
@@ -41,6 +49,8 @@ while internals are changing.
 
 Creating a new release
 ----------------------
+
+(These instructions are for core developers, not casual contributors.)
 
 New releases follow these steps:
 
@@ -87,10 +97,10 @@ How python-for-android uses `pip`
 *Last update: July 2019*
 
 This section is meant to provide a quick summary how
-p4a (=python-for-android) uses pip and python packages in
+python-for-android uses pip and Python packages in
 its build process.
-**It is written for a python
-packagers point of view, not for regular end users or
+**It is written for a Python
+packager's point of view, not for regular end users or
 contributors,** to assist with making pip developers and
 other packaging experts aware of p4a's packaging needs.
 
@@ -106,17 +116,17 @@ Basic concepts
 *(This part repeats other parts of the docs, for the sake of
 making this a more independent read)*
 
-p4a builds & packages a python application for use on Android.
+p4a builds & packages a Python application for use on Android.
 It does this by providing a Java wrapper, and for graphical applications
-an SDL2-based wrapper which can be used with the kivy UI toolkit if
-desired (or alternatively just plain PySDL2). Any such python application
-will of course have further library dependencies to do its work.
+an SDL2-based wrapper which can be used with the Kivy framework if
+desired (or alternatively just plain PySDL2). Any such the Python application
+will likely have further library dependencies to do its work.
 
 p4a supports two types of package dependencies for a project:
 
-**Recipe:** install script in custom p4a format. Can either install
-C/C++ or other things that cannot be pulled in via pip, or things
-that can be installed via pip but break on android by default.
+**Recipe:** Install a script in custom p4a format. Can either install
+C/C++ or other software that cannot be pulled in via pip, or software
+that can be installed via pip but break on Android by default.
 These are maintained primarily inside the p4a source tree by p4a
 contributors and interested folks.
 
@@ -131,11 +141,11 @@ Install process regarding packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The install/build process of a p4a project, as triggered by the
-`p4a apk` command, roughly works as follows in regards to python
+`p4a apk` command, roughly works as follows in regards to Python
 packages:
 
 1. The user has specified a project folder to install. This is either
-   just a folder with python scripts and a `main.py`, or it may
+   just a folder with Python scripts and a `main.py`, or it may
    also have a `pyproject.toml` for a more standardized install.
 
 2. Dependencies are collected: they can be either specified via
@@ -179,16 +189,17 @@ Overall process / package relevant notes for p4a
 Here are some common things worth knowing about python-for-android's
 dealing with python packages:
 
-- Packages will work fine without a recipe if they would also build
-  on Linux ARM, don't use any API not available in the NDK if they
-  use native code, and don't use any weird compiler flags the toolchain
-  doesn't like if they use native code. The package also needs to
-  work with cross compilation.
+- Packages will work fine without a recipe if:
+
+   * they would also build on Linux ARM,
+   * don't use any API not available in the NDK if they  use native code, and
+   * don't use any weird compiler flags the toolchain doesn't like if they use native code.
+   * works with cross compilation.
 
 - There is currently no easy way for a package to know it is being
   cross-compiled (at least that we know of) other than examining the
   `CC` compiler that was set, or that it is being cross-compiled for
-  Android specifically. If that breaks a package it currently needs
+  Android specifically. If that breaks a package, it currently needs
   to be worked around with a recipe.
 
 - If a package does **not** work, p4a developers will often create a
@@ -210,16 +221,16 @@ Ideas for the future regarding packaging
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - We in overall prefer to use the recipe mechanism less if we can.
-  In overall the recipes are just a collection of workarounds.
+  Overall, the recipes are just a collection of workarounds.
   It may look quite hacky from the outside, since p4a
   version pins recipe-wrapped packages usually to make the patches reliably
   apply. This creates work for the recipes to be kept up-to-date, and
   obviously this approach doesn't scale too well. However, it has ended
-  up as a quite practical interims solution until better ways are found.
+  up as a quite practical interim solution until better ways are found.
 
 - Obviously, it would be nice if packages could know they are being
   cross-compiled, and for Android specifically. We aren't currently aware
-  of a good mechanism for that.
+  of any good mechanism for that.
 
 - If pip could actually run the recipes (instead of p4a wrapping pip and
   doing so) then this might even allow build isolation to work - but
