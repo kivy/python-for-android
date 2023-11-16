@@ -27,7 +27,7 @@ python-for-android is perfect for Kivy apps, but is not limited to those.
 More information is available in the 
 [online documentation](https://python-for-android.readthedocs.io) including a
 [quickstart
-guide](https://python-for-android.readthedocs.org/en/latest/quickstart/).
+guide](https://python-for-android.readthedocs.io/en/latest/quickstart/).
 
 ## Support
 
@@ -46,36 +46,13 @@ users who want to give back to the community by contributing to the project.
 Contributions can come in many forms.
 
 Please read our latest 
-[Contribution Guidelines](https://python-for-android.readthedocs.org/en/latest/contribute.html)
+[Contribution Guidelines](https://python-for-android.readthedocs.io/en/latest/contribute)
 for more.
 
 ## License
 
 python-for-android is released under the terms of the MIT License.
 Please refer to the LICENSE file.
-
-## History
-
-In 2015 these tools were rewritten to provide a new, easier-to-use and
-easier-to-extend interface. If you'd like to browse the old toolchain, its
-status is recorded for posterity at
-https://github.com/kivy/python-for-android/tree/old_toolchain.
-
-In the last quarter of 2018 the Python recipes were changed. The
-new recipe for Python3 (3.7.1) had a new build system which was
-applied to the ancient Python recipe, allowing us to bump the Python2
-version number to 2.7.15. This change unified the build process for
-both Python recipes, and probably solved various issues detected over the
-years. These **unified Python recipes** require a **minimum target api level of 21**,
-*Android 5.0 - Lollipop*. If you need to build targeting an
-api level below 21, you should use an older version of python-for-android
-(<=0.7.1).
-
-On March 2020 we dropped support for creating apps that use Python 2. The latest
-python-for-android release that supported building Python 2 was version 2019.10.6.
-
-On August 2021, we added support for Android App Bundle (aab). As a
-collateral benefit, we now support multi-arch apk.
 
 ## Contributors
 

@@ -37,7 +37,7 @@ Versioning
 ----------
 
 python-for-android releases currently use `calendar versioning
-<https://calver.org/>`__. Release numbers are of the form
+<https://calver.org/>`_. Release numbers are of the form
 YYYY.MM.DD.
 
 We use calendar versioning because in practice, changes in
@@ -46,6 +46,29 @@ Android build tools. It's usually best for users to be working from
 the latest release. We try to maintain backwards compatibility even
 while internals are changing.
 
+History
+-------
+
+In 2015 these tools were rewritten to provide a new, easier-to-use and
+easier-to-extend interface. If you'd like to browse the old toolchain, `its
+status is recorded for posterity
+<https://github.com/kivy/python-for-android/tree/old_toolchain>`_.
+
+In the last quarter of 2018 the Python recipes were changed. The
+new recipe for Python3 (3.7.1) had a new build system which was
+applied to the ancient Python recipe, allowing us to bump the Python2
+version number to 2.7.15. This change unified the build process for
+both Python recipes, and probably solved various issues detected over the
+years. These **unified Python recipes** require a **minimum target api level of 21**,
+*Android 5.0 - Lollipop*. If you need to build targeting an
+api level below 21, you should use an older version of python-for-android
+(<=0.7.1).
+
+On March 2020 we dropped support for creating apps that use Python 2. The latest
+python-for-android release that supported building Python 2 was version 2019.10.6.
+
+On August 2021, we added support for Android App Bundle (aab). As a
+collateral benefit, we now support multi-arch apk.
 
 Creating a new release
 ----------------------
