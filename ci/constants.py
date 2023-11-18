@@ -39,7 +39,8 @@ BROKEN_RECIPES_PYTHON3 = set([
     'boost',
     # libtorrent gives errors (requires boost. Also, see issue #2809, to start with)
     'libtorrent',
-
+    # pybind11 build fails on macos
+    'pybind11',
 ])
 
 BROKEN_RECIPES = {
