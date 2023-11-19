@@ -151,7 +151,7 @@ class JDKPrerequisite(Prerequisite):
     name = "JDK"
     mandatory = dict(linux=False, darwin=True)
     installer_is_supported = dict(linux=False, darwin=True)
-    min_supported_version = 11
+    min_supported_version = 17
 
     def darwin_checker(self):
         if "JAVA_HOME" in os.environ:
@@ -206,12 +206,12 @@ class JDKPrerequisite(Prerequisite):
 
     def darwin_helper(self):
         info(
-            "python-for-android requires a JDK 11 or higher to be installed on macOS,"
+            "python-for-android requires a JDK 17 or higher to be installed on macOS,"
             "but seems like you don't have one installed."
         )
         info(
             "If you think that a valid JDK is already installed, please verify that "
-            "you have a JDK 11 or higher installed and that `/usr/libexec/java_home` "
+            "you have a JDK 17 or higher installed and that `/usr/libexec/java_home` "
             "shows the correct path."
         )
         info(
@@ -221,12 +221,12 @@ class JDKPrerequisite(Prerequisite):
 
     def darwin_installer(self):
         info(
-            "Looking for a JDK 11 or higher installation which is not the default one ..."
+            "Looking for a JDK 17 or higher installation which is not the default one ..."
         )
-        jdk_path = self._darwin_get_libexec_jdk_path(version="11+")
+        jdk_path = self._darwin_get_libexec_jdk_path(version="17+")
 
         if not self._darwin_jdk_is_supported(jdk_path):
-            info("We're unlucky, there's no JDK 11 or higher installation available")
+            info("We're unlucky, there's no JDK 17 or higher installation available")
 
             base_url = "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.2%2B8/"
             if platform.machine() == "arm64":
