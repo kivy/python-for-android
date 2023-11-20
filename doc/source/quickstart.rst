@@ -82,18 +82,18 @@ the following command (re-adapted from the `Dockerfile` we use to perform CI bui
         libltdl-dev \
         libtool \
         libssl-dev \
+        make \
         openjdk-17-jdk \
         patch \
-        unzip \
-        zip \
         pkg-config \
         python3 \
         python3-dev \
         python3-pip \
         python3-venv \
-        make \
         sudo \
-        wget
+        unzip \
+        wget \
+        zip
 
 
 Installing Android SDK

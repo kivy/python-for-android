@@ -67,18 +67,18 @@ RUN ${RETRY} apt -y update -qq > /dev/null \
         libltdl-dev \
         libtool \
         libssl-dev \
+        make \
         openjdk-17-jdk \
         patch \
-        unzip \
-        zip \
         pkg-config \
         python3 \
         python3-dev \
         python3-pip \
         python3-venv \
-        make \
         sudo \
+        unzip \
         wget \
+        zip \
     && apt -y autoremove \
     && apt -y clean \
     && rm -rf /var/lib/apt/lists/*
