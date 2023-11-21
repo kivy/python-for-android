@@ -242,7 +242,6 @@ class Recipe(metaclass=RecipeMeta):
             if isdir(url):
                 shutil.copytree(url, target)
 
-
     def apply_patch(self, filename, arch, build_dir=None):
         """
         Apply a patch from the current recipe directory into the current
