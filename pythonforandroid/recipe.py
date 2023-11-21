@@ -238,6 +238,10 @@ class Recipe(metaclass=RecipeMeta):
                     shprint(sh.git, 'pull', '--recurse-submodules')
                 shprint(sh.git, 'submodule', 'update', '--recursive', '--init', '--depth', '1')
             return target
+        elif parsed_url.scheme == '':
+            if isdir(url):
+                shutil.copytree(url, target)
+
 
     def apply_patch(self, filename, arch, build_dir=None):
         """
