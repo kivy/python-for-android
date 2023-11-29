@@ -1052,6 +1052,4 @@ def parse_args_and_make_package(args=None):
 
 
 if __name__ == "__main__":
-    if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
-        WHITELIST_PATTERNS.append('pyconfig.h')
     parse_args_and_make_package()
