@@ -6,8 +6,8 @@ from pythonforandroid.util import current_directory
 
 
 class LibSDL2Image(BootstrapNDKRecipe):
-    version = '2.6.2'
-    url = 'https://github.com/libsdl-org/SDL_image/releases/download/release-{version}/SDL2_image-{version}.tar.gz'
+    version = '2.7.1'
+    url = 'https://github.com/libsdl-org/SDL_image/releases/download/prerelease-{version}/SDL2_image-{version}.tar.gz'
     dir_name = 'SDL2_image'
 
     patches = ['enable-webp.patch']
