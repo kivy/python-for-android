@@ -6,7 +6,8 @@ import sh
 
 
 class Libxml2Recipe(Recipe):
-    version = '2.9.12'
+    #version = '2.9.12'
+    version = '2.12.1'
     url = 'http://xmlsoft.org/sources/libxml2-{version}.tar.gz'
     depends = []
     patches = ['add-glob.c.patch']
