@@ -33,17 +33,17 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
     @mock.patch("pythonforandroid.bootstrap.sh.Command")
     @mock.patch("pythonforandroid.recipes.icu.sh.make")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_build_arch(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_sh_make,
         mock_sh_command,
         mock_chdir,
         mock_makedirs,
     ):
-        mock_find_executable.return_value = os.path.join(
+        mock_shutil_which.return_value = os.path.join(
             self.ctx._ndk_dir,
             f"toolchains/llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang",
         )
@@ -89,10 +89,10 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
                 )
         mock_makedirs.assert_called()
 
-        mock_find_executable.assert_called_once()
+        mock_shutil_which.assert_called_once()
         self.assertEqual(
-            mock_find_executable.call_args[0][0],
-            mock_find_executable.return_value,
+            mock_shutil_which.call_args[0][0],
+            mock_shutil_which.return_value,
         )
 
     @mock.patch("pythonforandroid.recipes.icu.sh.cp")

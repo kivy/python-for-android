@@ -151,7 +151,7 @@ class JDKPrerequisite(Prerequisite):
     name = "JDK"
     mandatory = dict(linux=False, darwin=True)
     installer_is_supported = dict(linux=False, darwin=True)
-    min_supported_version = 11
+    supported_version = 17
 
     def darwin_checker(self):
         if "JAVA_HOME" in os.environ:
@@ -197,21 +197,21 @@ class JDKPrerequisite(Prerequisite):
         res = _stdout_res.strip().decode()
 
         major_version = int(res.split(" ")[-1].split(".")[0])
-        if major_version >= self.min_supported_version:
+        if major_version == self.supported_version:
             info(f"Found a valid JDK at {jdk_path}")
             return True
         else:
-            error(f"JDK {self.min_supported_version} or higher is required")
+            error(f"JDK version {major_version} is not supported")
             return False
 
     def darwin_helper(self):
         info(
-            "python-for-android requires a JDK 11 or higher to be installed on macOS,"
+            f"python-for-android requires a JDK {self.supported_version} to be installed on macOS,"
             "but seems like you don't have one installed."
         )
         info(
             "If you think that a valid JDK is already installed, please verify that "
-            "you have a JDK 11 or higher installed and that `/usr/libexec/java_home` "
+            f"you have a JDK {self.supported_version} installed and that `/usr/libexec/java_home` "
             "shows the correct path."
         )
         info(
@@ -221,12 +221,12 @@ class JDKPrerequisite(Prerequisite):
 
     def darwin_installer(self):
         info(
-            "Looking for a JDK 11 or higher installation which is not the default one ..."
+            f"Looking for a JDK {self.supported_version} installation which is not the default one ..."
         )
-        jdk_path = self._darwin_get_libexec_jdk_path(version="11+")
+        jdk_path = self._darwin_get_libexec_jdk_path(version=str(self.supported_version))
 
         if not self._darwin_jdk_is_supported(jdk_path):
-            info("We're unlucky, there's no JDK 11 or higher installation available")
+            info(f"We're unlucky, there's no JDK {self.supported_version} or higher installation available")
 
             base_url = "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.2%2B8/"
             if platform.machine() == "arm64":

@@ -1,5 +1,4 @@
-from distutils.core import setup
-from setuptools import find_packages
+from setuptools import setup
 
 options = {'apk': {'debug': None,
                    'bootstrap': 'sdl2',

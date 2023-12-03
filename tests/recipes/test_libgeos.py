@@ -12,10 +12,10 @@ class TestLibgeosRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
     @mock.patch("pythonforandroid.util.makedirs")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_build_arch(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_current_directory,
         mock_makedirs,

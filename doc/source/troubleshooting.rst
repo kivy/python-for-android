@@ -12,7 +12,7 @@ in the compilation and packaging steps.
 
 If reporting a problem by email or Discord, it is usually helpful to
 include this full log, e.g. via a `pastebin
-<http://paste.ubuntu.com/>`_ or `Github gist
+<https://pastebin.ubuntu.com/>`_ or `Github gist
 <https://gist.github.com/>`_.
 
 Getting help
@@ -64,9 +64,9 @@ can also do other debugging tasks such as ``python-for-android adb
 devices`` to get the list of connected devices.
 
 For further information, see the Android docs on `adb
-<http://developer.android.com/intl/zh-cn/tools/help/adb.html>`_, and
+<https://developer.android.com/tools/adb>`_, and
 on `logcat
-<http://developer.android.com/intl/zh-cn/tools/help/logcat.html>`_ in
+<https://developer.android.com/tools/logcat>`_ in
 particular.
 
 Unpacking an APK

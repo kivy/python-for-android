@@ -7,7 +7,7 @@ from unittest import mock
 from backports import tempfile
 
 from pythonforandroid.build import Context
-from pythonforandroid.recipe import Recipe, import_recipe
+from pythonforandroid.recipe import Recipe, TargetPythonRecipe, import_recipe
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
 from test_bootstrap import BaseClassSetupBootstrap
@@ -182,6 +182,20 @@ class TestRecipe(unittest.TestCase):
         assert m_sleep.call_args_list == expected_call_args_list
 
 
+class TestTargetPythonRecipe(unittest.TestCase):
+
+    def test_major_minor_version_string(self):
+        """
+        Test that the major_minor_version_string property returns the correct
+        string.
+        """
+        class DummyTargetPythonRecipe(TargetPythonRecipe):
+            version = '1.2.3'
+
+        recipe = DummyTargetPythonRecipe()
+        assert recipe.major_minor_version_string == '1.2'
+
+
 class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
     def setUp(self):
         """
@@ -249,10 +263,10 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         self.setUp_distribution_with_bootstrap(self.ctx.bootstrap)
         self.ctx.python_recipe = Recipe.get_recipe('python3', self.ctx)
 
-    @mock.patch('pythonforandroid.archs.find_executable')
+    @mock.patch('shutil.which')
     @mock.patch('pythonforandroid.build.ensure_dir')
     def test_get_recipe_env_with(
-        self, mock_ensure_dir, mock_find_executable
+        self, mock_ensure_dir, mock_shutil_which
     ):
         """
         Test that :meth:`~pythonforandroid.recipe.STLRecipe.get_recipe_env`
@@ -266,7 +280,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
             f"/opt/android/android-ndk/toolchains/"
             f"llvm/prebuilt/{self.ctx.ndk.host_tag}/bin/clang"
         )
-        mock_find_executable.return_value = expected_compiler
+        mock_shutil_which.return_value = expected_compiler
 
         arch = ArchAarch_64(self.ctx)
         recipe = Recipe.get_recipe('libgeos', self.ctx)
@@ -274,7 +288,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         env = recipe.get_recipe_env(arch)
         #  check that the mocks have been called
         mock_ensure_dir.assert_called()
-        mock_find_executable.assert_called_once_with(
+        mock_shutil_which.assert_called_once_with(
             expected_compiler, path=self.ctx.env['PATH']
         )
         self.assertIsInstance(env, dict)

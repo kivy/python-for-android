@@ -5,7 +5,7 @@ buildscript {
        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:8.1.1'
     }
 }
 
@@ -26,6 +26,7 @@ apply plugin: 'com.android.application'
 {% endif %}
 
 android {
+    namespace '{{ args.package }}'
     compileSdkVersion {{ android_api }}
     buildToolsVersion '{{ build_tools_version }}'
     defaultConfig {
@@ -125,7 +126,7 @@ dependencies {
     {%- endfor %}
     {%- endif %}
     {% if args.presplash_lottie %}
-    implementation 'com.airbnb.android:lottie:3.4.0'
+    implementation 'com.airbnb.android:lottie:6.1.0'
     {%- endif %}
 }
 

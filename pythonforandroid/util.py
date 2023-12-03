@@ -8,6 +8,8 @@ from platform import uname
 import shutil
 from tempfile import mkdtemp
 
+import packaging.version
+
 from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
 LOGGER = logging.getLogger("p4a.util")
@@ -128,3 +130,36 @@ def move(source, destination):
 
 def touch(filename):
     Path(filename).touch()
+
+
+def build_tools_version_sort_key(
+    version_string: str,
+) -> packaging.version.Version:
+    """
+    Returns a packaging.version.Version object for comparison purposes.
+    It includes canonicalization of the version string to allow for
+    comparison of versions with spaces in them (historically, RC candidates)
+
+    If the version string is invalid, it returns a version object with
+    version 0, which will be sorted at worst position.
+    """
+
+    try:
+        # Historically, Android build release candidates have had
+        # spaces in the version number.
+        return packaging.version.Version(version_string.replace(" ", ""))
+    except packaging.version.InvalidVersion:
+        # Put badly named versions at worst position.
+        return packaging.version.Version("0")
+
+
+def max_build_tool_version(
+    build_tools_versions: list,
+) -> str:
+    """
+    Returns the maximum build tools version from a list of build tools
+    versions. It uses the :meth:`build_tools_version_sort_key` function to
+    canonicalize the version strings and then returns the maximum version.
+    """
+
+    return max(build_tools_versions, key=build_tools_version_sort_key)
