@@ -6,7 +6,8 @@ import sh
 
 
 class LibxsltRecipe(Recipe):
-    version = '1.1.34'
+    #version = '1.1.34'
+    version = '1.1.39'
     url = 'http://xmlsoft.org/sources/libxslt-{version}.tar.gz'
     depends = ['libxml2']
     patches = ['fix-dlopen.patch']
