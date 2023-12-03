@@ -66,9 +66,10 @@ class KivyRecipe(CythonRecipe):
             env['USE_SDL2'] = '1'
             env['KIVY_SPLIT_EXAMPLES'] = '1'
             sdl2_mixer_recipe = self.get_recipe('sdl2_mixer', self.ctx)
+            sdl2_image_recipe = self.get_recipe('sdl2_image', self.ctx)
             env['KIVY_SDL2_PATH'] = ':'.join([
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL', 'include'),
-                join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_image'),
+                *sdl2_image_recipe.get_include_dirs(arch),
                 *sdl2_mixer_recipe.get_include_dirs(arch),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
             ])

@@ -12,6 +12,11 @@ class LibSDL2Image(BootstrapNDKRecipe):
 
     patches = ['enable-webp.patch']
 
+    def get_include_dirs(self, arch):
+        return [
+            os.path.join(self.ctx.bootstrap.build_dir, "jni", "SDL2_image", "include")
+        ]
+
     def prebuild_arch(self, arch):
         # We do not have a folder for each arch on BootstrapNDKRecipe, so we
         # need to skip the external deps download if we already have done it.
