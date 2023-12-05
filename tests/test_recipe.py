@@ -1,10 +1,10 @@
 import os
 import pytest
+import tempfile
 import types
 import unittest
 import warnings
 from unittest import mock
-from backports import tempfile
 
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe, import_recipe
