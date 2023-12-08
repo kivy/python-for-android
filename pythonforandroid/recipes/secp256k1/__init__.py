@@ -7,8 +7,6 @@ class Secp256k1Recipe(CppCompiledComponentsPythonRecipe):
     version = '0.13.2.4'
     url = 'https://github.com/ludbb/secp256k1-py/archive/{version}.tar.gz'
 
-    call_hostpython_via_targetpython = False
-
     depends = [
         'openssl',
         'hostpython3',

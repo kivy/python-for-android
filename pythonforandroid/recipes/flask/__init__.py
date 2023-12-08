@@ -11,7 +11,6 @@ class FlaskRecipe(PythonRecipe):
     python_depends = ['jinja2', 'werkzeug', 'markupsafe', 'itsdangerous', 'click']
 
     call_hostpython_via_targetpython = False
-    install_in_hostpython = False
 
 
 recipe = FlaskRecipe()

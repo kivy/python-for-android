@@ -12,9 +12,6 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
     python_depends = ['python-dateutil', 'pytz']
     patches = ['fix_numpy_includes.patch']
 
-    call_hostpython_via_targetpython = False
-    need_stl_shared = True
-
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
         # we need the includes from our installed numpy at site packages

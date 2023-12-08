@@ -21,7 +21,6 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
 
     depends = ['sdl2', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf', 'setuptools', 'jpeg', 'png']
     call_hostpython_via_targetpython = False  # Due to setuptools
-    install_in_hostpython = False
 
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
