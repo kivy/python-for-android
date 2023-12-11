@@ -34,7 +34,8 @@ install_reqs = [
 def recursively_include(results, directory, patterns):
     for root, subfolders, files in walk(directory):
         for fn in files:
-            if not any(glob.fnmatch.fnmatch(fn, pattern) for pattern in patterns):
+            if not any(
+                    glob.fnmatch.fnmatch(fn, pattern) for pattern in patterns):
                 continue
             filename = join(root, fn)
             directory = 'pythonforandroid'
@@ -47,9 +48,12 @@ recursively_include(package_data, 'pythonforandroid/recipes',
                     ['*.patch', 'Setup*', '*.pyx', '*.py', '*.c', '*.h',
                      '*.mk', '*.jam', '*.diff', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
-                    ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
-                     '*.mk', '*.c', '*.h', '*.py', '*.sh', '*.jpg', '*.aidl',
-                     '*.gradle', '.gitkeep', 'gradlew*', '*.jar', "*.patch", ])
+                    [
+                        '*.properties', '*.xml', '*.java', '*.tmpl', '*.txt',
+                        '*.png', '*.mk', '*.c', '*.h', '*.py', '*.sh', '*.jpg',
+                        '*.aidl', '*.gradle', '.gitkeep', 'gradlew*', '*.jar',
+                        '*.patch',
+                    ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['sdl-config', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps/webview',
@@ -59,8 +63,7 @@ recursively_include(package_data, 'pythonforandroid',
 
 with open(join(dirname(__file__), 'README.md'),
           encoding="utf-8",
-          errors="replace",
-         ) as fileh:
+          errors="replace", ) as fileh:
     long_description = fileh.read()
 
 init_filen = join(dirname(__file__), 'pythonforandroid', '__init__.py')
@@ -68,8 +71,7 @@ version = None
 try:
     with open(init_filen,
               encoding="utf-8",
-              errors="replace"
-             ) as fileh:
+              errors="replace") as fileh:
         lines = fileh.readlines()
 except IOError:
     pass
@@ -82,12 +84,15 @@ else:
                 version = matches[0].strip("'").strip('"')
                 break
 if version is None:
-    raise Exception('Error: version could not be loaded from {}'.format(init_filen))
+    raise Exception(
+        'Error: version could not be loaded from {}'.format(init_filen))
 
 setup(name='python-for-android',
       version=version,
-      description='A development tool that packages Python apps into '
-        'binaries that can run on Android devices.',
+      description=(
+          'A development tool that packages Python apps into '
+          'binaries that can run on Android devices.'
+      ),
       long_description=long_description,
       long_description_content_type='text/markdown',
       python_requires=">=3.7.0",
