@@ -41,6 +41,7 @@ BROKEN_RECIPES_PYTHON3 = set([
     'libtorrent',
     # pybind11 build fails on macos
     'pybind11',
+    'pygame',
 ])
 
 BROKEN_RECIPES = {
