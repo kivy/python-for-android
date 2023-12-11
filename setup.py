@@ -86,11 +86,12 @@ if version is None:
 
 setup(name='python-for-android',
       version=version,
-      description='Android APK packager for Python scripts and apps',
+      description='A development tool that packages Python apps into '
+        'binaries that can run on Android devices.',
       long_description=long_description,
       long_description_content_type='text/markdown',
       python_requires=">=3.7.0",
-      author='The Kivy team',
+      author='Kivy Team and other contributors',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/kivy/python-for-android',
       license='MIT',
@@ -121,9 +122,16 @@ setup(name='python-for-android',
           'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: 3.9',
           'Programming Language :: Python :: 3.10',
+          'Programming Language :: Python :: 3.11',
           'Topic :: Software Development',
           'Topic :: Utilities',
           ],
       packages=packages,
       package_data=package_data,
+      project_urls={
+          'Documentation': "https://python-for-android.readthedocs.io",
+          'Source': "https://github.com/kivy/python-for-android",
+          'Bug Reports': "https://github.com/kivy/python-for-android/issues",
+      },
+
       )
