@@ -26,8 +26,8 @@ Concepts
 
 - **bootstrap:** A bootstrap is the app backend that will start your
   application. The default for graphical applications is SDL2.
-  You can also use e.g. the webview for web apps, or service_only/service_library  for
-  background services. Different bootstraps have different additional
+  You can also use e.g. the webview for web apps, or service_only/service_library for
+  background services, or qt for PySide6 apps. Different bootstraps have different additional
   build options.
 
 *Advanced:*
@@ -114,7 +114,7 @@ You need to download and unpack the Android SDK and NDK to a directory (let's sa
 For the Android SDK, you can download 'just the command line
 tools'. When you have extracted these you'll see only a directory
 named ``tools``, and you will need to run extra commands to install
-the SDK packages needed. 
+the SDK packages needed.
 
 For Android NDK, note that modern releases will only work on a 64-bit
 operating system. **The minimal, and recommended, NDK version to use is r25b:**
@@ -214,7 +214,7 @@ website. The default for Flask is 5000.
 Build a Service library archive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To build an android archive (.aar), containing an android service , you need a name, version, package identifier, explicitly use the 
+To build an android archive (.aar), containing an android service , you need a name, version, package identifier, explicitly use the
 service_library bootstrap, and declare service entry point (See :ref:`services <arbitrary_scripts_services>` for more options), as well as the requirements and arch(s)::
 
     p4a aar --private $HOME/code/myapp --package=org.example.myapp --name "My library" --version 0.1 --bootstrap=service_library --requirements=python3 --release --service=myservice:service.py --arch=arm64-v8a --arch=armeabi-v7a
@@ -281,7 +281,7 @@ Recipe management
 You can see the list of the available recipes with::
 
     p4a recipes
-    
+
 If you are contributing to p4a and want to test a recipes again,
 you need to clean the build and rebuild your distribution::
 
@@ -295,7 +295,7 @@ it (edit the ``__init__.py``)::
 
     mkdir -p p4a-recipes/myrecipe
     touch p4a-recipes/myrecipe/__init__.py
-    
+
 
 Distribution management
 ~~~~~~~~~~~~~~~~~~~~~~~

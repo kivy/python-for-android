@@ -64,7 +64,7 @@ options (this list may not be exhaustive):
   for the SDL bootstrap. If multiple orientations are given,
   ``android:screenOrientation`` will be set to ``unspecified``.
 - ``--manifest-orientation``: The orientation that will be set for the ``android:screenOrientation``
-  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
+  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value
   will be synthesized from the ``--orientation`` option.
   The full list of valid options is given under ``android:screenOrientation``
   in the `Android documentation <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
@@ -74,11 +74,11 @@ options (this list may not be exhaustive):
   ``--home-app`` Gives you the option to set your application as a home app (launcher) on your Android device.
 
   .. Note ::
-    ``--permission`` accepts the following syntaxes: 
+    ``--permission`` accepts the following syntaxes:
     ``--permission (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)``
     or ``--permission android.permission.WRITE_EXTERNAL_STORAGE``.
 
-    The first syntax is used to set additional properties to the permission 
+    The first syntax is used to set additional properties to the permission
     (``android:maxSdkVersion`` and ``android:usesPermissionFlags`` are the only ones supported for now).
 
     The second one can be used when there's no need to add any additional properties.
@@ -148,7 +148,7 @@ ready.
   (Which is the default on Android 12+), this setting is not guaranteed to work, and
   you should consider to implement a custom orientation change handler in your app.
 - ``--manifest-orientation``: The orientation that will be set in the ``android:screenOrientation``
-  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
+  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value
   will be synthesized from the ``--orientation`` option.
   The full list of valid options is given under ``android:screenOrientation``
   in the `Android documentation <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
@@ -187,7 +187,7 @@ You can use this with ``--bootstrap=service_library`` option.
 
 
 This bootstrap can be used together with ``aar`` output target to generate
-a library, containing Python services that can be used with other build 
+a library, containing Python services that can be used with other build
 systems and frameworks.
 
 - ``--private``: The directory containing your project files.
@@ -204,6 +204,49 @@ systems and frameworks.
   include multiple jar files, pass this argument multiple times.
 - ``add-source``: Add a source directory to the app's Java code.
 
+Qt
+~~
+
+This bootstrap can be used with ``--bootstrap=qt`` or by including the ``PySide6`` or
+``shiboken6`` recipe, e.g. ``--requirements=PySide6,shiboken6``. Currently, the only way
+to use this bootstrap is through `pyside6-android-deploy <https://www.qt.io/blog/taking-qt-for-python-to-android>`__
+tool shipped with ``PySide6``, as the recipes for ``PySide6`` and ``shiboken6`` are created
+dynamically. The tool builds ``PySide6`` and ``shiboken6`` wheels for a specific Android platform
+and the recipes simply unpack the built wheels. You can see the recipes `here <https://code.qt.io/cgit/pyside/pyside-setup.git/tree/sources/pyside-tools/deploy_lib/android/recipes>`__.
+
+.. note::
+  The ``pyside6-android-deploy`` tool and hence the Qt bootstrap does not support multi-architecture
+  builds currently.
+
+What are Qt and PySide?
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+`Qt <https://www.qt.io/>`__ is a popularly used cross-platform C++ framewrok for developing
+GUI applications. `PySide6 <https://doc.qt.io/qtforpython-6/quickstart.html>`__ refers to the
+Python bindings for Qt6, and enables the Python developers access to the Qt6 API.
+`Shiboken6 <https://doc.qt.io/qtforpython-6/shiboken6/index.html>`__ is the binding generator
+tool used for generating the Python bindings from C++ code.
+
+.. note:: The `shiboken6` recipe is for the `Shiboken Python module <https://doc.qt.io/qtforpython-6/shiboken6/shibokenmodule.html>`__
+  which includes a couple of utility functions for inspecting and debugging PySide6 code.
+
+Build Options
+%%%%%%%%%%%%%
+
+``pyside6-android-deploy`` works by generating a ``buildozer.spec`` file and thereby using
+`buildozer <https://buildozer.readthedocs.io/en/latest/>`__ to control the build options used by
+``python-for-android`` with the Qt bootstrap. Apart from the general build options that works
+across all the other bootstraps, the Qt bootstrap introduces the following 3 new build options.
+
+- ``--qt-libs``: list of Qt libraries(modules) to be loaded.
+- ``--load-local-libs``: list of Qt plugin libraries to be loaded.
+- ``--init-classes``: list of Java class names to the loaded from the Qt jar files supplied through
+  the ``--add-jar`` option.
+
+These build options are automatically populated by the ``pyside6-android-deploy`` tool, but can be
+modified by updating the ``buildozer.spec`` file. Apart from the above 3 build options, the tool
+also automatically identifies the values to be fed into the cli options ``--permission``, ``--add-jar``
+depending on the PySide6 modules used by the applicaiton.
 
 Requirements blacklist (APK size optimization)
 ----------------------------------------------
