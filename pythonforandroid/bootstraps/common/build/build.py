@@ -572,7 +572,8 @@ main.py that loads it.''')
     render(
         'gradle.tmpl.properties',
         'gradle.properties',
-        args=args)
+        args=args,
+        bootstrap_name=get_bootstrap_name())
 
     # ant build templates
     render(
