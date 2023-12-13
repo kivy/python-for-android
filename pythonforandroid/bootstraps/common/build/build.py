@@ -222,7 +222,7 @@ def compile_py_file(python_file, optimize_python=True):
 
 def make_package(args):
     # If no launcher is specified, require a main.py/main.pyc:
-    if (get_bootstrap_name() not in ["sdl", "qt"] or args.launcher is None) and \
+    if (get_bootstrap_name() != "sdl" or args.launcher is None) and \
             get_bootstrap_name() not in ["webview", "service_library"]:
         # (webview doesn't need an entrypoint, apparently)
         if args.private is None or (
