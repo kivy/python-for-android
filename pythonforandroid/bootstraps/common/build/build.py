@@ -609,8 +609,10 @@ main.py that loads it.''')
     if get_bootstrap_name() == "qt":
         qt_libs = args.qt_libs.split(",")
         load_local_libs = args.load_local_libs.split(",")
-        init_classes = args.init_classes.split(",")
-        init_classes = ":".join(init_classes)
+        init_classes = args.init_classes
+        if init_classes:
+            init_classes = init_classes.split(",")
+            init_classes = ":".join(init_classes)
         arch = get_dist_info_for("archs")[0]
         render(
             'libs.tmpl.xml',
@@ -976,7 +978,7 @@ tools directory of the Android SDK.
                         help='comma separated list of Qt libraries to be loaded')
         ap.add_argument('--load-local-libs', dest='load_local_libs', required=True,
                         help='comma separated list of Qt plugin libraries to be loaded')
-        ap.add_argument('--init-classes', dest='init_classes',
+        ap.add_argument('--init-classes', dest='init_classes', default='',
                         help='comma separated list of java class names to be loaded from the Qt jar files, '
                              'specified through add_jar cli option')
 
