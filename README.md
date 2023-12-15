@@ -3,15 +3,18 @@
 python-for-android (p4a) is a development tool that packages Python apps into
 binaries that can run on Android devices.
 
-It can generate Android Package (APK) files, which can be installed on Android
-with everything it needs to run. It can generate both debug and signed release 
-APKs - the latter can be shared on marketplaces, like 
-[Google Play Store](https://play.google.com/store/).
+It can generate: 
 
-It can also generate 
-[Android App Bundle](https://developer.android.com/guide/app-bundle/faq) (AAB)
-files that can be bundled with others into an APK.
-
+* [Android Package](https://en.wikipedia.org/wiki/Apk_(file_format)) (APK)
+  files, ready to install locally on a device, especially for testing. This format
+  is used by many [app stores](https://en.wikipedia.org/wiki/List_of_Android_app_stores)
+  but not [Google Play Store](https://play.google.com/store/). 
+* [Android App Bundle](https://developer.android.com/guide/app-bundle/faq) 
+  (AAB) files which can be shared on [Google Play Store](https://play.google.com/store/).
+* [Android Archive](https://developer.android.com/studio/projects/android-library)
+  (AAR) files which can be used as a re-usable bundle of resources for other 
+  projects.
+ 
 It supports multiple CPU architectures.
 
 It supports apps developed with [Kivy framework](http://kivy.org), but was
