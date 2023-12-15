@@ -449,7 +449,7 @@ class Recipe(metaclass=RecipeMeta):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
-                    if extraction_filename.endswith('.zip'):
+                    if extraction_filename.endswith(('.zip', '.whl')):
                         try:
                             sh.unzip(extraction_filename)
                         except (sh.ErrorReturnCode_1, sh.ErrorReturnCode_2):
