@@ -18,7 +18,6 @@ class ProtobufCppRecipe(CppCompiledComponentsPythonRecipe):
     name = 'protobuf_cpp'
     version = '3.6.1'
     url = 'https://github.com/google/protobuf/releases/download/v{version}/protobuf-python-{version}.tar.gz'
-    call_hostpython_via_targetpython = False
     depends = ['cffi', 'setuptools']
     site_packages_name = 'google/protobuf/pyext'
     setup_extra_args = ['--cpp_implementation']

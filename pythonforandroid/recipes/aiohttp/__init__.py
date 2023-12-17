@@ -8,7 +8,6 @@ class AIOHTTPRecipe(CppCompiledComponentsPythonRecipe):  # type: ignore # pylint
     url = "https://pypi.python.org/packages/source/a/aiohttp/aiohttp-{version}.tar.gz"
     name = "aiohttp"
     depends: List[str] = ["setuptools"]
-    call_hostpython_via_targetpython = False
     install_in_hostpython = True
 
     def get_recipe_env(self, arch):

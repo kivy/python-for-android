@@ -8,8 +8,6 @@ class SympyRecipe(PythonRecipe):
 
     depends = ['mpmath']
 
-    call_hostpython_via_targetpython = True
-
     patches = ['fix_timeutils.patch', 'fix_pretty_print.patch']
 
 

@@ -11,9 +11,6 @@ class TwistedRecipe(CythonRecipe):
     depends = ['setuptools', 'zope_interface', 'incremental', 'constantly']
     patches = ['incremental.patch', 'remove_tests.patch']
 
-    call_hostpython_via_targetpython = False
-    install_in_hostpython = False
-
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
         # TODO Need to whitelist tty.pyo and termios.so here
