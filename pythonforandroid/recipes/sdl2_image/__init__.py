@@ -6,11 +6,16 @@ from pythonforandroid.util import current_directory
 
 
 class LibSDL2Image(BootstrapNDKRecipe):
-    version = '2.6.2'
+    version = '2.8.0'
     url = 'https://github.com/libsdl-org/SDL_image/releases/download/release-{version}/SDL2_image-{version}.tar.gz'
     dir_name = 'SDL2_image'
 
     patches = ['enable-webp.patch']
+
+    def get_include_dirs(self, arch):
+        return [
+            os.path.join(self.ctx.bootstrap.build_dir, "jni", "SDL2_image", "include")
+        ]
 
     def prebuild_arch(self, arch):
         # We do not have a folder for each arch on BootstrapNDKRecipe, so we
