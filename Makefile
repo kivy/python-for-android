@@ -82,7 +82,7 @@ testapps-service_library-aar: virtualenv
     --requirements python3 \
     --arch=arm64-v8a --arch=x86 --release
 
-testapps-qt: testapps-qt/debug/apk
+testapps-qt: testapps-qt/debug/apk testapps-qt/release/aab
 
 # testapps-webview/MODE/ARTIFACT
 testapps-qt/%: virtualenv
