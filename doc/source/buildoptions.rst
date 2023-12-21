@@ -64,7 +64,7 @@ options (this list may not be exhaustive):
   for the SDL bootstrap. If multiple orientations are given,
   ``android:screenOrientation`` will be set to ``unspecified``.
 - ``--manifest-orientation``: The orientation that will be set for the ``android:screenOrientation``
-  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value
+  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
   will be synthesized from the ``--orientation`` option.
   The full list of valid options is given under ``android:screenOrientation``
   in the `Android documentation <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
@@ -74,11 +74,11 @@ options (this list may not be exhaustive):
   ``--home-app`` Gives you the option to set your application as a home app (launcher) on your Android device.
 
   .. Note ::
-    ``--permission`` accepts the following syntaxes:
+    ``--permission`` accepts the following syntaxes: 
     ``--permission (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)``
     or ``--permission android.permission.WRITE_EXTERNAL_STORAGE``.
 
-    The first syntax is used to set additional properties to the permission
+    The first syntax is used to set additional properties to the permission 
     (``android:maxSdkVersion`` and ``android:usesPermissionFlags`` are the only ones supported for now).
 
     The second one can be used when there's no need to add any additional properties.
@@ -148,7 +148,7 @@ ready.
   (Which is the default on Android 12+), this setting is not guaranteed to work, and
   you should consider to implement a custom orientation change handler in your app.
 - ``--manifest-orientation``: The orientation that will be set in the ``android:screenOrientation``
-  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value
+  attribute of the activity in the ``AndroidManifest.xml`` file. If not set, the value 
   will be synthesized from the ``--orientation`` option.
   The full list of valid options is given under ``android:screenOrientation``
   in the `Android documentation <https://developer.android.com/guide/topics/manifest/activity-element.html>`__.
@@ -187,7 +187,7 @@ You can use this with ``--bootstrap=service_library`` option.
 
 
 This bootstrap can be used together with ``aar`` output target to generate
-a library, containing Python services that can be used with other build
+a library, containing Python services that can be used with other build 
 systems and frameworks.
 
 - ``--private``: The directory containing your project files.
@@ -208,7 +208,7 @@ Qt
 ~~
 
 This bootstrap can be used with ``--bootstrap=qt`` or by including the ``PySide6`` or
-``shiboken6`` recipe, e.g. ``--requirements=PySide6,shiboken6``. Currently, the only way
+``shiboken6`` recipe, e.g. ``--requirements=pyside6,shiboken6``. Currently, the only way
 to use this bootstrap is through `pyside6-android-deploy <https://www.qt.io/blog/taking-qt-for-python-to-android>`__
 tool shipped with ``PySide6``, as the recipes for ``PySide6`` and ``shiboken6`` are created
 dynamically. The tool builds ``PySide6`` and ``shiboken6`` wheels for a specific Android platform

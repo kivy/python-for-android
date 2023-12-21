@@ -62,7 +62,7 @@ supply those that you need.
 ``--name NAME``
   The name of the distribution. Only one distribution with a given name can be created.
 
-``--requirements LIST,OF,REQUIREMENTS``
+``--requirements LIST,OF,REQUIREMENTS`` 
   The recipes that your
   distribution must contain, as a comma separated list. These must be
   names of recipes or the pypi names of Python modules.
