@@ -221,7 +221,7 @@ and the recipes simply unpack the built wheels. You can see the recipes `here <h
 What are Qt and PySide?
 %%%%%%%%%%%%%%%%%%%%%%%%
 
-`Qt <https://www.qt.io/>`__ is a popularly used cross-platform C++ framewrok for developing
+`Qt <https://www.qt.io/>`__ is a popularly used cross-platform C++ framework for developing
 GUI applications. `PySide6 <https://doc.qt.io/qtforpython-6/quickstart.html>`__ refers to the
 Python bindings for Qt6, and enables the Python developers access to the Qt6 API.
 `Shiboken6 <https://doc.qt.io/qtforpython-6/shiboken6/index.html>`__ is the binding generator
