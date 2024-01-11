@@ -449,7 +449,7 @@ class Recipe(metaclass=RecipeMeta):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
-                    if extraction_filename.endswith('.zip'):
+                    if extraction_filename.endswith(('.zip', '.whl')):
                         try:
                             sh.unzip(extraction_filename)
                         except (sh.ErrorReturnCode_1, sh.ErrorReturnCode_2):
@@ -1170,6 +1170,9 @@ class TargetPythonRecipe(Recipe):
             file_dirname, file_basename = split(filen)
             parts = file_basename.split('.')
             if len(parts) <= 2:
+                continue
+            # PySide6 libraries end with .abi3.so
+            if parts[1] == "abi3":
                 continue
             move(filen, join(file_dirname, parts[0] + '.so'))
 

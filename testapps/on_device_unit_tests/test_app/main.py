@@ -13,6 +13,7 @@ For now, we contemplate three possibilities:
   -  A kivy unittest app (sdl2 bootstrap)
   -  A unittest app (webview bootstrap)
   -  A non-gui unittests app
+  -  A non-gui Qt app (qt bootstrap)
 
 If you install/build this app via the `setup.py` file, a file named
 `app_requirements.txt` will be generated which will contain the requirements

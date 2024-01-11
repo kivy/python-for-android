@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <array name="qt_libs">
+        <item>{{ arch }};c++_shared</item>
+        {%- for qt_lib in qt_libs %}
+        <item>{{ arch }};Qt6{{ qt_lib }}_{{ arch }}</item>
+        {%- endfor -%}
+    </array>
+
+    <array name="load_local_libs">
+        {%- for load_local_lib in load_local_libs %}
+        <item>{{ arch }};lib{{ load_local_lib }}_{{ arch }}.so</item>
+        {%- endfor -%}
+        <item>{{ arch }};libshiboken6.abi3.so</item>
+        <item>{{ arch }};libpyside6.abi3.so</item>
+        {%- for qt_lib in qt_libs %}
+        <item>{{ arch }};Qt{{ qt_lib }}.abi3.so</item>
+        {% if qt_lib == "Qml" -%}
+        <item>{{ arch }};libpyside6qml.abi3.so</item>
+        {% endif %}
+        {%- endfor -%}
+    </array>
+
+    <string name="static_init_classes">{{ init_classes }}</string>
+    <string name="use_local_qt_libs">1</string>
+    <string name="bundle_local_qt_libs">1</string>
+</resources>

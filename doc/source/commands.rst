@@ -26,7 +26,7 @@ behaviour, though not all commands make use of them.
 
 ``--debug``
   Print extra debug information about the build, including all compilation output.
-  
+
 ``--sdk_dir``
   The filepath where the Android SDK is installed. This can
   alternatively be set in several other ways.
@@ -34,7 +34,7 @@ behaviour, though not all commands make use of them.
 ``--android_api``
   The Android API level to target; python-for-android will check if
   the platform tools for this level are installed.
-  
+
 ``--ndk_dir``
   The filepath where the Android NDK is installed. This can
   alternatively be set in several other ways.
@@ -74,12 +74,12 @@ supply those that you need.
   The architecture to build for. You can specify multiple architectures to build for
   at the same time. As an example ``p4a ... --arch arm64-v8a --arch armeabi-v7a ...``
   will build a distribution for both ``arm64-v8a`` and ``armeabi-v7a``.
-  
+
 ``--bootstrap BOOTSTRAP``
   The Java bootstrap to use for your application. You mostly don't
   need to worry about this or set it manually, as an appropriate
   bootstrap will be chosen from your ``--requirements``. Current
-  choices are ``sdl2`` (used with Kivy and most other apps) or ``webview``.
+  choices are ``sdl2`` (used with Kivy and most other apps), ``webview`` or ``qt``.
 
 
 .. note:: These options are preliminary. Others will include toggles

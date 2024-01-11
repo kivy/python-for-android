@@ -26,8 +26,8 @@ Concepts
 
 - **bootstrap:** A bootstrap is the app backend that will start your
   application. The default for graphical applications is SDL2.
-  You can also use e.g. the webview for web apps, or service_only/service_library  for
-  background services. Different bootstraps have different additional
+  You can also use e.g. the webview for web apps, or service_only/service_library for
+  background services, or qt for PySide6 apps. Different bootstraps have different additional
   build options.
 
 *Advanced:*
@@ -281,7 +281,7 @@ Recipe management
 You can see the list of the available recipes with::
 
     p4a recipes
-    
+
 If you are contributing to p4a and want to test a recipes again,
 you need to clean the build and rebuild your distribution::
 
@@ -295,7 +295,6 @@ it (edit the ``__init__.py``)::
 
     mkdir -p p4a-recipes/myrecipe
     touch p4a-recipes/myrecipe/__init__.py
-    
 
 Distribution management
 ~~~~~~~~~~~~~~~~~~~~~~~

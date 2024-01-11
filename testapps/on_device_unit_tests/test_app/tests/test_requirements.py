@@ -251,3 +251,25 @@ class LibtorrentTestCase(PythonTestMixIn, TestCase):
         import libtorrent as lt
 
         print('Imported libtorrent version {}'.format(lt.version))
+
+
+class Pyside6TestCase(PythonTestMixIn, TestCase):
+    module_import = 'PySide6'
+
+    def test_run_module(self):
+        import PySide6
+        from PySide6.QtCore import QDateTime
+        from PySide6 import QtWidgets
+
+        print(f"Imported PySide6 version {PySide6.__version__}")
+        print(f"Current date and time obtained from PySide6 : {QDateTime.currentDateTime().toString()}")
+
+
+class Shiboken6TestCase(PythonTestMixIn, TestCase):
+    module_import = 'shiboken6'
+
+    def test_run_module(self):
+        import shiboken6
+        from shiboken6 import Shiboken
+
+        print('Imported shiboken6 version {}'.format(shiboken6.__version__))

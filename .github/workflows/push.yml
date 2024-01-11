@@ -70,6 +70,8 @@ jobs:
             target: testapps-webview
           - name: service_library
             target: testapps-service_library-aar
+          - name: qt
+            target: testapps-qt
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v4
