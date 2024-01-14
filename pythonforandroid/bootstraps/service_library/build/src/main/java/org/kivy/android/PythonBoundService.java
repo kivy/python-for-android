@@ -143,10 +143,8 @@ public abstract class PythonBoundService extends Service implements Runnable {
         Notification notification;
         Context context = getApplicationContext();
         Intent contextIntent = new Intent(context, PythonActivity.class);
-        // PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
-        //     PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
-        134217728 | 67108864);
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             notification = new Notification(
