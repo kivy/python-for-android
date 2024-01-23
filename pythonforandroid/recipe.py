@@ -16,6 +16,9 @@ try:
     from urlparse import urlparse
 except ImportError:
     from urllib.parse import urlparse
+
+import packaging.version
+
 from pythonforandroid.logger import (
     logger, info, warning, debug, shprint, info_main)
 from pythonforandroid.util import (
@@ -446,7 +449,7 @@ class Recipe(metaclass=RecipeMeta):
                 extraction_filename = join(
                     self.ctx.packages_path, self.name, filename)
                 if isfile(extraction_filename):
-                    if extraction_filename.endswith('.zip'):
+                    if extraction_filename.endswith(('.zip', '.whl')):
                         try:
                             sh.unzip(extraction_filename)
                         except (sh.ErrorReturnCode_1, sh.ErrorReturnCode_2):
@@ -1145,8 +1148,8 @@ class TargetPythonRecipe(Recipe):
 
     @property
     def major_minor_version_string(self):
-        from distutils.version import LooseVersion
-        return '.'.join([str(v) for v in LooseVersion(self.version).version[:2]])
+        parsed_version = packaging.version.parse(self.version)
+        return f"{parsed_version.major}.{parsed_version.minor}"
 
     def create_python_bundle(self, dirn, arch):
         """
@@ -1167,6 +1170,9 @@ class TargetPythonRecipe(Recipe):
             file_dirname, file_basename = split(filen)
             parts = file_basename.split('.')
             if len(parts) <= 2:
+                continue
+            # PySide6 libraries end with .abi3.so
+            if parts[1] == "abi3":
                 continue
             move(filen, join(file_dirname, parts[0] + '.so'))
 

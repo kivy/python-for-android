@@ -28,7 +28,7 @@ class TestBuildBasic(unittest.TestCase):
 
     def test_strip_if_with_debug_symbols(self):
         ctx = mock.Mock()
-        ctx.python_recipe.major_minor_version_string = "python3.6"
+        ctx.python_recipe.major_minor_version_string = "3.6"
         ctx.get_site_packages_dir.return_value = "test-doesntexist"
         ctx.build_dir = "nonexistant_directory"
         ctx.archs = ["arm64"]

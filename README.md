@@ -1,144 +1,124 @@
-python-for-android
-==================
+# python-for-android
+
+python-for-android (p4a) is a development tool that packages Python apps into
+binaries that can run on Android devices.
+
+It can generate: 
+
+* [Android Package](https://en.wikipedia.org/wiki/Apk_(file_format)) (APK)
+  files, ready to install locally on a device, especially for testing. This format
+  is used by many [app stores](https://en.wikipedia.org/wiki/List_of_Android_app_stores)
+  but not [Google Play Store](https://play.google.com/store/). 
+* [Android App Bundle](https://developer.android.com/guide/app-bundle/faq) 
+  (AAB) files which can be shared on [Google Play Store](https://play.google.com/store/).
+* [Android Archive](https://developer.android.com/studio/projects/android-library)
+  (AAR) files which can be used as a re-usable bundle of resources for other 
+  projects.
+ 
+It supports multiple CPU architectures.
+
+It supports apps developed with [Kivy framework](http://kivy.org), but was
+built to be flexible about the backend libraries (through "bootstraps"), and 
+also supports [PySDL2](https://pypi.org/project/PySDL2/), and a
+[WebView](https://developer.android.com/reference/android/webkit/WebView) with
+a Python web server.
+
+It automatically supports dependencies on most pure Python packages. For other
+packages, including those that depend on C code, a special "recipe" must be 
+written to support cross-compiling. python-for-android comes with recipes for
+many of the mosty popular libraries (e.g. numpy and sqlalchemy) built in.
+
+python-for-android works by cross-compiling the Python interpreter and its
+dependencies for Android devices, and bundling it with the app's python code
+and dependencies. The Python code is then interpreted on the Android device.
+
+It is recommended that python-for-android be used via 
+[Buildozer](https://buildozer.readthedocs.io/), which ensures the correct
+dependencies are pre-installed, and centralizes the configuration. However, 
+python-for-android is not limited to being used with Buildozer.
+
+[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
+[![GitHub contributors](https://img.shields.io/github/contributors-anon/kivy/python-for-android)](https://github.com/kivy/python-for-android/graphs/contributors)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
+![PyPI - Version](https://img.shields.io/pypi/v/python-for-android)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/python-for-android)
 
 [![Unit tests & build apps](https://github.com/kivy/python-for-android/workflows/Unit%20tests%20&%20build%20apps/badge.svg?branch=develop)](https://github.com/kivy/python-for-android/actions?query=workflow%3A%22Unit+tests+%26+build+apps%22)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=develop&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=develop)
-[![Backers on Open Collective](https://opencollective.com/kivy/backers/badge.svg)](#backers)
-[![Sponsors on Open Collective](https://opencollective.com/kivy/sponsors/badge.svg)](#sponsors)
-
-python-for-android is a packaging tool for Python apps on Android. You can
-create your own Python distribution including the modules and
-dependencies you want, and bundle it in an APK or AAB along with your own code.
-
-Features include:
-
--  Different app backends including Kivy, PySDL2, and a WebView with
-   Python webserver.
--  Automatic support for most pure Python modules, and built in support
-   for many others, including popular dependencies such as numpy and
-   sqlalchemy.
--  Multiple architecture targets, for APKs optimised on any given
-   device.
--  AAB: Android App Bundle support.
-
-For documentation and support, see:
-
--  Website: http://python-for-android.readthedocs.io
--  Mailing list: https://groups.google.com/forum/#!forum/kivy-users or
-   https://groups.google.com/forum/#!forum/python-android.
 
 ## Documentation
 
-Follow the [quickstart
-instructions](<https://python-for-android.readthedocs.org/en/latest/quickstart/>)
-to install and begin creating APKs and AABs.
+More information is available in the 
+[online documentation](https://python-for-android.readthedocs.io) including a
+[quickstart guide](https://python-for-android.readthedocs.io/en/latest/quickstart/).
 
-**Quick instructions**: install python-for-android with:
-
-    pip install python-for-android
-
-(for the develop branch: `pip install git+https://github.com/kivy/python-for-android.git`)
-
-Test that the install works with:
-
-    p4a --version
-
-To build any actual apps, **set up the Android SDK and NDK**
-as described in the [quickstart](
-<https://python-for-android.readthedocs.org/en/latest/quickstart/#installing-android-sdk>).
-**Use the SDK/NDK API level & NDK version as in the quickstart,**
-other API levels may not work.
-
-With everything installed, build an APK with SDL2 with e.g.:
-
-    p4a apk --private PATH_TO_YOUR_APP_CODE --package=org.example.myapp --name "My application" --version 0.1 --bootstrap=sdl2 --requirements=python3,kivy
-
-**If you need to deploy your app on Google Play, Android App Bundle (aab) is required since 1 August 2021:**
-
-**For full instructions and parameter options,** see [the
-documentation](https://python-for-android.readthedocs.io/en/latest/quickstart/#usage).
+python-for-android is managed by the [Kivy team](https://kivy.org).
 
 ## Support
 
-If you need assistance, you can ask for help on our mailing list:
+Are you having trouble using python-for-android or any of its related projects
+in the Kivy ecosystem?
+Is there an error you don’t understand? Are you trying to figure out how to use 
+it? We have volunteers who can help!
 
--  User Group: https://groups.google.com/group/kivy-users
--  Email: kivy-users@googlegroups.com
+The best channels to contact us for support are listed in the latest 
+[Contact Us](https://github.com/kivy/pyton-for-android/blob/master/CONTACT.md)
+document.
 
-We also have [#support Discord channel](https://chat.kivy.org/).
+## Code of Conduct
 
-## Contributing
+In the interest of fostering an open and welcoming community, we as 
+contributors and maintainers need to ensure participation in our project and 
+our sister projects is a harassment-free and positive experience for everyone. 
+It is vital that all interaction is conducted in a manner conveying respect, 
+open-mindedness and gratitude.
 
-We love pull requests and discussing novel ideas. Check out the Kivy
-project [contribution guide](https://kivy.org/doc/stable/contribute.html) and
-feel free to improve python-for-android.
-
-See [our
-documentation](https://python-for-android.readthedocs.io/en/latest/contribute/)
-for more information about the python-for-android development and
-release model, but don't worry about the details. You just need to
-make a pull request, we'll take care of the rest.
-
-The following mailing list and IRC channel are used exclusively for
-discussions about developing the Kivy framework and its sister projects:
-
--  Dev Group: https://groups.google.com/group/kivy-dev
--  Email: kivy-dev@googlegroups.com
-
-We also have [#dev Discord channel](https://chat.kivy.org/).
-
-## License
-
-python-for-android is released under the terms of the MIT License.
-Please refer to the LICENSE file.
-
-## History
-
-In 2015 these tools were rewritten to provide a new, easier-to-use and
-easier-to-extend interface. If you'd like to browse the old toolchain, its
-status is recorded for posterity at
-https://github.com/kivy/python-for-android/tree/old_toolchain.
-
-In the last quarter of 2018 the python recipes were changed. The
-new recipe for python3 (3.7.1) had a new build system which was
-applied to the ancient python recipe, allowing us to bump the python2
-version number to 2.7.15. This change unified the build process for
-both python recipes, and probably solved various issues detected over the
-years. These **unified python recipes** require a **minimum target api level of 21**,
-*Android 5.0 - Lollipop*. If you need to build targeting an
-api level below 21, you should use an older version of python-for-android
-(<=0.7.1).
-
-On March of 2020 we dropped support for creating apps that use Python 2. The latest
-python-for-android release that supported building Python 2 was version 2019.10.6.
-
-On August of 2021, we added support for Android App Bundle (aab). As a collateral,
-now We support multi-arch apk.
+Please consult the [latest Code of Conduct](https://github.com/kivy/python-for-android/blob/master/CODE_OF_CONDUCT.md).
 
 ## Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](https://kivy.org/doc/stable/contribute.html)].
-<a href="https://github.com/kivy/python-for-android/graphs/contributors"><img src="https://opencollective.com/kivy/contributors.svg?width=890&button=false" /></a>
+This project exists thanks to 
+[all the people who contribute](https://github.com/kivy/python-for-android/graphs/contributors).
+[[Become a contributor](CONTRIBUTING.md)].
 
+<img src="https://contrib.nn.ci/api?repo=kivy/python-for-android&pages=5&no_bot=true&radius=22&cols=18">
 
 ## Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
+Thank you to [all of our backers](https://opencollective.com/kivy)! 
+🙏 [[Become a backer](https://opencollective.com/kivy#backer)]
 
-<a href="https://opencollective.com/kivy#backers" target="_blank"><img src="https://opencollective.com/kivy/backers.svg?width=890"></a>
-
+<img src="https://opencollective.com/kivy/backers.svg?width=890&avatarHeight=44&button=false">
 
 ## Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/kivy#sponsor)]
+Special thanks to 
+[all of our sponsors, past and present](https://opencollective.com/kivy).
+Support this project by 
+[[becoming a sponsor](https://opencollective.com/kivy#sponsor)].
 
+Here are our top current sponsors. Please click through to see their websites,
+and support them as they support us. 
+
+<!--- See https://github.com/orgs/kivy/discussions/15 for explanation of this code. -->
 <a href="https://opencollective.com/kivy/sponsor/0/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/1/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/1/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/2/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/2/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/3/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/3/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/4/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/4/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/5/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/5/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/6/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/6/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/7/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/7/avatar.svg"></a>
+
 <a href="https://opencollective.com/kivy/sponsor/8/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/kivy/sponsor/9/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/10/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/10/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/11/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/11/avatar.svg"></a>
+
+<a href="https://opencollective.com/kivy/sponsor/12/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/12/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/13/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/13/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/14/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/14/avatar.svg"></a>
+<a href="https://opencollective.com/kivy/sponsor/15/website" target="_blank"><img src="https://opencollective.com/kivy/sponsor/15/avatar.svg"></a>

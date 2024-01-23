@@ -18,7 +18,7 @@
 # If platform is not specified, by default the target platform of the build request is used.
 # This is not what we want, as Google doesn't provide a linux/arm64 compatible NDK.
 # See: https://docs.docker.com/engine/reference/builder/#from
-FROM --platform=linux/amd64 ubuntu:20.04
+FROM --platform=linux/amd64 ubuntu:22.04
 
 # configure locale
 RUN apt -y update -qq > /dev/null \
@@ -48,43 +48,37 @@ ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}/app" \
     PATH="${HOME_DIR}/.local/bin:${PATH}" \
     ANDROID_HOME="${HOME_DIR}/.android" \
-    JAVA_HOME="/usr/lib/jvm/java-13-openjdk-amd64"
+    JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 
 
 # install system dependencies
-RUN dpkg --add-architecture i386 \
-    && ${RETRY} apt -y update -qq > /dev/null \
+RUN ${RETRY} apt -y update -qq > /dev/null \
     && ${RETRY} DEBIAN_FRONTEND=noninteractive apt install -qq --yes --no-install-recommends \
-    autoconf \
-    automake \
-    autopoint \
-    build-essential \
-    ccache \
-    cmake \
-    gettext \
-    git \
-    lbzip2 \
-    libffi-dev \
-    libgtk2.0-0:i386 \
-    libidn11:i386 \
-    libltdl-dev \
-    libncurses5:i386 \
-    libssl-dev \
-    libstdc++6:i386 \
-    libtool \
-    openjdk-13-jdk \
-    patch \
-    pkg-config \
-    python3 \
-    python3-dev \
-    python3-pip \
-    python3-venv \
-    sudo \
-    unzip \
-    wget \
-    zip \
-    zlib1g-dev \
-    zlib1g:i386 \
+        ant \
+        autoconf \
+        automake \
+        ccache \
+        cmake \
+        g++ \
+        gcc \
+        git \
+        lbzip2 \
+        libffi-dev \
+        libltdl-dev \
+        libtool \
+        libssl-dev \
+        make \
+        openjdk-17-jdk \
+        patch \
+        pkg-config \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        sudo \
+        unzip \
+        wget \
+        zip \
     && apt -y autoremove \
     && apt -y clean \
     && rm -rf /var/lib/apt/lists/*

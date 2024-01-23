@@ -14,10 +14,10 @@ class TestPandasRecipe(RecipeCtx, unittest.TestCase):
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     def test_get_recipe_env(
         self,
-        mock_find_executable,
+        mock_shutil_which,
         mock_ensure_dir,
         mock_check_recipe_choices,
     ):
@@ -27,7 +27,7 @@ class TestPandasRecipe(RecipeCtx, unittest.TestCase):
         returns the expected flags
         """
 
-        mock_find_executable.return_value = (
+        mock_shutil_which.return_value = (
             "/opt/android/android-ndk/toolchains/"
             "llvm/prebuilt/linux-x86_64/bin/clang"
         )
@@ -43,5 +43,5 @@ class TestPandasRecipe(RecipeCtx, unittest.TestCase):
 
         # make sure that the mocked methods are actually called
         mock_ensure_dir.assert_called()
-        mock_find_executable.assert_called()
+        mock_shutil_which.assert_called()
         mock_check_recipe_choices.assert_called()

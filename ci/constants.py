@@ -39,7 +39,10 @@ BROKEN_RECIPES_PYTHON3 = set([
     'boost',
     # libtorrent gives errors (requires boost. Also, see issue #2809, to start with)
     'libtorrent',
-
+    # pybind11 build fails on macos
+    'pybind11',
+    # pygame (likely need to be updated) is broken with newer SDL2 versions
+    'pygame',
 ])
 
 BROKEN_RECIPES = {

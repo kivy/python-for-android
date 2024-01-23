@@ -26,8 +26,8 @@ Concepts
 
 - **bootstrap:** A bootstrap is the app backend that will start your
   application. The default for graphical applications is SDL2.
-  You can also use e.g. the webview for web apps, or service_only/service_library  for
-  background services. Different bootstraps have different additional
+  You can also use e.g. the webview for web apps, or service_only/service_library for
+  background services, or qt for PySide6 apps. Different bootstraps have different additional
   build options.
 
 *Advanced:*
@@ -56,48 +56,45 @@ You can also test the master branch from Github using::
 
     pip install git+https://github.com/kivy/python-for-android.git
 
-Installing Dependencies
+Installing Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-p4a has several dependencies that must be installed:
+p4a requires a few dependencies to be installed on your system to work
+properly. While we're working on a way to automate pre-requisites checks,
+suggestions and installation on all platforms (macOS is already supported),
+on Linux distros you'll need to install them manually.
 
-- ant
-- autoconf (for libffi and other recipes)
-- automake
-- ccache (optional)
-- cmake (required for some native code recipes like jpeg's recipe)
-- cython (can be installed via pip)
-- gcc
-- git
-- libncurses (including 32 bit)
-- libtool (for libffi and recipes)
-- libssl-dev (for TLS/SSL support on hostpython3 and recipe)
-- openjdk-8
-- patch
-- python3
-- unzip
-- virtualenv (can be installed via pip)
-- zlib (including 32 bit)
-- zip
+On recent versions of Ubuntu and its derivatives you can easily install them via
+the following command (re-adapted from the `Dockerfile` we use to perform CI builds)::
 
-On recent versions of Ubuntu and its derivatives you may be able to
-install most of these with::
-
-    sudo dpkg --add-architecture i386
     sudo apt-get update
-    sudo apt-get install -y build-essential ccache git zlib1g-dev python3 python3-dev libncurses5:i386 libstdc++6:i386 zlib1g:i386 openjdk-8-jdk unzip ant ccache autoconf libtool libssl-dev
+    sudo apt-get install -y \
+        ant \
+        autoconf \
+        automake \
+        ccache \
+        cmake \
+        g++ \
+        gcc \
+        git \
+        lbzip2 \
+        libffi-dev \
+        libltdl-dev \
+        libtool \
+        libssl-dev \
+        make \
+        openjdk-17-jdk \
+        patch \
+        pkg-config \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        sudo \
+        unzip \
+        wget \
+        zip
 
-On Arch Linux you should be able to run the following to
-install most of the dependencies (note: this list may not be
-complete)::
-
-    sudo pacman -S core/autoconf core/automake core/gcc core/make core/patch core/pkgconf extra/cmake extra/jdk8-openjdk extra/python-pip extra/unzip extra/zip
-
-On macOS::
-
-    brew install autoconf automake libtool openssl pkg-config
-    brew tap homebrew/cask-versions
-    brew install --cask homebrew/cask-versions/adoptopenjdk8
 
 Installing Android SDK
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -284,7 +281,7 @@ Recipe management
 You can see the list of the available recipes with::
 
     p4a recipes
-    
+
 If you are contributing to p4a and want to test a recipes again,
 you need to clean the build and rebuild your distribution::
 
@@ -298,7 +295,6 @@ it (edit the ``__init__.py``)::
 
     mkdir -p p4a-recipes/myrecipe
     touch p4a-recipes/myrecipe/__init__.py
-    
 
 Distribution management
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -366,5 +362,4 @@ See the other pages of this doc for more information on specific topics:
 - :doc:`bootstraps`
 - :doc:`apis`
 - :doc:`troubleshooting`
-- :doc:`launcher`
 - :doc:`contribute`

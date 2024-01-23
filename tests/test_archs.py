@@ -92,9 +92,9 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
     will be used to perform tests for :class:`~pythonforandroid.archs.ArchARM`.
     """
 
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    def test_arch_arm(self, mock_ensure_dir, mock_find_executable):
+    def test_arch_arm(self, mock_ensure_dir, mock_shutil_which):
         """
         Test that class :class:`~pythonforandroid.archs.ArchARM` returns some
         expected attributes and environment variables.
@@ -103,13 +103,13 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
             Here we mock two methods:
 
                 - `ensure_dir` because we don't want to create any directory
-                - `find_executable` because otherwise we will
+                - `shutil.which` because otherwise we will
                   get an error when trying to find the compiler (we are setting
                   some fake paths for our android sdk and ndk so probably will
                   not exist)
 
         """
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
 
         arch = ArchARM(self.ctx)
@@ -126,8 +126,8 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
             expected_env_gcc_keys, set(env.keys()) & expected_env_gcc_keys
         )
 
-        # check find_executable calls
-        mock_find_executable.assert_called_once_with(
+        # check shutil.which calls
+        mock_shutil_which.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 
@@ -163,7 +163,7 @@ class TestArchARM(ArchSetUpBaseClass, unittest.TestCase):
         self.assertEqual(env["NDK_CCACHE"], "/usr/bin/ccache")
 
         # Check exception in case that CC is not found
-        mock_find_executable.return_value = None
+        mock_shutil_which.return_value = None
         with self.assertRaises(BuildInterruptingException) as e:
             arch.get_env()
         self.assertEqual(
@@ -182,10 +182,10 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
     :class:`~pythonforandroid.archs.ArchARMv7_a`.
     """
 
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_armv7a(
-        self, mock_ensure_dir, mock_find_executable
+        self, mock_ensure_dir, mock_shutil_which
     ):
         """
         Test that class :class:`~pythonforandroid.archs.ArchARMv7_a` returns
@@ -197,7 +197,7 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
             This has to be done because here we tests the `get_env` with clang
 
         """
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
 
         arch = ArchARMv7_a(self.ctx)
@@ -207,8 +207,8 @@ class TestArchARMv7a(ArchSetUpBaseClass, unittest.TestCase):
         self.assertEqual(arch.target, "armv7a-linux-androideabi21")
 
         env = arch.get_env()
-        # check find_executable calls
-        mock_find_executable.assert_called_once_with(
+        # check shutil.which calls
+        mock_shutil_which.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 
@@ -241,9 +241,9 @@ class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
     will be used to perform tests for :class:`~pythonforandroid.archs.Archx86`.
     """
 
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     @mock.patch("pythonforandroid.build.ensure_dir")
-    def test_arch_x86(self, mock_ensure_dir, mock_find_executable):
+    def test_arch_x86(self, mock_ensure_dir, mock_shutil_which):
         """
         Test that class :class:`~pythonforandroid.archs.Archx86` returns
         some expected attributes and environment variables.
@@ -255,7 +255,7 @@ class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
             which is probably the case. This has to be done because here we
             tests the `get_env` with clang
         """
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
 
         arch = Archx86(self.ctx)
@@ -265,8 +265,8 @@ class TestArchX86(ArchSetUpBaseClass, unittest.TestCase):
         self.assertEqual(arch.target, "i686-linux-android21")
 
         env = arch.get_env()
-        # check find_executable calls
-        mock_find_executable.assert_called_once_with(
+        # check shutil.which calls
+        mock_shutil_which.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 
@@ -284,10 +284,10 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
     :class:`~pythonforandroid.archs.Archx86_64`.
     """
 
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_x86_64(
-        self, mock_ensure_dir, mock_find_executable
+        self, mock_ensure_dir, mock_shutil_which
     ):
         """
         Test that class :class:`~pythonforandroid.archs.Archx86_64` returns
@@ -300,7 +300,7 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
             which is probably the case. This has to be done because here we
             tests the `get_env` with clang
         """
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
 
         arch = Archx86_64(self.ctx)
@@ -310,13 +310,13 @@ class TestArchX86_64(ArchSetUpBaseClass, unittest.TestCase):
         self.assertEqual(arch.target, "x86_64-linux-android21")
 
         env = arch.get_env()
-        # check find_executable calls
-        mock_find_executable.assert_called_once_with(
+        # check shutil.which calls
+        mock_shutil_which.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 
         # For x86_64 we expect some extra cflags in our `environment`
-        mock_find_executable.assert_called_once()
+        mock_shutil_which.assert_called_once()
         self.assertIn(
             " -march=x86-64 -msse4.2 -mpopcnt -m64", env["CFLAGS"]
         )
@@ -329,10 +329,10 @@ class TestArchAArch64(ArchSetUpBaseClass, unittest.TestCase):
     :class:`~pythonforandroid.archs.ArchAarch_64`.
     """
 
-    @mock.patch("pythonforandroid.archs.find_executable")
+    @mock.patch("shutil.which")
     @mock.patch("pythonforandroid.build.ensure_dir")
     def test_arch_aarch_64(
-        self, mock_ensure_dir, mock_find_executable
+        self, mock_ensure_dir, mock_shutil_which
     ):
         """
         Test that class :class:`~pythonforandroid.archs.ArchAarch_64` returns
@@ -345,7 +345,7 @@ class TestArchAArch64(ArchSetUpBaseClass, unittest.TestCase):
             which is probably the case. This has to be done because here we
             tests the `get_env` with clang
         """
-        mock_find_executable.return_value = self.expected_compiler
+        mock_shutil_which.return_value = self.expected_compiler
         mock_ensure_dir.return_value = True
 
         arch = ArchAarch_64(self.ctx)
@@ -355,8 +355,8 @@ class TestArchAArch64(ArchSetUpBaseClass, unittest.TestCase):
         self.assertEqual(arch.target, "aarch64-linux-android21")
 
         env = arch.get_env()
-        # check find_executable calls
-        mock_find_executable.assert_called_once_with(
+        # check shutil.which calls
+        mock_shutil_which.assert_called_once_with(
             self.expected_compiler, path=environ["PATH"]
         )
 

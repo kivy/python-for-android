@@ -4,7 +4,7 @@ from os.path import join
 
 class Pybind11Recipe(PythonRecipe):
 
-    version = '2.9.0'
+    version = '2.11.1'
     url = 'https://github.com/pybind/pybind11/archive/refs/tags/v{version}.zip'
     depends = ['setuptools']
     call_hostpython_via_targetpython = False

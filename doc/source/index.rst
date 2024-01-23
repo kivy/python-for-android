@@ -1,23 +1,48 @@
 python-for-android
 ==================
 
-python-for-android is an open source build tool to let you package
-Python code into standalone android APKs. These can be passed around,
-installed, or uploaded to marketplaces such as the Play Store just
-like any other Android app. This tool was originally developed for the
-`Kivy cross-platform graphical framework <http://kivy.org/#home>`_,
-but now supports multiple bootstraps and can be easily extended to
-package other types of Python apps for Android.
+python-for-android (p4a) is a development tool that packages Python apps into
+binaries that can run on Android devices.
 
-python-for-android supports two major operations; first, it can
-compile the Python interpreter, its dependencies, backend libraries
-and python code for Android devices. This stage is fully customisable:
-you can install as many or few components as you like.  The result is
-a standalone Android project which can be used to generate any number
-of different APKs, even with different names, icons, Python code etc.
-The second function of python-for-android is to provide a simple
-interface to these distributions, to generate from such a project a
-Python APK with build parameters and Python code to taste.
+It can generate:
+
+* `Android Package <https://en.wikipedia.org/wiki/Apk_(file_format)>`_ (APK)
+  files, ready to install locally on a device, especially for testing. This format
+  is used by many `app stores <https://en.wikipedia.org/wiki/List_of_Android_app_stores>`_
+  but not `Google Play Store <https://play.google.com/store/>`_.
+* `Android App Bundle <https://developer.android.com/guide/app-bundle/faq>`_
+  (AAB) files which can be shared on `Google Play Store <https://play.google.com/store/>`_.
+* `Android Archive <https://developer.android.com/studio/projects/android-library>`_
+  (AAR) files which can be used as a re-usable bundle of resources for other
+  projects.
+
+It supports multiple CPU architectures.
+
+It supports apps developed with `Kivy framework <http://kivy.org>`_, but was
+built to be flexible about the backend libraries (through "bootstraps"), and
+also supports `PySDL2 <https://pypi.org/project/PySDL2/>`_, and a
+`WebView <https://developer.android.com/reference/android/webkit/WebView>`_ with
+a Python web server.
+
+It automatically supports dependencies on most pure Python packages. For other
+packages, including those that depend on C code, a special "recipe" must be
+written to support cross-compiling. python-for-android comes with recipes for
+many of the mosty popular libraries (e.g. numpy and sqlalchemy) built in.
+
+python-for-android works by cross-compiling the Python interpreter and its
+dependencies for Android devices, and bundling it with the app's python code
+and dependencies. The Python code is then interpreted on the Android device.
+
+It is recommended that python-for-android be used via
+`Buildozer <https://buildozer.readthedocs.io/>`_, which ensures the correct
+dependencies are pre-installed, and centralizes the configuration. However,
+python-for-android is not limited to being used with Buildozer.
+
+Buildozer is released and distributed under the terms of the MIT license. You
+should have received a
+copy of the MIT license alongside your distribution. Our
+`latest license <https://github.com/kivy/python-for-android/blob/master/LICENSE>`_
+is also available.
 
 
 Contents
@@ -30,15 +55,16 @@ Contents
    buildoptions
    commands
    apis
-   launcher
    distutils
    recipes
    bootstraps
    services
    troubleshooting
    docker
-   contribute
    testing_pull_requests
+   faq
+   contribute
+   contact
 
 
 Indices and tables

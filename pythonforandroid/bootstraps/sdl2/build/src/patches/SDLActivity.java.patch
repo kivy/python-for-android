@@ -1,18 +1,19 @@
 --- a/src/main/java/org/libsdl/app/SDLActivity.java
 +++ b/src/main/java/org/libsdl/app/SDLActivity.java
-@@ -222,6 +222,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -221,6 +221,8 @@
+ 
      // This is what SDL runs in. It invokes SDL_main(), eventually
      protected static Thread mSDLThread;
- 
-+    public static int keyboardInputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
 +
++    public static int keyboardInputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+ 
      protected static SDLGenericMotionListener_API12 getMotionListener() {
          if (mMotionListener == null) {
-             if (Build.VERSION.SDK_INT >= 26) {
-@@ -324,6 +326,15 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -323,6 +325,15 @@
+         Log.v(TAG, "Model: " + Build.MODEL);
          Log.v(TAG, "onCreate()");
          super.onCreate(savedInstanceState);
- 
++
 +        SDLActivity.initialize();
 +        // So we can call stuff from static callbacks
 +        mSingleton = this;
@@ -21,11 +22,10 @@
 +    // We don't do this in onCreate because we unpack and load the app data on a thread
 +    // and we can't run setup tasks until that thread completes.
 +    protected void finishLoad() {
-+
+ 
          try {
              Thread.currentThread().setName("SDLActivity");
-         } catch (Exception e) {
-@@ -835,7 +846,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -837,7 +848,7 @@
      Handler commandHandler = new SDLCommandHandler();
  
      // Send a message from the SDLMain thread
@@ -34,28 +34,30 @@
          Message msg = commandHandler.obtainMessage();
          msg.arg1 = command;
          msg.obj = data;
-@@ -1384,6 +1395,20 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
+@@ -1385,7 +1396,22 @@
+             return null;
+         }
          return SDLActivity.mSurface.getNativeSurface();
-     }
- 
-+      /**
-+      * Calls turnActive() on singleton to keep loading screen active
-+      */
-+     public static void triggerAppConfirmedActive() {
-+         mSingleton.appConfirmedActive();
-+     }
-+ 
-+     /**
-+      * Trick needed for loading screen, overridden by PythonActivity
-+      * to keep loading screen active
-+      */
-+     public void appConfirmedActive() {
-+     }
++    }
 +
++    /**
++    * Calls turnActive() on singleton to keep loading screen active
++    */
++    public static void triggerAppConfirmedActive() {
++        mSingleton.appConfirmedActive();
+     }
++  
++    /**
++     * Trick needed for loading screen, overridden by PythonActivity
++     * to keep loading screen active
++     */
++    public void appConfirmedActive() {
++    }
++ 
+ 
      // Input
  
-     /**
-@@ -1878,6 +1903,7 @@ class SDLMain implements Runnable {
+@@ -1881,6 +1907,7 @@
  
          Log.v("SDL", "Running main function " + function + " from library " + library);
  
@@ -63,7 +65,7 @@
          SDLActivity.nativeRunMain(library, function, arguments);
  
          Log.v("SDL", "Finished main function");
-@@ -1935,8 +1961,7 @@ class DummyEdit extends View implements View.OnKeyListener {
+@@ -1938,8 +1965,7 @@
      public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
          ic = new SDLInputConnection(this, true);
  

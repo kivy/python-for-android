@@ -17,11 +17,10 @@ import tarfile
 import tempfile
 import time
 
-from distutils.version import LooseVersion
 from fnmatch import fnmatch
 import jinja2
 
-from pythonforandroid.util import rmdir, ensure_dir
+from pythonforandroid.util import rmdir, ensure_dir, max_build_tool_version
 
 
 def get_dist_info_for(key, error_if_missing=True):
@@ -84,7 +83,7 @@ else:
 if PYTHON is not None and not exists(PYTHON):
     PYTHON = None
 
-if _bootstrap_name in ('sdl2', 'webview', 'service_only'):
+if _bootstrap_name in ('sdl2', 'webview', 'service_only', 'qt'):
     WHITELIST_PATTERNS.append('pyconfig.h')
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
@@ -512,9 +511,7 @@ main.py that loads it.''')
     # Try to build with the newest available build tools
     ignored = {".DS_Store", ".ds_store"}
     build_tools_versions = [x for x in listdir(join(sdk_dir, 'build-tools')) if x not in ignored]
-    build_tools_versions = sorted(build_tools_versions,
-                                  key=LooseVersion)
-    build_tools_version = build_tools_versions[-1]
+    build_tools_version = max_build_tool_version(build_tools_versions)
 
     # Folder name for launcher (used by SDL2 bootstrap)
     url_scheme = 'kivy'
@@ -546,6 +543,7 @@ main.py that loads it.''')
     }
     if get_bootstrap_name() == "sdl2":
         render_args["url_scheme"] = url_scheme
+
     render(
         'AndroidManifest.tmpl.xml',
         manifest_path,
@@ -574,7 +572,8 @@ main.py that loads it.''')
     render(
         'gradle.tmpl.properties',
         'gradle.properties',
-        args=args)
+        args=args,
+        bootstrap_name=get_bootstrap_name())
 
     # ant build templates
     render(
@@ -603,6 +602,26 @@ main.py that loads it.''')
         'strings.tmpl.xml',
         join(res_dir, 'values/strings.xml'),
         **render_args)
+
+    # Library resources from Qt
+    # These are referred by QtLoader.java in Qt6AndroidBindings.jar
+    # qt_libs and load_local_libs are loaded at App startup
+    if get_bootstrap_name() == "qt":
+        qt_libs = args.qt_libs.split(",")
+        load_local_libs = args.load_local_libs.split(",")
+        init_classes = args.init_classes
+        if init_classes:
+            init_classes = init_classes.split(",")
+            init_classes = ":".join(init_classes)
+        arch = get_dist_info_for("archs")[0]
+        render(
+            'libs.tmpl.xml',
+            join(res_dir, 'values/libs.xml'),
+            qt_libs=qt_libs,
+            load_local_libs=load_local_libs,
+            init_classes=init_classes,
+            arch=arch
+        )
 
     if exists(join("templates", "custom_rules.tmpl.xml")):
         render(
@@ -954,6 +973,14 @@ tools directory of the Android SDK.
                     help='Use that parameter if you need to implement your own PythonServive Java class')
     ap.add_argument('--activity-class-name', dest='activity_class_name', default=DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS,
                     help='The full java class name of the main activity')
+    if get_bootstrap_name() == "qt":
+        ap.add_argument('--qt-libs', dest='qt_libs', required=True,
+                        help='comma separated list of Qt libraries to be loaded')
+        ap.add_argument('--load-local-libs', dest='load_local_libs', required=True,
+                        help='comma separated list of Qt plugin libraries to be loaded')
+        ap.add_argument('--init-classes', dest='init_classes', default='',
+                        help='comma separated list of java class names to be loaded from the Qt jar files, '
+                             'specified through add_jar cli option')
 
     return ap
 
@@ -1055,6 +1082,4 @@ def parse_args_and_make_package(args=None):
 
 
 if __name__ == "__main__":
-    if get_bootstrap_name() in ('sdl2', 'webview', 'service_only'):
-        WHITELIST_PATTERNS.append('pyconfig.h')
     parse_args_and_make_package()

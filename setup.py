@@ -22,7 +22,7 @@ data_files = []
 install_reqs = [
     'appdirs', 'colorama>=0.3.3', 'jinja2',
     'sh>=1.10, <2.0; sys_platform!="win32"',
-    'build', 'toml', 'packaging',
+    'build', 'toml', 'packaging', 'setuptools'
 ]
 # (build and toml are used by pythonpackage.py)
 
@@ -34,7 +34,8 @@ install_reqs = [
 def recursively_include(results, directory, patterns):
     for root, subfolders, files in walk(directory):
         for fn in files:
-            if not any(glob.fnmatch.fnmatch(fn, pattern) for pattern in patterns):
+            if not any(
+                    glob.fnmatch.fnmatch(fn, pattern) for pattern in patterns):
                 continue
             filename = join(root, fn)
             directory = 'pythonforandroid'
@@ -47,9 +48,12 @@ recursively_include(package_data, 'pythonforandroid/recipes',
                     ['*.patch', 'Setup*', '*.pyx', '*.py', '*.c', '*.h',
                      '*.mk', '*.jam', '*.diff', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
-                    ['*.properties', '*.xml', '*.java', '*.tmpl', '*.txt', '*.png',
-                     '*.mk', '*.c', '*.h', '*.py', '*.sh', '*.jpg', '*.aidl',
-                     '*.gradle', '.gitkeep', 'gradlew*', '*.jar', "*.patch", ])
+                    [
+                        '*.properties', '*.xml', '*.java', '*.tmpl', '*.txt',
+                        '*.png', '*.mk', '*.c', '*.h', '*.py', '*.sh', '*.jpg',
+                        '*.aidl', '*.gradle', '.gitkeep', 'gradlew*', '*.jar',
+                        '*.patch',
+                    ])
 recursively_include(package_data, 'pythonforandroid/bootstraps',
                     ['sdl-config', ])
 recursively_include(package_data, 'pythonforandroid/bootstraps/webview',
@@ -59,8 +63,7 @@ recursively_include(package_data, 'pythonforandroid',
 
 with open(join(dirname(__file__), 'README.md'),
           encoding="utf-8",
-          errors="replace",
-         ) as fileh:
+          errors="replace", ) as fileh:
     long_description = fileh.read()
 
 init_filen = join(dirname(__file__), 'pythonforandroid', '__init__.py')
@@ -68,8 +71,7 @@ version = None
 try:
     with open(init_filen,
               encoding="utf-8",
-              errors="replace"
-             ) as fileh:
+              errors="replace") as fileh:
         lines = fileh.readlines()
 except IOError:
     pass
@@ -82,15 +84,19 @@ else:
                 version = matches[0].strip("'").strip('"')
                 break
 if version is None:
-    raise Exception('Error: version could not be loaded from {}'.format(init_filen))
+    raise Exception(
+        'Error: version could not be loaded from {}'.format(init_filen))
 
 setup(name='python-for-android',
       version=version,
-      description='Android APK packager for Python scripts and apps',
+      description=(
+          'A development tool that packages Python apps into '
+          'binaries that can run on Android devices.'
+      ),
       long_description=long_description,
       long_description_content_type='text/markdown',
       python_requires=">=3.7.0",
-      author='The Kivy team',
+      author='Kivy Team and other contributors',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/kivy/python-for-android',
       license='MIT',
@@ -121,9 +127,16 @@ setup(name='python-for-android',
           'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: 3.9',
           'Programming Language :: Python :: 3.10',
+          'Programming Language :: Python :: 3.11',
           'Topic :: Software Development',
           'Topic :: Utilities',
           ],
       packages=packages,
       package_data=package_data,
+      project_urls={
+          'Documentation': "https://python-for-android.readthedocs.io",
+          'Source': "https://github.com/kivy/python-for-android",
+          'Bug Reports': "https://github.com/kivy/python-for-android/issues",
+      },
+
       )

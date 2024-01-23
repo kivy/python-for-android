@@ -82,6 +82,26 @@ testapps-service_library-aar: virtualenv
     --requirements python3 \
     --arch=arm64-v8a --arch=x86 --release
 
+testapps-qt: testapps-qt/debug/apk testapps-qt/release/aab
+
+# testapps-webview/MODE/ARTIFACT
+testapps-qt/%: virtualenv
+	$(eval MODE := $(word 2, $(subst /, ,$@)))
+	$(eval ARTIFACT := $(word 3, $(subst /, ,$@)))
+	@echo Building testapps-qt for $(MODE) mode and $(ARTIFACT) artifact
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py $(ARTIFACT) --$(MODE) --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
+    --bootstrap qt \
+    --requirements python3,shiboken6,pyside6 \
+    --arch=arm64-v8a \
+	--local-recipes ./test_qt/recipes \
+	--qt-libs Core \
+	--load-local-libs plugins_platforms_qtforandroid \
+	--add-jar ./test_qt/jar/PySide6/jar/Qt6Android.jar \
+	--add-jar ./test_qt/jar/PySide6/jar/Qt6AndroidBindings.jar \
+	--permission android.permission.WRITE_EXTERNAL_STORAGE \
+	--permission android.permission.INTERNET
+
 testapps/%: virtualenv
 	$(eval $@_APP_ARCH := $(shell basename $*))
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
