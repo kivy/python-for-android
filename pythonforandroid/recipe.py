@@ -1,4 +1,4 @@
-from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
+from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split, sep
 import glob
 
 import hashlib
@@ -7,6 +7,7 @@ from re import match
 import sh
 import shutil
 import fnmatch
+import zipfile
 import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, curdir, walk
@@ -20,7 +21,7 @@ except ImportError:
 import packaging.version
 
 from pythonforandroid.logger import (
-    logger, info, warning, debug, shprint, info_main)
+    logger, info, warning, debug, shprint, info_main, error)
 from pythonforandroid.util import (
     current_directory, ensure_dir, BuildInterruptingException, rmdir, move,
     touch)
@@ -175,6 +176,7 @@ class Recipe(metaclass=RecipeMeta):
         """
         if not url:
             return
+
         info('Downloading {} from {}'.format(self.name, url))
 
         if cwd:
@@ -458,7 +460,6 @@ class Recipe(metaclass=RecipeMeta):
                             # apparently happens sometimes with
                             # github zips
                             pass
-                        import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
                         if root_directory != basename(directory_name):
@@ -837,6 +838,9 @@ class PythonRecipe(Recipe):
                  on python2 or python3 which can break the dependency graph
     '''
 
+    hostpython_prerequisites = []
+    '''List of hostpython packages required to build a recipe'''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -930,6 +934,7 @@ class PythonRecipe(Recipe):
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
+        self.install_hostpython_prerequisites()
         super().build_arch(arch)
         self.install_python_package(arch)
 
@@ -958,8 +963,12 @@ class PythonRecipe(Recipe):
 
     def get_hostrecipe_env(self, arch):
         env = environ.copy()
-        env['PYTHONPATH'] = join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
+        env['PYTHONPATH'] = self.hostpython_site_dir
         return env
+
+    @property
+    def hostpython_site_dir(self):
+        return join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
 
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
@@ -968,6 +977,27 @@ class PythonRecipe(Recipe):
                 '--root={}'.format(dirname(self.real_hostpython_location)),
                 '--install-lib=Lib/site-packages',
                 _env=env, *self.setup_extra_args)
+
+    @property
+    def python_version(self):
+        return Recipe.get_recipe("python3", self.ctx).version
+
+    def install_hostpython_prerequisites(self, force_upgrade=True):
+        if len(self.hostpython_prerequisites) == 0:
+            return
+        pip_options = [
+            "install",
+            *self.hostpython_prerequisites,
+            "--target", self.hostpython_site_dir, "--python-version",
+            self.python_version,
+            # Don't use sources, instead wheels
+            "--only-binary=:all:",
+            "--no-deps"
+        ]
+        if force_upgrade:
+            pip_options.append("--upgrade")
+        # Use system's pip
+        shprint(sh.pip, *pip_options)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
@@ -1125,6 +1155,144 @@ class CythonRecipe(PythonRecipe):
         ensure_dir(liblink_path)
 
         return env
+
+
+class RustCompiledComponentsRecipe(PythonRecipe):
+    # Rust toolchain codes
+    # https://doc.rust-lang.org/nightly/rustc/platform-support.html
+    RUST_ARCH_CODES = {
+        "arm64-v8a": "aarch64-linux-android",
+        "armeabi-v7a": "armv7-linux-androideabi",
+        "x86_64": "x86_64-linux-android",
+        "x86": "i686-linux-android",
+    }
+
+    # Build python wheel using `maturin` instead
+    # of default `python -m build [...]`
+    use_maturin = False
+
+    # Directory where to find built wheel
+    # For normal build: "dist/*.whl"
+    # For maturin: "target/wheels/*-linux_*.whl"
+    built_wheel_pattern = None
+
+    call_hostpython_via_targetpython = False
+
+    def __init__(self, *arg, **kwargs):
+        super().__init__(*arg, **kwargs)
+        self.append_deps_if_absent(["python3"])
+        self.set_default_hostpython_deps()
+        if not self.built_wheel_pattern:
+            self.built_wheel_pattern = (
+                "target/wheels/*-linux_*.whl"
+                if self.use_maturin
+                else "dist/*.whl"
+            )
+
+    def set_default_hostpython_deps(self):
+        if not self.use_maturin:
+            self.hostpython_prerequisites += ["build", "setuptools_rust", "wheel", "pyproject_hooks"]
+        else:
+            self.hostpython_prerequisites += ["maturin"]
+
+    def append_deps_if_absent(self, deps):
+        for dep in deps:
+            if dep not in self.depends:
+                self.depends.append(dep)
+
+    def get_recipe_env(self, arch):
+        env = super().get_recipe_env(arch)
+
+        # Set rust build target
+        build_target = self.RUST_ARCH_CODES[arch.arch]
+        cargo_linker_name = "CARGO_TARGET_{}_LINKER".format(
+            build_target.upper().replace("-", "_")
+        )
+        env["CARGO_BUILD_TARGET"] = build_target
+        env[cargo_linker_name] = join(
+            self.ctx.ndk.llvm_prebuilt_dir,
+            "bin",
+            "{}{}-clang".format(
+                # NDK's Clang format
+                build_target.replace("7", "7a")
+                if build_target.startswith("armv7")
+                else build_target,
+                self.ctx.ndk_api,
+            ),
+        )
+        realpython_dir = Recipe.get_recipe("python3", self.ctx).get_build_dir(arch.arch)
+
+        env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(
+            self.ctx.get_libs_dir(arch.arch), join(realpython_dir, "android-build")
+        )
+
+        env["PYO3_CROSS_LIB_DIR"] = realpath(glob.glob(join(
+            realpython_dir, "android-build", "build",
+            "lib.linux-*-{}/".format(self.get_python_formatted_version()),
+        ))[0])
+
+        info_main("Ensuring rust build toolchain")
+        shprint(sh.rustup, "target", "add", build_target)
+
+        # Add host python to PATH
+        env["PATH"] = ("{hostpython_dir}:{old_path}").format(
+            hostpython_dir=Recipe.get_recipe(
+                "hostpython3", self.ctx
+            ).get_path_to_python(),
+            old_path=env["PATH"],
+        )
+        return env
+
+    def get_python_formatted_version(self):
+        parsed_version = packaging.version.parse(self.python_version)
+        return f"{parsed_version.major}.{parsed_version.minor}"
+
+    def check_host_deps(self):
+        if not hasattr(sh, "rustup"):
+            error(
+                "`rustup` was not found on host system."
+                "Please install it using :"
+                "\n`curl https://sh.rustup.rs -sSf | sh`\n"
+            )
+            exit(1)
+
+    def build_arch(self, arch):
+        self.check_host_deps()
+        self.install_hostpython_prerequisites()
+        build_dir = self.get_build_dir(arch.arch)
+        env = self.get_recipe_env(arch)
+        built_wheel = None
+
+        # Copy the exec with version info
+        hostpython_exec = join(
+            sep,
+            *self.hostpython_location.split(sep)[:-1],
+            "python{}".format(self.get_python_formatted_version()),
+        )
+        shprint(sh.cp, self.hostpython_location, hostpython_exec)
+
+        with current_directory(build_dir):
+            if self.use_maturin:
+                shprint(
+                    sh.Command(join(self.hostpython_site_dir, "bin", "maturin")),
+                    "build", "--interpreter", hostpython_exec, "--skip-auditwheel",
+                    _env=env,
+                )
+            else:
+                shprint(
+                    sh.Command(hostpython_exec),
+                    "-m", "build", "--no-isolation", "--skip-dependency-check", "--wheel",
+                    _env=env,
+                )
+            # Find the built wheel
+            built_wheel = realpath(glob.glob(self.built_wheel_pattern)[0])
+
+        info("Unzipping built wheel '{}'".format(basename(built_wheel)))
+
+        # Unzip .whl file into site-packages
+        with zipfile.ZipFile(built_wheel, "r") as zip_ref:
+            zip_ref.extractall(self.ctx.get_python_install_dir(arch.arch))
+        info("Successfully installed  '{}'".format(basename(built_wheel)))
 
 
 class TargetPythonRecipe(Recipe):
