@@ -793,6 +793,8 @@ tools directory of the Android SDK.
                               'launcher, rather than a single app.'))
         ap.add_argument('--home-app', dest='home_app', action='store_true', default=False,
                         help=('Turn your application into a home app (launcher)'))
+    ap.add_argument('--display-cutout', dest='display_cutout', default='never',
+                    help=('Enables display-cutout that renders around the area (notch) on some devices that extends into the display surface'))
     ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
