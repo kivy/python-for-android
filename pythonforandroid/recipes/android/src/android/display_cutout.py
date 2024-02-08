@@ -1,41 +1,45 @@
 from jnius import autoclass
+from kivy.core.window import Window
+
 from android import mActivity
 
-__all__ = ('ensure_display_cutout', 'get_cutout_size', 'get_size_of_bar')
+__all__ = ('get_cutout_pos', 'get_cutout_size', 'get_width_of_bar',
+           'get_height_of_bar', 'get_size_of_bar')
 
 
-def _decorview():
-    return mActivity.getWindow().getDecorView()
+def _core_cutout():
+    decorview = mActivity.getWindow().getDecorView()
+    cutout = decorview.rootWindowInsets.displayCutout
+
+    return cutout.boundingRects.get(0)
+
+
+def get_cutout_pos():
+    """ Get position of the display-cutout.
+        Returns integer for each positions (xy)
+    """
+    try:
+        cutout = _core_cutout()
+        return int(cutout.left), Window.height - int(cutout.height())
+    except Exception:
+        # Doesn't have a camera builtin with the display
+        return 0, 0
 
 
 def get_cutout_size():
-    " Get the size of the front camera "
+    """ Get the size (xy) of the front camera.
+        Returns size with float values
+    """
     try:
-        cutout = _decorview().rootWindowInsets.displayCutout
-        rect = cutout.boundingRects.get(0)
-
-        return float(rect.width()), float(rect.height())
-
+        cutout = _core_cutout()
+        return float(cutout.width()), float(cutout.height())
     except Exception:
+        # Doesn't have a camera builtin with the display
         return 0., 0.
 
 
-def ensure_display_cutout():
-    """ Ensure display cutout is taking place on newer androids
-        To be used with on_start with Kivy.
-        Also needs the decorator run_on_ui_thread
-    """
-    AndroidView = autoclass('android.view.View')
-    _decorview().setSystemUiVisibility(
-        AndroidView.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
-        AndroidView.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-        AndroidView.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-
-    return True
-
-
-def get_size_of_bar(bar_target=None):
-    """ Get the size of either statusbar or navigationbar
+def get_height_of_bar(bar_target=None):
+    """ Get the height of either statusbar or navigationbar
         bar_target = status or navigation and defaults to status
     """
     bar_target = bar_target or 'status'
@@ -51,6 +55,18 @@ def get_size_of_bar(bar_target=None):
                                              'android')
 
         return float(max(resources.getDimensionPixelSize(resourceId), 0))
-
     except Exception:
+        # Getting the size is not supported on older Androids
         return 0.
+
+
+def get_width_of_bar(bar_target=None):
+    " Get the width of the bar "
+    return Window.width
+
+
+def get_size_of_bar(bar_target):
+    """ Get the size of either statusbar or navigationbar
+        bar_target = status or navigation and defaults to status
+    """
+    return get_width_of_bar(), get_height_of_bar(bar_target)
