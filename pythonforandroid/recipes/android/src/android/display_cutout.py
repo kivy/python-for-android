@@ -65,7 +65,7 @@ def get_width_of_bar(bar_target=None):
     return Window.width
 
 
-def get_size_of_bar(bar_target):
+def get_size_of_bar(bar_target=None):
     """ Get the size of either statusbar or navigationbar
         bar_target = status or navigation and defaults to status
     """
