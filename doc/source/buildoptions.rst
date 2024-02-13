@@ -72,6 +72,10 @@ options (this list may not be exhaustive):
 - ``--permission``: A permission that needs to be declared into the App ``AndroidManifest.xml``.
   For multiple permissions, add multiple ``--permission`` arguments.
   ``--home-app`` Gives you the option to set your application as a home app (launcher) on your Android device.
+  ``--display-cutout``: A display cutout is an area on some devices that extends into the display surface.
+  It allows for an edge-to-edge experience while providing space for important sensors on the front of the device.
+  (Available options are ``default``, ``shortEdges``, ``never`` and defaults to ``never``)
+  `Android documentation <https://developer.android.com/develop/ui/views/layout/display-cutout>`__.
 
   .. Note ::
     ``--permission`` accepts the following syntaxes: 
