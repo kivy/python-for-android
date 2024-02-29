@@ -764,7 +764,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
         if project_dir is not None and (
                 project_has_setup_py(project_dir) and not ignore_setup_py
                 ):
-            run_setuppy_install(ctx, project_dir, env, arch.arch)
+            run_setuppy_install(ctx, project_dir, env, arch)
         elif not ignore_setup_py:
             info("No setup.py found in project directory: " + str(project_dir))
 
