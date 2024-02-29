@@ -85,7 +85,7 @@ def test_get_dep_names_of_package():
     # TEST 1 from external ref:
     # Check that colorama is returned without the install condition when
     # just getting the names (it has a "; ..." conditional originally):
-    dep_names = get_dep_names_of_package("python-for-android")
+    dep_names = get_dep_names_of_package("python-for-android==2023.9.16")
     assert "colorama" in dep_names
     assert "setuptools" not in dep_names
     try:
