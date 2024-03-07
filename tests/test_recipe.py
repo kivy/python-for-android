@@ -1,16 +1,16 @@
 import os
 import pytest
+import tempfile
 import types
 import unittest
 import warnings
 from unittest import mock
-from backports import tempfile
 
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe, import_recipe
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
-from test_bootstrap import BaseClassSetupBootstrap
+from tests.test_bootstrap import BaseClassSetupBootstrap
 
 
 def patch_logger(level):
