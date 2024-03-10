@@ -17,6 +17,11 @@
     <!-- Android 2.3.3 -->
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
 
+    <!-- other features -->
+    {% for feat in args.features %}
+    <uses-feature android:name="{{ feat }}" />
+    {% endfor %}
+
     <!-- Allow writing to external storage -->
     <uses-permission android:name="android.permission.INTERNET" />
     {% for perm in args.permissions %}
