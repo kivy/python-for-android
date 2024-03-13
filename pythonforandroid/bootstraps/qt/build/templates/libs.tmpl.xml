@@ -1,5 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+
+    <!--
+    The bunlded_libs placeholder is needed for QtLoader.java. Otherwise the application will crash.
+    Adding extra libraries can be done through buildozer directly with android.add_libs_* option
+    -->
+    <array name="bundled_libs">
+    </array>
+
     <array name="qt_libs">
         <item>{{ arch }};c++_shared</item>
         {%- for qt_lib in qt_libs %}
