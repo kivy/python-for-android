@@ -1,0 +1,32 @@
+diff --git a/joblib/externals/loky/backend/__init__.py b/joblib/externals/loky/backend/__init__.py
+index a65ce0e..9efdb46 100644
+--- a/joblib/externals/loky/backend/__init__.py
++++ b/joblib/externals/loky/backend/__init__.py
+@@ -10,7 +10,7 @@ if sys.version_info > (3, 4):
+         return name
+ 
+     # monkey patch the name creation for multiprocessing
+-    from multiprocessing import synchronize
+-    synchronize.SemLock._make_name = staticmethod(_make_name)
++    #from multiprocessing import synchronize
++    #synchronize.SemLock._make_name = staticmethod(_make_name)
+ 
+ __all__ = ["get_context"]
+diff --git a/joblib/externals/loky/backend/queues.py b/joblib/externals/loky/backend/queues.py
+index 62735db..156e235 100644
+--- a/joblib/externals/loky/backend/queues.py
++++ b/joblib/externals/loky/backend/queues.py
+@@ -9,6 +9,8 @@
+ # * Add some custom reducers for the Queues/SimpleQueue to tweak the
+ #   pickling process. (overload Queue._feed/SimpleQueue.put)
+ #
++from queue import Queue, SimpleQueue, Full
++'''
+ import os
+ import sys
+ import errno
+@@ -245,3 +247,4 @@ class SimpleQueue(mp_SimpleQueue):
+         else:
+             with self._wlock:
+                 self._writer.send_bytes(obj)
++'''
