@@ -59,14 +59,18 @@ def build(target_python, requirements, archs):
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
+    build_command = [
+        'setup.py', 'apk',
+        '--sdk-dir', android_sdk_home,
+        '--ndk-dir', android_ndk_home,
+        '--requirements', requirements
+    ] + [f"--arch={arch}" for arch in archs]
+    build_command_str = " ".join(build_command)
+    logger.info(f"Build command: {build_command_str}")
 
     with current_directory('testapps/on_device_unit_tests/'):
         # iterates to stream the output
-        for line in sh.python(
-                'setup.py', 'apk', '--sdk-dir', android_sdk_home,
-                '--ndk-dir', android_ndk_home, '--requirements',
-                requirements, *[f"--arch={arch}" for arch in archs],
-                _err_to_out=True, _iter=True):
+        for line in sh.python(*build_command, _err_to_out=True, _iter=True):
             print(line)
 
 
