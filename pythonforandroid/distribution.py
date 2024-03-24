@@ -76,8 +76,6 @@ class Distribution:
             it cannot be changed later during APK packaging.
         recipes : list
             The recipes that the distribution must contain.
-        force_download: bool
-            If True, only downloaded dists are considered.
         force_build : bool
             If True, the dist is forced to be built locally.
         extra_dist_dirs : list
@@ -119,12 +117,12 @@ class Distribution:
                 ndk_api is not None and dist.ndk_api != ndk_api
             ) or dist.ndk_api is None:
                 debug(
-                    f"dist {dist} failed to match ndk_api, target api {ndk_api}, dist api {dist.ndk_api}"
+                    f"Dist {dist} failed to match ndk_api, target api {ndk_api}, dist api {dist.ndk_api}"
                 )
                 continue
             for recipe in recipes:
                 if recipe not in dist.recipes:
-                    debug(f"dist {dist} missing recipe {recipe}")
+                    debug(f"Dist {dist} missing recipe {recipe}")
                     break
             else:
                 _possible_dists.append(dist)
@@ -149,15 +147,14 @@ class Distribution:
             if not all(arch_name in dist.archs for arch_name in archs):
                 debug("Skipping dist due to arch mismatch")
                 continue
-            if (set(dist.recipes) == set(recipes) or
-                (set(recipes).issubset(set(dist.recipes)) and
-                 not require_perfect_match)):
+            if (set(recipes).issubset(dist.recipes) and
+                    not require_perfect_match):
                 info_notify('{} has compatible recipes, using this one'
                             .format(dist.name))
                 return dist
             else:
                 debug(
-                    f"Skipping dist due to recipes mismatch, expected {set(recipes)}, actual {set(dist.recipes)}"
+                    f"Skipping dist due to recipes mismatch, expected {sorted(recipes)}, actual {sorted(dist.recipes)}"
                 )
 
         # If there was a name match but we didn't already choose it,

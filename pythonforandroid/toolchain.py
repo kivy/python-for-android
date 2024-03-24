@@ -632,18 +632,16 @@ class ToolchainCL:
                         )
                     ]
                     info("Dependencies obtained: " + str(dependencies))
-                    all_recipes = [
+                    all_recipes = {
                         recipe.lower() for recipe in
-                        set(Recipe.list_recipes(self.ctx))
-                    ]
-                    dependencies = set(dependencies).intersection(
-                        set(all_recipes)
-                    )
+                        Recipe.list_recipes(self.ctx)
+                    }
+                    dependencies = set(dependencies).intersection(all_recipes)
                     # Add dependencies to argument list:
                     if len(dependencies) > 0:
                         if len(args.requirements) > 0:
                             args.requirements += u","
-                        args.requirements += u",".join(dependencies)
+                        args.requirements += u",".join(sorted(dependencies))
                 except ValueError:
                     # Not a python package, apparently.
                     warning(
@@ -768,7 +766,7 @@ class ToolchainCL:
         """
         ctx = self.ctx
         if args.compact:
-            print(" ".join(set(Recipe.list_recipes(ctx))))
+            print(" ".join(sorted(Recipe.list_recipes(ctx))))
         else:
             for name in sorted(Recipe.list_recipes(ctx)):
                 try:

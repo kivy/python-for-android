@@ -26,7 +26,7 @@ class LXMLRecipe(CompiledComponentsPythonRecipe):
         )
         py_libs = ["_elementpath.so", "builder.so", "etree.so", "objectify.so"]
 
-        return not all([exists(join(build_dir, lib)) for lib in py_libs])
+        return not all(exists(join(build_dir, lib)) for lib in py_libs)
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)

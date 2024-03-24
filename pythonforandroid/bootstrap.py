@@ -244,7 +244,7 @@ class Bootstrap:
 
         info('Found {} acceptable bootstraps: {}'.format(
             len(acceptable_bootstraps),
-            [bs.name for bs in acceptable_bootstraps]))
+            sorted(bs.name for bs in acceptable_bootstraps)))
         return acceptable_bootstraps
 
     @classmethod
@@ -284,7 +284,7 @@ class Bootstrap:
                     return cls.get_bootstrap("webview", ctx)
 
         prioritized_acceptable_bootstraps = sorted(
-            list(acceptable_bootstraps),
+            acceptable_bootstraps,
             key=functools.cmp_to_key(_cmp_bootstraps_by_priority)
         )
 
