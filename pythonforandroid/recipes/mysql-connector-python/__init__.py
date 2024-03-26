@@ -6,8 +6,8 @@ class MySQLConnectorPythonRecipe(CompiledComponentsPythonRecipe):
     name = 'mysql-connector-python'
     version = '8.3.0'
     url = (
-        f"https://downloads.mysql.com/archives/get/p/29/file/"
-        f"mysql-connector-python-py{version}-1ubuntu23.10_amd64.deb"
+        "https://dev.mysql.com/get/Downloads/Connector-Python/"
+        f"mysql-connector-python-{version}-src.tar.gz"
     )
     call_hostpython_via_targetpython = False
 
