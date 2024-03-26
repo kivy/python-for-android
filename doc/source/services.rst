@@ -138,3 +138,111 @@ The call to this method should be done within the service code::
     from jnius import autoclass
     PythonService = autoclass('org.kivy.android.PythonService')
     PythonService.mService.setAutoRestartService(True)
+    
+Service auto-start
+~~~~~~~~~~~~~~~~~~
+
+To automatically start the service on boot, you need to add signals inside ``AndroidManifest.xml`` that Android sends to applications on boot. 
+Create file ``receivers.xml`` and write this code::
+
+    <receiver android:name=".MyBroadcastReceiver" android:enabled="true" android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+            <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+        </intent-filter>
+    </receiver> 
+    
+    
+Next step set path to this file in ``buildozer.spec``, set setting ``android.extra_manifest_application_xml`` code::
+
+    android.extra_manifest_application_xml = %(source.dir)s/xml/receivers.xml
+    
+Then need create ``MyBroadcastReceiver.java``, code::
+
+    package com.heattheatr.kivy_service_test;
+
+    import android.content.BroadcastReceiver;
+    import android.content.Intent;
+    import android.content.Context;
+    import org.kivy.android.PythonActivity;
+
+    import java.lang.reflect.Method;
+
+    import com.heattheatr.kivy_service_test.ServiceTest;
+
+    public class MyBroadcastReceiver extends BroadcastReceiver {
+
+        public MyBroadcastReceiver() {
+
+        }
+
+        // Start app.
+        public void start_app(Context context, Intent intent) {
+            Intent ix = new Intent(context, PythonActivity.class);
+            ix.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(ix);
+        }
+
+        // Start service.
+        public void service_start(Context context, Intent intent) {
+            String package_root = context.getFilesDir().getAbsolutePath();
+            String app_root =  package_root + "/app";
+            Intent ix = new Intent(context, ServiceTest.class);
+            ix.putExtra("androidPrivate", package_root);
+            ix.putExtra("androidArgument", app_root);
+            ix.putExtra("serviceEntrypoint", "service.py");
+            ix.putExtra("pythonName", "test");
+            ix.putExtra("pythonHome", app_root);
+            ix.putExtra("pythonPath", package_root);
+            ix.putExtra("serviceStartAsForeground", "true");
+            ix.putExtra("serviceTitle", "ServiceTest");
+            ix.putExtra("serviceDescription", "ServiceTest");
+            ix.putExtra("pythonServiceArgument", app_root + ":" + app_root + "/lib");
+            ix.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startService(ix);
+        }
+
+        // Stop service.
+        public void service_stop(Context context, Intent intent) {
+            Intent intent_stop = new Intent(context, ServiceTest.class);
+
+            context.stopService(intent_stop);
+        }
+
+        // Sinals reciver.
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case Intent.ACTION_BOOT_COMPLETED:
+                    System.out.println("python MyBroadcastReceiver.java 
+                               MyBroadcastReceiver.class onReceive.method: ACTION_BOOT_COMPLETED");
+                    this.service_start(context, intent);
+                    break;
+                default:
+                   break;
+            }
+        }
+    }
+    
+This code start ``service.py`` from ``buildozer.spec`` when get signal ``ACTION_BOOT_COMPLETED``::
+    
+    services = Test:./service.py:foreground
+    
+For example ``service.py``::
+
+    import os
+    from time import sleep
+
+    from jnius import cast
+    from jnius import autoclass
+
+    PythonService = autoclass('org.kivy.android.PythonService')
+    CurrentActivityService = cast("android.app.Service", PythonService.mService)
+
+    while True:
+        print("python service running.....", CurrentActivityService.getPackageName(), os.getpid())
+        sleep(10)
+        
+Name out service will be ``ServiceTest``, prefix ``Service`` + ``Test`` from ``services = Test:./service.py:foreground``. 
+
+You can see how it work in test `project <https://github.com/dvjdjvu/kivy_service_test>`__.

@@ -966,6 +966,9 @@ tools directory of the Android SDK.
     ap.add_argument('--extra-manifest-xml', default='',
                     help=('Extra xml to write directly inside the <manifest> element of'
                           'AndroidManifest.xml'))
+    ap.add_argument('--extra-manifest-application-xml', default='',
+                    help='Extra xml to write directly inside the <application> element of'
+                          'AndroidManifest.xml')
     ap.add_argument('--extra-manifest-application-arguments', default='',
                     help='Extra arguments to be added to the <manifest><application> tag of'
                          'AndroidManifest.xml')
