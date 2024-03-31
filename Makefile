@@ -23,8 +23,12 @@ virtualenv: $(VIRTUAL_ENV)
 test:
 	$(TOX) -- tests/ --ignore tests/test_pythonpackage.py
 
+# Also install and configure rust
 rebuild_updated_recipes: virtualenv
 	. $(ACTIVATE) && \
+	curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+	. "$(HOME)/.cargo/env" && \
+	rustup target list && \
 	ANDROID_SDK_HOME=$(ANDROID_SDK_HOME) ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) \
 	$(PYTHON) ci/rebuild_updated_recipes.py $(REBUILD_UPDATED_RECIPES_EXTRA_ARGS)
 

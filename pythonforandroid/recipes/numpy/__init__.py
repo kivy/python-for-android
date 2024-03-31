@@ -1,4 +1,4 @@
-from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe, Recipe
 from pythonforandroid.logger import shprint, info
 from pythonforandroid.util import current_directory
 from multiprocessing import cpu_count
@@ -13,7 +13,11 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
     version = '1.22.3'
     url = 'https://pypi.python.org/packages/source/n/numpy/numpy-{version}.zip'
     site_packages_name = 'numpy'
-    depends = ['setuptools', 'cython']
+    depends = ["cython"]
+
+    # This build specifically requires setuptools version 59.2.0
+    hostpython_prerequisites = ["setuptools==59.2.0"]
+
     install_in_hostpython = True
     call_hostpython_via_targetpython = False
 
@@ -35,6 +39,18 @@ class NumpyRecipe(CompiledComponentsPythonRecipe):
         env["NPY_DISABLE_SVML"] = "1"
 
         return env
+
+    def build_arch(self, arch):
+        self.hostpython_prerequisites = ["setuptools==59.2.0"]
+        self.install_hostpython_prerequisites()
+
+        super().build_arch(arch)
+
+        # Post build step to restore setuptools version
+        self.hostpython_prerequisites = ["setuptools=={}".format(
+            Recipe.get_recipe("setuptools", self.ctx).version)
+        ]
+        self.install_hostpython_prerequisites()
 
     def _build_compiled_components(self, arch):
         info('Building compiled components in {}'.format(self.name))
