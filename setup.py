@@ -22,7 +22,7 @@ data_files = []
 install_reqs = [
     'appdirs', 'colorama>=0.3.3', 'jinja2',
     'sh>=1.10, <2.0; sys_platform!="win32"',
-    'build', 'toml', 'packaging', 'setuptools'
+    'build', 'toml', 'packaging', 'setuptools', 'wheel~=0.43.0'
 ]
 # (build and toml are used by pythonpackage.py)
 

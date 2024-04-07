@@ -57,6 +57,7 @@ RUN ${RETRY} apt -y update -qq > /dev/null \
         ant \
         autoconf \
         automake \
+        autopoint \
         ccache \
         cmake \
         g++ \
@@ -70,6 +71,7 @@ RUN ${RETRY} apt -y update -qq > /dev/null \
         make \
         openjdk-17-jdk \
         patch \
+        patchelf \
         pkg-config \
         python3 \
         python3-dev \

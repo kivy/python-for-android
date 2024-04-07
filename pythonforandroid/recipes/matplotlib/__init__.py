@@ -1,18 +1,17 @@
-from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 from pythonforandroid.util import ensure_dir
 
 from os.path import join
 import shutil
 
 
-class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
-
-    version = '3.5.2'
+class MatplotlibRecipe(PyProjectRecipe):
+    version = '3.8.4'
     url = 'https://github.com/matplotlib/matplotlib/archive/v{version}.zip'
-
+    patches = ["skip_macos.patch"]
     depends = ['kiwisolver', 'numpy', 'pillow', 'setuptools', 'freetype']
-
     python_depends = ['cycler', 'fonttools', 'packaging', 'pyparsing', 'python-dateutil']
+    need_stl_shared = True
 
     def generate_libraries_pc_files(self, arch):
         """
@@ -62,8 +61,8 @@ class MatplotlibRecipe(CppCompiledComponentsPythonRecipe):
         )
         self.generate_libraries_pc_files(arch)
 
-    def get_recipe_env(self, arch=None, with_flags_in_cc=True):
-        env = super().get_recipe_env(arch, with_flags_in_cc)
+    def get_recipe_env(self, arch, **kwargs):
+        env = super().get_recipe_env(arch, **kwargs)
 
         # we make use of the same directory than `XDG_CACHE_HOME`, for our
         # custom library pc files, so we have all the install files that we

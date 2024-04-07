@@ -72,6 +72,7 @@ the following command (re-adapted from the `Dockerfile` we use to perform CI bui
         ant \
         autoconf \
         automake \
+        autopoint \
         ccache \
         cmake \
         g++ \
@@ -85,6 +86,7 @@ the following command (re-adapted from the `Dockerfile` we use to perform CI bui
         make \
         openjdk-17-jdk \
         patch \
+        patchelf \
         pkg-config \
         python3 \
         python3-dev \

@@ -1,27 +1,25 @@
 from os.path import join
+from pythonforandroid.recipe import MesonRecipe
 
-from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
-
-class PandasRecipe(CppCompiledComponentsPythonRecipe):
-    version = '1.0.3'
-    url = 'https://github.com/pandas-dev/pandas/releases/download/v{version}/pandas-{version}.tar.gz'  # noqa
-
-    depends = ['cython', 'numpy', 'libbz2', 'liblzma']
-
-    python_depends = ['python-dateutil', 'pytz']
+class PandasRecipe(MesonRecipe):
+    version = 'v2.2.1'
+    url = 'git+https://github.com/pandas-dev/pandas'  # noqa
+    depends = ['numpy', 'libbz2', 'liblzma']
+    hostpython_prerequisites = ["Cython~=3.0.5"]  # meson does not detects venv's cython
     patches = ['fix_numpy_includes.patch']
-
-    call_hostpython_via_targetpython = False
+    python_depends = ['python-dateutil', 'pytz']
     need_stl_shared = True
 
-    def get_recipe_env(self, arch):
-        env = super().get_recipe_env(arch)
+    def get_recipe_env(self, arch, **kwargs):
+        env = super().get_recipe_env(arch, **kwargs)
         # we need the includes from our installed numpy at site packages
         # because we need some includes generated at numpy's compile time
+
         env['NUMPY_INCLUDES'] = join(
             self.ctx.get_python_install_dir(arch.arch), "numpy/core/include",
         )
+        env["PYTHON_INCLUDE_DIR"] = self.ctx.python_recipe.include_root(arch)
 
         # this flag below is to fix a runtime error:
         #   ImportError: dlopen failed: cannot locate symbol
@@ -30,6 +28,10 @@ class PandasRecipe(CppCompiledComponentsPythonRecipe):
         #   /site-packages/pandas/_libs/window/aggregations.so"...
         env['LDFLAGS'] += f' -landroid  -l{self.stl_lib_name}'
         return env
+
+    def build_arch(self, arch):
+        super().build_arch(arch)
+        self.restore_hostpython_prerequisites(["cython"])
 
 
 recipe = PandasRecipe()
