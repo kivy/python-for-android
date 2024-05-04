@@ -110,7 +110,9 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        runs_on: [macos-latest, apple-silicon-m1]
+        # macos-latest (ATM macos-14) runs on Apple Silicon,
+        # macos-13 runs on Intel
+        runs_on: ['macos-latest', 'macos-13']
         bootstrap:
           - name: sdl2
             target: testapps-with-numpy
@@ -124,25 +126,21 @@ jobs:
     steps:
       - name: Checkout python-for-android
         uses: actions/checkout@v4
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - name: Install python-for-android
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           python3 -m pip install -e .
       - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           python3 pythonforandroid/prerequisites.py
       - name: Install dependencies (Legacy)
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           make --file ci/makefiles/osx.mk
       - name: Build multi-arch apk Python 3 (armeabi-v7a, arm64-v8a, x86_64, x86)
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           make ${{ matrix.bootstrap.target }}
       - name: Copy produced artifacts into dist/ (*.apk, *.aab)
         run: |
@@ -199,7 +197,9 @@ jobs:
     strategy:
       matrix:
         android_arch: ["arm64-v8a", "armeabi-v7a", "x86_64", "x86"]
-        runs_on: [macos-latest, apple-silicon-m1]
+        # macos-latest (ATM macos-14) runs on Apple Silicon,
+        # macos-13 runs on Intel
+        runs_on: ['macos-latest', 'macos-13']
     env:
       ANDROID_HOME: ${HOME}/.android
       ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
@@ -211,25 +211,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
       - name: Install python-for-android
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           python3 -m pip install -e .
       - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           python3 pythonforandroid/prerequisites.py
       - name: Install dependencies (Legacy)
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           make --file ci/makefiles/osx.mk
       - name: Rebuild updated recipes
         run: |
-          source ci/osx_ci.sh
-          arm64_set_path_and_python_version 3.9.7
           make rebuild_updated_recipes
 
   coveralls_finish:
