@@ -19,6 +19,7 @@ class ScipyRecipe(CompiledComponentsPythonRecipe):
     url = 'git+https://github.com/scipy/scipy.git'
     git_commit = 'b430bf54b5064465983813e2cfef3fcb86c3df07'  # version 1.11.3
     site_packages_name = 'scipy'
+    hostpython_prerequisites = ['numpy']
     depends = ['setuptools', 'cython', 'numpy', 'lapack', 'pybind11']
     call_hostpython_via_targetpython = False
     need_stl_shared = True

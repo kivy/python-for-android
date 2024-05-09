@@ -25,7 +25,7 @@ class PillowRecipe(CompiledComponentsPythonRecipe):
 
     version = '8.4.0'
     url = 'https://github.com/python-pillow/Pillow/archive/{version}.tar.gz'
-    site_packages_name = 'Pillow'
+    site_packages_name = 'PIL'
     depends = ['png', 'jpeg', 'freetype', 'setuptools']
     opt_depends = ['libwebp']
     patches = [join('patches', 'fix-setup.patch')]
