@@ -1204,8 +1204,8 @@ class PyProjectRecipe(PythonRecipe):
             "x86": "i686",
         }[arch.arch]
 
-    def install_wheel(self, arch, built_wheels):
-        _wheel = built_wheels[0]
+    def install_wheel(self, arch, pattern):
+        _wheel = [realpath(whl) for whl in glob.glob(pattern)][0]
         built_wheel_dir = dirname(_wheel)
         # Fix wheel platform tag
         wheel_tag = wheel_tags(
@@ -1247,13 +1247,11 @@ class PyProjectRecipe(PythonRecipe):
             "builddir={}".format(sub_build_dir),
         ] + self.extra_build_args
 
-        built_wheels = []
         with current_directory(build_dir):
             shprint(
                 sh.Command(self.ctx.python_recipe.python_exe), *build_args, _env=env
             )
-            built_wheels = [realpath(whl) for whl in glob.glob("dist/*.whl")]
-        self.install_wheel(arch, built_wheels)
+        self.install_wheel(arch, join(build_dir, "dist", "*.whl"))
 
 
 class MesonRecipe(PyProjectRecipe):
