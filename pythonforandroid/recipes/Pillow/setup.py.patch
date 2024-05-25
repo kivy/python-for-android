@@ -1,0 +1,76 @@
+--- Pillow/setup.py	2024-05-24 19:35:08.270160608 +0530
++++ Pillow.mod/setup.py	2024-05-24 22:07:52.741495666 +0530
+@@ -39,6 +39,7 @@
+ LCMS_ROOT = None
+ TIFF_ROOT = None
+ ZLIB_ROOT = None
++WEBP_ROOT = None
+ FUZZING_BUILD = "LIB_FUZZING_ENGINE" in os.environ
+ 
+ if sys.platform == "win32" and sys.version_info >= (3, 13):
+@@ -150,6 +151,7 @@
+ 
+ 
+ def _find_library_dirs_ldconfig():
++    return []
+     # Based on ctypes.util from Python 2
+ 
+     ldconfig = "ldconfig" if shutil.which("ldconfig") else "/sbin/ldconfig"
+@@ -460,15 +462,16 @@
+             "HARFBUZZ_ROOT": "harfbuzz",
+             "FRIBIDI_ROOT": "fribidi",
+             "LCMS_ROOT": "lcms2",
++            "WEBP_ROOT": "libwebp",
+             "IMAGEQUANT_ROOT": "libimagequant",
+         }.items():
+             root = globals()[root_name]
+ 
+             if root is None and root_name in os.environ:
+-                prefix = os.environ[root_name]
+-                root = (os.path.join(prefix, "lib"), os.path.join(prefix, "include"))
++                root = tuple(os.environ[root_name].split(":"))
+ 
+             if root is None and pkg_config:
++                continue
+                 if isinstance(lib_name, tuple):
+                     for lib_name2 in lib_name:
+                         _dbg(f"Looking for `{lib_name2}` using pkg-config.")
+@@ -495,14 +498,6 @@
+                 for include_dir in include_root:
+                     _add_directory(include_dirs, include_dir)
+ 
+-        # respect CFLAGS/CPPFLAGS/LDFLAGS
+-        for k in ("CFLAGS", "CPPFLAGS", "LDFLAGS"):
+-            if k in os.environ:
+-                for match in re.finditer(r"-I([^\s]+)", os.environ[k]):
+-                    _add_directory(include_dirs, match.group(1))
+-                for match in re.finditer(r"-L([^\s]+)", os.environ[k]):
+-                    _add_directory(library_dirs, match.group(1))
+-
+         # include, rpath, if set as environment variables:
+         for k in ("C_INCLUDE_PATH", "CPATH", "INCLUDE"):
+             if k in os.environ:
+@@ -514,13 +509,10 @@
+                 for d in os.environ[k].split(os.path.pathsep):
+                     _add_directory(library_dirs, d)
+ 
+-        _add_directory(library_dirs, os.path.join(sys.prefix, "lib"))
+-        _add_directory(include_dirs, os.path.join(sys.prefix, "include"))
+-
+         #
+         # add platform directories
+ 
+-        if self.disable_platform_guessing:
++        if True:
+             pass
+ 
+         elif sys.platform == "cygwin":
+@@ -614,7 +606,7 @@
+         # FIXME: check /opt/stuff directories here?
+ 
+         # standard locations
+-        if not self.disable_platform_guessing:
++        if False: #not self.disable_platform_guessing:
+             _add_directory(library_dirs, "/usr/local/lib")
+             _add_directory(include_dirs, "/usr/local/include")
+ 
