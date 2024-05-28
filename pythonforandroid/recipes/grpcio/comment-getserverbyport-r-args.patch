@@ -1,0 +1,17 @@
+Index: ares_config.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/third_party/cares/config_android/ares_config.h b/third_party/cares/config_android/ares_config.h
+--- a/third_party/cares/config_android/ares_config.h
++++ b/third_party/cares/config_android/ares_config.h	(date 1716777985227)
+@@ -43,7 +43,7 @@
+ #define GETNAMEINFO_TYPE_ARG7 int
+ 
+ /* Specifies the number of arguments to getservbyport_r */
+-#define GETSERVBYPORT_R_ARGS
++//#define GETSERVBYPORT_R_ARGS
+ 
+ /* Define to 1 if you have AF_INET6. */
+ #define HAVE_AF_INET6
