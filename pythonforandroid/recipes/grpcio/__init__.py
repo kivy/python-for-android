@@ -5,7 +5,11 @@ class GrpcioRecipe(PyProjectRecipe):
     version = '1.64.0'
     url = 'https://files.pythonhosted.org/packages/source/g/grpcio/grpcio-{version}.tar.gz'
     depends = ["setuptools", "librt", "libpthread"]
-    patches = ["comment-getserverbyport-r-args.patch", "remove-android-log-write.patch", "use-ndk-zlib-and-openssl-recipe-include.patch"]
+    patches = [
+        "comment-getserverbyport-r-args.patch",
+        "remove-android-log-write.patch",
+        "use-ndk-zlib-and-openssl-recipe-include.patch"
+    ]
 
     def get_recipe_env(self, arch, **kwargs):
         env = super().get_recipe_env(arch, **kwargs)
