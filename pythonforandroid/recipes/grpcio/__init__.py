@@ -26,6 +26,7 @@ class GrpcioRecipe(PyProjectRecipe):
         env["CFLAGS"] += " -Wno-reserved-user-defined-literal"
         env["PLATFORM"] = "android"
         env["LDFLAGS"] += " -llog -landroid"
+        env["LDFLAGS"] += openssl_recipe.link_flags(arch)
         return env
 
 
