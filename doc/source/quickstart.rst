@@ -54,7 +54,7 @@ p4a is now available on Pypi, so you can install it using pip::
 
 You can also test the master branch from Github using::
 
-    pip install git+https://github.com/kivy/python-for-android.git
+    pip install git+ https://github.com/Hirayanagi-Kyoga/python-for-android
 
 Installing Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~
