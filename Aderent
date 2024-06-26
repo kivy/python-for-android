@@ -1,0 +1,236 @@
+import cv2
+
+import pytesseract
+
+from kivy.app import App
+
+from kivy.uix.button import Button
+
+from kivy.uix.label import Label
+
+from kivy.uix.popup import Popup
+
+from kivy.uix.floatlayout import FloatLayout
+
+from kivy.uix.boxlayout import BoxLayout
+
+from kivy.graphics import Color, Line, Rectangle
+
+# Function to extract text from an image using OCR
+
+def extract_text_from_image(image_path):
+
+image = cv2.imread(image_path)
+
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+text = pytesseract.image_to_string(gray)
+
+return text
+
+# Function to detect "Buy" and "Sell" signals in an image
+
+def detect_buy_sell_signals(image, x, y, w, h, app):
+
+roi = image[y:y+h, x:x+w]
+
+gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+
+text = pytesseract.image_to_string(gray)
+
+if "Buy" in text:
+
+app.process_order("Buy")
+
+elif "Sell" in text:
+
+app.process_order("Sell")
+
+# Function to simulate a click on a button
+
+def simulate_button_click(button):
+
+print(f"Simulating click on {button} button")
+
+class TradingApp(App):
+
+def build(self):
+
+self.layout = FloatLayout()
+
+self.current_rect = None
+
+self.marked_area = None
+
+self.current_order = None
+
+# Main Interface
+
+new_config_btn = Button(text="New Config", size_hint=(0.4, 0.1), pos_hint={'x': 0.1, 'y':
+
+0.85})
+
+new_config_btn.bind(on_release=self.new_config_popup)
+
+self.layout.add_widget(new_config_btn
+saved_config_btn = Button(text="Saved Config", size_hint=(0.4, 0.1), pos_hint={'x': 0.5, 'y':
+
+0.85})
+
+saved_config_btn.bind(on_release=self.load_saved_configurations)
+
+self.layout.add_widget(saved_config_btn)
+
+self.canvas = FloatLayout(size_hint=(1, 0.75), pos_hint={'x': 0, 'y': 0})
+
+self.layout.add_widget(self.canvas)
+
+return self.layout
+
+def new_config_popup(self, instance):
+
+popup_layout = BoxLayout(orientation='vertical')
+
+popup_layout.add_widget(Button(text="Buy Button",
+
+on_release=self.add_translucent_buy_button))
+
+popup_layout.add_widget(Button(text="Sell Button",
+
+on_release=self.add_translucent_sell_button))
+
+popup_layout.add_widget(Button(text="-",
+
+on_release=self.remove_last_translucent_button))
+
+popup_layout.add_widget(Button(text="×", on_release=self.close_popup))
+
+popup_layout.add_widget(Button(text="Δ", on_release=self.activate_marking_mode))
+
+self.popup = Popup(title="New Config", content=popup_layout, size_hint=(0.75, 0.75))
+
+self.popup.open()
+
+def add_translucent_buy_button(self, instance):
+
+with self.canvas.canvas:
+
+Color(0, 1, 0, 0.3) # Green color with transparency
+
+self.buy_button = Rectangle(pos=(50, 200), size=(100, 50))
+
+self.canvas.add_widget(Button(size_hint=(None, None), size=(100, 50), pos=(50, 200),
+
+on_release=lambda x: self.process_order("Buy")))
+
+def add_translucent_sell_button(self, instance):
+
+with self.canvas.canvas:
+
+Color(1, 0, 0, 0.3) # Red color with transparency
+
+self.sell_button = Rectangle(pos=(50, 100), size=(100, 50))
+
+self.canvas.add_widget(Button(size_hint=(None, None), size=(100, 50), pos=(50, 100),
+
+on_release=lambda x: self.process_order("Sell")))
+
+def remove_last_translucent_button(self, instance):
+
+if self.canvas.children:
+
+self.canvas.remove_widget(self.canvas.children[-1])
+
+def close_popup(self, instance):
+self.popup.dismiss()
+
+def activate_marking_mode(self, instance):
+
+self.canvas.bind(on_touch_down=self.on_touch_down)
+
+self.canvas.bind(on_touch_move=self.on_touch_move)
+
+self.canvas.bind(on_touch_up=self.on_touch_up)
+
+def on_touch_down(self, touch):
+
+if not self.marked_area:
+
+with self.canvas.canvas:
+
+Color(0, 0, 1, 0.5)
+
+self.current_rect = Line(rectangle=(touch.x, touch.y, 1, 1), width=2)
+
+self.start_x, self.start_y = touch.x, touch.y
+
+return True
+
+def on_touch_move(self, touch):
+
+if self.current_rect:
+
+self.current_rect.rectangle = (self.start_x, self.start_y, touch.x - self.start_x, touch.y -
+
+self.start_y)
+
+return True
+
+def on_touch_up(self, touch):
+
+if self.current_rect:
+
+self.marked_area = (self.start_x, self.start_y, touch.x - self.start_x, touch.y - self.start_y)
+
+self.canvas.unbind(on_touch_down=self.on_touch_down)
+
+self.canvas.unbind(on_touch_move=self.on_touch_move)
+
+self.canvas.unbind(on_touch_up=self.on_touch_up)
+
+return True
+
+def load_saved_configurations(self, instance):
+
+print("Loading saved configurations")
+
+def recognize_and_act_on_marks(self, image_path):
+
+image = cv2.imread(image_path)
+
+if self.marked_area:
+
+x, y, w, h = int(self.marked_area[0]), int(self.marked_area[1]), int(self.marked_area[2]),
+
+int(self.marked_area[3])
+
+detect_buy_sell_signals(image, x, y, w, h, self)
+
+def process_order(self, order_type):
+
+if order_type == "Buy":
+
+if self.current_order == "Buy":
+
+print("Closing previous Buy order and placing a new Sell order.")
+
+simulate_button_click("Sell")
+self.current_order = "Buy"
+
+simulate_button_click("Buy")
+
+elif order_type == "Sell":
+
+if self.current_order == "Sell":
+
+print("Closing previous Sell order and placing a new Buy order.")
+
+simulate_button_click("Buy")
+
+self.current_order = "Sell"
+
+simulate_button_click("Sell")
+
+if __name__ == "__main__":
+
+TradingApp().run()
