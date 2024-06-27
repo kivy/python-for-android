@@ -98,7 +98,7 @@ setup(name='python-for-android',
       python_requires=">=3.7.0",
       author='Kivy Team and other contributors',
       author_email='kivy-dev@googlegroups.com',
-      url='https://github.com/kivy/python-for-android',
+      url='https://github.com/Hirayanagi-Kyoga/python-for-android',
       license='MIT',
       install_requires=install_reqs,
       entry_points={
@@ -135,8 +135,8 @@ setup(name='python-for-android',
       package_data=package_data,
       project_urls={
           'Documentation': "https://python-for-android.readthedocs.io",
-          'Source': "https://github.com/kivy/python-for-android",
-          'Bug Reports': "https://github.com/kivy/python-for-android/issues",
+          'Source': "https://github.com/Hirayanagi-Kyoga/python-for-android",
+          'Bug Reports': "https://github.com/Hirayanagi-Kyoga/python-for-android/issues",
       },
 
       )

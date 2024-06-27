@@ -55,8 +55,8 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.11.5'
-    url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
+    version = '3.10.12'
+    url = 'https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz'
     name = 'python3'
 
     patches = [
@@ -443,3 +443,4 @@ class Python3Recipe(TargetPythonRecipe):
 
 
 recipe = Python3Recipe()
+recipe.version = '3.10.12' 
