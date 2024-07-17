@@ -36,7 +36,7 @@ sdl2
 Use this with ``--bootstrap=sdl2``, or just include the
 ``sdl2`` recipe, e.g. ``--requirements=sdl2,python3``.
 
-SDL2 is a popular cross-platform depelopment library, particularly for
+SDL2 is a popular cross-platform development library, particularly for
 games. It has its own Android project support, which
 python-for-android uses as a bootstrap, and to which it adds the
 Python build and JNI code to start it.
