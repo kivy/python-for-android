@@ -1204,8 +1204,8 @@ class PyProjectRecipe(PythonRecipe):
             "x86": "i686",
         }[arch.arch]
 
-    def install_wheel(self, arch, built_wheels):
-        _wheel = built_wheels[0]
+    def install_wheel(self, arch, pattern):
+        _wheel = [realpath(whl) for whl in glob.glob(pattern)][0]
         built_wheel_dir = dirname(_wheel)
         # Fix wheel platform tag
         wheel_tag = wheel_tags(
@@ -1247,13 +1247,11 @@ class PyProjectRecipe(PythonRecipe):
             "builddir={}".format(sub_build_dir),
         ] + self.extra_build_args
 
-        built_wheels = []
         with current_directory(build_dir):
             shprint(
                 sh.Command(self.ctx.python_recipe.python_exe), *build_args, _env=env
             )
-            built_wheels = [realpath(whl) for whl in glob.glob("dist/*.whl")]
-        self.install_wheel(arch, built_wheels)
+        self.install_wheel(arch, join(build_dir, "dist", "*.whl"))
 
 
 class MesonRecipe(PyProjectRecipe):
@@ -1355,6 +1353,8 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         "x86_64": "x86_64-linux-android",
         "x86": "i686-linux-android",
     }
+    # Rust toolchain to be used for building
+    toolchain = "stable"
 
     call_hostpython_via_targetpython = False
 
@@ -1367,6 +1367,7 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
             build_target.upper().replace("-", "_")
         )
         env["CARGO_BUILD_TARGET"] = build_target
+        env["TARGET"] = build_target
         env[cargo_linker_name] = join(
             self.ctx.ndk.llvm_prebuilt_dir,
             "bin",
@@ -1388,10 +1389,6 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
             realpython_dir, "android-build", "build",
             "lib.linux-*-{}/".format(self.python_major_minor_version),
         ))[0])
-
-        info_main("Ensuring rust build toolchain")
-        shprint(sh.rustup, "target", "add", build_target)
-
         # Add host python to PATH
         env["PATH"] = ("{hostpython_dir}:{old_path}").format(
             hostpython_dir=Recipe.get_recipe(
@@ -1401,10 +1398,16 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         )
         return env
 
+    def ensure_rust_toolchain(self, arch):
+        info_main("Ensuring rust build toolchain : {}".format(self.toolchain))
+        shprint(sh.rustup, "toolchain", "install", self.toolchain)
+        shprint(sh.rustup, "target", "add", "--toolchain", self.toolchain, self.RUST_ARCH_CODES[arch.arch])
+        shprint(sh.rustup, "default", self.toolchain)
+
     def check_host_deps(self):
         if not hasattr(sh, "rustup"):
             error(
-                "`rustup` was not found on host system."
+                "\n`rustup` was not found on host system."
                 "Please install it using :"
                 "\n`curl https://sh.rustup.rs -sSf | sh`\n"
             )
@@ -1412,6 +1415,7 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
 
     def build_arch(self, arch):
         self.check_host_deps()
+        self.ensure_rust_toolchain(arch)
         super().build_arch(arch)
 
 
