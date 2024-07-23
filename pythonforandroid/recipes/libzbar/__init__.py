@@ -8,13 +8,14 @@ import sh
 
 class LibZBarRecipe(Recipe):
 
-    version = '0.10'
+    version = '0.23.1'
 
-    url = 'https://github.com/ZBar/ZBar/archive/{version}.zip'
+    url = 'https://github.com/mchehab/zbar/archive/{version}.tar.gz'
+    sha256sum = '297439f8859089d2248f55ab95b2a90bba35687975365385c87364c77fdb19f3'
 
     depends = ['libiconv']
 
-    patches = ["werror.patch"]
+    patches = ['remove-version-info.patch']
 
     built_libraries = {'libzbar.so': 'zbar/.libs'}
 
@@ -42,6 +43,7 @@ class LibZBarRecipe(Recipe):
                 '--with-x=no',
                 '--with-jpeg=no',
                 '--with-imagemagick=no',
+                '--with-dbus=no',
                 '--enable-pthread=no',
                 '--enable-video=no',
                 '--enable-shared=yes',
