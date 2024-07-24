@@ -44,10 +44,10 @@ class OpenSSLRecipe(Recipe):
 
     '''
 
-    version = '1.1'
+    version = '3.3'
     '''the major minor version used to link our recipes'''
 
-    url_version = '1.1.1w'
+    url_version = '3.3.1w'
     '''the version used to download our libraries'''
 
     url = 'https://www.openssl.org/source/openssl-{url_version}.tar.gz'
