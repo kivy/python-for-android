@@ -576,12 +576,12 @@ def _extract_info_from_package(dependency,
                 if entry.startswith("Requires-Dist")
             ]
 
-            return list(set(requirements))  # remove duplicates
+            return sorted(set(requirements))  # remove duplicates
     finally:
         rmdir(output_folder)
 
 
-package_name_cache = dict()
+package_name_cache = {}
 
 
 def get_package_name(dependency,
@@ -717,4 +717,4 @@ def get_dep_names_of_package(
         # Now get true (and e.g. case-corrected) dependency name:
         dep_name = get_package_name(dep) + pin_to_append
         dependency_names.add(dep_name)
-    return dependency_names
+    return sorted(dependency_names)

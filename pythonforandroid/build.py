@@ -394,13 +394,7 @@ class Context:
         self.python_recipe = None  # Set by TargetPythonRecipe
 
     def set_archs(self, arch_names):
-        all_archs = self.archs
-        new_archs = set()
-        for name in arch_names:
-            matching = [arch for arch in all_archs if arch.arch == name]
-            for match in matching:
-                new_archs.add(match)
-        self.archs = list(new_archs)
+        self.archs = sorted({arch for arch in self.archs if arch.arch in arch_names}, key=lambda arch: arch.arch)
         if not self.archs:
             raise BuildInterruptingException('Asked to compile for no Archs, so failing.')
         info('Will compile for the following archs: {}'.format(

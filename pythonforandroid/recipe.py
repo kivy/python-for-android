@@ -362,7 +362,7 @@ class Recipe(metaclass=RecipeMeta):
 
         url = self.versioned_url
         expected_digests = {}
-        for alg in set(hashlib.algorithms_guaranteed) | set(('md5', 'sha512', 'blake2b')):
+        for alg in set(hashlib.algorithms_guaranteed) | {'md5', 'sha512', 'blake2b'}:
             expected_digest = getattr(self, alg + 'sum') if hasattr(self, alg + 'sum') else None
             ma = match(u'^(.+)#' + alg + u'=([0-9a-f]{32,})$', url)
             if ma:                # fragmented URL?
@@ -851,10 +851,7 @@ class PythonRecipe(Recipe):
             # `depends`. We only do this if it doesn't already depend on any
             # python, since some recipes intentionally don't depend on/work
             # with all python variants
-            depends = self.depends
-            depends.append('python3')
-            depends = list(set(depends))
-            self.depends = depends
+            self.depends = list(set(self.depends) | {'python3'})
 
     def clean_build(self, arch=None):
         super().clean_build(arch=arch)
