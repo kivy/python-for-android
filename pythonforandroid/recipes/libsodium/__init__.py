@@ -3,14 +3,23 @@ from pythonforandroid.util import current_directory
 from pythonforandroid.logger import shprint
 from multiprocessing import cpu_count
 import sh
+from packaging import version as packaging_version
 
 
 class LibsodiumRecipe(Recipe):
     version = '1.0.16'
-    url = 'https://github.com/jedisct1/libsodium/releases/download/{version}/libsodium-{version}.tar.gz'
+    url = 'https://github.com/jedisct1/libsodium/releases/download/{}/libsodium-{}.tar.gz'
     depends = []
     patches = ['size_max_fix.patch']
     built_libraries = {'libsodium.so': 'src/libsodium/.libs'}
+
+    @property
+    def versioned_url(self):
+        asked_version = packaging_version.parse(self.version)
+        if asked_version > packaging_version.parse('1.0.16'):
+            return self._url.format(self.version + '-RELEASE', self.version)
+        else:
+            return self._url.format(self.version, self.version)
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
