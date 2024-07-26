@@ -1,0 +1,36 @@
+Index: log.cc
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/core/lib/gpr/android/log.cc b/src/core/lib/gpr/android/log.cc
+--- a/src/core/lib/gpr/android/log.cc
++++ b/src/core/lib/gpr/android/log.cc	(date 1716778822204)
+@@ -30,18 +30,6 @@
+ 
+ #include "src/core/lib/gprpp/crash.h"
+ 
+-static android_LogPriority severity_to_log_priority(gpr_log_severity severity) {
+-  switch (severity) {
+-    case GPR_LOG_SEVERITY_DEBUG:
+-      return ANDROID_LOG_DEBUG;
+-    case GPR_LOG_SEVERITY_INFO:
+-      return ANDROID_LOG_INFO;
+-    case GPR_LOG_SEVERITY_ERROR:
+-      return ANDROID_LOG_ERROR;
+-  }
+-  return ANDROID_LOG_DEFAULT;
+-}
+-
+ void gpr_log(const char* file, int line, gpr_log_severity severity,
+              const char* format, ...) {
+   // Avoid message construction if gpr_log_message won't log
+@@ -70,8 +58,6 @@
+ 
+   asprintf(&output, "%s:%d] %s", display_file, args->line, args->message);
+ 
+-  __android_log_write(severity_to_log_priority(args->severity), "GRPC", output);
+-
+   // allocated by asprintf => use free, not gpr_free
+   free(output);
+ }
