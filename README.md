@@ -52,7 +52,7 @@ python-for-android is not limited to being used with Buildozer.
 
 More information is available in the 
 [online documentation](https://python-for-android.readthedocs.io) including a
-[quickstart guide](https://python-for-android.readthedocs.io/en/latest/quickstart/).
+[quickstart guide](https://python-for-android.readthedocs.io/en/latest/quickstart.html).
 
 python-for-android is managed by the [Kivy team](https://kivy.org).
 
