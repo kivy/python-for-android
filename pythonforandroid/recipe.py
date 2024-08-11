@@ -12,8 +12,6 @@ import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, curdir, walk
 from sys import stdout
-from wheel.wheelfile import WheelFile
-from wheel.cli.tags import tags as wheel_tags
 import time
 try:
     from urlparse import urlparse
@@ -26,7 +24,7 @@ from pythonforandroid.logger import (
     logger, info, warning, debug, shprint, info_main, error)
 from pythonforandroid.util import (
     current_directory, ensure_dir, BuildInterruptingException, rmdir, move,
-    touch)
+    touch, patch_wheel_setuptools_logging)
 from pythonforandroid.util import load_source as import_recipe
 
 
@@ -1205,6 +1203,9 @@ class PyProjectRecipe(PythonRecipe):
         }[arch.arch]
 
     def install_wheel(self, arch, built_wheels):
+        with patch_wheel_setuptools_logging():
+            from wheel.cli.tags import tags as wheel_tags
+            from wheel.wheelfile import WheelFile
         _wheel = built_wheels[0]
         built_wheel_dir = dirname(_wheel)
         # Fix wheel platform tag
