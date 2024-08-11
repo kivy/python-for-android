@@ -467,8 +467,7 @@ class Recipe(metaclass=RecipeMeta):
                     elif extraction_filename.endswith(
                             ('.tar.gz', '.tgz', '.tar.bz2', '.tbz2', '.tar.xz', '.txz')):
                         sh.tar('xf', extraction_filename)
-                        root_directory = sh.tar('tf', extraction_filename).stdout.decode(
-                                'utf-8').split('\n')[0].split('/')[0]
+                        root_directory = sh.tar('tf', extraction_filename).split('\n')[0].split('/')[0]
                         if root_directory != basename(directory_name):
                             move(root_directory, directory_name)
                     else:
