@@ -117,6 +117,9 @@ docker/pull:
 docker/build:
 	docker build --cache-from=$(DOCKER_IMAGE) --tag=$(DOCKER_IMAGE) .
 
+docker/login:
+	@echo $(DOCKERHUB_TOKEN) | docker login --username $(DOCKERHUB_USERNAME) --password-stdin
+
 docker/push:
 	docker push $(DOCKER_IMAGE)
 
