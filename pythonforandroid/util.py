@@ -1,4 +1,5 @@
 import contextlib
+from unittest import mock
 from fnmatch import fnmatch
 import logging
 from os.path import exists, join
@@ -163,3 +164,16 @@ def max_build_tool_version(
     """
 
     return max(build_tools_versions, key=build_tools_version_sort_key)
+
+
+def patch_wheel_setuptools_logging():
+    """
+    When setuptools is not present and the root logger has no handlers,
+    Wheels would configure the root logger with DEBUG level, refs:
+    - https://github.com/pypa/wheel/blob/0.44.0/src/wheel/util.py
+    - https://github.com/pypa/wheel/blob/0.44.0/src/wheel/_setuptools_logging.py
+
+    Both of these conditions are met in our CI, leading to very verbose
+    and unreadable `sh` logs. Patching it prevents that.
+    """
+    return mock.patch("wheel._setuptools_logging.configure")
