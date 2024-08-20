@@ -39,7 +39,7 @@ def modified_recipes(branch='origin/develop'):
     # using the contrib version on purpose rather than sh.git, since it comes
     # with a bunch of fixes, e.g. disabled TTY, see:
     # https://stackoverflow.com/a/20128598/185510
-    git_diff = sh.contrib.git.diff('--name-only', branch)
+    git_diff = sh.contrib.git.diff('--name-only', branch).split("\n")
     recipes = set()
     for file_path in git_diff:
         if 'pythonforandroid/recipes/' in file_path:
