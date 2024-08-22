@@ -1,11 +1,11 @@
-from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 from os.path import join
 
 
-class AubioRecipe(CythonRecipe):
+class AubioRecipe(PyProjectRecipe):
     version = "0.4.7"
     url = "https://aubio.org/pub/aubio-{version}.tar.bz2"
-    depends = ["numpy"]  # Make sure 'samplerate' is included as a dependency
+    depends = ["numpy", "setuptools"]  # Make sure 'samplerate' is included as a dependency
     patches = [join("patches", "build_ext.patch")]
 
 
