@@ -672,7 +672,6 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
     # Bail out if no python deps and no setup.py to process:
     if not modules and (
             ignore_setup_py or
-            project_dir is None or
             not project_has_setup_py(project_dir)
             ):
         info('No Python modules and no setup.py to process, skipping')
@@ -688,8 +687,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
             "If this fails, it may mean that the module has compiled "
             "components and needs a recipe."
         )
-    if project_dir is not None and \
-            project_has_setup_py(project_dir) and not ignore_setup_py:
+    if project_has_setup_py(project_dir) and not ignore_setup_py:
         info(
             "Will process project install, if it fails then the "
             "project may not be compatible for Android install."
@@ -761,9 +759,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
                     _env=copy.copy(env))
 
         # Afterwards, run setup.py if present:
-        if project_dir is not None and (
-                project_has_setup_py(project_dir) and not ignore_setup_py
-                ):
+        if project_has_setup_py(project_dir) and not ignore_setup_py:
             run_setuppy_install(ctx, project_dir, env, arch)
         elif not ignore_setup_py:
             info("No setup.py found in project directory: " + str(project_dir))

@@ -1169,7 +1169,7 @@ class CythonRecipe(PythonRecipe):
 
 
 class PyProjectRecipe(PythonRecipe):
-    '''Recipe for projects which containes `pyproject.toml`'''
+    """Recipe for projects which contain `pyproject.toml`"""
 
     # Extra args to pass to `python -m build ...`
     extra_build_args = []
