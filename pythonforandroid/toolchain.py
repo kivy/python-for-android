@@ -29,7 +29,7 @@ import sh
 
 from pythonforandroid import __version__
 from pythonforandroid.bootstrap import Bootstrap
-from pythonforandroid.build import Context, build_recipes
+from pythonforandroid.build import Context, build_recipes, project_has_setup_py
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.entrypoints import main
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
@@ -569,18 +569,18 @@ class ToolchainCL:
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
 
-        if hasattr(args, "private") and args.private is not None:
+        if getattr(args, "private", None) is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
-        if hasattr(args, "build_mode") and args.build_mode == "release":
+        if getattr(args, "build_mode", None) == "release":
             args.unknown_args += ["--release"]
-        if hasattr(args, "with_debug_symbols") and args.with_debug_symbols:
+        if getattr(args, "with_debug_symbols", False):
             args.unknown_args += ["--with-debug-symbols"]
-        if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
+        if getattr(args, "ignore_setup_py", False):
             args.use_setup_py = False
-        if hasattr(args, "activity_class_name") and args.activity_class_name != 'org.kivy.android.PythonActivity':
+        if getattr(args, "activity_class_name", "org.kivy.android.PythonActivity") != 'org.kivy.android.PythonActivity':
             args.unknown_args += ["--activity-class-name", args.activity_class_name]
-        if hasattr(args, "service_class_name") and args.service_class_name != 'org.kivy.android.PythonService':
+        if getattr(args, "service_class_name", "org.kivy.android.PythonService") != 'org.kivy.android.PythonService':
             args.unknown_args += ["--service-class-name", args.service_class_name]
 
         self.args = args
@@ -603,21 +603,13 @@ class ToolchainCL:
             args, "with_debug_symbols", False
         )
 
-        have_setup_py_or_similar = False
-        if getattr(args, "private", None) is not None:
-            project_dir = getattr(args, "private")
-            if (os.path.exists(os.path.join(project_dir, "setup.py")) or
-                    os.path.exists(os.path.join(project_dir,
-                                                "pyproject.toml"))):
-                have_setup_py_or_similar = True
-
         # Process requirements and put version in environ
         if hasattr(args, 'requirements'):
             requirements = []
 
             # Add dependencies from setup.py, but only if they are recipes
             # (because otherwise, setup.py itself will install them later)
-            if (have_setup_py_or_similar and
+            if (project_has_setup_py(getattr(args, "private", None)) and
                     getattr(args, "use_setup_py", False)):
                 try:
                     info("Analyzing package dependencies. MAY TAKE A WHILE.")
@@ -698,10 +690,7 @@ class ToolchainCL:
 
         # Output warning if setup.py is present and neither --ignore-setup-py
         # nor --use-setup-py was specified.
-        if getattr(args, "private", None) is not None and \
-                (os.path.exists(os.path.join(args.private, "setup.py")) or
-                 os.path.exists(os.path.join(args.private, "pyproject.toml"))
-                ):
+        if project_has_setup_py(getattr(args, "private", None)):
             if not getattr(args, "use_setup_py", False) and \
                     not getattr(args, "ignore_setup_py", False):
                 warning("  **** FUTURE BEHAVIOR CHANGE WARNING ****")
