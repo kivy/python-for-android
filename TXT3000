@@ -1,0 +1,27 @@
+```
+import kivy
+from kivy.app import App
+from kivy.uix.label import Label
+
+class MyApp(App):
+    def build(self):
+        return Label(text='Hola, mundo!')
+
+if __name__ == '__main__':
+    MyApp().run()
+```
+*buildozer.spec*
+```
+[app]
+
+title = Mi Aplicación
+package.name = com.example.miaplicacion
+package.version = 1.0
+
+requirements = python3,kivy
+
+[buildozer]
+
+android.ndk_path = /path/to/ndk
+android.sdk_path = /path/to/sdk
+```
