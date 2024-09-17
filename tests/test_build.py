@@ -62,6 +62,8 @@ class TestTemplates(unittest.TestCase):
     def test_android_manifest_xml(self):
         args = mock.Mock()
         args.min_sdk_version = 12
+        android_api = 1234
+        args.android_target_sdk_version = android_api
         args.build_mode = 'debug'
         args.native_services = ['abcd', ]
         args.permissions = [
@@ -77,7 +79,7 @@ class TestTemplates(unittest.TestCase):
             "args": args,
             "service": False,
             "service_names": [],
-            "android_api": 1234,
+            "android_api": android_api,
             "debug": "debug" in args.build_mode,
             "native_services": args.native_services
         }

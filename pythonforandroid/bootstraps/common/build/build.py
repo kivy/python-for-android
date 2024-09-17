@@ -508,6 +508,12 @@ main.py that loads it.''')
         sdk_dir = fileh.read().strip()
     sdk_dir = sdk_dir[8:]
 
+    if args.android_target_sdk_version == -1:
+        args.android_target_sdk_version = android_api
+    if args.android_target_sdk_version != android_api:
+        print(f'WARNING: android_target_sdk_version ({args.android_target_sdk_version}) '
+              f'was set explicitly, and it does not match android_api ({android_api}).')
+
     # Try to build with the newest available build tools
     ignored = {".DS_Store", ".ds_store"}
     build_tools_versions = [x for x in listdir(join(sdk_dir, 'build-tools')) if x not in ignored]
@@ -919,6 +925,9 @@ tools directory of the Android SDK.
                     action='store_true',
                     help=('Allow the --minsdk argument to be different from '
                           'the discovered ndk_api in the dist'))
+    ap.add_argument('--android-target-sdk-version', dest='android_target_sdk_version',
+                    default=-1, type=int,
+                    help='targetSdkVersion to put in manifest. Matches android-api by default.')
     ap.add_argument('--intent-filters', dest='intent_filters',
                     help=('Add intent-filters xml rules to the '
                           'AndroidManifest.xml file. The argument is a '
