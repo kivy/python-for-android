@@ -4,19 +4,15 @@ import sh
 
 
 class FFMpegRecipe(Recipe):
-    version = 'n4.3.1'
+    version = 'n6.1.2'
     # Moved to github.com instead of ffmpeg.org to improve download speed
     url = 'https://github.com/FFmpeg/FFmpeg/archive/{version}.zip'
     depends = ['sdl2']  # Need this to build correct recipe order
     opts_depends = ['openssl', 'ffpyplayer_codecs']
-    patches = ['patches/configure.patch']
 
     def should_build(self, arch):
         build_dir = self.get_build_dir(arch.arch)
         return not exists(join(build_dir, 'lib', 'libavcodec.so'))
-
-    def prebuild_arch(self, arch):
-        self.apply_patches(arch)
 
     def get_recipe_env(self, arch):
         env = super().get_recipe_env(arch)
