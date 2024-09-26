@@ -8,7 +8,8 @@ class FFMpegRecipe(Recipe):
     # Moved to github.com instead of ffmpeg.org to improve download speed
     url = 'https://github.com/FFmpeg/FFmpeg/archive/{version}.zip'
     depends = ['sdl2']  # Need this to build correct recipe order
-    opts_depends = ['openssl', 'ffpyplayer_codecs']
+    opts_depends = ['openssl', 'ffpyplayer_codecs', 'av_codecs']
+    patches = ['patches/configure.patch']
 
     def should_build(self, arch):
         build_dir = self.get_build_dir(arch.arch)
@@ -39,7 +40,9 @@ class FFMpegRecipe(Recipe):
                            '-DOPENSSL_API_COMPAT=0x10002000L']
                 ldflags += ['-L' + build_dir]
 
-            if 'ffpyplayer_codecs' in self.ctx.recipe_build_order:
+            codecs_opts = {"ffpyplayer_codecs", "av_codecs"}
+            if codecs_opts.intersection(self.ctx.recipe_build_order):
+
                 # Enable GPL
                 flags += ['--enable-gpl']
 
@@ -48,7 +51,7 @@ class FFMpegRecipe(Recipe):
                 build_dir = Recipe.get_recipe(
                     'libx264', self.ctx).get_build_dir(arch.arch)
                 cflags += ['-I' + build_dir + '/include/']
-                ldflags += ['-lx264', '-L' + build_dir + '/lib/']
+                ldflags += [build_dir + '/lib/' + 'libx264.a']
 
                 # libshine
                 flags += ['--enable-libshine']
