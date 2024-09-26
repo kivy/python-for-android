@@ -56,7 +56,7 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         hostpy = self.recipe.ctx.hostpython = '/fake/hostpython3'
         self.recipe.compile_python_files(fake_compile_dir)
         mock_subprocess.assert_called_once_with(
-            [hostpy, '-OO', '-m', 'compileall', '-b', '-f', fake_compile_dir],
+            [hostpy, '-OO', '-m', 'compileall', '-b', '-s', fake_compile_dir, '-f', fake_compile_dir],
         )
 
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")

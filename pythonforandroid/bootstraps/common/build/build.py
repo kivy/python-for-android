@@ -205,7 +205,14 @@ def compile_py_file(python_file, optimize_python=True):
     if PYTHON is None:
         return
 
-    args = [PYTHON, '-m', 'compileall', '-b', '-f', python_file]
+    path_prefix = os.path.commonpath([python_file, os.getcwd()])
+    args = [
+        PYTHON, '-m', 'compileall',
+        '-b',
+        '-s', path_prefix,  # for reproducible builds, do not leak paths into pyc
+        '-f',
+        python_file,
+    ]
     if optimize_python:
         # -OO = strip docstrings
         args.insert(1, '-OO')

@@ -360,7 +360,14 @@ class Python3Recipe(TargetPythonRecipe):
             longer used...uses .pyc (https://www.python.org/dev/peps/pep-0488)
         '''
         args = [self.ctx.hostpython]
-        args += ['-OO', '-m', 'compileall', '-b', '-f', dir]
+        args += [
+            '-OO',
+            '-m', 'compileall',
+            '-b',
+            '-s', dir,  # for reproducible builds, do not leak paths into pyc
+            '-f',
+            dir,
+        ]
         subprocess.call(args)
 
     def create_python_bundle(self, dirn, arch):
