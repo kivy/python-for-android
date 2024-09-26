@@ -12,9 +12,6 @@ class PyAVRecipe(CythonRecipe):
     opt_depends = ["openssl"]
     patches = ['patches/compilation_syntax_errors.patch']
 
-    def prebuild_arch(self, arch):
-        self.apply_patches(arch)
-
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super().get_recipe_env(arch)
 
