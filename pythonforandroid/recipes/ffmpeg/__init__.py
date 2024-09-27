@@ -51,6 +51,8 @@ class FFMpegRecipe(Recipe):
                 build_dir = Recipe.get_recipe(
                     'libx264', self.ctx).get_build_dir(arch.arch)
                 cflags += ['-I' + build_dir + '/include/']
+                # Newer versions of FFmpeg prioritize the dynamic library and ignore
+                # the static one, unless the static library path is explicitly set.
                 ldflags += [build_dir + '/lib/' + 'libx264.a']
 
                 # libshine
