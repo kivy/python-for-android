@@ -50,6 +50,9 @@
                  android:extractNativeLibs="true"
                  {% if debug %}android:debuggable="true"{% endif %}
                  >
+                 
+        {{ args.extra_manifest_application_xml }}
+                 
         {% for l in args.android_used_libs %}
         <uses-library android:name="{{ l }}" />
         {% endfor %}
