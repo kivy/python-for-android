@@ -4,6 +4,7 @@ TOX=`which tox`
 ACTIVATE=$(VIRTUAL_ENV)/bin/activate
 PYTHON=$(VIRTUAL_ENV)/bin/python
 DOCKER_IMAGE=kivy/python-for-android
+DOCKER_TAG=latest
 ANDROID_SDK_HOME ?= $(HOME)/.android/android-sdk
 ANDROID_NDK_HOME ?= $(HOME)/.android/android-ndk
 ANDROID_NDK_HOME_LEGACY ?= $(HOME)/.android/android-ndk-legacy
@@ -118,10 +119,13 @@ docker/build:
 	docker build --cache-from=$(DOCKER_IMAGE) --tag=$(DOCKER_IMAGE) .
 
 docker/login:
-	@echo $(DOCKERHUB_TOKEN) | docker login --username $(DOCKERHUB_USERNAME) --password-stdin
+	@echo $$DOCKERHUB_TOKEN | docker login --username $(DOCKERHUB_USERNAME) --password-stdin
+
+docker/tag:
+	docker tag $(DOCKER_IMAGE):latest $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 docker/push:
-	docker push $(DOCKER_IMAGE)
+	docker push $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 docker/run/test: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) 'make test'
