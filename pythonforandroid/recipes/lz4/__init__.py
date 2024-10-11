@@ -1,5 +1,7 @@
-from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 from os.path import join
+
+from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+
 
 class Lz4Recipe(CompiledComponentsPythonRecipe):
     name = 'lz4'
@@ -21,5 +23,6 @@ class Lz4Recipe(CompiledComponentsPythonRecipe):
         env['LDFLAGS'] += f' -L{lz4_lib_dir} -llz4'
 
         return env
+
 
 recipe = Lz4Recipe()

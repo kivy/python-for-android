@@ -1,9 +1,12 @@
+import os
+from os.path import join
+
+import sh
+
 from pythonforandroid.logger import shprint
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.toolchain import current_directory
-from os.path import join
-import sh
-import os
+
 
 class LibLZ4Recipe(Recipe):
     name = 'liblz4'
@@ -40,5 +43,6 @@ class LibLZ4Recipe(Recipe):
         python_recipe = self.get_recipe('python3', self.ctx)
         env['CC'] = python_recipe.get_recipe_env(arch)['CC']
         return env
+
 
 recipe = LibLZ4Recipe()
