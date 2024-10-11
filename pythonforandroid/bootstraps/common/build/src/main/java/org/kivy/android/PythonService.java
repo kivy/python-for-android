@@ -39,13 +39,26 @@ public class PythonService extends Service implements Runnable {
     private Intent startIntent = null;
 
     private boolean autoRestartService = false;
+    private int start = START_NOT_STICKY;
 
     public void setAutoRestartService(boolean restart) {
         autoRestartService = restart;
     }
 
+    public void setTypeStartSticky() {
+        start = START_STICKY;
+    }
+    
+    public void setTypeStartNotSticky() {
+        start = START_NOT_STICKY;
+    }
+    
+    public void setTypeStartRedeliverIntent() {
+        start = START_REDELIVER_INTENT;
+    }
+
     public int startType() {
-        return START_NOT_STICKY;
+        return start;
     }
 
     @Override
