@@ -18,7 +18,7 @@ class LibLZ4Recipe(Recipe):
         env = self.get_recipe_env(arch)
         build_dir = self.get_build_dir(arch.arch)
         lib_dir = self.ctx.get_libs_dir(arch.arch)
-        include_dir = join(self.ctx.get_python_install_dir(), 'include', 'lz4')
+        include_dir = join(self.ctx.get_python_install_dir(arch), 'include', 'lz4')
 
         # Ensure include directory exists
         if not os.path.exists(include_dir):

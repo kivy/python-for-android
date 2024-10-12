@@ -15,7 +15,7 @@ class Lz4Recipe(CompiledComponentsPythonRecipe):
         ctx = self.ctx
 
         # Include the headers from liblz4
-        lz4_include_dir = join(ctx.get_python_install_dir(), 'include', 'lz4')
+        lz4_include_dir = join(ctx.get_python_install_dir(arch), 'include', 'lz4')
         env['CFLAGS'] += f' -I{lz4_include_dir}'
 
         # Link against the liblz4 library
