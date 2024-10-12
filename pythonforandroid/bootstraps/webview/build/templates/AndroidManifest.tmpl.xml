@@ -75,6 +75,8 @@
             {%- if args.intent_filters -%}
             {{- args.intent_filters -}}
             {%- endif -%}
+            {% for m in args.activity_meta_data %}
+            <meta-data android:name="{{ m.split('=', 1)[0] }}" android:value="{{ m.split('=', 1)[-1] }}"/>{% endfor %}
         </activity>
 
         {% if service %}
