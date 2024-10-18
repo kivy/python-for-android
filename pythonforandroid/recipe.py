@@ -216,7 +216,7 @@ class Recipe(metaclass=RecipeMeta):
                     # Mozilla/5.0 doesnt handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
                     if self.github_access_token:
-                        url_opener.addheaders += [('Authorization', f'token {self.github_access_token}'), ('Accept', 'application/vnd.github.v3.raw')]
+                        url_opener.addheaders += [('Authorization', f'token {self.github_access_token}'), ('Accept', 'application/vnd.github+json')]
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
