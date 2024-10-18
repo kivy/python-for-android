@@ -59,6 +59,11 @@ class Recipe(metaclass=RecipeMeta):
               if you want.
     '''
 
+    _github_access_token = None
+    '''Used to access a private git repository. Specify the github-supplied
+    access token in order to download the private repository files.
+    '''
+
     _version = None
     '''A string giving the version of the software the recipe describes,
     e.g. ``2.0.3`` or ``master``.'''
@@ -170,6 +175,11 @@ class Recipe(metaclass=RecipeMeta):
             return None
         return self.url.format(version=self.version)
 
+    @property
+    def github_access_token(self):
+        key = "GITHUB_ACCESS_TOKEN_" + self.name
+        return environ.get(key, self._github_access_token)
+
     def download_file(self, url, target, cwd=None):
         """
         (internal) Download an ``url`` to a ``target``.
@@ -205,6 +215,9 @@ class Recipe(metaclass=RecipeMeta):
                     # jqueryui.com returns a 403 w/ the default user agent
                     # Mozilla/5.0 doesnt handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
+                    if self.github_access_token:
+                        url_opener.addheaders += [('Authorization', f'token {self.github_access_token}'),
+                                                 ('Accept', 'application/vnd.github.v3.raw')]
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
