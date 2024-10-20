@@ -26,7 +26,7 @@ a Python web server.
 It automatically supports dependencies on most pure Python packages. For other
 packages, including those that depend on C code, a special "recipe" must be 
 written to support cross-compiling. python-for-android comes with recipes for
-many of the mostly popular libraries (e.g. numpy and sqlalchemy) built in.
+many of the most popular libraries (e.g. numpy and sqlalchemy) built in.
 
 python-for-android works by cross-compiling the Python interpreter and its
 dependencies for Android devices, and bundling it with the app's python code
