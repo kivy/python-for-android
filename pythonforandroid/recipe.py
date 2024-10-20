@@ -1,7 +1,7 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
-
 import hashlib
+import json
 from re import match
 
 import sh
@@ -64,7 +64,10 @@ class Recipe(metaclass=RecipeMeta):
     for authorization purposes.
 
     Specified as an array of tuples:
-    [("header name", "header value")]
+    [("header1", "foo"), ("header2", "bar")]
+
+    When specifying as an environment variable (DOWNLOAD_HEADER_my-package-name), use a JSON formatted fragement:
+    [["header1","foo"],["header2", "bar"]]
 
     For example, when downloading from a private
     github repository, you can specify the following:
@@ -185,6 +188,13 @@ class Recipe(metaclass=RecipeMeta):
     @property
     def download_headers(self):
         key = "DOWNLOAD_HEADERS_" + self.name
+        env_headers = environ.get(key)
+        if env_headers:
+            try:
+                return [tuple(h) for h in json.loads(env_headers)]
+            except Exception as ex:
+                raise ValueError(f'Invalid Download headers for {key} - must be JSON formatted as [["header1","foo"],["header2","bar"]]: {ex}')
+
         return environ.get(key, self._download_headers)
 
     def download_file(self, url, target, cwd=None):

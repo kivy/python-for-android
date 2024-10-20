@@ -66,10 +66,16 @@ Specifying the URL
           download_headers property.
 
 For example, when downloading from a private github repository, you can specify the following:
+
+(For the download_headers property in your recipe)
 ```
 [('Authorization', 'token <your personal access token>'), ('Accept', 'application/vnd.github+json')]
 ```
 
+(For the DOWNLOAD_HEADERS_my-package-name environment variable - specify as a JSON formatted set of values)
+```
+    [["Authorization","token <your personal access token>"],["Accept", "application/vnd.github+json"]]
+```
 The actual build process takes place via three core methods::
 
       def prebuild_arch(self, arch):
