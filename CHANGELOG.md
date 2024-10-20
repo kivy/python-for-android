@@ -427,7 +427,7 @@
 - "Unit test apk" + "Unit test aab" + "Test updated recipes" test jobs should be run also on macOS \(both Intel and Apple Silicon\) [\#2569](https://github.com/kivy/python-for-android/issues/2569)
 - unpackPyBundle\(\) on startup crashes already running service [\#2564](https://github.com/kivy/python-for-android/issues/2564)
 - Webview app fail to startup. [\#2559](https://github.com/kivy/python-for-android/issues/2559)
-- generic ndk build recipe Not compiling with android api \> 28 [\#2555](https://github.com/kivy/python-for-android/issues/2555)
+- GenericNDKBuildRecipe Not compiling with android api \> 28 [\#2555](https://github.com/kivy/python-for-android/issues/2555)
 - Is there a way to build smaller apks? [\#2553](https://github.com/kivy/python-for-android/issues/2553)
 - Webview, icon [\#2552](https://github.com/kivy/python-for-android/issues/2552)
 - SONAME header not present in libpython3.8.so [\#2548](https://github.com/kivy/python-for-android/issues/2548)
