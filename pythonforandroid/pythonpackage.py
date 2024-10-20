@@ -79,7 +79,7 @@ def extract_metainfo_files_from_package(
         output_folder,
         debug=False
         ):
-    """ Extracts metdata files from the given package to the given folder,
+    """ Extracts metadata files from the given package to the given folder,
         which may be referenced in any way that is permitted in
         a requirements.txt file or install_requires=[] listing.
 

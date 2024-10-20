@@ -51,7 +51,7 @@ class TestBuildBasic(unittest.TestCase):
             assert m_CythonRecipe().strip_object_files.called is False
 
             # Make sure strip object files IS called when
-            # `with_debug_symbols` is fasle:
+            # `with_debug_symbols` is false:
             ctx.with_debug_symbols = False
             assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
             assert m_CythonRecipe().strip_object_files.called is True

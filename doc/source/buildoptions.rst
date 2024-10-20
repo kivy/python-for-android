@@ -250,7 +250,7 @@ across all the other bootstraps, the Qt bootstrap introduces the following 3 new
 These build options are automatically populated by the ``pyside6-android-deploy`` tool, but can be
 modified by updating the ``buildozer.spec`` file. Apart from the above 3 build options, the tool
 also automatically identifies the values to be fed into the cli options ``--permission``, ``--add-jar``
-depending on the PySide6 modules used by the applicaiton.
+depending on the PySide6 modules used by the application.
 
 Requirements blacklist (APK size optimization)
 ----------------------------------------------

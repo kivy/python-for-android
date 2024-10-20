@@ -203,7 +203,7 @@ class Recipe(metaclass=RecipeMeta):
             while True:
                 try:
                     # jqueryui.com returns a 403 w/ the default user agent
-                    # Mozilla/5.0 doesnt handle redirection for liblzma
+                    # Mozilla/5.0 does not handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
@@ -729,7 +729,7 @@ class IncludedFilesBehaviour(object):
 
 class BootstrapNDKRecipe(Recipe):
     '''A recipe class for recipes built in an Android project jni dir with
-    an Android.mk. These are not cached separatly, but built in the
+    an Android.mk. These are not cached separately, but built in the
     bootstrap's own building directory.
 
     To build an NDK project which is not part of the bootstrap, see
@@ -1233,7 +1233,7 @@ class PyProjectRecipe(PythonRecipe):
         )
         build_dir = self.get_build_dir(arch.arch)
         env = self.get_recipe_env(arch, with_flags_in_cc=True)
-        # make build dir separatly
+        # make build dir separately
         sub_build_dir = join(build_dir, "p4a_android_build")
         ensure_dir(sub_build_dir)
         # copy hostpython to built python to ensure correct selection of libs and includes
