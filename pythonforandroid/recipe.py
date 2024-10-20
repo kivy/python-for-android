@@ -59,9 +59,16 @@ class Recipe(metaclass=RecipeMeta):
               if you want.
     '''
 
-    _github_access_token = None
-    '''Used to access a private git repository. Specify the github-supplied
-    access token in order to download the private repository files.
+    _download_headers = None
+    '''Add additional headers used when downloading the package, typically
+    for authorization purposes.
+
+    Specified as an array of tuples:
+    [("header name", "header value")]
+
+    For example, when downloading from a private
+    github repository, you can specify the following:
+    [('Authorization', 'token <your personal access token>'), ('Accept', 'application/vnd.github+json')]
     '''
 
     _version = None
@@ -176,9 +183,9 @@ class Recipe(metaclass=RecipeMeta):
         return self.url.format(version=self.version)
 
     @property
-    def github_access_token(self):
-        key = "GITHUB_ACCESS_TOKEN_" + self.name
-        return environ.get(key, self._github_access_token)
+    def download_headers(self):
+        key = "DOWNLOAD_HEADERS_" + self.name
+        return environ.get(key, self._download_headers)
 
     def download_file(self, url, target, cwd=None):
         """
@@ -215,8 +222,8 @@ class Recipe(metaclass=RecipeMeta):
                     # jqueryui.com returns a 403 w/ the default user agent
                     # Mozilla/5.0 doesnt handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
-                    if self.github_access_token:
-                        url_opener.addheaders += [('Authorization', f'token {self.github_access_token}'), ('Accept', 'application/vnd.github+json')]
+                    if self.download_headers:
+                        url_opener.addheaders += self.download_headers
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
