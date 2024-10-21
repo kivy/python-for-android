@@ -31,8 +31,9 @@ jobs:
     needs: flake8
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
         os: [ubuntu-latest, macOs-latest]
     steps:
     - name: Checkout python-for-android
