@@ -332,4 +332,4 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         recipe = DummyRecipe()
         with mock.patch.dict(os.environ, {f'DOWNLOAD_HEADERS_{recipe.name}': '[["header1","foo"],["header2", "bar"]]'}):
             download_headers = recipe.download_headers
-        assert download_headers == [["header1", "foo"], ["header2", "bar"]]
+        assert download_headers == [("header1", "foo"), ("header2", "bar")]
