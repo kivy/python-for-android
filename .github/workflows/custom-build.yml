@@ -1,0 +1,95 @@
+name: Custom build
+
+on:
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: "Comma separated architectures (e.g., armeabi-v7a, arm64-v8a, x86_64, x86)"
+        required: true
+        default: "armeabi-v7a,arm64-v8a,x86_64,x86"
+      artifact:
+        description: "Artifact type"
+        required: true
+        default: "apk"
+        type: choice
+        options:
+          - "aab"
+          - "aar"
+          - "apk"
+      bootstrap:
+        description: "Bootstrap to use"
+        required: true
+        default: "sdl2"
+        type: choice
+        options:
+          - "qt"
+          - "sdl2"
+          - "service_library"
+          - "service_only"
+          - "webview"
+      mode:
+        description: "Build mode"
+        required: true
+        default: "debug"
+        type: choice
+        options:
+          - "debug"
+          - "release"
+      os:
+        description: "Operating system to run on"
+        required: true
+        default: "ubuntu-latest"
+        type: choice
+        options:
+          - "ubuntu-latest"
+          - "macos-latest"
+      requirements:
+        description: "Comma separated requirements"
+        required: true
+        default: "python3,kivy"
+
+env:
+  APK_ARTIFACT_FILENAME: bdist_unit_tests_app-debug-1.1.apk
+  AAB_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aab
+  AAR_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aar
+  PYTHONFORANDROID_PREREQUISITES_INSTALL_INTERACTIVE: 0
+
+jobs:
+  build:
+    name: Build test APP [ ${{ github.event.inputs.arch }} | ${{ github.event.inputs.artifact }} | ${{ github.event.inputs.bootstrap }} | ${{ github.event.inputs.mode }} | ${{ github.event.inputs.os }} | ${{ github.event.inputs.requirements }}]
+    runs-on: ${{ github.event.inputs.os }}
+    steps:
+      - name: Checkout python-for-android
+        uses: actions/checkout@v4
+      - name: Pull the python-for-android docker image
+        run: make docker/pull
+      - name: Build python-for-android docker image
+        run: make docker/build
+      - name: Build multi-arch artifact with docker
+        run: |
+          docker run --name p4a-latest kivy/python-for-android make ARCH=${{ github.event.inputs.arch }} ARTIFACT=${{ github.event.inputs.artifact }} BOOTSTRAP=${{ github.event.inputs.bootstrap }} MODE=${{ github.event.inputs.mode }} REQUIREMENTS=${{ github.event.inputs.requirements }} testapps-generic
+      - name: Copy produced artifacts from docker container (*.apk, *.aab)
+        if: github.event.inputs.bootstrap != 'service_library'
+        run: |
+          mkdir -p dist
+          docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/${{ env.APK_ARTIFACT_FILENAME }} dist/ || true
+          docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/${{ env.AAB_ARTIFACT_FILENAME }} dist/ || true
+      - name: Copy produced artifacts from docker container (*.aar)
+        if: github.event.inputs.bootstrap == 'service_library'
+        run: |
+          mkdir -p dist
+          docker cp p4a-latest:/home/user/app/testapps/on_device_unit_tests/${{ env.AAR_ARTIFACT_FILENAME }} dist/
+      - name: Rename artifacts to include the build platform name (*.apk, *.aab, *.aar)
+        run: |
+          if [ -f dist/${{ env.APK_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.APK_ARTIFACT_FILENAME }} dist/${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-${{ env.APK_ARTIFACT_FILENAME }}; fi
+          if [ -f dist/${{ env.AAB_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAB_ARTIFACT_FILENAME }} dist/${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-${{ env.AAB_ARTIFACT_FILENAME }}; fi
+          if [ -f dist/${{ env.AAR_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAR_ARTIFACT_FILENAME }} dist/${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-${{ env.AAR_ARTIFACT_FILENAME }}; fi
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-artifacts
+          path: dist
+      # Cleanup the container after all steps are done
+      - name: Cleanup Docker container
+        run: docker rm p4a-latest
+        if: always()

@@ -33,6 +33,20 @@ rebuild_updated_recipes: virtualenv
 	ANDROID_SDK_HOME=$(ANDROID_SDK_HOME) ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) \
 	$(PYTHON) ci/rebuild_updated_recipes.py $(REBUILD_UPDATED_RECIPES_EXTRA_ARGS)
 
+# make ARCH=armeabi-v7a,arm64-v8a ARTIFACT=apk BOOTSTRAP=sdl2 MODE=debug REQUIREMENTS=python testapps-generic
+testapps-generic: virtualenv
+	@if [ -z "$(ARCH)" ]; then echo "ARCH is not set"; exit 1; fi
+	@if [ -z "$(ARTIFACT)" ]; then echo "ARTIFACT is not set"; exit 1; fi
+	@if [ -z "$(BOOTSTRAP)" ]; then echo "BOOTSTRAP is not set"; exit 1; fi
+	@if [ -z "$(MODE)" ]; then echo "MODE is not set"; exit 1; fi
+	@if [ -z "$(REQUIREMENTS)" ]; then echo "REQUIREMENTS is not set"; exit 1; fi
+	@ARCH_FLAGS=$$(echo "$(ARCH)" | tr ',' ' ' | sed 's/\([^ ]\+\)/--arch=\1/g'); \
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py $(ARTIFACT) \
+    --sdk-dir $(ANDROID_SDK_HOME) \
+    --ndk-dir $(ANDROID_NDK_HOME) \
+    $$ARCH_FLAGS --bootstrap $(BOOTSTRAP) --$(MODE) --requirements $(REQUIREMENTS)
+
 testapps-with-numpy: testapps-with-numpy/debug/apk testapps-with-numpy/release/aab
 
 # testapps-with-numpy/MODE/ARTIFACT
