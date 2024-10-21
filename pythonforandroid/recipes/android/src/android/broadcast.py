@@ -32,7 +32,7 @@ class BroadcastReceiver(object):
             else:
                 name = 'ACTION_{}'.format(partial_name.upper())
                 if not hasattr(Intent, name):
-                    raise Exception('The intent {} doesnt exist'.format(name))
+                    raise Exception('The intent {} does not exist'.format(name))
                 return getattr(Intent, name)
 
         # resolve actions/categories first

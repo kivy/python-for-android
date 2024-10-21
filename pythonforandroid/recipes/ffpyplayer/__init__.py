@@ -32,7 +32,7 @@ class FFPyPlayerRecipe(PyProjectRecipe):
         env['LIBLINK'] = 'NOTNONE'
 
         # ffmpeg recipe enables GPL components only if ffpyplayer_codecs recipe used.
-        # Therefor we need to disable libpostproc if skipped.
+        # Therefore we need to disable libpostproc if skipped.
         if 'ffpyplayer_codecs' not in self.ctx.recipe_build_order:
             env["CONFIG_POSTPROC"] = '0'
 

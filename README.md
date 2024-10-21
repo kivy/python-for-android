@@ -12,7 +12,7 @@ It can generate:
 * [Android App Bundle](https://developer.android.com/guide/app-bundle/faq) 
   (AAB) files which can be shared on [Google Play Store](https://play.google.com/store/).
 * [Android Archive](https://developer.android.com/studio/projects/android-library)
-  (AAR) files which can be used as a re-usable bundle of resources for other 
+  (AAR) files which can be used as a reusable bundle of resources for other 
   projects.
  
 It supports multiple CPU architectures.
@@ -26,7 +26,7 @@ a Python web server.
 It automatically supports dependencies on most pure Python packages. For other
 packages, including those that depend on C code, a special "recipe" must be 
 written to support cross-compiling. python-for-android comes with recipes for
-many of the mosty popular libraries (e.g. numpy and sqlalchemy) built in.
+many of the most popular libraries (e.g. numpy and sqlalchemy) built in.
 
 python-for-android works by cross-compiling the Python interpreter and its
 dependencies for Android devices, and bundling it with the app's python code

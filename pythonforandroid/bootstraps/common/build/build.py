@@ -55,7 +55,7 @@ else:
 curdir = dirname(__file__)
 
 BLACKLIST_PATTERNS = [
-    # code versionning
+    # code versioning
     '^*.hg/*',
     '^*.git/*',
     '^*.bzr/*',
@@ -170,7 +170,7 @@ def make_tar(tfn, source_dirs, byte_compile_python=False, optimize_python=True):
             files.append((fn, relpath(realpath(fn), sd)))
     files.sort()  # deterministic
 
-    # create tar.gz of thoses files
+    # create tar.gz of those files
     gf = GzipFile(tfn, 'wb', mtime=0)  # deterministic
     tf = tarfile.open(None, 'w', gf, format=tarfile.USTAR_FORMAT)
     dirs = []
@@ -339,7 +339,7 @@ main.py that loads it.''')
     else:
         shutil.copytree(res_dir, res_dir_initial)
 
-    # Add user resouces
+    # Add user resources
     for resource in args.resources:
         resource_src, resource_dest = resource.split(":")
         if isfile(realpath(resource_src)):
