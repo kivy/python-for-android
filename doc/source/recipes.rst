@@ -54,10 +54,28 @@ omitted if the source is somehow loaded from elsewhere.
 You must include ``recipe = YourRecipe()``. This variable is accessed
 when the recipe is imported.
 
+Specifying the URL
+------------------
+
 .. note:: The url includes the ``{version}`` tag. You should only
           access the url with the ``versioned_url`` property, which
           replaces this with the version attribute.
 
+.. note:: you may need to specify additional headers to allow python-for-android
+          to download the archive. Specify your additional headers by setting the
+          download_headers property.
+
+For example, when downloading from a private github repository, you can specify the following:
+
+(For the download_headers property in your recipe)
+```
+[('Authorization', 'token <your personal access token>'), ('Accept', 'application/vnd.github+json')]
+```
+
+(For the DOWNLOAD_HEADERS_my-package-name environment variable - specify as a JSON formatted set of values)
+```
+    [["Authorization","token <your personal access token>"],["Accept", "application/vnd.github+json"]]
+```
 The actual build process takes place via three core methods::
 
       def prebuild_arch(self, arch):

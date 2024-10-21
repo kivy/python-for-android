@@ -1,7 +1,7 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
-
 import hashlib
+import json
 from re import match
 
 import sh
@@ -57,6 +57,21 @@ class Recipe(metaclass=RecipeMeta):
     .. note:: Methods marked (internal) are used internally and you
               probably don't need to call them, but they are available
               if you want.
+    '''
+
+    _download_headers = None
+    '''Add additional headers used when downloading the package, typically
+    for authorization purposes.
+
+    Specified as an array of tuples:
+    [("header1", "foo"), ("header2", "bar")]
+
+    When specifying as an environment variable (DOWNLOAD_HEADER_my-package-name), use a JSON formatted fragement:
+    [["header1","foo"],["header2", "bar"]]
+
+    For example, when downloading from a private
+    github repository, you can specify the following:
+    [('Authorization', 'token <your personal access token>'), ('Accept', 'application/vnd.github+json')]
     '''
 
     _version = None
@@ -170,6 +185,18 @@ class Recipe(metaclass=RecipeMeta):
             return None
         return self.url.format(version=self.version)
 
+    @property
+    def download_headers(self):
+        key = "DOWNLOAD_HEADERS_" + self.name
+        env_headers = environ.get(key)
+        if env_headers:
+            try:
+                return [tuple(h) for h in json.loads(env_headers)]
+            except Exception as ex:
+                raise ValueError(f'Invalid Download headers for {key} - must be JSON formatted as [["header1","foo"],["header2","bar"]]: {ex}')
+
+        return environ.get(key, self._download_headers)
+
     def download_file(self, url, target, cwd=None):
         """
         (internal) Download an ``url`` to a ``target``.
@@ -205,6 +232,8 @@ class Recipe(metaclass=RecipeMeta):
                     # jqueryui.com returns a 403 w/ the default user agent
                     # Mozilla/5.0 does not handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
+                    if self.download_headers:
+                        url_opener.addheaders += self.download_headers
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1

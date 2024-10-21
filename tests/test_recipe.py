@@ -326,3 +326,10 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         assert recipe.need_stl_shared, True
         recipe.postbuild_arch(arch)
         mock_install_stl_lib.assert_called_once_with(arch)
+
+    def test_recipe_download_headers(self):
+        """Download header can be created on the fly using environment variables."""
+        recipe = DummyRecipe()
+        with mock.patch.dict(os.environ, {f'DOWNLOAD_HEADERS_{recipe.name}': '[["header1","foo"],["header2", "bar"]]'}):
+            download_headers = recipe.download_headers
+        assert download_headers == [("header1", "foo"), ("header2", "bar")]

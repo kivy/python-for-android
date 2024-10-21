@@ -8,6 +8,10 @@ env:
   AAR_ARTIFACT_FILENAME: bdist_unit_tests_app-release-1.1.aar
   PYTHONFORANDROID_PREREQUISITES_INSTALL_INTERACTIVE: 0
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   flake8:
