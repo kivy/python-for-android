@@ -330,6 +330,7 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
     def test_recipe_download_headers(self):
         """Download header can be created on the fly using environment variables."""
         recipe = DummyRecipe()
-        with mock.patch.dict(os.environ, '[["header1","foo"],["header2", "bar"]]'):
+        recipe.name = "dummy"
+        with mock.patch.dict(os.environ, {'DOWNLOAD_HEADERS_dummy': '[["header1","foo"],["header2", "bar"]]'}):
             download_headers = recipe.download_headers
         assert download_headers == [["header1", "foo"], ["header2", "bar"]]
