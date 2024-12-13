@@ -178,7 +178,7 @@ packages:
    of the project will be run. This happens with cross compilation set up
    (`CC`/`CFLAGS`/... set to use the
    proper toolchain) and a custom site-packages location.
-   The actual comand is a simple `pip install .` in the project folder
+   The actual command is a simple `pip install .` in the project folder
    with some extra options: e.g. all dependencies that were already
    installed by recipes will be pinned with a `-c` constraints file
    to make sure pip won't install them, and build isolation will be

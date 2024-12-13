@@ -90,7 +90,7 @@ class OpenCVRecipe(NDKRecipe):
                         version=python_link_version),
 
                     '-DBUILD_WITH_STANDALONE_TOOLCHAIN=ON',
-                    # Force to build as shared libraries the cv2's dependant
+                    # Force to build as shared libraries the cv2's dependent
                     # libs or we will not be able to link with our python
                     '-DBUILD_SHARED_LIBS=ON',
                     '-DBUILD_STATIC_LIBS=OFF',

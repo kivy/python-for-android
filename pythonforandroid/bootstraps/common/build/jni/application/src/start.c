@@ -417,7 +417,7 @@ void Java_org_kivy_android_PythonActivity_nativeInit(JNIEnv* env, jclass cls, jo
 {
   /* This nativeInit follows SDL2 */
 
-  /* This interface could expand with ABI negotiation, calbacks, etc. */
+  /* This interface could expand with ABI negotiation, callbacks, etc. */
   /* SDL_Android_Init(env, cls); */
 
   /* SDL_SetMainReady(); */

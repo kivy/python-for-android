@@ -264,7 +264,7 @@ def get_recipe_order_and_bootstrap(ctx, names, bs=None, blacklist=None):
             names.append(cleaned_up_tuple)
 
     # Do check for obvious conflicts (that would trigger in any order, and
-    # without comitting to any specific choice in a multi-choice tuple of
+    # without committing to any specific choice in a multi-choice tuple of
     # dependencies):
     obvious_conflict_checker(ctx, names, blacklist=blacklist)
     # If we get here, no obvious conflicts!

@@ -57,7 +57,7 @@ You can also test the master branch from Github using::
     pip install git+https://github.com/kivy/python-for-android.git
 
 Installing Prerequisites
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 p4a requires a few dependencies to be installed on your system to work
 properly. While we're working on a way to automate pre-requisites checks,
@@ -72,6 +72,7 @@ the following command (re-adapted from the `Dockerfile` we use to perform CI bui
         ant \
         autoconf \
         automake \
+        autopoint \
         ccache \
         cmake \
         g++ \
@@ -85,6 +86,7 @@ the following command (re-adapted from the `Dockerfile` we use to perform CI bui
         make \
         openjdk-17-jdk \
         patch \
+        patchelf \
         pkg-config \
         python3 \
         python3-dev \

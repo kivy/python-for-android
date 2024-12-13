@@ -260,7 +260,7 @@ public class Hardware {
     }
 
     /**
-     * To recieve network state changes
+     * To receive network state changes
      */
     public static void registerNetworkCheck()
     {

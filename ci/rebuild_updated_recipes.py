@@ -39,7 +39,7 @@ def modified_recipes(branch='origin/develop'):
     # using the contrib version on purpose rather than sh.git, since it comes
     # with a bunch of fixes, e.g. disabled TTY, see:
     # https://stackoverflow.com/a/20128598/185510
-    git_diff = sh.contrib.git.diff('--name-only', branch)
+    git_diff = sh.contrib.git.diff('--name-only', branch).split("\n")
     recipes = set()
     for file_path in git_diff:
         if 'pythonforandroid/recipes/' in file_path:
@@ -59,14 +59,18 @@ def build(target_python, requirements, archs):
     requirements.add(target_python.name)
     requirements = ','.join(requirements)
     logger.info('requirements: {}'.format(requirements))
+    build_command = [
+        'setup.py', 'apk',
+        '--sdk-dir', android_sdk_home,
+        '--ndk-dir', android_ndk_home,
+        '--requirements', requirements
+    ] + [f"--arch={arch}" for arch in archs]
+    build_command_str = " ".join(build_command)
+    logger.info(f"Build command: {build_command_str}")
 
     with current_directory('testapps/on_device_unit_tests/'):
         # iterates to stream the output
-        for line in sh.python(
-                'setup.py', 'apk', '--sdk-dir', android_sdk_home,
-                '--ndk-dir', android_ndk_home, '--requirements',
-                requirements, *[f"--arch={arch}" for arch in archs],
-                _err_to_out=True, _iter=True):
+        for line in sh.python(*build_command, _err_to_out=True, _iter=True):
             print(line)
 
 

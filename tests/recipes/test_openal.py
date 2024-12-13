@@ -9,8 +9,8 @@ class TestOpenalRecipe(BaseTestForCmakeRecipe, unittest.TestCase):
     """
     recipe_name = "openal"
 
-    @mock.patch("pythonforandroid.recipes.openal.sh.cmake")
-    @mock.patch("pythonforandroid.recipes.openal.sh.make")
+    @mock.patch("pythonforandroid.recipes.openal.sh.cmake", create=True)
+    @mock.patch("pythonforandroid.recipes.openal.sh.make", create=True)
     @mock.patch("pythonforandroid.recipes.openal.sh.cp")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.build.ensure_dir")

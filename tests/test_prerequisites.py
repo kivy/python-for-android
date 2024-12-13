@@ -99,8 +99,8 @@ class TestOpenSSLPrerequisite(PrerequisiteSetUpBaseClass, unittest.TestCase):
         self.mandatory = dict(linux=False, darwin=True)
         self.installer_is_supported = dict(linux=False, darwin=True)
         self.prerequisite = OpenSSLPrerequisite()
-        self.expected_homebrew_formula_name = "openssl@1.1"
-        self.expected_homebrew_location_prefix = "/opt/homebrew/opt/openssl@1.1"
+        self.expected_homebrew_formula_name = "openssl@3"
+        self.expected_homebrew_location_prefix = "/opt/homebrew/opt/openssl@3"
 
     @mock.patch(
         "pythonforandroid.prerequisites.Prerequisite._darwin_get_brew_formula_location_prefix"

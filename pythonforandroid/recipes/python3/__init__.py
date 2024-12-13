@@ -320,7 +320,7 @@ class Python3Recipe(TargetPythonRecipe):
 
         android_build = sh.Command(
             join(recipe_build_dir,
-                 'config.guess'))().stdout.strip().decode('utf-8')
+                 'config.guess'))().strip()
 
         with current_directory(build_dir):
             if not exists('config.status'):

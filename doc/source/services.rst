@@ -89,7 +89,7 @@ of your APK.
 If you are using buildozer, the identifier is set by the ``package.name``
 and ``package.domain`` values in your buildozer.spec file.
 The name of the service is ``ServiceMyservice``, where ``Myservice``
-is the name specied by one of the ``services`` values, but with the first
+is the name specified by one of the ``services`` values, but with the first
 letter upper case. 
 
 If you are using python-for-android directly, the identifier is set by the ``--package``

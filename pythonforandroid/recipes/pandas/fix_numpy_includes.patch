@@ -1,31 +1,82 @@
---- pandas-1.0.1/setup.py.orig	2020-02-05 17:15:24.000000000 +0100
-+++ pandas-1.0.1/setup.py	2020-03-15 13:47:57.612237225 +0100
-@@ -37,11 +37,12 @@ min_cython_ver = "0.29.13"  # note: sync
-
- setuptools_kwargs = {
-     "install_requires": [
--        "python-dateutil >= 2.6.1",
--        "pytz >= 2017.2",
--        f"numpy >= {min_numpy_ver}",
-+        # dependencies managed via p4a's recipe
-+        # "python-dateutil >= 2.6.1",
-+        # "pytz >= 2017.2",
-+        # f"numpy >= {min_numpy_ver}",
-     ],
--    "setup_requires": [f"numpy >= {min_numpy_ver}"],
-+    "setup_requires": [],
-     "zip_safe": False,
- }
-
-@@ -514,7 +515,10 @@ def maybe_cythonize(extensions, *args, *
-             )
-         raise RuntimeError("Cannot cythonize without Cython installed.")
+diff '--color=auto' -uNr pandas/pandas/_libs/meson.build pandas.mod/pandas/_libs/meson.build
+--- pandas/pandas/_libs/meson.build	2024-04-24 07:24:46.009296003 +0530
++++ pandas.mod/pandas/_libs/meson.build	2024-04-24 07:45:15.221534571 +0530
+@@ -115,7 +115,7 @@
+         ext_name,
+         ext_dict.get('sources'),
+         cython_args: cython_args,
+-        include_directories: [inc_np, inc_pd],
++        include_directories: [inc_android, inc_np, inc_pd],
+         dependencies: ext_dict.get('deps', ''),
+         subdir: 'pandas/_libs',
+         install: true
+diff '--color=auto' -uNr pandas/pandas/_libs/tslibs/meson.build pandas.mod/pandas/_libs/tslibs/meson.build
+--- pandas/pandas/_libs/tslibs/meson.build	2024-04-24 07:24:46.019296090 +0530
++++ pandas.mod/pandas/_libs/tslibs/meson.build	2024-04-24 07:45:53.528798309 +0530
+@@ -33,7 +33,7 @@
+         ext_name,
+         ext_dict.get('sources'),
+         cython_args: cython_args,
+-        include_directories: [inc_np, inc_pd],
++        include_directories: [inc_android, inc_np, inc_pd],
+         dependencies: ext_dict.get('deps', ''),
+         subdir: 'pandas/_libs/tslibs',
+         install: true
+diff '--color=auto' -uNr pandas/pandas/_libs/window/meson.build pandas.mod/pandas/_libs/window/meson.build
+--- pandas/pandas/_libs/window/meson.build	2024-04-24 07:24:46.029296177 +0530
++++ pandas.mod/pandas/_libs/window/meson.build	2024-04-28 10:47:16.915307381 +0530
+@@ -2,7 +2,7 @@
+     'aggregations',
+     ['aggregations.pyx'],
+     cython_args: ['-X always_allow_keywords=true'],
+-    include_directories: [inc_np, inc_pd],
++    include_directories: [inc_android, inc_np, inc_pd],
+     subdir: 'pandas/_libs/window',
+     override_options : ['cython_language=cpp'],
+     install: true
+@@ -12,7 +12,7 @@
+     'indexers',
+     ['indexers.pyx'],
+     cython_args: ['-X always_allow_keywords=true'],
+-    include_directories: [inc_np, inc_pd],
++    include_directories: [inc_android, inc_np, inc_pd],
+     subdir: 'pandas/_libs/window',
+     install: true
+ )
+diff '--color=auto' -uNr pandas/pandas/meson.build pandas.mod/pandas/meson.build
+--- pandas/pandas/meson.build	2024-04-24 07:24:46.232297943 +0530
++++ pandas.mod/pandas/meson.build	2024-04-24 07:46:12.508929590 +0530
+@@ -3,20 +3,23 @@
+     '-c',
+     '''
+ import os
+-import numpy as np
+-try:
+-    # Check if include directory is inside the pandas dir
+-    # e.g. a venv created inside the pandas dir
+-    # If so, convert it to a relative path
+-    incdir = os.path.relpath(np.get_include())
+-except Exception:
+-    incdir = np.get_include()
+-print(incdir)
+-     '''
++print(os.environ["NUMPY_INCLUDES"]) 
++    '''
++  ],
++  check: true
++).stdout().strip()
++incdir_android = run_command(py,
++  [
++    '-c',
++    '''
++import os
++print(os.environ["PYTHON_INCLUDE_DIR"]) 
++    '''
+   ],
+   check: true
+ ).stdout().strip()
  
--    numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
-+    if 'NUMPY_INCLUDES' in os.environ:
-+        numpy_incl = os.environ['NUMPY_INCLUDES']
-+    else:
-+        numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
-     # TODO: Is this really necessary here?
-     for ext in extensions:
-         if hasattr(ext, "include_dirs") and numpy_incl not in ext.include_dirs:
++inc_android = include_directories(incdir_android)
+ inc_np = include_directories(incdir_numpy)
+ inc_pd = include_directories('_libs/include')
+ 

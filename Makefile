@@ -3,15 +3,8 @@ PIP=$(VIRTUAL_ENV)/bin/pip
 TOX=`which tox`
 ACTIVATE=$(VIRTUAL_ENV)/bin/activate
 PYTHON=$(VIRTUAL_ENV)/bin/python
-FLAKE8=$(VIRTUAL_ENV)/bin/flake8
-PYTEST=$(VIRTUAL_ENV)/bin/pytest
-SOURCES=src/ tests/
-PYTHON_MAJOR_VERSION=3
-PYTHON_MINOR_VERSION=6
-PYTHON_VERSION=$(PYTHON_MAJOR_VERSION).$(PYTHON_MINOR_VERSION)
-PYTHON_MAJOR_MINOR=$(PYTHON_MAJOR_VERSION)$(PYTHON_MINOR_VERSION)
-PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
 DOCKER_IMAGE=kivy/python-for-android
+DOCKER_TAG=latest
 ANDROID_SDK_HOME ?= $(HOME)/.android/android-sdk
 ANDROID_NDK_HOME ?= $(HOME)/.android/android-ndk
 ANDROID_NDK_HOME_LEGACY ?= $(HOME)/.android/android-ndk-legacy
@@ -31,10 +24,28 @@ virtualenv: $(VIRTUAL_ENV)
 test:
 	$(TOX) -- tests/ --ignore tests/test_pythonpackage.py
 
+# Also install and configure rust
 rebuild_updated_recipes: virtualenv
 	. $(ACTIVATE) && \
+	curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+	. "$(HOME)/.cargo/env" && \
+	rustup target list && \
 	ANDROID_SDK_HOME=$(ANDROID_SDK_HOME) ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) \
 	$(PYTHON) ci/rebuild_updated_recipes.py $(REBUILD_UPDATED_RECIPES_EXTRA_ARGS)
+
+# make ARCH=armeabi-v7a,arm64-v8a ARTIFACT=apk BOOTSTRAP=sdl2 MODE=debug REQUIREMENTS=python testapps-generic
+testapps-generic: virtualenv
+	@if [ -z "$(ARCH)" ]; then echo "ARCH is not set"; exit 1; fi
+	@if [ -z "$(ARTIFACT)" ]; then echo "ARTIFACT is not set"; exit 1; fi
+	@if [ -z "$(BOOTSTRAP)" ]; then echo "BOOTSTRAP is not set"; exit 1; fi
+	@if [ -z "$(MODE)" ]; then echo "MODE is not set"; exit 1; fi
+	@if [ -z "$(REQUIREMENTS)" ]; then echo "REQUIREMENTS is not set"; exit 1; fi
+	@ARCH_FLAGS=$$(echo "$(ARCH)" | tr ',' ' ' | sed 's/\([^ ]\+\)/--arch=\1/g'); \
+	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
+    python setup.py $(ARTIFACT) \
+    --sdk-dir $(ANDROID_SDK_HOME) \
+    --ndk-dir $(ANDROID_NDK_HOME) \
+    $$ARCH_FLAGS --bootstrap $(BOOTSTRAP) --$(MODE) --requirements $(REQUIREMENTS)
 
 testapps-with-numpy: testapps-with-numpy/debug/apk testapps-with-numpy/release/aab
 
@@ -59,7 +70,7 @@ testapps-with-scipy/%: virtualenv
 	. $(ACTIVATE) && cd testapps/on_device_unit_tests/ && \
 	export LEGACY_NDK=$(ANDROID_NDK_HOME_LEGACY)  && \
     python setup.py $(ARTIFACT) --$(MODE) --sdk-dir $(ANDROID_SDK_HOME) --ndk-dir $(ANDROID_NDK_HOME) \
-    --requirements python3,scipy,kivy \
+			--requirements python3,scipy,kivy \
     --arch=armeabi-v7a --arch=arm64-v8a
 
 testapps-webview: testapps-webview/debug/apk testapps-webview/release/aab
@@ -121,8 +132,14 @@ docker/pull:
 docker/build:
 	docker build --cache-from=$(DOCKER_IMAGE) --tag=$(DOCKER_IMAGE) .
 
+docker/login:
+	@echo $$DOCKERHUB_TOKEN | docker login --username $(DOCKERHUB_USERNAME) --password-stdin
+
+docker/tag:
+	docker tag $(DOCKER_IMAGE):latest $(DOCKER_IMAGE):$(DOCKER_TAG)
+
 docker/push:
-	docker push $(DOCKER_IMAGE)
+	docker push $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 docker/run/test: docker/build
 	docker run --rm --env-file=.env $(DOCKER_IMAGE) 'make test'

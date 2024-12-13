@@ -48,7 +48,7 @@ import java.io.File;
  * '4'          Block special
  * '5'          Directory
  * '6'          FIFO
- * '7'          Contigous
+ * '7'          Contiguous
  * </pre>
  * 
  * 

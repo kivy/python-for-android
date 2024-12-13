@@ -15,12 +15,12 @@ from pythonforandroid.build import Context
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.androidndk import AndroidNDK
 
-from test_graph import get_fake_recipe
+from tests.test_graph import get_fake_recipe
 
 
-class BaseClassSetupBootstrap(object):
+class BaseClassSetupBootstrap:
     """
-    An class object which is intended to be used as a base class to configure
+    An class which is intended to be used as a base class to configure
     an inherited class of `unittest.TestCase`. This class will override the
     `setUp` and `tearDown` methods.
     """
@@ -115,7 +115,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         ) < 0)
 
         # Test a random bootstrap is always lower priority than sdl2:
-        class _FakeBootstrap(object):
+        class _FakeBootstrap:
             def __init__(self, name):
                 self.name = name
         bs1 = _FakeBootstrap("alpha")

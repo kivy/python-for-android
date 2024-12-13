@@ -9,8 +9,8 @@ import sh
 class LibSecp256k1Recipe(Recipe):
 
     built_libraries = {'libsecp256k1.so': '.libs'}
-
-    url = 'https://github.com/bitcoin-core/secp256k1/archive/master.zip'
+    version = '0.4.1'
+    url = 'https://github.com/bitcoin-core/secp256k1/archive/refs/tags/v{version}.tar.gz'
 
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)

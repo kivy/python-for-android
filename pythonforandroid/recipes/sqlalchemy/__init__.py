@@ -1,15 +1,15 @@
-from pythonforandroid.recipe import CompiledComponentsPythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 
 
-class SQLAlchemyRecipe(CompiledComponentsPythonRecipe):
+class SQLAlchemyRecipe(PyProjectRecipe):
     name = 'sqlalchemy'
-    version = '1.3.3'
-    url = 'https://pypi.python.org/packages/source/S/SQLAlchemy/SQLAlchemy-{version}.tar.gz'
-    call_hostpython_via_targetpython = False
-
+    version = '2.0.30'
+    url = 'https://github.com/sqlalchemy/sqlalchemy/archive/refs/tags/rel_{}.tar.gz'
     depends = ['setuptools']
 
-    patches = ['zipsafe.patch']
+    @property
+    def versioned_url(self):
+        return self.url.format(self.version.replace(".", "_"))
 
 
 recipe = SQLAlchemyRecipe()

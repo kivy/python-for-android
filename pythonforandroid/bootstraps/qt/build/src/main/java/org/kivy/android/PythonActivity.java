@@ -21,7 +21,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 import org.qtproject.qt.android.bindings.QtActivity;
-import org.qtproject.qt.android.QtNative;
 
 public class PythonActivity extends QtActivity {
 
@@ -52,6 +51,18 @@ public class PythonActivity extends QtActivity {
         return "main.py";
     }
 
+    public void setEnvironmentVariable(String key, String value) {
+        /**
+         * Sets an environment variable based on key/value.
+         **/
+        try {
+            android.system.Os.setenv(key, value, true);
+        } catch (Exception e) {
+            Log.e("Qt bootstrap", "Unable set environment variable:" + key + "=" + value);
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         this.mActivity = this;
@@ -69,14 +80,14 @@ public class PythonActivity extends QtActivity {
         String entry_point = getEntryPoint(app_root_dir);
 
         Log.v(TAG, "Setting env vars for start.c and Python to use");
-        QtNative.setEnvironmentVariable("ANDROID_ENTRYPOINT", entry_point);
-        QtNative.setEnvironmentVariable("ANDROID_ARGUMENT", app_root_dir);
-        QtNative.setEnvironmentVariable("ANDROID_APP_PATH", app_root_dir);
-        QtNative.setEnvironmentVariable("ANDROID_PRIVATE", mFilesDirectory);
-        QtNative.setEnvironmentVariable("ANDROID_UNPACK", app_root_dir);
-        QtNative.setEnvironmentVariable("PYTHONHOME", app_root_dir);
-        QtNative.setEnvironmentVariable("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
-        QtNative.setEnvironmentVariable("PYTHONOPTIMIZE", "2");
+        setEnvironmentVariable("ANDROID_ENTRYPOINT", entry_point);
+        setEnvironmentVariable("ANDROID_ARGUMENT", app_root_dir);
+        setEnvironmentVariable("ANDROID_APP_PATH", app_root_dir);
+        setEnvironmentVariable("ANDROID_PRIVATE", mFilesDirectory);
+        setEnvironmentVariable("ANDROID_UNPACK", app_root_dir);
+        setEnvironmentVariable("PYTHONHOME", app_root_dir);
+        setEnvironmentVariable("PYTHONPATH", app_root_dir + ":" + app_root_dir + "/lib");
+        setEnvironmentVariable("PYTHONOPTIMIZE", "2");
 
         Log.v(TAG, "About to do super onCreate");
         super.onCreate(savedInstanceState);

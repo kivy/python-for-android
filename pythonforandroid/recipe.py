@@ -1,12 +1,13 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
-
 import hashlib
+import json
 from re import match
 
 import sh
 import shutil
 import fnmatch
+import zipfile
 import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, curdir, walk
@@ -20,10 +21,10 @@ except ImportError:
 import packaging.version
 
 from pythonforandroid.logger import (
-    logger, info, warning, debug, shprint, info_main)
+    logger, info, warning, debug, shprint, info_main, error)
 from pythonforandroid.util import (
     current_directory, ensure_dir, BuildInterruptingException, rmdir, move,
-    touch)
+    touch, patch_wheel_setuptools_logging)
 from pythonforandroid.util import load_source as import_recipe
 
 
@@ -56,6 +57,21 @@ class Recipe(metaclass=RecipeMeta):
     .. note:: Methods marked (internal) are used internally and you
               probably don't need to call them, but they are available
               if you want.
+    '''
+
+    _download_headers = None
+    '''Add additional headers used when downloading the package, typically
+    for authorization purposes.
+
+    Specified as an array of tuples:
+    [("header1", "foo"), ("header2", "bar")]
+
+    When specifying as an environment variable (DOWNLOAD_HEADER_my-package-name), use a JSON formatted fragement:
+    [["header1","foo"],["header2", "bar"]]
+
+    For example, when downloading from a private
+    github repository, you can specify the following:
+    [('Authorization', 'token <your personal access token>'), ('Accept', 'application/vnd.github+json')]
     '''
 
     _version = None
@@ -112,6 +128,7 @@ class Recipe(metaclass=RecipeMeta):
     keys should be the generated libraries and the values the relative path of
     the library inside his build folder. This dict will be used to perform
     different operations:
+
         - copy the library into the right location, depending on if it's shared
           or static)
         - check if we have to rebuild the library
@@ -169,12 +186,25 @@ class Recipe(metaclass=RecipeMeta):
             return None
         return self.url.format(version=self.version)
 
+    @property
+    def download_headers(self):
+        key = "DOWNLOAD_HEADERS_" + self.name
+        env_headers = environ.get(key)
+        if env_headers:
+            try:
+                return [tuple(h) for h in json.loads(env_headers)]
+            except Exception as ex:
+                raise ValueError(f'Invalid Download headers for {key} - must be JSON formatted as [["header1","foo"],["header2","bar"]]: {ex}')
+
+        return environ.get(key, self._download_headers)
+
     def download_file(self, url, target, cwd=None):
         """
         (internal) Download an ``url`` to a ``target``.
         """
         if not url:
             return
+
         info('Downloading {} from {}'.format(self.name, url))
 
         if cwd:
@@ -201,8 +231,10 @@ class Recipe(metaclass=RecipeMeta):
             while True:
                 try:
                     # jqueryui.com returns a 403 w/ the default user agent
-                    # Mozilla/5.0 doesnt handle redirection for liblzma
+                    # Mozilla/5.0 does not handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
+                    if self.download_headers:
+                        url_opener.addheaders += self.download_headers
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
@@ -230,7 +262,7 @@ class Recipe(metaclass=RecipeMeta):
                     shprint(sh.git, 'clone', '--recursive', url, target)
             with current_directory(target):
                 if self.version:
-                    shprint(sh.git, 'fetch', '--depth', '1', 'origin', self.version)
+                    shprint(sh.git, 'fetch', '--tags', '--depth', '1')
                     shprint(sh.git, 'checkout', self.version)
                 branch = sh.git('branch', '--show-current')
                 if branch:
@@ -458,7 +490,6 @@ class Recipe(metaclass=RecipeMeta):
                             # apparently happens sometimes with
                             # github zips
                             pass
-                        import zipfile
                         fileh = zipfile.ZipFile(extraction_filename, 'r')
                         root_directory = fileh.filelist[0].filename.split('/')[0]
                         if root_directory != basename(directory_name):
@@ -466,8 +497,7 @@ class Recipe(metaclass=RecipeMeta):
                     elif extraction_filename.endswith(
                             ('.tar.gz', '.tgz', '.tar.bz2', '.tbz2', '.tar.xz', '.txz')):
                         sh.tar('xf', extraction_filename)
-                        root_directory = sh.tar('tf', extraction_filename).stdout.decode(
-                                'utf-8').split('\n')[0].split('/')[0]
+                        root_directory = sh.tar('tf', extraction_filename).split('\n')[0].split('/')[0]
                         if root_directory != basename(directory_name):
                             move(root_directory, directory_name)
                     else:
@@ -477,10 +507,11 @@ class Recipe(metaclass=RecipeMeta):
                 elif isdir(extraction_filename):
                     ensure_dir(directory_name)
                     for entry in listdir(extraction_filename):
-                        if entry not in ('.git',):
-                            shprint(sh.cp, '-Rv',
-                                    join(extraction_filename, entry),
-                                    directory_name)
+                        # Previously we filtered out the .git folder, but during the build process for some recipes
+                        # (e.g. when version is parsed by `setuptools_scm`) that may be needed.
+                        shprint(sh.cp, '-Rv',
+                                join(extraction_filename, entry),
+                                directory_name)
                 else:
                     raise Exception(
                         'Given path is neither a file nor a directory: {}'
@@ -541,7 +572,6 @@ class Recipe(metaclass=RecipeMeta):
         '''Should perform any necessary test and return True only if it needs
         building again. Per default we implement a library test, in case that
         we detect so.
-
         '''
         if self.built_libraries:
             return not all(
@@ -561,7 +591,7 @@ class Recipe(metaclass=RecipeMeta):
         '''This method is always called after `build_arch`. In case that we
         detect a library recipe, defined by the class attribute
         `built_libraries`, we will copy all defined libraries into the
-         right location.
+        right location.
         '''
         if not self.built_libraries:
             return
@@ -728,7 +758,7 @@ class IncludedFilesBehaviour(object):
 
 class BootstrapNDKRecipe(Recipe):
     '''A recipe class for recipes built in an Android project jni dir with
-    an Android.mk. These are not cached separatly, but built in the
+    an Android.mk. These are not cached separately, but built in the
     bootstrap's own building directory.
 
     To build an NDK project which is not part of the bootstrap, see
@@ -837,9 +867,11 @@ class PythonRecipe(Recipe):
                  on python2 or python3 which can break the dependency graph
     '''
 
+    hostpython_prerequisites = []
+    '''List of hostpython packages required to build a recipe'''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         if 'python3' not in self.depends:
             # We ensure here that the recipe depends on python even it overrode
             # `depends`. We only do this if it doesn't already depend on any
@@ -889,12 +921,12 @@ class PythonRecipe(Recipe):
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         env = super().get_recipe_env(arch, with_flags_in_cc)
-
         env['PYTHONNOUSERSITE'] = '1'
-
         # Set the LANG, this isn't usually important but is a better default
         # as it occasionally matters how Python e.g. reads files
         env['LANG'] = "en_GB.UTF-8"
+        # Binaries made by packages installed by pip
+        env["PATH"] = join(self.hostpython_site_dir, "bin") + ":" + env["PATH"]
 
         if not self.call_hostpython_via_targetpython:
             env['CFLAGS'] += ' -I{}'.format(
@@ -930,6 +962,7 @@ class PythonRecipe(Recipe):
     def build_arch(self, arch):
         '''Install the Python module by calling setup.py install with
         the target Python dir.'''
+        self.install_hostpython_prerequisites()
         super().build_arch(arch)
         self.install_python_package(arch)
 
@@ -958,8 +991,12 @@ class PythonRecipe(Recipe):
 
     def get_hostrecipe_env(self, arch):
         env = environ.copy()
-        env['PYTHONPATH'] = join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
+        env['PYTHONPATH'] = self.hostpython_site_dir
         return env
+
+    @property
+    def hostpython_site_dir(self):
+        return join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
 
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
@@ -968,6 +1005,38 @@ class PythonRecipe(Recipe):
                 '--root={}'.format(dirname(self.real_hostpython_location)),
                 '--install-lib=Lib/site-packages',
                 _env=env, *self.setup_extra_args)
+
+    @property
+    def python_major_minor_version(self):
+        parsed_version = packaging.version.parse(self.ctx.python_recipe.version)
+        return f"{parsed_version.major}.{parsed_version.minor}"
+
+    def install_hostpython_prerequisites(self, packages=None, force_upgrade=True):
+        if not packages:
+            packages = self.hostpython_prerequisites
+
+        if len(packages) == 0:
+            return
+
+        pip_options = [
+            "install",
+            *packages,
+            "--target", self.hostpython_site_dir, "--python-version",
+            self.ctx.python_recipe.version,
+            # Don't use sources, instead wheels
+            "--only-binary=:all:",
+        ]
+        if force_upgrade:
+            pip_options.append("--upgrade")
+        # Use system's pip
+        shprint(sh.pip, *pip_options)
+
+    def restore_hostpython_prerequisites(self, packages):
+        _packages = []
+        for package in packages:
+            original_version = Recipe.get_recipe(package, self.ctx).version
+            _packages.append(package + "==" + original_version)
+        self.install_hostpython_prerequisites(packages=_packages)
 
 
 class CompiledComponentsPythonRecipe(PythonRecipe):
@@ -980,6 +1049,7 @@ class CompiledComponentsPythonRecipe(PythonRecipe):
         calling setup.py install with the target Python dir.
         '''
         Recipe.build_arch(self, arch)
+        self.install_hostpython_prerequisites()
         self.build_compiled_components(arch)
         self.install_python_package(arch)
 
@@ -1125,6 +1195,253 @@ class CythonRecipe(PythonRecipe):
         ensure_dir(liblink_path)
 
         return env
+
+
+class PyProjectRecipe(PythonRecipe):
+    """Recipe for projects which contain `pyproject.toml`"""
+
+    # Extra args to pass to `python -m build ...`
+    extra_build_args = []
+    call_hostpython_via_targetpython = False
+
+    def get_recipe_env(self, arch, **kwargs):
+        # Custom hostpython
+        self.ctx.python_recipe.python_exe = join(
+            self.ctx.python_recipe.get_build_dir(arch), "android-build", "python3")
+        env = super().get_recipe_env(arch, **kwargs)
+        build_dir = self.get_build_dir(arch)
+        ensure_dir(build_dir)
+        build_opts = join(build_dir, "build-opts.cfg")
+
+        with open(build_opts, "w") as file:
+            file.write("[bdist_wheel]\nplat-name={}".format(
+                self.get_wheel_platform_tag(arch)
+            ))
+            file.close()
+
+        env["DIST_EXTRA_CONFIG"] = build_opts
+        return env
+
+    def get_wheel_platform_tag(self, arch):
+        return "android_" + {
+            "armeabi-v7a": "arm",
+            "arm64-v8a": "aarch64",
+            "x86_64": "x86_64",
+            "x86": "i686",
+        }[arch.arch]
+
+    def install_wheel(self, arch, built_wheels):
+        with patch_wheel_setuptools_logging():
+            from wheel.cli.tags import tags as wheel_tags
+            from wheel.wheelfile import WheelFile
+        _wheel = built_wheels[0]
+        built_wheel_dir = dirname(_wheel)
+        # Fix wheel platform tag
+        wheel_tag = wheel_tags(
+            _wheel,
+            platform_tags=self.get_wheel_platform_tag(arch),
+            remove=True,
+        )
+        selected_wheel = join(built_wheel_dir, wheel_tag)
+
+        _dev_wheel_dir = environ.get("P4A_WHEEL_DIR", False)
+        if _dev_wheel_dir:
+            ensure_dir(_dev_wheel_dir)
+            shprint(sh.cp, selected_wheel, _dev_wheel_dir)
+
+        info(f"Installing built wheel: {wheel_tag}")
+        destination = self.ctx.get_python_install_dir(arch.arch)
+        with WheelFile(selected_wheel) as wf:
+            for zinfo in wf.filelist:
+                wf.extract(zinfo, destination)
+            wf.close()
+
+    def build_arch(self, arch):
+        self.install_hostpython_prerequisites(
+            packages=["build[virtualenv]", "pip"] + self.hostpython_prerequisites
+        )
+        build_dir = self.get_build_dir(arch.arch)
+        env = self.get_recipe_env(arch, with_flags_in_cc=True)
+        # make build dir separately
+        sub_build_dir = join(build_dir, "p4a_android_build")
+        ensure_dir(sub_build_dir)
+        # copy hostpython to built python to ensure correct selection of libs and includes
+        shprint(sh.cp, self.real_hostpython_location, self.ctx.python_recipe.python_exe)
+
+        build_args = [
+            "-m",
+            "build",
+            "--wheel",
+            "--config-setting",
+            "builddir={}".format(sub_build_dir),
+        ] + self.extra_build_args
+
+        built_wheels = []
+        with current_directory(build_dir):
+            shprint(
+                sh.Command(self.ctx.python_recipe.python_exe), *build_args, _env=env
+            )
+            built_wheels = [realpath(whl) for whl in glob.glob("dist/*.whl")]
+        self.install_wheel(arch, built_wheels)
+
+
+class MesonRecipe(PyProjectRecipe):
+    '''Recipe for projects which uses meson as build system'''
+
+    meson_version = "1.4.0"
+    ninja_version = "1.11.1.1"
+
+    def sanitize_flags(self, *flag_strings):
+        return " ".join(flag_strings).strip().split(" ")
+
+    def get_recipe_meson_options(self, arch):
+        env = self.get_recipe_env(arch, with_flags_in_cc=True)
+        return {
+            "binaries": {
+                "c": arch.get_clang_exe(with_target=True),
+                "cpp": arch.get_clang_exe(with_target=True, plus_plus=True),
+                "ar": self.ctx.ndk.llvm_ar,
+                "strip": self.ctx.ndk.llvm_strip,
+            },
+            "built-in options": {
+                "c_args": self.sanitize_flags(env["CFLAGS"], env["CPPFLAGS"]),
+                "cpp_args": self.sanitize_flags(env["CXXFLAGS"], env["CPPFLAGS"]),
+                "c_link_args": self.sanitize_flags(env["LDFLAGS"]),
+                "cpp_link_args": self.sanitize_flags(env["LDFLAGS"]),
+            },
+            "properties": {
+                "needs_exe_wrapper": True,
+                "sys_root": self.ctx.ndk.sysroot
+            },
+            "host_machine": {
+                "cpu_family": {
+                    "arm64-v8a": "aarch64",
+                    "armeabi-v7a": "arm",
+                    "x86_64": "x86_64",
+                    "x86": "x86"
+                }[arch.arch],
+                "cpu": {
+                    "arm64-v8a": "aarch64",
+                    "armeabi-v7a": "armv7",
+                    "x86_64": "x86_64",
+                    "x86": "i686"
+                }[arch.arch],
+                "endian": "little",
+                "system": "android",
+            }
+        }
+
+    def write_build_options(self, arch):
+        """Writes python dict to meson config file"""
+        option_data = ""
+        build_options = self.get_recipe_meson_options(arch)
+        for key in build_options.keys():
+            data_chunk = "[{}]".format(key)
+            for subkey in build_options[key].keys():
+                value = build_options[key][subkey]
+                if isinstance(value, int):
+                    value = str(value)
+                elif isinstance(value, str):
+                    value = "'{}'".format(value)
+                elif isinstance(value, bool):
+                    value = "true" if value else "false"
+                elif isinstance(value, list):
+                    value = "['" + "', '".join(value) + "']"
+                data_chunk += "\n" + subkey + " = " + value
+            option_data += data_chunk + "\n\n"
+        return option_data
+
+    def ensure_args(self, *args):
+        for arg in args:
+            if arg not in self.extra_build_args:
+                self.extra_build_args.append(arg)
+
+    def build_arch(self, arch):
+        cross_file = join("/tmp", "android.meson.cross")
+        info("Writing cross file at: {}".format(cross_file))
+        # write cross config file
+        with open(cross_file, "w") as file:
+            file.write(self.write_build_options(arch))
+            file.close()
+        # set cross file
+        self.ensure_args('-Csetup-args=--cross-file', '-Csetup-args={}'.format(cross_file))
+        # ensure ninja and meson
+        for dep in [
+            "ninja=={}".format(self.ninja_version),
+            "meson=={}".format(self.meson_version),
+        ]:
+            if dep not in self.hostpython_prerequisites:
+                self.hostpython_prerequisites.append(dep)
+        super().build_arch(arch)
+
+
+class RustCompiledComponentsRecipe(PyProjectRecipe):
+    # Rust toolchain codes
+    # https://doc.rust-lang.org/nightly/rustc/platform-support.html
+    RUST_ARCH_CODES = {
+        "arm64-v8a": "aarch64-linux-android",
+        "armeabi-v7a": "armv7-linux-androideabi",
+        "x86_64": "x86_64-linux-android",
+        "x86": "i686-linux-android",
+    }
+
+    call_hostpython_via_targetpython = False
+
+    def get_recipe_env(self, arch, **kwargs):
+        env = super().get_recipe_env(arch, **kwargs)
+
+        # Set rust build target
+        build_target = self.RUST_ARCH_CODES[arch.arch]
+        cargo_linker_name = "CARGO_TARGET_{}_LINKER".format(
+            build_target.upper().replace("-", "_")
+        )
+        env["CARGO_BUILD_TARGET"] = build_target
+        env[cargo_linker_name] = join(
+            self.ctx.ndk.llvm_prebuilt_dir,
+            "bin",
+            "{}{}-clang".format(
+                # NDK's Clang format
+                build_target.replace("7", "7a")
+                if build_target.startswith("armv7")
+                else build_target,
+                self.ctx.ndk_api,
+            ),
+        )
+        realpython_dir = self.ctx.python_recipe.get_build_dir(arch.arch)
+
+        env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(
+            self.ctx.get_libs_dir(arch.arch), join(realpython_dir, "android-build")
+        )
+
+        env["PYO3_CROSS_LIB_DIR"] = realpath(glob.glob(join(
+            realpython_dir, "android-build", "build",
+            "lib.linux-*-{}/".format(self.python_major_minor_version),
+        ))[0])
+
+        info_main("Ensuring rust build toolchain")
+        shprint(sh.rustup, "target", "add", build_target)
+
+        # Add host python to PATH
+        env["PATH"] = ("{hostpython_dir}:{old_path}").format(
+            hostpython_dir=Recipe.get_recipe(
+                "hostpython3", self.ctx
+            ).get_path_to_python(),
+            old_path=env["PATH"],
+        )
+        return env
+
+    def check_host_deps(self):
+        if not hasattr(sh, "rustup"):
+            error(
+                "`rustup` was not found on host system."
+                "Please install it using :"
+                "\n`curl https://sh.rustup.rs -sSf | sh`\n"
+            )
+            exit(1)
+
+    def build_arch(self, arch):
+        self.check_host_deps()
+        super().build_arch(arch)
 
 
 class TargetPythonRecipe(Recipe):

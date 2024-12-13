@@ -163,7 +163,7 @@ def check_target_api(api, arch):
 
 
 MIN_NDK_API = 21
-RECOMMENDED_NDK_API = 21
+RECOMMENDED_NDK_API = 24
 OLD_NDK_API_MESSAGE = ('NDK API less than {} is not supported'.format(MIN_NDK_API))
 TARGET_NDK_API_GREATER_THAN_TARGET_API_MESSAGE = (
     'Target NDK API is {ndk_api}, '

@@ -1,0 +1,12 @@
+diff '--color=auto' -uNr matplotlib-3.8.4/setupext.py matplotlib-3.8.4.mod/setupext.py
+--- matplotlib-3.8.4/setupext.py	2024-04-04 04:06:51.000000000 +0530
++++ matplotlib-3.8.4.mod/setupext.py	2024-04-30 19:31:39.608063438 +0530
+@@ -782,7 +782,7 @@
+     name = 'macosx'
+ 
+     def check(self):
+-        if sys.platform != 'darwin':
++        if True: #sys.platform != 'darwin':
+             raise Skipped("Mac OS-X only")
+         return super().check()
+ 
