@@ -9,4 +9,5 @@ class HttpxRecipe(PyProjectRecipe):
     )
     depends = ["httpcore", "h11", "certifi", "idna", "sniffio"]
 
+
 recipe = HttpxRecipe()
