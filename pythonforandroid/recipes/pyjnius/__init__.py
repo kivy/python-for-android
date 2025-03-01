@@ -11,12 +11,16 @@ class PyjniusRecipe(PyProjectRecipe):
     name = 'pyjnius'
     depends = ['six']
     site_packages_name = 'jnius'
-    patches = [('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild'))]
+    patches = [('genericndkbuild_jnienv_getter.patch', will_build('genericndkbuild')), "use_cython.patch"]
 
     def get_recipe_env(self, arch, **kwargs):
         env = super().get_recipe_env(arch, **kwargs)
         # NDKPLATFORM is our switch for detecting Android platform, so can't be None
         env['NDKPLATFORM'] = "NOTNONE"
+        env['LIBLINK'] = "NOTNONE"
+        env["ANDROID_PYJNIUS_CYTHON_3"] = "1"
+        sdl_recipe = self.get_recipe("sdl2", self.ctx)
+        env["LDFLAGS"] += " -L" + join(sdl_recipe.get_build_dir(arch.arch), "../..", "libs", arch.arch)
         return env
 
     def postbuild_arch(self, arch):
