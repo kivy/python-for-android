@@ -164,6 +164,9 @@ class Python3Recipe(TargetPythonRecipe):
         longer used and has been removed in favour of extension .pyc
     '''
 
+    disable_gil = False
+    '''python3.13 experimental free-threading build'''
+
     def __init__(self, *args, **kwargs):
         self._ctx = None
         super().__init__(*args, **kwargs)
@@ -310,6 +313,8 @@ class Python3Recipe(TargetPythonRecipe):
         env['ZLIB_VERSION'] = line.replace('#define ZLIB_VERSION ', '')
         add_flags(' -I' + zlib_includes, ' -L' + zlib_lib_path, ' -lz')
         
+        if self._p_version >= Version("3.13") and self.disable_gil:
+            self.configure_args.append("--disable-gil")
         return env
 
     def build_arch(self, arch):
