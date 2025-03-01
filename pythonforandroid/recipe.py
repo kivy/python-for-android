@@ -516,7 +516,7 @@ class Recipe(metaclass=RecipeMeta):
                     for entry in listdir(extraction_filename):
                         # Previously we filtered out the .git folder, but during the build process for some recipes
                         # (e.g. when version is parsed by `setuptools_scm`) that may be needed.
-                        shprint(sh.cp, '-Rv',
+                        shprint(sh.cp, '-R',
                                 join(extraction_filename, entry),
                                 directory_name)
                 else:
@@ -1048,8 +1048,9 @@ class PythonRecipe(Recipe):
         ]
         if force_upgrade:
             pip_options.append("--upgrade")
-        # Use system's pip
-        shprint(sh.Command(self.real_hostpython_location), "-m", "pip", *pip_options, _env=self.get_hostrecipe_env())
+        pip_env = self.get_hostrecipe_env()
+        pip_env["HOME"] = "?"
+        shprint(sh.Command(self.real_hostpython_location), "-m", "pip", *pip_options, _env=pip_env)
 
     def restore_hostpython_prerequisites(self, packages):
         _packages = []

@@ -17,15 +17,18 @@ class RecipeBuilder:
     def __init__(self, parsed_args):
         setup_color(True)
         self.build_dir = parsed_args.workdir
-        self.init_context()
-        self.build_recipes(set(parsed_args.recipes + DEFAULT_RECIPES), set(parsed_args.arch))
+        self.init_context(parsed_args)
+        self.build_recipes(
+            set(parsed_args.recipes + DEFAULT_RECIPES),
+            set(parsed_args.arch)
+        )
 
-    def init_context(self):
+    def init_context(self, parse_args):
         self.ctx = Context()
         self.ctx.save_prebuilt = True
         self.ctx.setup_dirs(self.build_dir)
-        self.ctx.ndk_api = 24
-        self.ctx.android_api = 24
+        self.ctx.ndk_api = parse_args.min_api
+        self.ctx.android_api = parse_args.target_api
         self.ctx.ndk_dir = "/home/tdynamos/.buildozer/android/platform/android-ndk-r25b"
 
     def build_recipes(self, recipes, archs):
@@ -70,11 +73,11 @@ class RecipeBuilder:
                     info("{} said it is already built, skipping".format(recipe.name))
                 recipe.install_libraries(arch)
 
-                # input()
-
 if __name__ == "__main__":
     parser = ArgumentParser(description="Build and package recipes.")
     parser.add_argument('-r', '--recipes', nargs='+', help='Recipes to build.', required=True)
     parser.add_argument('-a', '--arch', nargs='+', help='Android arch(s) to build.', required=True)
     parser.add_argument('-w', '--workdir', type=str, help="Workdir for building recipes.", required=True)
+    parser.add_argument('-m', '--min-api', type=int, help="Android ndk (minimum) api.", default=24)
+    parser.add_argument('-t', '--target-api', type=int, help="Android target api.", default=24)
     RecipeBuilder(parser.parse_args())

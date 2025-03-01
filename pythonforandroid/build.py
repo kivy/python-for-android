@@ -150,6 +150,7 @@ class Context:
         self.build_dir = join(self.storage_dir, 'build')
         self.dist_dir = join(self.storage_dir, 'dists')
         self.prebuilt_dir = join(self.storage_dir, 'output')
+        self.ensure_dirs()
 
     def ensure_dirs(self):
         ensure_dir(self.storage_dir)
@@ -225,8 +226,6 @@ class Context:
         ..warning:: This *must* be called before trying any build stuff
 
         '''
-
-        self.ensure_dirs()
 
         if self._build_env_prepared:
             return
