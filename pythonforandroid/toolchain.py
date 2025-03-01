@@ -761,6 +761,7 @@ class ToolchainCL:
         """
         Prints recipes basic info, e.g.
         .. code-block:: bash
+
             python3      3.7.1
                 depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
                 conflicts: []

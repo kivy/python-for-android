@@ -73,9 +73,10 @@ For example, when downloading from a private github repository, you can specify 
 ```
 
 (For the DOWNLOAD_HEADERS_my-package-name environment variable - specify as a JSON formatted set of values)
-```
+.. code-block:: bash
+
     [["Authorization","token <your personal access token>"],["Accept", "application/vnd.github+json"]]
-```
+
 The actual build process takes place via three core methods::
 
       def prebuild_arch(self, arch):

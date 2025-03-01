@@ -132,6 +132,7 @@ class Recipe(metaclass=RecipeMeta):
     keys should be the generated libraries and the values the relative path of
     the library inside his build folder. This dict will be used to perform
     different operations:
+
         - copy the library into the right location, depending on if it's shared
           or static)
         - check if we have to rebuild the library
@@ -579,7 +580,6 @@ class Recipe(metaclass=RecipeMeta):
         '''Should perform any necessary test and return True only if it needs
         building again. Per default we implement a library test, in case that
         we detect so.
-
         '''
         if self.built_libraries:
             return not all(
@@ -600,7 +600,7 @@ class Recipe(metaclass=RecipeMeta):
         '''This method is always called after `build_arch`. In case that we
         detect a library recipe, defined by the class attribute
         `built_libraries`, we will copy all defined libraries into the
-         right location.
+        right location.
         '''
         if not self.built_libraries:
             return
