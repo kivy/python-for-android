@@ -8,5 +8,13 @@ class KiwiSolverRecipe(PyProjectRecipe):
     depends = ['cppy']
     need_stl_shared = True
 
+    # from https://github.com/kivy/python-for-android/issues/3115
+    def get_recipe_env(self, arch, **kwargs):
+        env = super().get_recipe_env(arch, **kwargs)
+        flags = " -I" + self.ctx.python_recipe.include_root(arch.arch)
+        env["CFLAGS"] = flags
+        env["CPPFLAGS"] = flags
+        return env
+
 
 recipe = KiwiSolverRecipe()
