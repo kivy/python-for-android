@@ -102,7 +102,7 @@ jobs:
         if [ -f dist/${{ env.AAB_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAB_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}; fi
         if [ -f dist/${{ env.AAR_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAR_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAR_ARTIFACT_FILENAME }}; fi
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-artifacts
         path: dist
@@ -157,7 +157,7 @@ jobs:
           if [ -f dist/${{ env.APK_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.APK_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.APK_ARTIFACT_FILENAME }}; fi
           if [ -f dist/${{ env.AAB_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAB_ARTIFACT_FILENAME }} dist/${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-${{ env.AAB_ARTIFACT_FILENAME }}; fi
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-artifacts
           path: dist
@@ -184,7 +184,7 @@ jobs:
         sudo swapoff -a
         sudo rm -f /swapfile
         sudo apt -y clean
-        docker rmi $(docker image ls -aq)
+        docker images -q | xargs -r docker rmi
         df -h
     - name: Pull docker image
       run: |
