@@ -3,9 +3,8 @@ from pythonforandroid.recipe import CppCompiledComponentsPythonRecipe
 
 class EnamlRecipe(CppCompiledComponentsPythonRecipe):
     site_packages_name = 'enaml'
-    version = '0.9.8'
-    url = 'https://github.com/nucleic/enaml/archive/{version}.zip'
-    patches = ['0001-Update-setup.py.patch']  # Remove PyQt dependency
+    version = '0.18.0'
+    url = 'https://github.com/nucleic/enaml/archive/refs/tags/{version}.zip'
     depends = ['setuptools', 'atom', 'kiwisolver']
 
 
