@@ -144,9 +144,17 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.all_bootstraps `
         returns the expected values, which should be: `empty", `service_only`,
-        `webview`, `sdl2` and `qt`
+        `webview`, `sdl2`, `sdl3` and `qt`
         """
-        expected_bootstraps = {"empty", "service_only", "service_library", "webview", "sdl2", "qt"}
+        expected_bootstraps = {
+            "empty",
+            "service_only",
+            "service_library",
+            "webview",
+            "sdl2",
+            "sdl3",
+            "qt",
+        }
         set_of_bootstraps = Bootstrap.all_bootstraps()
         self.assertEqual(
             expected_bootstraps, expected_bootstraps & set_of_bootstraps
@@ -180,8 +188,9 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         expanded_result = expand_dependencies(
             ["python3", "kivy", "peewee"], self.ctx
         )
-        # we expect to one results for python3
-        self.assertEqual(len(expanded_result), 1)
+        # we expect to 2 results for python3
+        # (python3, sdl2/sdl3 [one is blacklisted])
+        self.assertEqual(len(expanded_result), 2)
         self.assertIsInstance(expanded_result, list)
         for i in expanded_result:
             self.assertIsInstance(i, list)

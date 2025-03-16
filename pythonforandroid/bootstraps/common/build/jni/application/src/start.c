@@ -16,10 +16,16 @@
 
 #include "bootstrap_name.h"
 
-#ifndef BOOTSTRAP_USES_NO_SDL_HEADERS
+#ifdef BOOTSTRAP_NAME_SDL2
 #include "SDL.h"
 #include "SDL_opengles2.h"
 #endif
+
+#ifdef BOOTSTRAP_NAME_SDL3
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_main.h"
+#endif
+
 #include "android/log.h"
 
 #define ENTRYPOINT_MAXLEN 128

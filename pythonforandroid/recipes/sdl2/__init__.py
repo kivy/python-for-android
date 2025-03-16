@@ -10,6 +10,8 @@ class LibSDL2Recipe(BootstrapNDKRecipe):
     url = "https://github.com/libsdl-org/SDL/releases/download/release-{version}/SDL2-{version}.tar.gz"
     md5sum = 'a344eb827a03045c9b399e99af4af13d'
 
+    conflicts = ['sdl3']
+
     dir_name = 'SDL'
 
     depends = ['sdl2_image', 'sdl2_mixer', 'sdl2_ttf']

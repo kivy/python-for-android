@@ -1,0 +1,12 @@
+diff -Naur SDL3_mixer.orig/Android.mk SDL3_mixer/Android.mk
+--- SDL3_mixer.orig/Android.mk	2025-03-16 21:05:19
++++ SDL3_mixer/Android.mk	2025-03-16 21:06:33
+@@ -31,7 +31,7 @@
+ WAVPACK_LIBRARY_PATH := external/wavpack
+ 
+ # Enable this if you want to support loading music via libgme
+-SUPPORT_GME ?= true
++SUPPORT_GME ?= false
+ GME_LIBRARY_PATH := external/libgme
+ 
+ # Enable this if you want to support loading MOD music via XMP-lite

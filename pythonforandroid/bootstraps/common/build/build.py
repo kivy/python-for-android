@@ -83,7 +83,7 @@ else:
 if PYTHON is not None and not exists(PYTHON):
     PYTHON = None
 
-if _bootstrap_name in ('sdl2', 'webview', 'service_only', 'qt'):
+if _bootstrap_name in ('sdl2', 'sdl3', 'webview', 'service_only', 'qt'):
     WHITELIST_PATTERNS.append('pyconfig.h')
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
@@ -541,7 +541,7 @@ main.py that loads it.''')
         "debug": "debug" in args.build_mode,
         "native_services": args.native_services
     }
-    if get_bootstrap_name() == "sdl2":
+    if get_bootstrap_name() in ["sdl2", "sdl3"]:
         render_args["url_scheme"] = url_scheme
 
     render(
@@ -596,7 +596,7 @@ main.py that loads it.''')
         "args": args,
         "private_version": hashlib.sha1(private_version.encode()).hexdigest()
     }
-    if get_bootstrap_name() == "sdl2":
+    if get_bootstrap_name() in ["sdl2", "sdl3"]:
         render_args["url_scheme"] = url_scheme
     render(
         'strings.tmpl.xml',
@@ -769,7 +769,7 @@ tools directory of the Android SDK.
     ap.add_argument('--private', dest='private',
                     help='the directory with the app source code files' +
                          ' (containing your main.py entrypoint)',
-                    required=(get_bootstrap_name() != "sdl2"))
+                    required=(get_bootstrap_name() not in ["sdl2", "sdl3"]))
     ap.add_argument('--package', dest='package',
                     help=('The name of the java package the project will be'
                           ' packaged under.'),
@@ -787,7 +787,7 @@ tools directory of the Android SDK.
                           'same number of groups of numbers as previous '
                           'versions.'),
                     required=True)
-    if get_bootstrap_name() == "sdl2":
+    if get_bootstrap_name() in ["sdl2", "sdl3"]:
         ap.add_argument('--launcher', dest='launcher', action='store_true',
                         help=('Provide this argument to build a multi-app '
                               'launcher, rather than a single app.'))
@@ -1044,7 +1044,7 @@ def parse_args_and_make_package(args=None):
         args.orientation, args.manifest_orientation
     )
 
-    if get_bootstrap_name() == "sdl2":
+    if get_bootstrap_name() in ["sdl2", "sdl3"]:
         args.sdl_orientation_hint = get_sdl_orientation_hint(args.orientation)
 
     if args.res_xmls and isinstance(args.res_xmls[0], list):
@@ -1074,9 +1074,9 @@ def parse_args_and_make_package(args=None):
         WHITELIST_PATTERNS += patterns
 
     if args.private is None and \
-            get_bootstrap_name() == 'sdl2' and args.launcher is None:
+            get_bootstrap_name() in ['sdl2', 'sdl3'] and args.launcher is None:
         print('Need --private directory or ' +
-              '--launcher (SDL2 bootstrap only)' +
+              '--launcher (SDL2/SDL3 bootstrap only)' +
               'to have something to launch inside the .apk!')
         sys.exit(1)
     make_package(args)

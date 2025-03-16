@@ -1,0 +1,49 @@
+--- a/src/main/java/org/libsdl/app/SDLActivity.java
++++ b/src/main/java/org/libsdl/app/SDLActivity.java
+@@ -259,6 +259,7 @@
+         String[] arguments = SDLActivity.mSingleton.getArguments();
+ 
+         Log.v("SDL", "Running main function " + function + " from library " + library);
++        SDLActivity.mSingleton.appConfirmedActive();
+         SDLActivity.nativeRunMain(library, function, arguments);
+         Log.v("SDL", "Finished main function");
+     }
+@@ -351,6 +352,15 @@
+         Log.v(TAG, "Model: " + Build.MODEL);
+         Log.v(TAG, "onCreate()");
+         super.onCreate(savedInstanceState);
++
++        SDL.initialize();
++        // So we can call stuff from static callbacks
++        mSingleton = this;
++    }
++
++    // We don't do this in onCreate because we unpack and load the app data on a thread
++    // and we can't run setup tasks until that thread completes.
++    protected void finishLoad() {
+ 
+ 
+         /* Control activity re-creation */
+@@ -1541,8 +1551,22 @@
+             return null;
+         }
+         return SDLActivity.mSurface.getNativeSurface();
++    }
++
++    /**
++    * Calls turnActive() on singleton to keep loading screen active
++    */
++    public static void triggerAppConfirmedActive() {
++        mSingleton.appConfirmedActive();
+     }
+ 
++    /**
++    * Trick needed for loading screen, overridden by PythonActivity
++    * to keep loading screen active
++    */
++    public void appConfirmedActive() {
++    }
++
+     // Input
+ 
+     /**

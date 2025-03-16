@@ -26,8 +26,9 @@ class KivyRecipe(CythonRecipe):
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
-    depends = ['sdl2', 'pyjnius', 'setuptools']
+    depends = [('sdl2', 'sdl3'), 'pyjnius', 'setuptools']
     python_depends = ['certifi', 'chardet', 'idna', 'requests', 'urllib3', 'filetype']
+    hostpython_prerequisites = []
 
     # sdl-gl-swapwindow-nogil.patch is needed to avoid a deadlock.
     # See: https://github.com/kivy/kivy/pull/8025
@@ -53,7 +54,7 @@ class KivyRecipe(CythonRecipe):
     def cythonize_file(self, env, build_dir, filename):
         # We can ignore a few files that aren't important to the
         # android build, and may not work on Android anyway
-        do_not_cythonize = ['window_x11.pyx', ]
+        do_not_cythonize = ['window_x11.pyx', 'camera_avfoundation.pyx', 'img_imageio.pyx', 'egl_angle_metal.pyx']
         if basename(filename) in do_not_cythonize:
             return
         super().cythonize_file(env, build_dir, filename)
@@ -73,6 +74,21 @@ class KivyRecipe(CythonRecipe):
                 *sdl2_mixer_recipe.get_include_dirs(arch),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
             ])
+        if "sdl3" in self.ctx.recipe_build_order:
+            sdl3_mixer_recipe = self.get_recipe("sdl3_mixer", self.ctx)
+            sdl3_image_recipe = self.get_recipe("sdl3_image", self.ctx)
+            sdl3_ttf_recipe = self.get_recipe("sdl3_ttf", self.ctx)
+            sdl3_recipe = self.get_recipe("sdl3", self.ctx)
+            env["USE_SDL3"] = "1"
+            env["KIVY_SPLIT_EXAMPLES"] = "1"
+            env["KIVY_SDL3_PATH"] = ":".join(
+                [
+                    *sdl3_mixer_recipe.get_include_dirs(arch),
+                    *sdl3_image_recipe.get_include_dirs(arch),
+                    *sdl3_ttf_recipe.get_include_dirs(arch),
+                    *sdl3_recipe.get_include_dirs(arch),
+                ]
+            )
 
         return env
 

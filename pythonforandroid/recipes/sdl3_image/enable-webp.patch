@@ -1,0 +1,12 @@
+diff -Naur SDL2_image.orig/Android.mk SDL2_image/Android.mk
+--- SDL2_image.orig/Android.mk	2022-10-03 20:51:52.000000000 +0200
++++ SDL2_image/Android.mk	2022-10-03 20:52:48.000000000 +0200
+@@ -32,7 +32,7 @@
+ 
+ # Enable this if you want to support loading WebP images
+ # The library path should be a relative path to this directory.
+-SUPPORT_WEBP ?= false
++SUPPORT_WEBP := true
+ WEBP_LIBRARY_PATH := external/libwebp
+ 
+ 

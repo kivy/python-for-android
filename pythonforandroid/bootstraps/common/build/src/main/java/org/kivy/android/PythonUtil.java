@@ -49,6 +49,10 @@ public class PythonUtil {
         addLibraryIfExists(libsList, "SDL2_image", libsDir);
         addLibraryIfExists(libsList, "SDL2_mixer", libsDir);
         addLibraryIfExists(libsList, "SDL2_ttf", libsDir);
+        addLibraryIfExists(libsList, "SDL3", libsDir);
+        addLibraryIfExists(libsList, "SDL3_image", libsDir);
+        addLibraryIfExists(libsList, "SDL3_mixer", libsDir);
+        addLibraryIfExists(libsList, "SDL3_ttf", libsDir);
         libsList.add("python3.5m");
         libsList.add("python3.6m");
         libsList.add("python3.7m");
