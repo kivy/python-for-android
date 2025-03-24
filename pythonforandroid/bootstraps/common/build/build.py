@@ -472,14 +472,22 @@ main.py that loads it.''')
         foreground = 'foreground' in options
         sticky = 'sticky' in options
 
+        bound = 'bound' in options
+
         service_names.append(name)
-        service_target_path =\
-            'src/main/java/{}/Service{}.java'.format(
-                args.package.replace(".", "/"),
-                name.capitalize()
-            )
+
+        if not bound:
+            service_template_path = 'Service.tmpl.java'
+        else:
+            service_template_path = 'BoundService.tmpl.java'
+
+        service_target_path = 'src/main/java/{}/Service{}.java'.format(
+            args.package.replace(".", "/"),
+            name.capitalize()
+        )
+
         render(
-            'Service.tmpl.java',
+            service_template_path,
             service_target_path,
             name=name,
             entrypoint=entrypoint,
@@ -488,6 +496,24 @@ main.py that loads it.''')
             sticky=sticky,
             service_id=sid + 1,
             base_service_class=base_service_class,
+        )
+
+    for spec in args.workers:
+        spec = spec.split(':')
+        name = spec[0]
+        entrypoint = spec[1]
+
+        worker_target_path = \
+            'src/main/java/{}/{}Worker.java'.format(
+                args.package.replace(".", "/"),
+                name.capitalize()
+            )
+        render(
+            'Worker.tmpl.java',
+            worker_target_path,
+            name=name,
+            entrypoint=entrypoint,
+            args=args
         )
 
     # Find the SDK directory and target API
@@ -822,6 +848,9 @@ tools directory of the Android SDK.
     ap.add_argument('--service', dest='services', action='append', default=[],
                     help='Declare a new service entrypoint: '
                          'NAME:PATH_TO_PY[:foreground]')
+    ap.add_argument('--worker', dest='workers', action='append', default=[],
+                    help='Declare a new worker entrypoint: '
+                         'NAME:PATH_TO_PY')
     ap.add_argument('--native-service', dest='native_services', action='append', default=[],
                     help='Declare a new native service: '
                          'package.name.service')
