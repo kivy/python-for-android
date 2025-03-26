@@ -17,6 +17,11 @@
     <!-- Android 2.3.3 -->
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
 
+    <!-- other features -->
+    {% for feat in args.features %}
+    <uses-feature android:name="{{ feat }}" />
+    {% endfor %}
+
     <!-- Set permissions -->
     {% for perm in args.permissions %}
         <uses-permission android:name="{{ perm.name }}"{% if perm.maxSdkVersion %} android:maxSdkVersion="{{ perm.maxSdkVersion }}"{% endif %}{% if perm.usesPermissionFlags %} android:usesPermissionFlags="{{ perm.usesPermissionFlags }}"{% endif %} />
