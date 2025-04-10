@@ -14,6 +14,8 @@ from pythonforandroid.util import (
     rmdir, move)
 from pythonforandroid.recipe import Recipe
 
+SDL_BOOTSTRAPS = ("sdl2", "sdl3")
+
 
 def copy_files(src_root, dest_root, override=True, symlink=False):
     for root, dirnames, filenames in walk(src_root):
@@ -150,7 +152,7 @@ class Bootstrap:
         return bootstrap_dirs
 
     def _copy_in_final_files(self):
-        if self.name in ["sdl2", "sdl3"]:
+        if self.name in SDL_BOOTSTRAPS:
             # Get the paths for copying SDL's java source code:
             sdl_recipe = Recipe.get_recipe(self.name, self.ctx)
             sdl_build_dir = sdl_recipe.get_jni_dir()
@@ -193,7 +195,7 @@ class Bootstrap:
     @classmethod
     def all_bootstraps(cls):
         '''Find all the available bootstraps and return them.'''
-        forbidden_dirs = ('__pycache__', 'common')
+        forbidden_dirs = ('__pycache__', 'common', '_sdl_common')
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
         result = set()
         for name in listdir(bootstraps_dir):

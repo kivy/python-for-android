@@ -6,7 +6,7 @@ from pythonforandroid.util import current_directory
 
 
 class LibSDL3TTF(BootstrapNDKRecipe):
-    version = "3.2.0"
+    version = "3.2.2"
     url = "https://github.com/libsdl-org/SDL_ttf/releases/download/release-{version}/SDL3_ttf-{version}.tar.gz"
     dir_name = "SDL3_ttf"
 
