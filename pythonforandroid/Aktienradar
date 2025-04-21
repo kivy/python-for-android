@@ -1,0 +1,131 @@
+Datei: main.py
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+import yfinance as yf
+import matplotlib.pyplot as plt
+import os
+
+class AktienRadar(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.input = TextInput(hint_text='Aktien-Ticker (z.B. AAPL, TSLA)', multiline=False)
+        self.add_widget(self.input)
+
+        self.button = Button(text='Analysieren')
+        self.button.bind(on_press=self.analyse)
+        self.add_widget(self.button)
+
+        self.result = Label(text='')
+        self.add_widget(self.result)
+
+    def analyse(self, instance):
+        tickers = self.input.text.upper().replace(' ', '').split(',')
+        self.result.text = 'Analysiere...'
+
+        for ticker in tickers:
+            try:
+                data = yf.download(ticker, period='6mo', interval='1d')
+                signal = self.analyse_signal(data)
+                self.plot_chart(data, ticker)
+                self.result.text += f'\n{ticker}: {signal}'
+            except:
+                self.result.text += f'\n{ticker}: Fehler bei Analyse'
+
+    def analyse_signal(self, data):
+        if len(data) < 2:
+            return 'Nicht genug Daten'
+        latest = data['Close'].iloc[-1]
+        previous = data['Close'].iloc[-5]
+        diff = latest - previous
+        if diff > 0:
+            return 'Kaufen'
+        elif diff < 0:
+            return 'Verkaufen'
+        else:
+            return 'Halten'
+
+    def plot_chart(self, data, ticker):
+        plt.figure(figsize=(5, 3))
+        plt.plot(data['Close'], label='Schlusskurs')
+        plt.title(ticker)
+        plt.legend()
+        chart_path = f"{ticker}_chart.png"
+        plt.savefig(chart_path)
+        plt.close()
+
+class AktienRadarApp(App):
+    def build(self):
+        return AktienRadar()
+
+if __name__ == '__main__':
+    AktienRadarApp().run()
+
+Datei: main.py
+
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+import yfinance as yf
+import matplotlib.pyplot as plt
+import os
+
+class AktienRadar(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(orientation='vertical', **kwargs)
+        self.input = TextInput(hint_text='Aktien-Ticker (z.B. AAPL, TSLA)', multiline=False)
+        self.add_widget(self.input)
+
+        self.button = Button(text='Analysieren')
+        self.button.bind(on_press=self.analyse)
+        self.add_widget(self.button)
+
+        self.result = Label(text='')
+        self.add_widget(self.result)
+
+    def analyse(self, instance):
+        tickers = self.input.text.upper().replace(' ', '').split(',')
+        self.result.text = 'Analysiere...'
+
+        for ticker in tickers:
+            try:
+                data = yf.download(ticker, period='6mo', interval='1d')
+                signal = self.analyse_signal(data)
+                self.plot_chart(data, ticker)
+                self.result.text += f'\n{ticker}: {signal}'
+            except:
+                self.result.text += f'\n{ticker}: Fehler bei Analyse'
+
+    def analyse_signal(self, data):
+        if len(data) < 2:
+            return 'Nicht genug Daten'
+        latest = data['Close'].iloc[-1]
+        previous = data['Close'].iloc[-5]
+        diff = latest - previous
+        if diff > 0:
+            return 'Kaufen'
+        elif diff < 0:
+            return 'Verkaufen'
+        else:
+            return 'Halten'
+
+    def plot_chart(self, data, ticker):
+        plt.figure(figsize=(5, 3))
+        plt.plot(data['Close'], label='Schlusskurs')
+        plt.title(ticker)
+        plt.legend()
+        chart_path = f"{ticker}_chart.png"
+        plt.savefig(chart_path)
+        plt.close()
+
+class AktienRadarApp(App):
+    def build(self):
+        return AktienRadar()
+
+if __name__ == '__main__':
+
