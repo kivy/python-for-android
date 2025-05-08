@@ -1,0 +1,160 @@
+import tkinter as tk
+from tkinter import messagebox
+import random
+
+class TicTacToe:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("XO-Game  ᵀᴹ Persian Gulf Ⓨ")
+        self.root.geometry("400x500")
+        
+        self.mode = None
+        self.players = []
+        self.current_player = None
+        self.board = [""] * 9
+        self.score = {"X": 0, "O": 0, "تساوی": 0}
+        
+        self.create_welcome_screen()
+    
+    def create_welcome_screen(self):
+        self.clear_screen()
+        
+        tk.Label(self.root, text="حالت بازی را انتخاب کنید", font=("Arial", 16)).pack(pady=20)
+        
+        tk.Button(self.root, text="تک نفره", font=("Arial", 14), command=self.single_player_mode).pack(pady=10)
+        tk.Button(self.root, text="دو نفره", font=("Arial", 14), command=self.two_player_mode).pack(pady=10)
+        
+        tk.Label(self.root, text="ᵀᴹ Persian Gulf Ⓨ", font=("Arial", 12)).pack(side=tk.BOTTOM, pady=20)
+    
+    def clear_screen(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+    
+    def single_player_mode(self):
+        self.mode = "single"
+        self.players = ["بازیکن", "کامپیوتر"]
+        self.current_player = "بازیکن"
+        self.get_player_name()
+    
+    def two_player_mode(self):
+        self.mode = "two"
+        self.players = ["بازیکن 1", "بازیکن 2"]
+        self.current_player = "بازیکن 1"
+        self.get_player_name()
+    
+    def get_player_name(self):
+        self.clear_screen()
+        
+        tk.Label(self.root, text=f"نام {self.players[0]} را وارد کنید:", font=("Arial", 14)).pack(pady=10)
+        self.player1_entry = tk.Entry(self.root, font=("Arial", 14))
+        self.player1_entry.pack(pady=10)
+        
+        if self.mode == "two":
+            tk.Label(self.root, text=f"نام {self.players[1]} را وارد کنید:", font=("Arial", 14)).pack(pady=10)
+            self.player2_entry = tk.Entry(self.root, font=("Arial", 14))
+            self.player2_entry.pack(pady=10)
+        
+        tk.Button(self.root, text="شروع بازی", font=("Arial", 14), command=self.start_game).pack(pady=20)
+    
+    def start_game(self):
+        self.players[0] = self.player1_entry.get()
+        if self.mode == "two":
+            self.players[1] = self.player2_entry.get()
+        else:
+            self.players[1] = "کامپیوتر"
+        
+        self.clear_screen()
+        self.create_game_board()
+    
+    def create_game_board(self):
+        self.buttons = []
+        for i in range(3):
+            row = []
+            for j in range(3):
+                button = tk.Button(self.root, text="", font=("Arial", 24), width=5, height=2,
+                                   command=lambda i=i, j=j: self.on_button_click(i, j))
+                button.grid(row=i, column=j, padx=10, pady=10)
+                row.append(button)
+            self.buttons.append(row)
+        
+        self.score_label = tk.Label(self.root, text=f"X: {self.score['X']} | O: {self.score['O']} | تساوی: {self.score['تساوی']}", font=("Arial", 14))
+        self.score_label.grid(row=3, column=0, columnspan=3, pady=10)
+        
+        self.restart_button = tk.Button(self.root, text="دوباره شروع کن", font=("Arial", 14), command=self.restart_game)
+        self.restart_button.grid(row=4, column=0, columnspan=3, pady=10)
+    
+    def on_button_click(self, i, j):
+        if self.board[i * 3 + j] == "":
+            self.board[i * 3 + j] = "X" if self.current_player == self.players[0] else "O"
+            self.buttons[i][j].config(text=self.board[i * 3 + j], fg="red" if self.board[i * 3 + j] == "X" else "blue")
+            
+            if self.check_winner():
+                self.update_score(self.current_player)
+                self.show_winner()
+            elif "" not in self.board:
+                self.update_score("تساوی")
+                self.show_winner()
+            else:
+                self.current_player = self.players[1] if self.current_player == self.players[0] else self.players[0]
+                if self.mode == "single" and self.current_player == "کامپیوتر":
+                    self.computer_move()
+    
+    def computer_move(self):
+        empty_cells = [i for i, cell in enumerate(self.board) if cell == ""]
+        if empty_cells:
+            move = random.choice(empty_cells)
+            self.board[move] = "O"
+            i, j = move // 3, move % 3
+            self.buttons[i][j].config(text="O", fg="blue")
+            
+            if self.check_winner():
+                self.update_score("کامپیوتر")
+                self.show_winner()
+            elif "" not in self.board:
+                self.update_score("تساوی")
+                self.show_winner()
+            else:
+                self.current_player = self.players[0]
+    
+    def check_winner(self):
+        winning_combinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],  # Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],  # Columns
+            [0, 4, 8], [2, 4, 6]              # Diagonals
+        ]
+        
+        for combo in winning_combinations:
+            if self.board[combo[0]] == self.board[combo[1]] == self.board[combo[2]] != "":
+                return True
+        return False
+    
+    def update_score(self, winner):
+        if winner == self.players[0]:
+            self.score["X"] += 1
+        elif winner == self.players[1]:
+            self.score["O"] += 1
+        else:
+            self.score["تساوی"] += 1
+        
+        self.score_label.config(text=f"X: {self.score['X']} | O: {self.score['O']} | تساوی: {self.score['تساوی']}")
+    
+    def show_winner(self):
+        if self.check_winner():
+            winner = self.current_player
+            messagebox.showinfo("پایان بازی", f"{winner} برنده شد!")
+        else:
+            messagebox.showinfo("پایان بازی", "بازی مساوی شد!")
+        
+        self.restart_game()
+    
+    def restart_game(self):
+        self.board = [""] * 9
+        self.current_player = self.players[0]
+        self.clear_screen()
+        self.create_game_board()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    game = TicTacToe(root)
+    root.mainloop()
+
