@@ -155,6 +155,11 @@ class Recipe(metaclass=RecipeMeta):
         starting from NDK r18 the `gnustl_shared` lib has been deprecated.
     '''
 
+    min_ndk_api_support = 20
+    '''
+    Minimum ndk api recipe will support.
+    '''
+
     def get_stl_library(self, arch):
         return join(
             arch.ndk_lib_dir,
@@ -375,6 +380,9 @@ class Recipe(metaclass=RecipeMeta):
     # Public Recipe API to be subclassed if needed
 
     def download_if_necessary(self):
+        if self.ctx.ndk_api < self.min_ndk_api_support:
+            error(f"In order to build '{self.name}', you must set minimum ndk api (minapi) to `{self.min_ndk_api_support}`.\n")
+            exit(1)
         info_main('Downloading {}'.format(self.name))
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
         if user_dir is not None:

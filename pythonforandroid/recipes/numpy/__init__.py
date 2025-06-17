@@ -1,5 +1,4 @@
 from pythonforandroid.recipe import Recipe, MesonRecipe
-from pythonforandroid.logger import error
 from os.path import join
 import shutil
 
@@ -7,11 +6,12 @@ NUMPY_NDK_MESSAGE = "In order to build numpy, you must set minimum ndk api (mina
 
 
 class NumpyRecipe(MesonRecipe):
-    version = 'v1.26.5'
+    version = 'v2.3.0'
     url = 'git+https://github.com/numpy/numpy'
-    hostpython_prerequisites = ["Cython>=3.0.6"]  # meson does not detects venv's cython
+    hostpython_prerequisites = ["Cython>=3.0.6", "numpy"]  # meson does not detects venv's cython
     extra_build_args = ['-Csetup-args=-Dblas=none', '-Csetup-args=-Dlapack=none']
     need_stl_shared = True
+    min_ndk_api_support = 24
 
     def get_recipe_meson_options(self, arch):
         options = super().get_recipe_meson_options(arch)
@@ -35,13 +35,6 @@ class NumpyRecipe(MesonRecipe):
         env["TARGET_PYTHON_EXE"] = join(Recipe.get_recipe(
                 "python3", self.ctx).get_build_dir(arch.arch), "android-build", "python")
         return env
-
-    def download_if_necessary(self):
-        # NumPy requires complex math functions which were added in api 24
-        if self.ctx.ndk_api < 24:
-            error(NUMPY_NDK_MESSAGE)
-            exit(1)
-        super().download_if_necessary()
 
     def build_arch(self, arch):
         super().build_arch(arch)

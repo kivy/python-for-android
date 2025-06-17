@@ -1,12 +1,12 @@
 # Downloads and installs the Android SDK depending on supplied platform: darwin or linux
 
 # Those android NDK/SDK variables can be override when running the file
-ANDROID_NDK_VERSION ?= 25b
+ANDROID_NDK_VERSION ?= 28c
 ANDROID_NDK_VERSION_LEGACY ?= 21e
 ANDROID_SDK_TOOLS_VERSION ?= 6514223
 ANDROID_SDK_BUILD_TOOLS_VERSION ?= 29.0.3
 ANDROID_HOME ?= $(HOME)/.android
-ANDROID_API_LEVEL ?= 35
+ANDROID_API_LEVEL ?= 36
 
 # per OS dictionary-like
 UNAME_S := $(shell uname -s)

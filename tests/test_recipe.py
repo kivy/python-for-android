@@ -93,6 +93,8 @@ class TestRecipe(unittest.TestCase):
         """
         # download should happen as the environment variable is not set
         recipe = DummyRecipe()
+        recipe.ctx = Context()
+        recipe.ctx._ndk_api = 36
         with mock.patch.object(Recipe, 'download') as m_download:
             recipe.download_if_necessary()
         assert m_download.call_args_list == [mock.call()]
