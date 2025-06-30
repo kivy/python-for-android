@@ -30,10 +30,11 @@ class BroadcastReceiver(object):
         def _expand_partial_name(partial_name):
             if '.' in partial_name:
                 return partial_name  # Its actually a full dotted name
-            name = 'ACTION_{}'.format(partial_name.upper())
-            if not hasattr(Intent, name):
-                raise Exception('The intent {} does not exist'.format(name))
-            return getattr(Intent, name)
+            else:
+                name = 'ACTION_{}'.format(partial_name.upper())
+                if not hasattr(Intent, name):
+                    raise Exception('The intent {} does not exist'.format(name))
+                return getattr(Intent, name)
 
         # resolve actions/categories first
         Intent = autoclass('android.content.Intent')
