@@ -22,6 +22,7 @@ class BroadcastReceiver(object):
     def __init__(self, callback, actions=None, categories=None):
         super().__init__()
         self.callback = callback
+        self._is_registered = False
 
         if not actions and not categories:
             raise Exception('You need to define at least actions or categories')
@@ -29,11 +30,10 @@ class BroadcastReceiver(object):
         def _expand_partial_name(partial_name):
             if '.' in partial_name:
                 return partial_name  # Its actually a full dotted name
-            else:
-                name = 'ACTION_{}'.format(partial_name.upper())
-                if not hasattr(Intent, name):
-                    raise Exception('The intent {} does not exist'.format(name))
-                return getattr(Intent, name)
+            name = 'ACTION_{}'.format(partial_name.upper())
+            if not hasattr(Intent, name):
+                raise Exception('The intent {} does not exist'.format(name))
+            return getattr(Intent, name)
 
         # resolve actions/categories first
         Intent = autoclass('android.content.Intent')
@@ -58,15 +58,36 @@ class BroadcastReceiver(object):
             self.receiver_filter.addCategory(x)
 
     def start(self):
-        Handler = autoclass('android.os.Handler')
+
+        if hasattr(self, 'handlerthread') and self.handlerthread.isAlive():
+            print("HandlerThread already running, skipping start")
+            return
+
+        HandlerThread = autoclass('android.os.HandlerThread')
+        self.handlerthread = HandlerThread('handlerthread')
         self.handlerthread.start()
+
+        if self._is_registered:
+            print("[BroadcastReceiver] Already registered.")
+            return
+
+        Handler = autoclass('android.os.Handler')
         self.handler = Handler(self.handlerthread.getLooper())
         self.context.registerReceiver(
             self.receiver, self.receiver_filter, None, self.handler)
+        self._is_registered = True
 
     def stop(self):
-        self.context.unregisterReceiver(self.receiver)
-        self.handlerthread.quit()
+        try:
+            self.context.unregisterReceiver(self.receiver)
+            self._is_registered = False
+        except Exception as e:
+            print("[BroadcastReceiver] unregisterReceiver failed:", e)
+
+        if hasattr(self, 'handlerthread'):
+            self.handlerthread.quitSafely()
+            self.handlerthread = None
+            self.handler = None
 
     @property
     def context(self):
