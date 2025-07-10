@@ -16,8 +16,8 @@ def _core_cutout():
 
 
 def get_cutout_pos():
-    """ Get position of the display-cutout.
-        Returns integer for each positions (xy)
+    """Get position of the display-cutout.
+       Returns integer for each positions (xy)
     """
     try:
         cutout = _core_cutout()
@@ -28,8 +28,8 @@ def get_cutout_pos():
 
 
 def get_cutout_size():
-    """ Get the size (xy) of the front camera.
-        Returns size with float values
+    """Get the size (xy) of the front camera.
+       Returns size with float values
     """
     try:
         cutout = _core_cutout()
@@ -40,8 +40,8 @@ def get_cutout_size():
 
 
 def get_height_of_bar(bar_target=None):
-    """ Get the height of either statusbar or navigationbar
-        bar_target = status or navigation and defaults to status
+    """Get the height of either statusbar or navigationbar
+       bar_target = status or navigation and defaults to status
     """
     bar_target = bar_target or 'status'
 
@@ -62,24 +62,24 @@ def get_height_of_bar(bar_target=None):
 
 
 def get_width_of_bar(bar_target=None):
-    " Get the width of the bar "
+    """Get the width of the bar"""
     return Window.width
 
 
 def get_size_of_bar(bar_target=None):
-    """ Get the size of either statusbar or navigationbar
-        bar_target = status or navigation and defaults to status
+    """Get the size of either statusbar or navigationbar
+       bar_target = status or navigation and defaults to status
     """
     return get_width_of_bar(), get_height_of_bar(bar_target)
 
 
 def get_heights_of_both_bars():
-    " Return heights of both bars "
+    """Return heights of both bars"""
     return get_height_of_bar('status'), get_height_of_bar('navigation')
 
 
 def get_cutout_mode():
-    " Return mode for cutout supported applications "
+    """Return mode for cutout supported applications"""
     LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
     window = mActivity.getWindow()
     layout_params = window.getAttributes()
