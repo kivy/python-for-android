@@ -4,7 +4,8 @@ from kivy.core.window import Window
 from android import mActivity
 
 __all__ = ('get_cutout_pos', 'get_cutout_size', 'get_width_of_bar',
-           'get_height_of_bar', 'get_size_of_bar')
+           'get_height_of_bar', 'get_size_of_bar', 'get_width_of_bar',
+           'get_cutout_mode')
 
 
 def _core_cutout():
@@ -20,7 +21,7 @@ def get_cutout_pos():
     """
     try:
         cutout = _core_cutout()
-        return int(cutout.left), Window.height - int(cutout.height())
+        return int(cutout.left), int(Window.height - cutout.height())
     except Exception:
         # Doesn't have a camera builtin with the display
         return 0, 0
@@ -70,3 +71,32 @@ def get_size_of_bar(bar_target=None):
         bar_target = status or navigation and defaults to status
     """
     return get_width_of_bar(), get_height_of_bar(bar_target)
+
+
+def get_heights_of_both_bars():
+    " Return heights of both bars "
+    return get_height_of_bar('status'), get_height_of_bar('navigation')
+
+
+def get_cutout_mode():
+    " Return mode for cutout supported applications "
+    mode = 'never'
+
+    try:
+        LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
+        window = mActivity.getWindow()
+        layout_params = window.getAttributes()
+        cutout_mode = layout_params.layoutInDisplayCutoutMode
+
+        if cutout_mode == LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS:
+            mode = 'always'
+        elif cutout_mode == LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT:
+            mode = 'default'
+        elif cutout_mode == LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES:
+            mode = 'shortEdges'
+
+    except Exception:
+        # Something went wrong
+        pass
+
+    return mode
