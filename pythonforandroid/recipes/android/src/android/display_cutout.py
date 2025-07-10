@@ -80,23 +80,12 @@ def get_heights_of_both_bars():
 
 def get_cutout_mode():
     " Return mode for cutout supported applications "
-    mode = 'never'
+    LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
+    window = mActivity.getWindow()
+    layout_params = window.getAttributes()
+    cutout_mode = layout_params.layoutInDisplayCutoutMode
+    cutout_modes = {LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS: 'always',
+                    LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT: 'default',
+                    LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES: 'shortEdges'}
 
-    try:
-        LayoutParams = autoclass('android.view.WindowManager$LayoutParams')
-        window = mActivity.getWindow()
-        layout_params = window.getAttributes()
-        cutout_mode = layout_params.layoutInDisplayCutoutMode
-
-        if cutout_mode == LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS:
-            mode = 'always'
-        elif cutout_mode == LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT:
-            mode = 'default'
-        elif cutout_mode == LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES:
-            mode = 'shortEdges'
-
-    except Exception:
-        # Something went wrong
-        pass
-
-    return mode
+    return cutout_modes.get(cutout_mode, 'never')
