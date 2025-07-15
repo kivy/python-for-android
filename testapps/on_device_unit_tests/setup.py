@@ -42,7 +42,7 @@ options = {
             'requirements':
                 'sqlite3,libffi,openssl,pyjnius,kivy,python3,requests,urllib3,'
                 'chardet,idna',
-            'android-api': 27,
+            'android-api': 35,
             'ndk-api': 24,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'armeabi-v7a',
@@ -56,7 +56,7 @@ options = {
             'requirements':
                 'sqlite3,libffi,openssl,pyjnius,kivy,python3,requests,urllib3,'
                 'chardet,idna',
-            'android-api': 27,
+            'android-api': 35,
             'ndk-api': 24,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'armeabi-v7a',
@@ -68,7 +68,7 @@ options = {
     'aar':
         {
             'requirements' : 'python3',
-            'android-api': 27,
+            'android-api': 35,
             'ndk-api': 24,
             'dist-name': 'bdist_unit_tests_app',
             'arch': 'arm64-v8a',
