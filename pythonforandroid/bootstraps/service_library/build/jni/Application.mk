@@ -1,0 +1,1 @@
+APP_PLATFORM := $(NDK_API)
