@@ -40,10 +40,9 @@ class NumpyRecipe(MesonRecipe):
         super().build_arch(arch)
         self.restore_hostpython_prerequisites(["cython"])
 
-    def get_hostrecipe_env(self, arch):
-        env = super().get_hostrecipe_env(arch)
+    def get_hostrecipe_env(self, arch=None):
+        env = super().get_hostrecipe_env(arch=arch)
         env['RANLIB'] = shutil.which('ranlib')
-        env["LDFLAGS"] += " -lm"
         return env
 
 

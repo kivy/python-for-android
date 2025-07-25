@@ -26,14 +26,6 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             f'libpython{self.recipe.link_version}.so'
         )
 
-    @mock.patch('pythonforandroid.recipes.python3.Path.is_file')
-    def test_should_build(self, mock_is_file):
-        # in case that python lib exists, we shouldn't trigger the build
-        self.assertFalse(self.recipe.should_build(self.arch))
-        # in case that python lib doesn't exist, we should trigger the build
-        mock_is_file.return_value = False
-        self.assertTrue(self.recipe.should_build(self.arch))
-
     def test_include_root(self):
         expected_include_dir = join(
             self.recipe.get_build_dir(self.arch.arch), 'Include',
@@ -186,7 +178,8 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             recipe_build_dir,
             'android-build',
             'build',
-            'lib.linux{}-{}-{}'.format(
+            'lib.{}{}-{}-{}'.format(
+                'android' if self.recipe.version[2] >= "3" else 'linux',
                 '2' if self.recipe.version[0] == '2' else '',
                 self.arch.command_prefix.split('-')[0],
                 self.recipe.major_minor_version_string

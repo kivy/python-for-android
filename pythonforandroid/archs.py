@@ -132,10 +132,7 @@ class Arch:
         env['CPPFLAGS'] = ' '.join(self.common_cppflags).format(
             ctx=self.ctx,
             command_prefix=self.command_prefix,
-            python_includes=join(
-                self.ctx.get_python_install_dir(self.arch),
-                'include/python{}'.format(self.ctx.python_recipe.version[0:3]),
-            ),
+            python_includes=join(self.ctx.python_recipe.get_build_dir(self.arch), 'Include')
         )
 
         # LDFLAGS: Link the extra global link paths first before anything else
