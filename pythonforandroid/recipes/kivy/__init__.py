@@ -34,6 +34,13 @@ class KivyRecipe(PyProjectRecipe):
     # WARNING: Remove this patch when a new Kivy version is released.
     patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue), "use_cython.patch"]
 
+    @property
+    def need_stl_shared(self):
+        if "sdl3" in self.ctx.recipe_build_order:
+            return True
+        else:
+            return False
+
     def get_recipe_env(self, arch, **kwargs):
         env = super().get_recipe_env(arch, **kwargs)
 
