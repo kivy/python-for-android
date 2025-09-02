@@ -1,0 +1,31 @@
+from kivy.app import App
+from kivy.uix.widget import Widget
+from kivy.uix.label import Label
+from kivy.clock import Clock
+from kivy.core.window import Window
+import random
+
+Window.size = (400, 600)
+
+class Ball(Label):
+    def move(self):
+        self.y += 5
+        if self.top > Window.height:
+            self.y = 0
+            self.x = random.randint(0, Window.width - self.width)
+
+class Game(Widget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ball = Ball(text="⚽", font_size=50)
+        self.add_widget(self.ball)
+        Clock.schedule_interval(self.update, 1/30)
+
+    def update(self, dt):
+        self.ball.move()
+
+class GameApp(App):
+    def build(self):
+        return Game()
+
+GameApp().run()
