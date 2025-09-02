@@ -1,0 +1,14 @@
+# computer picks a random number between 1 and 20
+secret_number = random.randint(1, 20)
+
+# let the player try 5 times
+for attempt in range(5):
+    guess = int(input("Enter your guess (1-20): "))
+
+    if guess == secret_number:
+        print("🎉 Correct! You guessed it!")
+        break
+    elif guess < secret_number:
+        print("Too low! 📉")
+    else:
+        print("Too high! 📈")
