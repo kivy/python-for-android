@@ -21,11 +21,12 @@ def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
 
 
 class KivyRecipe(PyProjectRecipe):
-    version = '2.3.1'
-    url = 'https://github.com/kivy/kivy/archive/{version}.zip'
+
+    version = '3.0.0.dev0'
+    url = 'https://github.com/DexerBR/kivy/archive/refs/heads/skia-graphics-backend.zip'
     name = 'kivy'
 
-    depends = [('sdl2', 'sdl3'), 'pyjnius', 'setuptools']
+    depends = [('sdl2', 'sdl3'), 'pyjnius', 'setuptools', 'skia']
     python_depends = ['certifi', 'chardet', 'idna', 'requests', 'urllib3', 'filetype']
     hostpython_prerequisites = []
 
@@ -71,6 +72,7 @@ class KivyRecipe(PyProjectRecipe):
             sdl3_image_recipe = self.get_recipe("sdl3_image", self.ctx)
             sdl3_ttf_recipe = self.get_recipe("sdl3_ttf", self.ctx)
             sdl3_recipe = self.get_recipe("sdl3", self.ctx)
+            skia_recipe = self.get_recipe("skia", self.ctx)
             env["USE_SDL3"] = "1"
             env["KIVY_SPLIT_EXAMPLES"] = "1"
             env["KIVY_SDL3_PATH"] = ":".join(
@@ -81,6 +83,7 @@ class KivyRecipe(PyProjectRecipe):
                     *sdl3_recipe.get_include_dirs(arch),
                 ]
             )
+            env["SKIA_ROOT"] = skia_recipe.get_lib_dir(arch)
 
         return env
 
