@@ -1,8 +1,11 @@
 # -------------------------------------------------------------------
 # Broadcast receiver bridge
-
+import logging
 from jnius import autoclass, PythonJavaClass, java_method
 from android.config import JAVA_NAMESPACE, JNI_NAMESPACE, ACTIVITY_CLASS_NAME, SERVICE_CLASS_NAME
+
+logger = logging.getLogger("BroadcastReceiver")
+logger.setLevel(logging.DEBUG)
 
 
 class BroadcastReceiver(object):
@@ -61,7 +64,7 @@ class BroadcastReceiver(object):
     def start(self):
 
         if hasattr(self, 'handlerthread') and self.handlerthread.isAlive():
-            print("HandlerThread already running, skipping start")
+            logger.debug("HandlerThread already running, skipping start")
             return
 
         HandlerThread = autoclass('android.os.HandlerThread')
@@ -69,7 +72,7 @@ class BroadcastReceiver(object):
         self.handlerthread.start()
 
         if self._is_registered:
-            print("[BroadcastReceiver] Already registered.")
+            logger.info("Already registered.")
             return
 
         Handler = autoclass('android.os.Handler')
@@ -83,7 +86,7 @@ class BroadcastReceiver(object):
             self.context.unregisterReceiver(self.receiver)
             self._is_registered = False
         except Exception as e:
-            print("[BroadcastReceiver] unregisterReceiver failed:", e)
+            logger.error("unregisterReceiver failed: %s", e)
 
         if hasattr(self, 'handlerthread'):
             self.handlerthread.quitSafely()
