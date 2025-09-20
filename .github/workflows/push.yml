@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up Python 3.x
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.x
     - name: Run flake8
@@ -33,15 +33,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
         os: [ubuntu-latest, macOs-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
     - name: Tox tests
       run: |
         python -m pip install --upgrade pip
@@ -126,14 +127,14 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Python 3.x
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - name: Install python-for-android
         run: |
-          python3 -m pip install -e .
+          python3 -m pip install --editable .
       - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
         run: |
           python3 pythonforandroid/prerequisites.py
@@ -171,7 +172,7 @@ jobs:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
     - name: Checkout python-for-android (all-history)
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     # helps with GitHub runner getting out of space
@@ -209,16 +210,16 @@ jobs:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
       - name: Checkout python-for-android (all-history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up Python 3.x
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - name: Install python-for-android
         run: |
-          python3 -m pip install -e .
+          python3 -m pip install --editable .
       - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
         run: |
           python3 pythonforandroid/prerequisites.py
@@ -241,7 +242,7 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Requirements
       run: |
         python -m pip install --upgrade pip
