@@ -262,7 +262,7 @@ class JDKPrerequisite(Prerequisite):
 
 class OpenSSLPrerequisite(Prerequisite):
     name = "openssl"
-    homebrew_formula_name = "openssl@1.1"
+    homebrew_formula_name = "openssl@3"
     mandatory = dict(linux=False, darwin=True)
     installer_is_supported = dict(linux=False, darwin=True)
 

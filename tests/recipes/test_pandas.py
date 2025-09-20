@@ -35,7 +35,7 @@ class TestPandasRecipe(RecipeCtx, unittest.TestCase):
             self.ctx.recipe_build_order
         )
         numpy_includes = join(
-            self.ctx.get_python_install_dir(self.arch.arch), "numpy/core/include",
+            self.ctx.get_python_install_dir(self.arch.arch), "numpy/_core/include",
         )
         env = self.recipe.get_recipe_env(self.arch)
         self.assertIn(numpy_includes, env["NUMPY_INCLUDES"])

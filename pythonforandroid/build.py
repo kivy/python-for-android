@@ -892,6 +892,10 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=None, env=None):
         'SDL2_ttf',
         'SDL2_image',
         'SDL2_mixer',
+        'SDL3',
+        'SDL3_ttf',
+        'SDL3_image',
+        'SDL3_mixer',
     )
     found_libs = []
     sofiles = []

@@ -23,11 +23,12 @@ class PillowRecipe(PyProjectRecipe):
         - libwebp: library to encode and decode images in WebP format.
     """
 
-    version = '10.3.0'
+    version = '11.3.0'
     url = 'https://github.com/python-pillow/Pillow/archive/{version}.tar.gz'
     site_packages_name = 'PIL'
     patches = ["setup.py.patch"]
-    depends = ['png', 'jpeg', 'freetype', 'setuptools']
+    depends = ['png', 'jpeg', 'freetype']
+    hostpython_prerequisites = ["setuptools>=77"]
     opt_depends = ['libwebp']
 
     def get_recipe_env(self, arch, **kwargs):

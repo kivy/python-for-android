@@ -1,0 +1,24 @@
+diff -Naur pyjnius.orig/jnius/env.py pyjnius/jnius/env.py
+--- pyjnius.orig/jnius/env.py	2022-05-28 11:16:02.000000000 +0200
++++ pyjnius/jnius/env.py	2022-05-28 11:18:30.000000000 +0200
+@@ -268,7 +268,7 @@
+ 
+ class AndroidJavaLocation(UnixJavaLocation):
+     def get_libraries(self):
+-        return ['SDL2', 'log']
++        return ['SDL3', 'log']
+ 
+     def get_include_dirs(self):
+         # When cross-compiling for Android, we should not use the include dirs
+diff -Naur pyjnius.orig/jnius/jnius_jvm_android.pxi pyjnius/jnius/jnius_jvm_android.pxi
+--- pyjnius.orig/jnius/jnius_jvm_android.pxi	2022-05-28 11:16:02.000000000 +0200
++++ pyjnius/jnius/jnius_jvm_android.pxi	2022-05-28 11:17:17.000000000 +0200
+@@ -1,6 +1,6 @@
+ # on android, rely on SDL to get the JNI env
+-cdef extern JNIEnv *SDL_AndroidGetJNIEnv()
++cdef extern JNIEnv *SDL_GetAndroidJNIEnv()
+ 
+ 
+ cdef JNIEnv *get_platform_jnienv() except NULL:
+-    return <JNIEnv*>SDL_AndroidGetJNIEnv()
++    return <JNIEnv*>SDL_GetAndroidJNIEnv()

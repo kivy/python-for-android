@@ -54,7 +54,7 @@ OPTIONS = {
         # 'cymunk,lxml,pil,openssl,pyopenssl,'
         # 'twisted,audiostream,ffmpeg,numpy'
 
-        'android-api': 27,
+        'android-api': 36,
         'ndk-api': 21,
         'dist-name': 'bdisttest_python3launcher_sdl2_googlendk',
         'name': 'TestLauncherPy3-sdl2',

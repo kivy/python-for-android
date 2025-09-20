@@ -14,6 +14,8 @@ from pythonforandroid.util import (
     rmdir, move)
 from pythonforandroid.recipe import Recipe
 
+SDL_BOOTSTRAPS = ("sdl2", "sdl3")
+
 
 def copy_files(src_root, dest_root, override=True, symlink=False):
     for root, dirnames, filenames in walk(src_root):
@@ -39,7 +41,7 @@ def copy_files(src_root, dest_root, override=True, symlink=False):
 
 
 default_recipe_priorities = [
-    "webview", "sdl2", "service_only"  # last is highest
+    "webview", "sdl2", "sdl3", "service_only"  # last is highest
 ]
 # ^^ NOTE: these are just the default priorities if no special rules
 # apply (which you can find in the code below), so basically if no
@@ -150,18 +152,18 @@ class Bootstrap:
         return bootstrap_dirs
 
     def _copy_in_final_files(self):
-        if self.name == "sdl2":
-            # Get the paths for copying SDL2's java source code:
-            sdl2_recipe = Recipe.get_recipe("sdl2", self.ctx)
-            sdl2_build_dir = sdl2_recipe.get_jni_dir()
-            src_dir = join(sdl2_build_dir, "SDL", "android-project",
+        if self.name in SDL_BOOTSTRAPS:
+            # Get the paths for copying SDL's java source code:
+            sdl_recipe = Recipe.get_recipe(self.name, self.ctx)
+            sdl_build_dir = sdl_recipe.get_jni_dir()
+            src_dir = join(sdl_build_dir, "SDL", "android-project",
                            "app", "src", "main", "java",
                            "org", "libsdl", "app")
             target_dir = join(self.dist_dir, 'src', 'main', 'java', 'org',
                               'libsdl', 'app')
 
             # Do actual copying:
-            info('Copying in SDL2 .java files from: ' + str(src_dir))
+            info('Copying in SDL .java files from: ' + str(src_dir))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
             copy_files(src_dir, target_dir, override=True)
@@ -193,7 +195,7 @@ class Bootstrap:
     @classmethod
     def all_bootstraps(cls):
         '''Find all the available bootstraps and return them.'''
-        forbidden_dirs = ('__pycache__', 'common')
+        forbidden_dirs = ('__pycache__', 'common', '_sdl_common')
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
         result = set()
         for name in listdir(bootstraps_dir):
@@ -271,6 +273,13 @@ class Bootstrap:
                 ):
             info('Using sdl2 bootstrap since it is in dependencies')
             return cls.get_bootstrap("sdl2", ctx)
+
+        # Special rule: return SDL3 bootstrap if there's an sdl3 dep:
+        if (have_dependency_in_recipes("sdl3") and
+                "sdl3" in [b.name for b in acceptable_bootstraps]
+                ):
+            info('Using sdl3 bootstrap since it is in dependencies')
+            return cls.get_bootstrap("sdl3", ctx)
 
         # Special rule: return "webview" if we depend on common web recipe:
         for possible_web_dep in known_web_packages:

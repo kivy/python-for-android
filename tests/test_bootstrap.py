@@ -144,9 +144,17 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.all_bootstraps `
         returns the expected values, which should be: `empty", `service_only`,
-        `webview`, `sdl2` and `qt`
+        `webview`, `sdl2`, `sdl3` and `qt`
         """
-        expected_bootstraps = {"empty", "service_only", "service_library", "webview", "sdl2", "qt"}
+        expected_bootstraps = {
+            "empty",
+            "service_only",
+            "service_library",
+            "webview",
+            "sdl2",
+            "sdl3",
+            "qt",
+        }
         set_of_bootstraps = Bootstrap.all_bootstraps()
         self.assertEqual(
             expected_bootstraps, expected_bootstraps & set_of_bootstraps
@@ -180,8 +188,9 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         expanded_result = expand_dependencies(
             ["python3", "kivy", "peewee"], self.ctx
         )
-        # we expect to one results for python3
-        self.assertEqual(len(expanded_result), 1)
+        # we expect to 2 results for python3
+        # (python3, sdl2/sdl3 [one is blacklisted])
+        self.assertEqual(len(expanded_result), 2)
         self.assertIsInstance(expanded_result, list)
         for i in expanded_result:
             self.assertIsInstance(i, list)
@@ -347,13 +356,13 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
     @mock.patch("pythonforandroid.bootstraps.qt.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.service_only.open", create=True)
     @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps.sdl2.open", create=True)
+    @mock.patch("pythonforandroid.bootstraps._sdl_common.open", create=True)
     @mock.patch("pythonforandroid.distribution.open", create=True)
     @mock.patch("pythonforandroid.bootstrap.Bootstrap.strip_libraries")
     @mock.patch("pythonforandroid.util.exists")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.bootstrap.listdir")
-    @mock.patch("pythonforandroid.bootstraps.sdl2.rmdir")
+    @mock.patch("pythonforandroid.bootstraps._sdl_common.rmdir")
     @mock.patch("pythonforandroid.bootstraps.service_only.rmdir")
     @mock.patch("pythonforandroid.bootstraps.webview.rmdir")
     @mock.patch("pythonforandroid.bootstrap.sh.cp")
@@ -368,7 +377,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         mock_ensure_dir,
         mock_strip_libraries,
         mock_open_dist_files,
-        mock_open_sdl2_files,
+        mock_open_sdl_files,
         mock_open_webview_files,
         mock_open_service_only_files,
         mock_open_qt_files
@@ -409,13 +418,18 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
 
         mock_open_dist_files.assert_called_once_with("dist_info.json", "w")
         mock_open_bootstraps = {
-            "sdl2": mock_open_sdl2_files,
+            "sdl2": mock_open_sdl_files,
+            "sdl3": mock_open_sdl_files,
             "webview": mock_open_webview_files,
             "service_only": mock_open_service_only_files,
             "qt": mock_open_qt_files
         }
         expected_open_calls = {
             "sdl2": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
+            "sdl3": [
                 mock.call("local.properties", "w"),
                 mock.call("blacklist.txt", "a"),
             ],
@@ -432,7 +446,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             mock.call().__enter__().write("sdk.dir=/opt/android/android-sdk"),
             mock_open_bs.mock_calls,
         )
-        if self.bootstrap_name == "sdl2":
+        if self.bootstrap_name in ["sdl2", "sdl3"]:
             self.assertIn(
                 mock.call()
                 .__enter__()
@@ -613,6 +627,18 @@ class TestBootstrapSdl2(GenericBootstrapTest, unittest.TestCase):
     @property
     def bootstrap_name(self):
         return "sdl2"
+
+
+class TestBootstrapSdl3(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.sdl3.BootstrapSdl3`.
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "sdl3"
 
 
 class TestBootstrapServiceOnly(GenericBootstrapTest, unittest.TestCase):

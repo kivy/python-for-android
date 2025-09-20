@@ -750,6 +750,7 @@ class ToolchainCL:
         """
         Prints recipes basic info, e.g.
         .. code-block:: bash
+
             python3      3.7.1
                 depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
                 conflicts: []
@@ -1023,7 +1024,7 @@ class ToolchainCL:
                 # .../build/bootstrap_builds/sdl2-python3/gradlew
                 # if docker on windows, gradle contains CRLF
                 output = shprint(
-                    sh.Command('dos2unix'), gradlew._path.decode('utf8'),
+                    sh.Command('dos2unix'), gradlew._path,
                     _tail=20, _critical=True, _env=env
                 )
             if args.build_mode == "debug":

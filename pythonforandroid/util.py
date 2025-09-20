@@ -48,7 +48,7 @@ def temp_directory():
                               temp_dir, Err_Fore.RESET)))
 
 
-def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
+def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns, excluded_dir_exceptions=None):
     """Recursively walks all the files and directories in ``dirn``,
     ignoring directories that match any pattern in ``invalid_dirns``
     and files that patch any pattern in ``invalid_filens``.
@@ -60,15 +60,22 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns):
 
     File and directory paths are evaluated as full paths relative to ``dirn``.
 
+    If ``excluded_dir_exceptions`` is given, any directory path that contains
+    any of those strings will *not* exclude subdirectories matching
+    ``invalid_dir_names``.
     """
 
+    excluded_dir_exceptions = [] if excluded_dir_exceptions is None else excluded_dir_exceptions
+
     for dirn, subdirs, filens in walk(base_dir):
+        allow_invalid_dirs = any(ex in dirn for ex in excluded_dir_exceptions)
 
         # Remove invalid subdirs so that they will not be walked
-        for i in reversed(range(len(subdirs))):
-            subdir = subdirs[i]
-            if subdir in invalid_dir_names:
-                subdirs.pop(i)
+        if not allow_invalid_dirs:
+            for i in reversed(range(len(subdirs))):
+                subdir = subdirs[i]
+                if subdir in invalid_dir_names:
+                    subdirs.pop(i)
 
         for filen in filens:
             for pattern in invalid_file_patterns:

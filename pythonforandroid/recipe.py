@@ -1,7 +1,7 @@
 from os.path import basename, dirname, exists, isdir, isfile, join, realpath, split
 import glob
-
 import hashlib
+import json
 from re import match
 
 import sh
@@ -59,6 +59,21 @@ class Recipe(metaclass=RecipeMeta):
               if you want.
     '''
 
+    _download_headers = None
+    '''Add additional headers used when downloading the package, typically
+    for authorization purposes.
+
+    Specified as an array of tuples:
+    [("header1", "foo"), ("header2", "bar")]
+
+    When specifying as an environment variable (DOWNLOAD_HEADER_my-package-name), use a JSON formatted fragement:
+    [["header1","foo"],["header2", "bar"]]
+
+    For example, when downloading from a private
+    github repository, you can specify the following:
+    [('Authorization', 'token <your personal access token>'), ('Accept', 'application/vnd.github+json')]
+    '''
+
     _version = None
     '''A string giving the version of the software the recipe describes,
     e.g. ``2.0.3`` or ``master``.'''
@@ -113,6 +128,7 @@ class Recipe(metaclass=RecipeMeta):
     keys should be the generated libraries and the values the relative path of
     the library inside his build folder. This dict will be used to perform
     different operations:
+
         - copy the library into the right location, depending on if it's shared
           or static)
         - check if we have to rebuild the library
@@ -137,6 +153,11 @@ class Recipe(metaclass=RecipeMeta):
 
     .. note:: Android NDK version > 17 only supports 'c++_shared', because
         starting from NDK r18 the `gnustl_shared` lib has been deprecated.
+    '''
+
+    min_ndk_api_support = 20
+    '''
+    Minimum ndk api recipe will support.
     '''
 
     def get_stl_library(self, arch):
@@ -169,6 +190,18 @@ class Recipe(metaclass=RecipeMeta):
         if self.url is None:
             return None
         return self.url.format(version=self.version)
+
+    @property
+    def download_headers(self):
+        key = "DOWNLOAD_HEADERS_" + self.name
+        env_headers = environ.get(key)
+        if env_headers:
+            try:
+                return [tuple(h) for h in json.loads(env_headers)]
+            except Exception as ex:
+                raise ValueError(f'Invalid Download headers for {key} - must be JSON formatted as [["header1","foo"],["header2","bar"]]: {ex}')
+
+        return environ.get(key, self._download_headers)
 
     def download_file(self, url, target, cwd=None):
         """
@@ -205,6 +238,8 @@ class Recipe(metaclass=RecipeMeta):
                     # jqueryui.com returns a 403 w/ the default user agent
                     # Mozilla/5.0 does not handle redirection for liblzma
                     url_opener.addheaders = [('User-agent', 'Wget/1.0')]
+                    if self.download_headers:
+                        url_opener.addheaders += self.download_headers
                     urlretrieve(url, target, report_hook)
                 except OSError as e:
                     attempts += 1
@@ -345,6 +380,9 @@ class Recipe(metaclass=RecipeMeta):
     # Public Recipe API to be subclassed if needed
 
     def download_if_necessary(self):
+        if self.ctx.ndk_api < self.min_ndk_api_support:
+            error(f"In order to build '{self.name}', you must set minimum ndk api (minapi) to `{self.min_ndk_api_support}`.\n")
+            exit(1)
         info_main('Downloading {}'.format(self.name))
         user_dir = environ.get('P4A_{}_DIR'.format(self.name.lower()))
         if user_dir is not None:
@@ -542,7 +580,6 @@ class Recipe(metaclass=RecipeMeta):
         '''Should perform any necessary test and return True only if it needs
         building again. Per default we implement a library test, in case that
         we detect so.
-
         '''
         if self.built_libraries:
             return not all(
@@ -562,7 +599,7 @@ class Recipe(metaclass=RecipeMeta):
         '''This method is always called after `build_arch`. In case that we
         detect a library recipe, defined by the class attribute
         `built_libraries`, we will copy all defined libraries into the
-         right location.
+        right location.
         '''
         if not self.built_libraries:
             return

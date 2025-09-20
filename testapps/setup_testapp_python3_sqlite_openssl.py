@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 options = {'apk': {'requirements': 'requests,peewee,sdl2,pyjnius,kivy,python3',
-                   'android-api': 27,
+                   'android-api': 36,
                    'ndk-api': 21,
                    'bootstrap': 'sdl2',
                    'dist-name': 'bdisttest_python3_sqlite_openssl_googlendk',

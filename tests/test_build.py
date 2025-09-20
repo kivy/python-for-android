@@ -82,7 +82,7 @@ class TestTemplates(unittest.TestCase):
             "native_services": args.native_services
         }
         environment = jinja2.Environment(
-            loader=jinja2.FileSystemLoader('pythonforandroid/bootstraps/sdl2/build/templates/')
+            loader=jinja2.FileSystemLoader('pythonforandroid/bootstraps/_sdl_common/build/templates/')
         )
         template = environment.get_template('AndroidManifest.tmpl.xml')
         xml = template.render(**render_args)

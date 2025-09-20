@@ -1,10 +1,9 @@
-import glob
-from os.path import basename, exists, join
+from os.path import join
 import sys
 import packaging.version
 
 import sh
-from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 from pythonforandroid.toolchain import current_directory, shprint
 
 
@@ -21,45 +20,39 @@ def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
         ) < packaging.version.Version("2.2.0.dev0")
 
 
-class KivyRecipe(CythonRecipe):
-    version = '2.3.0'
+class KivyRecipe(PyProjectRecipe):
+    version = '2.3.1'
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
-    depends = ['sdl2', 'pyjnius', 'setuptools']
-    python_depends = ['certifi', 'chardet', 'idna', 'requests', 'urllib3']
+    depends = [('sdl2', 'sdl3'), 'pyjnius', 'setuptools', 'android']
+    python_depends = ['certifi', 'chardet', 'idna', 'requests', 'urllib3', 'filetype']
+    hostpython_prerequisites = ["cython>=0.29.1,<=3.0.12"]
 
     # sdl-gl-swapwindow-nogil.patch is needed to avoid a deadlock.
     # See: https://github.com/kivy/kivy/pull/8025
     # WARNING: Remove this patch when a new Kivy version is released.
-    patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue)]
+    patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue), "use_cython.patch"]
 
-    def cythonize_build(self, env, build_dir='.'):
-        super().cythonize_build(env, build_dir=build_dir)
+    @property
+    def need_stl_shared(self):
+        if "sdl3" in self.ctx.recipe_build_order:
+            return True
+        else:
+            return False
 
-        if not exists(join(build_dir, 'kivy', 'include')):
-            return
+    def get_recipe_env(self, arch, **kwargs):
+        env = super().get_recipe_env(arch, **kwargs)
 
-        # If kivy is new enough to use the include dir, copy it
-        # manually to the right location as we bypass this stage of
-        # the build
-        with current_directory(build_dir):
-            build_libs_dirs = glob.glob(join('build', 'lib.*'))
+        # Taken from CythonRecipe
+        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
+            self.ctx.get_libs_dir(arch.arch) +
+            ' -L{} '.format(self.ctx.libs_dir) +
+            ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
+                                arch.arch)))
+        env['LDSHARED'] = env['CC'] + ' -shared'
+        env['LIBLINK'] = 'NOTNONE'
 
-            for dirn in build_libs_dirs:
-                shprint(sh.cp, '-r', join('kivy', 'include'),
-                        join(dirn, 'kivy'))
-
-    def cythonize_file(self, env, build_dir, filename):
-        # We can ignore a few files that aren't important to the
-        # android build, and may not work on Android anyway
-        do_not_cythonize = ['window_x11.pyx', ]
-        if basename(filename) in do_not_cythonize:
-            return
-        super().cythonize_file(env, build_dir, filename)
-
-    def get_recipe_env(self, arch):
-        env = super().get_recipe_env(arch)
         # NDKPLATFORM is our switch for detecting Android platform, so can't be None
         env['NDKPLATFORM'] = "NOTNONE"
         if 'sdl2' in self.ctx.recipe_build_order:
@@ -73,6 +66,21 @@ class KivyRecipe(CythonRecipe):
                 *sdl2_mixer_recipe.get_include_dirs(arch),
                 join(self.ctx.bootstrap.build_dir, 'jni', 'SDL2_ttf'),
             ])
+        if "sdl3" in self.ctx.recipe_build_order:
+            sdl3_mixer_recipe = self.get_recipe("sdl3_mixer", self.ctx)
+            sdl3_image_recipe = self.get_recipe("sdl3_image", self.ctx)
+            sdl3_ttf_recipe = self.get_recipe("sdl3_ttf", self.ctx)
+            sdl3_recipe = self.get_recipe("sdl3", self.ctx)
+            env["USE_SDL3"] = "1"
+            env["KIVY_SPLIT_EXAMPLES"] = "1"
+            env["KIVY_SDL3_PATH"] = ":".join(
+                [
+                    *sdl3_mixer_recipe.get_include_dirs(arch),
+                    *sdl3_image_recipe.get_include_dirs(arch),
+                    *sdl3_ttf_recipe.get_include_dirs(arch),
+                    *sdl3_recipe.get_include_dirs(arch),
+                ]
+            )
 
         return env
 

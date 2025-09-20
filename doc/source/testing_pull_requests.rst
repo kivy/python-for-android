@@ -118,7 +118,7 @@ Using python-for-android commands directly from the pull request files
         --requirements=sdl2,pyjnius,kivy,python3,pycryptodome \
         --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
         --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
-        --android-api=27 \
+        --android-api=36 \
         --arch=arm64-v8a \
         --permission=VIBRATE \
         --debug
@@ -175,7 +175,7 @@ Installing python-for-android using the github's branch of the pull request
     python3 setup.py apk \
         --ndk-dir=/media/DEVEL/Android/android-ndk-r20 \
         --sdk-dir=/media/DEVEL/Android/android-sdk-linux \
-        --android-api=27 \
+        --android-api=36 \
         --arch=arm64-v8a \
         --debug
 

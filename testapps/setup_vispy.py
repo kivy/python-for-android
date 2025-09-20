@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 options = {'apk': {'debug': None,
                    'requirements': 'python3,vispy',
                    'blacklist-requirements': 'openssl,sqlite3',
-                   'android-api': 27,
+                   'android-api': 33,
                    'ndk-api': 21,
                    'bootstrap': 'empty',
                    'ndk-dir': '/home/asandy/android/android-ndk-r17c',

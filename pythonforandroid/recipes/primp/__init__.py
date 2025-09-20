@@ -2,9 +2,9 @@ from pythonforandroid.logger import info
 from pythonforandroid.recipe import RustCompiledComponentsRecipe
 
 
-class Pyreqwest_impersonateRecipe(RustCompiledComponentsRecipe):
-    version = "v0.4.5"
-    url = "https://github.com/deedy5/pyreqwest_impersonate/archive/refs/tags/{version}.tar.gz"
+class PrimpRecipe(RustCompiledComponentsRecipe):
+    version = "v0.14.0"
+    url = "https://github.com/deedy5/primp/archive/refs/tags/{version}.tar.gz"
 
     def get_recipe_env_post(self, arch, **kwargs):
         env = super().get_recipe_env(arch, **kwargs)
@@ -30,4 +30,4 @@ class Pyreqwest_impersonateRecipe(RustCompiledComponentsRecipe):
             prebuild_(arch)
 
 
-recipe = Pyreqwest_impersonateRecipe()
+recipe = PrimpRecipe()

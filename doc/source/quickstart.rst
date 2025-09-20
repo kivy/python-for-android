@@ -57,7 +57,7 @@ You can also test the master branch from Github using::
     pip install git+https://github.com/kivy/python-for-android.git
 
 Installing Prerequisites
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 p4a requires a few dependencies to be installed on your system to work
 properly. While we're working on a way to automate pre-requisites checks,
@@ -119,7 +119,7 @@ named ``tools``, and you will need to run extra commands to install
 the SDK packages needed. 
 
 For Android NDK, note that modern releases will only work on a 64-bit
-operating system. **The minimal, and recommended, NDK version to use is r25b:**
+operating system. **The minimal, and recommended, NDK version to use is r28c:**
 
  - `Go to ndk downloads page <https://developer.android.com/ndk/downloads/>`_
  - Windows users should create a virtual machine with an GNU Linux os
@@ -154,7 +154,7 @@ variables necessary for building on android::
     # Adjust the paths!
     export ANDROIDSDK="$HOME/Documents/android-sdk-27"
     export ANDROIDNDK="$HOME/Documents/android-ndk-r23b"
-    export ANDROIDAPI="27"  # Target API version of your application
+    export ANDROIDAPI="36"  # Target API version of your application
     export NDKAPI="21"  # Minimum supported API version of your application
     export ANDROIDNDKVER="r10e"  # Version of the NDK you installed
 

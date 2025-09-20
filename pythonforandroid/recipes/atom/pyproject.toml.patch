@@ -1,0 +1,12 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index d41287f..c83b053 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -40,6 +40,7 @@
+ [tool.setuptools]
+   include-package-data = false
+   package-data = { atom = ["py.typed", "*.pyi"] }
++  packages = ["atom"]
+ 
+ [tool.setuptools_scm]
+   write_to = "atom/version.py"
