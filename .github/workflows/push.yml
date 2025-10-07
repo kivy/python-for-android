@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14', '3.14t']
-        os: [ubuntu-latest, macOs-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
     - name: Checkout python-for-android
       uses: actions/checkout@v5
@@ -116,9 +116,9 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-latest (ATM macos-15) runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
         bootstrap:
           - name: sdl2
             target: testapps-with-numpy
@@ -203,9 +203,9 @@ jobs:
     strategy:
       matrix:
         android_arch: ["arm64-v8a", "armeabi-v7a", "x86_64", "x86"]
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-latest (ATM macos-15) runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
     env:
       ANDROID_HOME: ${HOME}/.android
       ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
