@@ -1222,7 +1222,7 @@ class PyProjectRecipe(PythonRecipe):
         build_opts = join(build_dir, "build-opts.cfg")
 
         with open(build_opts, "w") as file:
-            file.write("[bdist_wheel]\nplat-name={}".format(
+            file.write("[bdist_wheel]\nplat_name={}".format(
                 self.get_wheel_platform_tag(arch)
             ))
             file.close()
