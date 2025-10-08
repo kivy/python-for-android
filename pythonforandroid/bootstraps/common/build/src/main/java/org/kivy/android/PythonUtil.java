@@ -39,27 +39,22 @@ public class PythonUtil {
     }
 
     protected static ArrayList<String> getLibraries(File libsDir) {
-        ArrayList<String> libsList = new ArrayList<String>();
-        addLibraryIfExists(libsList, "sqlite3", libsDir);
-        addLibraryIfExists(libsList, "ffi", libsDir);
-        addLibraryIfExists(libsList, "png16", libsDir);
-        addLibraryIfExists(libsList, "ssl.*", libsDir);
-        addLibraryIfExists(libsList, "crypto.*", libsDir);
-        addLibraryIfExists(libsList, "SDL2", libsDir);
-        addLibraryIfExists(libsList, "SDL2_image", libsDir);
-        addLibraryIfExists(libsList, "SDL2_mixer", libsDir);
-        addLibraryIfExists(libsList, "SDL2_ttf", libsDir);
-        addLibraryIfExists(libsList, "SDL3", libsDir);
-        addLibraryIfExists(libsList, "SDL3_image", libsDir);
-        addLibraryIfExists(libsList, "SDL3_mixer", libsDir);
-        addLibraryIfExists(libsList, "SDL3_ttf", libsDir);
-        libsList.add("python3.5m");
-        libsList.add("python3.6m");
-        libsList.add("python3.7m");
-        libsList.add("python3.8");
-        libsList.add("python3.9");
-        libsList.add("python3.10");
-        libsList.add("python3.11");
+        ArrayList<String> libsList = new ArrayList<>();
+
+        String[] libNames = {
+            "sqlite3", "ffi", "png16", "ssl.*", "crypto.*",
+            "SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf",
+            "SDL3", "SDL3_image", "SDL3_mixer", "SDL3_ttf"
+        };
+
+        for (String name : libNames) {
+            addLibraryIfExists(libsList, name, libsDir);
+        }
+
+        for (int v = 5; v <= 14; v++) {
+            libsList.add("python3." + v + (v <= 7 ? "m" : ""));
+        }
+
         libsList.add("main");
         return libsList;
     }
@@ -79,7 +74,7 @@ public class PythonUtil {
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.11") && !foundPython) {
+                if (lib.startsWith("python3.14") && !foundPython) {
                     throw new RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;

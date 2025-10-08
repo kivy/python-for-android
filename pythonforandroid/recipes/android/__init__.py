@@ -1,11 +1,11 @@
-from pythonforandroid.recipe import CythonRecipe, IncludedFilesBehaviour
+from pythonforandroid.recipe import PyProjectRecipe, IncludedFilesBehaviour
 from pythonforandroid.util import current_directory
 from pythonforandroid import logger
 
 from os.path import join
 
 
-class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
+class AndroidRecipe(IncludedFilesBehaviour, PyProjectRecipe):
     # name = 'android'
     version = None
     url = None
@@ -13,11 +13,12 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
     src_filename = 'src'
 
     depends = [('sdl3', 'sdl2', 'genericndkbuild'), 'pyjnius']
+    hostpython_prerequisites = ["Cython>=0.29,<3.1"]
 
     config_env = {}
 
-    def get_recipe_env(self, arch):
-        env = super().get_recipe_env(arch)
+    def get_recipe_env(self, arch, **kwargs):
+        env = super().get_recipe_env(arch, **kwargs)
         env.update(self.config_env)
         return env
 
@@ -49,6 +50,10 @@ class AndroidRecipe(IncludedFilesBehaviour, CythonRecipe):
             'IS_SDL2': int(bootstrap_name == "sdl2"),
             'IS_SDL3': int(bootstrap_name == "sdl3"),
             'PY2': 0,
+            'ANDROID_LIBS_DIR': "{}:{}".format(
+                self.ctx.get_libs_dir(arch.arch),
+                join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch)
+            ),
             'JAVA_NAMESPACE': java_ns,
             'JNI_NAMESPACE': jni_ns,
             'ACTIVITY_CLASS_NAME': self.ctx.activity_class_name,

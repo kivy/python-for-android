@@ -1,0 +1,12 @@
+diff '--color=auto' -uNr cpython-3.14.0/Lib/sysconfig/__init__.py cpython-3.14.0.mod/Lib/sysconfig/__init__.py
+--- cpython-3.14.0/Lib/sysconfig/__init__.py	2025-10-07 21:45:41.236149298 +0530
++++ cpython-3.14.0.mod/Lib/sysconfig/__init__.py	2025-10-07 21:45:54.650245131 +0530
+@@ -702,7 +702,7 @@
+             "x86_64": "x86_64",
+             "i686": "x86",
+             "aarch64": "arm64_v8a",
+-            "armv7l": "armeabi_v7a",
++            "arm": "armeabi_v7a",
+         }[machine]
+     elif osname == "linux":
+         # At least on Linux/Intel, 'machine' is the processor --

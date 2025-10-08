@@ -31,6 +31,7 @@
 #define ENTRYPOINT_MAXLEN 128
 #define LOG(n, x) __android_log_write(ANDROID_LOG_INFO, (n), (x))
 #define LOGP(x) LOG("python", (x))
+#define P4A_MIN_VER 11
 
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
   char *logstr = NULL;
@@ -154,11 +155,6 @@ int main(int argc, char *argv[]) {
   Py_NoSiteFlag=1;
 #endif
 
-#if PY_MAJOR_VERSION < 3
-  Py_SetProgramName("android_python");
-#else
-  Py_SetProgramName(L"android_python");
-#endif
 
 #if PY_MAJOR_VERSION >= 3
   /* our logging module for android
@@ -174,40 +170,80 @@ int main(int argc, char *argv[]) {
   char python_bundle_dir[256];
   snprintf(python_bundle_dir, 256,
            "%s/_python_bundle", getenv("ANDROID_UNPACK"));
-  if (dir_exists(python_bundle_dir)) {
-    LOGP("_python_bundle dir exists");
-    snprintf(paths, 256,
-            "%s/stdlib.zip:%s/modules",
-            python_bundle_dir, python_bundle_dir);
 
-    LOGP("calculated paths to be...");
-    LOGP(paths);
+  #if PY_MAJOR_VERSION >= 3
 
-    #if PY_MAJOR_VERSION >= 3
-        wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
-        Py_SetPath(wchar_paths);
+    #if PY_MINOR_VERSION >= P4A_MIN_VER
+      PyConfig config;
+      PyConfig_InitPythonConfig(&config);
+      config.program_name = L"android_python";
+    #else
+      Py_SetProgramName(L"android_python");
     #endif
 
-        LOGP("set wchar paths...");
+  #else
+    Py_SetProgramName("android_python");
+  #endif
+
+  if (dir_exists(python_bundle_dir)) {
+    LOGP("_python_bundle dir exists");
+
+      #if PY_MAJOR_VERSION >= 3
+          #if PY_MINOR_VERSION >= P4A_MIN_VER
+            
+            wchar_t wchar_zip_path[256];
+            wchar_t wchar_modules_path[256];
+            swprintf(wchar_zip_path, 256, L"%s/stdlib.zip", python_bundle_dir);
+            swprintf(wchar_modules_path, 256, L"%s/modules", python_bundle_dir);
+
+            config.module_search_paths_set = 1;
+            PyWideStringList_Append(&config.module_search_paths, wchar_zip_path);
+            PyWideStringList_Append(&config.module_search_paths, wchar_modules_path);
+        #else
+            char paths[512];
+            snprintf(paths, 512, "%s/stdlib.zip:%s/modules", python_bundle_dir, python_bundle_dir);
+            wchar_t *wchar_paths = Py_DecodeLocale(paths, NULL);
+            Py_SetPath(wchar_paths);
+        #endif
+      
+      #endif
+
+    LOGP("set wchar paths...");
   } else {
       LOGP("_python_bundle does not exist...this not looks good, all python"
            " recipes should have this folder, should we expect a crash soon?");
   }
 
-  Py_Initialize();
+#if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= P4A_MIN_VER
+    PyStatus status = Py_InitializeFromConfig(&config);
+    if (PyStatus_Exception(status)) {
+        LOGP("Python initialization failed:");
+        LOGP(status.err_msg);
+    }
+#else
+    Py_Initialize();
+    LOGP("Python initialized using legacy Py_Initialize().");
+#endif
+
   LOGP("Initialized python");
 
-  /* ensure threads will work.
-   */
-  LOGP("AND: Init threads");
-  PyEval_InitThreads();
+  /* < 3.9 requires explicit GIL initialization
+  *  3.9+ PyEval_InitThreads() is deprecated and unnecessary
+  */
+  #if PY_VERSION_HEX < 0x03090000
+    LOGP("Initializing threads (required for Python < 3.9)");
+    PyEval_InitThreads();
+  #endif
 
 #if PY_MAJOR_VERSION < 3
   initandroidembed();
 #endif
 
-  PyRun_SimpleString("import androidembed\nandroidembed.log('testing python "
-                     "print redirection')");
+  PyRun_SimpleString(
+      "import androidembed\n"
+      "androidembed.log('testing python print redirection')"
+
+  );
 
   /* inject our bootstrap code to redirect python stdin/stdout
    * replace sys.path with our path

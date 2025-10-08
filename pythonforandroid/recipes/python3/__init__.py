@@ -3,12 +3,11 @@ import sh
 import subprocess
 
 from os import environ, utime
-from os.path import dirname, exists, join
-from pathlib import Path
+from os.path import dirname, exists, join, isfile
 import shutil
 
-from pythonforandroid.logger import info, warning, shprint
-from pythonforandroid.patching import version_starts_with
+from packaging.version import Version
+from pythonforandroid.logger import info, shprint, warning
 from pythonforandroid.recipe import Recipe, TargetPythonRecipe
 from pythonforandroid.util import (
     current_directory,
@@ -55,33 +54,36 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.11.5'
-    url = 'https://www.python.org/ftp/python/{version}/Python-{version}.tgz'
+    version = '3.11.13'
+    _p_version = Version(version)
+    url = 'https://github.com/python/cpython/archive/refs/tags/v{version}.tar.gz'
     name = 'python3'
 
     patches = [
         'patches/pyconfig_detection.patch',
         'patches/reproducible-buildinfo.diff',
-
-        # Python 3.7.1
-        ('patches/py3.7.1_fix-ctypes-util-find-library.patch', version_starts_with("3.7")),
-        ('patches/py3.7.1_fix-zlib-version.patch', version_starts_with("3.7")),
-
-        # Python 3.8.1 & 3.9.X
-        ('patches/py3.8.1.patch', version_starts_with("3.8")),
-        ('patches/py3.8.1.patch', version_starts_with("3.9")),
-        ('patches/py3.8.1.patch', version_starts_with("3.10")),
-        ('patches/cpython-311-ctypes-find-library.patch', version_starts_with("3.11")),
     ]
 
-    if shutil.which('lld') is not None:
+    if _p_version.major == 3 and _p_version.minor == 7:
         patches += [
-            ("patches/py3.7.1_fix_cortex_a8.patch", version_starts_with("3.7")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.8")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.9")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.10")),
-            ("patches/py3.8.1_fix_cortex_a8.patch", version_starts_with("3.11")),
+            'patches/py3.7.1_fix-ctypes-util-find-library.patch',
+            'patches/py3.7.1_fix-zlib-version.patch',
         ]
+
+    if 8 <= _p_version.minor <= 10:
+        patches.append('patches/py3.8.1.patch')
+
+    if _p_version.minor >= 11:
+        patches.append('patches/cpython-311-ctypes-find-library.patch')
+
+    if _p_version.minor >= 14:
+        patches.append('patches/3.14_armv7l_fix.patch')
+
+    if shutil.which('lld') is not None:
+        if _p_version.minor == 7:
+            patches.append("patches/py3.7.1_fix_cortex_a8.patch")
+        elif _p_version.minor >= 8:
+            patches.append("patches/py3.8.1_fix_cortex_a8.patch")
 
     depends = ['hostpython3', 'sqlite3', 'openssl', 'libffi']
     # those optional depends allow us to build python compression modules:
@@ -90,23 +92,33 @@ class Python3Recipe(TargetPythonRecipe):
     opt_depends = ['libbz2', 'liblzma']
     '''The optional libraries which we would like to get our python linked'''
 
-    configure_args = (
+    configure_args = [
         '--host={android_host}',
         '--build={android_build}',
         '--enable-shared',
         '--enable-ipv6',
-        'ac_cv_file__dev_ptmx=yes',
-        'ac_cv_file__dev_ptc=no',
+        '--enable-loadable-sqlite-extensions',
+        '--without-static-libpython',
+        '--without-readline',
         '--without-ensurepip',
-        'ac_cv_little_endian_double=yes',
-        'ac_cv_header_sys_eventfd_h=no',
+
+        # Android prefix
         '--prefix={prefix}',
         '--exec-prefix={exec_prefix}',
-        '--enable-loadable-sqlite-extensions'
-    )
+        '--enable-loadable-sqlite-extensions',
 
-    if version_starts_with("3.11"):
-        configure_args += ('--with-build-python={python_host_bin}',)
+        # Special cross compile args
+        'ac_cv_file__dev_ptmx=yes',
+        'ac_cv_file__dev_ptc=no',
+        'ac_cv_header_sys_eventfd_h=no',
+        'ac_cv_little_endian_double=yes',
+        'ac_cv_header_bzlib_h=no',
+    ]
+
+    if _p_version.minor >= 11:
+        configure_args.extend([
+            '--with-build-python={python_host_bin}',
+        ])
 
     '''The configure arguments needed to build the python recipe. Those are
     used in method :meth:`build_arch` (if not overwritten like python3's
@@ -168,6 +180,9 @@ class Python3Recipe(TargetPythonRecipe):
         longer used and has been removed in favour of extension .pyc
     '''
 
+    disable_gil = False
+    '''python3.13 experimental free-threading build'''
+
     def __init__(self, *args, **kwargs):
         self._ctx = None
         super().__init__(*args, **kwargs)
@@ -199,7 +214,7 @@ class Python3Recipe(TargetPythonRecipe):
         return join(self.get_build_dir(arch_name), 'android-build')
 
     def should_build(self, arch):
-        return not Path(self.link_root(arch.arch), self._libpython).is_file()
+        return not isfile(join(self.link_root(arch.arch), self._libpython))
 
     def prebuild_arch(self, arch):
         super().prebuild_arch(arch)
@@ -244,30 +259,26 @@ class Python3Recipe(TargetPythonRecipe):
             env['LDFLAGS'] = env.get('LDFLAGS', '') + link_dirs
             env['LIBS'] = env.get('LIBS', '') + link_libs
 
-        if 'sqlite3' in self.ctx.recipe_build_order:
-            info('Activating flags for sqlite3')
-            recipe = Recipe.get_recipe('sqlite3', self.ctx)
-            add_flags(' -I' + recipe.get_build_dir(arch.arch),
-                      ' -L' + recipe.get_lib_dir(arch), ' -lsqlite3')
+        info('Activating flags for sqlite3')
+        recipe = Recipe.get_recipe('sqlite3', self.ctx)
+        add_flags(' -I' + recipe.get_build_dir(arch.arch),
+                  ' -L' + recipe.get_lib_dir(arch), ' -lsqlite3')
 
-        if 'libffi' in self.ctx.recipe_build_order:
-            info('Activating flags for libffi')
-            recipe = Recipe.get_recipe('libffi', self.ctx)
-            # In order to force the correct linkage for our libffi library, we
-            # set the following variable to point where is our libffi.pc file,
-            # because the python build system uses pkg-config to configure it.
-            env['PKG_CONFIG_PATH'] = recipe.get_build_dir(arch.arch)
-            add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
-                      ' -L' + join(recipe.get_build_dir(arch.arch), '.libs'),
-                      ' -lffi')
+        info('Activating flags for libffi')
+        recipe = Recipe.get_recipe('libffi', self.ctx)
+        # In order to force the correct linkage for our libffi library, we
+        # set the following variable to point where is our libffi.pc file,
+        # because the python build system uses pkg-config to configure it.
+        env['PKG_CONFIG_LIBDIR'] = recipe.get_build_dir(arch.arch)
+        add_flags(' -I' + ' -I'.join(recipe.get_include_dirs(arch)),
+                  ' -L' + join(recipe.get_build_dir(arch.arch), '.libs'),
+                  ' -lffi')
 
-        if 'openssl' in self.ctx.recipe_build_order:
-            info('Activating flags for openssl')
-            recipe = Recipe.get_recipe('openssl', self.ctx)
-            self.configure_args += \
-                ('--with-openssl=' + recipe.get_build_dir(arch.arch),)
-            add_flags(recipe.include_flags(arch),
-                      recipe.link_dirs_flags(arch), recipe.link_libs_flags())
+        info('Activating flags for openssl')
+        recipe = Recipe.get_recipe('openssl', self.ctx)
+        self.configure_args.append('--with-openssl=' + recipe.get_build_dir(arch.arch))
+        add_flags(recipe.include_flags(arch),
+                  recipe.link_dirs_flags(arch), recipe.link_libs_flags())
 
         for library_name in {'libbz2', 'liblzma'}:
             if library_name in self.ctx.recipe_build_order:
@@ -302,6 +313,9 @@ class Python3Recipe(TargetPythonRecipe):
             )
         env['ZLIB_VERSION'] = line.replace('#define ZLIB_VERSION ', '')
         add_flags(' -I' + zlib_includes, ' -L' + zlib_lib_path, ' -lz')
+
+        if self._p_version.minor >= 13 and self.disable_gil:
+            self.configure_args.append("--disable-gil")
 
         return env
 
@@ -344,9 +358,6 @@ class Python3Recipe(TargetPythonRecipe):
                                     exec_prefix=sys_exec_prefix)).split(' '),
                     _env=env)
 
-            # Python build does not seem to play well with make -j option from Python 3.11 and onwards
-            # Before losing some time, please check issue
-            # https://github.com/python/cpython/issues/101295 , as the root cause looks similar
             shprint(
                 sh.make,
                 'all',
@@ -382,11 +393,13 @@ class Python3Recipe(TargetPythonRecipe):
             self.get_build_dir(arch.arch),
             'android-build',
             'build',
-            'lib.linux{}-{}-{}'.format(
+            'lib.{}{}-{}-{}'.format(
+                # android is now supported platform
+                "android" if self._p_version.minor >= 13 else "linux",
                 '2' if self.version[0] == '2' else '',
                 arch.command_prefix.split('-')[0],
                 self.major_minor_version_string
-            ))
+                ))
 
         # Compile to *.pyc the python modules
         self.compile_python_files(modules_build_dir)

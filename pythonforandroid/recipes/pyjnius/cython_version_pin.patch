@@ -1,9 +1,0 @@
---- pyjnius-1.6.1/pyproject.toml	2023-11-05 21:07:43.000000000 +0530
-+++ pyjnius-1.6.1.mod/pyproject.toml	2025-05-11 20:31:14.699072764 +0530
-@@ -2,5 +2,5 @@
- requires = [
-     "setuptools>=58.0.0",
-     "wheel",
--    "Cython"
-+    "Cython==3.0.0"
- ]

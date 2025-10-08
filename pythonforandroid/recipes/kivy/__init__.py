@@ -25,9 +25,9 @@ class KivyRecipe(PyProjectRecipe):
     url = 'https://github.com/kivy/kivy/archive/{version}.zip'
     name = 'kivy'
 
-    depends = [('sdl2', 'sdl3'), 'pyjnius', 'setuptools']
+    depends = [('sdl2', 'sdl3'), 'pyjnius', 'setuptools', 'android']
     python_depends = ['certifi', 'chardet', 'idna', 'requests', 'urllib3', 'filetype']
-    hostpython_prerequisites = []
+    hostpython_prerequisites = ["cython>=0.29.1,<=3.0.12"]
 
     # sdl-gl-swapwindow-nogil.patch is needed to avoid a deadlock.
     # See: https://github.com/kivy/kivy/pull/8025

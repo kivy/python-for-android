@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up Python 3.x
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.x
     - name: Run flake8
@@ -35,16 +35,18 @@ jobs:
     needs: flake8
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
-        os: [ubuntu-latest, macOs-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14', '3.14t']
+        os: [ubuntu-latest, macos-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
     - name: Tox tests
       run: |
         python -m pip install --upgrade pip
@@ -78,7 +80,7 @@ jobs:
             target: testapps-qt
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Build python-for-android docker image
       run: |
         docker build --tag=kivy/python-for-android .
@@ -114,9 +116,9 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-latest (ATM macos-15) runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
         bootstrap:
           - name: sdl2
             target: testapps-with-numpy
@@ -129,14 +131,14 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Python 3.x
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - name: Install python-for-android
         run: |
-          python3 -m pip install -e .
+          python3 -m pip install --editable .
       - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
         run: |
           python3 pythonforandroid/prerequisites.py
@@ -162,6 +164,26 @@ jobs:
           name: ${{ matrix.runs_on }}-${{ matrix.bootstrap.name }}-artifacts
           path: dist
 
+  test_on_emulator:
+    name: Run App on Emulator
+    needs: ubuntu_build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: ubuntu-latest-sdl2-artifacts
+          path: dist/
+
+      - name: Setup and start Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          script: ci/run_emulator_tests.sh
+
   ubuntu_rebuild_updated_recipes:
     name: Test updated recipes for arch ${{ matrix.android_arch }} [ ubuntu-latest ]
     needs: [flake8]
@@ -174,7 +196,7 @@ jobs:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
     - name: Checkout python-for-android (all-history)
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     # helps with GitHub runner getting out of space
@@ -201,9 +223,9 @@ jobs:
     strategy:
       matrix:
         android_arch: ["arm64-v8a", "armeabi-v7a", "x86_64", "x86"]
-        # macos-latest (ATM macos-14) runs on Apple Silicon,
-        # macos-13 runs on Intel
-        runs_on: ['macos-latest', 'macos-13']
+        # macos-latest (ATM macos-15) runs on Apple Silicon,
+        # macos-15-intel runs on Intel
+        runs_on: ['macos-latest', 'macos-15-intel']
     env:
       ANDROID_HOME: ${HOME}/.android
       ANDROID_SDK_ROOT: ${HOME}/.android/android-sdk
@@ -212,16 +234,16 @@ jobs:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
       - name: Checkout python-for-android (all-history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up Python 3.x
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - name: Install python-for-android
         run: |
-          python3 -m pip install -e .
+          python3 -m pip install --editable .
       - name: Install prerequisites via pythonforandroid/prerequisites.py (Experimental)
         run: |
           python3 pythonforandroid/prerequisites.py
@@ -244,7 +266,7 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Requirements
       run: |
         python -m pip install --upgrade pip
