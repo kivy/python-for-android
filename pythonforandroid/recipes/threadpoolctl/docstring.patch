@@ -1,0 +1,13 @@
+diff --git a/threadpoolctl.py b/threadpoolctl.py
+index b94d7a1..faf7a44 100644
+--- a/threadpoolctl.py
++++ b/threadpoolctl.py
+@@ -98,7 +98,7 @@ _ALL_OPENMP_LIBRARIES = list(
+ 
+ def _format_docstring(*args, **kwargs):
+     def decorator(o):
+-        o.__doc__ = o.__doc__.format(*args, **kwargs)
++        #o.__doc__ = o.__doc__.format(*args, **kwargs)
+         return o
+ 
+     return decorator
