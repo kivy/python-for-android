@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
 import android.graphics.Color;
+import android.content.pm.ServiceInfo;
 
 import java.io.File;
 
@@ -178,7 +179,13 @@ public abstract class PythonBoundService extends Service implements Runnable {
             builder.setSmallIcon(context.getApplicationInfo().icon);
             notification = builder.build();
         }
-        startForeground(getServiceId(), notification);
+
+        // Android 14+ (API 34+) requires foregroundServiceType
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(getServiceId(), notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        } else {
+            startForeground(getServiceId(), notification);
+        }
     }
 
     int getServiceId() {

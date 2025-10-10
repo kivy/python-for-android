@@ -7,11 +7,16 @@
     <!-- Android 2.3.3 -->
     <uses-sdk android:minSdkVersion="{{ args.min_sdk_version }}" android:targetSdkVersion="{{ android_api }}" />
 
+    <!-- Android 14+ requires foreground service type permission -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
     <application {% if debug %}android:debuggable="true"{% endif %} >
         {% for name in service_names %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
                  android:process=":service_{{ name }}"
-                 android:exported="true" />
+                 android:exported="true"
+                 android:foregroundServiceType="dataSync" />
         {% endfor %}
     </application>
 
