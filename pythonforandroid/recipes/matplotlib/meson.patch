@@ -1,0 +1,21 @@
+diff '--color=auto' -uNr matplotlib-3.10.7/meson.build matplotlib-3.10.7.mod/meson.build
+--- matplotlib-3.10.7/meson.build	2025-10-09 04:16:31.000000000 +0530
++++ matplotlib-3.10.7.mod/meson.build	2025-10-12 10:19:29.664280049 +0530
+@@ -36,7 +36,7 @@
+ 
+ # https://mesonbuild.com/Python-module.html
+ py_mod = import('python')
+-py3 = py_mod.find_installation(pure: false)
++py3 = py_mod.find_installation(get_option('python3_program'), pure: false)
+ py3_dep = py3.dependency()
+ 
+ pybind11_dep = dependency('pybind11', version: '>=2.13.2')
+diff '--color=auto' -uNr matplotlib-3.10.7/meson.options matplotlib-3.10.7.mod/meson.options
+--- matplotlib-3.10.7/meson.options	2025-10-09 04:16:31.000000000 +0530
++++ matplotlib-3.10.7.mod/meson.options	2025-10-12 10:19:23.762042521 +0530
+@@ -28,3 +28,5 @@
+ # default is determined by fallback.
+ option('rcParams-backend', type: 'string', value: 'auto',
+        description: 'Set default backend at runtime')
++
++option('python3_program', type : 'string', value : '', description : 'Path to Python 3 executable')
