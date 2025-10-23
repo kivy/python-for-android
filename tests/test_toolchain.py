@@ -84,7 +84,7 @@ class TestToolchainCL:
         ]
         build_order = [
             'hostpython3', 'libffi', 'openssl', 'sqlite3', 'python3',
-            'genericndkbuild', 'setuptools', 'six', 'pyjnius', 'android',
+            'genericndkbuild', 'setuptools', 'pyjnius', 'android',
         ]
         python_modules = []
         context = mock.ANY
