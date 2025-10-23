@@ -178,9 +178,7 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             recipe_build_dir,
             'android-build',
             'build',
-            'lib.{}{}-{}-{}'.format(
-                'android' if self.recipe.version[2] >= "3" else 'linux',
-                '2' if self.recipe.version[0] == '2' else '',
+            'lib.android-{}-{}'.format(
                 self.arch.command_prefix.split('-')[0],
                 self.recipe.major_minor_version_string
             ))
