@@ -32,7 +32,11 @@ class KivyRecipe(PyProjectRecipe):
     # sdl-gl-swapwindow-nogil.patch is needed to avoid a deadlock.
     # See: https://github.com/kivy/kivy/pull/8025
     # WARNING: Remove this patch when a new Kivy version is released.
-    patches = [("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue), "use_cython.patch"]
+    patches = [
+        ("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue),
+        "use_cython.patch",
+        "no-ast-str.patch"
+    ]
 
     @property
     def need_stl_shared(self):
