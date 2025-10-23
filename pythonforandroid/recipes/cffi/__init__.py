@@ -7,7 +7,7 @@ class CffiRecipe(CompiledComponentsPythonRecipe):
     Extra system dependencies: autoconf, automake and libtool.
     """
     name = 'cffi'
-    version = '1.15.1'
+    version = '2.0.0'
     url = 'https://pypi.python.org/packages/source/c/cffi/cffi-{version}.tar.gz'
 
     depends = ['setuptools', 'pycparser', 'libffi']
