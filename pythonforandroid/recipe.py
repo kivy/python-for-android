@@ -878,7 +878,7 @@ class PythonRecipe(Recipe):
                  on python2 or python3 which can break the dependency graph
     '''
 
-    hostpython_prerequisites = []
+    hostpython_prerequisites = ['setuptools']
     '''List of hostpython packages required to build a recipe'''
 
     _host_recipe = None
