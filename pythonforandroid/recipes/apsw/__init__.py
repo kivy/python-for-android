@@ -4,7 +4,7 @@ import sh
 
 
 class ApswRecipe(PythonRecipe):
-    version = '3.50.4.0'
+    version = '3.15.0'
     url = ('https://files.pythonhosted.org/packages/02/ea/'
            '7469e89d75a07972255aac4c1b98675bfbc74df32a19dd5dc8ba87aa552b/'
            'apsw-{version}.tar.gz')
