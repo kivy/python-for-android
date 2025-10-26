@@ -1,4 +1,5 @@
 import unittest
+import glob
 
 from os.path import join
 from unittest import mock
@@ -174,14 +175,12 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         self.recipe.create_python_bundle(fake_compile_dir, self.arch)
 
         recipe_build_dir = self.recipe.get_build_dir(self.arch.arch)
-        modules_build_dir = join(
+        modules_build_dir = glob.glob(join(
             recipe_build_dir,
             'android-build',
             'build',
-            'lib.android-{}-{}'.format(
-                self.arch.command_prefix.split('-')[0],
-                self.recipe.major_minor_version_string
-            ))
+            'lib.*'
+        ))[0]
         expected_sp_paths = [
             modules_build_dir,
             join(recipe_build_dir, 'Lib'),
