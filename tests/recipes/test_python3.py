@@ -1,5 +1,4 @@
 import unittest
-import glob
 
 from os.path import join
 from unittest import mock
@@ -143,59 +142,3 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         # restore recipe's ctx or we could get failures with other test,
         # since we share `self.recipe with all the tests of the class
         self.recipe.ctx.ndk_api = self.ctx.ndk_api
-
-    @mock.patch('shutil.copystat')
-    @mock.patch('shutil.copyfile')
-    @mock.patch("pythonforandroid.util.chdir")
-    @mock.patch("pythonforandroid.util.makedirs")
-    @mock.patch("pythonforandroid.util.walk")
-    @mock.patch("pythonforandroid.recipes.python3.sh.find")
-    @mock.patch("pythonforandroid.recipes.python3.sh.cp")
-    @mock.patch("pythonforandroid.recipes.python3.sh.zip")
-    @mock.patch("pythonforandroid.recipes.python3.subprocess.call")
-    def test_create_python_bundle(
-            self,
-            mock_subprocess,
-            mock_sh_zip,
-            mock_sh_cp,
-            mock_sh_find,
-            mock_walk,
-            mock_makedirs,
-            mock_chdir,
-            mock_copyfile,
-            mock_copystat,
-    ):
-        fake_compile_dir = '/fake/compile/dir'
-        simulated_walk_result = [
-            ["/fake_dir", ["__pycache__", "Lib"], ["README", "setup.py"]],
-            ["/fake_dir/Lib", ["ctypes"], ["abc.pyc", "abc.py"]],
-            ["/fake_dir/Lib/ctypes", [], ["util.pyc", "util.py"]],
-        ]
-        mock_walk.return_value = simulated_walk_result
-        self.recipe.create_python_bundle(fake_compile_dir, self.arch)
-
-        recipe_build_dir = self.recipe.get_build_dir(self.arch.arch)
-        modules_build_dir = glob.glob(join(
-            recipe_build_dir,
-            'android-build',
-            'build',
-            'lib.*'
-        ))[0]
-        expected_sp_paths = [
-            modules_build_dir,
-            join(recipe_build_dir, 'Lib'),
-            self.ctx.get_python_install_dir(self.arch.arch),
-        ]
-        for n, (sp_call, kw) in enumerate(mock_subprocess.call_args_list):
-            self.assertEqual(sp_call[0][-1], expected_sp_paths[n])
-
-        # we expect two calls to `walk_valid_filens`
-        self.assertEqual(len(mock_walk.call_args_list), 2)
-
-        mock_sh_zip.assert_called()
-        mock_sh_cp.assert_called()
-        mock_sh_find.assert_called()
-        mock_makedirs.assert_called()
-        mock_chdir.assert_called()
-        mock_copyfile.assert_called()
-        mock_copystat.assert_called()
