@@ -535,6 +535,11 @@ class Recipe(metaclass=RecipeMeta):
         if arch is None:
             arch = self.filtered_archs[0]
         env = arch.get_env(with_flags_in_cc=with_flags_in_cc)
+
+        for proxy_key in ['HTTP_PROXY', 'http_proxy', 'HTTPS_PROXY', 'https_proxy']:
+            if proxy_key in environ:
+                env[proxy_key] = environ[proxy_key]
+
         return env
 
     def prebuild_arch(self, arch):
