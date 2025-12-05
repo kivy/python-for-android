@@ -93,7 +93,11 @@
         {% endif %}
         {% for name in service_names %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
-                 android:process=":service_{{ name }}" />
+                 android:process=":service_{{ name }}"
+                 android:exported="true">
+                 <meta-data android:name="android.app.lib_name"
+                            android:value="main" />
+        </service>
         {% endfor %}
         {% for name in native_services %}
         <service android:name="{{ name }}" />
