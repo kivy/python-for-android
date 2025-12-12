@@ -1,18 +1,15 @@
 package org.kivy.android.launcher;
 
 import android.app.Activity;
-
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.AdapterView;
-import android.os.Environment;
-
 import java.io.File;
 import java.util.Arrays;
-import android.net.Uri;
-
 import org.renpy.android.ResourceManager;
 
 public class ProjectChooser extends Activity implements AdapterView.OnItemClickListener {
@@ -22,8 +19,7 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
     String urlScheme;
 
     @Override
-    public void onStart()
-    {
+    public void onStart() {
         super.onStart();
 
         resourceManager = new ResourceManager(this);
@@ -55,12 +51,12 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
             }
         }
 
-        if (projectAdapter.getCount() != 0) {        
+        if (projectAdapter.getCount() != 0) {
 
             View v = resourceManager.inflateView("project_chooser");
             ListView l = (ListView) resourceManager.getViewById(v, "projectList");
 
-            l.setAdapter(projectAdapter);                
+            l.setAdapter(projectAdapter);
             l.setOnItemClickListener(this);
 
             setContentView(v);
@@ -70,7 +66,10 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
             View v = resourceManager.inflateView("project_empty");
             TextView emptyText = (TextView) resourceManager.getViewById(v, "emptyText");
 
-            emptyText.setText("No projects are available to launch. Please place a project into " + dir + " and restart this application. Press the back button to exit.");
+            emptyText.setText(
+                    "No projects are available to launch. Please place a project into "
+                            + dir
+                            + " and restart this application. Press the back button to exit.");
 
             setContentView(v);
         }
@@ -79,9 +78,7 @@ public class ProjectChooser extends Activity implements AdapterView.OnItemClickL
     public void onItemClick(AdapterView parent, View view, int position, long id) {
         Project p = (Project) parent.getItemAtPosition(position);
 
-        Intent intent = new Intent(
-                "org.kivy.LAUNCH",
-                Uri.fromParts(urlScheme, p.dir, ""));
+        Intent intent = new Intent("org.kivy.LAUNCH", Uri.fromParts(urlScheme, p.dir, ""));
 
         intent.setClassName(getPackageName(), "org.kivy.android.PythonActivity");
         this.startActivity(intent);

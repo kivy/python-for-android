@@ -30,9 +30,26 @@ jobs:
         pip install tox>=2.0
         tox -e pep8
 
+  spotless:
+    name: Java Spotless check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout python-for-android
+      uses: actions/checkout@v5
+    - name: Set up Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v4
+    - name: Run Spotless check
+      working-directory: pythonforandroid/bootstraps
+      run: ./common/build/gradlew spotlessCheck
+
   test:
     name: Pytest [Python ${{ matrix.python-version }} | ${{ matrix.os }}]
-    needs: flake8
+    needs: [flake8, spotless]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -61,9 +78,8 @@ jobs:
 
   ubuntu_build:
     name: Build test APP [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
-    needs: [flake8]
+    needs: [flake8, spotless]
     runs-on: ${{ matrix.runs_on }}
-    continue-on-error: true
     strategy:
       matrix:
         runs_on: [ubuntu-latest]
@@ -79,6 +95,16 @@ jobs:
           - name: qt
             target: testapps-qt
     steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@v10
+      with:
+        root-reserve-mb: 30720
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
     - name: Checkout python-for-android
       uses: actions/checkout@v5
     - name: Build python-for-android docker image
@@ -111,9 +137,8 @@ jobs:
 
   macos_build:
     name: Build test APP [ ${{ matrix.runs_on }} | ${{ matrix.bootstrap.name }} ]
-    needs: [flake8]
+    needs: [flake8, spotless]
     runs-on: ${{ matrix.runs_on }}
-    continue-on-error: true
     strategy:
       matrix:
         # macos-latest (ATM macos-15) runs on Apple Silicon,
@@ -186,8 +211,9 @@ jobs:
 
   ubuntu_rebuild_updated_recipes:
     name: Test updated recipes for arch ${{ matrix.android_arch }} [ ubuntu-latest ]
-    needs: [flake8]
+    needs: [flake8, spotless]
     runs-on: ubuntu-latest
+    # continue on error to see failures across all architectures
     continue-on-error: true
     strategy:
       matrix:
@@ -195,19 +221,20 @@ jobs:
     env:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@v10
+      with:
+        root-reserve-mb: 30720
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
     - name: Checkout python-for-android (all-history)
       uses: actions/checkout@v5
       with:
         fetch-depth: 0
-    # helps with GitHub runner getting out of space
-    - name: Free disk space
-      run: |
-        df -h
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt -y clean
-        docker images -q | xargs -r docker rmi
-        df -h
     - name: Pull docker image
       run: |
         make docker/pull
@@ -217,8 +244,9 @@ jobs:
 
   macos_rebuild_updated_recipes:
     name: Test updated recipes for arch ${{ matrix.android_arch }} [ ${{ matrix.runs_on }} ]
-    needs: [flake8]
+    needs: [flake8, spotless]
     runs-on: ${{ matrix.runs_on }}
+    # continue on error to see failures across all architectures
     continue-on-error: true
     strategy:
       matrix:

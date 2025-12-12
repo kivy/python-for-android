@@ -64,9 +64,15 @@ The ``PATH_TO_SERVICE_PY`` is the relative path to the service entry point (like
 You can optionally specify the following parameters:
  - :code:`:foreground` for launching a service as an Android foreground service
  - :code:`:sticky` for launching a service that gets restarted by the Android OS on exit/error
+ - :code:`:foregroundServiceType=TYPE` to specify the type of foreground service,
+   where TYPE is one of the valid Android foreground service types
+   (see `Android documentation <https://developer.android.com/develop/background-work/services/fgs/service-types>`__
+   for more details). You can specify multiple types separated by a pipe
+   character "|", e.g. :code:`:foregroundServiceType=location|mediaPlayback`. Mandatory
+   if :code:`:foreground` is used on Android 14+.
 
 Full command with all the optional parameters included would be: 
-:code:`--service=myservice:services/myservice.py:foreground:sticky`
+:code:`--service=myservice:services/myservice.py:foreground:sticky:foregroundServiceType=location`
 
 You can add multiple
 :code:`--service` arguments to include multiple services, or separate

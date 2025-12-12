@@ -4,15 +4,14 @@ import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 import android.widget.ImageView;
-
+import android.widget.TextView;
 import org.renpy.android.ResourceManager;
 
 public class ProjectAdapter extends ArrayAdapter<Project> {
 
     private ResourceManager resourceManager;
-    
+
     public ProjectAdapter(Activity context) {
         super(context, 0);
         resourceManager = new ResourceManager(context);
@@ -29,7 +28,7 @@ public class ProjectAdapter extends ArrayAdapter<Project> {
         title.setText(p.title);
         author.setText(p.author);
         icon.setImageBitmap(p.icon);
-        
-        return v;        
+
+        return v;
     }
 }

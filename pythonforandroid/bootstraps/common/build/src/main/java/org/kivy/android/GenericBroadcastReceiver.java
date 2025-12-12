@@ -1,8 +1,8 @@
 package org.kivy.android;
 
 import android.content.BroadcastReceiver;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 
 public class GenericBroadcastReceiver extends BroadcastReceiver {
 

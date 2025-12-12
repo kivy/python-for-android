@@ -1,16 +1,13 @@
 /**
- * This class takes care of managing resources for us. In our code, we
- * can't use R, since the name of the package containing R will
- * change. So this is the next best thing.
+ * This class takes care of managing resources for us. In our code, we can't use R, since the name
+ * of the package containing R will change. So this is the next best thing.
  */
-
 package org.renpy.android;
 
 import android.app.Activity;
 import android.content.res.Resources;
-import android.view.View;
-
 import android.util.Log;
+import android.view.View;
 
 public class ResourceManager {
 
@@ -49,5 +46,4 @@ public class ResourceManager {
         int id = getIdentifier(name, "id");
         return v.findViewById(id);
     }
-
 }

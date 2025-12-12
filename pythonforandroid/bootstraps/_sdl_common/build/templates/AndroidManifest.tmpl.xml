@@ -115,8 +115,11 @@
         <service android:name="{{ args.service_class_name }}"
                  android:process=":pythonservice" />
         {% endif %}
-        {% for name in service_names %}
+        {% for name, foreground_type in service_data %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
+                 {% if foreground_type %}
+                 android:foregroundServiceType="{{ foreground_type }}"
+                 {% endif %}
                  android:process=":service_{{ name }}" />
         {% endfor %}
         {% for name in native_services %}

@@ -8,7 +8,7 @@ import sh
 import shlex
 import shutil
 
-from pythonforandroid.logger import (shprint, info, logger, debug)
+from pythonforandroid.logger import (shprint, info, info_main, logger, debug)
 from pythonforandroid.util import (
     current_directory, ensure_dir, temp_directory, BuildInterruptingException,
     rmdir, move)
@@ -184,11 +184,52 @@ class Bootstrap:
     def prepare_dist_dir(self):
         ensure_dir(self.dist_dir)
 
+    def _assemble_distribution_for_arch(self, arch):
+        """Per-architecture distribution assembly.
+
+        Override this method to customize per-arch behavior.
+        Called once for each architecture in self.ctx.archs.
+        """
+        self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
+        self.distribute_aars(arch)
+
+        python_bundle_dir = join(f'_python_bundle__{arch.arch}', '_python_bundle')
+        ensure_dir(python_bundle_dir)
+        site_packages_dir = self.ctx.python_recipe.create_python_bundle(
+            join(self.dist_dir, python_bundle_dir), arch)
+        if not self.ctx.with_debug_symbols:
+            self.strip_libraries(arch)
+        self.fry_eggs(site_packages_dir)
+
     def assemble_distribution(self):
-        ''' Copies all the files into the distribution (this function is
-            overridden by the specific bootstrap classes to do this)
-            and add in the distribution info.
-        '''
+        """Assemble the distribution by copying files and creating Python bundle.
+
+        This default implementation works for most bootstraps. Override
+        _assemble_distribution_for_arch() for per-arch customization, or
+        override this entire method for fundamentally different behavior.
+        """
+        info_main(f'# Creating Android project ({self.name})')
+
+        rmdir(self.dist_dir)
+        shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
+
+        with current_directory(self.dist_dir):
+            with open('local.properties', 'w') as fileh:
+                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+
+        with current_directory(self.dist_dir):
+            info('Copying Python distribution')
+
+            self.distribute_javaclasses(self.ctx.javaclass_dir,
+                                        dest_dir=join("src", "main", "java"))
+
+            for arch in self.ctx.archs:
+                self._assemble_distribution_for_arch(arch)
+
+            if 'sqlite3' not in self.ctx.recipe_build_order:
+                with open('blacklist.txt', 'a') as fileh:
+                    fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
+
         self._copy_in_final_files()
         self.distribution.save_info(self.dist_dir)
 

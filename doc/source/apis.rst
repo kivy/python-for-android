@@ -140,7 +140,7 @@ With Kivy, add an ``on_pause`` method to your App class, which returns True::
 
 With the webview bootstrap, pausing should work automatically.
 
-Under SDL2, you can handle the `appropriate events <https://wiki.libsdl.org/SDL_EventType>`__ (see SDL_APP_WILLENTERBACKGROUND etc.).
+Under SDL2, you can handle the `appropriate events <https://wiki.libsdl.org/SDL3/SDL_EventType>`__ (see SDL_APP_WILLENTERBACKGROUND etc.).
 
 
 Observing Activity result

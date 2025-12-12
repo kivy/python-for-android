@@ -72,8 +72,11 @@
                  android:process=":pythonservice"
                  android:exported="true"/>
         {% endif %}
-        {% for name in service_names %}
+        {% for name, foreground_type in service_data %}
         <service android:name="{{ args.package }}.Service{{ name|capitalize }}"
+                 {% if foreground_type %}
+                 android:foregroundServiceType="{{ foreground_type }}"
+                 {% endif %}
                  android:process=":service_{{ name }}"
                  android:exported="true" />
         {% endfor %}

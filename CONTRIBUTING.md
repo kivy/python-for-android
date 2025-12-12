@@ -66,6 +66,60 @@ latest python-for-android release that supported building Python 2 was version
 On August 2021, we added support for Android App Bundle (aab). As a
 collateral benefit, we now support multi-arch apk.
 
+## Code Quality
+
+### Python Linting
+
+Python code is linted using flake8. Run it locally with:
+
+```bash
+tox -e pep8
+```
+
+### Java Linting
+
+Java source files in the bootstrap directories are linted using
+[Spotless](https://github.com/diffplug/spotless) with Google Java Format
+(AOSP style). The CI runs this check automatically.
+
+**Local execution** (requires Java 17+):
+
+```bash
+# Check for violations
+make java-lint
+
+# Auto-fix violations
+make java-lint-fix
+```
+
+The Makefile uses the Gradle wrapper (`gradlew`), which automatically downloads
+the correct Gradle version on first run. No manual Gradle installation is required.
+
+**Using Docker** (if you don't have Java 17):
+
+```bash
+# Check for violations
+make docker/java-lint
+
+# Auto-fix violations
+make docker/java-lint-fix
+```
+
+The Docker approach builds the project's Docker image (which includes Java 17)
+and runs the linting inside the container.
+
+**What gets linted:**
+
+- All `.java` files in `pythonforandroid/bootstraps/*/build/src/main/java/`
+- Excludes third-party code (`org/kamranzafar/jtar/`)
+
+**Formatting rules applied:**
+
+- Google Java Format with AOSP style (Android-friendly indentation)
+- Removal of unused imports
+- Trailing whitespace trimming
+- Files end with newline
+
 ## Creating a new release
 
 (These instructions are for core developers, not casual contributors.)

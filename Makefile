@@ -24,6 +24,20 @@ virtualenv: $(VIRTUAL_ENV)
 test:
 	$(TOX) -- tests/ --ignore tests/test_pythonpackage.py
 
+# Java linting using Spotless (requires Java 17+, uses Gradle wrapper)
+java-lint:
+	cd pythonforandroid/bootstraps && ./common/build/gradlew spotlessCheck
+
+java-lint-fix:
+	cd pythonforandroid/bootstraps && ./common/build/gradlew spotlessApply
+
+# Java linting via Docker (no local Java required)
+docker/java-lint: docker/build
+	docker run --rm -v $(CURDIR):/home/user/app -w /home/user/app/pythonforandroid/bootstraps $(DOCKER_IMAGE) ./common/build/gradlew spotlessCheck
+
+docker/java-lint-fix: docker/build
+	docker run --rm -v $(CURDIR):/home/user/app -w /home/user/app/pythonforandroid/bootstraps $(DOCKER_IMAGE) ./common/build/gradlew spotlessApply
+
 # Also install and configure rust
 rebuild_updated_recipes: virtualenv
 	. $(ACTIVATE) && \

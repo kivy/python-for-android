@@ -1,0 +1,60 @@
+// Java Lint Configuration for python-for-android
+// This file configures Spotless to lint Java source files across all bootstraps
+
+plugins {
+    id 'java'
+    id 'com.diffplug.spotless' version '6.25.0'
+}
+
+// Repositories for plugin dependencies (e.g., google-java-format)
+repositories {
+    mavenCentral()
+}
+
+// Define the root directory for bootstrap Java sources
+def bootstrapsDir = "${rootProject.projectDir}"
+
+// Collect all Java source directories from all bootstraps
+def javaSourceDirs = []
+file(bootstrapsDir).eachDir { bootstrapDir ->
+    def srcDir = new File(bootstrapDir, 'build/src/main/java')
+    if (srcDir.exists()) {
+        javaSourceDirs.add(srcDir.absolutePath)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = javaSourceDirs
+        }
+    }
+}
+
+spotless {
+    java {
+        // Target all Java files from the source directories
+        target fileTree(bootstrapsDir) {
+            include '**/build/src/main/java/**/*.java'
+            // Exclude third-party vendored code
+            exclude '**/org/kamranzafar/jtar/**'
+        }
+
+        // Use Google Java Format with AOSP style (Android-friendly, slightly relaxed)
+        googleJavaFormat('1.19.2').aosp()
+
+        // Remove unused imports
+        removeUnusedImports()
+
+        // Trim trailing whitespace
+        trimTrailingWhitespace()
+
+        // Ensure files end with a newline
+        endWithNewline()
+    }
+}
+
+// Disable compilation - we only want to lint, not build
+tasks.withType(JavaCompile).configureEach {
+    enabled = false
+}

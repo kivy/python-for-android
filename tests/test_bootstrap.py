@@ -353,34 +353,30 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         name of the bootstrap to test"""
         raise NotImplementedError("Not implemented in GenericBootstrapTest")
 
+    @mock.patch("pythonforandroid.bootstraps.qt.shprint")
+    @mock.patch("pythonforandroid.bootstraps.qt.rmdir")
     @mock.patch("pythonforandroid.bootstraps.qt.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps.service_only.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps._sdl_common.open", create=True)
+    @mock.patch("pythonforandroid.bootstrap.open", create=True)
     @mock.patch("pythonforandroid.distribution.open", create=True)
     @mock.patch("pythonforandroid.bootstrap.Bootstrap.strip_libraries")
     @mock.patch("pythonforandroid.util.exists")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.bootstrap.listdir")
-    @mock.patch("pythonforandroid.bootstraps._sdl_common.rmdir")
-    @mock.patch("pythonforandroid.bootstraps.service_only.rmdir")
-    @mock.patch("pythonforandroid.bootstraps.webview.rmdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.cp")
+    @mock.patch("pythonforandroid.bootstrap.rmdir")
+    @mock.patch("pythonforandroid.bootstrap.shprint")
     def test_assemble_distribution(
         self,
-        mock_sh_cp,
-        mock_rmdir1,
-        mock_rmdir2,
-        mock_rmdir3,
+        mock_shprint,
+        mock_rmdir,
         mock_listdir,
         mock_chdir,
         mock_ensure_dir,
         mock_strip_libraries,
         mock_open_dist_files,
-        mock_open_sdl_files,
-        mock_open_webview_files,
-        mock_open_service_only_files,
-        mock_open_qt_files
+        mock_open_bootstrap_files,
+        mock_open_qt_files,
+        mock_qt_rmdir,
+        mock_qt_shprint
     ):
         """
         A test for any overwritten method of
@@ -417,13 +413,11 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         bs.assemble_distribution()
 
         mock_open_dist_files.assert_called_once_with("dist_info.json", "w")
-        mock_open_bootstraps = {
-            "sdl2": mock_open_sdl_files,
-            "sdl3": mock_open_sdl_files,
-            "webview": mock_open_webview_files,
-            "service_only": mock_open_service_only_files,
-            "qt": mock_open_qt_files
-        }
+        # Qt bootstrap has its own assemble_distribution, others use base class
+        if self.bootstrap_name == "qt":
+            mock_open_bs = mock_open_qt_files
+        else:
+            mock_open_bs = mock_open_bootstrap_files
         expected_open_calls = {
             "sdl2": [
                 mock.call("local.properties", "w"),
@@ -433,11 +427,16 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
                 mock.call("local.properties", "w"),
                 mock.call("blacklist.txt", "a"),
             ],
-            "webview": [mock.call("local.properties", "w")],
-            "service_only": [mock.call("local.properties", "w")],
+            "webview": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
+            "service_only": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
             "qt": [mock.call("local.properties", "w")]
         }
-        mock_open_bs = mock_open_bootstraps[self.bootstrap_name]
         # test that the expected calls has been called
         for expected_call in expected_open_calls[self.bootstrap_name]:
             self.assertIn(expected_call, mock_open_bs.call_args_list)
@@ -446,7 +445,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             mock.call().__enter__().write("sdk.dir=/opt/android/android-sdk"),
             mock_open_bs.mock_calls,
         )
-        if self.bootstrap_name in ["sdl2", "sdl3"]:
+        if self.bootstrap_name in ["sdl2", "sdl3", "webview", "service_only"]:
             self.assertIn(
                 mock.call()
                 .__enter__()
@@ -455,7 +454,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             )
 
         # check that the other mocks we made are actually called
-        mock_sh_cp.assert_called()
+        mock_shprint.assert_called()
         mock_chdir.assert_called()
         mock_listdir.assert_called()
         mock_strip_libraries.assert_called()

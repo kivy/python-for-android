@@ -18,7 +18,7 @@ It can generate:
 
 It supports multiple CPU architectures.
 
-It supports apps developed with `Kivy framework <http://kivy.org>`_, but was
+It supports apps developed with `Kivy framework <https://kivy.org/>`_, but was
 built to be flexible about the backend libraries (through "bootstraps"), and
 also supports `PySDL2 <https://pypi.org/project/PySDL2/>`_, and a
 `WebView <https://developer.android.com/reference/android/webkit/WebView>`_ with
@@ -34,7 +34,7 @@ dependencies for Android devices, and bundling it with the app's python code
 and dependencies. The Python code is then interpreted on the Android device.
 
 It is recommended that python-for-android be used via
-`Buildozer <https://buildozer.readthedocs.io/>`_, which ensures the correct
+`Buildozer <https://buildozer.readthedocs.io/en/latest/>`_, which ensures the correct
 dependencies are pre-installed, and centralizes the configuration. However,
 python-for-android is not limited to being used with Buildozer.
 

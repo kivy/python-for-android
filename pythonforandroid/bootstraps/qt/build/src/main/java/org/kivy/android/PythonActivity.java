@@ -1,25 +1,19 @@
 package org.kivy.android;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.SystemClock;
-
+import android.util.Log;
+import android.view.KeyEvent;
+import android.widget.Toast;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.view.KeyEvent;
-import android.util.Log;
-import android.widget.Toast;
-import android.os.Bundle;
-import android.os.PowerManager;
-import android.content.Context;
-import android.content.pm.PackageManager;
-
 import org.qtproject.qt.android.bindings.QtActivity;
 
 public class PythonActivity extends QtActivity {
@@ -32,16 +26,16 @@ public class PythonActivity extends QtActivity {
     private PowerManager.WakeLock mWakeLock = null;
 
     public String getAppRoot() {
-        String app_root =  getFilesDir().getAbsolutePath() + "/app";
+        String app_root = getFilesDir().getAbsolutePath() + "/app";
         return app_root;
     }
 
     public String getEntryPoint(String search_dir) {
         /* Get the main file (.pyc|.py) depending on if we
          * have a compiled version or not.
-        */
+         */
         List<String> entryPoints = new ArrayList<String>();
-        entryPoints.add("main.pyc");  // python 3 compiled files
+        entryPoints.add("main.pyc"); // python 3 compiled files
         for (String value : entryPoints) {
             File mainFile = new File(search_dir + "/" + value);
             if (mainFile.exists()) {
@@ -52,9 +46,7 @@ public class PythonActivity extends QtActivity {
     }
 
     public void setEnvironmentVariable(String key, String value) {
-        /**
-         * Sets an environment variable based on key/value.
-         **/
+        /** Sets an environment variable based on key/value. */
         try {
             android.system.Os.setenv(key, value, true);
         } catch (Exception e) {
@@ -69,7 +61,11 @@ public class PythonActivity extends QtActivity {
         Log.v(TAG, "Ready to unpack");
         File app_root_file = new File(getAppRoot());
         PythonUtil.unpackAsset(mActivity, "private", app_root_file, true);
-        PythonUtil.unpackPyBundle(mActivity, getApplicationInfo().nativeLibraryDir + "/" + "libpybundle", app_root_file, false);
+        PythonUtil.unpackPyBundle(
+                mActivity,
+                getApplicationInfo().nativeLibraryDir + "/" + "libpybundle",
+                app_root_file,
+                false);
 
         Log.v("Python", "Device: " + android.os.Build.DEVICE);
         Log.v("Python", "Model: " + android.os.Build.MODEL);
@@ -96,12 +92,17 @@ public class PythonActivity extends QtActivity {
         this.mActivity = this;
         try {
             Log.v(TAG, "Access to our meta-data...");
-            mActivity.mMetaData = mActivity.getPackageManager().getApplicationInfo(
-                    mActivity.getPackageName(), PackageManager.GET_META_DATA).metaData;
+            mActivity.mMetaData =
+                    mActivity
+                            .getPackageManager()
+                            .getApplicationInfo(
+                                    mActivity.getPackageName(), PackageManager.GET_META_DATA)
+                            .metaData;
 
             PowerManager pm = (PowerManager) mActivity.getSystemService(Context.POWER_SERVICE);
-            if ( mActivity.mMetaData.getInt("wakelock") == 1 ) {
-                mActivity.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
+            if (mActivity.mMetaData.getInt("wakelock") == 1) {
+                mActivity.mWakeLock =
+                        pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "Screen On");
                 mActivity.mWakeLock.acquire();
             }
         } catch (PackageManager.NameNotFoundException e) {
@@ -118,14 +119,14 @@ public class PythonActivity extends QtActivity {
     }
 
     long lastBackClick = SystemClock.elapsedRealtime();
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // If it wasn't the Back key or there's no web page history, bubble up to the default
         // system behavior (probably exit the activity)
-        if (SystemClock.elapsedRealtime() - lastBackClick > 2000){
+        if (SystemClock.elapsedRealtime() - lastBackClick > 2000) {
             lastBackClick = SystemClock.elapsedRealtime();
-            Toast.makeText(this, "Click again to close the app",
-            Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Click again to close the app", Toast.LENGTH_LONG).show();
             return true;
         }
 
@@ -133,8 +134,7 @@ public class PythonActivity extends QtActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-
-    //----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
     // Listener interface for onNewIntent
     //
 
@@ -145,31 +145,30 @@ public class PythonActivity extends QtActivity {
     private List<NewIntentListener> newIntentListeners = null;
 
     public void registerNewIntentListener(NewIntentListener listener) {
-        if ( this.newIntentListeners == null )
-            this.newIntentListeners = Collections.synchronizedList(new ArrayList<NewIntentListener>());
+        if (this.newIntentListeners == null)
+            this.newIntentListeners =
+                    Collections.synchronizedList(new ArrayList<NewIntentListener>());
         this.newIntentListeners.add(listener);
     }
 
     public void unregisterNewIntentListener(NewIntentListener listener) {
-        if ( this.newIntentListeners == null )
-            return;
+        if (this.newIntentListeners == null) return;
         this.newIntentListeners.remove(listener);
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
-        if ( this.newIntentListeners == null )
-            return;
+        if (this.newIntentListeners == null) return;
         this.onResume();
-        synchronized ( this.newIntentListeners ) {
+        synchronized (this.newIntentListeners) {
             Iterator<NewIntentListener> iterator = this.newIntentListeners.iterator();
-            while ( iterator.hasNext() ) {
+            while (iterator.hasNext()) {
                 (iterator.next()).onNewIntent(intent);
             }
         }
     }
 
-    //----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
     // Listener interface for onActivityResult
     //
 
@@ -180,55 +179,43 @@ public class PythonActivity extends QtActivity {
     private List<ActivityResultListener> activityResultListeners = null;
 
     public void registerActivityResultListener(ActivityResultListener listener) {
-        if ( this.activityResultListeners == null )
-            this.activityResultListeners = Collections.synchronizedList(new ArrayList<ActivityResultListener>());
+        if (this.activityResultListeners == null)
+            this.activityResultListeners =
+                    Collections.synchronizedList(new ArrayList<ActivityResultListener>());
         this.activityResultListeners.add(listener);
     }
 
     public void unregisterActivityResultListener(ActivityResultListener listener) {
-        if ( this.activityResultListeners == null )
-            return;
+        if (this.activityResultListeners == null) return;
         this.activityResultListeners.remove(listener);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if ( this.activityResultListeners == null )
-            return;
+        if (this.activityResultListeners == null) return;
         this.onResume();
-        synchronized ( this.activityResultListeners ) {
+        synchronized (this.activityResultListeners) {
             Iterator<ActivityResultListener> iterator = this.activityResultListeners.iterator();
-            while ( iterator.hasNext() )
+            while (iterator.hasNext())
                 (iterator.next()).onActivityResult(requestCode, resultCode, intent);
         }
     }
 
     public static void start_service(
-            String serviceTitle,
-            String serviceDescription,
-            String pythonServiceArgument
-            ) {
-        _do_start_service(
-            serviceTitle, serviceDescription, pythonServiceArgument, true
-        );
+            String serviceTitle, String serviceDescription, String pythonServiceArgument) {
+        _do_start_service(serviceTitle, serviceDescription, pythonServiceArgument, true);
     }
 
     public static void start_service_not_as_foreground(
-            String serviceTitle,
-            String serviceDescription,
-            String pythonServiceArgument
-            ) {
-        _do_start_service(
-            serviceTitle, serviceDescription, pythonServiceArgument, false
-        );
+            String serviceTitle, String serviceDescription, String pythonServiceArgument) {
+        _do_start_service(serviceTitle, serviceDescription, pythonServiceArgument, false);
     }
 
     public static void _do_start_service(
             String serviceTitle,
             String serviceDescription,
             String pythonServiceArgument,
-            boolean showForegroundNotification
-            ) {
+            boolean showForegroundNotification) {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
@@ -239,9 +226,8 @@ public class PythonActivity extends QtActivity {
         serviceIntent.putExtra("pythonName", "python");
         serviceIntent.putExtra("pythonHome", app_root_dir);
         serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
-        serviceIntent.putExtra("serviceStartAsForeground",
-            (showForegroundNotification ? "true" : "false")
-        );
+        serviceIntent.putExtra(
+                "serviceStartAsForeground", (showForegroundNotification ? "true" : "false"));
         serviceIntent.putExtra("serviceTitle", serviceTitle);
         serviceIntent.putExtra("serviceDescription", serviceDescription);
         serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
@@ -252,5 +238,4 @@ public class PythonActivity extends QtActivity {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         PythonActivity.mActivity.stopService(serviceIntent);
     }
-
 }
