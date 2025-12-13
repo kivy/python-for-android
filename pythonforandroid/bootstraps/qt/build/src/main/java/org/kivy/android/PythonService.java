@@ -74,7 +74,8 @@ public class PythonService extends QtService implements Runnable {
             Log.v(TAG, "service exists, do not start again");
             return startType();
         }
-	//intent is null if OS restarts a STICKY service
+        
+	    //intent is null if OS restarts a STICKY service
         if (intent == null) {
             Context context = getApplicationContext();
             intent = getThisDefaultIntent(context, "");
@@ -121,24 +122,25 @@ public class PythonService extends QtService implements Runnable {
         PendingIntent pIntent = PendingIntent.getActivity(context, 0, contextIntent,
             PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
-	// Unspecified icon uses default.
-	int smallIconId = context.getApplicationInfo().icon;
-    if (smallIconName != null) {
-        if (!smallIconName.equals("")){
-            int resId = getResources().getIdentifier(smallIconName, "mipmap",
-                                 getPackageName());
-            if (resId ==0) {
-            resId = getResources().getIdentifier(smallIconName, "drawable",
-                                 getPackageName());
-            }
-            if (resId !=0) {
-            smallIconId = resId;
+        // Unspecified icon uses default.
+        int smallIconId = context.getApplicationInfo().icon;
+        
+        if (smallIconName != null) {
+            if (!smallIconName.equals("")){
+                int resId = getResources().getIdentifier(smallIconName, "mipmap",
+                                    getPackageName());
+                if (resId ==0) {
+                resId = getResources().getIdentifier(smallIconName, "drawable",
+                                    getPackageName());
+                }
+                if (resId !=0) {
+                smallIconId = resId;
+                }
             }
         }
-    }
 
-	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-	    // This constructor is deprecated
+	    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // This constructor is deprecated
             notification = new Notification(
                 smallIconId, serviceTitle, System.currentTimeMillis());
             try {
@@ -169,6 +171,7 @@ public class PythonService extends QtService implements Runnable {
             builder.setSmallIcon(smallIconId);
             notification = builder.build();
         }
+
         startForeground(getServiceId(), notification);
     }
 
