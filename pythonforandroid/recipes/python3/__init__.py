@@ -54,7 +54,7 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.14.0'
+    version = '3.14.2'
     _p_version = Version(version)
     url = 'https://github.com/python/cpython/archive/refs/tags/v{version}.tar.gz'
     name = 'python3'
@@ -78,6 +78,7 @@ class Python3Recipe(TargetPythonRecipe):
 
     if _p_version.minor >= 14:
         patches.append('patches/3.14_armv7l_fix.patch')
+        patches.append('patches/3.14_fix_remote_debug.patch')
 
     if shutil.which('lld') is not None:
         if _p_version.minor == 7:

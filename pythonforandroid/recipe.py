@@ -979,7 +979,7 @@ class PythonRecipe(Recipe):
         env['LANG'] = "en_GB.UTF-8"
 
         # Binaries made by packages installed by pip
-        self.patch_shebangs(self._host_recipe.local_bin, self.real_hostpython_location)
+        self.patch_shebangs(self._host_recipe.local_bin, self._host_recipe.python_exe)
         env["PATH"] = self._host_recipe.local_bin + ":" + self._host_recipe.site_bin + ":" + env["PATH"]
 
         host_env = self.get_hostrecipe_env(arch)
@@ -1022,10 +1022,9 @@ class PythonRecipe(Recipe):
 
         info('Installing {} into site-packages'.format(self.name))
 
-        hostpython = sh.Command(self.hostpython_location)
         hpenv = env.copy()
         with current_directory(self.get_build_dir(arch.arch)):
-            shprint(hostpython, '-m', 'pip', 'install', '.',
+            shprint(self._host_recipe.pip, 'install', '.',
                     '--compile', '--target',
                     self.ctx.get_python_install_dir(arch.arch),
                     _env=hpenv, *self.setup_extra_args
@@ -1045,8 +1044,7 @@ class PythonRecipe(Recipe):
 
     def install_hostpython_package(self, arch):
         env = self.get_hostrecipe_env(arch)
-        real_hostpython = sh.Command(self.real_hostpython_location)
-        shprint(real_hostpython, '-m', 'pip', 'install', '.',
+        shprint(self._host_recipe.pip, 'install', '.',
                 '--compile',
                 '--root={}'.format(self._host_recipe.site_root),
                 _env=env, *self.setup_extra_args)
@@ -1075,8 +1073,7 @@ class PythonRecipe(Recipe):
             pip_options.append("--upgrade")
         # Use system's pip
         pip_env = self.get_hostrecipe_env()
-        pip_env["HOME"] = "/tmp"
-        shprint(sh.Command(self.real_hostpython_location), "-m", "pip", *pip_options, _env=pip_env)
+        shprint(self._host_recipe.pip, *pip_options, _env=pip_env)
 
     def restore_hostpython_prerequisites(self, packages):
         _packages = []
@@ -1270,10 +1267,14 @@ class PyProjectRecipe(PythonRecipe):
         return env
 
     def get_wheel_platform_tag(self, arch):
+        # https://peps.python.org/pep-0738/#packaging
+        # official python only supports 64 bit:
+        # android_21_arm64_v8a
+        # android_21_x86_64
         return f"android_{self.ctx.ndk_api}_" + {
-            "armeabi-v7a": "arm",
-            "arm64-v8a": "aarch64",
+            "arm64-v8a": "arm64_v8a",
             "x86_64": "x86_64",
+            "armeabi-v7a": "arm",
             "x86": "i686",
         }[arch.arch]
 
