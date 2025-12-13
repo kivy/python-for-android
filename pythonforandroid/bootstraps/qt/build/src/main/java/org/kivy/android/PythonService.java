@@ -13,12 +13,9 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.os.Process;
 import java.io.File;
-
-//imports for channel definition
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
 import android.graphics.Color;
-
 import org.qtproject.qt.android.bindings.QtService;
 
 public class PythonService extends QtService implements Runnable {
