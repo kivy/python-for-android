@@ -1251,6 +1251,10 @@ class PyProjectRecipe(PythonRecipe):
     extra_build_args = []
     call_hostpython_via_targetpython = False
 
+    def __init__(self):
+        super().__init__()
+        self.extra_build_args = []
+
     def get_recipe_env(self, arch, **kwargs):
         # Custom hostpython
         self.ctx.python_recipe.python_exe = join(
