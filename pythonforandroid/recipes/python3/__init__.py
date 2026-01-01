@@ -183,6 +183,8 @@ class Python3Recipe(TargetPythonRecipe):
     disable_gil = False
     '''python3.13 experimental free-threading build'''
 
+    built_libraries = {"libpythonbin.so": "./android-build/"}
+
     def __init__(self, *args, **kwargs):
         self._ctx = None
         super().__init__(*args, **kwargs)
@@ -364,6 +366,11 @@ class Python3Recipe(TargetPythonRecipe):
                 'INSTSONAME={lib_name}'.format(lib_name=self._libpython),
                 _env=env
             )
+            # rename executable
+            if isfile("python"):
+                sh.cp('python', 'libpythonbin.so')
+            elif isfile("python.exe"):  # for macos
+                sh.cp('python.exe', 'libpythonbin.so')
 
             # TODO: Look into passing the path to pyconfig.h in a
             # better way, although this is probably acceptable
