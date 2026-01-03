@@ -694,31 +694,47 @@ def process_python_modules(ctx, modules):
     processed_modules.extend(modules)
 
     if len(modules) == 0:
-        return modules
+        return processed_modules
 
     # temp file for pip report
     fd, path = tempfile.mkstemp()
     os.close(fd)
 
     # setup hostpython recipe
-    host_recipe = Recipe.get_recipe("hostpython3", ctx)
-
     env = environ.copy()
-    _python_path = host_recipe.get_path_to_python()
-    libdir = glob.glob(join(_python_path, "build", "lib*"))
-    env['PYTHONPATH'] = host_recipe.site_dir + ":" + join(
-        _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
+    try:
+        host_recipe = Recipe.get_recipe("hostpython3", ctx)
+        _python_path = host_recipe.get_path_to_python()
+        libdir = glob.glob(join(_python_path, "build", "lib*"))
+        env['PYTHONPATH'] = host_recipe.site_dir + ":" + join(
+            _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
+        pip = host_recipe.pip
+    except Exception:
+        # hostpython3 non available so we use system pip (like in tests)
+        pip = sh.Command("pip")
 
-    shprint(
-        host_recipe.pip, 'install', *modules,
-        '--dry-run', '--break-system-packages', '--ignore-installed',
-        '--report', path, '-q', _env=env
-    )
+    try:
+        shprint(
+            pip, 'install', *modules,
+            '--dry-run', '--break-system-packages', '--ignore-installed',
+            '--report', path, '-q', _env=env
+        )
+    except Exception as e:
+        warning(f"Auto module resolution failed: {e}")
+        return processed_modules
 
     with open(path, "r") as f:
-        report = json.load(f)
+        try:
+            report = json.load(f)
+        except Exception:
+            report = {}
 
     os.remove(path)
+
+    if "install" not in report.keys():
+        # pip changed json reporting format?
+        warning("Auto module resolution failed: invalid json!")
+        return processed_modules
 
     info('Extra resolved pure python dependencies :')
 
@@ -740,7 +756,7 @@ def process_python_modules(ctx, modules):
             pure_python = False
 
         # does this module matches any recipe name?
-        if mname.lower() in _requirement_names:
+        if mname.lower().replace("-", "_") in _requirement_names:
             continue
 
         color = Out_Fore.GREEN if pure_python else Out_Fore.RED
@@ -777,9 +793,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE FOR ARCH: {} ***'.format(arch))
 
-    # don't run process_python_modules in tests
-    if ctx.recipe_build_order.__class__.__name__ != "Mock":
-        modules = process_python_modules(ctx, modules)
+    modules = process_python_modules(ctx, modules)
 
     modules = [m for m in modules if ctx.not_has_package(m, arch)]
 
