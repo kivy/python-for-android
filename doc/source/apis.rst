@@ -125,7 +125,7 @@ enabled in the build configuration:
 
 Without these, FFmpeg may be present but lack the required codec support.
 
-See also: `APK native library execution restrictions <https://github.com/agnostic-apollo/Android-Docs/blob/master/site/pages/en/projects/docs/apps/processes/app-data-file-execute-restrictions.md#apk-native-library>`_
+See also: `APK native library execution restrictions <https://github.com/agnostic-apollo/Android-Docs/blob/master/site/pages/en/projects/docs/apps/processes/app-data-file-execute-restrictions.md>`_
 
 Dismissing the splash screen
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
