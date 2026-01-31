@@ -4,6 +4,7 @@ from typing import Literal
 
 __all__ = ('update_system_ui')
 
+
 def update_system_ui(
     status_bar_color: list[float] | str,
     navigation_bar_color: list[float] | str,
@@ -36,7 +37,7 @@ def update_system_ui(
     try:
         WindowCompat = autoclass("androidx.core.view.WindowCompat")
         inset_controller = WindowCompat.getInsetsController(window, decor_view)
-    except Exception as e:
+    except:
         inset_controller = None
 
     def parse_color(value):
