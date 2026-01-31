@@ -37,7 +37,7 @@ def update_system_ui(
     try:
         WindowCompat = autoclass("androidx.core.view.WindowCompat")
         inset_controller = WindowCompat.getInsetsController(window, decor_view)
-    except:
+    except Exception:
         inset_controller = None
 
     def parse_color(value):
