@@ -1,0 +1,28 @@
+diff '--color=auto' -uNr cpython-3.14.2/Modules/_remote_debugging_module.c cpython-3.14.2.mod/Modules/_remote_debugging_module.c
+--- cpython-3.14.2/Modules/_remote_debugging_module.c	2025-12-05 22:19:16.000000000 +0530
++++ cpython-3.14.2.mod/Modules/_remote_debugging_module.c	2025-12-13 20:22:44.011497868 +0530
+@@ -812,7 +812,9 @@
+         PyErr_SetString(PyExc_RuntimeError, "Failed to find the AsyncioDebug section in the process.");
+         _PyErr_ChainExceptions1(exc);
+     }
+-#elif defined(__linux__)
++
++// https://github.com/python/cpython/commit/1963e701001839389cfb1b11d803b0743f4705d7
++#elif defined(__linux__) && HAVE_PROCESS_VM_READV
+     // On Linux, search for asyncio debug in executable or DLL
+     address = search_linux_map_for_section(handle, "AsyncioDebug", "_asyncio.cpython");
+     if (address == 0) {
+diff '--color=auto' -uNr cpython-3.14.2/Python/remote_debug.h cpython-3.14.2.mod/Python/remote_debug.h
+--- cpython-3.14.2/Python/remote_debug.h	2025-12-05 22:19:16.000000000 +0530
++++ cpython-3.14.2.mod/Python/remote_debug.h	2025-12-13 20:23:27.917518543 +0530
+@@ -881,7 +881,9 @@
+             handle->pid);
+         _PyErr_ChainExceptions1(exc);
+     }
+-#elif defined(__linux__)
++
++// https://github.com/python/cpython/commit/1963e701001839389cfb1b11d803b0743f4705d7
++#elif defined(__linux__) && HAVE_PROCESS_VM_READV
+     // On Linux, search for 'python' in executable or DLL
+     address = search_linux_map_for_section(handle, "PyRuntime", "python");
+     if (address == 0) {

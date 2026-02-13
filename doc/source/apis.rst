@@ -80,6 +80,53 @@ https://developer.android.com/reference/android/Manifest.permission
 Other common tasks
 ------------------
 
+Running executables
+~~~~~~~~~~~~~~~~~~~
+
+Android restricts executing files from application data directories.
+``python-for-android`` works around this by creating symbolic links to a
+small set of supported executables inside an internal executable
+directory that is added to ``PATH``.
+
+During startup, ``start.c`` (compiled into ``libmain.so``) scans loaded
+native libraries and creates symlinks for any library matching::
+
+    lib<binary_name>bin.so
+
+Each matching library is exposed at runtime as::
+
+    <binary_name>
+
+For example::
+
+    libffmpegbin.so -> ffmpeg
+
+Recipe developers may expose additional executables by renaming them
+using the same naming convention.
+
+The following example performs a minimal FFmpeg sanity check using an
+in-memory test source and discards the output::
+
+    import subprocess
+
+    subprocess.run(
+        ["ffmpeg", "-f", "lavfi", "-i", "testsrc", "-t", "1", "-f", "null", "-"],
+        check=True
+    )
+
+This verifies that ``ffmpeg`` is available and executable on the device.
+Ensure ``ffmpeg`` is included in your ``requirements``.
+
+If video encoding is required, the following codec options must also be
+enabled in the build configuration:
+
+- ``av_codecs``
+- ``libx264``
+
+Without these, FFmpeg may be present but lack the required codec support.
+
+See also: `APK native library execution restrictions <https://github.com/agnostic-apollo/Android-Docs/blob/master/site/pages/en/projects/docs/apps/processes/app-data-file-execute-restrictions.md>`_
+
 Dismissing the splash screen
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

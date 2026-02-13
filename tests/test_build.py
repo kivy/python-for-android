@@ -5,7 +5,7 @@ from unittest import mock
 import jinja2
 
 from pythonforandroid.build import (
-    Context, RECOMMENDED_TARGET_API, run_pymodules_install,
+    Context, RECOMMENDED_TARGET_API, run_pymodules_install, process_python_modules
 )
 from pythonforandroid.archs import ArchARMv7_a, ArchAarch_64
 
@@ -17,7 +17,7 @@ class TestBuildBasic(unittest.TestCase):
         Makes sure the `run_pymodules_install()` doesn't crash when the
         `project_dir` optional parameter is None, refs #1898
         """
-        ctx = mock.Mock()
+        ctx = mock.Mock(recipe_build_order=[])
         ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
         modules = []
         project_dir = None
@@ -26,8 +26,19 @@ class TestBuildBasic(unittest.TestCase):
         assert m_info.call_args_list[-1] == mock.call(
             'No Python modules and no setup.py to process, skipping')
 
+    def test_python_module_parser(self):
+        ctx = mock.Mock(recipe_build_order=[])
+        ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
+        # should not alter original module name (like with adding version number)
+        assert "kivy_garden.frostedglass" in process_python_modules(ctx, ["kivy_garden.frostedglass"])
+
+        # should skip urls and other unsupported format
+        modules = ["https://example.com/some.zip", "git+https://github.com/kivy/python-for-android@develop"]
+        result = process_python_modules(ctx, modules)
+        assert modules == result
+
     def test_strip_if_with_debug_symbols(self):
-        ctx = mock.Mock()
+        ctx = mock.Mock(recipe_build_order=[])
         ctx.python_recipe.major_minor_version_string = "3.6"
         ctx.get_site_packages_dir.return_value = "test-doesntexist"
         ctx.build_dir = "nonexistant_directory"
