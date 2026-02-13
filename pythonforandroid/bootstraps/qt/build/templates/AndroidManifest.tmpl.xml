@@ -96,7 +96,11 @@
                  {% if foreground_type %}
                  android:foregroundServiceType="{{ foreground_type }}"
                  {% endif %}
-                 android:process=":service_{{ name }}" />
+                 android:process=":service_{{ name }}"
+                 android:exported="true">
+                 <meta-data android:name="android.app.lib_name"
+                            android:value="main" />
+        </service>
         {% endfor %}
         {% for name in native_services %}
         <service android:name="{{ name }}" />
