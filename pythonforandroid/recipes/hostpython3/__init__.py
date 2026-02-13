@@ -36,7 +36,7 @@ class HostPython3Recipe(Recipe):
         :class:`~pythonforandroid.python.HostPythonRecipe`
     '''
 
-    version = '3.14.0'
+    version = '3.14.2'
 
     url = 'https://github.com/python/cpython/archive/refs/tags/v{version}.tar.gz'
     '''The default url to download our host python recipe. This url will
@@ -45,6 +45,8 @@ class HostPython3Recipe(Recipe):
     build_subdir = 'native-build'
     '''Specify the sub build directory for the hostpython3 recipe. Defaults
     to ``native-build``.'''
+
+    patches = ["fix_ensurepip.patch"]
 
     @property
     def _exe_name(self):
@@ -113,6 +115,33 @@ class HostPython3Recipe(Recipe):
             f"usr/local/lib/python{p_version.major}.{p_version.minor}/site-packages/"
         )
 
+    @property
+    def _pip(self):
+        return join(self.local_bin, "pip3")
+
+    @property
+    def pip(self):
+        return sh.Command(self._pip)
+
+    def fix_pip_shebangs(self):
+
+        if not os.path.exists(self.local_bin):
+            return
+
+        for filename in os.listdir(self.local_bin):
+            if not filename.startswith("pip"):
+                continue
+
+            pip_path = os.path.join(self.local_bin, filename)
+
+            with open(pip_path, "rb") as file:
+                file_lines = file.read().splitlines()
+
+            file_lines[0] = f"#!{self.python_exe}".encode()
+
+            with open(pip_path, "wb") as file:
+                file.write(b"\n".join(file_lines) + b"\n")
+
     def build_arch(self, arch):
         env = self.get_recipe_env(arch)
 
@@ -160,11 +189,14 @@ class HostPython3Recipe(Recipe):
 
         ensure_dir(self.site_root)
         self.ctx.hostpython = self.python_exe
+
         if build_configured:
+
             shprint(
                 sh.Command(self.python_exe), "-m", "ensurepip", "--root", self.site_root, "-U",
-                _env={"HOME": "/tmp"}
+                _env={"HOME": "/tmp", "PATH": self.local_bin}
             )
+            self.fix_pip_shebangs()
 
 
 recipe = HostPython3Recipe()

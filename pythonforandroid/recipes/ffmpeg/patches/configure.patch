@@ -1,8 +1,6 @@
-diff --git a/configure b/configure
-index 5af693c954..d1d0a4f0a2 100755
---- a/configure
-+++ b/configure
-@@ -6800,7 +6800,7 @@ enabled librsvg           && require_pkg_config librsvg librsvg-2.0 librsvg-2.0/
+--- ffmpeg-8.0/configure	2025-08-22 14:54:23.000000000 +0530
++++ ffmpeg-8.0.mod/configure	2026-01-03 13:40:42.264702438 +0530
+@@ -7141,7 +7141,7 @@
  enabled librtmp           && require_pkg_config librtmp librtmp librtmp/rtmp.h RTMP_Socket
  enabled librubberband     && require_pkg_config librubberband "rubberband >= 1.8.1" rubberband/rubberband-c.h rubberband_new -lstdc++ && append librubberband_extralibs "-lstdc++"
  enabled libshaderc        && require_pkg_config spirv_compiler "shaderc >= 2019.1" shaderc/shaderc.h shaderc_compiler_initialize
@@ -11,12 +9,42 @@ index 5af693c954..d1d0a4f0a2 100755
  enabled libsmbclient      && { check_pkg_config libsmbclient smbclient libsmbclient.h smbc_init ||
                                 require libsmbclient libsmbclient.h smbc_init -lsmbclient; }
  enabled libsnappy         && require libsnappy snappy-c.h snappy_compress -lsnappy -lstdc++
-@@ -6850,7 +6850,7 @@ enabled libvpx            && {
+@@ -7195,7 +7195,7 @@
  enabled libwebp           && {
      enabled libwebp_encoder      && require_pkg_config libwebp "libwebp >= 0.2.0" webp/encode.h WebPGetEncoderVersion
      enabled libwebp_anim_encoder && check_pkg_config libwebp_anim_encoder "libwebpmux >= 0.4.0" webp/mux.h WebPAnimEncoderOptionsInit; }
 -enabled libx264           && require_pkg_config libx264 x264 "stdint.h x264.h" x264_encoder_encode &&
 +enabled libx264           && require "x264" "stdint.h x264.h" x264_encoder_encode &&
-                              require_cpp_condition libx264 x264.h "X264_BUILD >= 122" && {
+                              require_cpp_condition libx264 x264.h "X264_BUILD >= 155" && {
                               [ "$toolchain" != "msvc" ] ||
                               require_cpp_condition libx264 x264.h "X264_BUILD >= 158"; } &&
+@@ -7258,13 +7258,7 @@
+ enabled omx               && require_headers OMX_Core.h && \
+     warn "The OpenMAX encoders are deprecated and will be removed in future versions"
+ 
+-enabled openssl           && { { check_pkg_config openssl "openssl >= 3.0.0" openssl/ssl.h OPENSSL_init_ssl &&
+-                                 { enabled gplv3 || ! enabled gpl || enabled nonfree || die "ERROR: OpenSSL >=3.0.0 requires --enable-version3"; }; } ||
+-                               { enabled gpl && ! enabled nonfree && die "ERROR: OpenSSL <3.0.0 is incompatible with the gpl"; } ||
+-                               check_pkg_config openssl "openssl >= 1.1.0" openssl/ssl.h OPENSSL_init_ssl ||
+-                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto ||
+-                               check_lib openssl openssl/ssl.h OPENSSL_init_ssl -lssl -lcrypto -lws2_32 -lgdi32 ||
+-                               die "ERROR: openssl (>= 1.1.0) not found"; }
++enabled openssl           && true 
+ enabled pocketsphinx      && require_pkg_config pocketsphinx pocketsphinx pocketsphinx/pocketsphinx.h ps_init
+ enabled rkmpp             && { require_pkg_config rkmpp rockchip_mpp  rockchip/rk_mpi.h mpp_create &&
+                                require_pkg_config rockchip_mpp "rockchip_mpp >= 1.3.7" rockchip/rk_mpi.h mpp_create &&
+@@ -7273,14 +7267,6 @@
+                              }
+ enabled vapoursynth       && require_headers "vapoursynth/VSScript4.h vapoursynth/VapourSynth4.h"
+ 
+-enabled openssl            && {
+-    enabled whip_muxer && {
+-        $pkg_config --exists --print-errors "openssl >= 1.0.1k" ||
+-        require_pkg_config openssl "openssl >= 1.0.1k" openssl/ssl.h SSL_library_init ||
+-        require_pkg_config openssl "openssl >= 1.0.1k" openssl/ssl.h OPENSSL_init_ssl
+-    }
+-}
+-
+ 
+ if enabled gcrypt; then
+     GCRYPT_CONFIG="${cross_prefix}libgcrypt-config"

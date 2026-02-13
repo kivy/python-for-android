@@ -2,9 +2,11 @@ from contextlib import suppress
 import copy
 import glob
 import os
+import json
+import tempfile
 from os import environ
 from os.path import (
-    abspath, join, realpath, dirname, expanduser, exists
+    abspath, join, realpath, dirname, expanduser, exists, basename
 )
 import re
 import shutil
@@ -12,9 +14,12 @@ import subprocess
 
 import sh
 
+from packaging.utils import parse_wheel_filename
+from packaging.requirements import Requirement
+
 from pythonforandroid.androidndk import AndroidNDK
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
-from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
+from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint, Out_Style, Out_Fore)
 from pythonforandroid.pythonpackage import get_package_name
 from pythonforandroid.recipe import CythonRecipe, Recipe
 from pythonforandroid.recommendations import (
@@ -89,6 +94,8 @@ class Context:
     bootstrap_build_dir = None
 
     recipe_build_order = None  # Will hold the list of all built recipes
+
+    python_modules = None  # Will hold resolved pure python packages
 
     symlink_bootstrap_files = False  # If True, will symlink instead of copying during build
 
@@ -444,6 +451,12 @@ class Context:
                 # Failed to look up any meaningful name.
                 return False
 
+        # normalize name to remove version tags
+        try:
+            name = Requirement(name).name
+        except Exception:
+            pass
+
         # Try to look up recipe by name:
         try:
             recipe = Recipe.get_recipe(name, self)
@@ -649,6 +662,123 @@ def run_setuppy_install(ctx, project_dir, env=None, arch=None):
             os.remove("._tmp_p4a_recipe_constraints.txt")
 
 
+def is_wheel_platform_independent(whl_name):
+    name, version, build, tags = parse_wheel_filename(whl_name)
+    return all(tag.platform == "any" for tag in tags)
+
+
+def process_python_modules(ctx, modules):
+    """Use pip --dry-run to resolve dependencies and filter for pure-Python packages
+    """
+    modules = list(modules)
+    build_order = list(ctx.recipe_build_order)
+
+    _requirement_names = []
+    processed_modules = []
+
+    for module in modules+build_order:
+        try:
+            # we need to normalize names
+            # eg Requests>=2.0 becomes requests
+            _requirement_names.append(Requirement(module).name)
+        except Exception:
+            # name parsing failed; skip processing this module via pip
+            processed_modules.append(module)
+            if module in modules:
+                modules.remove(module)
+
+    if len(processed_modules) > 0:
+        warning(f'Ignored by module resolver : {processed_modules}')
+
+    # preserve the original module list
+    processed_modules.extend(modules)
+
+    if len(modules) == 0:
+        return processed_modules
+
+    # temp file for pip report
+    fd, path = tempfile.mkstemp()
+    os.close(fd)
+
+    # setup hostpython recipe
+    env = environ.copy()
+    try:
+        host_recipe = Recipe.get_recipe("hostpython3", ctx)
+        _python_path = host_recipe.get_path_to_python()
+        libdir = glob.glob(join(_python_path, "build", "lib*"))
+        env['PYTHONPATH'] = host_recipe.site_dir + ":" + join(
+            _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
+        pip = host_recipe.pip
+    except Exception:
+        # hostpython3 non available so we use system pip (like in tests)
+        pip = sh.Command("pip")
+
+    try:
+        shprint(
+            pip, 'install', *modules,
+            '--dry-run', '--break-system-packages', '--ignore-installed',
+            '--report', path, '-q', _env=env
+        )
+    except Exception as e:
+        warning(f"Auto module resolution failed: {e}")
+        return processed_modules
+
+    with open(path, "r") as f:
+        try:
+            report = json.load(f)
+        except Exception:
+            report = {}
+
+    os.remove(path)
+
+    if "install" not in report.keys():
+        # pip changed json reporting format?
+        warning("Auto module resolution failed: invalid json!")
+        return processed_modules
+
+    info('Extra resolved pure python dependencies :')
+
+    ignored_str = " (ignored)"
+    # did we find any non pure python package?
+    any_not_pure_python = False
+
+    # just for style
+    info(" ")
+    for module in report["install"]:
+
+        mname = module["metadata"]["name"]
+        mver = module["metadata"]["version"]
+        filename = basename(module["download_info"]["url"])
+        pure_python = True
+
+        if (filename.endswith(".whl") and not is_wheel_platform_independent(filename)):
+            any_not_pure_python = True
+            pure_python = False
+
+        # does this module matches any recipe name?
+        if mname.lower().replace("-", "_") in _requirement_names:
+            continue
+
+        color = Out_Fore.GREEN if pure_python else Out_Fore.RED
+        ignored = "" if pure_python else ignored_str
+
+        info(
+            f"  {color}{mname}{Out_Fore.WHITE} : "
+            f"{Out_Style.BRIGHT}{mver}{Out_Style.RESET_ALL}"
+            f"{ignored}"
+        )
+
+        if pure_python:
+            processed_modules.append(f"{mname}=={mver}")
+    info(" ")
+
+    if any_not_pure_python:
+        warning("Some packages were ignored because they are not pure Python.")
+        warning("To install the ignored packages, explicitly list them in your requirements file.")
+
+    return processed_modules
+
+
 def run_pymodules_install(ctx, arch, modules, project_dir=None,
                           ignore_setup_py=False):
     """ This function will take care of all non-recipe things, by:
@@ -662,6 +792,8 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
     """
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE FOR ARCH: {} ***'.format(arch))
+
+    modules = process_python_modules(ctx, modules)
 
     modules = [m for m in modules if ctx.not_has_package(m, arch)]
 

@@ -54,7 +54,7 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.14.0'
+    version = '3.14.2'
     _p_version = Version(version)
     url = 'https://github.com/python/cpython/archive/refs/tags/v{version}.tar.gz'
     name = 'python3'
@@ -78,6 +78,7 @@ class Python3Recipe(TargetPythonRecipe):
 
     if _p_version.minor >= 14:
         patches.append('patches/3.14_armv7l_fix.patch')
+        patches.append('patches/3.14_fix_remote_debug.patch')
 
     if shutil.which('lld') is not None:
         if _p_version.minor == 7:
@@ -182,6 +183,8 @@ class Python3Recipe(TargetPythonRecipe):
 
     disable_gil = False
     '''python3.13 experimental free-threading build'''
+
+    built_libraries = {"libpythonbin.so": "./android-build/"}
 
     def __init__(self, *args, **kwargs):
         self._ctx = None
@@ -364,6 +367,11 @@ class Python3Recipe(TargetPythonRecipe):
                 'INSTSONAME={lib_name}'.format(lib_name=self._libpython),
                 _env=env
             )
+            # rename executable
+            if isfile("python"):
+                sh.cp('python', 'libpythonbin.so')
+            elif isfile("python.exe"):  # for macos
+                sh.cp('python.exe', 'libpythonbin.so')
 
             # TODO: Look into passing the path to pyconfig.h in a
             # better way, although this is probably acceptable
