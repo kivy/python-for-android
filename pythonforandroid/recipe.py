@@ -1249,8 +1249,10 @@ class PyProjectRecipe(PythonRecipe):
 
     def get_pip_name(self):
         name_str = self.name
-        if self.name not in self.ctx.use_prebuilt_version_for:
-            name_str += f"=={self.version}"
+        if self.name not in self.ctx.use_prebuilt_version_for and self.version is not None:
+            # Like: v2.3.0 -> 2.3.0
+            cleaned_version = self.version.replace("v", "")
+            name_str += f"=={cleaned_version}"
         return name_str
 
     def get_pip_install_args(self, arch):
