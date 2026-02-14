@@ -1260,10 +1260,12 @@ class PyProjectRecipe(PythonRecipe):
         opts = [
             "install",
             self.get_pip_name(),
+            "--ignore-installed",
             "--disable-pip-version-check",
             "--python-version",
             python_recipe.version,
             "--only-binary=:all:",
+            "--no-deps",
         ]
         # add platform tags
         tags = self.get_wheel_platform_tag(arch.arch)
