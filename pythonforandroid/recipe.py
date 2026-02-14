@@ -923,8 +923,7 @@ class PythonRecipe(Recipe):
         if host_name == 'hostpython3':
             return self._host_recipe.python_exe
         else:
-            python_recipe = self.ctx.python_recipe
-            return 'python{}'.format(python_recipe.version)
+            return 'python{}'.format(self.ctx.python_recipe.version)
 
     @property
     def hostpython_location(self):
@@ -1248,6 +1247,55 @@ class PyProjectRecipe(PythonRecipe):
     extra_build_args = []
     call_hostpython_via_targetpython = False
 
+    def get_pip_name(self):
+        name_str = self.name
+        if self.name not in self.ctx.use_prebuilt_version_for:
+            name_str += f"=={self.version}"
+        return name_str
+
+    def get_pip_install_args(self, arch):
+        python_recipe = Recipe.get_recipe("python3", self.ctx)
+        opts = [
+            "install",
+            self.get_pip_name(),
+            "--disable-pip-version-check",
+            "--python-version",
+            python_recipe.version,
+            "--only-binary=:all:",
+        ]
+        # add platform tags
+        tags = self.get_wheel_platform_tag(arch.arch)
+        for tag in tags:
+            opts.append(f"--platform={tag}")
+
+        # add extra index urls
+        for index in self.ctx.extra_index_urls:
+            opts.extend(["--extra-index-url", index])
+
+        return opts
+
+    def lookup_prebuilt(self, arch):
+        pip_options = self.get_pip_install_args(arch)
+        # do not install
+        pip_options.extend(["--dry-run"])
+        pip_env = self.get_hostrecipe_env()
+        try:
+            shprint(self._host_recipe.pip, *pip_options, _env=pip_env)
+        except Exception as e:
+            warning(f"Lookup fail result: {e}")
+            return False
+        return True
+
+    def check_prebuilt(self, arch, msg=""):
+        if self.ctx.skip_prebuilt:
+            return False
+
+        if self.lookup_prebuilt(arch):
+            if msg != "":
+                info(f"Prebuilt pip wheel found, {msg}")
+            return True
+        return
+
     def get_recipe_env(self, arch, **kwargs):
         # Custom hostpython
         self.ctx.python_recipe.python_exe = join(
@@ -1259,24 +1307,40 @@ class PyProjectRecipe(PythonRecipe):
 
         with open(build_opts, "w") as file:
             file.write("[bdist_wheel]\nplat_name={}".format(
-                self.get_wheel_platform_tag(arch)
+                self.get_wheel_platform_tag(arch.arch)[0]
             ))
             file.close()
 
         env["DIST_EXTRA_CONFIG"] = build_opts
         return env
 
-    def get_wheel_platform_tag(self, arch):
+    def get_wheel_platform_tag(self, arch, ctx=None):
+        if ctx is None:
+            ctx = self.ctx
         # https://peps.python.org/pep-0738/#packaging
         # official python only supports 64 bit:
         # android_21_arm64_v8a
         # android_21_x86_64
-        return f"android_{self.ctx.ndk_api}_" + {
-            "arm64-v8a": "arm64_v8a",
-            "x86_64": "x86_64",
-            "armeabi-v7a": "arm",
-            "x86": "i686",
-        }[arch.arch]
+        _suffix = {
+            "arm64-v8a": ["arm64_v8a", "aarch64"],
+            "x86_64": ["x86_64"],
+            "armeabi-v7a": ["arm"],
+            "x86": ["i686"],
+        }[arch]
+        return [f"android_{ctx.ndk_api}_" + _ for _ in _suffix]
+
+    def install_prebuilt_wheel(self, arch):
+        info("Installing prebuilt built wheel")
+        destination = self.ctx.get_python_install_dir(arch.arch)
+        pip_options = self.get_pip_install_args(arch)
+        pip_options.extend(["--target", destination])
+        pip_options.append("--upgrade")
+        pip_env = self.get_hostrecipe_env()
+        try:
+            shprint(self._host_recipe.pip, *pip_options, _env=pip_env)
+        except Exception:
+            return False
+        return True
 
     def install_wheel(self, arch, built_wheels):
         with patch_wheel_setuptools_logging():
@@ -1287,7 +1351,7 @@ class PyProjectRecipe(PythonRecipe):
         # Fix wheel platform tag
         wheel_tag = wheel_tags(
             _wheel,
-            platform_tags=self.get_wheel_platform_tag(arch),
+            platform_tags=self.get_wheel_platform_tag(arch.arch)[0],
             remove=True,
         )
         selected_wheel = join(built_wheel_dir, wheel_tag)
@@ -1305,6 +1369,11 @@ class PyProjectRecipe(PythonRecipe):
             wf.close()
 
     def build_arch(self, arch):
+        if self.check_prebuilt(arch, "skipping build_arch") is not None:
+            result = self.install_prebuilt_wheel(arch)
+            if result:
+                return
+            warning("Failed to install prebuilt wheel, falling back to build_arch")
 
         build_dir = self.get_build_dir(arch.arch)
         if not (isfile(join(build_dir, "pyproject.toml")) or isfile(join(build_dir, "setup.py"))):
