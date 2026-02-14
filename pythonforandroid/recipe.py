@@ -1360,10 +1360,8 @@ class PyProjectRecipe(PythonRecipe):
         )
         selected_wheel = join(built_wheel_dir, wheel_tag)
 
-        _dev_wheel_dir = environ.get("P4A_WHEEL_DIR", False)
-        if _dev_wheel_dir:
-            ensure_dir(_dev_wheel_dir)
-            shprint(sh.cp, selected_wheel, _dev_wheel_dir)
+        if exists(self.ctx.save_wheel_dir):
+            shprint(sh.cp, selected_wheel, self.ctx.save_wheel_dir)
 
         info(f"Installing built wheel: {wheel_tag}")
         destination = self.ctx.get_python_install_dir(arch.arch)

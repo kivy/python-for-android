@@ -107,6 +107,8 @@ class Context:
 
     use_prebuilt_version_for = []
 
+    save_wheel_dir = ''
+
     @property
     def packages_path(self):
         '''Where packages are downloaded before being unpacked'''

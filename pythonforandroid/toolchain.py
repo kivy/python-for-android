@@ -299,6 +299,13 @@ class ToolchainCL:
             dest="use_prebuilt_version_for",
         )
 
+        generic_parser.add_argument(
+            '--save-wheel-dir',
+            dest='save_wheel_dir',
+            default='',
+            help='Directory to store wheels built by PyProjectRecipe.',
+        )
+
         # Options for specifying the Distribution
         generic_parser.add_argument(
             '--dist-name', '--dist_name',
@@ -707,6 +714,7 @@ class ToolchainCL:
         self.ctx.extra_index_urls = args.extra_index_urls
         self.ctx.skip_prebuilt = args.skip_prebuilt
         self.ctx.use_prebuilt_version_for = args.use_prebuilt_version_for
+        self.ctx.save_wheel_dir = args.save_wheel_dir
 
         # Each subparser corresponds to a method
         command = args.subparser_name.replace('-', '_')
