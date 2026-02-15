@@ -1281,12 +1281,11 @@ class PyProjectRecipe(PythonRecipe):
     def lookup_prebuilt(self, arch):
         pip_options = self.get_pip_install_args(arch)
         # do not install
-        pip_options.extend(["--dry-run"])
+        pip_options.extend(["--dry-run", "-q"])
         pip_env = self.get_hostrecipe_env()
         try:
             shprint(self._host_recipe.pip, *pip_options, _env=pip_env)
-        except Exception as e:
-            warning(f"Lookup fail result: {e}")
+        except Exception:
             return False
         return True
 
