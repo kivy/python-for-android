@@ -206,7 +206,7 @@ class Python3Recipe(TargetPythonRecipe):
                 self.patches.append("patches/py3.7.1_fix_cortex_a8.patch")
             elif _p_version.minor >= 8:
                 self.patches.append("patches/py3.8.1_fix_cortex_a8.patch")
-        super().__init__(arch, build_dir)
+        super().apply_patches(arch, build_dir)
 
     def include_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'Include')
