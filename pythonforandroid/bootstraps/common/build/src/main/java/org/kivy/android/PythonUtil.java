@@ -59,7 +59,7 @@ public class PythonUtil {
             addLibraryIfExists(libsList, name, libsDir);
         }
 
-        for (int v = 5; v <= 3.14; v++) {
+        for (int v = 14; v >= 5; v--) {
             libsList.add("python3." + v + (v <= 7 ? "m" : ""));
         }
 
@@ -85,7 +85,7 @@ public class PythonUtil {
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.14") && !foundPython) {
+                if (lib.startsWith("python3.5") && !foundPython) {
                     throw new RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;
