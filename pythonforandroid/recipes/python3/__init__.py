@@ -317,9 +317,7 @@ class Python3Recipe(TargetPythonRecipe):
 
         _p_version = Version(self.version)
         if _p_version.minor >= 11:
-            self.configure_args.extend([
-                '--with-build-python={python_host_bin}',
-            ])
+            self.configure_args.append('--with-build-python={python_host_bin}')
 
         if _p_version.minor >= 13 and self.disable_gil:
             self.configure_args.append("--disable-gil")
