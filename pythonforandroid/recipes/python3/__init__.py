@@ -317,7 +317,7 @@ class Python3Recipe(TargetPythonRecipe):
 
         _p_version = Version(self.version)
         if _p_version.minor >= 11:
-            configure_args.extend([
+            self.configure_args.extend([
                 '--with-build-python={python_host_bin}',
             ])
 
