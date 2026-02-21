@@ -93,11 +93,6 @@ class Python3Recipe(TargetPythonRecipe):
         'ac_cv_header_bzlib_h=no',
     ]
 
-    if _p_version.minor >= 11:
-        configure_args.extend([
-            '--with-build-python={python_host_bin}',
-        ])
-
     '''The configure arguments needed to build the python recipe. Those are
     used in method :meth:`build_arch` (if not overwritten like python3's
     recipe does).
