@@ -98,7 +98,7 @@ jobs:
     - name: Maximize build space
       uses: easimon/maximize-build-space@v10
       with:
-        root-reserve-mb: 30720
+        root-reserve-mb: 4096
         swap-size-mb: 1024
         remove-dotnet: 'true'
         remove-android: 'true'
@@ -107,6 +107,13 @@ jobs:
         remove-docker-images: 'true'
     - name: Checkout python-for-android
       uses: actions/checkout@v5
+    - name: Relocate Docker data directory
+      run: |
+        sudo systemctl stop docker
+        sudo mkdir -p "${GITHUB_WORKSPACE}/docker-data"
+        echo '{"data-root": "'${GITHUB_WORKSPACE}/docker-data'"}' | sudo tee /etc/docker/daemon.json
+        sudo systemctl start docker
+        docker info | grep "Docker Root Dir"
     - name: Build python-for-android docker image
       run: |
         docker build --tag=kivy/python-for-android .
@@ -224,7 +231,7 @@ jobs:
     - name: Maximize build space
       uses: easimon/maximize-build-space@v10
       with:
-        root-reserve-mb: 30720
+        root-reserve-mb: 4096
         swap-size-mb: 1024
         remove-dotnet: 'true'
         remove-android: 'true'
@@ -235,6 +242,13 @@ jobs:
       uses: actions/checkout@v5
       with:
         fetch-depth: 0
+    - name: Relocate Docker data directory
+      run: |
+        sudo systemctl stop docker
+        sudo mkdir -p "${GITHUB_WORKSPACE}/docker-data"
+        echo '{"data-root": "'${GITHUB_WORKSPACE}/docker-data'"}' | sudo tee /etc/docker/daemon.json
+        sudo systemctl start docker
+        docker info | grep "Docker Root Dir"
     - name: Pull docker image
       run: |
         make docker/pull
