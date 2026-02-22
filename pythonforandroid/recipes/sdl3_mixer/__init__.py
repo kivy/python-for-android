@@ -7,7 +7,6 @@ from pythonforandroid.util import current_directory
 
 class LibSDL3Mixer(BootstrapNDKRecipe):
     version = "72a73339731a12c1002f9caca64f1ab924938102"
-    # url = "https://github.com/libsdl-org/SDL_ttf/releases/download/release-{version}/SDL3_ttf-{version}.tar.gz"
     url = "https://github.com/libsdl-org/SDL_mixer/archive/{version}.tar.gz"
     dir_name = "SDL3_mixer"
 

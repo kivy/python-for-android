@@ -18,7 +18,6 @@ Current limitations:
   the list of recipes was huge and result was:
   [ERROR]:   Didn't find any valid dependency graphs.
   [ERROR]:   This means that some of your requirements pull in conflicting dependencies.
-- only rebuilds on sdl2 bootstrap
 """
 import sh
 import os
@@ -57,14 +56,29 @@ def build(target_python, requirements, archs):
     android_sdk_home = os.environ['ANDROID_SDK_HOME']
     android_ndk_home = os.environ['ANDROID_NDK_HOME']
     requirements.add(target_python.name)
-    requirements = ','.join(requirements)
-    logger.info('requirements: {}'.format(requirements))
+    requirements_str = ','.join(requirements)
+    logger.info('requirements: {}'.format(requirements_str))
+
+    # Detect bootstrap based on requirements
+    # SDL3 recipes conflict with SDL2, so we need the sdl3 bootstrap
+    # when any SDL3-related recipe (sdl3, sdl3_image, sdl3_mixer, sdl3_ttf) is present
+    bootstrap = None
+    if any(r.startswith('sdl3') for r in requirements):
+        bootstrap = 'sdl3'
+        logger.info('Detected sdl3 recipe in requirements, using sdl3 bootstrap')
+
     build_command = [
         'setup.py', 'apk',
         '--sdk-dir', android_sdk_home,
         '--ndk-dir', android_ndk_home,
-        '--requirements', requirements
-    ] + [f"--arch={arch}" for arch in archs]
+        '--requirements', requirements_str
+    ]
+
+    if bootstrap:
+        build_command.extend(['--bootstrap', bootstrap])
+
+    build_command.extend([f"--arch={arch}" for arch in archs])
+
     build_command_str = " ".join(build_command)
     logger.info(f"Build command: {build_command_str}")
 
