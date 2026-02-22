@@ -190,17 +190,17 @@ class Python3Recipe(TargetPythonRecipe):
                 'patches/py3.7.1_fix-ctypes-util-find-library.patch',
                 'patches/py3.7.1_fix-zlib-version.patch',
             ]
-    
+
         if 8 <= _p_version.minor <= 10:
             self.patches.append('patches/py3.8.1.patch')
-    
+
         if _p_version.minor >= 11:
             self.patches.append('patches/cpython-311-ctypes-find-library.patch')
-    
+
         if _p_version.minor >= 14:
             self.patches.append('patches/3.14_armv7l_fix.patch')
             self.patches.append('patches/3.14_fix_remote_debug.patch')
-    
+
         if shutil.which('lld') is not None:
             if _p_version.minor == 7:
                 self.patches.append("patches/py3.7.1_fix_cortex_a8.patch")
