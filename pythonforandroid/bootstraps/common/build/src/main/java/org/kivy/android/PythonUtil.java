@@ -85,7 +85,7 @@ public class PythonUtil {
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.14") && !foundPython) {
+                if (lib.startsWith("python3.11") && !foundPython) {
                     throw new RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;

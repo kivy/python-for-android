@@ -161,13 +161,14 @@ def make_tar(tfn, source_dirs, byte_compile_python=False, optimize_python=True):
 
     # get the files and relpath file of all the directory we asked for
     files = []
+    # MIGRATION_FILE_PATTERN = re.compile(r'^\d{4}[\._].*\.py$')
     for sd in source_dirs:
         sd = realpath(sd)
         for fn in listfiles(sd):
             if is_blacklist(fn):
                 continue
-            if fn.endswith('.py') and byte_compile_python:
-                fn = compile_py_file(fn, optimize_python=optimize_python)
+            # if fn.endswith('.py') and byte_compile_python:
+            #     fn = compile_py_file(fn, optimize_python=optimize_python)
             files.append((fn, relpath(realpath(fn), sd)))
     files.sort()  # deterministic
 

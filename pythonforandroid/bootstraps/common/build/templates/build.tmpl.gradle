@@ -5,7 +5,7 @@ buildscript {
        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.0'
+        classpath 'com.android.tools.build:gradle:8.1.1'
     }
 }
 
@@ -16,6 +16,9 @@ allprojects {
         {%- for repo in args.gradle_repositories %}
         {{repo}}
         {%- endfor %}
+        maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+        }
     }
 }
 
@@ -29,27 +32,42 @@ android {
     namespace '{{ args.package }}'
     compileSdkVersion {{ android_api }}
     buildToolsVersion '{{ build_tools_version }}'
+    
     defaultConfig {
         minSdkVersion {{ args.min_sdk_version }}
         targetSdkVersion {{ android_api }}
         versionCode {{ args.numeric_version }}
         versionName '{{ args.version }}'
         manifestPlaceholders = {{ args.manifest_placeholders}}
+        
+        // Fix for AGP 8.x release packaging with legacy packaging
+        ndk {
+            abiFilters.clear()
+            abiFilters 'arm64-v8a'
+        }
     }
 
 	
-	packagingOptions {
+	packaging {
         jniLibs {
             useLegacyPackaging = true
+            {% if debug_build -%}
+            keepDebugSymbols += ['**/*.so']
+            {%- endif %}
         }
-        {% if debug_build -%}
-        doNotStrip '**/*.so'
-        {% else %}
-        exclude 'lib/**/gdbserver'
-        exclude 'lib/**/gdb.setup'
-        {%- endif %}
+        resources {
+            {% if not debug_build -%}
+            excludes += ['lib/**/gdbserver', 'lib/**/gdb.setup']
+            {%- endif %}
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/NOTICE']
+            {%- if args.packaging_options %}
+            {%- for option in args.packaging_options %}
+            {{option}}
+            {%- endfor %}
+            {%- endif %}
+        }
 	}
-	
+
 
 	{% if args.sign -%}
 	signingConfigs {
@@ -63,14 +81,6 @@ android {
 
     {%- endif %}
 
-    {% if args.packaging_options -%}
-    packagingOptions {
-        {%- for option in args.packaging_options %}
-        {{option}}
-        {%- endfor %}
-    }
-    {%- endif %}
-
     buildTypes {
         debug {
         }
@@ -78,6 +88,10 @@ android {
             {% if args.sign -%}
             signingConfig signingConfigs.release
             {%- endif %}
+            // Disable optimizations that conflict with legacy packaging in AGP 8.x
+            minifyEnabled false
+            shrinkResources false
+            crunchPngs false
         }
     }
 
@@ -123,5 +137,11 @@ dependencies {
     {% if args.presplash_lottie %}
     implementation 'com.airbnb.android:lottie:6.1.0'
     {%- endif %}
+    implementation 'com.android.volley:volley:1.2.1'
+    implementation("com.microsoft.identity.client:msal:5.10.2") {
+        exclude group: 'io.opentelemetry', module: 'opentelemetry-bom'
+    }
+    implementation 'com.microsoft.identity:common4j:20.1.1'
+    implementation 'com.microsoft.identity:common:20.1.1'
 }
 
