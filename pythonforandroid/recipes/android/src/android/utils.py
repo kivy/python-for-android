@@ -68,6 +68,7 @@ if Build_VERSION.SDK_INT >= 35:
 
     _global_listener: InsetsListener
 
+
 @run_on_ui_thread
 def update_system_ui(
     status_bar_color: list[float] | str,
