@@ -66,6 +66,7 @@ if Build_VERSION.SDK_INT >= 35:
                 traceback.print_exc()
             return insets
 
+    _global_listener: InsetsListener
 
 @run_on_ui_thread
 def update_system_ui(
@@ -141,10 +142,10 @@ def update_system_ui(
         decor_view.setSystemUiVisibility(visibility_flags)
 
     if Build_VERSION.SDK_INT >= 35:
-        listener = InsetsListener(status_color_int, navigation_color_int, pad_status, pad_nav)
         # I don't know why but sometimes pyjnius failed to find invoke, maybe due to garbage collection and so I made a reference
-        mActivity._system_ui_listener = listener
-        decor_view.setOnApplyWindowInsetsListener(listener)
+        global _global_listener
+        _global_listener = InsetsListener(status_color_int, navigation_color_int, pad_status, pad_nav)
+        decor_view.setOnApplyWindowInsetsListener(_global_listener)
         decor_view.requestApplyInsets()
     else:
         window.setStatusBarColor(status_color_int)
