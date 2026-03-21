@@ -807,7 +807,7 @@ def process_python_modules(ctx, modules, arch):
         )
 
         if pure_python:
-            processed_modules.append(f"{mname}=={mver}")
+            processed_modules.append(module["download_info"]["url"])
     info(" ")
 
     if any_not_pure_python:
