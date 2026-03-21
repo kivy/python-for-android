@@ -511,6 +511,10 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
             recipe.prepare_build_dir(arch.arch)
 
         info_main('# Prebuilding recipes')
+        # ensure we have `ctx.python_recipe` and `ctx.hostpython`
+        Recipe.get_recipe("python3", ctx).prebuild_arch(arch)
+        ctx.hostpython = Recipe.get_recipe("hostpython3", ctx).python_exe
+
         # 2) prebuild packages
         for recipe in recipes:
             info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
