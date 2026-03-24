@@ -19,7 +19,7 @@ It supports multiple CPU architectures.
 
 It supports apps developed with [Kivy framework](http://kivy.org), but was
 built to be flexible about the backend libraries (through "bootstraps"), and 
-also supports [PySDL2](https://pypi.org/project/PySDL2/), and a
+also supports [PySDL2](https://pypi.org/project/PySDL2/), [PySDL3](https://github.com/Aermoss/PySDL3) and a
 [WebView](https://developer.android.com/reference/android/webkit/WebView) with
 a Python web server.
 
