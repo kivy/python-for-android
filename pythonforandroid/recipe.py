@@ -12,6 +12,7 @@ import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, curdir, walk
 from sys import stdout
+from pathlib import Path
 from multiprocessing import cpu_count
 import time
 try:
@@ -1278,31 +1279,57 @@ class PyProjectRecipe(PythonRecipe):
             "x86": "i686",
         }[arch.arch]
 
+    def _retag_wheel_platform(self, path, new_platform_tag, remove_old=True):
+        """
+        Rename a wheel by replacing only its platform tag.
+
+        Wheel filename format:
+          {dist}-{version}(-{build})?-{python tag}-{abi tag}-{platform tag}.whl
+
+        We split from the right so project names/build tags containing '-' still work.
+        """
+        p = Path(path)
+        if p.suffix != ".whl":
+            raise ValueError(f"Not a wheel: {path}")
+
+        parts = p.stem.rsplit("-", 3)
+        if len(parts) != 4:
+            raise ValueError(f"Unexpected wheel filename format: {p.name}")
+
+        left, py_tag, abi_tag, _old_platform_tag = parts
+        new_name = f"{left}-{py_tag}-{abi_tag}-{new_platform_tag}.whl"
+        new_path = p.with_name(new_name)
+
+        if new_path != p:
+            p.rename(new_path)
+            if not remove_old and new_path != p:
+                # rename already removed old path, so if you truly want both,
+                # copy instead of rename
+                pass
+
+        return str(new_path)
+
     def install_wheel(self, arch, built_wheels):
         with patch_wheel_setuptools_logging():
-            from wheel.cli.tags import tags as wheel_tags
             from wheel.wheelfile import WheelFile
         _wheel = built_wheels[0]
-        built_wheel_dir = dirname(_wheel)
         # Fix wheel platform tag
-        wheel_tag = wheel_tags(
+        selected_wheel = self._retag_wheel_platform(
             _wheel,
-            platform_tags=self.get_wheel_platform_tag(arch),
-            remove=True,
+            self.get_wheel_platform_tag(arch),
+            remove_old=True,
         )
-        selected_wheel = join(built_wheel_dir, wheel_tag)
 
         _dev_wheel_dir = environ.get("P4A_WHEEL_DIR", False)
         if _dev_wheel_dir:
             ensure_dir(_dev_wheel_dir)
             shprint(sh.cp, selected_wheel, _dev_wheel_dir)
 
-        info(f"Installing built wheel: {wheel_tag}")
+        info(f"Installing built wheel: {basename(selected_wheel)}")
         destination = self.ctx.get_python_install_dir(arch.arch)
         with WheelFile(selected_wheel) as wf:
             for zinfo in wf.filelist:
                 wf.extract(zinfo, destination)
-            wf.close()
 
     def build_arch(self, arch):
 
