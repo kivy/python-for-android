@@ -25,7 +25,7 @@ def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
 def is_kivy_less_than_3(recipe=None, arch=None):
     return packaging.version.parse(
         str(get_kivy_version(recipe, arch))
-    ) < packaging.version.Version("3.0.0.dev0")
+    ) < packaging.version.Version("3.0.0")
 
 
 class KivyRecipe(PyProjectRecipe):

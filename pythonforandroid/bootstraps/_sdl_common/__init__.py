@@ -9,8 +9,6 @@ class SDLGradleBootstrap(Bootstrap):
 
     recipe_depends = []
 
-    skip_dirs = ["jni"]
-
     def _assemble_distribution_for_arch(self, arch):
         """SDL bootstrap skips distribute_aars() - handled differently."""
         self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])

@@ -7,7 +7,6 @@ from os import listdir, walk, sep
 import sh
 import shlex
 import shutil
-from pathlib import Path
 
 from pythonforandroid.logger import (shprint, info, info_main, logger, debug)
 from pythonforandroid.util import (
@@ -39,36 +38,6 @@ def copy_files(src_root, dest_root, override=True, symlink=False):
                         shutil.copy(src_file, dest_file)
             else:
                 os.makedirs(dest_file)
-
-
-def copytree_filtered(src, dst, skip_dirs=None):
-    """
-    Copy directory tree while skipping explicitly specified directories in src.
-    """
-
-    info(f"Copying {src} to {dst} with skip dirs: {skip_dirs}")
-
-    src = Path(src)
-    dst = Path(dst)
-    skip_dirs = set(Path(p) for p in (skip_dirs or []))
-
-    def should_skip(rel_path):
-        # match exact directory path only
-        return any(rel_path == skip or skip in rel_path.parents for skip in skip_dirs)
-
-    for item in src.rglob("*"):
-        rel = item.relative_to(src)
-
-        if should_skip(rel):
-            continue
-
-        target = dst / rel
-
-        if item.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, target)
 
 
 default_recipe_priorities = [
@@ -121,10 +90,6 @@ class Bootstrap:
     satisfies user requirements. If False, it will not be returned
     from Bootstrap.get_bootstrap_from_recipes.
     '''
-
-    # Directories to exclude during copy (relative to src root).
-    # Used to reduce final build size and exclude unnecessary sources for final build.
-    skip_dirs = []
 
     # Other things a Bootstrap might need to track (maybe separately):
     # ndk_main.c
@@ -246,7 +211,7 @@ class Bootstrap:
         info_main(f'# Creating Android project ({self.name})')
 
         rmdir(self.dist_dir)
-        copytree_filtered(self.build_dir, self.dist_dir, skip_dirs=self.skip_dirs)
+        shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
 
         with current_directory(self.dist_dir):
             with open('local.properties', 'w') as fileh:
