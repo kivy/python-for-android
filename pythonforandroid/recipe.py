@@ -1268,7 +1268,7 @@ class PyProjectRecipe(PythonRecipe):
             "--no-deps",
         ]
         # add platform tags
-        tags = self.get_wheel_platform_tag(arch.arch)
+        tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, self.ctx)
         for tag in tags:
             opts.append(f"--platform={tag}")
 
@@ -1297,7 +1297,8 @@ class PyProjectRecipe(PythonRecipe):
             if msg != "":
                 info(f"Prebuilt pip wheel found, {msg}")
             return True
-        return
+
+        return False
 
     def get_recipe_env(self, arch, **kwargs):
         # Custom hostpython
@@ -1310,16 +1311,15 @@ class PyProjectRecipe(PythonRecipe):
 
         with open(build_opts, "w") as file:
             file.write("[bdist_wheel]\nplat_name={}".format(
-                self.get_wheel_platform_tag(arch.arch)[0]
+                self.get_wheel_platform_tag(arch.arch)
             ))
             file.close()
 
         env["DIST_EXTRA_CONFIG"] = build_opts
         return env
 
-    def get_wheel_platform_tag(self, arch, ctx=None):
-        if ctx is None:
-            ctx = self.ctx
+    @staticmethod
+    def get_wheel_platform_tags(arch, ctx):
         # https://peps.python.org/pep-0738/#packaging
         # official python only supports 64 bit:
         # android_21_arm64_v8a
@@ -1331,6 +1331,9 @@ class PyProjectRecipe(PythonRecipe):
             "x86": ["i686"],
         }[arch]
         return [f"android_{ctx.ndk_api}_" + _ for _ in _suffix]
+
+    def get_wheel_platform_tag(self, arch):
+        return PyProjectRecipe.get_wheel_platform_tags(arch, self.ctx)[0]
 
     def install_prebuilt_wheel(self, arch):
         info("Installing prebuilt built wheel")
@@ -1354,10 +1357,14 @@ class PyProjectRecipe(PythonRecipe):
         # Fix wheel platform tag
         wheel_tag = wheel_tags(
             _wheel,
-            platform_tags=self.get_wheel_platform_tag(arch.arch)[0],
+            platform_tags=self.get_wheel_platform_tag(arch.arch),
             remove=True,
         )
         selected_wheel = join(built_wheel_dir, wheel_tag)
+        _dev_wheel_dir = environ.get("P4A_WHEEL_DIR", False)
+        if _dev_wheel_dir:
+            ensure_dir(_dev_wheel_dir)
+            shprint(sh.cp, selected_wheel, _dev_wheel_dir)
 
         if exists(self.ctx.save_wheel_dir):
             shprint(sh.cp, selected_wheel, self.ctx.save_wheel_dir)
@@ -1370,7 +1377,7 @@ class PyProjectRecipe(PythonRecipe):
             wf.close()
 
     def build_arch(self, arch):
-        if self.check_prebuilt(arch, "skipping build_arch") is not None:
+        if self.check_prebuilt(arch, "skipping build_arch"):
             result = self.install_prebuilt_wheel(arch)
             if result:
                 return

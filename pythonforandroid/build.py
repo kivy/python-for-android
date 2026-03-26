@@ -11,6 +11,7 @@ from os.path import (
 import re
 import shutil
 import subprocess
+import sys
 
 import sh
 
@@ -733,20 +734,21 @@ def process_python_modules(ctx, modules, arch):
             _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
         pip = host_recipe.pip
     except Exception:
-        # hostpython3 non available so we use system pip (like in tests)
+        # hostpython3 is unavailable, so fall back to system pip
         pip = sh.Command("pip")
 
     # add platform tags
     platforms = []
-    tags = PyProjectRecipe.get_wheel_platform_tag(None, arch.arch, ctx=ctx)
+    tags = PyProjectRecipe.get_wheel_platform_tag(arch.arch, ctx)
     for tag in tags:
         platforms.append(f"--platform={tag}")
 
     if host_recipe is not None:
         platforms.extend(["--python-version", host_recipe.version])
     else:
-        # tests?
-        platforms.extend(["--python-version", "3.13.4"])
+        # use the version of the currently running Python interpreter
+        current_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        platforms.extend(["--python-version", current_version])
 
     indices = []
     # add extra index urls
