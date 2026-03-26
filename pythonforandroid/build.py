@@ -682,7 +682,7 @@ def is_wheel_platform_independent(whl_name):
 
 def is_wheel_compatible(whl_name, arch, ctx):
     name, version, build, tags = parse_wheel_filename(whl_name)
-    supported_tags = PyProjectRecipe.get_wheel_platform_tag(None, arch.arch, ctx=ctx)
+    supported_tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, ctx)
     supported_tags.append("any")
     result = all(tag.platform in supported_tags for tag in tags)
     if not result:
@@ -739,7 +739,7 @@ def process_python_modules(ctx, modules, arch):
 
     # add platform tags
     platforms = []
-    tags = PyProjectRecipe.get_wheel_platform_tag(arch.arch, ctx)
+    tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, ctx)
     for tag in tags:
         platforms.append(f"--platform={tag}")
 
