@@ -6,7 +6,7 @@ from pathlib import Path
 from os.path import join
 
 from packaging.version import Version
-from pythonforandroid.logger import shprint, error
+from pythonforandroid.logger import shprint
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import (
     BuildInterruptingException,
@@ -52,10 +52,9 @@ class HostPython3Recipe(Recipe):
     def download(self):
         python_recipe = Recipe.get_recipe("python3", self.ctx)
         if python_recipe.version != self.version:
-            error(
+            raise BuildInterruptingException(
                 f"python3 should have same version as hostpython3, {python_recipe.version} != {self.version}"
             )
-            exit(1)
         super().download()
 
     @property

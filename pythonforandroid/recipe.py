@@ -1251,7 +1251,7 @@ class PyProjectRecipe(PythonRecipe):
         name_str = self.name
         if self.name not in self.ctx.use_prebuilt_version_for and self.version is not None:
             # Like: v2.3.0 -> 2.3.0
-            cleaned_version = self.version.replace("v", "")
+            cleaned_version = self.version.lstrip("v")
             name_str += f"=={cleaned_version}"
         return name_str
 
@@ -1336,7 +1336,7 @@ class PyProjectRecipe(PythonRecipe):
         return PyProjectRecipe.get_wheel_platform_tags(arch, self.ctx)[0]
 
     def install_prebuilt_wheel(self, arch):
-        info("Installing prebuilt built wheel")
+        info("Installing prebuilt wheel")
         destination = self.ctx.get_python_install_dir(arch.arch)
         pip_options = self.get_pip_install_args(arch)
         pip_options.extend(["--target", destination])

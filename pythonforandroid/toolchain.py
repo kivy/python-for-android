@@ -291,7 +291,7 @@ class ToolchainCL:
             '--use-prebuilt-version-for',
             help=(
                 'For these packages, ignore pinned versions and use the latest '
-                'prebuilt version from the extra index if available.'
+                'prebuilt version from the extra index if available. '
                 'Only applies to packages with a recipe.'
             ),
             action='append',
