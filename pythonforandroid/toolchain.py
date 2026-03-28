@@ -188,6 +188,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
     This subclass alternative is follows the suggestion at
     https://bugs.python.org/issue14910.
     """
+
     def _get_option_tuples(self, option_string):
         return []
 
@@ -266,6 +267,44 @@ class ToolchainCL:
         generic_parser.add_argument(
             '--arch', help='The archs to build for.',
             action='append', default=[])
+
+        generic_parser.add_argument(
+            '--extra-index-url',
+            help=(
+                'Extra package indexes to look for prebuilt Android wheels. '
+                'Can be used multiple times.'
+            ),
+            action='append',
+            default=[],
+            dest="extra_index_urls",
+        )
+
+        generic_parser.add_argument(
+            '--skip-prebuilt',
+            help='Always build from source; do not use prebuilt wheels.',
+            action='store_true',
+            default=False,
+            dest="skip_prebuilt",
+        )
+
+        generic_parser.add_argument(
+            '--use-prebuilt-version-for',
+            help=(
+                'For these packages, ignore pinned versions and use the latest '
+                'prebuilt version from the extra index if available. '
+                'Only applies to packages with a recipe.'
+            ),
+            action='append',
+            default=[],
+            dest="use_prebuilt_version_for",
+        )
+
+        generic_parser.add_argument(
+            '--save-wheel-dir',
+            dest='save_wheel_dir',
+            default='',
+            help='Directory to store wheels built by PyProjectRecipe.',
+        )
 
         # Options for specifying the Distribution
         generic_parser.add_argument(
@@ -671,6 +710,11 @@ class ToolchainCL:
 
         self.ctx.activity_class_name = args.activity_class_name
         self.ctx.service_class_name = args.service_class_name
+
+        self.ctx.extra_index_urls = args.extra_index_urls
+        self.ctx.skip_prebuilt = args.skip_prebuilt
+        self.ctx.use_prebuilt_version_for = args.use_prebuilt_version_for
+        self.ctx.save_wheel_dir = args.save_wheel_dir
 
         # Each subparser corresponds to a method
         command = args.subparser_name.replace('-', '_')

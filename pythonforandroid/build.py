@@ -11,6 +11,7 @@ from os.path import (
 import re
 import shutil
 import subprocess
+import sys
 
 import sh
 
@@ -21,7 +22,7 @@ from pythonforandroid.androidndk import AndroidNDK
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint, Out_Style, Out_Fore)
 from pythonforandroid.pythonpackage import get_package_name
-from pythonforandroid.recipe import CythonRecipe, Recipe
+from pythonforandroid.recipe import CythonRecipe, Recipe, PyProjectRecipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
@@ -100,6 +101,14 @@ class Context:
     symlink_bootstrap_files = False  # If True, will symlink instead of copying during build
 
     java_build_tool = 'auto'
+
+    skip_prebuilt = False
+
+    extra_index_urls = []
+
+    use_prebuilt_version_for = []
+
+    save_wheel_dir = ''
 
     @property
     def packages_path(self):
@@ -503,6 +512,10 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
             recipe.prepare_build_dir(arch.arch)
 
         info_main('# Prebuilding recipes')
+        # ensure we have `ctx.python_recipe` and `ctx.hostpython`
+        Recipe.get_recipe("python3", ctx).prebuild_arch(arch)
+        ctx.hostpython = Recipe.get_recipe("hostpython3", ctx).python_exe
+
         # 2) prebuild packages
         for recipe in recipes:
             info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
@@ -667,7 +680,17 @@ def is_wheel_platform_independent(whl_name):
     return all(tag.platform == "any" for tag in tags)
 
 
-def process_python_modules(ctx, modules):
+def is_wheel_compatible(whl_name, arch, ctx):
+    name, version, build, tags = parse_wheel_filename(whl_name)
+    supported_tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, ctx)
+    supported_tags.append("any")
+    result = all(tag.platform in supported_tags for tag in tags)
+    if not result:
+        warning(f"Incompatible module : {whl_name}")
+    return result
+
+
+def process_python_modules(ctx, modules, arch):
     """Use pip --dry-run to resolve dependencies and filter for pure-Python packages
     """
     modules = list(modules)
@@ -702,6 +725,7 @@ def process_python_modules(ctx, modules):
 
     # setup hostpython recipe
     env = environ.copy()
+    host_recipe = None
     try:
         host_recipe = Recipe.get_recipe("hostpython3", ctx)
         _python_path = host_recipe.get_path_to_python()
@@ -710,14 +734,32 @@ def process_python_modules(ctx, modules):
             _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
         pip = host_recipe.pip
     except Exception:
-        # hostpython3 non available so we use system pip (like in tests)
+        # hostpython3 is unavailable, so fall back to system pip
         pip = sh.Command("pip")
 
+    # add platform tags
+    platforms = []
+    tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, ctx)
+    for tag in tags:
+        platforms.append(f"--platform={tag}")
+
+    if host_recipe is not None:
+        platforms.extend(["--python-version", host_recipe.version])
+    else:
+        # use the version of the currently running Python interpreter
+        current_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        platforms.extend(["--python-version", current_version])
+
+    indices = []
+    # add extra index urls
+    for index in ctx.extra_index_urls:
+        indices.extend(["--extra-index-url", index])
     try:
         shprint(
             pip, 'install', *modules,
             '--dry-run', '--break-system-packages', '--ignore-installed',
-            '--report', path, '-q', _env=env
+            '--disable-pip-version-check', '--only-binary=:all:',
+            '--report', path, '-q', *platforms, *indices, _env=env
         )
     except Exception as e:
         warning(f"Auto module resolution failed: {e}")
@@ -751,7 +793,9 @@ def process_python_modules(ctx, modules):
         filename = basename(module["download_info"]["url"])
         pure_python = True
 
-        if (filename.endswith(".whl") and not is_wheel_platform_independent(filename)):
+        if (
+                filename.endswith(".whl") and not is_wheel_compatible(filename, arch, ctx)
+        ):
             any_not_pure_python = True
             pure_python = False
 
@@ -769,7 +813,7 @@ def process_python_modules(ctx, modules):
         )
 
         if pure_python:
-            processed_modules.append(f"{mname}=={mver}")
+            processed_modules.append(module["download_info"]["url"])
     info(" ")
 
     if any_not_pure_python:
@@ -793,7 +837,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE FOR ARCH: {} ***'.format(arch))
 
-    modules = process_python_modules(ctx, modules)
+    modules = process_python_modules(ctx, modules, arch)
 
     modules = [m for m in modules if ctx.not_has_package(m, arch)]
 

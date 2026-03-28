@@ -48,6 +48,15 @@ class HostPython3Recipe(Recipe):
 
     patches = ["fix_ensurepip.patch"]
 
+    # apply version guard
+    def download(self):
+        python_recipe = Recipe.get_recipe("python3", self.ctx)
+        if python_recipe.version != self.version:
+            raise BuildInterruptingException(
+                f"python3 should have same version as hostpython3, {python_recipe.version} != {self.version}"
+            )
+        super().download()
+
     @property
     def _exe_name(self):
         '''
