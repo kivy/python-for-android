@@ -1,0 +1,178 @@
+diff --git a/api/Makefile.am b/api/Makefile.am
+index e1a33ec9..06d2615e 100644
+--- a/api/Makefile.am
++++ b/api/Makefile.am
+@@ -20,7 +20,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_api.la
+ else
+ lib_LTLIBRARIES += libtesseract_api.la
+-libtesseract_api_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_api_la_LDFLAGS = -avoid-version
+ libtesseract_api_la_LIBADD = \
+     ../ccmain/libtesseract_main.la \
+     ../textord/libtesseract_textord.la \
+@@ -67,7 +67,7 @@ libtesseract_la_LIBADD += ../cube/libtesseract_cube.la \
+         ../neural_networks/runtime/libtesseract_neural.la
+ endif
+ 
+-libtesseract_la_LDFLAGS += -version-info $(GENERIC_LIBRARY_VERSION) -no-undefined
++libtesseract_la_LDFLAGS += -avoid-version -no-undefined
+ 
+ bin_PROGRAMS = tesseract
+ tesseract_SOURCES = tesseractmain.cpp
+diff --git a/ccmain/Makefile.am b/ccmain/Makefile.am
+index e82c0031..1fbb1389 100644
+--- a/ccmain/Makefile.am
++++ b/ccmain/Makefile.am
+@@ -25,7 +25,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_main.la
+ else
+ lib_LTLIBRARIES = libtesseract_main.la
+-libtesseract_main_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_main_la_LDFLAGS = -avoid-version
+ libtesseract_main_la_LIBADD = \
+     ../wordrec/libtesseract_wordrec.la \
+     ../textord/libtesseract_textord.la \
+diff --git a/ccstruct/Makefile.am b/ccstruct/Makefile.am
+index 8a26a684..f3eca20b 100644
+--- a/ccstruct/Makefile.am
++++ b/ccstruct/Makefile.am
+@@ -26,7 +26,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_ccstruct.la
+ else
+ lib_LTLIBRARIES = libtesseract_ccstruct.la
+-libtesseract_ccstruct_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_ccstruct_la_LDFLAGS = -avoid-version
+ libtesseract_ccstruct_la_LIBADD = \
+     ../ccutil/libtesseract_ccutil.la \
+     ../cutil/libtesseract_cutil.la \
+diff --git a/ccutil/Makefile.am b/ccutil/Makefile.am
+index 76012006..63315f52 100644
+--- a/ccutil/Makefile.am
++++ b/ccutil/Makefile.am
+@@ -27,7 +27,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_ccutil.la
+ else
+ lib_LTLIBRARIES = libtesseract_ccutil.la
+-libtesseract_ccutil_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_ccutil_la_LDFLAGS = -avoid-version
+ endif
+ 
+ libtesseract_ccutil_la_SOURCES = \
+diff --git a/classify/Makefile.am b/classify/Makefile.am
+index f620e3bf..061ba58a 100644
+--- a/classify/Makefile.am
++++ b/classify/Makefile.am
+@@ -25,7 +25,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_classify.la
+ else
+ lib_LTLIBRARIES = libtesseract_classify.la
+-libtesseract_classify_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_classify_la_LDFLAGS = -avoid-version
+ libtesseract_classify_la_LIBADD = \
+     ../ccutil/libtesseract_ccutil.la \
+     ../cutil/libtesseract_cutil.la \
+diff --git a/cube/Makefile.am b/cube/Makefile.am
+index b551d33f..07685533 100644
+--- a/cube/Makefile.am
++++ b/cube/Makefile.am
+@@ -29,7 +29,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_cube.la
+ else
+ lib_LTLIBRARIES = libtesseract_cube.la
+-libtesseract_cube_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_cube_la_LDFLAGS = -avoid-version
+ libtesseract_cube_la_LIBADD = \
+     ../ccstruct/libtesseract_ccstruct.la \
+     ../ccutil/libtesseract_ccutil.la \
+diff --git a/cutil/Makefile.am b/cutil/Makefile.am
+index 5b0ffc6e..964d38bc 100644
+--- a/cutil/Makefile.am
++++ b/cutil/Makefile.am
+@@ -14,7 +14,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_cutil.la
+ else
+ lib_LTLIBRARIES = libtesseract_cutil.la
+-libtesseract_cutil_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_cutil_la_LDFLAGS = -avoid-version
+ libtesseract_cutil_la_LIBADD = \
+ 	../ccutil/libtesseract_ccutil.la \
+ 	../viewer/libtesseract_viewer.la	
+diff --git a/dict/Makefile.am b/dict/Makefile.am
+index 56d20543..1161f85d 100644
+--- a/dict/Makefile.am
++++ b/dict/Makefile.am
+@@ -14,7 +14,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_dict.la
+ else
+ lib_LTLIBRARIES = libtesseract_dict.la
+-libtesseract_dict_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_dict_la_LDFLAGS = -avoid-version
+ libtesseract_dict_la_LIBADD = \
+     ../ccutil/libtesseract_ccutil.la \
+     ../cutil/libtesseract_cutil.la \
+diff --git a/neural_networks/runtime/Makefile.am b/neural_networks/runtime/Makefile.am
+index de43768f..dc90fd94 100644
+--- a/neural_networks/runtime/Makefile.am
++++ b/neural_networks/runtime/Makefile.am
+@@ -16,7 +16,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_neural.la
+ else
+ lib_LTLIBRARIES = libtesseract_neural.la
+-libtesseract_neural_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_neural_la_LDFLAGS = -avoid-version
+ endif
+ 
+ libtesseract_neural_la_SOURCES = \
+diff --git a/opencl/Makefile.am b/opencl/Makefile.am
+index 1a7368f9..3235921f 100644
+--- a/opencl/Makefile.am
++++ b/opencl/Makefile.am
+@@ -6,7 +6,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_opencl.la
+ else
+ lib_LTLIBRARIES = libtesseract_opencl.la
+-libtesseract_opencl_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION) $(OPENCL_LDFLAGS)
++libtesseract_opencl_la_LDFLAGS = -avoid-version $(OPENCL_LDFLAGS)
+ libtesseract_opencl_la_LIBADD = \
+     ../ccutil/libtesseract_ccutil.la \
+     ../viewer/libtesseract_viewer.la
+diff --git a/textord/Makefile.am b/textord/Makefile.am
+index ec9d947c..97625c78 100644
+--- a/textord/Makefile.am
++++ b/textord/Makefile.am
+@@ -31,7 +31,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_textord.la
+ else
+ lib_LTLIBRARIES = libtesseract_textord.la
+-libtesseract_textord_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_textord_la_LDFLAGS = -avoid-version
+ libtesseract_textord_la_LIBADD = \
+     ../ccstruct/libtesseract_ccstruct.la \
+     ../ccutil/libtesseract_ccutil.la \
+diff --git a/viewer/Makefile.am b/viewer/Makefile.am
+index f6b26a1e..adc5f71d 100644
+--- a/viewer/Makefile.am
++++ b/viewer/Makefile.am
+@@ -12,7 +12,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_viewer.la
+ else
+ lib_LTLIBRARIES = libtesseract_viewer.la
+-libtesseract_viewer_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_viewer_la_LDFLAGS = -avoid-version
+ endif
+ 
+ libtesseract_viewer_la_SOURCES = \
+diff --git a/wordrec/Makefile.am b/wordrec/Makefile.am
+index a18e63a0..d457ee9d 100644
+--- a/wordrec/Makefile.am
++++ b/wordrec/Makefile.am
+@@ -22,7 +22,7 @@ if !USING_MULTIPLELIBS
+ noinst_LTLIBRARIES = libtesseract_wordrec.la
+ else
+ lib_LTLIBRARIES = libtesseract_wordrec.la
+-libtesseract_wordrec_la_LDFLAGS = -version-info $(GENERIC_LIBRARY_VERSION)
++libtesseract_wordrec_la_LDFLAGS = -avoid-version
+ libtesseract_wordrec_la_LIBADD = \
+     ../ccstruct/libtesseract_ccstruct.la \
+     ../ccutil/libtesseract_ccutil.la \
