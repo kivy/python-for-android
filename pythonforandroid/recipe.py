@@ -1023,6 +1023,7 @@ class PythonRecipe(Recipe):
         info('Installing {} into site-packages'.format(self.name))
 
         hpenv = env.copy()
+        hpenv['PYTHONPATH'] = join(dirname(self.real_hostpython_location), 'Lib', 'site-packages')
         with current_directory(self.get_build_dir(arch.arch)):
             shprint(self._host_recipe.pip, 'install', '.',
                     '--compile', '--target',
