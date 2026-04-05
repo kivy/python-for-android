@@ -1,4 +1,57 @@
-# python-for-android
+## Simple Clothing Store App
+
+products = {
+    1: {"name": "Premium Hoodie", "price": 2499},
+    2: {"name": "Luxury T-Shirt", "price": 1499},
+    3: {"name": "Designer Jacket", "price": 4999}
+}
+
+cart = []
+
+def show_products():
+    print("\nAvailable Products:")
+    for key, value in products.items():
+        print(f"{key}. {value['name']} - ₹{value['price']}")
+
+def add_to_cart():
+    product_id = int(input("Enter product number to add to cart: "))
+    if product_id in products:
+        cart.append(products[product_id])
+        print(f"{products[product_id]['name']} added to cart!")
+    else:
+        print("Invalid product!")
+
+def view_cart():
+    total = 0
+    print("\nYour Cart:")
+    for item in cart:
+        print(f"- {item['name']} - ₹{item['price']}")
+        total += item['price']
+    print(f"Total: ₹{total}")
+
+def main():
+    while True:
+        print("\n--- Clothing Store App ---")
+        print("1. View Products")
+        print("2. Add to Cart")
+        print("3. View Cart")
+        print("4. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            show_products()
+        elif choice == "2":
+            add_to_cart()
+        elif choice == "3":
+            view_cart()
+        elif choice == "4":
+            print("Thank you for visiting!")
+            break
+        else:
+            print("Invalid choice!")
+
+main() python-for-android
 
 python-for-android (p4a) is a development tool that packages Python apps into
 binaries that can run on Android devices.
