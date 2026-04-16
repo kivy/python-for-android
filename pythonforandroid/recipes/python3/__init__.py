@@ -360,9 +360,9 @@ class Python3Recipe(TargetPythonRecipe):
                     *(' '.join(self.configure_args).format(
                                     android_host=env['HOSTARCH'],
                                     android_build=android_build,
-                                    python_host_bin=join(self.get_recipe(
+                                    python_host_bin=self.get_recipe(
                                         'host' + self.name, self.ctx
-                                    ).get_path_to_python(), "python3"),
+                                    ).python_exe,
                                     prefix=sys_prefix,
                                     exec_prefix=sys_exec_prefix)).split(' '),
                     _env=env)

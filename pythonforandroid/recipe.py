@@ -1031,10 +1031,8 @@ class PythonRecipe(Recipe):
 
     def get_hostrecipe_env(self, arch=None):
         env = environ.copy()
-        _python_path = self._host_recipe.get_path_to_python()
-        libdir = glob.glob(join(_python_path, "build", "lib*"))
-        env['PYTHONPATH'] = self._host_recipe.site_dir + ":" + join(
-            _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
+        env['PYTHONPATH'] = ''
+        env['HOME'] = '/tmp'
         return env
 
     @property
@@ -1063,14 +1061,9 @@ class PythonRecipe(Recipe):
         pip_options = [
             "install",
             *packages,
-            "--target", self._host_recipe.site_dir, "--python-version",
-            self.ctx.python_recipe.version,
-            # Don't use sources, instead wheels
-            "--only-binary=:all:",
         ]
         if force_upgrade:
             pip_options.append("--upgrade")
-        # Use system's pip
         pip_env = self.get_hostrecipe_env()
         shprint(self._host_recipe.pip, *pip_options, _env=pip_env)
 
@@ -1397,8 +1390,6 @@ class PyProjectRecipe(PythonRecipe):
         # make build dir separately
         sub_build_dir = join(build_dir, "p4a_android_build")
         ensure_dir(sub_build_dir)
-        # copy hostpython to built python to ensure correct selection of libs and includes
-        shprint(sh.cp, self.real_hostpython_location, self.ctx.python_recipe.python_exe)
 
         build_args = [
             "-m",
@@ -1411,7 +1402,7 @@ class PyProjectRecipe(PythonRecipe):
         built_wheels = []
         with current_directory(build_dir):
             shprint(
-                sh.Command(self.ctx.python_recipe.python_exe), *build_args, _env=env
+                sh.Command(self.real_hostpython_location), *build_args, _env=env
             )
             built_wheels = [realpath(whl) for whl in glob.glob("dist/*.whl")]
         self.install_wheel(arch, built_wheels)
@@ -1523,8 +1514,6 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         "x86": "i686-linux-android",
     }
 
-    call_hostpython_via_targetpython = False
-
     def get_recipe_env(self, arch, **kwargs):
         env = super().get_recipe_env(arch, **kwargs)
 
@@ -1563,7 +1552,7 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         env["PATH"] = ("{hostpython_dir}:{old_path}").format(
             hostpython_dir=Recipe.get_recipe(
                 "hostpython3", self.ctx
-            ).get_path_to_python(),
+            ).local_bin,
             old_path=env["PATH"],
         )
         return env

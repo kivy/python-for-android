@@ -29,12 +29,6 @@ class TestHostPython3Recipe(RecipeCtx, unittest.TestCase):
     def test_property__exe_name(self):
         self.assertEqual(self.recipe._exe_name, 'python3')
 
-    def test_property_python_exe(self):
-        self.assertEqual(
-            self.recipe.python_exe,
-            join(self.recipe.get_path_to_python(), 'python3')
-        )
-
     @mock.patch("pythonforandroid.recipes.hostpython3.Path.exists")
     def test_should_build(self, mock_exists):
         # test case for existing python exe which shouldn't trigger the build
