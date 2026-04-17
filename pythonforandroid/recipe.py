@@ -966,7 +966,8 @@ class PythonRecipe(Recipe):
         # set correct shebang
         for file in listdir(path):
             _file = join(path, file)
-            self.patch_shebang(_file, original_bin)
+            if isfile(_file):
+                self.patch_shebang(_file, original_bin)
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         if self._host_recipe is None:
@@ -1384,7 +1385,7 @@ class PyProjectRecipe(PythonRecipe):
         self.install_hostpython_prerequisites(
             packages=["build[virtualenv]", "pip", "setuptools", "patchelf"] + self.hostpython_prerequisites
         )
-        self.patch_shebangs(self._host_recipe.site_bin, self.real_hostpython_location)
+        self.patch_shebangs(self._host_recipe.local_bin, self.real_hostpython_location)
 
         env = self.get_recipe_env(arch, with_flags_in_cc=True)
         # make build dir separately
