@@ -1278,7 +1278,7 @@ class PyProjectRecipe(PythonRecipe):
         pip_options.extend(["--dry-run", "-q"])
         pip_env = self.get_hostrecipe_env()
         try:
-            shprint(self._host_recipe.pip, *pip_options, _env=pip_env)
+            shprint(self._host_recipe.pip, *pip_options, _env=pip_env, silent=True)
         except Exception:
             return False
         return True
@@ -1295,9 +1295,6 @@ class PyProjectRecipe(PythonRecipe):
         return False
 
     def get_recipe_env(self, arch, **kwargs):
-        # Custom hostpython
-        self.ctx.python_recipe.python_exe = join(
-            self.ctx.python_recipe.get_build_dir(arch), "android-build", "python3")
         env = super().get_recipe_env(arch, **kwargs)
         build_dir = self.get_build_dir(arch)
         ensure_dir(build_dir)
