@@ -977,11 +977,7 @@ class PythonRecipe(Recipe):
         # Set the LANG, this isn't usually important but is a better default
         # as it occasionally matters how Python e.g. reads files
         env['LANG'] = "en_GB.UTF-8"
-
-        # Binaries made by packages installed by pip
-        self.patch_shebangs(self._host_recipe.local_bin, self._host_recipe.python_exe)
         env["PATH"] = self._host_recipe.local_bin + ":" + self._host_recipe.site_bin + ":" + env["PATH"]
-
         host_env = self.get_hostrecipe_env(arch)
         env['PYTHONPATH'] = host_env["PYTHONPATH"]
 
@@ -1382,7 +1378,6 @@ class PyProjectRecipe(PythonRecipe):
         self.install_hostpython_prerequisites(
             packages=["build[virtualenv]", "pip", "setuptools", "patchelf"] + self.hostpython_prerequisites
         )
-        self.patch_shebangs(self._host_recipe.local_bin, self.real_hostpython_location)
 
         env = self.get_recipe_env(arch, with_flags_in_cc=True)
         # make build dir separately
