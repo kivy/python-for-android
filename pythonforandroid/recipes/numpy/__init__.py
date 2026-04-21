@@ -14,6 +14,11 @@ class NumpyRecipe(MesonRecipe):
     need_stl_shared = True
     min_ndk_api_support = 24
 
+    def get_include(self, arch):
+        return join(
+            self.ctx.get_python_install_dir(arch.arch), "numpy/_core/include",
+        )
+
     def get_recipe_meson_options(self, arch):
         options = super().get_recipe_meson_options(arch)
         options["properties"]["longdouble_format"] = (

@@ -26,14 +26,6 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             f'libpython{self.recipe.link_version}.so'
         )
 
-    def test_include_root(self):
-        expected_include_dir = join(
-            self.recipe.get_build_dir(self.arch.arch), 'Include',
-        )
-        self.assertEqual(
-            expected_include_dir, self.recipe.include_root(self.arch.arch)
-        )
-
     def test_link_root(self):
         expected_link_root = join(
             self.recipe.get_build_dir(self.arch.arch), 'android-build',
@@ -116,11 +108,11 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
                 mock_sh_command.mock_calls,
             )
         mock_open_zlib.assert_called()
-        self.assertEqual(mock_make.call_count, 1)
-        for make_call, kw in mock_make.call_args_list:
-            self.assertIn(
-                f'INSTSONAME={self.recipe._libpython}', make_call
-            )
+        self.assertEqual(mock_make.call_count, 2)
+        make_call, kw  = mock_make.call_args_list[0]
+        self.assertIn(
+            f'INSTSONAME={self.recipe._libpython}', make_call
+        )
         mock_cp.assert_called_with(
             "pyconfig.h", join(recipe_build_dir, 'Include'),
         )

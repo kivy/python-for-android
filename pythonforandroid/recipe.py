@@ -5,6 +5,7 @@ import json
 from re import match
 
 import sh
+import subprocess
 import shutil
 import fnmatch
 import zipfile
@@ -1408,6 +1409,7 @@ class MesonRecipe(PyProjectRecipe):
     '''Recipe for projects which uses meson as build system'''
 
     meson_version = "1.4.0"
+    pybind_version = "3.3.0"
 
     skip_python = False
     '''If true, skips all Python build and installation steps.
@@ -1415,6 +1417,18 @@ class MesonRecipe(PyProjectRecipe):
 
     def sanitize_flags(self, *flag_strings):
         return " ".join(flag_strings).strip().split(" ")
+
+    def get_wrapper_dir(self, arch):
+        return join(self.get_build_dir(arch.arch), "p4a_wrappers")
+
+    def write_wrapper(self, arch, name, content):
+        wrapper_dir = self.get_wrapper_dir(arch)
+        ensure_dir(wrapper_dir)
+        wrapper_path = join(wrapper_dir, name)
+        with open(wrapper_path, "w") as f:
+            f.write(content)
+        chmod(wrapper_path, 0o755)
+        return wrapper_path
 
     def get_python_wrapper(self, arch):
         """
@@ -1451,19 +1465,50 @@ class MesonRecipe(PyProjectRecipe):
         with open(python_file, "r") as f:
             file_data += "\n" + f.read()
 
-        wrapper_dir = join(self.get_build_dir(arch.arch), "p4a_python_wrapper")
-        ensure_dir(wrapper_dir)
-        wrapper_path = join(wrapper_dir, "python")
-        with open(wrapper_path, "w") as f:
-            f.write(file_data)
-        chmod(wrapper_path, 0o755)
+        return self.write_wrapper(arch, "python", file_data)
 
-        return wrapper_path
+    def get_config_wrappers(self, arch, w_type: str):
+        wrapper_name = ""
+        version = ""
+        include_path = ""
+
+        if w_type == "pybind11":
+            wrapper_name = "pybind11-config"
+            include_path = join(self._host_recipe.site_dir, "pybind11/include")
+
+            version = None
+            try:
+                command = [self._host_recipe.real_hostpython_location, "-c", "import pybind11; print(pybind11.__version__)"]
+                version = subprocess.check_output(command).decode('utf-8').strip()
+            except Exception:
+                warning("Unable to get pybind11 version")
+            if version is None:
+                version = self.pybind_version
+
+        elif w_type == "numpy":
+            wrapper_name = "numpy-config"
+            recipe = Recipe.get_recipe("numpy", self.ctx)
+            include_path = recipe.get_include(arch)
+            version = recipe.version
+        else:
+            raise ValueError(f"Unknown wrapper type: {w_type}")
+
+        content = (
+            f"#!/bin/sh\n"
+            f"if [ \"$1\" = \"--version\" ]; then\n"
+            f"    echo '{version}'\n"
+            f"else\n"
+            f"    echo '-I{include_path}'\n"
+            f"fi\n"
+        )
+        return self.write_wrapper(arch, wrapper_name, content)
 
     def get_recipe_meson_options(self, arch):
         env = self.get_recipe_env(arch, with_flags_in_cc=True)
         return {
             "binaries": {
+                "pybind11-config": self.get_config_wrappers(arch, "pybind11"),
+                "numpy-config": self.get_config_wrappers(arch, "numpy"),
                 "python": self.get_python_wrapper(arch),
                 "c": arch.get_clang_exe(with_target=True),
                 "cpp": arch.get_clang_exe(with_target=True, plus_plus=True),

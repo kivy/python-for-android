@@ -210,7 +210,11 @@ class Python3Recipe(TargetPythonRecipe):
         super().apply_patches(arch, build_dir)
 
     def include_root(self, arch_name):
-        return glob.glob(join(self.get_build_dir(arch_name), 'android-build', 'android-root', 'include/*/'))[0]
+        _p_version = Version(self.version)
+        return join(
+            self.get_build_dir(arch_name), 'android-build', 'android-root',
+            'include', f'python{_p_version.major}.{_p_version.minor}'
+        )
 
     def link_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'android-build')
