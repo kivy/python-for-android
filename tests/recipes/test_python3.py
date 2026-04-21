@@ -109,7 +109,7 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             )
         mock_open_zlib.assert_called()
         self.assertEqual(mock_make.call_count, 2)
-        make_call, kw  = mock_make.call_args_list[0]
+        make_call, kw = mock_make.call_args_list[0]
         self.assertIn(
             f'INSTSONAME={self.recipe._libpython}', make_call
         )
