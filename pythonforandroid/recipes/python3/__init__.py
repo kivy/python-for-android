@@ -82,7 +82,6 @@ class Python3Recipe(TargetPythonRecipe):
 
         # Android prefix
         '--prefix={prefix}',
-        '--exec-prefix={exec_prefix}',
         '--enable-loadable-sqlite-extensions',
 
         # Special cross compile args
@@ -211,10 +210,16 @@ class Python3Recipe(TargetPythonRecipe):
         super().apply_patches(arch, build_dir)
 
     def include_root(self, arch_name):
-        return join(self.get_build_dir(arch_name), 'Include')
+        return glob.glob(join(self.get_build_dir(arch_name), 'android-build', 'android-root', 'include/*/'))[0]
 
     def link_root(self, arch_name):
         return join(self.get_build_dir(arch_name), 'android-build')
+
+    def get_python_root(self, arch):
+        return join(self.get_build_dir(arch.arch), 'android-build', 'android-root')
+
+    def get_android_python_exe(self, arch):
+        return join(self.get_python_root(arch), 'bin', self.name)
 
     def should_build(self, arch):
         return not isfile(join(self.link_root(arch.arch), self._libpython))
@@ -342,9 +347,8 @@ class Python3Recipe(TargetPythonRecipe):
         build_dir = join(recipe_build_dir, 'android-build')
         ensure_dir(build_dir)
 
-        # TODO: Get these dynamically, like bpo-30386 does
-        sys_prefix = '/usr/local'
-        sys_exec_prefix = '/usr/local'
+        sys_prefix = join(build_dir, "android-root")
+        ensure_dir(sys_prefix)
 
         env = self.get_recipe_env(arch)
         env = self.set_libs_flags(env, arch)
@@ -363,8 +367,7 @@ class Python3Recipe(TargetPythonRecipe):
                                     python_host_bin=self.get_recipe(
                                         'host' + self.name, self.ctx
                                     ).python_exe,
-                                    prefix=sys_prefix,
-                                    exec_prefix=sys_exec_prefix)).split(' '),
+                                    prefix=sys_prefix).split(' ')),
                     _env=env)
 
             shprint(
@@ -373,6 +376,8 @@ class Python3Recipe(TargetPythonRecipe):
                 'INSTSONAME={lib_name}'.format(lib_name=self._libpython),
                 _env=env
             )
+            shprint(sh.make, 'install', _env=env)
+
             # rename executable
             if isfile("python"):
                 sh.cp('python', 'libpythonbin.so')

@@ -17,7 +17,6 @@ class ScipyRecipe(MesonRecipe):
 
     def get_recipe_meson_options(self, arch):
         options = super().get_recipe_meson_options(arch)
-        options["binaries"]["python"] = self.ctx.python_recipe.python_exe
         options["binaries"]["fortran"] = self.place_wrapper(arch)
         options["properties"]["numpy-include-dir"] = join(
             self.ctx.get_python_install_dir(arch.arch), "numpy/_core/include"

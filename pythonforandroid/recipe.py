@@ -10,8 +10,9 @@ import fnmatch
 import zipfile
 import urllib.request
 from urllib.request import urlretrieve
-from os import listdir, unlink, environ, curdir, walk
+from os import listdir, unlink, environ, curdir, walk, chmod
 from sys import stdout
+from packaging.version import Version
 from multiprocessing import cpu_count
 import time
 try:
@@ -1058,6 +1059,7 @@ class PythonRecipe(Recipe):
         pip_options = [
             "install",
             *packages,
+            "-q",
         ]
         if force_upgrade:
             pip_options.append("--upgrade")
@@ -1303,6 +1305,8 @@ class PyProjectRecipe(PythonRecipe):
             file.close()
 
         env["DIST_EXTRA_CONFIG"] = build_opts
+        python_recipe = Recipe.get_recipe("python3", self.ctx)
+        env["INCLUDEPY"] = python_recipe.include_root(arch.arch)
         return env
 
     @staticmethod
@@ -1374,7 +1378,6 @@ class PyProjectRecipe(PythonRecipe):
         if not (isfile(join(build_dir, "pyproject.toml")) or isfile(join(build_dir, "setup.py"))):
             warning("Skipping build because it does not appear to be a Python project.")
             return
-
         self.install_hostpython_prerequisites(
             packages=["build[virtualenv]", "pip", "setuptools", "patchelf"] + self.hostpython_prerequisites
         )
@@ -1405,7 +1408,6 @@ class MesonRecipe(PyProjectRecipe):
     '''Recipe for projects which uses meson as build system'''
 
     meson_version = "1.4.0"
-    ninja_version = "1.11.1.1"
 
     skip_python = False
     '''If true, skips all Python build and installation steps.
@@ -1414,10 +1416,55 @@ class MesonRecipe(PyProjectRecipe):
     def sanitize_flags(self, *flag_strings):
         return " ".join(flag_strings).strip().split(" ")
 
+    def get_python_wrapper(self, arch):
+        """
+        Meson Python introspection runs on the host interpreter, but the
+        target Python (Android) cannot be executed on the build machine.
+
+        We therefore run host Python and override sysconfig data to emulate
+        the target Android Python environment during Meson introspection.
+        """
+        python_recipe = Recipe.get_recipe('python3', self.ctx)
+        target_prefix = python_recipe.get_python_root(arch)
+        python_file = join(self.ctx.root_dir, 'meson_python.py')
+        _arch = {
+            "arm64-v8a": ["aarch64"],
+            "x86_64": ["x86_64"],
+            "armeabi-v7a": ["arm"],
+            "x86": ["i686"],
+        }[arch.arch][0]
+
+        # Real values pulled from android
+        # PYTHON_MAJOR_VERSION -> 3
+        # PYTHON_MINOR_VERSION -> 14
+        # PLATFORM_TAG eg -> 'android-24-arm64_v8a'
+        # PYTHON_SUFFIX eg -> '.cpython-314-aarch64-linux-android.so'
+
+        _p_version = Version(python_recipe.version)
+        file_data = f"#!{self.real_hostpython_location}"
+        file_data += f"\nTARGET_PYTHON_PREFIX='{target_prefix}'"
+        file_data += f"\nPYTHON_MAJOR_VERSION='{_p_version.major}'"
+        file_data += f"\nPYTHON_MINOR_VERSION='{_p_version.minor}'"
+        file_data += f"\nPLATFORM_TAG='{self.get_wheel_platform_tags(arch.arch, self.ctx)[0]}'"
+        file_data += f"\nPYTHON_SUFFIX='.cpython-{_p_version.major}{_p_version.minor}-{_arch}-linux-android.so'"
+
+        with open(python_file, "r") as f:
+            file_data += "\n" + f.read()
+
+        wrapper_dir = join(self.get_build_dir(arch.arch), "p4a_python_wrapper")
+        ensure_dir(wrapper_dir)
+        wrapper_path = join(wrapper_dir, "python")
+        with open(wrapper_path, "w") as f:
+            f.write(file_data)
+        chmod(wrapper_path, 0o755)
+
+        return wrapper_path
+
     def get_recipe_meson_options(self, arch):
         env = self.get_recipe_env(arch, with_flags_in_cc=True)
         return {
             "binaries": {
+                "python": self.get_python_wrapper(arch),
                 "c": arch.get_clang_exe(with_target=True),
                 "cpp": arch.get_clang_exe(with_target=True, plus_plus=True),
                 "ar": self.ctx.ndk.llvm_ar,
@@ -1488,13 +1535,18 @@ class MesonRecipe(PyProjectRecipe):
         self.ensure_args('-Csetup-args=--cross-file', '-Csetup-args={}'.format(cross_file))
         # ensure ninja and meson
         for dep in [
-            "ninja=={}".format(self.ninja_version),
+            "ninja",
             "meson=={}".format(self.meson_version),
         ]:
             if dep not in self.hostpython_prerequisites:
                 self.hostpython_prerequisites.append(dep)
+
         if not self.skip_python:
             super().build_arch(arch)
+        else:
+            self.install_hostpython_prerequisites(
+                packages=["build[virtualenv]", "pip", "setuptools", "patchelf"] + self.hostpython_prerequisites
+            )
 
 
 class RustCompiledComponentsRecipe(PyProjectRecipe):
