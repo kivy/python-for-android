@@ -141,7 +141,6 @@ def shprint(command, *args, **kwargs):
     kwargs.pop("silent", False)
     if silent:
         kwargs["_out"] = None
-        kwargs["_err"] = None
 
     is_critical = kwargs.pop('_critical', False)
     tail_n = kwargs.pop('_tail', None)
