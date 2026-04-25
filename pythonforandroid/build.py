@@ -728,10 +728,6 @@ def process_python_modules(ctx, modules, arch):
     host_recipe = None
     try:
         host_recipe = Recipe.get_recipe("hostpython3", ctx)
-        _python_path = host_recipe.get_path_to_python()
-        libdir = glob.glob(join(_python_path, "build", "lib*"))
-        env['PYTHONPATH'] = host_recipe.site_dir + ":" + join(
-            _python_path, "Modules") + ":" + (libdir[0] if libdir else "")
         pip = host_recipe.pip
     except Exception:
         # hostpython3 is unavailable, so fall back to system pip
