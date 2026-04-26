@@ -22,12 +22,12 @@ class DarkModeListener(PythonJavaClass):
             indicating whether dark mode is currently enabled.
     """
     __javacontext__ = "app"
-    __javainterfaces__ = ["org/kivy/android/PythonActivity$DarkModeListener"]
+    __javainterfaces__ = [ACTIVITY_CLASS_NAMESPACE + '$DarkModeListener']
 
     def __init__(self, on_dark_mode_changed: Callable[[bool], None]):
         self.on_dark_mode_changed = on_dark_mode_changed
 
-    @java_method("(Z)V")
+    @java_method('(Z)V')
     def onDarkModeChanged(self, is_dark_mode):
         self.on_dark_mode_changed(is_dark_mode)
 
