@@ -388,6 +388,36 @@ This can be used to prevent errors like:
     Because the python function is called from the PythonActivity thread, you
     need to be careful about your own calls.
 
+Handling DarkMode
+~~~~~~~~~~~~~~~~~
+
+The ``android.darkmode`` module provides functionality to detect and respond to
+system dark mode changes on Android devices.
+
+You can set up a listener to monitor dark mode state changes using the
+``set_dark_mode_listener`` function::
+
+    from android.darkmode import set_dark_mode_listener
+
+    def on_dark_mode_changed(is_dark_mode):
+        if is_dark_mode:
+            print('Dark mode is now enabled')
+            # Update your app's theme to dark mode
+        else:
+            print('Dark mode is now disabled')
+            # Update your app's theme to light mode
+
+    # Register the listener
+    set_dark_mode_listener(on_dark_mode_changed)
+
+To remove the listener, simply pass ``None``::
+
+    set_dark_mode_listener(None)
+
+The callback function receives a single boolean parameter ``is_dark_mode`` that
+indicates whether dark mode is currently enabled (``True``) or disabled (``False``).
+
+
 
 Advanced Android API use
 ------------------------

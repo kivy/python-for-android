@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -617,6 +618,28 @@ public class PythonActivity extends SDLActivity {
 
     public void requestPermissions(String[] permissions) {
         requestPermissionsWithRequestCode(permissions, 1);
+    }
+
+    public interface DarkModeListener {
+        void onDarkModeChanged(boolean isDarkMode);
+    }
+
+    private DarkModeListener darkModeListener = null;
+
+    public void setDarkModeListener(DarkModeListener listener) {
+        darkModeListener = listener;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkMode = currentNightMode == Configuration.UI_MODE_NIGHT_YES;
+
+        if (darkModeListener != null) {
+            darkModeListener.onDarkModeChanged(isDarkMode);
+        }
+
+        super.onConfigurationChanged(newConfig);
     }
 
     public static void changeKeyboard(int inputType) {
