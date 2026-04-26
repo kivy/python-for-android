@@ -10,7 +10,12 @@ NUMPY_NDK_MESSAGE = (
 class NumpyRecipe(MesonRecipe):
     version = "v2.3.0"
     url = "git+https://github.com/numpy/numpy"
-    extra_build_args = ["-Csetup-args=-Dblas=none", "-Csetup-args=-Dlapack=none"]
+    depends = ["libopenblas"]
+    extra_build_args = [
+        "-Csetup-args=-Dblas=auto",
+        "-Csetup-args=-Dlapack=auto",
+        "-Csetup-args=-Dallow-noblas=False",
+    ]
     need_stl_shared = True
     min_ndk_api_support = 24
 
@@ -41,6 +46,11 @@ class NumpyRecipe(MesonRecipe):
             "android-build",
             "python",
         )
+        blas_dir = join(Recipe.get_recipe("libopenblas", self.ctx
+        ).get_build_dir(arch.arch), "build")
+        blas_incdir = blas_dir
+        blas_libdir = join(blas_dir, "lib")
+        env["CXXFLAGS"] += f" -I{blas_incdir} -L{blas_libdir}"
         return env
 
     def get_hostrecipe_env(self, arch=None):
