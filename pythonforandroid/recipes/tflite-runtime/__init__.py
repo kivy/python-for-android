@@ -1,7 +1,7 @@
 from pythonforandroid.recipe import PythonRecipe, current_directory, \
     shprint, info_main, warning
 from pythonforandroid.logger import error
-from os.path import join
+from os.path import exists, join
 import sh
 
 
@@ -61,7 +61,10 @@ class TFLiteRuntimeRecipe(PythonRecipe):
         pybind11_recipe = self.get_recipe('pybind11', self.ctx)
         pybind11_include_dir = pybind11_recipe.get_include_dir(arch)
         numpy_include_dir = join(self.ctx.get_site_packages_dir(arch),
-                                 'numpy', 'core', 'include')
+                                 'numpy', '_core', 'include')
+        if not exists(numpy_include_dir):
+            numpy_include_dir = join(self.ctx.get_site_packages_dir(arch),
+                                     'numpy', 'core', 'include')
         includes = ' -I' + python_include_dir + \
                    ' -I' + numpy_include_dir + \
                    ' -I' + pybind11_include_dir
