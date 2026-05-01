@@ -87,6 +87,7 @@ class TFLiteRuntimeRecipe(PythonRecipe):
                 'ANDROID_ABI': arch.arch,
                 'WRAPPER_INCLUDES': includes,
                 'CMAKE_SHARED_LINKER_FLAGS': env['LDFLAGS'],
+                'CMAKE_POLICY_VERSION_MINIMUM': '3.5',
             })
 
             try:
