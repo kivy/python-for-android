@@ -7,7 +7,10 @@ lib_dict = {
     'sdl2': ['SDL2', 'SDL2_image', 'SDL2_mixer', 'SDL2_ttf'],
     'sdl3': ['SDL3', 'SDL3_image', 'SDL3_mixer', 'SDL3_ttf'],
 }
-sdl_libs = lib_dict.get(os.environ['BOOTSTRAP'], ['main'])
+sdl_libs = lib_dict.get(
+    os.environ['BOOTSTRAP'],
+    [os.environ.get('ANDROID_MAIN_LIB', 'main')]
+)
 
 modules = [
     Extension('android._android',
