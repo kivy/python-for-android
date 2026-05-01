@@ -25,7 +25,8 @@ class TFLiteRuntimeRecipe(PythonRecipe):
 
     version = '2.8.0'
     url = 'https://github.com/tensorflow/tensorflow/archive/refs/tags/v{version}.zip'
-    depends = ['pybind11', 'numpy']
+    depends = ['numpy']
+    hostpython_prerequisites = ['pybind11==2.11.1']
     patches = ['CMakeLists.patch', 'build_with_cmake.patch']
     site_packages_name = 'tflite-runtime'
     call_hostpython_via_targetpython = False
@@ -49,6 +50,7 @@ class TFLiteRuntimeRecipe(PythonRecipe):
             return
 
         env = self.get_recipe_env(arch)
+        self.install_hostpython_prerequisites()
 
         # Directories
         root_dir = self.get_build_dir(arch.arch)
@@ -58,8 +60,9 @@ class TFLiteRuntimeRecipe(PythonRecipe):
 
         # Includes
         python_include_dir = self.ctx.python_recipe.include_root(arch.arch)
-        pybind11_recipe = self.get_recipe('pybind11', self.ctx)
-        pybind11_include_dir = pybind11_recipe.get_include_dir(arch)
+        pybind11_include_dir = sh.Command(self.real_hostpython_location)(
+            '-c', 'import pybind11; print(pybind11.get_include())'
+        ).strip()
         numpy_include_dir = join(self.ctx.get_site_packages_dir(arch),
                                  'numpy', '_core', 'include')
         if not exists(numpy_include_dir):
