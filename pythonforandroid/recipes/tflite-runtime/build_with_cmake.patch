@@ -18,7 +18,7 @@
  
  # Build python interpreter_wrapper.
  mkdir -p "${BUILD_DIR}/cmake_build"
-@@ -111,6 +111,18 @@
+@@ -111,6 +111,19 @@
        -DCMAKE_CXX_FLAGS="${BUILD_FLAGS}" \
        "${TENSORFLOW_LITE_DIR}"
      ;;
@@ -29,6 +29,7 @@
 +      -DANDROID_ARM_NEON=ON \
 +      -DCMAKE_CXX_FLAGS="${BUILD_FLAGS}" \
 +      -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" \
++      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 +      -DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}" \
 +      -DANDROID_PLATFORM="${ANDROID_PLATFORM}" \
 +      -DANDROID_ABI="${ANDROID_ABI}" \
@@ -37,7 +38,7 @@
    *)
      BUILD_FLAGS=${BUILD_FLAGS:-"-I${PYTHON_INCLUDE} -I${PYBIND11_INCLUDE}"}
      cmake \
-@@ -162,7 +174,7 @@
+@@ -162,7 +175,7 @@
        ${PYTHON} setup.py bdist --plat-name=${WHEEL_PLATFORM_NAME} \
                           bdist_wheel --plat-name=${WHEEL_PLATFORM_NAME}
      else
