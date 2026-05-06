@@ -60,7 +60,7 @@ jobs:
     runs-on: ${{ github.event.inputs.os }}
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Pull the python-for-android docker image
         run: make docker/pull
       - name: Build python-for-android docker image
@@ -85,7 +85,7 @@ jobs:
           if [ -f dist/${{ env.AAB_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAB_ARTIFACT_FILENAME }} dist/${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-${{ env.AAB_ARTIFACT_FILENAME }}; fi
           if [ -f dist/${{ env.AAR_ARTIFACT_FILENAME }} ]; then mv dist/${{ env.AAR_ARTIFACT_FILENAME }} dist/${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-${{ env.AAR_ARTIFACT_FILENAME }}; fi
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.inputs.os }}-${{ github.event.inputs.bootstrap }}-artifacts
           path: dist
