@@ -66,7 +66,7 @@ if Build_VERSION.SDK_INT >= 35:
                 traceback.print_exc()
             return insets
 
-    _global_listener: InsetsListener
+    _global_listener: InsetsListener = None
 
 
 @run_on_ui_thread
