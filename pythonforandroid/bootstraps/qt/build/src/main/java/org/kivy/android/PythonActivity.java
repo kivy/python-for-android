@@ -3,6 +3,7 @@ package org.kivy.android;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -237,5 +238,27 @@ public class PythonActivity extends QtActivity {
     public static void stop_service() {
         Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
         PythonActivity.mActivity.stopService(serviceIntent);
+    }
+
+    public interface DarkModeListener {
+        void onDarkModeChanged(boolean isDarkMode);
+    }
+
+    private DarkModeListener darkModeListener = null;
+
+    public void setDarkModeListener(DarkModeListener listener) {
+        darkModeListener = listener;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkMode = currentNightMode == Configuration.UI_MODE_NIGHT_YES;
+
+        if (darkModeListener != null) {
+            darkModeListener.onDarkModeChanged(isDarkMode);
+        }
+
+        super.onConfigurationChanged(newConfig);
     }
 }
