@@ -30,9 +30,11 @@ class LibOpenBlasRecipe(Recipe):
                 "-DCMAKE_ANDROID_ARCH_ABI={arch}".format(arch=arch.arch),
                 "-DCMAKE_ANDROID_NDK=" + self.ctx.ndk_dir,
                 "-DCMAKE_ANDROID_API={api}".format(api=self.ctx.ndk_api),
+                "-DCMAKE_Fortran_COMPILER=NOTFOUND",
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DBUILD_SHARED_LIBS=ON",
                 "-DC_LAPACK=ON",
+                "-DDYNAMIC_ARCH=0",
                 "-DTARGET={target}".format(
                     target={
                         "arm64-v8a": "ARMV8",
