@@ -140,7 +140,7 @@ arises. To complete the release:
 - Tag the release commit in `master`, with tag `vYYYY.MM.DD`. Include a short
   summary of the changes.
 - Release distributions and PyPI upload should be 
-  [handled by the CI](https://github.com/kivy/python-for-android/blob/v2020.04.29/.travis.yml#L60-L70).
+  [handled by the CI](.github/workflows/pypi-release.yml).
 - Add to the GitHub release page (see e.g. [this example](https://github.com/kivy/python-for-android/releases/tag/v2019.06.06):
   - The python-for-android README summary
   - A short list of major changes in this release, if any
