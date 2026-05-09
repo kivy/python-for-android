@@ -1133,6 +1133,7 @@ class CythonRecipe(PythonRecipe):
         '''Build any cython components, then install the Python module by
         calling pip install with the target Python dir.
         '''
+        self.install_hostpython_prerequisites()
         Recipe.build_arch(self, arch)
         self.build_cython_components(arch)
         self.install_python_package(arch)
