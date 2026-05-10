@@ -186,14 +186,10 @@ def check_ndk_api(ndk_api, android_api):
 
 
 MIN_PYTHON_MAJOR_VERSION = 3
-MIN_PYTHON_MINOR_VERSION = 6
+MIN_PYTHON_MINOR_VERSION = 10
 MIN_PYTHON_VERSION = packaging.version.Version(
     f"{MIN_PYTHON_MAJOR_VERSION}.{MIN_PYTHON_MINOR_VERSION}"
 )
-PY2_ERROR_TEXT = (
-    'python-for-android no longer supports running under Python 2. Either upgrade to '
-    'Python {min_version} or higher (recommended), or revert to python-for-android 2019.07.08.'
-).format(min_version=MIN_PYTHON_VERSION)
 
 PY_VERSION_ERROR_TEXT = (
     'Your Python version {user_major}.{user_minor} is not supported by python-for-android, '
@@ -205,11 +201,6 @@ PY_VERSION_ERROR_TEXT = (
 
 
 def check_python_version():
-    # Python 2 special cased because it's a major transition. In the
-    # future the major or minor versions can increment more quietly.
-    if sys.version_info.major == 2:
-        raise BuildInterruptingException(PY2_ERROR_TEXT)
-
     if (
         sys.version_info.major < MIN_PYTHON_MAJOR_VERSION or
         sys.version_info.minor < MIN_PYTHON_MINOR_VERSION

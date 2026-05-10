@@ -5,7 +5,6 @@
 import os
 import subprocess
 import sys
-import typing
 
 """
 This wrapper is used to ignore or replace some unsupported flags for flang-new.
@@ -30,7 +29,7 @@ It will operate as follows:
 COMPLIER_PATH = "@COMPILER@"
 
 
-def main(argv: typing.List[str]):
+def main(argv: list[str]):
     cwd = os.getcwd()
     argv_new = []
     i = 0

@@ -16,10 +16,7 @@ from sys import stdout
 from packaging.version import Version
 from multiprocessing import cpu_count
 import time
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from urllib.parse import urlparse
 
 import packaging.version
 

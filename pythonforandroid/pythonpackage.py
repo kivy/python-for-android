@@ -34,7 +34,6 @@
 
 
 import functools
-from io import open  # needed for python 2
 import os
 import shutil
 import subprocess
@@ -154,16 +153,12 @@ def _get_system_python_executable():
             # We should check file not found anyway trying to run it,
             # since it might be a dead symlink:
             try:
-                filenotfounderror = FileNotFoundError
-            except NameError:  # Python 2
-                filenotfounderror = OSError
-            try:
                 # Run it and see if version output works with no error:
                 subprocess.check_output([
                     os.path.join(path, python_bin), "--version"
                 ], stderr=subprocess.STDOUT)
                 return True
-            except (subprocess.CalledProcessError, filenotfounderror):
+            except (subprocess.CalledProcessError, FileNotFoundError):
                 return False
 
         python_name = "python" + sys.version
@@ -271,21 +266,10 @@ def get_package_as_folder(dependency):
     try:
         # Create a venv to install into:
         try:
-            if int(sys.version.partition(".")[0]) < 3:
-                # Python 2.x has no venv.
-                subprocess.check_output([
-                    sys.executable,  # no venv conflict possible,
-                                     # -> no need to use system python
-                    "-m", "virtualenv",
-                    "--python=" + _get_system_python_executable(),
-                    os.path.join(venv_parent, 'venv')
-                ], cwd=venv_parent)
-            else:
-                # On modern Python 3, use venv.
-                subprocess.check_output([
-                    _get_system_python_executable(), "-m", "venv",
-                    os.path.join(venv_parent, 'venv')
-                ], cwd=venv_parent)
+            subprocess.check_output([
+                _get_system_python_executable(), "-m", "venv",
+                os.path.join(venv_parent, 'venv')
+            ], cwd=venv_parent)
         except subprocess.CalledProcessError as e:
             output = e.output.decode('utf-8', 'replace')
             raise ValueError(
@@ -296,15 +280,11 @@ def get_package_as_folder(dependency):
 
         # Update pip and wheel in venv for latest feature support:
         try:
-            filenotfounderror = FileNotFoundError
-        except NameError:  # Python 2.
-            filenotfounderror = OSError
-        try:
             subprocess.check_output([
                 os.path.join(venv_path, "bin", "pip"),
                 "install", "-U", "pip", "wheel",
             ])
-        except filenotfounderror:
+        except FileNotFoundError:
             raise RuntimeError(
                 "venv appears to be missing pip. "
                 "did we fail to use a proper system python??\n"
@@ -322,12 +302,7 @@ def get_package_as_folder(dependency):
         with open(os.path.join(venv_path, "requirements.txt"),
                   "w", encoding="utf-8"
                  ) as f:
-            def to_unicode(s):  # Needed for Python 2.
-                try:
-                    return s.decode("utf-8")
-                except AttributeError:
-                    return s
-            f.write(to_unicode(transform_dep_for_pip(dependency)))
+            f.write(transform_dep_for_pip(dependency))
         try:
             subprocess.check_output(
                 [
@@ -451,10 +426,7 @@ def _extract_metainfo_files_from_package_unsafe(
         # distribution, and others get_package_as_folder() may support
         # in the future.
         with open(os.path.join(output_path, "metadata_source"), "w") as f:
-            try:
-                f.write(path_type)
-            except TypeError:  # in python 2 path_type may be str/bytes:
-                f.write(path_type.decode("utf-8", "replace"))
+            f.write(path_type)
 
         # Copy the metadata file:
         shutil.copyfile(metadata_path, os.path.join(output_path, "METADATA"))
@@ -585,19 +557,14 @@ package_name_cache = dict()
 
 def get_package_name(dependency,
                      use_cache=True):
-    def timestamp():
-        try:
-            return time.monotonic()
-        except AttributeError:
-            return time.time()  # Python 2.
     try:
         value = package_name_cache[dependency]
-        if value[0] + 600.0 > timestamp() and use_cache:
+        if value[0] + 600.0 > time.monotonic() and use_cache:
             return value[1]
     except KeyError:
         pass
     result = _extract_info_from_package(dependency, extract_type="name")
-    package_name_cache[dependency] = (timestamp(), result)
+    package_name_cache[dependency] = (time.monotonic(), result)
     return result
 
 
