@@ -120,44 +120,10 @@ and runs the linting inside the container.
 - Trailing whitespace trimming
 - Files end with newline
 
-## Creating a new release
+## Releasing
 
-(These instructions are for core developers, not casual contributors.)
-
-New releases follow these steps:
-
-- Create a new branch `release-YYYY.MM.DD` based on the `develop` branch.
-  - `git checkout -b release-YYYY.MM.DD develop`
-- Create a Github pull request to merge `release-YYYY.MM.DD` into `master`.
-- Complete all steps in the [release checklist](#Release_checklist),
-  and document this in the pull request (copy the checklist into the PR text)
-
-At this point, wait for reviewer approval and conclude any discussion that
-arises. To complete the release:
-
-- Merge the release branch to the `master` branch.
-- Also merge the release branch to the `develop` branch.
-- Tag the release commit in `master`, with tag `vYYYY.MM.DD`. Include a short
-  summary of the changes.
-- Release distributions and PyPI upload should be 
-  [handled by the CI](.github/workflows/pypi-release.yml).
-- Add to the GitHub release page (see e.g. [this example](https://github.com/kivy/python-for-android/releases/tag/v2019.06.06):
-  - The python-for-android README summary
-  - A short list of major changes in this release, if any
-  - A changelog summarising merge commits since the last release
-  - The release sdist and wheel(s)
-
-## Release checklist
-
-  - [ ] Check that the builds are passing
-    - [ ] [GitHub Action](https://github.com/kivy/python-for-android/actions)
-  - [ ] Run the tests locally via `tox`: this performs some long-running tests that are skipped on github-actions.
-  - [ ] Build and run the [on_device_unit_tests](https://github.com/kivy/python-for-android/tree/master/testapps/on_device_unit_tests) app using buildozer. Check that they all pass.
-  - [ ] Build (or download from github actions) and run the following [testapps](https://github.com/kivy/python-for-android/tree/master/testapps/on_device_unit_tests) for arch `armeabi-v7a` and `arm64-v8a`:
-    - [ ] on_device_unit_tests
-      - [ ] `armeabi-v7a` (`cd testapps/on_device_unit_tests && PYTHONPATH=.:../../ python3 setup.py apk  --ndk-dir=<your-ndk-dir> --sdk-dir=<your-sdk-dir> --arch=armeabi-v7a --debug`)
-      - [ ] `arm64-v8a` (`cd testapps/on_device_unit_tests && PYTHONPATH=.:../../ python3 setup.py apk  --ndk-dir=<your-ndk-dir> --sdk-dir=<your-sdk-dir> --arch=arm64-v8a --debug`)
-  - [ ] Check that the version number is correct
+The release process for core developers is documented separately in
+[RELEASING.md](RELEASING.md).
 
 ## How python-for-android uses `pip`
 
