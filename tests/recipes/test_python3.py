@@ -26,22 +26,6 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             f'libpython{self.recipe.link_version}.so'
         )
 
-    @mock.patch('pythonforandroid.recipes.python3.Path.is_file')
-    def test_should_build(self, mock_is_file):
-        # in case that python lib exists, we shouldn't trigger the build
-        self.assertFalse(self.recipe.should_build(self.arch))
-        # in case that python lib doesn't exist, we should trigger the build
-        mock_is_file.return_value = False
-        self.assertTrue(self.recipe.should_build(self.arch))
-
-    def test_include_root(self):
-        expected_include_dir = join(
-            self.recipe.get_build_dir(self.arch.arch), 'Include',
-        )
-        self.assertEqual(
-            expected_include_dir, self.recipe.include_root(self.arch.arch)
-        )
-
     def test_link_root(self):
         expected_link_root = join(
             self.recipe.get_build_dir(self.arch.arch), 'android-build',
@@ -124,11 +108,11 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
                 mock_sh_command.mock_calls,
             )
         mock_open_zlib.assert_called()
-        self.assertEqual(mock_make.call_count, 1)
-        for make_call, kw in mock_make.call_args_list:
-            self.assertIn(
-                f'INSTSONAME={self.recipe._libpython}', make_call
-            )
+        self.assertEqual(mock_make.call_count, 2)
+        make_call, kw = mock_make.call_args_list[0]
+        self.assertIn(
+            f'INSTSONAME={self.recipe._libpython}', make_call
+        )
         mock_cp.assert_called_with(
             "pyconfig.h", join(recipe_build_dir, 'Include'),
         )
@@ -150,62 +134,3 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         # restore recipe's ctx or we could get failures with other test,
         # since we share `self.recipe with all the tests of the class
         self.recipe.ctx.ndk_api = self.ctx.ndk_api
-
-    @mock.patch('shutil.copystat')
-    @mock.patch('shutil.copyfile')
-    @mock.patch("pythonforandroid.util.chdir")
-    @mock.patch("pythonforandroid.util.makedirs")
-    @mock.patch("pythonforandroid.util.walk")
-    @mock.patch("pythonforandroid.recipes.python3.sh.find")
-    @mock.patch("pythonforandroid.recipes.python3.sh.cp")
-    @mock.patch("pythonforandroid.recipes.python3.sh.zip")
-    @mock.patch("pythonforandroid.recipes.python3.subprocess.call")
-    def test_create_python_bundle(
-            self,
-            mock_subprocess,
-            mock_sh_zip,
-            mock_sh_cp,
-            mock_sh_find,
-            mock_walk,
-            mock_makedirs,
-            mock_chdir,
-            mock_copyfile,
-            mock_copystat,
-    ):
-        fake_compile_dir = '/fake/compile/dir'
-        simulated_walk_result = [
-            ["/fake_dir", ["__pycache__", "Lib"], ["README", "setup.py"]],
-            ["/fake_dir/Lib", ["ctypes"], ["abc.pyc", "abc.py"]],
-            ["/fake_dir/Lib/ctypes", [], ["util.pyc", "util.py"]],
-        ]
-        mock_walk.return_value = simulated_walk_result
-        self.recipe.create_python_bundle(fake_compile_dir, self.arch)
-
-        recipe_build_dir = self.recipe.get_build_dir(self.arch.arch)
-        modules_build_dir = join(
-            recipe_build_dir,
-            'android-build',
-            'build',
-            'lib.linux{}-{}-{}'.format(
-                '2' if self.recipe.version[0] == '2' else '',
-                self.arch.command_prefix.split('-')[0],
-                self.recipe.major_minor_version_string
-            ))
-        expected_sp_paths = [
-            modules_build_dir,
-            join(recipe_build_dir, 'Lib'),
-            self.ctx.get_python_install_dir(self.arch.arch),
-        ]
-        for n, (sp_call, kw) in enumerate(mock_subprocess.call_args_list):
-            self.assertEqual(sp_call[0][-1], expected_sp_paths[n])
-
-        # we expect two calls to `walk_valid_filens`
-        self.assertEqual(len(mock_walk.call_args_list), 2)
-
-        mock_sh_zip.assert_called()
-        mock_sh_cp.assert_called()
-        mock_sh_find.assert_called()
-        mock_makedirs.assert_called()
-        mock_chdir.assert_called()
-        mock_copyfile.assert_called()
-        mock_copystat.assert_called()

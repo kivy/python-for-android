@@ -2,21 +2,27 @@ from contextlib import suppress
 import copy
 import glob
 import os
+import json
+import tempfile
 from os import environ
 from os.path import (
-    abspath, join, realpath, dirname, expanduser, exists
+    abspath, join, realpath, dirname, expanduser, exists, basename
 )
 import re
 import shutil
 import subprocess
+import sys
 
 import sh
 
+from packaging.utils import parse_wheel_filename
+from packaging.requirements import Requirement
+
 from pythonforandroid.androidndk import AndroidNDK
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
-from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint)
+from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint, Out_Style, Out_Fore)
 from pythonforandroid.pythonpackage import get_package_name
-from pythonforandroid.recipe import CythonRecipe, Recipe
+from pythonforandroid.recipe import CythonRecipe, Recipe, PyProjectRecipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
@@ -29,14 +35,14 @@ from pythonforandroid.util import (
 def get_targets(sdk_dir):
     if exists(join(sdk_dir, 'cmdline-tools', 'latest', 'bin', 'avdmanager')):
         avdmanager = sh.Command(join(sdk_dir, 'cmdline-tools', 'latest', 'bin', 'avdmanager'))
-        targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+        targets = avdmanager('list', 'target').split('\n')
 
     elif exists(join(sdk_dir, 'tools', 'bin', 'avdmanager')):
         avdmanager = sh.Command(join(sdk_dir, 'tools', 'bin', 'avdmanager'))
-        targets = avdmanager('list', 'target').stdout.decode('utf-8').split('\n')
+        targets = avdmanager('list', 'target').split('\n')
     elif exists(join(sdk_dir, 'tools', 'android')):
         android = sh.Command(join(sdk_dir, 'tools', 'android'))
-        targets = android('list').stdout.decode('utf-8').split('\n')
+        targets = android('list').split('\n')
     else:
         raise BuildInterruptingException(
             'Could not find `android` or `sdkmanager` binaries in Android SDK',
@@ -90,9 +96,19 @@ class Context:
 
     recipe_build_order = None  # Will hold the list of all built recipes
 
+    python_modules = None  # Will hold resolved pure python packages
+
     symlink_bootstrap_files = False  # If True, will symlink instead of copying during build
 
     java_build_tool = 'auto'
+
+    skip_prebuilt = False
+
+    extra_index_urls = []
+
+    use_prebuilt_version_for = []
+
+    save_wheel_dir = ''
 
     @property
     def packages_path(self):
@@ -444,6 +460,12 @@ class Context:
                 # Failed to look up any meaningful name.
                 return False
 
+        # normalize name to remove version tags
+        try:
+            name = Requirement(name).name
+        except Exception:
+            pass
+
         # Try to look up recipe by name:
         try:
             recipe = Recipe.get_recipe(name, self)
@@ -490,6 +512,10 @@ def build_recipes(build_order, python_modules, ctx, project_dir,
             recipe.prepare_build_dir(arch.arch)
 
         info_main('# Prebuilding recipes')
+        # ensure we have `ctx.python_recipe` and `ctx.hostpython`
+        Recipe.get_recipe("python3", ctx).prebuild_arch(arch)
+        ctx.hostpython = Recipe.get_recipe("hostpython3", ctx).python_exe
+
         # 2) prebuild packages
         for recipe in recipes:
             info_main('Prebuilding {} for {}'.format(recipe.name, arch.arch))
@@ -649,6 +675,150 @@ def run_setuppy_install(ctx, project_dir, env=None, arch=None):
             os.remove("._tmp_p4a_recipe_constraints.txt")
 
 
+def is_wheel_platform_independent(whl_name):
+    name, version, build, tags = parse_wheel_filename(whl_name)
+    return all(tag.platform == "any" for tag in tags)
+
+
+def is_wheel_compatible(whl_name, arch, ctx):
+    name, version, build, tags = parse_wheel_filename(whl_name)
+    supported_tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, ctx)
+    supported_tags.append("any")
+    result = all(tag.platform in supported_tags for tag in tags)
+    if not result:
+        warning(f"Incompatible module : {whl_name}")
+    return result
+
+
+def process_python_modules(ctx, modules, arch):
+    """Use pip --dry-run to resolve dependencies and filter for pure-Python packages
+    """
+    modules = list(modules)
+    build_order = list(ctx.recipe_build_order)
+
+    _requirement_names = []
+    processed_modules = []
+
+    for module in modules+build_order:
+        try:
+            # we need to normalize names
+            # eg Requests>=2.0 becomes requests
+            _requirement_names.append(Requirement(module).name)
+        except Exception:
+            # name parsing failed; skip processing this module via pip
+            processed_modules.append(module)
+            if module in modules:
+                modules.remove(module)
+
+    if len(processed_modules) > 0:
+        warning(f'Ignored by module resolver : {processed_modules}')
+
+    # preserve the original module list
+    processed_modules.extend(modules)
+
+    if len(modules) == 0:
+        return processed_modules
+
+    # temp file for pip report
+    fd, path = tempfile.mkstemp()
+    os.close(fd)
+
+    # setup hostpython recipe
+    env = environ.copy()
+    host_recipe = None
+    try:
+        host_recipe = Recipe.get_recipe("hostpython3", ctx)
+        pip = host_recipe.pip
+    except Exception:
+        # hostpython3 is unavailable, so fall back to system pip
+        pip = sh.Command("pip")
+
+    # add platform tags
+    platforms = []
+    tags = PyProjectRecipe.get_wheel_platform_tags(arch.arch, ctx)
+    for tag in tags:
+        platforms.append(f"--platform={tag}")
+
+    if host_recipe is not None:
+        platforms.extend(["--python-version", host_recipe.version])
+    else:
+        # use the version of the currently running Python interpreter
+        current_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        platforms.extend(["--python-version", current_version])
+
+    indices = []
+    # add extra index urls
+    for index in ctx.extra_index_urls:
+        indices.extend(["--extra-index-url", index])
+    try:
+        shprint(
+            pip, 'install', *modules,
+            '--dry-run', '--break-system-packages', '--ignore-installed',
+            '--disable-pip-version-check', '--only-binary=:all:',
+            '--report', path, '-q', *platforms, *indices, _env=env
+        )
+    except Exception as e:
+        warning(f"Auto module resolution failed: {e}")
+        return processed_modules
+
+    with open(path, "r") as f:
+        try:
+            report = json.load(f)
+        except Exception:
+            report = {}
+
+    os.remove(path)
+
+    if "install" not in report.keys():
+        # pip changed json reporting format?
+        warning("Auto module resolution failed: invalid json!")
+        return processed_modules
+
+    info('Extra resolved pure python dependencies :')
+
+    ignored_str = " (ignored)"
+    # did we find any non pure python package?
+    any_not_pure_python = False
+
+    # just for style
+    info(" ")
+    for module in report["install"]:
+
+        mname = module["metadata"]["name"]
+        mver = module["metadata"]["version"]
+        filename = basename(module["download_info"]["url"])
+        pure_python = True
+
+        if (
+                filename.endswith(".whl") and not is_wheel_compatible(filename, arch, ctx)
+        ):
+            any_not_pure_python = True
+            pure_python = False
+
+        # does this module matches any recipe name?
+        if mname.lower().replace("-", "_") in _requirement_names:
+            continue
+
+        color = Out_Fore.GREEN if pure_python else Out_Fore.RED
+        ignored = "" if pure_python else ignored_str
+
+        info(
+            f"  {color}{mname}{Out_Fore.WHITE} : "
+            f"{Out_Style.BRIGHT}{mver}{Out_Style.RESET_ALL}"
+            f"{ignored}"
+        )
+
+        if pure_python:
+            processed_modules.append(module["download_info"]["url"])
+    info(" ")
+
+    if any_not_pure_python:
+        warning("Some packages were ignored because they are not pure Python.")
+        warning("To install the ignored packages, explicitly list them in your requirements file.")
+
+    return processed_modules
+
+
 def run_pymodules_install(ctx, arch, modules, project_dir=None,
                           ignore_setup_py=False):
     """ This function will take care of all non-recipe things, by:
@@ -663,6 +833,8 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE FOR ARCH: {} ***'.format(arch))
 
+    modules = process_python_modules(ctx, modules, arch)
+
     modules = [m for m in modules if ctx.not_has_package(m, arch)]
 
     # We change current working directory later, so this has to be an absolute
@@ -672,7 +844,6 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
     # Bail out if no python deps and no setup.py to process:
     if not modules and (
             ignore_setup_py or
-            project_dir is None or
             not project_has_setup_py(project_dir)
             ):
         info('No Python modules and no setup.py to process, skipping')
@@ -688,8 +859,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
             "If this fails, it may mean that the module has compiled "
             "components and needs a recipe."
         )
-    if project_dir is not None and \
-            project_has_setup_py(project_dir) and not ignore_setup_py:
+    if project_has_setup_py(project_dir) and not ignore_setup_py:
         info(
             "Will process project install, if it fails then the "
             "project may not be compatible for Android install."
@@ -761,10 +931,8 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
                     _env=copy.copy(env))
 
         # Afterwards, run setup.py if present:
-        if project_dir is not None and (
-                project_has_setup_py(project_dir) and not ignore_setup_py
-                ):
-            run_setuppy_install(ctx, project_dir, env, arch.arch)
+        if project_has_setup_py(project_dir) and not ignore_setup_py:
+            run_setuppy_install(ctx, project_dir, env, arch)
         elif not ignore_setup_py:
             info("No setup.py found in project directory: " + str(project_dir))
 
@@ -896,6 +1064,10 @@ def copylibs_function(soname, objs_paths, extra_link_dirs=None, env=None):
         'SDL2_ttf',
         'SDL2_image',
         'SDL2_mixer',
+        'SDL3',
+        'SDL3_ttf',
+        'SDL3_image',
+        'SDL3_mixer',
     )
     found_libs = []
     sofiles = []

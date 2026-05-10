@@ -32,6 +32,7 @@ class TestReportLabRecipe(RecipeCtx, unittest.TestCase):
                 patch('sh.patch'), \
                 patch('pythonforandroid.recipe.touch'), \
                 patch('sh.unzip'), \
+                patch('pythonforandroid.recipe.Recipe.is_patched', lambda *a: False), \
                 patch('os.path.isfile'):
             self.recipe.prebuild_arch(self.arch)
         # makes sure placeholder got replaced with library and include paths

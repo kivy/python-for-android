@@ -57,6 +57,7 @@ RUN ${RETRY} apt -y update -qq > /dev/null \
         ant \
         autoconf \
         automake \
+        autopoint \
         ccache \
         cmake \
         g++ \

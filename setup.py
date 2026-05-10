@@ -21,8 +21,8 @@ data_files = []
 # https://github.com/kivy/buildozer/issues/722
 install_reqs = [
     'appdirs', 'colorama>=0.3.3', 'jinja2',
-    'sh>=1.10, <2.0; sys_platform!="win32"',
-    'build', 'toml', 'packaging', 'setuptools'
+    'sh>=2, <3.0; sys_platform!="win32"', 'meson', 'ninja',
+    'build', 'toml', 'packaging', 'setuptools', 'wheel~=0.43.0'
 ]
 # (build and toml are used by pythonpackage.py)
 
@@ -128,6 +128,9 @@ setup(name='python-for-android',
           'Programming Language :: Python :: 3.9',
           'Programming Language :: Python :: 3.10',
           'Programming Language :: Python :: 3.11',
+          'Programming Language :: Python :: 3.12',
+          'Programming Language :: Python :: 3.13',
+          'Programming Language :: Python :: 3.14',
           'Topic :: Software Development',
           'Topic :: Utilities',
           ],

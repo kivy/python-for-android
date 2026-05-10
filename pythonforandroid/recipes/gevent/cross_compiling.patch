@@ -1,26 +1,26 @@
 diff --git a/_setupares.py b/_setupares.py
-index dd184de6..bb16bebe 100644
+index c42fe369..cd8854df 100644
 --- a/_setupares.py
 +++ b/_setupares.py
-@@ -43,7 +43,7 @@ else:
+@@ -42,7 +42,7 @@ cflags = ('CFLAGS="%s"' % (cflags,)) if cflags else ''
  ares_configure_command = ' '.join([
      "(cd ", quoted_dep_abspath('c-ares'),
-     " && if [ -r ares_build.h ]; then cp ares_build.h ares_build.h.orig; fi ",
--    " && sh ./configure --disable-dependency-tracking " + _m32 + "CONFIG_COMMANDS= ",
-+    " && sh ./configure --host={} --disable-dependency-tracking ".format(os.environ['TOOLCHAIN_PREFIX']) + _m32 + "CONFIG_COMMANDS= ",
-     " && cp ares_config.h ares_build.h \"$OLDPWD\" ",
-     " && cat ares_build.h ",
-     " && if [ -r ares_build.h.orig ]; then mv ares_build.h.orig ares_build.h; fi)",
+     " && if [ -r include/ares_build.h ]; then cp include/ares_build.h include/ares_build.h.orig; fi ",
+-    " && sh ./configure --disable-dependency-tracking --disable-tests -C " + cflags,
++    " && sh ./configure --host={} --disable-dependency-tracking --disable-tests -C ".format(os.environ['COMMAND_PREFIX']) + cflags,
+     " && cp src/lib/ares_config.h include/ares_build.h \"$OLDPWD\" ",
+     " && cat include/ares_build.h ",
+     " && if [ -r include/ares_build.h.orig ]; then mv include/ares_build.h.orig include/ares_build.h; fi)",
 diff --git a/_setuplibev.py b/_setuplibev.py
-index 2a5841bf..b6433c94 100644
+index f05c2fe9..32f9bd81 100644
 --- a/_setuplibev.py
 +++ b/_setuplibev.py
-@@ -31,7 +31,7 @@ LIBEV_EMBED = should_embed('libev')
- # and the PyPy branch will clean it up.
+@@ -28,7 +28,7 @@ LIBEV_EMBED = should_embed('libev')
+ # Configure libev in place
  libev_configure_command = ' '.join([
      "(cd ", quoted_dep_abspath('libev'),
--    " && sh ./configure ",
-+    " && sh ./configure --host={} ".format(os.environ['TOOLCHAIN_PREFIX']),
-     " && cp config.h \"$OLDPWD\"",
+-    " && sh ./configure -C > configure-output.txt",
++    " && sh ./configure --host={} -C > configure-output.txt".format(os.environ['COMMAND_PREFIX']),
      ")",
-     '> configure-output.txt'
+ ])
+ 

@@ -1,0 +1,25 @@
+--- a/src/main/java/org/libsdl/app/SDLSurface.java
++++ b/src/main/java/org/libsdl/app/SDLSurface.java
+@@ -193,9 +193,22 @@
+         return SDLActivity.handleKeyEvent(v, keyCode, event, null);
+     }
+ 
++    public interface OnInterceptTouchListener {
++        boolean onTouch(MotionEvent ev);
++    }
++
++    private OnInterceptTouchListener mOnInterceptTouchListener = null;
++
++    public void setInterceptTouchListener(OnInterceptTouchListener listener) {
++        this.mOnInterceptTouchListener = listener;
++    }
++
+     // Touch events
+     @Override
+     public boolean onTouch(View v, MotionEvent event) {
++        if (mOnInterceptTouchListener != null)
++            if (mOnInterceptTouchListener.onTouch(event))
++                return false;
+         /* Ref: http://developer.android.com/training/gestures/multi.html */
+         int touchDevId = event.getDeviceId();
+         final int pointerCount = event.getPointerCount();

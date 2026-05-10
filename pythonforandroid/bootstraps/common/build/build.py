@@ -20,6 +20,7 @@ import time
 from fnmatch import fnmatch
 import jinja2
 
+from pythonforandroid.bootstrap import SDL_BOOTSTRAPS
 from pythonforandroid.util import rmdir, ensure_dir, max_build_tool_version
 
 
@@ -55,7 +56,7 @@ else:
 curdir = dirname(__file__)
 
 BLACKLIST_PATTERNS = [
-    # code versionning
+    # code versioning
     '^*.hg/*',
     '^*.git/*',
     '^*.bzr/*',
@@ -83,7 +84,7 @@ else:
 if PYTHON is not None and not exists(PYTHON):
     PYTHON = None
 
-if _bootstrap_name in ('sdl2', 'webview', 'service_only', 'qt'):
+if _bootstrap_name in ('sdl2', 'sdl3', 'webview', 'service_only', 'qt'):
     WHITELIST_PATTERNS.append('pyconfig.h')
 
 environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
@@ -170,7 +171,7 @@ def make_tar(tfn, source_dirs, byte_compile_python=False, optimize_python=True):
             files.append((fn, relpath(realpath(fn), sd)))
     files.sort()  # deterministic
 
-    # create tar.gz of thoses files
+    # create tar.gz of those files
     gf = GzipFile(tfn, 'wb', mtime=0)  # deterministic
     tf = tarfile.open(None, 'w', gf, format=tarfile.USTAR_FORMAT)
     dirs = []
@@ -218,6 +219,10 @@ def compile_py_file(python_file, optimize_python=True):
         exit(1)
 
     return ".".join([os.path.splitext(python_file)[0], "pyc"])
+
+
+def is_sdl_bootstrap():
+    return get_bootstrap_name() in SDL_BOOTSTRAPS
 
 
 def make_package(args):
@@ -339,7 +344,7 @@ main.py that loads it.''')
     else:
         shutil.copytree(res_dir, res_dir_initial)
 
-    # Add user resouces
+    # Add user resources
     for resource in args.resources:
         resource_src, resource_dest = resource.split(":")
         if isfile(realpath(resource_src)):
@@ -461,7 +466,7 @@ main.py that loads it.''')
         if exists(service_main) or exists(service_main + 'o'):
             service = True
 
-    service_names = []
+    service_data = []
     base_service_class = args.service_class_name.split('.')[-1]
     for sid, spec in enumerate(args.services):
         spec = spec.split(':')
@@ -471,8 +476,18 @@ main.py that loads it.''')
 
         foreground = 'foreground' in options
         sticky = 'sticky' in options
+        foreground_type_option = next((s for s in options if s.startswith('foregroundServiceType')), None)
+        foreground_type = None
+        if foreground_type_option:
+            parts = foreground_type_option.split('=', 1)
+            if len(parts) != 2 or not parts[1]:
+                raise ValueError(
+                    'Missing value for `foregroundServiceType` option. '
+                    'Expected format: foregroundServiceType=location'
+                )
+            foreground_type = parts[1]
 
-        service_names.append(name)
+        service_data.append((name, foreground_type))
         service_target_path =\
             'src/main/java/{}/Service{}.java'.format(
                 args.package.replace(".", "/"),
@@ -536,12 +551,12 @@ main.py that loads it.''')
     render_args = {
         "args": args,
         "service": service,
-        "service_names": service_names,
+        "service_data": service_data,
         "android_api": android_api,
         "debug": "debug" in args.build_mode,
-        "native_services": args.native_services
+        "native_services": args.native_services,
     }
-    if get_bootstrap_name() == "sdl2":
+    if is_sdl_bootstrap():
         render_args["url_scheme"] = url_scheme
 
     render(
@@ -596,7 +611,7 @@ main.py that loads it.''')
         "args": args,
         "private_version": hashlib.sha1(private_version.encode()).hexdigest()
     }
-    if get_bootstrap_name() == "sdl2":
+    if is_sdl_bootstrap():
         render_args["url_scheme"] = url_scheme
     render(
         'strings.tmpl.xml',
@@ -769,7 +784,7 @@ tools directory of the Android SDK.
     ap.add_argument('--private', dest='private',
                     help='the directory with the app source code files' +
                          ' (containing your main.py entrypoint)',
-                    required=(get_bootstrap_name() != "sdl2"))
+                    required=(not is_sdl_bootstrap()))
     ap.add_argument('--package', dest='package',
                     help=('The name of the java package the project will be'
                           ' packaged under.'),
@@ -787,12 +802,15 @@ tools directory of the Android SDK.
                           'same number of groups of numbers as previous '
                           'versions.'),
                     required=True)
-    if get_bootstrap_name() == "sdl2":
+    if is_sdl_bootstrap():
         ap.add_argument('--launcher', dest='launcher', action='store_true',
                         help=('Provide this argument to build a multi-app '
                               'launcher, rather than a single app.'))
         ap.add_argument('--home-app', dest='home_app', action='store_true', default=False,
                         help=('Turn your application into a home app (launcher)'))
+    ap.add_argument('--display-cutout', dest='display_cutout', default='never',
+                    help=('Enables display-cutout that renders around the area (notch) on '
+                          'some devices that extends into the display surface'))
     ap.add_argument('--permission', dest='permissions', action='append', default=[],
                     help='The permissions to give this app.', nargs='+')
     ap.add_argument('--meta-data', dest='meta_data', action='append', default=[],
@@ -1041,7 +1059,7 @@ def parse_args_and_make_package(args=None):
         args.orientation, args.manifest_orientation
     )
 
-    if get_bootstrap_name() == "sdl2":
+    if is_sdl_bootstrap():
         args.sdl_orientation_hint = get_sdl_orientation_hint(args.orientation)
 
     if args.res_xmls and isinstance(args.res_xmls[0], list):
@@ -1070,10 +1088,9 @@ def parse_args_and_make_package(args=None):
                         if x.strip() and not x.strip().startswith('#')]
         WHITELIST_PATTERNS += patterns
 
-    if args.private is None and \
-            get_bootstrap_name() == 'sdl2' and args.launcher is None:
+    if args.private is None and is_sdl_bootstrap() and args.launcher is None:
         print('Need --private directory or ' +
-              '--launcher (SDL2 bootstrap only)' +
+              '--launcher (SDL2/SDL3 bootstrap only)' +
               'to have something to launch inside the .apk!')
         sys.exit(1)
     make_package(args)

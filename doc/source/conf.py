@@ -321,3 +321,15 @@ linkcheck_ignore = [
     r"https://github.com/kivy/python-for-android/blob.*",
     ]
 
+# Allow redirects for URLs where we prefer to keep the original form
+linkcheck_allowed_redirects = {
+    # Kivy chat redirects to Discord invite
+    r"https://chat\.kivy\.org/": r"https://discord\.com/.*",
+    # GitHub archive URLs redirect to codeload
+    r"https://github\.com/kivy/python-for-android/archive/.*": r"https://codeload\.github\.com/.*",
+    # GitHub gist homepage redirects to starred
+    r"https://gist\.github\.com/$": r"https://gist\.github\.com/.*",
+    # Google Play Store redirects
+    r"https://play\.google\.com/store/$": r"https://play\.google\.com/store/.*",
+}
+

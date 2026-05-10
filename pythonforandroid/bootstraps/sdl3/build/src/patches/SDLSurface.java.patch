@@ -1,0 +1,26 @@
+--- a/src/main/java/org/libsdl/app/SDLSurface.java
++++ b/src/main/java/org/libsdl/app/SDLSurface.java
+@@ -232,9 +232,23 @@
+         }
+     }
+ 
++    public interface OnInterceptTouchListener {
++        boolean onTouch(MotionEvent ev);
++    }
++
++    private OnInterceptTouchListener mOnInterceptTouchListener = null;
++
++    public void setInterceptTouchListener(OnInterceptTouchListener listener) {
++        this.mOnInterceptTouchListener = listener;
++    }
++
+     // Touch events
+     @Override
+     public boolean onTouch(View v, MotionEvent event) {
++        // Allow touch to be intercepted by python application
++        if (mOnInterceptTouchListener != null)
++            if (mOnInterceptTouchListener.onTouch(event))
++                return false;
+         /* Ref: http://developer.android.com/training/gestures/multi.html */
+         int touchDevId = event.getDeviceId();
+         final int pointerCount = event.getPointerCount();

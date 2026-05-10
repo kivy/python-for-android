@@ -29,7 +29,7 @@ import sh
 
 from pythonforandroid import __version__
 from pythonforandroid.bootstrap import Bootstrap
-from pythonforandroid.build import Context, build_recipes
+from pythonforandroid.build import Context, build_recipes, project_has_setup_py
 from pythonforandroid.distribution import Distribution, pretty_log_dists
 from pythonforandroid.entrypoints import main
 from pythonforandroid.graph import get_recipe_order_and_bootstrap
@@ -188,6 +188,7 @@ class NoAbbrevParser(argparse.ArgumentParser):
     This subclass alternative is follows the suggestion at
     https://bugs.python.org/issue14910.
     """
+
     def _get_option_tuples(self, option_string):
         return []
 
@@ -266,6 +267,44 @@ class ToolchainCL:
         generic_parser.add_argument(
             '--arch', help='The archs to build for.',
             action='append', default=[])
+
+        generic_parser.add_argument(
+            '--extra-index-url',
+            help=(
+                'Extra package indexes to look for prebuilt Android wheels. '
+                'Can be used multiple times.'
+            ),
+            action='append',
+            default=[],
+            dest="extra_index_urls",
+        )
+
+        generic_parser.add_argument(
+            '--skip-prebuilt',
+            help='Always build from source; do not use prebuilt wheels.',
+            action='store_true',
+            default=False,
+            dest="skip_prebuilt",
+        )
+
+        generic_parser.add_argument(
+            '--use-prebuilt-version-for',
+            help=(
+                'For these packages, ignore pinned versions and use the latest '
+                'prebuilt version from the extra index if available. '
+                'Only applies to packages with a recipe.'
+            ),
+            action='append',
+            default=[],
+            dest="use_prebuilt_version_for",
+        )
+
+        generic_parser.add_argument(
+            '--save-wheel-dir',
+            dest='save_wheel_dir',
+            default='',
+            help='Directory to store wheels built by PyProjectRecipe.',
+        )
 
         # Options for specifying the Distribution
         generic_parser.add_argument(
@@ -569,18 +608,18 @@ class ToolchainCL:
         args, unknown = parser.parse_known_args(sys.argv[1:])
         args.unknown_args = unknown
 
-        if hasattr(args, "private") and args.private is not None:
+        if getattr(args, "private", None) is not None:
             # Pass this value on to the internal bootstrap build.py:
             args.unknown_args += ["--private", args.private]
-        if hasattr(args, "build_mode") and args.build_mode == "release":
+        if getattr(args, "build_mode", None) == "release":
             args.unknown_args += ["--release"]
-        if hasattr(args, "with_debug_symbols") and args.with_debug_symbols:
+        if getattr(args, "with_debug_symbols", False):
             args.unknown_args += ["--with-debug-symbols"]
-        if hasattr(args, "ignore_setup_py") and args.ignore_setup_py:
+        if getattr(args, "ignore_setup_py", False):
             args.use_setup_py = False
-        if hasattr(args, "activity_class_name") and args.activity_class_name != 'org.kivy.android.PythonActivity':
+        if getattr(args, "activity_class_name", "org.kivy.android.PythonActivity") != 'org.kivy.android.PythonActivity':
             args.unknown_args += ["--activity-class-name", args.activity_class_name]
-        if hasattr(args, "service_class_name") and args.service_class_name != 'org.kivy.android.PythonService':
+        if getattr(args, "service_class_name", "org.kivy.android.PythonService") != 'org.kivy.android.PythonService':
             args.unknown_args += ["--service-class-name", args.service_class_name]
 
         self.args = args
@@ -603,21 +642,13 @@ class ToolchainCL:
             args, "with_debug_symbols", False
         )
 
-        have_setup_py_or_similar = False
-        if getattr(args, "private", None) is not None:
-            project_dir = getattr(args, "private")
-            if (os.path.exists(os.path.join(project_dir, "setup.py")) or
-                    os.path.exists(os.path.join(project_dir,
-                                                "pyproject.toml"))):
-                have_setup_py_or_similar = True
-
         # Process requirements and put version in environ
         if hasattr(args, 'requirements'):
             requirements = []
 
             # Add dependencies from setup.py, but only if they are recipes
             # (because otherwise, setup.py itself will install them later)
-            if (have_setup_py_or_similar and
+            if (project_has_setup_py(getattr(args, "private", None)) and
                     getattr(args, "use_setup_py", False)):
                 try:
                     info("Analyzing package dependencies. MAY TAKE A WHILE.")
@@ -680,6 +711,11 @@ class ToolchainCL:
         self.ctx.activity_class_name = args.activity_class_name
         self.ctx.service_class_name = args.service_class_name
 
+        self.ctx.extra_index_urls = args.extra_index_urls
+        self.ctx.skip_prebuilt = args.skip_prebuilt
+        self.ctx.use_prebuilt_version_for = args.use_prebuilt_version_for
+        self.ctx.save_wheel_dir = args.save_wheel_dir
+
         # Each subparser corresponds to a method
         command = args.subparser_name.replace('-', '_')
         getattr(self, command)(args)
@@ -698,10 +734,7 @@ class ToolchainCL:
 
         # Output warning if setup.py is present and neither --ignore-setup-py
         # nor --use-setup-py was specified.
-        if getattr(args, "private", None) is not None and \
-                (os.path.exists(os.path.join(args.private, "setup.py")) or
-                 os.path.exists(os.path.join(args.private, "pyproject.toml"))
-                ):
+        if project_has_setup_py(getattr(args, "private", None)):
             if not getattr(args, "use_setup_py", False) and \
                     not getattr(args, "ignore_setup_py", False):
                 warning("  **** FUTURE BEHAVIOR CHANGE WARNING ****")
@@ -761,6 +794,7 @@ class ToolchainCL:
         """
         Prints recipes basic info, e.g.
         .. code-block:: bash
+
             python3      3.7.1
                 depends: ['hostpython3', 'sqlite3', 'openssl', 'libffi']
                 conflicts: []
@@ -1034,7 +1068,7 @@ class ToolchainCL:
                 # .../build/bootstrap_builds/sdl2-python3/gradlew
                 # if docker on windows, gradle contains CRLF
                 output = shprint(
-                    sh.Command('dos2unix'), gradlew._path.decode('utf8'),
+                    sh.Command('dos2unix'), gradlew._path,
                     _tail=20, _critical=True, _env=env
                 )
             if args.build_mode == "debug":

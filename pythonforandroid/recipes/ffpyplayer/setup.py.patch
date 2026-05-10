@@ -1,0 +1,15 @@
+--- ffpyplayer/setup.py	2024-06-02 11:10:49.691183467 +0530
++++ ffpyplayer.mod/setup.py	2024-06-02 11:20:16.220966873 +0530
+@@ -27,12 +27,6 @@
+ # This sets whether or not Cython gets added to setup_requires.
+ declare_cython = False
+ 
+-if platform in ('ios', 'android'):
+-    # NEVER use or declare cython on these platforms
+-    print('Not using cython on %s' % platform)
+-    can_use_cython = False
+-else:
+-    declare_cython = True
+ 
+ src_path = build_path = dirname(__file__)
+ print(f'Source/build path: {src_path}')

@@ -449,6 +449,9 @@ class Permission:
     WRITE_VOICEMAIL = (
         "com.android.voicemail.permission.WRITE_VOICEMAIL"
         )
+    MANAGE_EXTERNAL_STORAGE = (  # Convenient use of paths to manage files
+        "android.permission.MANAGE_EXTERNAL_STORAGE"
+        )
 
 
 PERMISSION_GRANTED = 0
@@ -587,7 +590,7 @@ def request_permissions(permissions, callback=None):
     See Android documentation for onPermissionsCallbackResult for
     further information.
 
-    Note that if the request is interupted the callback may contain an empty
+    Note that if the request is interrupted the callback may contain an empty
     list of permissions, without permissions being granted; the App should
     check that each permission requested has been granted.
 

@@ -15,12 +15,12 @@ from pythonforandroid.build import Context
 from pythonforandroid.util import BuildInterruptingException
 from pythonforandroid.androidndk import AndroidNDK
 
-from test_graph import get_fake_recipe
+from tests.test_graph import get_fake_recipe
 
 
-class BaseClassSetupBootstrap(object):
+class BaseClassSetupBootstrap:
     """
-    An class object which is intended to be used as a base class to configure
+    An class which is intended to be used as a base class to configure
     an inherited class of `unittest.TestCase`. This class will override the
     `setUp` and `tearDown` methods.
     """
@@ -115,7 +115,7 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         ) < 0)
 
         # Test a random bootstrap is always lower priority than sdl2:
-        class _FakeBootstrap(object):
+        class _FakeBootstrap:
             def __init__(self, name):
                 self.name = name
         bs1 = _FakeBootstrap("alpha")
@@ -144,9 +144,17 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         """A test which will initialize a bootstrap and will check if the
         method :meth:`~pythonforandroid.bootstrap.Bootstrap.all_bootstraps `
         returns the expected values, which should be: `empty", `service_only`,
-        `webview`, `sdl2` and `qt`
+        `webview`, `sdl2`, `sdl3` and `qt`
         """
-        expected_bootstraps = {"empty", "service_only", "service_library", "webview", "sdl2", "qt"}
+        expected_bootstraps = {
+            "empty",
+            "service_only",
+            "service_library",
+            "webview",
+            "sdl2",
+            "sdl3",
+            "qt",
+        }
         set_of_bootstraps = Bootstrap.all_bootstraps()
         self.assertEqual(
             expected_bootstraps, expected_bootstraps & set_of_bootstraps
@@ -180,8 +188,9 @@ class TestBootstrapBasic(BaseClassSetupBootstrap, unittest.TestCase):
         expanded_result = expand_dependencies(
             ["python3", "kivy", "peewee"], self.ctx
         )
-        # we expect to one results for python3
-        self.assertEqual(len(expanded_result), 1)
+        # we expect to 2 results for python3
+        # (python3, sdl2/sdl3 [one is blacklisted])
+        self.assertEqual(len(expanded_result), 2)
         self.assertIsInstance(expanded_result, list)
         for i in expanded_result:
             self.assertIsInstance(i, list)
@@ -344,34 +353,30 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         name of the bootstrap to test"""
         raise NotImplementedError("Not implemented in GenericBootstrapTest")
 
+    @mock.patch("pythonforandroid.bootstraps.qt.shprint")
+    @mock.patch("pythonforandroid.bootstraps.qt.rmdir")
     @mock.patch("pythonforandroid.bootstraps.qt.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps.service_only.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps.webview.open", create=True)
-    @mock.patch("pythonforandroid.bootstraps.sdl2.open", create=True)
+    @mock.patch("pythonforandroid.bootstrap.open", create=True)
     @mock.patch("pythonforandroid.distribution.open", create=True)
     @mock.patch("pythonforandroid.bootstrap.Bootstrap.strip_libraries")
     @mock.patch("pythonforandroid.util.exists")
     @mock.patch("pythonforandroid.util.chdir")
     @mock.patch("pythonforandroid.bootstrap.listdir")
-    @mock.patch("pythonforandroid.bootstraps.sdl2.rmdir")
-    @mock.patch("pythonforandroid.bootstraps.service_only.rmdir")
-    @mock.patch("pythonforandroid.bootstraps.webview.rmdir")
-    @mock.patch("pythonforandroid.bootstrap.sh.cp")
+    @mock.patch("pythonforandroid.bootstrap.rmdir")
+    @mock.patch("pythonforandroid.bootstrap.shprint")
     def test_assemble_distribution(
         self,
-        mock_sh_cp,
-        mock_rmdir1,
-        mock_rmdir2,
-        mock_rmdir3,
+        mock_shprint,
+        mock_rmdir,
         mock_listdir,
         mock_chdir,
         mock_ensure_dir,
         mock_strip_libraries,
         mock_open_dist_files,
-        mock_open_sdl2_files,
-        mock_open_webview_files,
-        mock_open_service_only_files,
-        mock_open_qt_files
+        mock_open_bootstrap_files,
+        mock_open_qt_files,
+        mock_qt_rmdir,
+        mock_qt_shprint
     ):
         """
         A test for any overwritten method of
@@ -408,22 +413,30 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
         bs.assemble_distribution()
 
         mock_open_dist_files.assert_called_once_with("dist_info.json", "w")
-        mock_open_bootstraps = {
-            "sdl2": mock_open_sdl2_files,
-            "webview": mock_open_webview_files,
-            "service_only": mock_open_service_only_files,
-            "qt": mock_open_qt_files
-        }
+        # Qt bootstrap has its own assemble_distribution, others use base class
+        if self.bootstrap_name == "qt":
+            mock_open_bs = mock_open_qt_files
+        else:
+            mock_open_bs = mock_open_bootstrap_files
         expected_open_calls = {
             "sdl2": [
                 mock.call("local.properties", "w"),
                 mock.call("blacklist.txt", "a"),
             ],
-            "webview": [mock.call("local.properties", "w")],
-            "service_only": [mock.call("local.properties", "w")],
+            "sdl3": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
+            "webview": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
+            "service_only": [
+                mock.call("local.properties", "w"),
+                mock.call("blacklist.txt", "a"),
+            ],
             "qt": [mock.call("local.properties", "w")]
         }
-        mock_open_bs = mock_open_bootstraps[self.bootstrap_name]
         # test that the expected calls has been called
         for expected_call in expected_open_calls[self.bootstrap_name]:
             self.assertIn(expected_call, mock_open_bs.call_args_list)
@@ -432,7 +445,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             mock.call().__enter__().write("sdk.dir=/opt/android/android-sdk"),
             mock_open_bs.mock_calls,
         )
-        if self.bootstrap_name == "sdl2":
+        if self.bootstrap_name in ["sdl2", "sdl3", "webview", "service_only"]:
             self.assertIn(
                 mock.call()
                 .__enter__()
@@ -441,7 +454,7 @@ class GenericBootstrapTest(BaseClassSetupBootstrap):
             )
 
         # check that the other mocks we made are actually called
-        mock_sh_cp.assert_called()
+        mock_shprint.assert_called()
         mock_chdir.assert_called()
         mock_listdir.assert_called()
         mock_strip_libraries.assert_called()
@@ -613,6 +626,18 @@ class TestBootstrapSdl2(GenericBootstrapTest, unittest.TestCase):
     @property
     def bootstrap_name(self):
         return "sdl2"
+
+
+class TestBootstrapSdl3(GenericBootstrapTest, unittest.TestCase):
+    """
+    An inherited class of `GenericBootstrapTest` and `unittest.TestCase` which
+    will be used to perform tests for
+    :class:`~pythonforandroid.bootstraps.sdl3.BootstrapSdl3`.
+    """
+
+    @property
+    def bootstrap_name(self):
+        return "sdl3"
 
 
 class TestBootstrapServiceOnly(GenericBootstrapTest, unittest.TestCase):

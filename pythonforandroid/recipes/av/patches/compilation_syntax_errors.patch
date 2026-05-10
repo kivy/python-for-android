@@ -1,0 +1,27 @@
+diff --git a/av/container/streams.pyx b/av/container/streams.pyx
+index 17e4992..502ac5a 100644
+--- a/av/container/streams.pyx
++++ b/av/container/streams.pyx
+@@ -144,7 +144,7 @@ cdef class StreamContainer:
+ 
+         return stream_index
+ 
+-    def best(self, str type, /, Stream related = None):
++    def best(self, str type, Stream related=None):
+         """best(type: Literal["video", "audio", "subtitle", "attachment", "data"], /, related: Stream | None)
+         Finds the "best" stream in the file. Wraps :ffmpeg:`av_find_best_stream`. Example::
+ 
+diff --git a/av/filter/context.pyx b/av/filter/context.pyx
+index b820d3d..8908b56 100644
+--- a/av/filter/context.pyx
++++ b/av/filter/context.pyx
+@@ -77,7 +77,8 @@ cdef class FilterContext:
+     
+     @property
+     def graph(self):
+-        if (graph := self._graph()):
++        graph = self._graph()
++        if graph:
+             return graph
+         else:
+             raise RuntimeError("graph is unallocated")

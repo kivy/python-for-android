@@ -194,7 +194,7 @@ TYPE_TEXT_VARIATION_POSTAL_ADDRESS = 112
 TYPE_TEXT_VARIATION_URI = 16
 TYPE_CLASS_PHONE = 3
 
-IF BOOTSTRAP == 'sdl2':
+IF BOOTSTRAP in ['sdl2', 'sdl3']:
     def remove_presplash():
         # Remove android presplash in SDL2 bootstrap.
         mActivity.removeLoadingScreen()

@@ -1,0 +1,44 @@
+diff '--color=auto' -uNr scipy.git/meson.options scipy.git.patch/meson.options
+--- scipy.git/meson.options	2025-03-27 02:55:14.586853766 +0530
++++ scipy.git.patch/meson.options	2025-03-27 02:07:29.736674085 +0530
+@@ -2,6 +2,8 @@
+         description: 'option for BLAS library switching')
+ option('lapack', type: 'string', value: 'openblas',
+         description: 'option for LAPACK library switching')
++option('openblas_incldir', type: 'string', value: '', description: 'OpenBLAS include directory')
++option('openblas_libdir', type: 'string', value: '', description: 'OpenBLAS library directory')
+ option('use-g77-abi', type: 'boolean', value: false,
+         description: 'If set to true, forces using g77 compatibility wrappers ' +
+                      'for LAPACK functions. The default is to use gfortran ' +
+diff '--color=auto' -uNr scipy.git/scipy/meson.build scipy.git.patch/scipy/meson.build
+--- scipy.git/scipy/meson.build	2025-03-27 02:55:14.632428649 +0530
++++ scipy.git.patch/scipy/meson.build	2025-03-27 11:25:33.756445056 +0530
+@@ -268,10 +268,18 @@
+   endif
+ endif
+
++openblas_inc = get_option('openblas_incldir')
++openblas_lib = get_option('openblas_libdir')
++
++openblas_dep = declare_dependency(
++  include_directories: include_directories(openblas_inc),
++  link_args: ['-L' + openblas_lib, '-lopenblas']
++)
++
+ # pkg-config uses a lower-case name while CMake uses a capitalized name, so try
+ # that too to make the fallback detection with CMake work
+ if blas_name == 'openblas'
+-  blas = dependency(['openblas', 'OpenBLAS'])
++  blas = openblas_dep
+ elif blas_name != 'scipy-openblas'  # if so, we found it already
+   blas = dependency(blas_name)
+ endif
+@@ -295,7 +303,7 @@
+   # use that - no need to run the full detection twice.
+   lapack = blas
+ elif lapack_name == 'openblas'
+-  lapack = dependency(['openblas', 'OpenBLAS'])
++  lapack = openblas_dep
+ else
+   lapack = dependency(lapack_name)
+ endif

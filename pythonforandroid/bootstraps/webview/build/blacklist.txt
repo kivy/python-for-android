@@ -84,7 +84,7 @@ lib-dynload/_testcapi.so
 plat-linux3/regen
 
 #>sqlite3
-# conditionnal include depending if some recipes are included or not.
+# conditional include depending if some recipes are included or not.
 sqlite3/*
 lib-dynload/_sqlite3.so
 #<sqlite3

@@ -1,10 +1,10 @@
-from pythonforandroid.recipe import PythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 
 
-class PycryptodomeRecipe(PythonRecipe):
-    version = '3.6.3'
-    url = 'https://github.com/Legrandin/pycryptodome/archive/v{version}.tar.gz'
-    depends = ['setuptools', 'cffi']
+class PycryptodomeRecipe(PyProjectRecipe):
+    version = '3.23.0'
+    url = 'https://github.com/Legrandin/pycryptodome/archive/refs/tags/v{version}.tar.gz'
+    depends = ['cffi']
 
 
 recipe = PycryptodomeRecipe()

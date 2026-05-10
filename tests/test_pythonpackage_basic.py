@@ -12,6 +12,8 @@ import subprocess
 import tempfile
 import textwrap
 from unittest import mock
+import pytest
+from build import BuildBackendException
 
 from pythonforandroid.pythonpackage import (
     _extract_info_from_package,
@@ -85,7 +87,7 @@ def test_get_dep_names_of_package():
     # TEST 1 from external ref:
     # Check that colorama is returned without the install condition when
     # just getting the names (it has a "; ..." conditional originally):
-    dep_names = get_dep_names_of_package("python-for-android")
+    dep_names = get_dep_names_of_package("python-for-android==2023.9.16")
     assert "colorama" in dep_names
     assert "setuptools" not in dep_names
     try:
@@ -196,6 +198,93 @@ def test_parse_as_folder_reference():
     assert parse_as_folder_reference("/a/folder") == "/a/folder"
     assert parse_as_folder_reference("test @ /abc") == "/abc"
     assert parse_as_folder_reference("test @ https://bla") is None
+
+
+@pytest.mark.parametrize("input_ref,expected", [
+    # URL-encoded special characters
+    ("file:///path/with%40special", "/path/with@special"),
+    ("file:///path/with%23hash", "/path/with#hash"),
+    # Mixed @ syntax
+    ("pkg @ file:///path/to/pkg", "/path/to/pkg"),
+    # Empty and relative paths
+    ("", ""),
+    ("./relative", "./relative"),
+])
+def test_parse_as_folder_reference_edge_cases(input_ref, expected):
+    """Test edge cases in folder reference parsing."""
+    assert parse_as_folder_reference(input_ref) == expected
+
+
+@pytest.mark.parametrize("path,expected", [
+    # Relative paths (should be filesystem paths)
+    ("../parent", True),
+    ("~/home/path", True),
+    ("./current", True),
+    # Git URLs (should not be filesystem paths)
+    ("git+https://github.com/user/repo.git", False),
+    ("git+ssh://git@github.com/user/repo.git", False),
+    # Version specifiers (should not be filesystem paths)
+    ("package>=1.0,<2.0", False),
+    ("package[extra]>=1.0", False),
+])
+def test_is_filesystem_path_edge_cases(path, expected):
+    """Test additional edge cases for filesystem path detection."""
+    assert is_filesystem_path(path) == expected
+
+
+@pytest.mark.parametrize("input_dep,expected", [
+    # Query parameters
+    ("pkg @ https://example.com/pkg.zip?token=abc123", "https://example.com/pkg.zip?token=abc123#egg=pkg"),
+    # Fragments
+    ("pkg @ https://example.com/pkg.zip#sha256=abc", "https://example.com/pkg.zip#sha256=abc#egg=pkg"),
+])
+def test_transform_dep_for_pip_with_special_urls(input_dep, expected):
+    """Test dependency transformation with query parameters and fragments."""
+    assert transform_dep_for_pip(input_dep) == expected
+
+
+def test_transform_dep_for_pip_passthrough():
+    """Test passthrough for already-transformed URLs."""
+    url = "https://example.com/package.zip#egg=package"
+    assert transform_dep_for_pip(url) == url
+
+
+def test_get_package_name_with_error():
+    """Test get_package_name handles errors gracefully."""
+    # Test with invalid package that doesn't exist
+    with mock.patch("pythonforandroid.pythonpackage."
+                    "extract_metainfo_files_from_package") as mock_extract:
+        exception_message = "Package not found"
+        mock_extract.side_effect = Exception(exception_message)
+
+        with pytest.raises(Exception, match=exception_message):
+            get_package_name("nonexistent-package-xyz-123")
+
+
+def test_get_dep_names_error_handling():
+    """Test error handling in dependency extraction."""
+    # Use context manager to ensure cleanup even if test fails
+    with tempfile.TemporaryDirectory(prefix="p4a-error-test-") as temp_d:
+        # Create a setup.py that will fail
+        with open(os.path.join(temp_d, "setup.py"), "w") as f:
+            f.write("raise RuntimeError('Invalid setup.py')")
+
+        with pytest.raises(BuildBackendException, match="Backend subprocess exited when trying to invoke get_requires_for_build_wheel"):
+            get_dep_names_of_package(temp_d, recursive=False, verbose=True)
+
+
+def test_extract_info_from_package_missing_metadata():
+    """Test _extract_info_from_package raises error when metadata is missing."""
+    def fake_empty_metadata(dep_name, output_folder, debug=False):
+        # Don't create any metadata files
+        pass
+
+    with mock.patch("pythonforandroid.pythonpackage."
+                    "extract_metainfo_files_from_package",
+                    fake_empty_metadata):
+        # Should raise an exception when metadata is missing
+        with pytest.raises(FileNotFoundError):
+            _extract_info_from_package("test", extract_type="name")
 
 
 class TestGetSystemPythonExecutable():

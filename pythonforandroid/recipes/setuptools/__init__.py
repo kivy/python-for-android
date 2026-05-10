@@ -1,11 +1,8 @@
-from pythonforandroid.recipe import PythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 
 
-class SetuptoolsRecipe(PythonRecipe):
-    version = '51.3.3'
-    url = 'https://pypi.python.org/packages/source/s/setuptools/setuptools-{version}.tar.gz'
-    call_hostpython_via_targetpython = False
-    install_in_hostpython = True
+class SetuptoolsRecipe(PyProjectRecipe):
+    hostpython_prerequisites = ['setuptools']
 
 
 recipe = SetuptoolsRecipe()

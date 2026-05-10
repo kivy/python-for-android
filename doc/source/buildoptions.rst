@@ -36,7 +36,7 @@ sdl2
 Use this with ``--bootstrap=sdl2``, or just include the
 ``sdl2`` recipe, e.g. ``--requirements=sdl2,python3``.
 
-SDL2 is a popular cross-platform depelopment library, particularly for
+SDL2 is a popular cross-platform development library, particularly for
 games. It has its own Android project support, which
 python-for-android uses as a bootstrap, and to which it adds the
 Python build and JNI code to start it.
@@ -72,6 +72,10 @@ options (this list may not be exhaustive):
 - ``--permission``: A permission that needs to be declared into the App ``AndroidManifest.xml``.
   For multiple permissions, add multiple ``--permission`` arguments.
   ``--home-app`` Gives you the option to set your application as a home app (launcher) on your Android device.
+  ``--display-cutout``: A display cutout is an area on some devices that extends into the display surface.
+  It allows for an edge-to-edge experience while providing space for important sensors on the front of the device.
+  (Available options are ``default``, ``shortEdges``, ``never`` and defaults to ``never``)
+  `Android documentation <https://developer.android.com/develop/ui/views/layout/display-cutout>`__.
 
   .. Note ::
     ``--permission`` accepts the following syntaxes: 
@@ -246,7 +250,7 @@ across all the other bootstraps, the Qt bootstrap introduces the following 3 new
 These build options are automatically populated by the ``pyside6-android-deploy`` tool, but can be
 modified by updating the ``buildozer.spec`` file. Apart from the above 3 build options, the tool
 also automatically identifies the values to be fed into the cli options ``--permission``, ``--add-jar``
-depending on the PySide6 modules used by the applicaiton.
+depending on the PySide6 modules used by the application.
 
 Requirements blacklist (APK size optimization)
 ----------------------------------------------

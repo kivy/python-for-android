@@ -1,29 +1,27 @@
 package org.kivy.android;
 
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.File;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.Log;
 import android.widget.Toast;
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
-
 import org.renpy.android.AssetExtract;
 
 public class PythonUtil {
-	private static final String TAG = "pythonutil";
+    private static final String TAG = "pythonutil";
 
-    protected static void addLibraryIfExists(ArrayList<String> libsList, String pattern, File libsDir) {
+    protected static void addLibraryIfExists(
+            ArrayList<String> libsList, String pattern, File libsDir) {
         // pattern should be the name of the lib file, without the
         // preceding "lib" or suffix ".so", for instance "ssl.*" will
         // match files of the form "libssl.*.so".
-        File [] files = libsDir.listFiles();
+        File[] files = libsDir.listFiles();
 
         pattern = "lib" + pattern + "\\.so";
         Pattern p = Pattern.compile(pattern);
@@ -39,23 +37,32 @@ public class PythonUtil {
     }
 
     protected static ArrayList<String> getLibraries(File libsDir) {
-        ArrayList<String> libsList = new ArrayList<String>();
-        addLibraryIfExists(libsList, "sqlite3", libsDir);
-        addLibraryIfExists(libsList, "ffi", libsDir);
-        addLibraryIfExists(libsList, "png16", libsDir);
-        addLibraryIfExists(libsList, "ssl.*", libsDir);
-        addLibraryIfExists(libsList, "crypto.*", libsDir);
-        addLibraryIfExists(libsList, "SDL2", libsDir);
-        addLibraryIfExists(libsList, "SDL2_image", libsDir);
-        addLibraryIfExists(libsList, "SDL2_mixer", libsDir);
-        addLibraryIfExists(libsList, "SDL2_ttf", libsDir);
-        libsList.add("python3.5m");
-        libsList.add("python3.6m");
-        libsList.add("python3.7m");
-        libsList.add("python3.8");
-        libsList.add("python3.9");
-        libsList.add("python3.10");
-        libsList.add("python3.11");
+        ArrayList<String> libsList = new ArrayList<>();
+
+        String[] libNames = {
+            "sqlite3",
+            "ffi",
+            "png16",
+            "ssl.*",
+            "crypto.*",
+            "SDL2",
+            "SDL2_image",
+            "SDL2_mixer",
+            "SDL2_ttf",
+            "SDL3",
+            "SDL3_image",
+            "SDL3_mixer",
+            "SDL3_ttf"
+        };
+
+        for (String name : libNames) {
+            addLibraryIfExists(libsList, name, libsDir);
+        }
+
+        for (int v = 14; v >= 8; v--) {
+            libsList.add("python3." + v);
+        }
+
         libsList.add("main");
         return libsList;
     }
@@ -64,18 +71,21 @@ public class PythonUtil {
         boolean foundPython = false;
 
         for (String lib : getLibraries(libsDir)) {
+            if (lib.startsWith("python") && foundPython) {
+                continue;
+            }
             Log.v(TAG, "Loading library: " + lib);
             try {
                 System.loadLibrary(lib);
                 if (lib.startsWith("python")) {
                     foundPython = true;
                 }
-            } catch(UnsatisfiedLinkError e) {
+            } catch (UnsatisfiedLinkError e) {
                 // If this is the last possible libpython
                 // load, and it has failed, give a more
                 // general error
                 Log.v(TAG, "Library loading error: " + e.getMessage());
-                if (lib.startsWith("python3.11") && !foundPython) {
+                if (lib.startsWith("python3.8") && !foundPython) {
                     throw new RuntimeException("Could not load any libpythonXXX.so");
                 } else if (lib.startsWith("python")) {
                     continue;
@@ -101,15 +111,14 @@ public class PythonUtil {
         return res.getString(id);
     }
 
-    /**
-     * Show an error using a toast. (Only makes sense from non-UI threads.)
-     */
+    /** Show an error using a toast. (Only makes sense from non-UI threads.) */
     protected static void toastError(final Activity activity, final String msg) {
-        activity.runOnUiThread(new Runnable () {
-            public void run() {
-                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
-            }
-        });
+        activity.runOnUiThread(
+                new Runnable() {
+                    public void run() {
+                        Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+                    }
+                });
 
         // Wait to show the error.
         synchronized (activity) {
@@ -130,10 +139,7 @@ public class PythonUtil {
     }
 
     public static void unpackAsset(
-        Context ctx,
-        final String resource,
-        File target,
-        boolean cleanup_on_version_update) {
+            Context ctx, final String resource, File target, boolean cleanup_on_version_update) {
 
         Log.v(TAG, "Unpacking " + resource + " " + target.getName());
 
@@ -163,7 +169,7 @@ public class PythonUtil {
         }
 
         // If the disk data is out of date, extract it and write the version file.
-        if (! dataVersion.equals(diskVersion)) {
+        if (!dataVersion.equals(diskVersion)) {
             Log.v(TAG, "Extracting " + resource + " assets.");
 
             if (cleanup_on_version_update) {
@@ -175,7 +181,7 @@ public class PythonUtil {
             if (!ae.extractTar(resource + ".tar", target.getAbsolutePath(), "private")) {
                 String msg = "Could not extract " + resource + " data.";
                 if (ctx instanceof Activity) {
-                    toastError((Activity)ctx, msg);
+                    toastError((Activity) ctx, msg);
                 } else {
                     Log.v(TAG, msg);
                 }
@@ -196,10 +202,7 @@ public class PythonUtil {
     }
 
     public static void unpackPyBundle(
-        Context ctx,
-        final String resource,
-        File target,
-        boolean cleanup_on_version_update) {
+            Context ctx, final String resource, File target, boolean cleanup_on_version_update) {
 
         Log.v(TAG, "Unpacking " + resource + " " + target.getName());
 
@@ -228,7 +231,7 @@ public class PythonUtil {
             diskVersion = "";
         }
 
-        if (! dataVersion.equals(diskVersion)) {
+        if (!dataVersion.equals(diskVersion)) {
             // If the disk data is out of date, extract it and write the version file.
             Log.v(TAG, "Extracting " + resource + " assets.");
 
@@ -241,7 +244,7 @@ public class PythonUtil {
             if (!ae.extractTar(resource + ".so", target.getAbsolutePath(), "pybundle")) {
                 String msg = "Could not extract " + resource + " data.";
                 if (ctx instanceof Activity) {
-                    toastError((Activity)ctx, msg);
+                    toastError((Activity) ctx, msg);
                 } else {
                     Log.v(TAG, msg);
                 }

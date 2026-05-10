@@ -4,7 +4,7 @@ from pythonforandroid.recipe import PythonRecipe
 
 class PyZBarRecipe(PythonRecipe):
 
-    version = '0.1.7'
+    version = '0.1.9'
 
     url = 'https://github.com/NaturalHistoryMuseum/pyzbar/archive/v{version}.tar.gz'  # noqa
 

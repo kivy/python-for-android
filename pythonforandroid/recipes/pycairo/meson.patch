@@ -1,0 +1,24 @@
+diff '--color=auto' -uNr pycairo-1.28.0/cairo/meson.build pycairo-1.28.0.mod/cairo/meson.build
+--- pycairo-1.28.0/cairo/meson.build	2025-04-15 00:22:30.000000000 +0530
++++ pycairo-1.28.0.mod/cairo/meson.build	2025-07-14 21:56:34.782983845 +0530
+@@ -28,7 +28,10 @@
+   fs.copyfile(python_file, python_file)
+ endforeach
+ 
+-cairo_dep = dependency('cairo', version: cair_version_req, required: cc.get_id() != 'msvc')
++cairo_dep = declare_dependency(
++  include_directories: include_directories(get_option('cairo_include')),
++  link_args: ['-L' + get_option('cairo_lib'), '-lcairo']
++)
+ 
+ if cc.get_id() == 'msvc' and not cairo_dep.found()
+   if cc.has_header('cairo.h')
+diff '--color=auto' -uNr pycairo-1.28.0/meson_options.txt pycairo-1.28.0.mod/meson_options.txt
+--- pycairo-1.28.0/meson_options.txt	2025-04-15 00:22:30.000000000 +0530
++++ pycairo-1.28.0.mod/meson_options.txt	2025-07-14 21:56:52.824191314 +0530
+@@ -1,3 +1,5 @@
+ option('python', type : 'string', value : 'python3')
+ option('tests', type : 'boolean', value : true, description : 'build unit tests')
+ option('wheel', type : 'boolean', value : false, description : 'build for a Python wheel')
++option('cairo_include', type: 'string', value: '', description: 'Path to cairo headers')
++option('cairo_lib', type: 'string', value: '', description: 'Path to cairo libraries')

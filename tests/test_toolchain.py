@@ -84,9 +84,9 @@ class TestToolchainCL:
         ]
         build_order = [
             'hostpython3', 'libffi', 'openssl', 'sqlite3', 'python3',
-            'genericndkbuild', 'setuptools', 'six', 'pyjnius', 'android',
+            'genericndkbuild', 'pyjnius', 'android',
         ]
-        python_modules = []
+        python_modules = ['six']
         context = mock.ANY
         project_dir = None
         assert m_build_recipes.call_args_list == [

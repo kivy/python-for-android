@@ -8,11 +8,13 @@ import sh
 import shlex
 import shutil
 
-from pythonforandroid.logger import (shprint, info, logger, debug)
+from pythonforandroid.logger import (shprint, info, info_main, logger, debug)
 from pythonforandroid.util import (
     current_directory, ensure_dir, temp_directory, BuildInterruptingException,
     rmdir, move)
 from pythonforandroid.recipe import Recipe
+
+SDL_BOOTSTRAPS = ("sdl2", "sdl3")
 
 
 def copy_files(src_root, dest_root, override=True, symlink=False):
@@ -39,7 +41,7 @@ def copy_files(src_root, dest_root, override=True, symlink=False):
 
 
 default_recipe_priorities = [
-    "webview", "sdl2", "service_only"  # last is highest
+    "webview", "sdl2", "sdl3", "service_only"  # last is highest
 ]
 # ^^ NOTE: these are just the default priorities if no special rules
 # apply (which you can find in the code below), so basically if no
@@ -150,18 +152,18 @@ class Bootstrap:
         return bootstrap_dirs
 
     def _copy_in_final_files(self):
-        if self.name == "sdl2":
-            # Get the paths for copying SDL2's java source code:
-            sdl2_recipe = Recipe.get_recipe("sdl2", self.ctx)
-            sdl2_build_dir = sdl2_recipe.get_jni_dir()
-            src_dir = join(sdl2_build_dir, "SDL", "android-project",
+        if self.name in SDL_BOOTSTRAPS:
+            # Get the paths for copying SDL's java source code:
+            sdl_recipe = Recipe.get_recipe(self.name, self.ctx)
+            sdl_build_dir = sdl_recipe.get_jni_dir()
+            src_dir = join(sdl_build_dir, "SDL", "android-project",
                            "app", "src", "main", "java",
                            "org", "libsdl", "app")
             target_dir = join(self.dist_dir, 'src', 'main', 'java', 'org',
                               'libsdl', 'app')
 
             # Do actual copying:
-            info('Copying in SDL2 .java files from: ' + str(src_dir))
+            info('Copying in SDL .java files from: ' + str(src_dir))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
             copy_files(src_dir, target_dir, override=True)
@@ -182,18 +184,59 @@ class Bootstrap:
     def prepare_dist_dir(self):
         ensure_dir(self.dist_dir)
 
+    def _assemble_distribution_for_arch(self, arch):
+        """Per-architecture distribution assembly.
+
+        Override this method to customize per-arch behavior.
+        Called once for each architecture in self.ctx.archs.
+        """
+        self.distribute_libs(arch, [self.ctx.get_libs_dir(arch.arch)])
+        self.distribute_aars(arch)
+
+        python_bundle_dir = join(f'_python_bundle__{arch.arch}', '_python_bundle')
+        ensure_dir(python_bundle_dir)
+        site_packages_dir = self.ctx.python_recipe.create_python_bundle(
+            join(self.dist_dir, python_bundle_dir), arch)
+        if not self.ctx.with_debug_symbols:
+            self.strip_libraries(arch)
+        self.fry_eggs(site_packages_dir)
+
     def assemble_distribution(self):
-        ''' Copies all the files into the distribution (this function is
-            overridden by the specific bootstrap classes to do this)
-            and add in the distribution info.
-        '''
+        """Assemble the distribution by copying files and creating Python bundle.
+
+        This default implementation works for most bootstraps. Override
+        _assemble_distribution_for_arch() for per-arch customization, or
+        override this entire method for fundamentally different behavior.
+        """
+        info_main(f'# Creating Android project ({self.name})')
+
+        rmdir(self.dist_dir)
+        shprint(sh.cp, '-r', self.build_dir, self.dist_dir)
+
+        with current_directory(self.dist_dir):
+            with open('local.properties', 'w') as fileh:
+                fileh.write('sdk.dir={}'.format(self.ctx.sdk_dir))
+
+        with current_directory(self.dist_dir):
+            info('Copying Python distribution')
+
+            self.distribute_javaclasses(self.ctx.javaclass_dir,
+                                        dest_dir=join("src", "main", "java"))
+
+            for arch in self.ctx.archs:
+                self._assemble_distribution_for_arch(arch)
+
+            if 'sqlite3' not in self.ctx.recipe_build_order:
+                with open('blacklist.txt', 'a') as fileh:
+                    fileh.write('\nsqlite3/*\nlib-dynload/_sqlite3.so\n')
+
         self._copy_in_final_files()
         self.distribution.save_info(self.dist_dir)
 
     @classmethod
     def all_bootstraps(cls):
         '''Find all the available bootstraps and return them.'''
-        forbidden_dirs = ('__pycache__', 'common')
+        forbidden_dirs = ('__pycache__', 'common', '_sdl_common')
         bootstraps_dir = join(dirname(__file__), 'bootstraps')
         result = set()
         for name in listdir(bootstraps_dir):
@@ -271,6 +314,13 @@ class Bootstrap:
                 ):
             info('Using sdl2 bootstrap since it is in dependencies')
             return cls.get_bootstrap("sdl2", ctx)
+
+        # Special rule: return SDL3 bootstrap if there's an sdl3 dep:
+        if (have_dependency_in_recipes("sdl3") and
+                "sdl3" in [b.name for b in acceptable_bootstraps]
+                ):
+            info('Using sdl3 bootstrap since it is in dependencies')
+            return cls.get_bootstrap("sdl3", ctx)
 
         # Special rule: return "webview" if we depend on common web recipe:
         for possible_web_dep in known_web_packages:

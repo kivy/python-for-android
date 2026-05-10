@@ -35,9 +35,9 @@ class TestGeventRecipe(RecipeCtx, unittest.TestCase):
             'LDFLAGS': mocked_ldflags,
             'LDLIBS': mocked_ldlibs,
         }
-        with patch('pythonforandroid.recipe.CythonRecipe.get_recipe_env') as m_get_recipe_env:
+        with patch('pythonforandroid.recipe.PyProjectRecipe.get_recipe_env') as m_get_recipe_env:
             m_get_recipe_env.return_value = mocked_env
-            env = self.recipe.get_recipe_env()
+            env = self.recipe.get_recipe_env(self.arch)
         expected_cflags = (
             ' -fomit-frame-pointer -mandroid -isystem /path/to/isystem'
             ' -isysroot /path/to/sysroot'
@@ -57,11 +57,13 @@ class TestGeventRecipe(RecipeCtx, unittest.TestCase):
         )
         expected_ldlibs = mocked_ldlibs
         expected_libs = '-lm -lpython3.7m -lm'
+        expected_command_prefix = 'aarch64-linux-android'
         expected_env = {
             'CFLAGS': expected_cflags,
             'CPPFLAGS': expected_cppflags,
             'LDFLAGS': expected_ldflags,
             'LDLIBS': expected_ldlibs,
             'LIBS': expected_libs,
+            'COMMAND_PREFIX': expected_command_prefix,
         }
         self.assertEqual(expected_env, env)

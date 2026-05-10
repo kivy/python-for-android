@@ -1,0 +1,8 @@
+diff '--color=auto' -uNr freetype-py-2.5.1/MANIFEST.in freetype-py-2.5.1.mod/MANIFEST.in
+--- freetype-py-2.5.1/MANIFEST.in	2024-08-29 23:12:30.000000000 +0530
++++ freetype-py-2.5.1.mod/MANIFEST.in	2025-10-26 11:54:45.052025521 +0530
+@@ -9,3 +9,4 @@
+ include LICENSE.txt
+ include README.rst
+ include setup-build-freetype.py
++recursive-include _custom_build *.py

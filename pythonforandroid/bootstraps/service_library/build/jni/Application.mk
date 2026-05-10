@@ -1,0 +1,2 @@
+APP_PLATFORM := $(NDK_API)
+APP_ABI := $(ARCH)

@@ -101,9 +101,9 @@ def test_blacklist():
         get_recipe_order_and_bootstrap(ctx, ["flask", "kivy"], wbootstrap)
     assert "conflict" in e_info.value.message.lower()
 
-    # We should no longer get a conflict blacklisting sdl2:
+    # We should no longer get a conflict blacklisting sdl2 and sdl3
     get_recipe_order_and_bootstrap(
-        ctx, ["flask", "kivy"], wbootstrap, blacklist=["sdl2"]
+        ctx, ["flask", "kivy"], wbootstrap, blacklist=["sdl2", "sdl3"]
     )
 
 

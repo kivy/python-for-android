@@ -36,5 +36,9 @@ coverage.xml
 # testapp's build folder
 testapps/build/
 
+# Gradle build artifacts (Java linting)
+pythonforandroid/bootstraps/.gradle/
+pythonforandroid/bootstraps/build/
+
 # Dolphin (the KDE file manager autogenerates the file `.directory`)
 .directory

@@ -230,3 +230,70 @@ class TestUtil(unittest.TestCase):
         result = util.max_build_tool_version(build_tools_versions)
 
         self.assertEqual(result, expected_result)
+
+    def test_load_source(self):
+        """
+        Test method :meth:`~pythonforandroid.util.load_source`.
+        We test loading a Python module from a file path using importlib.
+        """
+        with TemporaryDirectory() as temp_dir:
+            # Create a test module file
+            test_module_path = Path(temp_dir) / "test_module.py"
+            with open(test_module_path, "w") as f:
+                f.write("TEST_VALUE = 42\n")
+                f.write("def test_function():\n")
+                f.write("    return 'hello'\n")
+
+            # Load the module
+            loaded_module = util.load_source("test_module", str(test_module_path))
+
+            # Verify the module was loaded correctly
+            self.assertEqual(loaded_module.TEST_VALUE, 42)
+            self.assertEqual(loaded_module.test_function(), 'hello')
+
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("shutil.rmtree")
+    def test_rmdir_exists(self, mock_rmtree, mock_exists):
+        """
+        Test method :meth:`~pythonforandroid.util.rmdir` when directory exists.
+        We mock exists to return True and verify rmtree is called.
+        """
+        mock_exists.return_value = True
+        util.rmdir("/fake/directory")
+        mock_rmtree.assert_called_once_with("/fake/directory", False)
+
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("shutil.rmtree")
+    def test_rmdir_not_exists(self, mock_rmtree, mock_exists):
+        """
+        Test method :meth:`~pythonforandroid.util.rmdir` when directory doesn't exist.
+        We mock exists to return False and verify rmtree is not called.
+        """
+        mock_exists.return_value = False
+        util.rmdir("/fake/directory")
+        mock_rmtree.assert_not_called()
+
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("shutil.rmtree")
+    def test_rmdir_ignore_errors(self, mock_rmtree, mock_exists):
+        """
+        Test method :meth:`~pythonforandroid.util.rmdir` with ignore_errors flag.
+        We verify that the ignore_errors parameter is passed to rmtree.
+        """
+        mock_exists.return_value = True
+        util.rmdir("/fake/directory", ignore_errors=True)
+        mock_rmtree.assert_called_once_with("/fake/directory", True)
+
+    @mock.patch("pythonforandroid.util.mock")
+    def test_patch_wheel_setuptools_logging(self, mock_mock):
+        """
+        Test method :meth:`~pythonforandroid.util.patch_wheel_setuptools_logging`.
+        We verify it returns a mock.patch object for the wheel logging module.
+        """
+        mock_patch_obj = mock.Mock()
+        mock_mock.patch.return_value = mock_patch_obj
+
+        result = util.patch_wheel_setuptools_logging()
+
+        mock_mock.patch.assert_called_once_with("wheel._setuptools_logging.configure")
+        self.assertEqual(result, mock_patch_obj)

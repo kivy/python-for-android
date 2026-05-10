@@ -1,0 +1,13 @@
+--- pyjnius-1.6.1/setup.py	2023-11-05 21:07:43.000000000 +0530
++++ pyjnius-1.6.1.mod/setup.py	2025-03-01 14:47:11.964847337 +0530
+@@ -59,10 +59,6 @@
+ if NDKPLATFORM is not None and getenv('LIBLINK'):
+     PLATFORM = 'android'
+ 
+-# detect platform
+-if PLATFORM == 'android':
+-    PYX_FILES = [fn[:-3] + 'c' for fn in PYX_FILES]
+-
+ JAVA=get_java_setup(PLATFORM)
+ 
+ assert JAVA.is_jdk(), "You need a JDK, we only found a JRE. Try setting JAVA_HOME"

@@ -52,13 +52,14 @@ class TestIcuRecipe(RecipeCtx, unittest.TestCase):
 
         # We expect some calls to `sh.Command`
         build_root = self.recipe.get_build_dir(self.arch.arch)
-        mock_sh_command.has_calls(
+        mock_sh_command.assert_has_calls(
             [
                 mock.call(
                     os.path.join(build_root, "source", "runConfigureICU")
                 ),
                 mock.call(os.path.join(build_root, "source", "configure")),
-            ]
+            ],
+            any_order=True
         )
         mock_ensure_dir.assert_called()
         mock_chdir.assert_called()

@@ -1,0 +1,64 @@
+diff '--color=auto' -uNr cairo-1.18.4/meson.build cairo-1.18.4.mod/meson.build
+--- cairo-1.18.4/meson.build	2025-03-08 18:53:25.000000000 +0530
++++ cairo-1.18.4.mod/meson.build	2025-07-14 20:42:56.226164648 +0530
+@@ -235,11 +235,13 @@
+   conf.set('HAVE_ZLIB', 1)
+ endif
+ 
+-png_dep = dependency('libpng',
+-  required: get_option('png'),
+-  version: libpng_required_version,
+-  fallback: ['libpng', 'libpng_dep']
++png_inc = include_directories(get_option('png_include_dir'))
++png_lib = cc.find_library('png16', dirs: [get_option('png_lib_dir')], required: true)
++png_dep = declare_dependency(
++  include_directories: png_inc,
++  dependencies: [png_lib]
+ )
++
+ if png_dep.found()
+   feature_conf.set('CAIRO_HAS_SVG_SURFACE', 1)
+   feature_conf.set('CAIRO_HAS_PNG_FUNCTIONS', 1)
+@@ -265,7 +267,7 @@
+ 
+ # Disable fontconfig by default on platforms where it is optional
+ fontconfig_option = get_option('fontconfig')
+-fontconfig_required = host_machine.system() not in ['windows', 'darwin']
++fontconfig_required = false 
+ fontconfig_option = fontconfig_option.disable_auto_if(not fontconfig_required)
+ 
+ fontconfig_dep = dependency('fontconfig',
+@@ -304,11 +306,14 @@
+ freetype_required = host_machine.system() not in ['windows', 'darwin']
+ freetype_option = freetype_option.disable_auto_if(not freetype_required)
+ 
+-freetype_dep = dependency('freetype2',
+-  required: freetype_option,
+-  version: freetype_required_version,
+-  fallback: ['freetype2', 'freetype_dep'],
++freetype_inc = include_directories(get_option('freetype_include_dir'))
++freetype_lib = cc.find_library('freetype', dirs: [get_option('freetype_lib_dir')], required: true)
++
++freetype_dep = declare_dependency(
++  include_directories: freetype_inc,
++  dependencies: [freetype_lib]
+ )
++
+ if freetype_dep.found()
+   feature_conf.set('CAIRO_HAS_FT_FONT', 1)
+   built_features += [{
+diff '--color=auto' -uNr cairo-1.18.4/meson.options cairo-1.18.4.mod/meson.options
+--- cairo-1.18.4/meson.options	2025-03-08 18:53:25.000000000 +0530
++++ cairo-1.18.4.mod/meson.options	2025-07-14 20:43:00.473191452 +0530
+@@ -28,3 +28,11 @@
+ # Documentation
+ option('gtk_doc', type : 'boolean', value : false,
+        description: 'Build the Cairo API reference (depends on gtk-doc)')
++
++# Deps
++
++option('png_include_dir', type: 'string', value: '', description: 'Path to PNG headers')
++option('png_lib_dir', type: 'string', value: '', description: 'Path to PNG library')
++option('freetype_include_dir', type: 'string', value: '', description: 'Path to FreeType headers')
++option('freetype_lib_dir', type: 'string', value: '', description: 'Path to FreeType library')
++

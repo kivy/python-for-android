@@ -1,0 +1,11 @@
+--- kivy-master/setup.py	2025-02-25 03:08:18.000000000 +0530
++++ kivy-master.mod/setup.py	2025-03-01 13:10:24.227808612 +0530
+@@ -249,7 +249,7 @@
+ # This determines whether Cython specific functionality may be used.
+ can_use_cython = True
+ 
+-if platform in ('ios', 'android'):
++if platform in ('ios'):
+     # NEVER use or declare cython on these platforms
+     print('Not using cython on %s' % platform)
+     can_use_cython = False
