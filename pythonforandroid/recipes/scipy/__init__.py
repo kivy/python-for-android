@@ -12,12 +12,15 @@ class ScipyRecipe(MesonRecipe):
     depends = ["numpy", "libopenblas", "fortran"]
     need_stl_shared = True
     meson_version = "1.5.0"
-    hostpython_prerequisites = ["numpy", "Cython>=3.0.8"]
+    hostpython_prerequisites = [
+        "numpy",
+        "Cython>=3.0.8",
+        "pybind11>=2.13.2,<3.1.0",
+    ]
     patches = ["meson.patch"]
 
     def get_recipe_meson_options(self, arch):
         options = super().get_recipe_meson_options(arch)
-        options["binaries"]["python"] = self.ctx.python_recipe.python_exe
         options["binaries"]["fortran"] = self.place_wrapper(arch)
         options["properties"]["numpy-include-dir"] = join(
             self.ctx.get_python_install_dir(arch.arch), "numpy/_core/include"

@@ -1,6 +1,5 @@
 
 import glob
-from io import open  # for open(..,encoding=...) parameter in python 2
 from os import walk
 from os.path import join, dirname, sep
 import re
@@ -95,7 +94,7 @@ setup(name='python-for-android',
       ),
       long_description=long_description,
       long_description_content_type='text/markdown',
-      python_requires=">=3.7.0",
+      python_requires=">=3.10.0",
       author='Kivy Team and other contributors',
       author_email='kivy-dev@googlegroups.com',
       url='https://github.com/kivy/python-for-android',
@@ -123,11 +122,11 @@ setup(name='python-for-android',
           'Operating System :: Android',
           'Programming Language :: C',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.7',
-          'Programming Language :: Python :: 3.8',
-          'Programming Language :: Python :: 3.9',
           'Programming Language :: Python :: 3.10',
           'Programming Language :: Python :: 3.11',
+          'Programming Language :: Python :: 3.12',
+          'Programming Language :: Python :: 3.13',
+          'Programming Language :: Python :: 3.14',
           'Topic :: Software Development',
           'Topic :: Utilities',
           ],

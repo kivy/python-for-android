@@ -7,17 +7,25 @@ from pythonforandroid.recipe import PyProjectRecipe
 from pythonforandroid.toolchain import current_directory, shprint
 
 
-def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
+def get_kivy_version(recipe, arch):
     with current_directory(join(recipe.get_build_dir(arch.arch), "kivy")):
-        kivy_version = shprint(
+        return shprint(
             sh.Command(sys.executable),
             "-c",
             "import _version; print(_version.__version__)",
         )
 
-        return packaging.version.parse(
-            str(kivy_version)
-        ) < packaging.version.Version("2.2.0.dev0")
+
+def is_kivy_affected_by_deadlock_issue(recipe=None, arch=None):
+    return packaging.version.parse(
+        str(get_kivy_version(recipe, arch))
+    ) < packaging.version.Version("2.2.0.dev0")
+
+
+def is_kivy_less_than_3(recipe=None, arch=None):
+    return packaging.version.parse(
+        str(get_kivy_version(recipe, arch))
+    ) < packaging.version.Version("3.0.0.dev0")
 
 
 class KivyRecipe(PyProjectRecipe):
@@ -34,7 +42,7 @@ class KivyRecipe(PyProjectRecipe):
     # WARNING: Remove this patch when a new Kivy version is released.
     patches = [
         ("sdl-gl-swapwindow-nogil.patch", is_kivy_affected_by_deadlock_issue),
-        "use_cython.patch",
+        ("use_cython.patch", is_kivy_less_than_3),
         "no-ast-str.patch"
     ]
 
@@ -59,6 +67,9 @@ class KivyRecipe(PyProjectRecipe):
 
         # NDKPLATFORM is our switch for detecting Android platform, so can't be None
         env['NDKPLATFORM'] = "NOTNONE"
+        if not is_kivy_less_than_3(self, arch):
+            env['KIVY_CROSS_PLATFORM'] = 'android'
+
         if 'sdl2' in self.ctx.recipe_build_order:
             env['USE_SDL2'] = '1'
             env['KIVY_SPLIT_EXAMPLES'] = '1'
