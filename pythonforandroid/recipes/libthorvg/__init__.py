@@ -9,13 +9,13 @@ import sh
 
 class LibThorVGRecipe(MesonRecipe):
     name = "libthorvg"
-    version = "1.0.1"
-    url = "https://github.com/thorvg/thorvg/releases/download/v{version}/thorvg.tar.gz"
+    version = "1.0.5"
+    url = "https://github.com/thorvg/thorvg/archive/refs/tags/v{version}.tar.gz"
     config_otps = [
         "-Dsimd=true",
         "-Dbindings=capi",
         "-Dtools=all",
-        "-Dengines=sw,gl",
+        "-Dengines=cpu,gl",
         "-Dloaders=svg,png,jpg,ttf,webp",
         "-Dextra=opengl_es,lottie_exp,openmp",
     ]
