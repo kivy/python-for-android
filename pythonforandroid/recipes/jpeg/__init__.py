@@ -14,9 +14,7 @@ class JpegRecipe(Recipe):
     name = 'jpeg'
     version = '2.0.1'
     url = 'https://github.com/libjpeg-turbo/libjpeg-turbo/archive/{version}.tar.gz'  # noqa
-    built_libraries = {'libjpeg.a': '.', 'libturbojpeg.a': '.'}
-    # we will require this below patch to build the shared library
-    # patches = ['remove-version.patch']
+    built_libraries = {'libjpeg.so': '.', 'libturbojpeg.so': '.'}
 
     def build_arch(self, arch):
         build_dir = self.get_build_dir(arch.arch)
@@ -34,6 +32,8 @@ class JpegRecipe(Recipe):
                     '-DCMAKE_ANDROID_ARCH_ABI={arch}'.format(arch=arch.arch),
                     '-DCMAKE_ANDROID_NDK=' + self.ctx.ndk_dir,
                     '-DCMAKE_C_COMPILER={cc}'.format(cc=arch.get_clang_exe()),
+                    f'-DCMAKE_ASM_COMPILER={arch.get_clang_exe()}',
+                    f'-DCMAKE_ASM_FLAGS=--target={arch.target}',
                     '-DCMAKE_CXX_COMPILER={cc_plus}'.format(
                         cc_plus=arch.get_clang_exe(plus_plus=True)),
                     '-DCMAKE_BUILD_TYPE=Release',
@@ -42,12 +42,11 @@ class JpegRecipe(Recipe):
 
                     '-DANDROID_ABI={arch}'.format(arch=arch.arch),
                     '-DANDROID_ARM_NEON=ON',
-                    '-DENABLE_NEON=ON',
-                    # '-DREQUIRE_SIMD=1',
+                    '-DWITH_SIMD=1',
+                    '-DREQUIRE_SIMD=1',
 
                     # Force disable shared, with the static ones is enough
-                    '-DENABLE_SHARED=0',
-                    '-DENABLE_STATIC=1',
+                    '-DENABLE_SHARED=1',
 
                     # Fix cmake compatibility issue
                     '-DCMAKE_POLICY_VERSION_MINIMUM=3.5',
