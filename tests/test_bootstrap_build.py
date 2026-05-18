@@ -6,18 +6,22 @@ import os
 from pythonforandroid.util import load_source
 
 
+def load_bootstrap_build_module():
+    os.environ["P4A_BUILD_IS_RUNNING_UNITTESTS"] = "1"
+
+    build_src = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "../pythonforandroid/bootstraps/common/build/build.py",
+    )
+
+    buildpy = load_source("buildpy", build_src)
+    buildpy.get_bootstrap_name = mock.Mock(return_value="sdl2")
+    return buildpy
+
+
 class TestBootstrapBuild(unittest.TestCase):
     def setUp(self):
-        os.environ["P4A_BUILD_IS_RUNNING_UNITTESTS"] = "1"
-
-        build_src = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "../pythonforandroid/bootstraps/common/build/build.py",
-        )
-
-        self.buildpy = load_source("buildpy", build_src)
-        self.buildpy.get_bootstrap_name = mock.Mock(return_value="sdl2")
-
+        self.buildpy = load_bootstrap_build_module()
         self.ap = self.buildpy.create_argument_parser()
 
         self.common_args = [
@@ -178,3 +182,50 @@ class TestOrientationArg(TestBootstrapBuild):
 
         assert "LandscapeLeft" in sdl_orientation_hint
         assert "Portrait" in sdl_orientation_hint
+
+
+class TestAndroidNumericVersion:
+    def setup_method(self):
+        self.buildpy = load_bootstrap_build_module()
+
+    def test_generates_default_three_part_version_code(self):
+        assert self.buildpy.get_android_numeric_version("1.0.5", 24) == "102410005"
+
+    def test_accepts_and_normalizes_explicit_numeric_version(self):
+        assert self.buildpy.validate_android_numeric_version("0000001") == "1"
+        assert self.buildpy.validate_android_numeric_version(2100000000) == "2100000000"
+
+    @pytest.mark.parametrize("numeric_version", ["abc", "1.2", "", None])
+    def test_rejects_non_integer_explicit_numeric_versions(self, numeric_version):
+        with pytest.raises(ValueError, match="--numeric-version.*decimal integer"):
+            self.buildpy.validate_android_numeric_version(numeric_version)
+
+    @pytest.mark.parametrize("numeric_version", ["0", 0, "-1", -1])
+    def test_rejects_non_positive_explicit_numeric_versions(self, numeric_version):
+        with pytest.raises(ValueError, match="--numeric-version.*greater than 0"):
+            self.buildpy.validate_android_numeric_version(numeric_version)
+
+    @pytest.mark.parametrize("numeric_version", ["2100000001", 2100000001])
+    def test_rejects_oversized_explicit_numeric_versions(self, numeric_version):
+        with pytest.raises(
+            ValueError, match="--numeric-version.*2100000000"
+        ):
+            self.buildpy.validate_android_numeric_version(numeric_version)
+
+    def test_rejects_generated_overflow_and_mentions_version_name(self):
+        generated_version = self.buildpy.get_android_numeric_version("1.0.5.1", 24)
+
+        with pytest.raises(
+            ValueError,
+            match="Generated Android versionCode .*--version '1\\.0\\.5\\.1'.*--numeric-version.*2100000000",
+        ):
+            self.buildpy.validate_android_numeric_version(
+                generated_version, generated_from_version="1.0.5.1"
+            )
+
+    def test_rejects_non_numeric_version_name_for_generation(self):
+        with pytest.raises(
+            ValueError,
+            match="Could not generate Android versionCode from --version '1\\.0\\.beta'.*versionName.*--numeric-version",
+        ):
+            self.buildpy.get_android_numeric_version("1.0.beta", 24)

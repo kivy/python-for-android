@@ -56,7 +56,14 @@ options (this list may not be exhaustive):
 - ``--private``: The directory containing your project files.
 - ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
-- ``--version``: The version number.
+- ``--version``: The display version shown to users. On Android this is
+  rendered as ``versionName``.
+- ``--numeric-version``: The Android ``versionCode`` used for update ordering.
+  This must be a positive integer no greater than ``2100000000``. If omitted,
+  python-for-android computes it from ``--version``. If the computed value is
+  too large, keep the display version in ``--version`` and set a valid
+  ``--numeric-version``. See Android's
+  `versionCode documentation <https://developer.android.com/tools/publishing/versioning>`__.
 - ``--orientation``: The orientations that the app will display in.
   (Available options are ``portrait``, ``landscape``, ``portrait-reverse``, ``landscape-reverse``).
   Since Android ignores ``android:screenOrientation`` when in multi-window mode
@@ -145,7 +152,14 @@ ready.
 - ``--private``: The directory containing your project files.
 - ``--package``: The Java package name for your project. e.g. ``org.example.yourapp``.
 - ``--name``: The app name.
-- ``--version``: The version number.
+- ``--version``: The display version shown to users. On Android this is
+  rendered as ``versionName``.
+- ``--numeric-version``: The Android ``versionCode`` used for update ordering.
+  This must be a positive integer no greater than ``2100000000``. If omitted,
+  python-for-android computes it from ``--version``. If the computed value is
+  too large, keep the display version in ``--version`` and set a valid
+  ``--numeric-version``. See Android's
+  `versionCode documentation <https://developer.android.com/tools/publishing/versioning>`__.
 - ``--orientation``: The orientations that the app will display in.
   (Available options are ``portrait``, ``landscape``, ``portrait-reverse``, ``landscape-reverse``).
   Since Android ignores ``android:screenOrientation`` when in multi-window mode
