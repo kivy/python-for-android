@@ -301,27 +301,22 @@ public class PythonActivity extends SDLActivity {
             String serviceDescription,
             String pythonServiceArgument,
             boolean showForegroundNotification) {
-        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
-        String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
         String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
-        serviceIntent.putExtra("androidPrivate", argument);
-        serviceIntent.putExtra("androidArgument", app_root_dir);
-        serviceIntent.putExtra("serviceEntrypoint", "service/" + entry_point);
-        serviceIntent.putExtra("pythonName", "python");
-        serviceIntent.putExtra("pythonHome", app_root_dir);
-        serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
-        serviceIntent.putExtra(
-                "serviceStartAsForeground", (showForegroundNotification ? "true" : "false"));
-        serviceIntent.putExtra("serviceTitle", serviceTitle);
-        serviceIntent.putExtra("serviceDescription", serviceDescription);
-        serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
+        Intent serviceIntent =
+                PythonServiceIntent.buildActivityService(
+                        PythonActivity.mActivity,
+                        PythonService.class,
+                        "service/" + entry_point,
+                        serviceTitle,
+                        serviceDescription,
+                        showForegroundNotification,
+                        pythonServiceArgument);
         PythonActivity.mActivity.startService(serviceIntent);
     }
 
     public static void stop_service() {
-        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
-        PythonActivity.mActivity.stopService(serviceIntent);
+        PythonServiceIntent.stop(PythonActivity.mActivity, PythonService.class);
     }
 
     /** Loading screen view * */
