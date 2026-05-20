@@ -33,6 +33,7 @@ class LibOpenBlasRecipe(Recipe):
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DBUILD_SHARED_LIBS=ON",
                 "-DC_LAPACK=ON",
+                "-DDYNAMIC_ARCH=0",
                 "-DTARGET={target}".format(
                     target={
                         "arm64-v8a": "ARMV8",
