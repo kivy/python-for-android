@@ -1627,6 +1627,7 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(
             self.ctx.get_libs_dir(arch.arch), join(realpython_dir, "android-build")
         )
+        env["RUSTFLAGS"] += f" -Clink-arg=-lpython{self.ctx.python_recipe.link_version}"
 
         env["PYO3_CROSS_LIB_DIR"] = realpath(glob.glob(join(
             realpython_dir, "android-build", "build",
