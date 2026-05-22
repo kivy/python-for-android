@@ -80,6 +80,17 @@ https://developer.android.com/reference/android/Manifest.permission
 Other common tasks
 ------------------
 
+Using NumPY
+~~~~~~~~~~~
+
+It should work out of the box; just ensure `numpy` is included in your requirements.
+If you want better performance, you can also add `libopenblas` to the requirements.
+This allows NumPy to use BLAS/LAPACK acceleration, which can significantly improve linear algebra operations.
+
+Keep in mind that `libopenblas` is a fairly large library (~12 MB per architecture),
+so it will increase your app size. For example, if you build for 4 architectures,
+the APK size may increase by roughly `12 × 4 = 48 MB` (before compression).
+
 Running executables
 ~~~~~~~~~~~~~~~~~~~
 

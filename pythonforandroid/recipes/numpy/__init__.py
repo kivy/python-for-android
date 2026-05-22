@@ -10,12 +10,8 @@ NUMPY_NDK_MESSAGE = (
 class NumpyRecipe(MesonRecipe):
     version = "v2.3.0"
     url = "git+https://github.com/numpy/numpy"
-    depends = ["libopenblas"]
-    extra_build_args = [
-        "-Csetup-args=-Dblas=auto",
-        "-Csetup-args=-Dlapack=auto",
-        "-Csetup-args=-Dallow-noblas=False",
-    ]
+    extra_build_args = ["-Csetup-args=-Dblas=none", "-Csetup-args=-Dlapack=none"]
+    opt_depends = ["libopenblas"]
     need_stl_shared = True
     min_ndk_api_support = 24
 
@@ -51,6 +47,14 @@ class NumpyRecipe(MesonRecipe):
         blas_incdir = blas_dir
         blas_libdir = join(blas_dir, "lib")
         env["CXXFLAGS"] += f" -I{blas_incdir} -L{blas_libdir}"
+
+        if 'libopenblas' in self.ctx.recipe_build_order:
+            self.extra_build_args = [
+                "-Csetup-args=-Dblas=auto",
+                "-Csetup-args=-Dlapack=auto",
+                "-Csetup-args=-Dallow-noblas=False",
+            ]
+
         return env
 
     def get_hostrecipe_env(self, arch=None):
