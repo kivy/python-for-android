@@ -18,7 +18,7 @@ def handle_python_info():
 
     prefix = C.TARGET_PYTHON_PREFIX
 
-    sysconfig_file = glob(join(prefix, "lib/python3.14/_sysconfigdata*.py"))[0]
+    sysconfig_file = glob(join(prefix, f"lib/python{C.PYTHON_MAJOR_VERSION}.{C.PYTHON_MINOR_VERSION}/_sysconfigdata*.py"))[0]
 
     spec = importlib.util.spec_from_file_location("_android_cfg", sysconfig_file)
     cfg = importlib.util.module_from_spec(spec)

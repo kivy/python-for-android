@@ -93,6 +93,73 @@ environment = jinja2.Environment(loader=jinja2.FileSystemLoader(
 
 DEFAULT_PYTHON_ACTIVITY_JAVA_CLASS = 'org.kivy.android.PythonActivity'
 DEFAULT_PYTHON_SERVICE_JAVA_CLASS = 'org.kivy.android.PythonService'
+# Google Play's documented maximum Android versionCode.
+# https://developer.android.com/tools/publishing/versioning
+MAX_ANDROID_VERSION_CODE = 2100000000
+
+
+def get_android_numeric_version(version, min_sdk_version):
+    """
+    Generate the default Android versionCode value from --version.
+
+    The format is (10 + minsdk + app_version). Older versioning was
+    (arch + minsdk + app_version), with arch expressed with a single digit
+    from 6 to 9. Since multi-arch support, this uses 10.
+    """
+    version_code = 0
+    try:
+        for part in version.split('.'):
+            version_code *= 100
+            version_code += int(part)
+    except ValueError as exc:
+        raise ValueError(
+            "Could not generate Android versionCode from --version "
+            "{!r}. --version is Android versionName; when it is not numeric "
+            "dot-separated text, set --numeric-version to a positive Android "
+            "versionCode integer no greater than {}.".format(
+                version, MAX_ANDROID_VERSION_CODE
+            )
+        ) from exc
+    return "{}{}{}".format("10", min_sdk_version, version_code)
+
+
+def validate_android_numeric_version(numeric_version, *, generated_from_version=None):
+    try:
+        normalized_version = int(numeric_version)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "--numeric-version must be a decimal integer Android versionCode "
+            "greater than 0 and no greater than {}; got {!r}.".format(
+                MAX_ANDROID_VERSION_CODE, numeric_version
+            )
+        ) from exc
+
+    if normalized_version <= 0:
+        raise ValueError(
+            "--numeric-version must be a positive Android versionCode "
+            "greater than 0; got {!r}.".format(numeric_version)
+        )
+
+    if normalized_version > MAX_ANDROID_VERSION_CODE:
+        if generated_from_version is not None:
+            raise ValueError(
+                "Generated Android versionCode {} from --version {!r}, "
+                "which exceeds the maximum {}. --version is Android "
+                "versionName; keep this display version by setting "
+                "--numeric-version to a positive Android versionCode no "
+                "greater than {}.".format(
+                    normalized_version,
+                    generated_from_version,
+                    MAX_ANDROID_VERSION_CODE,
+                    MAX_ANDROID_VERSION_CODE,
+                )
+            )
+        raise ValueError(
+            "--numeric-version is Android versionCode and must not exceed "
+            "{}; got {!r}.".format(MAX_ANDROID_VERSION_CODE, numeric_version)
+        )
+
+    return str(normalized_version)
 
 
 def render(template, dest, **kwargs):
@@ -420,19 +487,17 @@ main.py that loads it.''')
     versioned_name = (args.name.replace(' ', '').replace('\'', '') +
                       '-' + args.version)
 
-    version_code = 0
-    if not args.numeric_version:
-        """
-        Set version code in format (10 + minsdk + app_version)
-        Historically versioning was (arch + minsdk + app_version),
-        with arch expressed with a single digit from 6 to 9.
-        Since the multi-arch support, has been changed to 10.
-        """
-        min_sdk = args.min_sdk_version
-        for i in args.version.split('.'):
-            version_code *= 100
-            version_code += int(i)
-        args.numeric_version = "{}{}{}".format("10", min_sdk, version_code)
+    generated_from_version = None
+    if args.numeric_version is None:
+        generated_from_version = args.version
+        args.numeric_version = get_android_numeric_version(
+            args.version,
+            args.min_sdk_version,
+        )
+    args.numeric_version = validate_android_numeric_version(
+        args.numeric_version,
+        generated_from_version=generated_from_version,
+    )
 
     if args.intent_filters:
         with open(args.intent_filters) as fd:
@@ -793,14 +858,15 @@ tools directory of the Android SDK.
                     help=('The human-readable name of the project.'),
                     required=True)
     ap.add_argument('--numeric-version', dest='numeric_version',
-                    help=('The numeric version number of the project. If not '
-                          'given, this is automatically computed from the '
-                          'version.'))
+                    help=('The Android versionCode of the project. This must '
+                          'be a positive decimal integer no greater than '
+                          '{}. If not given, it is automatically computed '
+                          'from --version.').format(MAX_ANDROID_VERSION_CODE))
     ap.add_argument('--version', dest='version',
-                    help=('The version number of the project. This should '
-                          'consist of numbers and dots, and should have the '
-                          'same number of groups of numbers as previous '
-                          'versions.'),
+                    help=('The Android versionName of the project, shown to '
+                          'users as the display version. Use '
+                          '--numeric-version to control Android versionCode '
+                          'and update ordering.'),
                     required=True)
     if is_sdl_bootstrap():
         ap.add_argument('--launcher', dest='launcher', action='store_true',

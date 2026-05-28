@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.util.Log;
 
 import org.kivy.android.PythonService;
+import org.kivy.android.PythonServiceIntent;
 import org.kivy.android.PythonUtil;
 
 public class Service{{ name|capitalize }} extends PythonService {
@@ -69,21 +70,21 @@ public class Service{{ name|capitalize }} extends PythonService {
 					  String contentText,
 					  String pythonServiceArgument) {
         String appRoot = PythonUtil.getAppRoot(ctx);
-        Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
-        intent.putExtra("androidPrivate", appRoot);
-        intent.putExtra("androidArgument", appRoot);
-        intent.putExtra("serviceEntrypoint", "{{ entrypoint }}");
-        intent.putExtra("serviceTitle", "{{ name|capitalize }}");
-        intent.putExtra("pythonName", "{{ name }}");
-        intent.putExtra("serviceStartAsForeground", "{{ foreground|lower }}");
-        intent.putExtra("pythonHome", appRoot);
-        intent.putExtra("androidUnpack", appRoot);
-        intent.putExtra("pythonPath", appRoot + ":" + appRoot + "/lib");
-        intent.putExtra("pythonServiceArgument", pythonServiceArgument);
-        intent.putExtra("smallIconName", smallIconName);
-        intent.putExtra("contentTitle", contentTitle);
-        intent.putExtra("contentText", contentText);
-        return intent;
+        return PythonServiceIntent.buildWithPaths(
+            ctx,
+            Service{{ name|capitalize }}.class,
+            appRoot,
+            appRoot,
+            appRoot,
+            "{{ entrypoint }}",
+            "{{ name|capitalize }}",
+            null,
+            "{{ name }}",
+            "{{ foreground|lower }}",
+            pythonServiceArgument,
+            smallIconName,
+            contentTitle,
+            contentText);
     }
 
     @Override
@@ -95,8 +96,7 @@ public class Service{{ name|capitalize }} extends PythonService {
 
 
     static public void stop(Context ctx) {
-        Intent intent = new Intent(ctx, Service{{ name|capitalize }}.class);
-        ctx.stopService(intent);
+        PythonServiceIntent.stop(ctx, Service{{ name|capitalize }}.class);
     }
 
 }

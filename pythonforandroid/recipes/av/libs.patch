@@ -1,0 +1,38 @@
+diff '--color=auto' -uNr PyAV-17.0.0/setup.py PyAV-17.0.0.mod/setup.py
+--- PyAV-17.0.0/setup.py	2026-03-14 19:42:41.000000000 +0530
++++ PyAV-17.0.0.mod/setup.py	2026-05-22 08:21:47.438004827 +0530
+@@ -79,20 +79,21 @@
+     """
+     Get distutils-compatible extension arguments using pkg-config.
+     """
+-    pkg_config = os.environ.get("PKG_CONFIG", "pkg-config")
+-    try:
+-        raw_cflags = subprocess.check_output(
+-            [pkg_config, "--cflags", "--libs"]
+-            + ["lib" + name for name in FFMPEG_LIBRARIES]
+-        )
+-    except FileNotFoundError:
+-        print(f"{pkg_config} is required for building PyAV")
+-        exit(1)
+-    except subprocess.CalledProcessError:
+-        print(f"{pkg_config} could not find libraries {FFMPEG_LIBRARIES}")
+-        exit(1)
++    # pkg_config = os.environ.get("PKG_CONFIG", "pkg-config")
++    # try:
++    #     raw_cflags = subprocess.check_output(
++    #         [pkg_config, "--cflags", "--libs"]
++    #         + ["lib" + name for name in FFMPEG_LIBRARIES]
++    #     )
++    # except FileNotFoundError:
++    #     print(f"{pkg_config} is required for building PyAV")
++    #     exit(1)
++    # except subprocess.CalledProcessError:
++    #     print(f"{pkg_config} could not find libraries {FFMPEG_LIBRARIES}")
++    #     exit(1)
+ 
+-    known, unknown = parse_cflags(raw_cflags.decode("utf-8"))
++    raw_cflags = "-lavdevice -lavfilter -lavformat -lavcodec -lswscale -lswresample -lavutil"
++    known, unknown = parse_cflags(raw_cflags)
+     if unknown:
+         print("pkg-config returned flags we don't understand: {}".format(unknown))
+         if "-pthread" in unknown:

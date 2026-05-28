@@ -1,6 +1,5 @@
 import unittest
 from os.path import join
-from sys import version as py_version
 
 import packaging.version
 from unittest import mock
@@ -33,13 +32,10 @@ from pythonforandroid.recommendations import (
     OLD_API_MESSAGE,
     MIN_PYTHON_MAJOR_VERSION,
     MIN_PYTHON_MINOR_VERSION,
-    PY2_ERROR_TEXT,
     PY_VERSION_ERROR_TEXT,
 )
 
 from pythonforandroid.util import BuildInterruptingException
-
-running_in_py2 = int(py_version[0]) < 3
 
 
 class TestRecommendations(unittest.TestCase):
@@ -51,7 +47,6 @@ class TestRecommendations(unittest.TestCase):
     def setUp(self):
         self.ndk_dir = "/opt/android/android-ndk"
 
-    @unittest.skipIf(running_in_py2, "`assertLogs` requires Python 3.4+")
     @mock.patch("pythonforandroid.recommendations.read_ndk_version")
     def test_check_ndk_version_greater_than_recommended(self, mock_read_ndk):
         _version_string = f"{MIN_NDK_VERSION + 1}.0.5232133"
@@ -90,7 +85,6 @@ class TestRecommendations(unittest.TestCase):
         )
         mock_read_ndk.assert_called_once_with(self.ndk_dir)
 
-    @unittest.skipIf(running_in_py2, "`assertLogs` requires Python 3.4+")
     def test_check_ndk_version_error(self):
         """
         Test that a fake ndk dir give us two messages:
@@ -131,7 +125,6 @@ class TestRecommendations(unittest.TestCase):
         assert version.minor == 2
         assert version.micro == 4988734
 
-    @unittest.skipIf(running_in_py2, "`assertLogs` requires Python 3.4+")
     @mock.patch("pythonforandroid.recommendations.open")
     def test_read_ndk_version_error(self, mock_open_src_prop):
         mock_open_src_prop.side_effect = [
@@ -160,7 +153,6 @@ class TestRecommendations(unittest.TestCase):
             ),
         )
 
-    @unittest.skipIf(running_in_py2, "`assertLogs` requires Python 3.4+")
     def test_check_target_api_warning_target_api(self):
 
         with self.assertLogs(level="INFO") as cm:
@@ -191,7 +183,6 @@ class TestRecommendations(unittest.TestCase):
             ),
         )
 
-    @unittest.skipIf(running_in_py2, "`assertLogs` requires Python 3.4+")
     def test_check_ndk_api_warning_old_ndk(self):
         """
         Given an `android api` lower than the supported by p4a, we should
@@ -216,17 +207,8 @@ class TestRecommendations(unittest.TestCase):
         """
         with mock.patch('sys.version_info') as fake_version_info:
 
-            # Major version is Python 2 => exception
-            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION - 1
-            fake_version_info.minor = MIN_PYTHON_MINOR_VERSION
-            with self.assertRaises(BuildInterruptingException) as context:
-                check_python_version()
-            assert context.exception.message == PY2_ERROR_TEXT
-
             # Major version too low => exception
-            # Using a float valued major version just to test the logic and avoid
-            # clashing with the Python 2 check
-            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION - 0.1
+            fake_version_info.major = MIN_PYTHON_MAJOR_VERSION - 1
             fake_version_info.minor = MIN_PYTHON_MINOR_VERSION
             with self.assertRaises(BuildInterruptingException) as context:
                 check_python_version()

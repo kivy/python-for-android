@@ -16,10 +16,7 @@ from sys import stdout
 from packaging.version import Version
 from multiprocessing import cpu_count
 import time
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from urllib.parse import urlparse
 
 import packaging.version
 
@@ -1133,6 +1130,7 @@ class CythonRecipe(PythonRecipe):
         '''Build any cython components, then install the Python module by
         calling pip install with the target Python dir.
         '''
+        self.install_hostpython_prerequisites()
         Recipe.build_arch(self, arch)
         self.build_cython_components(arch)
         self.install_python_package(arch)
@@ -1569,6 +1567,18 @@ class MesonRecipe(PyProjectRecipe):
             if arg not in self.extra_build_args:
                 self.extra_build_args.append(arg)
 
+    def get_recipe_env_command(self, command, env):
+        command_path = shutil.which(command, path=env["PATH"])
+        if command_path is None:
+            raise sh.CommandNotFound(command)
+        return sh.Command(command_path)
+
+    def get_meson_command(self, env):
+        return self.get_recipe_env_command("meson", env)
+
+    def get_ninja_command(self, env):
+        return self.get_recipe_env_command("ninja", env)
+
     def build_arch(self, arch):
         cross_file = join("/tmp", "android.meson.cross")
         info("Writing cross file at: {}".format(cross_file))
@@ -1629,6 +1639,7 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(
             self.ctx.get_libs_dir(arch.arch), join(realpython_dir, "android-build")
         )
+        env["RUSTFLAGS"] += f" -Clink-arg=-lpython{self.ctx.python_recipe.link_version}"
 
         env["PYO3_CROSS_LIB_DIR"] = realpath(glob.glob(join(
             realpython_dir, "android-build", "build",
