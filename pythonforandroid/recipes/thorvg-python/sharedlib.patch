@@ -1,0 +1,43 @@
+diff '--color=auto' -uNr thorvg-python-1.1.1/pyproject.toml thorvg-python-1.1.1.mod/pyproject.toml
+--- thorvg-python-1.1.1/pyproject.toml	2026-02-28 01:45:23.000000000 +0530
++++ thorvg-python-1.1.1.mod/pyproject.toml	2026-03-06 13:36:02.822762758 +0530
+@@ -34,7 +34,6 @@
+ 
+ [build-system]
+ requires = [
+-    "conan>=2.0",
+     "setuptools>=45"
+ ]
+ build-backend = "setuptools.build_meta"
+@@ -45,4 +44,4 @@
+ 
+ [tool.mypy]
+ python_version = "3.9"
+-files = ["src", "tests"]
+\ No newline at end of file
++files = ["src", "tests"]
+diff '--color=auto' -uNr thorvg-python-1.1.1/setup.py thorvg-python-1.1.1.mod/setup.py
+--- thorvg-python-1.1.1/setup.py	2026-02-28 01:45:23.000000000 +0530
++++ thorvg-python-1.1.1.mod/setup.py	2026-03-06 13:32:56.878441668 +0530
+@@ -213,10 +213,4 @@
+         packages=find_packages(where="src"),
+         package_dir={"": "src"},
+         include_package_data=True,
+-        package_data={
+-            "thorvg_python": ["*.dll", "*.dylib", "*.so"],
+-        },
+-        cmdclass={
+-            "build_py": build_py_custom,
+-        },
+     )
+diff '--color=auto' -uNr thorvg-python-1.1.1/src/thorvg_python/engine.py thorvg-python-1.1.1.mod/src/thorvg_python/engine.py
+--- thorvg-python-1.1.1/src/thorvg_python/engine.py	2026-02-28 01:45:23.000000000 +0530
++++ thorvg-python-1.1.1.mod/src/thorvg_python/engine.py	2026-03-06 16:42:11.625316343 +0530
+@@ -14,6 +14,7 @@
+ ) -> Optional[ctypes.CDLL]:
+     package_dir = os.path.dirname(__file__)
+     thorvg_lib_name = lib_prefix + "thorvg" + lib_suffix
++    return ctypes.cdll.LoadLibrary(thorvg_lib_name)
+     thorvg_lib_path_local = os.path.join(package_dir, thorvg_lib_name)
+ 
+     if os.path.isfile(thorvg_lib_path_local):

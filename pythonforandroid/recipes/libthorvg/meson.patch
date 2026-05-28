@@ -1,0 +1,77 @@
+diff '--color=auto' -uNr thorvg/meson_options.txt thorvg.mod/meson_options.txt
+--- thorvg/meson_options.txt	2026-02-12 21:02:13.000000000 +0530
++++ thorvg.mod/meson_options.txt	2026-03-06 11:11:43.111722092 +0530
+@@ -68,3 +68,11 @@
+    choices: ['', 'opengl_es', 'lottie_exp', 'openmp'],
+    value: ['lottie_exp', 'openmp'],
+    description: 'Enable support for extra options')
++
++
++option('png_include_dir', type: 'string', value: '', description: 'Path to PNG headers')
++option('png_lib_dir', type: 'string', value: '', description: 'Path to PNG library')
++option('webp_include_dir', type: 'string', value: '', description: 'Path to WEBP headers')
++option('webp_lib_dir', type: 'string', value: '', description: 'Path to WEBP library')
++option('jpg_include_dir', type: 'string', value: '', description: 'Path to JPG headers')
++option('jpg_lib_dir', type: 'string', value: '', description: 'Path to JPG library')
+diff '--color=auto' -uNr thorvg/src/loaders/external_jpg/meson.build thorvg.mod/src/loaders/external_jpg/meson.build
+--- thorvg/src/loaders/external_jpg/meson.build	2026-02-12 21:02:13.000000000 +0530
++++ thorvg.mod/src/loaders/external_jpg/meson.build	2026-03-06 11:16:26.360504907 +0530
+@@ -3,11 +3,12 @@
+    'tvgJpgLoader.cpp',
+ ]
+ 
+-jpg_dep = dependency('libturbojpeg', required: false)
+-
+-if not jpg_dep.found()
+-    jpg_dep = cc.find_library('turbojpeg', required: false)
+-endif
++jpg_inc = include_directories(get_option('jpg_include_dir'))
++jpg_lib = cc.find_library('turbojpeg', dirs: [get_option('jpg_lib_dir')], required: true)
++jpg_dep = declare_dependency(
++  include_directories: jpg_inc,
++  dependencies: [jpg_lib]
++)
+ 
+ if jpg_dep.found()
+     subloader_dep += [declare_dependency(
+diff '--color=auto' -uNr thorvg/src/loaders/external_png/meson.build thorvg.mod/src/loaders/external_png/meson.build
+--- thorvg/src/loaders/external_png/meson.build	2026-02-12 21:02:13.000000000 +0530
++++ thorvg.mod/src/loaders/external_png/meson.build	2026-03-06 10:59:38.966203768 +0530
+@@ -3,7 +3,12 @@
+    'tvgPngLoader.cpp',
+ ]
+ 
+-png_dep = dependency('libpng', required: false)
++png_inc = include_directories(get_option('png_include_dir'))
++png_lib = cc.find_library('png16', dirs: [get_option('png_lib_dir')], required: true)
++png_dep = declare_dependency(
++  include_directories: png_inc,
++  dependencies: [png_lib]
++)
+ 
+ if png_dep.found()
+     subloader_dep += [declare_dependency(
+diff '--color=auto' -uNr thorvg/src/loaders/external_webp/meson.build thorvg.mod/src/loaders/external_webp/meson.build
+--- thorvg/src/loaders/external_webp/meson.build	2026-02-12 21:02:13.000000000 +0530
++++ thorvg.mod/src/loaders/external_webp/meson.build	2026-03-06 11:03:55.626148453 +0530
+@@ -3,7 +3,12 @@
+    'tvgWebpLoader.cpp',
+ ]
+ 
+-webp_dep = dependency('libwebp', required: false)
++webp_inc = include_directories(get_option('webp_include_dir'))
++webp_lib = cc.find_library('webp', dirs: [get_option('webp_lib_dir')], required: true)
++webp_dep = declare_dependency(
++  include_directories: webp_inc,
++  dependencies: [webp_lib]
++)
+ 
+ if webp_dep.found()
+    subloader_dep += [declare_dependency(
+@@ -11,4 +16,4 @@
+       dependencies : webp_dep,
+       sources : source_file
+       )]
+-endif
+\ No newline at end of file
++endif

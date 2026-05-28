@@ -123,10 +123,11 @@ This is the core of what's necessary to write a recipe, but has not
 covered any of the details of how one actually writes code to compile
 for android. This is covered in the next sections, including the
 `standard mechanisms <standard_mechanisms_>`_ used as part of the
-build, and the details of specific recipe classes for Python, Cython,
-and some generic compiled recipes. If your module is one of the
-latter, you should use these later classes rather than reimplementing
-the functionality from scratch.
+build, and the details of specific recipe classes for modern Python
+packages, older setup.py-based packages, Cython, and some generic
+compiled recipes. If your module is one of the latter, you should use
+these later classes rather than reimplementing the functionality from
+scratch.
 
 .. _standard_mechanisms:
 
@@ -310,6 +311,10 @@ For reference, the code that accomplishes this is the following::
 This combines techniques and tools from the above documentation to
 create a generic mechanism for all Python modules.
 
+For Python packages that use ``pyproject.toml``, you should normally use
+``PyProjectRecipe`` instead. ``PythonRecipe`` is based on the older
+``setup.py install`` flow.
+
 .. note:: The hostpython is the path to the Python binary that should
           be used for any kind of installation. You *must* run Python
           in a similar way if you need to do so in any of your own
@@ -379,6 +384,43 @@ patching to remove this import or make it fail quietly.
  
 Other than this, these methods follow the techniques in the above
 documentation to make a generic recipe for most cython based modules.
+
+Using a PyProjectRecipe
+-----------------------
+
+For modern Python packages that contain ``pyproject.toml``, you should
+normally use ``PyProjectRecipe``. It builds and installs packages as
+wheels, which matches current Python packaging tools more closely than
+the older ``setup.py install`` flow.
+
+For instance::
+
+  from pythonforandroid.recipe import PyProjectRecipe
+
+  class ExampleRecipe(PyProjectRecipe):
+      version = '1.2.3'
+      url = 'https://example.com/example-{version}.tar.gz'
+      depends = ['pycparser', 'libffi']
+
+  recipe = ExampleRecipe()
+
+You do not need to include ``python3`` in ``depends``; even when a recipe
+overrides ``depends``, ``PythonRecipe`` adds the ``python3`` dependency.
+
+The base class uses a wheel-oriented build and install flow. It can use
+a compatible prebuilt Android wheel when that path is enabled and a
+matching wheel is available. Otherwise, it installs the host build
+requirements, runs ``python -m build --wheel``, applies Android platform
+tags to the built wheel, optionally copies the wheel to configured
+wheel-save directories, and installs the selected wheel into the target
+Python install directory.
+
+You may still need to add normal recipe metadata such as ``depends`` for
+libraries or Python packages that must be built first. Packages with
+extra host-side build requirements can add ``hostpython_prerequisites``.
+Packages that need Android-specific changes may still need patches or a
+``get_recipe_env()`` override to adjust compiler flags, include paths, or
+other build environment variables.
 
 Using a CompiledComponentsPythonRecipe
 --------------------------------------
@@ -506,6 +548,3 @@ how to create your own Recipe subclass.
 .. autoclass:: toolchain.Recipe
    :members:
    :member-order: bysource
-
-
-

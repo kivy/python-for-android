@@ -6,7 +6,7 @@ diff -Naur pyjnius.orig/jnius/env.py pyjnius/jnius/env.py
  class AndroidJavaLocation(UnixJavaLocation):
      def get_libraries(self):
 -        return ['SDL2', 'log']
-+        return ['main', 'log']
++        return [getenv('PYJNIUS_ANDROID_LIBMAIN', 'main'), 'log']
  
      def get_include_dirs(self):
          # When cross-compiling for Android, we should not use the include dirs

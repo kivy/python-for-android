@@ -1,5 +1,6 @@
 import os
 import pytest
+import sh
 import tempfile
 import types
 import unittest
@@ -7,7 +8,9 @@ import warnings
 from unittest import mock
 
 from pythonforandroid.build import Context
-from pythonforandroid.recipe import Recipe, TargetPythonRecipe, import_recipe
+from pythonforandroid.recipe import (
+    MesonRecipe, Recipe, TargetPythonRecipe, import_recipe
+)
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
 from tests.test_bootstrap import BaseClassSetupBootstrap
@@ -196,6 +199,33 @@ class TestTargetPythonRecipe(unittest.TestCase):
 
         recipe = DummyTargetPythonRecipe()
         assert recipe.major_minor_version_string == '1.2'
+
+
+class TestMesonRecipe(unittest.TestCase):
+
+    def test_get_recipe_env_command_uses_env_path(self):
+        """
+        Meson commands can be installed in the hostpython environment without
+        being visible on the current Python process PATH.
+        """
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bin_dir = os.path.join(temp_dir, "bin")
+            os.mkdir(bin_dir)
+            meson_path = os.path.join(bin_dir, "meson")
+            with open(meson_path, "w") as file:
+                file.write("#!/bin/sh\necho fake meson\n")
+            os.chmod(meson_path, 0o755)
+
+            env = {"PATH": bin_dir}
+            recipe = MesonRecipe()
+
+            with mock.patch.dict(os.environ, {"PATH": os.devnull}):
+                with pytest.raises(sh.CommandNotFound):
+                    sh.meson("--version", _env=env)
+
+                meson = recipe.get_meson_command(env)
+
+            assert meson("--version").strip() == "fake meson"
 
 
 class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):

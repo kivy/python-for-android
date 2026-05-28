@@ -6,11 +6,9 @@ from pythonforandroid.util import current_directory
 
 
 class LibSDL3Mixer(BootstrapNDKRecipe):
-    version = "72a73339731a12c1002f9caca64f1ab924938102"
-    url = "https://github.com/libsdl-org/SDL_mixer/archive/{version}.tar.gz"
+    version = "3.2.0"
+    url = "https://github.com/libsdl-org/SDL_mixer/releases/download/release-{version}/SDL3_mixer-{version}.tar.gz"
     dir_name = "SDL3_mixer"
-
-    patches = ["disable-libgme.patch"]
 
     def get_include_dirs(self, arch):
         return [

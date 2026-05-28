@@ -42,10 +42,10 @@ python-for-android is not limited to being used with Buildozer.
 [![GitHub contributors](https://img.shields.io/github/contributors-anon/kivy/python-for-android)](https://github.com/kivy/python-for-android/graphs/contributors)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-![PyPI - Version](https://img.shields.io/pypi/v/python-for-android)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/python-for-android)
+[![PyPI - Version](https://img.shields.io/pypi/v/python-for-android)](https://pypi.org/project/python-for-android/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/python-for-android)](https://pypi.org/project/python-for-android/)
 
-[![Unit tests & build apps](https://github.com/kivy/python-for-android/workflows/Unit%20tests%20&%20build%20apps/badge.svg?branch=develop)](https://github.com/kivy/python-for-android/actions?query=workflow%3A%22Unit+tests+%26+build+apps%22)
+[![Unit tests & build apps](https://github.com/kivy/python-for-android/actions/workflows/push.yml/badge.svg?branch=develop)](https://github.com/kivy/python-for-android/actions/workflows/push.yml)
 [![Coverage Status](https://coveralls.io/repos/github/kivy/python-for-android/badge.svg?branch=develop&kill_cache=1)](https://coveralls.io/github/kivy/python-for-android?branch=develop)
 [![Docker](https://github.com/kivy/python-for-android/actions/workflows/docker.yml/badge.svg)](https://github.com/kivy/python-for-android/actions/workflows/docker.yml)
 

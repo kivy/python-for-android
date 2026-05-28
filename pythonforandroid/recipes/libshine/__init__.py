@@ -9,7 +9,7 @@ import sh
 class LibShineRecipe(Recipe):
     version = 'c72aba9031bde18a0995e7c01c9b53f2e08a0e46'
     url = 'https://github.com/toots/shine/archive/{version}.zip'
-
+    patches = ["fixbuild.patch"]
     built_libraries = {'libshine.so': 'lib'}
 
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
