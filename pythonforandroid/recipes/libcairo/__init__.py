@@ -56,7 +56,7 @@ class LibCairoRecipe(MesonRecipe):
                     _env=env
                 )
 
-            shprint(sh.meson, 'setup', 'builddir',
+            shprint(self.get_meson_command(env), 'setup', 'builddir',
                     '--cross-file', join("/tmp", "android.meson.cross"),
                     f'--prefix={install_dir}',
                     '-Dpng=enabled',
@@ -72,14 +72,22 @@ class LibCairoRecipe(MesonRecipe):
                     f'-Dfreetype_lib_dir={lib_dir}',
                     _env=env)
 
-            shprint(sh.ninja, '-C', 'builddir', '-j', str(cpu_count()), _env=env)
+            shprint(
+                self.get_ninja_command(env),
+                '-C', 'builddir', '-j', str(cpu_count()),
+                _env=env
+            )
             # macOS fix: sometimes Ninja creates a dummy 'lib' file instead of a directory.
             # So we remove and recreate the install directory using shell commands,
             # since os.remove/os.makedirs behave inconsistently in this build env.
             shprint(sh.rm, '-rf', install_dir)
             shprint(sh.mkdir, install_dir)
 
-            shprint(sh.ninja, '-C', 'builddir', 'install', _env=env)
+            shprint(
+                self.get_ninja_command(env),
+                '-C', 'builddir', 'install',
+                _env=env
+            )
 
 
 recipe = LibCairoRecipe()

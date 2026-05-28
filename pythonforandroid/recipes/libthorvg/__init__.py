@@ -54,7 +54,7 @@ class LibThorVGRecipe(MesonRecipe):
         with current_directory(build_dir):
 
             shprint(
-                sh.meson,
+                self.get_meson_command(env),
                 "setup",
                 "builddir",
                 "--cross-file",
@@ -72,10 +72,18 @@ class LibThorVGRecipe(MesonRecipe):
                 _env=env,
             )
 
-            shprint(sh.ninja, "-C", "builddir", "-j", str(cpu_count()), _env=env)
+            shprint(
+                self.get_ninja_command(env),
+                "-C", "builddir", "-j", str(cpu_count()),
+                _env=env,
+            )
             shprint(sh.rm, "-rf", install_dir)
             shprint(sh.mkdir, install_dir)
-            shprint(sh.ninja, "-C", "builddir", "install", _env=env)
+            shprint(
+                self.get_ninja_command(env),
+                "-C", "builddir", "install",
+                _env=env,
+            )
 
             # copy libomp.so
             arch_map = {

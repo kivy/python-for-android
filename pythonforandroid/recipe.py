@@ -1567,6 +1567,18 @@ class MesonRecipe(PyProjectRecipe):
             if arg not in self.extra_build_args:
                 self.extra_build_args.append(arg)
 
+    def get_recipe_env_command(self, command, env):
+        command_path = shutil.which(command, path=env["PATH"])
+        if command_path is None:
+            raise sh.CommandNotFound(command)
+        return sh.Command(command_path)
+
+    def get_meson_command(self, env):
+        return self.get_recipe_env_command("meson", env)
+
+    def get_ninja_command(self, env):
+        return self.get_recipe_env_command("ninja", env)
+
     def build_arch(self, arch):
         cross_file = join("/tmp", "android.meson.cross")
         info("Writing cross file at: {}".format(cross_file))
