@@ -33,10 +33,8 @@ You can control the immersive mode behavior and how system bars reappear using t
     from android.display_cutout import set_immersive_mode
 
     set_immersive_mode(
-        True, # enable: True hides system bars, False restores normal system bar visibility
-        "Sticky", # behavior: "Sticky" hides bars until swiped and auto-hides them after a delay, "Transient" allows temporary swipes, "Default" brings them back permanently on swipe. Literal["Default", "Transient", "Sticky"]
-        False, # hide_status: True explicitly targets hiding the top status bar, False leaves it visible if allowed by behavior
-        True, # hide_nav: True explicitly targets hiding the bottom navigation bar/gestural pill, False leaves it visible
+        False, # hide_status: True explicitly targets hiding the top status bar, False leaves it visible
+        False, # hide_nav: True explicitly targets hiding the bottom navigation bar/gestural pill, False leaves it visible
         True, # remove_contrast: True disables the default system-enforced background scrim/contrast behind the bars, ensuring complete transparency when they peek
     )
 
