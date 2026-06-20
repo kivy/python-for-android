@@ -5,6 +5,40 @@ Working on Android
 This page gives details on accessing Android APIs and managing other
 interactions on Android.
 
+Handling system bars and Edge-to-Edge enforcement
+-------------------------------------------------
+
+**Egde-to-Edge is enforced on all android apis >=35 by default i.e. Android 15 and above.**
+
+You can control the overall layout and system bars appearance in following ways::
+
+      from android.display_cutout import update_system_ui
+      
+      update_system_ui(
+            "#0f62fe", # status_bar_color: hex color code or rgba (tuple or list) values
+            [0.059, 0.384, 0.996, 1.000], # navigation_bar_color: hex color code or rgba (tuple or list) values
+            "Light", # icon_style: "Dark" means dark icons will be drawn, "Light" means light icons will be drawn, Literal["Dark", or "Light"]
+            True, # pad_status: Adds a padding to top of content_view, Will take effect on Android 15+
+            True, # pad_nav: Adds a padding to bottom of content_view, Will take effect on Android 15+
+      )
+
+
+Handling Immersive Mode
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Immersive mode allows your application to hide the system bars (status bar and navigation bar) for a true full-screen experience, commonly used in games or media players.
+
+You can control the immersive mode behavior and how system bars reappear using the following way::
+
+    from android.display_cutout import set_immersive_mode
+
+    set_immersive_mode(
+        False, # hide_status: True explicitly targets hiding the top status bar, False leaves it visible
+        False, # hide_nav: True explicitly targets hiding the bottom navigation bar/gestural pill, False leaves it visible
+        True, # remove_contrast: True disables the default system-enforced background scrim/contrast behind the bars, ensuring complete transparency when they peek
+    )
+
+
 Storage paths
 -------------
 
@@ -79,6 +113,64 @@ https://developer.android.com/reference/android/Manifest.permission
 
 Other common tasks
 ------------------
+
+Using NumPY
+~~~~~~~~~~~
+
+It should work out of the box; just ensure `numpy` is included in your requirements.
+If you want better performance, you can also add `libopenblas` to the requirements.
+This allows NumPy to use BLAS/LAPACK acceleration, which can significantly improve linear algebra operations.
+
+Keep in mind that `libopenblas` is a fairly large library (~12 MB per architecture),
+so it will increase your app size. For example, if you build for 4 architectures,
+the APK size may increase by roughly `12 × 4 = 48 MB` (before compression).
+
+Running executables
+~~~~~~~~~~~~~~~~~~~
+
+Android restricts executing files from application data directories.
+``python-for-android`` works around this by creating symbolic links to a
+small set of supported executables inside an internal executable
+directory that is added to ``PATH``.
+
+During startup, ``start.c`` (compiled into ``libmain.so``) scans loaded
+native libraries and creates symlinks for any library matching::
+
+    lib<binary_name>bin.so
+
+Each matching library is exposed at runtime as::
+
+    <binary_name>
+
+For example::
+
+    libffmpegbin.so -> ffmpeg
+
+Recipe developers may expose additional executables by renaming them
+using the same naming convention.
+
+The following example performs a minimal FFmpeg sanity check using an
+in-memory test source and discards the output::
+
+    import subprocess
+
+    subprocess.run(
+        ["ffmpeg", "-f", "lavfi", "-i", "testsrc", "-t", "1", "-f", "null", "-"],
+        check=True
+    )
+
+This verifies that ``ffmpeg`` is available and executable on the device.
+Ensure ``ffmpeg`` is included in your ``requirements``.
+
+If video encoding is required, the following codec options must also be
+enabled in the build configuration:
+
+- ``av_codecs``
+- ``libx264``
+
+Without these, FFmpeg may be present but lack the required codec support.
+
+See also: `APK native library execution restrictions <https://github.com/agnostic-apollo/Android-Docs/blob/master/site/pages/en/projects/docs/apps/processes/app-data-file-execute-restrictions.md>`_
 
 Dismissing the splash screen
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -340,6 +432,36 @@ This can be used to prevent errors like:
 
     Because the python function is called from the PythonActivity thread, you
     need to be careful about your own calls.
+
+Handling DarkMode
+~~~~~~~~~~~~~~~~~
+
+The ``android.darkmode`` module provides functionality to detect and respond to
+system dark mode changes on Android devices.
+
+You can set up a listener to monitor dark mode state changes using the
+``set_dark_mode_listener`` function::
+
+    from android.darkmode import set_dark_mode_listener
+
+    def on_dark_mode_changed(is_dark_mode):
+        if is_dark_mode:
+            print('Dark mode is now enabled')
+            # Update your app's theme to dark mode
+        else:
+            print('Dark mode is now disabled')
+            # Update your app's theme to light mode
+
+    # Register the listener
+    set_dark_mode_listener(on_dark_mode_changed)
+
+To remove the listener, simply pass ``None``::
+
+    set_dark_mode_listener(None)
+
+The callback function receives a single boolean parameter ``is_dark_mode`` that
+indicates whether dark mode is currently enabled (``True``) or disabled (``False``).
+
 
 
 Advanced Android API use

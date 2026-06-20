@@ -3,7 +3,7 @@
     <style name="KivySupportCutout">
         <item name="android:windowNoTitle">true</item>
         <!-- Display cutout is an area on some devices that extends into the display surface -->
-        {% if args.display_cutout != 'never'%}
+        {% if args.display_cutout != 'never' %}
         <item name="android:windowLayoutInDisplayCutoutMode">{{ args.display_cutout }}</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>

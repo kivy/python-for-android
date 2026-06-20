@@ -6,7 +6,7 @@ class PandasRecipe(MesonRecipe):
     version = 'v2.3.0'
     url = 'git+https://github.com/pandas-dev/pandas'
     depends = ['numpy', 'libbz2', 'liblzma']
-    hostpython_prerequisites = ["Cython<4.0.0a0", "versioneer", "numpy"]  # meson does not detects venv's cython
+    hostpython_prerequisites = ["versioneer[toml]", "numpy>=2.0", "Cython<4.0.0a0"]  # meson does not detects venv's cython
     patches = ['fix_numpy_includes.patch']
     python_depends = ['python-dateutil', 'pytz']
     need_stl_shared = True

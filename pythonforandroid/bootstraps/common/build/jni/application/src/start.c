@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <dlfcn.h>
+#include <libgen.h>
 #include <jni.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -30,8 +32,13 @@
 
 #define ENTRYPOINT_MAXLEN 128
 #define LOG(n, x) __android_log_write(ANDROID_LOG_INFO, (n), (x))
-#define LOGP(x) LOG("python", (x))
 #define P4A_MIN_VER 11
+static void LOGP(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    __android_log_vprint(ANDROID_LOG_INFO, "python", fmt, args);
+    va_end(args);
+}
 
 static PyObject *androidembed_log(PyObject *self, PyObject *args) {
   char *logstr = NULL;
@@ -69,13 +76,124 @@ int dir_exists(char *filename) {
 }
 
 int file_exists(const char *filename) {
-  FILE *file;
-  if ((file = fopen(filename, "r"))) {
-    fclose(file);
-    return 1;
-  }
-  return 0;
+    return access(filename, F_OK) == 0;
 }
+
+static void get_dirname(const char *path, char *dir, size_t size) {
+    strncpy(dir, path, size - 1);
+    dir[size - 1] = '\0';
+    char *last_slash = strrchr(dir, '/');
+    if (last_slash) *last_slash = '\0';
+    else dir[0] = '\0';
+}
+
+// strip "lib" prefix and "bin.so" suffix
+static void get_exe_name(const char *filename, char *out, size_t size) {
+    size_t len = strlen(filename);
+    if (len < 7) {  // too short to be valid
+        strncpy(out, filename, size - 1);
+        out[size - 1] = '\0';
+        return;
+    }
+
+    const char *start = filename;
+    if (strncmp(filename, "lib", 3) == 0) start += 3;
+    size_t start_len = strlen(start);
+
+    if (start_len > 6) {
+        size_t copy_len = start_len - 6; // remove "bin.so"
+        if (copy_len >= size) copy_len = size - 1;
+        strncpy(out, start, copy_len);
+        out[copy_len] = '\0';
+    } else {
+        strncpy(out, start, size - 1);
+        out[size - 1] = '\0';
+    }
+}
+
+char *setup_symlinks() {
+    Dl_info info;
+    char lib_path[512];
+    char *interpreter = NULL;
+
+    if (!(dladdr((void*)setup_symlinks, &info) && info.dli_fname)) {
+        LOGP("symlinking failed: failed to get libdir");
+        return interpreter;
+    }
+
+    strncpy(lib_path, info.dli_fname, sizeof(lib_path) - 1);
+    lib_path[sizeof(lib_path) - 1] = '\0';
+
+    char native_lib_dir[512];
+    get_dirname(lib_path, native_lib_dir, sizeof(native_lib_dir));
+    if (native_lib_dir[0] == '\0') {
+        LOGP("symlinking failed: could not determine lib directory");
+        return interpreter;
+    }
+
+    const char *files_dir_env = getenv("ANDROID_APP_PATH");
+    char bin_dir[512];
+
+    snprintf(bin_dir, sizeof(bin_dir), "%s/.bin", files_dir_env);
+    if (mkdir(bin_dir, 0755) != 0 && errno != EEXIST) {
+        LOGP("Failed to create .bin directory");
+        return interpreter;
+    }
+
+    DIR *dir = opendir(native_lib_dir);
+    if (!dir) {
+        LOGP("Failed to open native lib dir");
+        return interpreter;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        const char *name = entry->d_name;
+        size_t len = strlen(name);
+
+        if (len < 7) continue; 
+        if (strcmp(name + len - 6, "bin.so") != 0) continue; // only bin.so at end
+
+        // get cleaned executable name
+        char exe_name[128];
+        get_exe_name(name, exe_name, sizeof(exe_name));
+
+        char src[512], dst[512];
+        snprintf(src, sizeof(src), "%s/%s", native_lib_dir, name);
+        snprintf(dst, sizeof(dst), "%s/%s", bin_dir, exe_name);
+  
+        // interpreter found?
+        if (strcmp(exe_name, "python") == 0) {
+          interpreter = strdup(dst);
+        }
+
+        struct stat st;
+        if (lstat(dst, &st) == 0) continue; // already exists
+        if (symlink(src, dst) == 0) {
+            LOGP("symlink: %s -> %s", name, exe_name);
+        } else {
+            LOGP("Symlink failed");
+        }
+    }
+
+    closedir(dir);
+
+    // append bin_dir to PATH
+    const char *old_path = getenv("PATH");
+    char new_path[1024];
+    if (old_path && strlen(old_path) > 0) {
+        snprintf(new_path, sizeof(new_path), "%s:%s", old_path, bin_dir);
+    } else {
+        snprintf(new_path, sizeof(new_path), "%s", bin_dir);
+    }
+    setenv("PATH", new_path, 1);
+
+    // set lib path
+    setenv("LD_LIBRARY_PATH", native_lib_dir, 1);
+
+  return interpreter;
+}
+
 
 /* int main(int argc, char **argv) { */
 int main(int argc, char *argv[]) {
@@ -147,9 +265,10 @@ int main(int argc, char *argv[]) {
     LOGP("Warning: no p4a_env_vars.txt found / failed to open!");
   }
 
-  LOGP("Changing directory to the one provided by ANDROID_ARGUMENT");
-  LOGP(env_argument);
+  LOGP("Changing directory to '%s'", env_argument);
   chdir(env_argument);
+
+  char *interpreter = setup_symlinks();
 
 #if PY_MAJOR_VERSION < 3
   Py_NoSiteFlag=1;
@@ -257,12 +376,20 @@ int main(int argc, char *argv[]) {
              "sys.path.append('%s/site-packages')",
              python_bundle_dir);
 
-    PyRun_SimpleString("import sys\n"
-                       "sys.argv = ['notaninterpreterreally']\n"
-                       "from os.path import realpath, join, dirname");
+    PyRun_SimpleString("import sys, os\n"
+                      "from os.path import realpath, join, dirname");
+
+    char buf_exec[512];
+    char buf_argv[512];
+    snprintf(buf_exec, sizeof(buf_exec), "sys.executable = '%s'\n", interpreter);
+    snprintf(buf_argv, sizeof(buf_argv), "sys.argv = ['%s']\n", interpreter);
+    PyRun_SimpleString(buf_exec);
+    PyRun_SimpleString(buf_argv);
+
     PyRun_SimpleString(add_site_packages_dir);
     /* "sys.path.append(join(dirname(realpath(__file__)), 'site-packages'))") */
     PyRun_SimpleString("sys.path = ['.'] + sys.path");
+    PyRun_SimpleString("os.environ['PYTHONPATH'] = ':'.join(sys.path)");
   }
 
   PyRun_SimpleString(
@@ -280,23 +407,12 @@ int main(int argc, char *argv[]) {
       "            androidembed.log(l.replace('\\x00', ''))\n"
       "        self.__buffer = lines[-1]\n"
       "sys.stdout = sys.stderr = LogFile()\n"
-      "print('Android path', sys.path)\n"
-      "# import os\n"
-      "# print('os.environ is', os.environ)\n"
       "print('Android kivy bootstrap done. __name__ is', __name__)");
 
 #if PY_MAJOR_VERSION < 3
   PyRun_SimpleString("import site; print site.getsitepackages()\n");
 #endif
 
-  LOGP("AND: Ran string");
-
-  /* run it !
-   */
-  LOGP("Run user program, change dir and execute entrypoint");
-
-  /* Get the entrypoint, search the .pyc then .py
-   */
   char *dot = strrchr(env_entrypoint, '.');
   char *ext = ".pyc";
   if (dot <= 0) {
@@ -345,7 +461,6 @@ int main(int argc, char *argv[]) {
     LOGP(entrypoint);
     return -1;
   }
-
   /* run python !
    */
   ret = PyRun_SimpleFile(fd, entrypoint);
@@ -361,34 +476,16 @@ int main(int argc, char *argv[]) {
 
   LOGP("Python for android ended.");
 
-  /* Shut down: since regular shutdown causes issues sometimes
-     (seems to be an incomplete shutdown breaking next launch)
-     we'll use sys.exit(ret) to shutdown, since that one works.
-
-     Reference discussion:
-
-     https://github.com/kivy/kivy/pull/6107#issue-246120816
-   */
-  char terminatecmd[256];
-  snprintf(
-    terminatecmd, sizeof(terminatecmd),
-    "import sys; sys.exit(%d)\n", ret
-  );
-  PyRun_SimpleString(terminatecmd);
-
-  /* This should never actually be reached, but we'll leave the clean-up
-   * here just to be safe.
-   */
 #if PY_MAJOR_VERSION < 3
   Py_Finalize();
   LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
 #else
-  if (Py_FinalizeEx() != 0)  // properly check success on Python 3
+  if (Py_FinalizeEx() != 0) {  // properly check success on Python 3
     LOGP("Unexpectedly reached Py_FinalizeEx(), and got error!");
-  else
-    LOGP("Unexpectedly reached Py_FinalizeEx(), but was successful.");
+  }
 #endif
 
+  exit(ret);
   return ret;
 }
 

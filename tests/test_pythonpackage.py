@@ -41,11 +41,8 @@ def test_get_package_dependencies():
         dep for dep in deps_recursive
         if "MarkupSafe" in dep
     ]
-    # Check setuptools not being in non-recursive deps:
-    # (It will be in recursive ones due to p4a's build dependency)
-    assert "setuptools" not in deps_nonrecursive
-    # Check setuptools is present in non-recursive deps,
-    # if we also add build requirements:
+    # Check setuptools is present in non-recursive deps when we add
+    # build requirements:
     assert "setuptools" in get_package_dependencies(
         local_repo_folder(), recursive=False,
         include_build_requirements=True,

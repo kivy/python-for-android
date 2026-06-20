@@ -6,3 +6,4 @@ bin/
 *.pyc
 **/__pycache__
 *.egg-info/
+docker-data/

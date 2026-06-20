@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -463,27 +464,22 @@ public class PythonActivity extends Activity {
             String serviceDescription,
             String pythonServiceArgument,
             boolean showForegroundNotification) {
-        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
-        String argument = PythonActivity.mActivity.getFilesDir().getAbsolutePath();
         String app_root_dir = PythonActivity.mActivity.getAppRoot();
         String entry_point = PythonActivity.mActivity.getEntryPoint(app_root_dir + "/service");
-        serviceIntent.putExtra("androidPrivate", argument);
-        serviceIntent.putExtra("androidArgument", app_root_dir);
-        serviceIntent.putExtra("serviceEntrypoint", "service/" + entry_point);
-        serviceIntent.putExtra("pythonName", "python");
-        serviceIntent.putExtra("pythonHome", app_root_dir);
-        serviceIntent.putExtra("pythonPath", app_root_dir + ":" + app_root_dir + "/lib");
-        serviceIntent.putExtra(
-                "serviceStartAsForeground", (showForegroundNotification ? "true" : "false"));
-        serviceIntent.putExtra("serviceTitle", serviceTitle);
-        serviceIntent.putExtra("serviceDescription", serviceDescription);
-        serviceIntent.putExtra("pythonServiceArgument", pythonServiceArgument);
+        Intent serviceIntent =
+                PythonServiceIntent.buildActivityService(
+                        PythonActivity.mActivity,
+                        PythonService.class,
+                        "service/" + entry_point,
+                        serviceTitle,
+                        serviceDescription,
+                        showForegroundNotification,
+                        pythonServiceArgument);
         PythonActivity.mActivity.startService(serviceIntent);
     }
 
     public static void stop_service() {
-        Intent serviceIntent = new Intent(PythonActivity.mActivity, PythonService.class);
-        PythonActivity.mActivity.stopService(serviceIntent);
+        PythonServiceIntent.stop(PythonActivity.mActivity, PythonService.class);
     }
 
     public static native void nativeSetenv(String name, String value);
@@ -546,6 +542,28 @@ public class PythonActivity extends Activity {
 
     public void requestPermissions(String[] permissions) {
         requestPermissionsWithRequestCode(permissions, 1);
+    }
+
+    public interface DarkModeListener {
+        void onDarkModeChanged(boolean isDarkMode);
+    }
+
+    private DarkModeListener darkModeListener = null;
+
+    public void setDarkModeListener(DarkModeListener listener) {
+        darkModeListener = listener;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkMode = currentNightMode == Configuration.UI_MODE_NIGHT_YES;
+
+        if (darkModeListener != null) {
+            darkModeListener.onDarkModeChanged(isDarkMode);
+        }
+
+        super.onConfigurationChanged(newConfig);
     }
 }
 

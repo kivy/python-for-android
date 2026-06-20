@@ -1,0 +1,12 @@
+diff '--color=auto' -uNr shine-c72aba9031bde18a0995e7c01c9b53f2e08a0e46/src/lib/l3mdct.h shine-c72aba9031bde18a0995e7c01c9b53f2e08a0e46.mod/src/lib/l3mdct.h
+--- shine-c72aba9031bde18a0995e7c01c9b53f2e08a0e46/src/lib/l3mdct.h	2017-08-01 19:14:17.000000000 +0530
++++ shine-c72aba9031bde18a0995e7c01c9b53f2e08a0e46.mod/src/lib/l3mdct.h	2026-05-22 08:30:59.625697302 +0530
+@@ -1,7 +1,7 @@
+ #ifndef shine_MDCT_H
+ #define shine_MDCT_H
+ 
+-void shine_mdct_initialise();
++void shine_mdct_initialise(shine_global_config *config);
+ void shine_mdct_sub(shine_global_config *config, int stride);
+ 
+ #endif

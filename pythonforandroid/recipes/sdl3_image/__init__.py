@@ -6,7 +6,7 @@ from pythonforandroid.util import current_directory
 
 
 class LibSDL3Image(BootstrapNDKRecipe):
-    version = "3.2.4"
+    version = "3.4.0"
     url = "https://github.com/libsdl-org/SDL_image/releases/download/release-{version}/SDL3_image-{version}.tar.gz"
     dir_name = "SDL3_image"
 

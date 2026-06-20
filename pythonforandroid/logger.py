@@ -135,6 +135,13 @@ def shprint(command, *args, **kwargs):
     kwargs["_out_bufsize"] = 1
     kwargs["_err_to_out"] = True
     kwargs["_bg"] = True
+
+    # silent mode
+    silent = kwargs.get("silent", False)
+    kwargs.pop("silent", False)
+    if silent:
+        kwargs["_out"] = None
+
     is_critical = kwargs.pop('_critical', False)
     tail_n = kwargs.pop('_tail', None)
     full_debug = False
@@ -190,6 +197,11 @@ def shprint(command, *args, **kwargs):
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))
             stdout.flush()
     except sh.ErrorReturnCode as err:
+        if silent:
+            if is_critical:
+                exit(1)
+            else:
+                raise
         if need_closing_newline:
             stdout.write('{}\r{:>{width}}\r'.format(
                 Err_Style.RESET_ALL, ' ', width=(columns - 1)))

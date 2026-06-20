@@ -1,0 +1,20 @@
+diff '--color=auto' -uNr cpython-3.14.0/Lib/ensurepip/__init__.py cpython-3.14.0.mod/Lib/ensurepip/__init__.py
+--- cpython-3.14.0/Lib/ensurepip/__init__.py	2025-10-07 15:04:52.000000000 +0530
++++ cpython-3.14.0.mod/Lib/ensurepip/__init__.py	2025-12-20 18:18:13.884914683 +0530
+@@ -69,7 +69,15 @@
+     code = f"""
+ import runpy
+ import sys
+-sys.path = {additional_paths or []} + sys.path
++
++# tell ensurepip to ignore site-packages
++
++paths = []
++for path in sys.path:
++    if "site-packages" not in path:
++        paths.append(path)
++
++sys.path = {additional_paths or []} + paths
+ sys.argv[1:] = {args}
+ runpy.run_module("pip", run_name="__main__", alter_sys=True)
+ """

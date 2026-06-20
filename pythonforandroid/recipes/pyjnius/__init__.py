@@ -2,7 +2,7 @@ from pythonforandroid.recipe import PyProjectRecipe
 from pythonforandroid.toolchain import shprint, current_directory, info
 from pythonforandroid.patching import will_build
 import sh
-from os.path import join
+from os.path import exists, join
 
 
 class PyjniusRecipe(PyProjectRecipe):
@@ -21,12 +21,24 @@ class PyjniusRecipe(PyProjectRecipe):
     def get_recipe_env(self, arch, **kwargs):
         env = super().get_recipe_env(arch, **kwargs)
 
+        generic_main_libs = (
+            join(self.ctx.bootstrap.build_dir, 'libs', arch.arch,
+                 'libmain_{}.so'.format(arch.arch)),
+            join(self.ctx.bootstrap.build_dir, 'obj', 'local', arch.arch,
+                 'libmain_{}.so'.format(arch.arch)),
+        )
+        if any(exists(lib) for lib in generic_main_libs):
+            env['PYJNIUS_ANDROID_LIBMAIN'] = 'main_{}'.format(arch.arch)
+
         # Taken from CythonRecipe
-        env['LDFLAGS'] = env['LDFLAGS'] + ' -L{} '.format(
-            self.ctx.get_libs_dir(arch.arch) +
-            ' -L{} '.format(self.ctx.libs_dir) +
-            ' -L{}'.format(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
-                                arch.arch)))
+        env['LDFLAGS'] = env['LDFLAGS'] + ' ' + ' '.join([
+            '-L{}'.format(self.ctx.get_libs_dir(arch.arch)),
+            '-L{}'.format(self.ctx.libs_dir),
+            '-L{}'.format(join(self.ctx.bootstrap.build_dir, 'libs',
+                               arch.arch)),
+            '-L{}'.format(join(self.ctx.bootstrap.build_dir, 'obj', 'local',
+                               arch.arch)),
+        ])
         env['LDSHARED'] = env['CC'] + ' -shared'
         env['LIBLINK'] = 'NOTNONE'
 
