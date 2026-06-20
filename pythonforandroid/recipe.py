@@ -1237,7 +1237,7 @@ class PyProjectRecipe(PythonRecipe):
     # Extra args to pass to `python -m build ...`
     extra_build_args = []
     call_hostpython_via_targetpython = False
-    
+
     def __init__(self):
         super().__init__()
         self.extra_build_args = []
