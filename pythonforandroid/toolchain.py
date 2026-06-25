@@ -333,6 +333,20 @@ class ToolchainCL:
             default='')
 
         generic_parser.add_argument(
+            '--use-setup-py', dest="use_setup_py",
+            action='store_true', default=False,
+            help="Process the setup.py of a project if present. " +
+                 "(Experimental!")
+        generic_parser.add_argument(
+            '--ignore-setup-py', dest="ignore_setup_py",
+            action='store_true', default=False,
+            help="Don't run the setup.py of a project if present. " +
+                 "This may be required if the setup.py is not " +
+                 "designed to work inside p4a (e.g. by installing " +
+                 "dependencies that won't work or aren't desired " +
+                 "on Android")
+
+        generic_parser.add_argument(
             '--bootstrap',
             help='The bootstrap to build with. Leave unset to choose '
                  'automatically.',
@@ -497,19 +511,7 @@ class ToolchainCL:
             help='the directory with the app source code files' +
                  ' (containing your main.py entrypoint)',
             required=False, default=None)
-        parser_packaging.add_argument(
-            '--use-setup-py', dest="use_setup_py",
-            action='store_true', default=False,
-            help="Process the setup.py of a project if present. " +
-                 "(Experimental!")
-        parser_packaging.add_argument(
-            '--ignore-setup-py', dest="ignore_setup_py",
-            action='store_true', default=False,
-            help="Don't run the setup.py of a project if present. " +
-                 "This may be required if the setup.py is not " +
-                 "designed to work inside p4a (e.g. by installing " +
-                 "dependencies that won't work or aren't desired " +
-                 "on Android")
+
         parser_packaging.add_argument(
             '--release', dest='build_mode', action='store_const',
             const='release', default='debug',
