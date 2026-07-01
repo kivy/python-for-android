@@ -1,10 +1,11 @@
-from pythonforandroid.recipe import CythonRecipe
+from pythonforandroid.recipe import PyProjectRecipe
 
 
-class SelectolaxRecipe(CythonRecipe):
+class SelectolaxRecipe(PyProjectRecipe):
     version = '0.4.10'
     url = 'https://pypi.python.org/packages/source/s/selectolax/selectolax-{version}.tar.gz'
     depends = ['setuptools']
+    hostpython_prerequisites = ['cython']
 
 
 recipe = SelectolaxRecipe()
