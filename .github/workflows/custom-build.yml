@@ -60,7 +60,7 @@ jobs:
     runs-on: ${{ github.event.inputs.os }}
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Pull the python-for-android docker image
         run: make docker/pull
       - name: Build python-for-android docker image
