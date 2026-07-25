@@ -34,5 +34,8 @@ setup(name='android',
       version='1.0',
       packages=['android'],
       package_dir={'android': 'android'},
+      # Top-level, not under `android`: the name is Kivy's, and Kivy imports it
+      # without knowing which bootstrap built the app.
+      py_modules=['_kivy_bootstrap'],
       ext_modules=cythonized_modules
       )

@@ -4,7 +4,9 @@ Bootstraps
 
 This page is about creating new bootstrap backends. For build options
 of existing bootstraps (i.e. with SDL2, Webview, etc.), see
-:ref:`build options <bootstrap_build_options>`.
+:ref:`build options <bootstrap_build_options>`. If your bootstrap is
+to run Kivy 3 apps, it must also satisfy
+:ref:`Kivy's bootstrap contract <kivy_bootstrap_contract>`.
 
 python-for-android (p4a) supports multiple *bootstraps*. These fulfill a
 similar role to recipes, but instead of describing how to compile a

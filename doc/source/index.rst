@@ -58,6 +58,7 @@ Contents
    distutils
    recipes
    bootstraps
+   kivy_bootstrap
    services
    troubleshooting
    docker
