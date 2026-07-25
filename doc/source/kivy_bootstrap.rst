@@ -8,9 +8,9 @@ reflecting a class name of its own. Any tool that builds Android APKs — this
 project, another build tool, or a bootstrap you write yourself — makes Kivy 3
 work by answering that question.
 
-This page is the implementer's guide: what to ship, the rules it must obey, and
-a working example to copy. p4a's own implementation is
-``pythonforandroid/recipes/android/src/_kivy_bootstrap.py``, reproduced below.
+This page is the implementer's guide: what to ship, the rules it must obey.
+p4a's own implementation is
+``pythonforandroid/recipes/android/src/_kivy_bootstrap.py``.
 
 Kivy 2.3.1 does not use this contract and is unaffected; see
 `Supporting Kivy 2.3.1 as well`_ if you need both.
@@ -54,8 +54,7 @@ Return an ``android.content.Context``, or ``None``.
 Implement this only if your bootstrap runs processes that never have an
 Activity and still need a Context. When it is absent — or returns ``None`` —
 Kivy derives the Application context from the current Activity, which is
-equivalent for everything Kivy uses a Context for. Neither p4a nor kivyforge
-implements it.
+equivalent for everything Kivy uses a Context for. p4a does not implement it.
 
 ``remove_presplash()`` (optional)
 ---------------------------------
@@ -122,120 +121,6 @@ Useful when debugging your implementation:
   otherwise calls ``getApplicationContext()`` on the current Activity.
 * ``kivy.mobile.get_activity()`` returns exactly what your function returned,
   ``None`` included.
-
-Minimal implementation
-----------------------
-
-Enough to satisfy the contract, if your activity class is fixed at build time:
-
-.. code-block:: python
-
-    from jnius import autoclass
-
-    _ACTIVITY_CLASS = "com.example.MyActivity"  # your class; Kivy never sees it
-
-    _activity_class = None
-
-
-    def get_activity():
-        global _activity_class
-        if _activity_class is None:
-            _activity_class = autoclass(_ACTIVITY_CLASS)
-        return _activity_class.mActivity
-
-Your activity needs some way to expose the running instance. p4a and kivyforge
-both use a ``public static`` field assigned in ``onCreate``; anything reachable
-by reflection will do.
-
-Worked example: python-for-android
-----------------------------------
-
-The complete p4a implementation, from
-``pythonforandroid/recipes/android/src/_kivy_bootstrap.py`` (docstrings
-trimmed here; the file explains each decision at length):
-
-.. code-block:: python
-
-    from jnius import autoclass
-
-    from android.config import ACTIVITY_CLASS_NAME
-
-    _activity_class = None
-
-
-    def get_activity():
-        """The current android.app.Activity, or None if there is none."""
-        global _activity_class
-        if _activity_class is None:
-            # Resolved on first use rather than at import so that reflection
-            # failures surface from the call, not from Kivy's discovery import.
-            _activity_class = autoclass(ACTIVITY_CLASS_NAME)
-        return _activity_class.mActivity
-
-
-    def remove_presplash():
-        """Dismiss the loading screen, if this build has one."""
-        activity = get_activity()
-        if activity is None:
-            return
-        remove = getattr(activity, "removeLoadingScreen", None)
-        if remove is not None:
-            remove()
-
-Two things there are worth imitating.
-
-The class name comes from the build-time generated ``android.config`` rather
-than a literal, so a custom activity passed to ``--activity-class-name`` is
-honoured: Kivy gets the class *this build* chose. If your tool lets users
-override the activity, resolve the name the same way.
-
-``remove_presplash()`` asks the activity for ``removeLoadingScreen`` instead of
-consulting a list of bootstraps that have one. Not every p4a build does —
-``service_only`` has no such method, and a custom activity need not inherit
-one — and a hardcoded list has already drifted once in this codebase.
-
-A second example: kivyforge
----------------------------
-
-kivyforge, a Gradle- and wheel-based Android builder, implements the same
-contract in its own ``_kivy_bootstrap.py`` against an unmodified Kivy. It
-differs in exactly the ways the contract allows: the activity class is a
-constant it owns, since it has no ``android.config``; and it omits
-``remove_presplash()`` entirely, because it uses the androidx
-core-splashscreen system splash, which the framework dismisses itself and which
-exposes no view for anyone to tear down.
-
-That two bootstraps this different need no cooperation from each other, and no
-change in Kivy, is the contract working as intended.
-
-Verifying on a device
----------------------
-
-The failure this contract guards against is a build that starts fine and dies
-the moment Kivy first needs the Activity, so check it on a device or emulator
-rather than in a unit test:
-
-.. code-block:: python
-
-    import _kivy_bootstrap
-
-    activity = _kivy_bootstrap.get_activity()
-    assert activity is not None
-    assert activity.getPackageName()      # answers as a Context: it is live
-
-Then, from inside a running Kivy app, confirm Kivy agrees with you:
-
-.. code-block:: python
-
-    from kivy.mobile import get_activity, get_app_context
-
-    assert get_activity().equals(_kivy_bootstrap.get_activity())
-    assert get_app_context() is not None
-
-Beyond that, the contract is exercised by anything in Kivy that needs the
-Activity: display metrics (``kivy.metrics``), ``App.user_data_dir``, the
-clipboard provider, and the splash removal after the first frame. If those work,
-your implementation is complete.
 
 Supporting Kivy 2.3.1 as well
 -----------------------------
