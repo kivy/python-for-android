@@ -34,11 +34,11 @@ class TestBuildBasic(unittest.TestCase):
         arch = ctx.archs[0]
 
         # should not alter original module name (like with adding version number)
-        assert "kivy_garden.frostedglass" in process_python_modules(ctx, ["kivy_garden.frostedglass"], arch)
+        assert "kivy_garden.frostedglass" in process_python_modules(ctx, ["kivy_garden.frostedglass"], arch)[0]
 
         # should skip urls and other unsupported format
         modules = ["https://example.com/some.zip", "git+https://github.com/kivy/python-for-android@develop"]
-        result = process_python_modules(ctx, modules, arch)
+        result = process_python_modules(ctx, modules, arch)[0]
         assert modules == result
 
     def test_is_wheel_compatible(self):
