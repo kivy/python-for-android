@@ -1,5 +1,3 @@
-from contextlib import suppress
-import copy
 import glob
 import os
 import json
@@ -22,13 +20,13 @@ from pythonforandroid.androidndk import AndroidNDK
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint, Out_Style, Out_Fore)
 from pythonforandroid.pythonpackage import get_package_name
-from pythonforandroid.recipe import CythonRecipe, Recipe, PyProjectRecipe
+from pythonforandroid.recipe import Recipe, PyProjectRecipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 from pythonforandroid.util import (
     current_directory, ensure_dir,
-    BuildInterruptingException, rmdir
+    BuildInterruptingException
 )
 
 
