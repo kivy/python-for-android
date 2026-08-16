@@ -664,7 +664,7 @@ def process_python_modules(ctx, modules, arch):
         warning("Auto module resolution failed: invalid json!")
         return processed_modules, state
 
-    info('Extra resolved pure python dependencies :')
+    info('Extra resolved python platform dependencies :')
 
     ignored_str = " (ignored)"
     # did we find any non pure python package?
