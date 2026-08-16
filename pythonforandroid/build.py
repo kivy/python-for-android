@@ -637,6 +637,9 @@ def process_python_modules(ctx, modules, arch):
     # add extra index urls
     for index in ctx.extra_index_urls:
         indices.extend(["--extra-index-url", index])
+
+    state = [pip, platforms, indices, env]
+
     try:
         shprint(
             pip, 'install', *modules,
@@ -646,7 +649,7 @@ def process_python_modules(ctx, modules, arch):
         )
     except Exception as e:
         warning(f"Auto module resolution failed: {e}")
-        return processed_modules
+        return processed_modules, state
 
     with open(path, "r") as f:
         try:
@@ -659,7 +662,7 @@ def process_python_modules(ctx, modules, arch):
     if "install" not in report.keys():
         # pip changed json reporting format?
         warning("Auto module resolution failed: invalid json!")
-        return processed_modules
+        return processed_modules, state
 
     info('Extra resolved pure python dependencies :')
 
@@ -682,8 +685,7 @@ def process_python_modules(ctx, modules, arch):
             any_not_pure_python = True
             pure_python = False
 
-        # does this module matches any recipe name?
-        if mname.lower().replace("-", "_") in _requirement_names:
+        if mname.lower().replace("-", "_") in _requirement_names or mname.lower() in _requirement_names:
             continue
 
         color = Out_Fore.GREEN if pure_python else Out_Fore.RED
@@ -704,7 +706,7 @@ def process_python_modules(ctx, modules, arch):
         warning("Some packages were ignored because they are not pure Python.")
         warning("To install the ignored packages, explicitly list them in your requirements file.")
 
-    return processed_modules, [pip, platforms, indices, env]
+    return processed_modules, state
 
 
 def run_pymodules_install(ctx, arch, modules, project_dir=None,
@@ -720,6 +722,11 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
     """
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE FOR ARCH: {} ***'.format(arch))
+
+    # Restore version strings from environment
+    for index, module in enumerate(modules):
+        if (m_version := os.environ.get(f'VERSION_{module}', None)) is not None:
+            modules[index] = f'{module}=={m_version}'
 
     modules, state = process_python_modules(ctx, modules, arch)
     # Reuse the state constructed
