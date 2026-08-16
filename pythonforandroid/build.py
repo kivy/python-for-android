@@ -768,10 +768,11 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
             "and does not work without additional "
             "changes / workarounds."
         )
+        # --no-deps is required here as auto resolution is already done above
         shprint(
             pip, 'install', *modules,
             '--target', ctx.get_site_packages_dir(arch),
-            '--upgrade', '--ignore-installed',
+            '--upgrade', '--ignore-installed', '--no-deps',
             '--disable-pip-version-check', '--only-binary=:all:',
             *platforms, *indices, _env=env
         )
