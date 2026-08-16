@@ -732,7 +732,8 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
     # Reuse the state constructed
     pip, platforms, indices, env = state
 
-    modules = [m for m in modules if ctx.not_has_package(m, arch)]
+    # It always runs with --upgrade so this is not required as it skips if module already exists
+    # modules = [m for m in modules if ctx.not_has_package(m, arch)]
 
     # We change current working directory later, so this has to be an absolute
     # path or `None` in case that we didn't supply the `project_dir` via kwargs
