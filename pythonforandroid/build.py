@@ -603,9 +603,6 @@ def process_python_modules(ctx, modules, arch):
     # preserve the original module list
     processed_modules.extend(modules)
 
-    if len(modules) == 0:
-        return processed_modules
-
     # temp file for pip report
     fd, path = tempfile.mkstemp()
     os.close(fd)

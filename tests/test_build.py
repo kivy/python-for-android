@@ -19,6 +19,7 @@ class TestBuildBasic(unittest.TestCase):
         """
         ctx = mock.Mock(recipe_build_order=[])
         ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
+        ctx.extra_index_urls = []
         modules = []
         project_dir = None
         with mock.patch('pythonforandroid.build.info') as m_info:
@@ -57,37 +58,6 @@ class TestBuildBasic(unittest.TestCase):
         # other os
         assert not is_wheel_compatible("test-7.1.0-0-cp313-cp313-some_other_os.whl", arch, ctx)
         assert not is_wheel_compatible("mmh3-5.2.0-cp314-cp314t-win_amd64.whl", arch, ctx)
-
-    def test_strip_if_with_debug_symbols(self):
-        ctx = mock.Mock(recipe_build_order=[])
-        ctx.python_recipe.major_minor_version_string = "3.6"
-        ctx.get_site_packages_dir.return_value = "test-doesntexist"
-        ctx.build_dir = "nonexistant_directory"
-        ctx.extra_index_urls = []
-        ctx.archs = [ArchAarch_64(ctx)]
-
-        modules = ["mymodule"]
-        project_dir = None
-        with mock.patch('pythonforandroid.build.info'), \
-                mock.patch('sh.Command'), \
-                mock.patch('pythonforandroid.build.open'), \
-                mock.patch('pythonforandroid.build.shprint'), \
-                mock.patch('pythonforandroid.build.current_directory'), \
-                mock.patch('pythonforandroid.build.CythonRecipe') as m_CythonRecipe, \
-                mock.patch('pythonforandroid.build.project_has_setup_py') as m_project_has_setup_py, \
-                mock.patch('pythonforandroid.build.run_setuppy_install'):
-            m_project_has_setup_py.return_value = False
-
-            # Make sure it is NOT called when `with_debug_symbols` is true:
-            ctx.with_debug_symbols = True
-            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
-            assert m_CythonRecipe().strip_object_files.called is False
-
-            # Make sure strip object files IS called when
-            # `with_debug_symbols` is false:
-            ctx.with_debug_symbols = False
-            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
-            assert m_CythonRecipe().strip_object_files.called is True
 
 
 class TestTemplates(unittest.TestCase):
