@@ -479,9 +479,6 @@ class Context:
                 exists(join(site_packages_dir, name + '.so')) or
                 glob.glob(join(site_packages_dir, name + '-*.egg')))
 
-    def not_has_package(self, name, arch=None):
-        return not self.has_package(name, arch)
-
 
 def build_recipes(build_order, python_modules, ctx, project_dir,
                   ignore_project_setup_py=False
@@ -729,9 +726,6 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
     # Reuse the state constructed
     pip, platforms, indices, env = state
 
-    # It always runs with --upgrade so this is not required as it skips if module already exists
-    # modules = [m for m in modules if ctx.not_has_package(m, arch)]
-
     # We change current working directory later, so this has to be an absolute
     # path or `None` in case that we didn't supply the `project_dir` via kwargs
     project_dir = abspath(project_dir) if project_dir else None
@@ -787,7 +781,7 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
         with current_directory(project_dir):
             # TODO: It will only work for basic python projects with no compiled components
             shprint(
-                pip, 'install', ".",
+                pip, 'install', ".", "--no-deps", "--only-binary=:all:",
                 '--target', ctx.get_site_packages_dir(arch),
                 '--disable-pip-version-check', '--upgrade',
                 *platforms, *indices, _env=env
@@ -796,13 +790,14 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
         info("No setup.py found in project directory: " + str(project_dir))
 
     # Strip object files after potential Cython or native code builds:
-    if not ctx.with_debug_symbols and env.get("STRIP", None) is not None:
+    arch_env = arch.get_env()
+    if not ctx.with_debug_symbols and arch_env.get("STRIP", None) is not None:
         info('Stripping object files')
         shprint(
             sh.find, '.', '-iname', '*.so',
-            '-exec', env['STRIP'].split(' ')[0],
+            '-exec', arch_env['STRIP'].split(' ')[0],
             '--strip-unneeded', '{}', ';',
-            _env=env
+            _env=arch_env,
         )
 
 
