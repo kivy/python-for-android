@@ -4,6 +4,7 @@ from unittest import mock
 
 import jinja2
 
+from pythonforandroid import build
 from pythonforandroid.build import (
     Context, RECOMMENDED_TARGET_API, run_pymodules_install, process_python_modules, is_wheel_compatible
 )
@@ -19,12 +20,48 @@ class TestBuildBasic(unittest.TestCase):
         """
         ctx = mock.Mock(recipe_build_order=[])
         ctx.archs = [ArchARMv7_a(ctx), ArchAarch_64(ctx)]
+        ctx.extra_index_urls = []
         modules = []
         project_dir = None
         with mock.patch('pythonforandroid.build.info') as m_info:
             assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
         assert m_info.call_args_list[-1] == mock.call(
             'No Python modules and no setup.py to process, skipping')
+
+    @mock.patch('pythonforandroid.build.shprint')
+    @mock.patch('pythonforandroid.build.project_has_setup_py', return_value=False)
+    @mock.patch('pythonforandroid.build.process_python_modules')
+    def test_strip_if_with_debug_symbols(
+            self, mock_process_modules, mock_project_has_setup_py,
+            mock_shprint):
+        ctx = mock.Mock(recipe_build_order=[], with_debug_symbols=False)
+        ctx.get_site_packages_dir.return_value = '/tmp/python-install'
+        arch = mock.Mock()
+        arch_env = {'STRIP': '/ndk/bin/llvm-strip --some-argument'}
+        arch.get_env.return_value = arch_env
+        mock_process_modules.return_value = (
+            ['example-module'],
+            (mock.sentinel.pip, [], [], mock.sentinel.pip_env),
+        )
+
+        run_pymodules_install(ctx, arch, [], None)
+
+        strip_call = mock.call(
+            build.sh.find, '/tmp/python-install', '-iname', '*.so',
+            '-exec', '/ndk/bin/llvm-strip',
+            '--strip-unneeded', '{}', ';',
+            _env=arch_env,
+        )
+        assert strip_call in mock_shprint.call_args_list
+
+        mock_shprint.reset_mock()
+        ctx.with_debug_symbols = True
+        run_pymodules_install(ctx, arch, [], None)
+
+        assert not any(
+            call.args[0] == build.sh.find
+            for call in mock_shprint.call_args_list
+        )
 
     def test_python_module_parser(self):
         ctx = mock.Mock(recipe_build_order=[])
@@ -34,11 +71,11 @@ class TestBuildBasic(unittest.TestCase):
         arch = ctx.archs[0]
 
         # should not alter original module name (like with adding version number)
-        assert "kivy_garden.frostedglass" in process_python_modules(ctx, ["kivy_garden.frostedglass"], arch)
+        assert "kivy_garden.frostedglass" in process_python_modules(ctx, ["kivy_garden.frostedglass"], arch)[0]
 
         # should skip urls and other unsupported format
         modules = ["https://example.com/some.zip", "git+https://github.com/kivy/python-for-android@develop"]
-        result = process_python_modules(ctx, modules, arch)
+        result = process_python_modules(ctx, modules, arch)[0]
         assert modules == result
 
     def test_is_wheel_compatible(self):
@@ -57,37 +94,6 @@ class TestBuildBasic(unittest.TestCase):
         # other os
         assert not is_wheel_compatible("test-7.1.0-0-cp313-cp313-some_other_os.whl", arch, ctx)
         assert not is_wheel_compatible("mmh3-5.2.0-cp314-cp314t-win_amd64.whl", arch, ctx)
-
-    def test_strip_if_with_debug_symbols(self):
-        ctx = mock.Mock(recipe_build_order=[])
-        ctx.python_recipe.major_minor_version_string = "3.6"
-        ctx.get_site_packages_dir.return_value = "test-doesntexist"
-        ctx.build_dir = "nonexistant_directory"
-        ctx.extra_index_urls = []
-        ctx.archs = [ArchAarch_64(ctx)]
-
-        modules = ["mymodule"]
-        project_dir = None
-        with mock.patch('pythonforandroid.build.info'), \
-                mock.patch('sh.Command'), \
-                mock.patch('pythonforandroid.build.open'), \
-                mock.patch('pythonforandroid.build.shprint'), \
-                mock.patch('pythonforandroid.build.current_directory'), \
-                mock.patch('pythonforandroid.build.CythonRecipe') as m_CythonRecipe, \
-                mock.patch('pythonforandroid.build.project_has_setup_py') as m_project_has_setup_py, \
-                mock.patch('pythonforandroid.build.run_setuppy_install'):
-            m_project_has_setup_py.return_value = False
-
-            # Make sure it is NOT called when `with_debug_symbols` is true:
-            ctx.with_debug_symbols = True
-            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
-            assert m_CythonRecipe().strip_object_files.called is False
-
-            # Make sure strip object files IS called when
-            # `with_debug_symbols` is false:
-            ctx.with_debug_symbols = False
-            assert run_pymodules_install(ctx, ctx.archs[0], modules, project_dir) is None
-            assert m_CythonRecipe().strip_object_files.called is True
 
 
 class TestTemplates(unittest.TestCase):

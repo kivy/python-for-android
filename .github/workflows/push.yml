@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Set up Python 3.x
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: 3.x
     - name: Run flake8
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Set up Java 17
       uses: actions/setup-java@v5
       with:
@@ -58,9 +58,9 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
     - name: Checkout python-for-android
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
@@ -106,7 +106,7 @@ jobs:
         remove-codeql: 'true'
         remove-docker-images: 'true'
     - name: Checkout python-for-android
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Relocate Docker data directory
       run: |
         sudo systemctl stop docker
@@ -163,9 +163,9 @@ jobs:
       ANDROID_NDK_HOME: ${HOME}/.android/android-ndk
     steps:
       - name: Checkout python-for-android
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set up Python 3.x
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - name: Install python-for-android
@@ -202,7 +202,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Download Artifacts
         uses: actions/download-artifact@v8
         with:
@@ -239,7 +239,7 @@ jobs:
         remove-codeql: 'true'
         remove-docker-images: 'true'
     - name: Checkout python-for-android (all-history)
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Relocate Docker data directory
@@ -276,11 +276,11 @@ jobs:
       REBUILD_UPDATED_RECIPES_EXTRA_ARGS: --arch=${{ matrix.android_arch }}
     steps:
       - name: Checkout python-for-android (all-history)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Set up Python 3.x
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - name: Install python-for-android
@@ -308,7 +308,7 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Requirements
       run: |
         python -m pip install --upgrade pip

@@ -1,5 +1,3 @@
-from contextlib import suppress
-import copy
 import glob
 import os
 import json
@@ -22,13 +20,13 @@ from pythonforandroid.androidndk import AndroidNDK
 from pythonforandroid.archs import ArchARM, ArchARMv7_a, ArchAarch_64, Archx86, Archx86_64
 from pythonforandroid.logger import (info, warning, info_notify, info_main, shprint, Out_Style, Out_Fore)
 from pythonforandroid.pythonpackage import get_package_name
-from pythonforandroid.recipe import CythonRecipe, Recipe, PyProjectRecipe
+from pythonforandroid.recipe import Recipe, PyProjectRecipe
 from pythonforandroid.recommendations import (
     check_ndk_version, check_target_api, check_ndk_api,
     RECOMMENDED_NDK_API, RECOMMENDED_TARGET_API)
 from pythonforandroid.util import (
     current_directory, ensure_dir,
-    BuildInterruptingException, rmdir
+    BuildInterruptingException
 )
 
 
@@ -481,9 +479,6 @@ class Context:
                 exists(join(site_packages_dir, name + '.so')) or
                 glob.glob(join(site_packages_dir, name + '-*.egg')))
 
-    def not_has_package(self, name, arch=None):
-        return not self.has_package(name, arch)
-
 
 def build_recipes(build_order, python_modules, ctx, project_dir,
                   ignore_project_setup_py=False
@@ -564,117 +559,6 @@ def project_has_setup_py(project_dir):
             ))
 
 
-def run_setuppy_install(ctx, project_dir, env=None, arch=None):
-    env = env or {}
-
-    with current_directory(project_dir):
-        info('got setup.py or similar, running project install. ' +
-             '(disable this behavior with --ignore-setup-py)')
-
-        # Compute & output the constraints we will use:
-        info('Contents that will be used for constraints.txt:')
-        constraints = subprocess.check_output([
-            join(
-                ctx.build_dir, "venv", "bin", "pip"
-            ),
-            "freeze"
-        ], env=copy.copy(env))
-        with suppress(AttributeError):
-            constraints = constraints.decode("utf-8", "replace")
-        info(constraints)
-
-        # Make sure all packages found are fixed in version
-        # by writing a constraint file, to avoid recipes being
-        # upgraded & reinstalled:
-        with open('._tmp_p4a_recipe_constraints.txt', 'wb') as fileh:
-            fileh.write(constraints.encode("utf-8", "replace"))
-        try:
-
-            info('Populating venv\'s site-packages with '
-                 'ctx.get_site_packages_dir()...')
-
-            # Copy dist contents into site-packages for discovery.
-            # Why this is needed:
-            # --target is somewhat evil and messes with discovery of
-            # packages in PYTHONPATH if that also includes the target
-            # folder. So we need to use the regular virtualenv
-            # site-packages folder instead.
-            # Reference:
-            # https://github.com/pypa/pip/issues/6223
-            ctx_site_packages_dir = os.path.normpath(
-                os.path.abspath(ctx.get_site_packages_dir(arch))
-            )
-            venv_site_packages_dir = os.path.normpath(os.path.join(
-                ctx.build_dir, "venv", "lib", [
-                    f for f in os.listdir(os.path.join(
-                        ctx.build_dir, "venv", "lib"
-                    )) if f.startswith("python")
-                ][0], "site-packages"
-            ))
-            copied_over_contents = []
-            for f in os.listdir(ctx_site_packages_dir):
-                full_path = os.path.join(ctx_site_packages_dir, f)
-                if not os.path.exists(os.path.join(
-                            venv_site_packages_dir, f
-                        )):
-                    if os.path.isdir(full_path):
-                        shutil.copytree(full_path, os.path.join(
-                            venv_site_packages_dir, f
-                        ))
-                    else:
-                        shutil.copy2(full_path, os.path.join(
-                            venv_site_packages_dir, f
-                        ))
-                    copied_over_contents.append(f)
-
-            # Get listing of virtualenv's site-packages, to see the
-            # newly added things afterwards & copy them back into
-            # the distribution folder / build context site-packages:
-            previous_venv_contents = os.listdir(
-                venv_site_packages_dir
-            )
-
-            # Actually run setup.py:
-            info('Launching package install...')
-            shprint(sh.bash, '-c', (
-                "'" + join(
-                    ctx.build_dir, "venv", "bin", "pip"
-                ).replace("'", "'\"'\"'") + "' " +
-                "install -c ._tmp_p4a_recipe_constraints.txt -v ."
-            ).format(ctx.get_site_packages_dir(arch).
-                     replace("'", "'\"'\"'")),
-                    _env=copy.copy(env))
-
-            # Go over all new additions and copy them back:
-            info('Copying additions resulting from setup.py back '
-                 'into ctx.get_site_packages_dir()...')
-            new_venv_additions = []
-            for f in (set(os.listdir(venv_site_packages_dir)) -
-                      set(previous_venv_contents)):
-                new_venv_additions.append(f)
-                full_path = os.path.join(venv_site_packages_dir, f)
-                if os.path.isdir(full_path):
-                    shutil.copytree(full_path, os.path.join(
-                        ctx_site_packages_dir, f
-                    ))
-                else:
-                    shutil.copy2(full_path, os.path.join(
-                        ctx_site_packages_dir, f
-                    ))
-
-            # Undo all the changes we did to the venv-site packages:
-            info('Reverting additions to '
-                 'virtualenv\'s site-packages...')
-            for f in set(copied_over_contents + new_venv_additions):
-                full_path = os.path.join(venv_site_packages_dir, f)
-                if os.path.isdir(full_path):
-                    rmdir(full_path)
-                else:
-                    os.remove(full_path)
-        finally:
-            os.remove("._tmp_p4a_recipe_constraints.txt")
-
-
 def is_wheel_platform_independent(whl_name):
     name, version, build, tags = parse_wheel_filename(whl_name)
     return all(tag.platform == "any" for tag in tags)
@@ -716,9 +600,6 @@ def process_python_modules(ctx, modules, arch):
     # preserve the original module list
     processed_modules.extend(modules)
 
-    if len(modules) == 0:
-        return processed_modules
-
     # temp file for pip report
     fd, path = tempfile.mkstemp()
     os.close(fd)
@@ -750,6 +631,9 @@ def process_python_modules(ctx, modules, arch):
     # add extra index urls
     for index in ctx.extra_index_urls:
         indices.extend(["--extra-index-url", index])
+
+    state = [pip, platforms, indices, env]
+
     try:
         shprint(
             pip, 'install', *modules,
@@ -759,7 +643,7 @@ def process_python_modules(ctx, modules, arch):
         )
     except Exception as e:
         warning(f"Auto module resolution failed: {e}")
-        return processed_modules
+        return processed_modules, state
 
     with open(path, "r") as f:
         try:
@@ -772,9 +656,9 @@ def process_python_modules(ctx, modules, arch):
     if "install" not in report.keys():
         # pip changed json reporting format?
         warning("Auto module resolution failed: invalid json!")
-        return processed_modules
+        return processed_modules, state
 
-    info('Extra resolved pure python dependencies :')
+    info('Extra resolved python platform dependencies :')
 
     ignored_str = " (ignored)"
     # did we find any non pure python package?
@@ -795,8 +679,7 @@ def process_python_modules(ctx, modules, arch):
             any_not_pure_python = True
             pure_python = False
 
-        # does this module matches any recipe name?
-        if mname.lower().replace("-", "_") in _requirement_names:
+        if mname.lower().replace("-", "_") in _requirement_names or mname.lower() in _requirement_names:
             continue
 
         color = Out_Fore.GREEN if pure_python else Out_Fore.RED
@@ -809,6 +692,7 @@ def process_python_modules(ctx, modules, arch):
         )
 
         if pure_python:
+            # Direct whl file to avoid resolving again
             processed_modules.append(module["download_info"]["url"])
     info(" ")
 
@@ -816,7 +700,7 @@ def process_python_modules(ctx, modules, arch):
         warning("Some packages were ignored because they are not pure Python.")
         warning("To install the ignored packages, explicitly list them in your requirements file.")
 
-    return processed_modules
+    return processed_modules, state
 
 
 def run_pymodules_install(ctx, arch, modules, project_dir=None,
@@ -833,9 +717,14 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
 
     info('*** PYTHON PACKAGE / PROJECT INSTALL STAGE FOR ARCH: {} ***'.format(arch))
 
-    modules = process_python_modules(ctx, modules, arch)
+    # Restore version strings from environment
+    for index, module in enumerate(modules):
+        if (m_version := os.environ.get(f'VERSION_{module}', None)) is not None:
+            modules[index] = f'{module}=={m_version}'
 
-    modules = [m for m in modules if ctx.not_has_package(m, arch)]
+    modules, state = process_python_modules(ctx, modules, arch)
+    # Reuse the state constructed
+    pip, platforms, indices, env = state
 
     # We change current working directory later, so this has to be an absolute
     # path or `None` in case that we didn't supply the `project_dir` via kwargs
@@ -859,84 +748,57 @@ def run_pymodules_install(ctx, arch, modules, project_dir=None,
             "If this fails, it may mean that the module has compiled "
             "components and needs a recipe."
         )
+
     if project_has_setup_py(project_dir) and not ignore_setup_py:
         info(
             "Will process project install, if it fails then the "
             "project may not be compatible for Android install."
         )
 
-    # Use our hostpython to create the virtualenv
-    host_python = sh.Command(ctx.hostpython)
-    with current_directory(join(ctx.build_dir)):
-        shprint(host_python, '-m', 'venv', '--clear', 'venv')
+    if not modules:
+        info('There are no Python modules to install, skipping')
+    else:
 
-        # Prepare base environment:
-        base_env = dict(copy.copy(os.environ))
-        base_env["PYTHONPATH"] = ctx.get_site_packages_dir(arch)
+        info('Installing Python modules with pip')
+        info(
+            "IF THIS FAILS, THE MODULES MAY NEED A RECIPE. "
+            "A reason for this is often modules compiling "
+            "native code that is unaware of Android cross-compilation "
+            "and does not work without additional "
+            "changes / workarounds."
+        )
+        # --no-deps is required here as auto resolution is already done above
+        shprint(
+            pip, 'install', *modules,
+            '--target', ctx.get_site_packages_dir(arch),
+            '--upgrade', '--ignore-installed', '--no-deps',
+            '--disable-pip-version-check', '--only-binary=:all:',
+            *platforms, *indices, _env=env
+        )
 
-        # Install Cython in case modules need it to build:
-        info('Install Cython in case one of the modules needs it to build')
-        shprint(sh.bash, '-c', (
-            "venv/bin/pip install Cython"
-        ), _env=copy.copy(base_env))
-
-        # Get environment variables for build (with CC/compiler set):
-        standard_recipe = CythonRecipe()
-        standard_recipe.ctx = ctx
-        # (note: following line enables explicit -lpython... linker options)
-        standard_recipe.call_hostpython_via_targetpython = False
-        recipe_env = standard_recipe.get_recipe_env(ctx.archs[0])
-        env = copy.copy(base_env)
-        env.update(recipe_env)
-
-        # Make sure our build package dir is available, and the virtualenv
-        # site packages come FIRST (so the proper pip version is used):
-        env["PYTHONPATH"] += ":" + ctx.get_site_packages_dir(arch)
-        env["PYTHONPATH"] = os.path.abspath(join(
-            ctx.build_dir, "venv", "lib",
-            "python" + ctx.python_recipe.major_minor_version_string,
-            "site-packages")) + ":" + env["PYTHONPATH"]
-
-        # Install the manually specified requirements first:
-        if not modules:
-            info('There are no Python modules to install, skipping')
-        else:
-            info('Creating a requirements.txt file for the Python modules')
-            with open('requirements.txt', 'w') as fileh:
-                for module in modules:
-                    key = 'VERSION_' + module
-                    if key in environ:
-                        line = '{}=={}\n'.format(module, environ[key])
-                    else:
-                        line = '{}\n'.format(module)
-                    fileh.write(line)
-
-            info('Installing Python modules with pip')
-            info(
-                "IF THIS FAILS, THE MODULES MAY NEED A RECIPE. "
-                "A reason for this is often modules compiling "
-                "native code that is unaware of Android cross-compilation "
-                "and does not work without additional "
-                "changes / workarounds."
+    # Afterwards, run setup.py if present:
+    if project_has_setup_py(project_dir) and not ignore_setup_py:
+        with current_directory(project_dir):
+            # TODO: It will only work for basic python projects with no compiled components
+            shprint(
+                pip, 'install', ".", "--no-deps", "--only-binary=:all:",
+                '--target', ctx.get_site_packages_dir(arch),
+                '--disable-pip-version-check', '--upgrade',
+                *platforms, *indices, _env=env
             )
+    elif not ignore_setup_py:
+        info("No setup.py found in project directory: " + str(project_dir))
 
-            shprint(sh.bash, '-c', (
-                "venv/bin/pip " +
-                "install -v --target '{0}' --no-deps -r requirements.txt"
-            ).format(ctx.get_site_packages_dir(arch).replace("'", "'\"'\"'")),
-                    _env=copy.copy(env))
-
-        # Afterwards, run setup.py if present:
-        if project_has_setup_py(project_dir) and not ignore_setup_py:
-            run_setuppy_install(ctx, project_dir, env, arch)
-        elif not ignore_setup_py:
-            info("No setup.py found in project directory: " + str(project_dir))
-
-        # Strip object files after potential Cython or native code builds:
-        if not ctx.with_debug_symbols:
-            standard_recipe.strip_object_files(
-                arch, env, build_dir=ctx.build_dir
-            )
+    # Strip object files after potential Cython or native code builds:
+    arch_env = arch.get_env()
+    if not ctx.with_debug_symbols and arch_env.get("STRIP", None) is not None:
+        info('Stripping object files')
+        shprint(
+            sh.find, ctx.get_site_packages_dir(arch), '-iname', '*.so',
+            '-exec', arch_env['STRIP'].split(' ')[0],
+            '--strip-unneeded', '{}', ';',
+            _env=arch_env,
+        )
 
 
 def biglink(ctx, arch):
