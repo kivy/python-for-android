@@ -1,0 +1,12 @@
+diff --git a/zbar/Makefile.am b/zbar/Makefile.am
+index ca54d01..29e0f5c 100644
+--- a/zbar/Makefile.am
++++ b/zbar/Makefile.am
+@@ -1,6 +1,6 @@
+ lib_LTLIBRARIES = libzbar.la
+ libzbar_la_CPPFLAGS = $(AM_CPPFLAGS)
+-libzbar_la_LDFLAGS = -no-undefined -version-info $(LIB_VERSION) \
++libzbar_la_LDFLAGS = -no-undefined -avoid-version \
+     -export-symbols-regex "^(zbar|_zbar.*_error)_.*" $(AM_LDFLAGS)
+ libzbar_la_LIBADD = $(LTLIBICONV)
+ 

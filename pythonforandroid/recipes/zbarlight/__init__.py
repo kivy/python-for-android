@@ -4,9 +4,10 @@ from pythonforandroid.recipe import PythonRecipe
 
 class ZBarLightRecipe(PythonRecipe):
 
-    version = '2.1'
+    version = '3.0'
 
     url = 'https://github.com/Polyconseil/zbarlight/archive/{version}.tar.gz'  # noqa
+    sha256sum = '882c2230ae10ac24b405bd7a8157d84c8788432fbed69e868a55d6d9b19b53d6'
 
     call_hostpython_via_targetpython = False
 
