@@ -5,11 +5,11 @@ from pythonforandroid.recipe import PyProjectRecipe
 class PyAVRecipe(PyProjectRecipe):
 
     name = "av"
-    version = "17.0.0"
+    version = "18.1.0"
     url = "https://github.com/PyAV-Org/PyAV/archive/v{version}.zip"
     patches = ["libs.patch"]
     depends = ["python3", "ffmpeg", "av_codecs", "openssl"]
-    hostpython_prerequisites = ["cython>=3.1.0"]
+    hostpython_prerequisites = ["cython>=3.3.0,<4"]
 
     def get_recipe_env(self, arch, with_flags_in_cc=True):
         env = super().get_recipe_env(arch)
