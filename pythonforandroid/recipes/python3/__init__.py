@@ -206,7 +206,7 @@ class Python3Recipe(TargetPythonRecipe):
             elif _p_version.minor >= 8:
                 self.patches.append("patches/py3.8.1_fix_cortex_a8.patch")
 
-        self.patches = list(set(self.patches))
+        self.patches = list(dict.fromkeys(self.patches))  # preserve order for reproducibility
         super().apply_patches(arch, build_dir)
 
     def include_root(self, arch_name):
@@ -333,7 +333,7 @@ class Python3Recipe(TargetPythonRecipe):
         if _p_version.minor >= 13 and self.disable_gil:
             self.configure_args.append("--disable-gil")
 
-        self.configure_args = list(set(self.configure_args))
+        self.configure_args = list(dict.fromkeys(self.configure_args))  # preserve order for reproducibility
 
         return env
 
