@@ -60,6 +60,7 @@
                   android:label="@string/app_name"
                   android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|fontScale|uiMode{% if args.min_sdk_version >= 8 %}|uiMode{% endif %}{% if args.min_sdk_version >= 13 %}|screenSize|smallestScreenSize{% endif %}{% if args.min_sdk_version >= 17 %}|layoutDirection{% endif %}{% if args.min_sdk_version >= 24 %}|density{% endif %}"
                   android:screenOrientation="{{ args.manifest_orientation }}"
+                  android:windowSoftInputMode="adjustResize"
                   android:exported="true"
                   android:theme="@style/KivySupportCutout"
                   {% if args.activity_launch_mode %}
@@ -105,6 +106,7 @@
     {% for a in args.add_activity  %}
     <activity android:name="{{ a }}"></activity>
     {% endfor %}
+    {{ args.extra_manifest_application_xml }}
     </application>
 
 </manifest>

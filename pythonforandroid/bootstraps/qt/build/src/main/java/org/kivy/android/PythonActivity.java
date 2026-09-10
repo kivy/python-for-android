@@ -123,7 +123,11 @@ public class PythonActivity extends QtActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // If it wasn't the Back key or there's no web page history, bubble up to the default
+        if (keyCode != KeyEvent.KEYCODE_BACK) {
+            return super.onKeyDown(keyCode, event);
+        }
+
+        // If there's no web page history, bubble up to the default
         // system behavior (probably exit the activity)
         if (SystemClock.elapsedRealtime() - lastBackClick > 2000) {
             lastBackClick = SystemClock.elapsedRealtime();
