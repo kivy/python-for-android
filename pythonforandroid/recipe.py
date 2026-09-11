@@ -1238,6 +1238,10 @@ class PyProjectRecipe(PythonRecipe):
     extra_build_args = []
     call_hostpython_via_targetpython = False
 
+    def __init__(self):
+        super().__init__()
+        self.extra_build_args = []
+
     def get_pip_name(self):
         name_str = self.name
         if self.name not in self.ctx.use_prebuilt_version_for and self.version is not None:
