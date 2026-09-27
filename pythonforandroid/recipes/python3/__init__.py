@@ -116,8 +116,6 @@ class Python3Recipe(TargetPythonRecipe):
         'ensurepip',
         'idlelib',
         'lib2to3',
-        'msilib',
-        'multiprocessing',
         'pydoc_data',
         'test',
         'tests',
@@ -136,12 +134,12 @@ class Python3Recipe(TargetPythonRecipe):
     '''The file extensions that we want to blacklist for our python bundle'''
 
     site_packages_dir_blacklist = {
-        '__pycache__',
         '*.dist-info',
+        '__pycache__',
+        '_distutils_hack',
         'bin',
-        'tests',
         'setuptools',
-        '_distutils_hack'
+        'tests'
     }
     '''The directories from site packages dir that we don't want to be included
     in our python bundle.'''
