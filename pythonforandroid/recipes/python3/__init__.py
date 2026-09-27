@@ -80,7 +80,6 @@ class Python3Recipe(TargetPythonRecipe):
         # Attempt on making the builds lighter
         '--disable-test-modules',
         '--without-c-locale-coercion',
-        '--without-decimal-contextvar',
         '--without-doc-strings',
         '--without-ensurepip',
         '--without-readline',
