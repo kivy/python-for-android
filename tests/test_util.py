@@ -73,6 +73,7 @@ class TestUtil(unittest.TestCase):
         ):
             pass
 
+    @mock.patch("pythonforandroid.util.Path.glob")
     def test_walk_valid_filens(self):
         '''
         Test method :meth:`~pythonforandroid.util.walk_valid_filens`
