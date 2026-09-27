@@ -89,6 +89,8 @@ class Python3Recipe(TargetPythonRecipe):
         '--prefix={prefix}',
 
         # Special cross compile args
+        'ac_cv_file__dev_ptc=no',
+        'ac_cv_file__dev_ptmx=yes',
         'ac_cv_header_bzlib_h=no',
         'ac_cv_header_sys_eventfd_h=no',
         'py_cv_module__curses=n/a',
