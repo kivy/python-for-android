@@ -9,56 +9,56 @@ from pythonforandroid import util
 
 
 class TestUtil(unittest.TestCase):
-    '''
+    """
     An inherited class of `unittest.TestCase`to test the module
     :mod:`~pythonforandroid.util`.
-    '''
+    """
 
-    @mock.patch('pythonforandroid.util.makedirs')
+    @mock.patch("pythonforandroid.util.makedirs")
     def test_ensure_dir(self, mock_makedirs):
-        '''
+        """
         Basic test for method :meth:`~pythonforandroid.util.ensure_dir`. Here
         we make sure that the mentioned method is called only once.
-        '''
-        util.ensure_dir('fake_directory')
-        mock_makedirs.assert_called_once_with('fake_directory')
+        """
+        util.ensure_dir("fake_directory")
+        mock_makedirs.assert_called_once_with("fake_directory")
 
-    @mock.patch('shutil.rmtree')
-    @mock.patch('pythonforandroid.util.mkdtemp')
+    @mock.patch("shutil.rmtree")
+    @mock.patch("pythonforandroid.util.mkdtemp")
     def test_temp_directory(self, mock_mkdtemp, mock_shutil_rmtree):
 
-        '''
+        """
         Basic test for method :meth:`~pythonforandroid.util.temp_directory`. We
         perform this test by `mocking` the command `mkdtemp` and
         `shutil.rmtree` and we make sure that those functions are called in the
         proper place.
-        '''
-        mock_mkdtemp.return_value = '/temp/any_directory'
+        """
+        mock_mkdtemp.return_value = "/temp/any_directory"
         with util.temp_directory():
             mock_mkdtemp.assert_called_once()
             mock_shutil_rmtree.assert_not_called()
-        mock_shutil_rmtree.assert_called_once_with('/temp/any_directory')
+        mock_shutil_rmtree.assert_called_once_with("/temp/any_directory")
 
-    @mock.patch('pythonforandroid.util.chdir')
+    @mock.patch("pythonforandroid.util.chdir")
     def test_current_directory(self, moch_chdir):
-        '''
+        """
         Basic test for method :meth:`~pythonforandroid.util.current_directory`.
         We `mock` chdir and we check that the command is executed once we are
         inside a python's `with` statement. Then we check that `chdir has been
         called with the proper arguments inside this `with` statement and also
         that, once we leave the `with` statement, is called again with the
         current working path.
-        '''
-        chdir_dir = '/temp/any_directory'
+        """
+        chdir_dir = "/temp/any_directory"
         # test chdir to existing directory
         with util.current_directory(chdir_dir):
-            moch_chdir.assert_called_once_with('/temp/any_directory')
+            moch_chdir.assert_called_once_with("/temp/any_directory")
         moch_chdir.assert_has_calls(
-            [mock.call('/temp/any_directory'), mock.call(os.getcwd())]
+            [mock.call("/temp/any_directory"), mock.call(os.getcwd())]
         )
 
     def test_current_directory_exception(self):
-        '''
+        """
         Another test for method
         :meth:`~pythonforandroid.util.current_directory`, but here we check
         that using the method with a non-existing-directory raises an `OSError`
@@ -67,9 +67,9 @@ class TestUtil(unittest.TestCase):
         .. note:: test chdir to non-existing directory, should raise error,
             for py3 the exception is FileNotFoundError and IOError for py2, to
             avoid introduce conditions, we test with a more generic exception
-        '''
+        """
         with self.assertRaises(OSError), util.current_directory(
-            '/fake/directory'
+            "/fake/directory"
         ):
             pass
 
@@ -135,7 +135,7 @@ class TestUtil(unittest.TestCase):
             self.assertEqual(result, expected_result)
 
     def test_util_exceptions(self):
-        '''
+        """
         Test exceptions for a couple of methods:
 
            - method :meth:`~pythonforandroid.util.BuildInterruptingException`
@@ -145,23 +145,23 @@ class TestUtil(unittest.TestCase):
         :meth:`~pythonforandroid.util.BuildInterruptingException` and we run it
         inside method :meth:`~pythonforandroid.util.handle_build_exception` to
         make sure that it raises an `SystemExit`.
-        '''
+        """
         exc = util.BuildInterruptingException(
-            'missing dependency xxx', instructions='pip install --user xxx'
+            "missing dependency xxx", instructions="pip install --user xxx"
         )
         with self.assertRaises(SystemExit):
             util.handle_build_exception(exc)
 
     def test_move(self):
         with mock.patch(
-                'pythonforandroid.util.LOGGER'
+                "pythonforandroid.util.LOGGER"
         ) as m_logger, TemporaryDirectory() as base_dir:
-            new_path = Path(base_dir) / 'new'
+            new_path = Path(base_dir) / "new"
 
             # Set up source
-            old_path = Path(base_dir) / 'old'
-            with open(old_path, 'w') as outfile:
-                outfile.write('Temporary content')
+            old_path = Path(base_dir) / "old"
+            with open(old_path, "w") as outfile:
+                outfile.write("Temporary content")
 
             # Non existent source
             with self.assertRaises(FileNotFoundError):
@@ -181,12 +181,12 @@ class TestUtil(unittest.TestCase):
             m_logger.reset_mock()
 
             # Move over existing:
-            existing_path = Path(base_dir) / 'existing'
+            existing_path = Path(base_dir) / "existing"
             existing_path.touch()
 
             util.move(new_path, existing_path)
-            with open(existing_path, 'r') as infile:
-                assert infile.read() == 'Temporary content'
+            with open(existing_path, "r") as infile:
+                assert infile.read() == "Temporary content"
             m_logger.debug.assert_called()
             m_logger.error.assert_not_called()
             m_logger.reset_mock()
@@ -195,7 +195,7 @@ class TestUtil(unittest.TestCase):
         # Just checking the new file case.
         # Assume the existing file timestamp case will work if this does.
         with TemporaryDirectory() as base_dir:
-            new_file_path = Path(base_dir) / 'new_file'
+            new_file_path = Path(base_dir) / "new_file"
             assert not new_file_path.exists()
             util.touch(new_file_path)
             assert new_file_path.exists()
@@ -203,21 +203,21 @@ class TestUtil(unittest.TestCase):
     def test_build_tools_version_sort_key(self):
 
         build_tools_versions = [
-            '26.0.1',
-            '26.0.0',
-            '26.0.2',
-            '32.0.0 rc1',
-            '31.0.0',
-            '999something',
+            "26.0.1",
+            "26.0.0",
+            "26.0.2",
+            "32.0.0 rc1",
+            "31.0.0",
+            "999something",
         ]
 
         expected_result = [
-            '999something',  # invalid version
-            '26.0.0',
-            '26.0.1',
-            '26.0.2',
-            '31.0.0',
-            '32.0.0 rc1',
+            "999something",  # invalid version
+            "26.0.0",
+            "26.0.1",
+            "26.0.2",
+            "31.0.0",
+            "32.0.0 rc1",
         ]
 
         result = sorted(
@@ -229,83 +229,83 @@ class TestUtil(unittest.TestCase):
     def test_max_build_tool_version(self):
 
         build_tools_versions = [
-            '26.0.1',
-            '26.0.0',
-            '26.0.2',
-            '32.0.0 rc1',
-            '31.0.0',
-            '999something',
+            "26.0.1",
+            "26.0.0",
+            "26.0.2",
+            "32.0.0 rc1",
+            "31.0.0",
+            "999something",
         ]
 
-        expected_result = '32.0.0 rc1'
+        expected_result = "32.0.0 rc1"
 
         result = util.max_build_tool_version(build_tools_versions)
 
         self.assertEqual(result, expected_result)
 
     def test_load_source(self):
-        '''
+        """
         Test method :meth:`~pythonforandroid.util.load_source`.
         We test loading a Python module from a file path using importlib.
-        '''
+        """
         with TemporaryDirectory() as temp_dir:
             # Create a test module file
-            test_module_path = Path(temp_dir) / 'test_module.py'
-            with open(test_module_path, 'w') as f:
-                f.write('TEST_VALUE = 42\n')
-                f.write('def test_function():\n')
+            test_module_path = Path(temp_dir) / "test_module.py"
+            with open(test_module_path, "w") as f:
+                f.write("TEST_VALUE = 42\n")
+                f.write("def test_function():\n")
                 f.write("    return 'hello'\n")
 
             # Load the module
-            loaded_module = util.load_source('test_module', str(test_module_path))
+            loaded_module = util.load_source("test_module", str(test_module_path))
 
             # Verify the module was loaded correctly
             self.assertEqual(loaded_module.TEST_VALUE, 42)
             self.assertEqual(loaded_module.test_function(), 'hello')
 
-    @mock.patch('pythonforandroid.util.exists')
-    @mock.patch('shutil.rmtree')
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("shutil.rmtree")
     def test_rmdir_exists(self, mock_rmtree, mock_exists):
-        '''
+        """
         Test method :meth:`~pythonforandroid.util.rmdir` when directory exists.
         We mock exists to return True and verify rmtree is called.
-        '''
+        """
         mock_exists.return_value = True
-        util.rmdir('/fake/directory')
-        mock_rmtree.assert_called_once_with('/fake/directory', False)
+        util.rmdir("/fake/directory")
+        mock_rmtree.assert_called_once_with("/fake/directory", False)
 
-    @mock.patch('pythonforandroid.util.exists')
-    @mock.patch('shutil.rmtree')
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("shutil.rmtree")
     def test_rmdir_not_exists(self, mock_rmtree, mock_exists):
-        '''
+        """
         Test method :meth:`~pythonforandroid.util.rmdir` when directory doesn't exist.
         We mock exists to return False and verify rmtree is not called.
-        '''
+        """
         mock_exists.return_value = False
-        util.rmdir('/fake/directory')
+        util.rmdir("/fake/directory")
         mock_rmtree.assert_not_called()
 
-    @mock.patch('pythonforandroid.util.exists')
-    @mock.patch('shutil.rmtree')
+    @mock.patch("pythonforandroid.util.exists")
+    @mock.patch("shutil.rmtree")
     def test_rmdir_ignore_errors(self, mock_rmtree, mock_exists):
-        '''
+        """
         Test method :meth:`~pythonforandroid.util.rmdir` with ignore_errors flag.
         We verify that the ignore_errors parameter is passed to rmtree.
-        '''
+        """
         mock_exists.return_value = True
-        util.rmdir('/fake/directory', ignore_errors=True)
-        mock_rmtree.assert_called_once_with('/fake/directory', True)
+        util.rmdir("/fake/directory", ignore_errors=True)
+        mock_rmtree.assert_called_once_with("/fake/directory", True)
 
-    @mock.patch('pythonforandroid.util.mock')
+    @mock.patch("pythonforandroid.util.mock")
     def test_patch_wheel_setuptools_logging(self, mock_mock):
-        '''
+        """
         Test method :meth:`~pythonforandroid.util.patch_wheel_setuptools_logging`.
         We verify it returns a mock.patch object for the wheel logging module.
-        '''
+        """
         mock_patch_obj = mock.Mock()
         mock_mock.patch.return_value = mock_patch_obj
 
         result = util.patch_wheel_setuptools_logging()
 
-        mock_mock.patch.assert_called_once_with('wheel._setuptools_logging.configure')
+        mock_mock.patch.assert_called_once_with("wheel._setuptools_logging.configure")
         self.assertEqual(result, mock_patch_obj)
