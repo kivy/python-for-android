@@ -11,7 +11,7 @@ from tempfile import mkdtemp
 
 import packaging.version
 
-from pythonforandroid.logger import logger, Err_Fore, error, info
+from pythonforandroid.logger import Err_Fore, error, info, logger
 
 LOGGER = logging.getLogger("p4a.util")
 
