@@ -134,11 +134,7 @@ class Python3Recipe(TargetPythonRecipe):
     '''The file extensions that we want to blacklist for our python bundle'''
 
     site_packages_dir_blacklist = {
-        '*.dist-info',
         '__pycache__',
-        '_distutils_hack',
-        'bin',
-        'setuptools',
         'tests'
     }
     '''The directories from site packages dir that we don't want to be included

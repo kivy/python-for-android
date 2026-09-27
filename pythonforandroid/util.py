@@ -2,8 +2,8 @@ import contextlib
 from unittest import mock
 from fnmatch import fnmatch
 import logging
-from os.path import exists
-from os import getcwd, chdir, makedirs
+from os.path import exists, join
+from os import getcwd, chdir, makedirs, walk
 from pathlib import Path
 from platform import uname
 import shutil
@@ -11,7 +11,7 @@ from tempfile import mkdtemp
 
 import packaging.version
 
-from pythonforandroid.logger import Err_Fore, error, info, logger
+from pythonforandroid.logger import (logger, Err_Fore, error, info)
 
 LOGGER = logging.getLogger("p4a.util")
 
@@ -66,33 +66,23 @@ def walk_valid_filens(base_dir, invalid_dir_names, invalid_file_patterns, exclud
     """
 
     excluded_dir_exceptions = [] if excluded_dir_exceptions is None else excluded_dir_exceptions
-    base_dir = Path(base_dir)
 
-    for path in base_dir.glob("**/*"):
-        if path.is_dir():
-            continue
+    for dirn, subdirs, filens in walk(base_dir):
+        allow_invalid_dirs = any(ex in dirn for ex in excluded_dir_exceptions)
 
-        rel_parts = path.relative_to(base_dir).parts[:-1]
-        cum_path = base_dir
-        skip = False
-        for part in rel_parts:
-            allow_invalid_dirs = any(ex in str(cum_path) for ex
-                                     in excluded_dir_exceptions)
-            if not allow_invalid_dirs and any(
-                fnmatch(part, pattern) for pattern in invalid_dir_names
-            ):
-                skip = True
-                break
-            cum_path = cum_path / part
+        # Remove invalid subdirs so that they will not be walked
+        if not allow_invalid_dirs:
+            for i in reversed(range(len(subdirs))):
+                subdir = subdirs[i]
+                if subdir in invalid_dir_names:
+                    subdirs.pop(i)
 
-        if skip:
-            continue
-
-        if any(fnmatch(path.name, pattern) for pattern
-               in invalid_file_patterns):
-            continue
-
-        yield str(path)
+        for filen in filens:
+            for pattern in invalid_file_patterns:
+                if fnmatch(filen, pattern):
+                    break
+            else:
+                yield join(dirn, filen)
 
 
 def load_source(module, filename):

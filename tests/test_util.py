@@ -73,9 +73,9 @@ class TestUtil(unittest.TestCase):
         ):
             pass
 
-    @mock.patch("pythonforandroid.util.Path.glob")
-    def test_walk_valid_filens(self):
-        '''
+    @mock.patch("pythonforandroid.util.walk")
+    def test_walk_valid_filens(self, mock_walk):
+        """
         Test method :meth:`~pythonforandroid.util.walk_valid_filens`
         In here we simulate the following directory structure:
 
@@ -83,7 +83,7 @@ class TestUtil(unittest.TestCase):
          |-- README
          |-- setup.py
          |-- __pycache__
-         |--     |__ somefile
+         |--     |__
          |__Lib
              |-- abc.pyc
              |-- abc.py
@@ -98,42 +98,29 @@ class TestUtil(unittest.TestCase):
            :emphasize-lines: 2-4
 
         expected_result = {
-            '/fake_dir/README',
-            '/fake_dir/Lib/abc.pyc',
-            '/fake_dir/Lib/ctypes/util.pyc',
+            "/fake_dir/README",
+            "/fake_dir/Lib/abc.pyc",
+            "/fake_dir/Lib/ctypes/util.pyc",
         }
-        '''
-        with TemporaryDirectory() as base_dir:
-            base_dir = Path(base_dir)
+        """
+        simulated_walk_result = [
+            ["/fake_dir", ["__pycache__", "Lib"], ["README", "setup.py"]],
+            ["/fake_dir/Lib", ["ctypes"], ["abc.pyc", "abc.py"]],
+            ["/fake_dir/Lib/ctypes", [], ["util.pyc", "util.py"]],
+        ]
+        mock_walk.return_value = simulated_walk_result
+        file_ens = util.walk_valid_filens(
+            "/fake_dir", ["__pycache__"], ["*.py"]
+        )
+        self.assertIsInstance(file_ens, types.GeneratorType)
+        expected_result = {
+            "/fake_dir/README",
+            "/fake_dir/Lib/abc.pyc",
+            "/fake_dir/Lib/ctypes/util.pyc",
+        }
+        result = set(file_ens)
 
-            # Build the fake directory structure
-            (base_dir / 'README').touch()
-            (base_dir / 'setup.py').touch()
-
-            (base_dir / '__pycache__').mkdir()
-            (base_dir / '__pycache__' / 'somefile').touch()
-
-            (base_dir / 'Lib').mkdir()
-            (base_dir / 'Lib' / 'abc.pyc').touch()
-            (base_dir / 'Lib' / 'abc.py').touch()
-
-            (base_dir / 'Lib' / 'ctypes').mkdir()
-            (base_dir / 'Lib' / 'ctypes' / 'util.pyc').touch()
-            (base_dir / 'Lib' / 'ctypes' / 'util.py').touch()
-
-            file_ens = util.walk_valid_filens(
-                str(base_dir), ['__pycache__'], ['*.py']
-            )
-            self.assertIsInstance(file_ens, types.GeneratorType)
-
-            expected_result = {
-                str(base_dir / 'README'),
-                str(base_dir / 'Lib' / 'abc.pyc'),
-                str(base_dir / 'Lib' / 'ctypes' / 'util.pyc'),
-            }
-            result = set(file_ens)
-
-            self.assertEqual(result, expected_result)
+        self.assertEqual(result, expected_result)
 
     def test_util_exceptions(self):
         """
