@@ -1,0 +1,113 @@
+diff '--color=auto' -uNr panda3d/makepanda/makepandacore.py panda3d.mod/makepanda/makepandacore.py
+--- panda3d/makepanda/makepandacore.py	2024-05-17 15:33:46.876526187 +0530
++++ panda3d.mod/makepanda/makepandacore.py	2024-05-17 17:06:05.318793873 +0530
+@@ -2681,15 +2681,17 @@
+         arch_dir = 'arch-arm64'
+     else:
+         arch_dir = 'arch-' + arch
+-    SDK["SYSROOT"] = os.path.join(ndk_root, 'platforms', 'android-%s' % (api), arch_dir).replace('\\', '/')
+-    #IncDirectory("ALWAYS", os.path.join(SDK["SYSROOT"], 'usr', 'include'))
++    SDK["SYSROOT"] = os.path.join(ndk_root, "toolchains", "llvm", "prebuilt", "linux-x86_64", "sysroot", "usr")
++    IncDirectory("ALWAYS", os.path.join(SDK["SYSROOT"], 'usr', 'include'))
+ 
+     # Starting with NDK r16, libc++ is the recommended STL to use.
+     stdlibc = os.path.join(ndk_root, 'sources', 'cxx-stl', 'llvm-libc++')
+     IncDirectory("ALWAYS", os.path.join(stdlibc, 'include').replace('\\', '/'))
+-    LibDirectory("ALWAYS", os.path.join(stdlibc, 'libs', abi).replace('\\', '/'))
++    LibDirectory("ALWAYS", os.path.join(ndk_root, "toolchains", "llvm", "prebuilt",
++                                        "linux-x86_64", "sysroot", "usr", "lib",
++                                        ANDROID_TRIPLE, str(ANDROID_API)) .replace('\\', '", "'))
+ 
+-    stl_lib = os.path.join(stdlibc, 'libs', abi, 'libc++_shared.so')
++    stl_lib = os.path.join(ndk_root, SDK["SYSROOT"], "lib", ANDROID_TRIPLE, "libc++_shared.so")
+     LibName("ALWAYS", stl_lib.replace('\\', '/'))
+     CopyFile(os.path.join(GetOutputDir(), 'lib', 'libc++_shared.so'), stl_lib)
+ 
+@@ -2699,11 +2701,12 @@
+     IncDirectory("ALWAYS", support.replace('\\', '/'))
+     if api < 21:
+         LibName("ALWAYS", "-landroid_support")
+-
++    
++    target_api = os.environ["ANDROID_TARGET_API"]
+     # Determine the location of android.jar.
+-    SDK["ANDROID_JAR"] = os.path.join(sdk_root, 'platforms', 'android-%s' % (api), 'android.jar')
++    SDK["ANDROID_JAR"] = os.path.join(sdk_root, 'platforms', 'android-%s' % (target_api), 'android.jar')
+     if not os.path.isfile(SDK["ANDROID_JAR"]):
+-        exit("Cannot find %s.  Install platform API level %s via the SDK manager or change the targeted API level with --target=android-#" % (SDK["ANDROID_JAR"], api))
++        exit("Cannot find %s.  Install platform API level %s via the SDK manager or change the targeted API level with --target=android-#" % (SDK["ANDROID_JAR"], target_api))
+ 
+     # Which build tools versions do we have?  Pick the latest.
+     versions = []
+diff '--color=auto' -uNr panda3d/makepanda/makepanda.py panda3d.mod/makepanda/makepanda.py
+--- panda3d/makepanda/makepanda.py	2024-05-17 15:33:46.856521623 +0530
++++ panda3d.mod/makepanda/makepanda.py	2024-05-17 16:53:32.974433320 +0530
+@@ -1197,7 +1197,7 @@
+         # CgGL is covered by the Cg framework, and we don't need X11 components on OSX
+         if not PkgSkip("NVIDIACG") and not RUNTIME:
+             SmartPkgEnable("CGGL", "", ("CgGL"), "Cg/cgGL.h", thirdparty_dir = "nvidiacg")
+-        if not RUNTIME and GetTarget() != "android":
++        if not RUNTIME and False: # GetTarget() != "android":
+             SmartPkgEnable("X11", "x11", "X11", ("X11", "X11/Xlib.h", "X11/XKBlib.h"))
+ 
+     if GetHost() != "darwin":
+@@ -1580,23 +1580,12 @@
+                 if 'NOARCH:' + arch.upper() not in opts:
+                     cmd += " -arch %s" % arch
+ 
+-        if "SYSROOT" in SDK:
+-            if GetTarget() != "android":
+-                cmd += ' --sysroot=%s' % (SDK["SYSROOT"])
+-            else:
+-                ndk_dir = SDK["ANDROID_NDK"].replace('\\', '/')
+-                cmd += ' -isystem %s/sysroot/usr/include' % (ndk_dir)
+-                cmd += ' -isystem %s/sysroot/usr/include/%s' % (ndk_dir, SDK["ANDROID_TRIPLE"])
+-            cmd += ' -no-canonical-prefixes'
+-
+         # Android-specific flags.
+         arch = GetTargetArch()
+ 
+         if GetTarget() == "android":
+             # Most of the specific optimization flags here were
+             # just copied from the default Android Makefiles.
+-            if "ANDROID_API" in SDK:
+-                cmd += ' -D__ANDROID_API__=' + str(SDK["ANDROID_API"])
+             if "ANDROID_GCC_TOOLCHAIN" in SDK:
+                 cmd += ' -gcc-toolchain ' + SDK["ANDROID_GCC_TOOLCHAIN"].replace('\\', '/')
+             cmd += ' -ffunction-sections -funwind-tables'
+@@ -2117,33 +2106,17 @@
+             for arch in OSX_ARCHS:
+                 if 'NOARCH:' + arch.upper() not in opts:
+                     cmd += " -arch %s" % arch
+-
++        
+         elif GetTarget() == 'android':
+             arch = GetTargetArch()
+             if "ANDROID_GCC_TOOLCHAIN" in SDK:
+                 cmd += ' -gcc-toolchain ' + SDK["ANDROID_GCC_TOOLCHAIN"].replace('\\', '/')
+             cmd += " -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now"
+-            if arch == 'armv7a':
+-                cmd += ' -target armv7-none-linux-androideabi'
+-                cmd += " -march=armv7-a -Wl,--fix-cortex-a8"
+-            elif arch == 'arm':
+-                cmd += ' -target armv5te-none-linux-androideabi'
+-            elif arch == 'aarch64':
+-                cmd += ' -target aarch64-none-linux-android'
+-            elif arch == 'mips':
+-                cmd += ' -target mipsel-none-linux-android'
+-                cmd += ' -mips32'
+-            elif arch == 'mips64':
+-                cmd += ' -target mips64el-none-linux-android'
+-            elif arch == 'x86':
+-                cmd += ' -target i686-none-linux-android'
+-            elif arch == 'x86_64':
+-                cmd += ' -target x86_64-none-linux-android'
+             cmd += ' -lc -lm'
+         else:
+             cmd += " -pthread"
+ 
+-        if "SYSROOT" in SDK:
++        if "SYSROOT" in SDK and  GetTarget() != 'android':
+             cmd += " --sysroot=%s -no-canonical-prefixes" % (SDK["SYSROOT"])
+ 
+         if LDFLAGS != "":
