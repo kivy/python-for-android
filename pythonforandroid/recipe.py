@@ -1563,6 +1563,10 @@ class MesonRecipe(PyProjectRecipe):
         return option_data
 
     def ensure_args(self, *args):
+        # Guard against mutating the inherited class-variable list, which would
+        # bleed meson cross-file args into unrelated PyProjectRecipe subclasses.
+        if "extra_build_args" not in self.__dict__:
+            self.extra_build_args = list(self.extra_build_args)
         for arg in args:
             if arg not in self.extra_build_args:
                 self.extra_build_args.append(arg)
@@ -1619,11 +1623,8 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
 
         # Set rust build target
         build_target = self.RUST_ARCH_CODES[arch.arch]
-        cargo_linker_name = "CARGO_TARGET_{}_LINKER".format(
-            build_target.upper().replace("-", "_")
-        )
-        env["CARGO_BUILD_TARGET"] = build_target
-        env[cargo_linker_name] = join(
+        build_target_underscore = build_target.upper().replace("-", "_")
+        ndk_clang = join(
             self.ctx.ndk.llvm_prebuilt_dir,
             "bin",
             "{}{}-clang".format(
@@ -1634,6 +1635,19 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
                 self.ctx.ndk_api,
             ),
         )
+        env["CARGO_BUILD_TARGET"] = build_target
+        env["CARGO_TARGET_{}_LINKER".format(build_target_underscore)] = ndk_clang
+        # Crates using the `cc` crate in their build.rs (e.g. cryptography-cffi
+        # to compile the cffi-generated _openssl.c) need a per-target CC too:
+        # without it, `cc` falls back to the generic CC env var and guesses
+        # its own --target= from the Rust triple, which for some targets
+        # (e.g. armv7-linux-androideabi) produces an invalid triple like
+        # "armv7-none-linux-android" (no API level, wrong vendor). That
+        # causes the wrong <limits.h> to be picked up, breaking CPython's
+        # LONG_BIT sanity check in pyport.h. Giving `cc` the NDK's
+        # per-target clang directly avoids that guesswork.
+        env["CC_{}".format(build_target.replace("-", "_"))] = ndk_clang
+        env["AR_{}".format(build_target.replace("-", "_"))] = self.ctx.ndk.llvm_ar
         realpython_dir = self.ctx.python_recipe.get_build_dir(arch.arch)
 
         env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(

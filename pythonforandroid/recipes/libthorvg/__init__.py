@@ -1,6 +1,8 @@
 from pythonforandroid.recipe import Recipe, MesonRecipe
 from os.path import join
-from pythonforandroid.util import ensure_dir, current_directory
+from pythonforandroid.util import (
+    BuildInterruptingException, ensure_dir, current_directory,
+)
 from pythonforandroid.logger import shprint
 from multiprocessing import cpu_count
 from glob import glob
@@ -93,9 +95,17 @@ class LibThorVGRecipe(MesonRecipe):
                 "x86_64": "x86_64",
             }
             lib_arch = arch_map[arch.arch]
-            # clang version directory is variable, so glob it
-            pattern = join(self.ctx.ndk.llvm_prebuilt_dir, "lib/clang/*/lib/linux", lib_arch)
-            clang_lib_dir = glob(pattern)[0]
+            # clang version directory is variable, and the NDK toolchain
+            # ships it under lib/clang on some NDK releases and lib64/clang
+            # on others (e.g. r25b), so glob both.
+            pattern = join(self.ctx.ndk.llvm_prebuilt_dir, "lib*/clang/*/lib/linux", lib_arch)
+            matches = glob(pattern)
+            if not matches:
+                raise BuildInterruptingException(
+                    f"Could not find libomp.so for {lib_arch} under "
+                    f"{self.ctx.ndk.llvm_prebuilt_dir} (tried pattern {pattern})"
+                )
+            clang_lib_dir = matches[0]
             libomp = join(clang_lib_dir, "libomp.so")
             shprint(sh.cp, libomp, join("install", "lib"))
 
