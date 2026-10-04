@@ -531,11 +531,10 @@ class Recipe(metaclass=RecipeMeta):
     def get_recipe_env(self, arch=None, with_flags_in_cc=True):
         """Return the env specialized for the recipe
         """
-        if arch is None:
-            arch = self.filtered_archs[0]
+        arch = arch or self.filtered_archs[0]
         env = arch.get_env(with_flags_in_cc=with_flags_in_cc)
 
-        for proxy_key in ['HTTP_PROXY', 'http_proxy', 'HTTPS_PROXY', 'https_proxy']:
+        for proxy_key in ('HTTP_PROXY', 'http_proxy', 'HTTPS_PROXY', 'https_proxy'):
             if proxy_key in environ:
                 env[proxy_key] = environ[proxy_key]
 
