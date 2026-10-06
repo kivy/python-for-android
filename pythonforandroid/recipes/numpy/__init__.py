@@ -8,7 +8,7 @@ NUMPY_NDK_MESSAGE = (
 
 
 class NumpyRecipe(MesonRecipe):
-    version = "v2.3.0"
+    version = "v2.3.5"
     url = "git+https://github.com/numpy/numpy"
     extra_build_args = ["-Csetup-args=-Dblas=none", "-Csetup-args=-Dlapack=none"]
     opt_depends = ["libopenblas"]
