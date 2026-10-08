@@ -90,10 +90,15 @@ def test_blacklist():
     )
     # Now, obtain again with blacklist:
     build_order_2, python_modules_2, bs_2 = get_recipe_order_and_bootstrap(
-        ctx, ["python3", "kivy"], None, blacklist=["libffi"]
+        ctx, ["python3", "kivy"], bs, blacklist=["libffi"]
     )
+    assert "libffi" in build_order
     assert "libffi" not in build_order_2
-    assert set(build_order_2).union({"libffi"}) == set(build_order)
+    assert bs_2 == bs
+    # genericndkbuild is another valid choice for pyjnius alongside sdl2.
+    assert set(build_order_2) - {"genericndkbuild"} == (
+        set(build_order) - {"libffi", "genericndkbuild"}
+    )
 
     # Check that we get a conflict when using webview and kivy combined:
     wbootstrap = Bootstrap.get_bootstrap('webview', ctx)
