@@ -6,10 +6,11 @@ import types
 import unittest
 import warnings
 from unittest import mock
+from wheel.wheelfile import WheelFile
 
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import (
-    MesonRecipe, Recipe, TargetPythonRecipe, import_recipe
+    MesonRecipe, PyProjectRecipe, Recipe, TargetPythonRecipe, import_recipe
 )
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
@@ -226,6 +227,129 @@ class TestMesonRecipe(unittest.TestCase):
                 meson = recipe.get_meson_command(env)
 
             assert meson("--version").strip() == "fake meson"
+
+
+@pytest.fixture
+def make_wheel(tmp_path):
+    """Create a wheel with matching filename, WHEEL tags, and RECORD hashes."""
+    def create(platform='linux_x86_64', build_tag=None):
+        wheel_dir = tmp_path / 'built wheels'
+        wheel_dir.mkdir()
+        source_dir = tmp_path / 'source'
+        (source_dir / 'demo').mkdir(parents=True)
+        (source_dir / 'demo' / '__init__.py').write_text('value = 42\n')
+        dist_info = source_dir / 'demo-1.0.dist-info'
+        dist_info.mkdir()
+        dist_info.joinpath('WHEEL').write_text(
+            'Wheel-Version: 1.0\nGenerator: p4a test\nRoot-Is-Purelib: false\n'
+            f'Tag: cp313-cp313-{platform}\n'
+            + (f'Build: {build_tag}\n' if build_tag else '')
+        )
+        parts = ['demo', '1.0']
+        if build_tag:
+            parts.append(build_tag)
+        parts.extend(['cp313', 'cp313', platform])
+        wheel_path = wheel_dir / ('-'.join(parts) + '.whl')
+        with WheelFile(wheel_path, 'w') as archive:
+            archive.write(source_dir / 'demo' / '__init__.py', 'demo/__init__.py')
+            archive.write(dist_info / 'WHEEL', 'demo-1.0.dist-info/WHEEL')
+        return wheel_path
+
+    return create
+
+
+@pytest.fixture
+def built_wheel(make_wheel):
+    return make_wheel()
+
+
+@pytest.fixture
+def wheel_install(tmp_path, monkeypatch):
+    export_dir = tmp_path / 'dev wheels'
+    saved_dir = tmp_path / 'saved wheels'
+    saved_dir.mkdir()
+    install_dir = tmp_path / 'installed packages'
+    monkeypatch.setenv('P4A_WHEEL_DIR', str(export_dir))
+    recipe = PyProjectRecipe()
+    recipe.ctx = types.SimpleNamespace(
+        ndk_api=21, save_wheel_dir=str(saved_dir),
+        get_python_install_dir=lambda arch: str(install_dir),
+    )
+    arch = types.SimpleNamespace(arch='arm64-v8a')
+    return recipe, arch, export_dir, saved_dir, install_dir
+
+
+def test_install_wheel_retags_and_exports(built_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    assert ' ' in str(built_wheel.parent)
+    recipe.install_wheel(arch, [str(built_wheel)])
+
+    selected = built_wheel.with_name('demo-1.0-cp313-cp313-android_21_arm64_v8a.whl')
+    assert not built_wheel.exists()
+    assert selected.is_file()
+    with WheelFile(selected) as archive:
+        assert b'Tag: cp313-cp313-android_21_arm64_v8a\n' in archive.read(
+            'demo-1.0.dist-info/WHEEL')
+        record = archive.read('demo-1.0.dist-info/RECORD')
+        assert b'demo-1.0.dist-info/WHEEL,sha256=' in record
+        assert b'demo/__init__.py,sha256=' in record
+        for entry in archive.filelist:
+            if not entry.is_dir():
+                archive.read(entry.filename)  # validates every RECORD hash
+    assert (export_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (saved_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (install_dir / 'demo' / '__init__.py').read_text() == 'value = 42\n'
+
+
+def test_install_wheel_rejects_invalid_input_before_export(built_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    # Renaming only the filename makes the input disagree with its WHEEL metadata.
+    invalid = built_wheel.with_name('demo-1.0-cp313-cp313-win_amd64.whl')
+    built_wheel.rename(invalid)
+    with pytest.raises(RuntimeError, match=r'(?s)wheel tags failed \(exit \d+\): .*Wheel internal tags'):
+        recipe.install_wheel(arch, [str(invalid)])
+    assert invalid.is_file()
+    assert not export_dir.exists()
+    assert list(saved_dir.iterdir()) == []
+    assert not install_dir.exists()
+
+
+def test_install_wheel_already_tagged(make_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    original = make_wheel(platform='android_21_arm64_v8a')
+
+    recipe.install_wheel(arch, [str(original)])
+
+    # --remove must leave the sole copy intact when the platform is unchanged.
+    assert original.is_file()
+    with WheelFile(original) as archive:
+        assert archive.read('demo-1.0.dist-info/WHEEL').count(
+            b'Tag: cp313-cp313-android_21_arm64_v8a') == 1
+        for entry in archive.filelist:
+            if not entry.is_dir():
+                archive.read(entry.filename)
+    assert (export_dir / original.name).read_bytes() == original.read_bytes()
+    assert (saved_dir / original.name).read_bytes() == original.read_bytes()
+    assert (install_dir / 'demo' / '__init__.py').read_text() == 'value = 42\n'
+
+
+def test_install_wheel_preserves_build_tag(make_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    original = make_wheel(build_tag='1')
+    recipe.install_wheel(arch, [str(original)])
+
+    selected = original.with_name('demo-1.0-1-cp313-cp313-android_21_arm64_v8a.whl')
+    assert not original.exists()
+    with WheelFile(selected) as archive:
+        metadata = archive.read('demo-1.0.dist-info/WHEEL')
+        assert b'Build: 1\n' in metadata
+        assert b'Tag: cp313-cp313-android_21_arm64_v8a\n' in metadata
+        for entry in archive.filelist:
+            if not entry.is_dir():
+                archive.read(entry.filename)
+    assert (export_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (saved_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (install_dir / 'demo' / '__init__.py').is_file()
 
 
 class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):
