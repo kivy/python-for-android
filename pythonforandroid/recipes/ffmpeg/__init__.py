@@ -32,19 +32,27 @@ class FFMpegRecipe(Recipe):
         env['NDK'] = self.ctx.ndk_dir
         return env
 
+    @staticmethod
+    def get_base_configure_flags():
+        """Flags that must always be present before optional codecs.
+
+        Start from ``--disable-everything`` then enable Android hardware
+        codecs. Using assignment for the hardware flags used to drop the
+        disable-everything baseline (issue #3382).
+        """
+        return [
+            '--disable-everything',
+            '--enable-jni',
+            '--enable-mediacodec',
+        ]
+
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             env = arch.get_env()
 
-            flags = ['--disable-everything']
+            flags = self.get_base_configure_flags()
             cflags = []
             ldflags = []
-
-            # enable hardware acceleration codecs
-            flags = [
-                '--enable-jni',
-                '--enable-mediacodec'
-            ]
 
             if 'openssl' in self.ctx.recipe_build_order:
                 flags += [
