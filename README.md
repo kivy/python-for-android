@@ -65,7 +65,7 @@ Is there an error you don’t understand? Are you trying to figure out how to us
 it? We have volunteers who can help!
 
 The best channels to contact us for support are listed in the latest 
-[Contact Us](https://github.com/kivy/pyton-for-android/blob/master/CONTACT.md)
+[Contact Us](https://github.com/kivy/python-for-android/blob/master/CONTACT.md)
 document.
 
 ## Code of Conduct

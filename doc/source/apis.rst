@@ -8,7 +8,7 @@ interactions on Android.
 Handling system bars and Edge-to-Edge enforcement
 -------------------------------------------------
 
-**Egde-to-Edge is enforced on all android apis >=35 by default i.e. Android 15 and above.**
+**Edge-to-edge is enforced by default on Android API level 35 (Android 15) and above.**
 
 You can control the overall layout and system bars appearance in following ways::
 
@@ -407,7 +407,7 @@ Example::
     from android.runnable import Runnable
 
     def helloworld(arg):
-        print 'Called from PythonActivity with arg:', arg
+        print('Called from PythonActivity with arg:', arg)
 
     Runnable(helloworld)('hello')
 
@@ -417,7 +417,7 @@ Or use our decorator::
 
     @run_on_ui_thread
     def helloworld(arg):
-        print 'Called from PythonActivity with arg:', arg
+        print('Called from PythonActivity with arg:', arg)
 
     helloworld('arg1')
 
@@ -564,4 +564,3 @@ from Python code), but it's not Pythonic and it's not short. These are
 problems that Plyer, explained below, attempts to address.
 
 You can check the `Pyjnius documentation <https://pyjnius.readthedocs.io/en/latest/>`_ for further details.
-
