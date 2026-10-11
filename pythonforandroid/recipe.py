@@ -12,7 +12,7 @@ import zipfile
 import urllib.request
 from urllib.request import urlretrieve
 from os import listdir, unlink, environ, curdir, walk, chmod
-from sys import stdout
+from sys import executable, stdout
 from packaging.version import Version
 from multiprocessing import cpu_count
 import time
@@ -1230,6 +1230,26 @@ class CythonRecipe(PythonRecipe):
         return env
 
 
+def retag_wheel(path, platform_tag):
+    """Retag a built wheel using wheel's CLI, including WHEEL and RECORD."""
+    result = subprocess.run(
+        [executable, '-m', 'wheel', 'tags', '--platform-tag',
+         platform_tag, '--remove', path],
+        capture_output=True, text=True,
+    )
+    if result.returncode:
+        raise RuntimeError(
+            f'wheel tags failed (exit {result.returncode}): {result.stderr.strip()}'
+        )
+    wheel_tag = result.stdout.strip()
+    if not wheel_tag or basename(wheel_tag) != wheel_tag or not wheel_tag.endswith('.whl'):
+        raise ValueError(f'Unexpected wheel tags output: {wheel_tag!r}')
+    selected_wheel = join(dirname(path), wheel_tag)
+    if not isfile(selected_wheel):
+        raise FileNotFoundError(selected_wheel)
+    return selected_wheel
+
+
 class PyProjectRecipe(PythonRecipe):
     """Recipe for projects which contain `pyproject.toml`"""
 
@@ -1339,17 +1359,12 @@ class PyProjectRecipe(PythonRecipe):
 
     def install_wheel(self, arch, built_wheels):
         with patch_wheel_setuptools_logging():
-            from wheel.cli.tags import tags as wheel_tags
             from wheel.wheelfile import WheelFile
-        _wheel = built_wheels[0]
-        built_wheel_dir = dirname(_wheel)
         # Fix wheel platform tag
-        wheel_tag = wheel_tags(
-            _wheel,
-            platform_tags=self.get_wheel_platform_tag(arch.arch),
-            remove=True,
+        selected_wheel = retag_wheel(
+            built_wheels[0], self.get_wheel_platform_tag(arch.arch)
         )
-        selected_wheel = join(built_wheel_dir, wheel_tag)
+        wheel_tag = basename(selected_wheel)
         _dev_wheel_dir = environ.get("P4A_WHEEL_DIR", False)
         if _dev_wheel_dir:
             ensure_dir(_dev_wheel_dir)
@@ -1363,7 +1378,6 @@ class PyProjectRecipe(PythonRecipe):
         with WheelFile(selected_wheel) as wf:
             for zinfo in wf.filelist:
                 wf.extract(zinfo, destination)
-            wf.close()
 
     def build_arch(self, arch):
         if self.check_prebuilt(arch, "skipping build_arch"):
