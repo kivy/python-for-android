@@ -32,19 +32,27 @@ class FFMpegRecipe(Recipe):
         env['NDK'] = self.ctx.ndk_dir
         return env
 
+    @staticmethod
+    def get_base_configure_flags():
+        """Flags that are always passed before optional codecs.
+
+        Enable Android hardware acceleration (JNI + MediaCodec) on top of
+        FFmpeg's default component set. ``--disable-everything`` is
+        intentionally not used: existing apps rely on default components
+        such as the MediaCodec decoders and the HLS demuxer (issue #3382).
+        """
+        return [
+            '--enable-jni',
+            '--enable-mediacodec',
+        ]
+
     def build_arch(self, arch):
         with current_directory(self.get_build_dir(arch.arch)):
             env = arch.get_env()
 
-            flags = ['--disable-everything']
+            flags = self.get_base_configure_flags()
             cflags = []
             ldflags = []
-
-            # enable hardware acceleration codecs
-            flags = [
-                '--enable-jni',
-                '--enable-mediacodec'
-            ]
 
             if 'openssl' in self.ctx.recipe_build_order:
                 flags += [
@@ -96,7 +104,8 @@ class FFMpegRecipe(Recipe):
                     '--enable-demuxers',
                 ]
             else:
-                # Enable codecs only for .mp4:
+                # Make sure the .mp4 codecs are enabled (in addition to
+                # FFmpeg's default components):
                 flags += [
                     '--enable-parser=aac,ac3,h261,h264,mpegaudio,mpeg4video,mpegvideo,vc1',
                     '--enable-decoder=aac,h264,mpeg4,mpegvideo',
