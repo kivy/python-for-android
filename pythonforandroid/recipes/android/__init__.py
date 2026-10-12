@@ -13,7 +13,7 @@ class AndroidRecipe(IncludedFilesBehaviour, PyProjectRecipe):
     src_filename = 'src'
 
     depends = [('sdl3', 'sdl2', 'genericndkbuild'), 'pyjnius']
-    hostpython_prerequisites = ["Cython>=0.29,<3.1"]
+    hostpython_prerequisites = ["Cython>=0.29,<3.2"]
 
     config_env = {}
 
