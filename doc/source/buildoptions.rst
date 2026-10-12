@@ -8,8 +8,9 @@ This page contains instructions for using different build options.
 Python versions
 ---------------
 
-python-for-android supports using Python 3.8 or higher. To explicitly select a Python
-version in your requirements, use e.g. ``--requirements=python3==3.10.11,hostpython3==3.10.11``.
+python-for-android supports using non-end-of-life Python 3 versions. To explicitly
+select a Python version in your requirements, use e.g.
+``--requirements=python3==3.14.2,hostpython3==3.14.2``.
 
 The last python-for-android version supporting Python2 was `v2019.10.06 <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 
@@ -139,7 +140,7 @@ application, and your app will display and allow the user to navigate
 this website.
 
 .. note:: Your Flask script must start the webserver *without*
-          :code:``debug=True``. Debug mode doesn't seem to work on
+          ``debug=True``. Debug mode doesn't seem to work on
           Android due to use of a subprocess.
 
 This bootstrap will automatically try to load a website on port 5000
