@@ -412,7 +412,10 @@ class Python3Recipe(TargetPythonRecipe):
             longer used...uses .pyc (https://www.python.org/dev/peps/pep-0488)
         '''
         args = [self.ctx.hostpython]
-        args += ['-OO', '-m', 'compileall', '-b', '-f', '-q', dir]
+        if self.ctx.optimize_python:
+            # -OO = strip docstrings and asserts
+            args.append('-OO')
+        args += ['-m', 'compileall', '-b', '-f', '-q', dir]
         subprocess.call(args)
 
     def create_python_bundle(self, dirn, arch):
