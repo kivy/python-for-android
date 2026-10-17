@@ -1649,6 +1649,10 @@ class RustCompiledComponentsRecipe(PyProjectRecipe):
         )
         realpython_dir = self.ctx.python_recipe.get_build_dir(arch.arch)
 
+        # maturin (used by every Rust recipe here) refuses to build without the
+        # target Android API level: "Failed to determine Android API level."
+        env["ANDROID_API_LEVEL"] = str(self.ctx.ndk_api)
+
         env["RUSTFLAGS"] = "-Clink-args=-L{} -L{}".format(
             self.ctx.get_libs_dir(arch.arch), join(realpython_dir, "android-build")
         )
