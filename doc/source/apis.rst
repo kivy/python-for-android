@@ -342,17 +342,27 @@ or categories filters.
         The callback will be called in another thread than the main thread. In
         that thread, be careful not to access OpenGL or something like that.
 
-    .. method:: __init__(callback, actions=None, categories=None)
+    .. method:: __init__(callback, actions=None, categories=None, exported=False)
 
         :param callback: function or method that will receive the event. Will
                          receive the context and intent as argument.
         :param actions: list of strings that represent an action.
         :param categories: list of strings that represent a category.
+        :param exported: if `True`, other applications are allowed to send
+                         broadcasts to this receiver. Defaults to `False`.
 
         For actions and categories, the string must be in lower case, without the prefix::
 
             # In java: Intent.ACTION_HEADSET_PLUG
             # In python: 'headset_plug'
+
+        .. note::
+
+            Since Android 14 (API 34), receivers must be registered with
+            ``RECEIVER_EXPORTED`` or ``RECEIVER_NOT_EXPORTED``. The default
+            (``exported=False``) uses ``RECEIVER_NOT_EXPORTED``, so only your
+            own application and the system can send broadcasts to this
+            receiver.
 
     .. method:: start()
 

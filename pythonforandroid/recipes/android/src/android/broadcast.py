@@ -22,10 +22,11 @@ class BroadcastReceiver(object):
         def onReceive(self, context, intent):
             self.callback(context, intent)
 
-    def __init__(self, callback, actions=None, categories=None):
+    def __init__(self, callback, actions=None, categories=None, exported=False):
         super().__init__()
         self.callback = callback
         self._is_registered = False
+        self.exported = exported
 
         if not actions and not categories:
             raise Exception('You need to define at least actions or categories')
@@ -77,9 +78,22 @@ class BroadcastReceiver(object):
 
         Handler = autoclass('android.os.Handler')
         self.handler = Handler(self.handlerthread.getLooper())
-        self.context.registerReceiver(
-            self.receiver, self.receiver_filter, None, self.handler)
+        self._register_receiver()
         self._is_registered = True
+
+    def _register_receiver(self):
+        if autoclass('android.os.Build$VERSION').SDK_INT >= 33:
+            # API 34+ requires RECEIVER_EXPORTED / RECEIVER_NOT_EXPORTED
+            Context = autoclass('android.content.Context')
+            if self.exported:
+                flags = Context.RECEIVER_EXPORTED
+            else:
+                flags = Context.RECEIVER_NOT_EXPORTED
+            self.context.registerReceiver(
+                self.receiver, self.receiver_filter, None, self.handler, flags)
+        else:
+            self.context.registerReceiver(
+                self.receiver, self.receiver_filter, None, self.handler)
 
     def stop(self):
         try:
