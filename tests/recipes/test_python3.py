@@ -43,6 +43,16 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
             [hostpy, '-OO', '-m', 'compileall', '-b', '-f', '-q', fake_compile_dir],
         )
 
+    @mock.patch("pythonforandroid.recipes.python3.subprocess.call")
+    def test_compile_python_files_without_optimization(self, mock_subprocess):
+        fake_compile_dir = '/fake/compile/dir'
+        hostpy = self.recipe.ctx.hostpython = '/fake/hostpython3'
+        with mock.patch.object(self.recipe.ctx, 'optimize_python', False):
+            self.recipe.compile_python_files(fake_compile_dir)
+        mock_subprocess.assert_called_once_with(
+            [hostpy, '-m', 'compileall', '-b', '-f', '-q', fake_compile_dir],
+        )
+
     @mock.patch("pythonforandroid.recipe.Recipe.check_recipe_choices")
     @mock.patch("shutil.which")
     def test_get_recipe_env(
