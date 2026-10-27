@@ -83,7 +83,9 @@ class BroadcastReceiver(object):
 
     def _register_receiver(self):
         if autoclass('android.os.Build$VERSION').SDK_INT >= 33:
-            # API 34+ requires RECEIVER_EXPORTED / RECEIVER_NOT_EXPORTED
+            # RECEIVER_EXPORTED / RECEIVER_NOT_EXPORTED exist since API 33.
+            # Apps targeting API 34+ must pass one of them unless the receiver
+            # only listens to protected system broadcasts.
             Context = autoclass('android.content.Context')
             if self.exported:
                 flags = Context.RECEIVER_EXPORTED

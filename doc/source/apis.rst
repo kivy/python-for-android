@@ -358,11 +358,18 @@ or categories filters.
 
         .. note::
 
-            Since Android 14 (API 34), receivers must be registered with
-            ``RECEIVER_EXPORTED`` or ``RECEIVER_NOT_EXPORTED``. The default
-            (``exported=False``) uses ``RECEIVER_NOT_EXPORTED``, so only your
-            own application and the system can send broadcasts to this
-            receiver.
+            On Android 13 (API 33) and above, the receiver is registered with
+            ``RECEIVER_NOT_EXPORTED`` by default, or ``RECEIVER_EXPORTED`` when
+            ``exported=True``. Apps targeting Android 14 (API 34) or higher
+            must use one of these flags, otherwise ``start()`` raises a
+            ``SecurityException`` for non-system broadcasts.
+
+            With the default, the receiver only gets broadcasts sent by your
+            own application or by the Android system process. Broadcasts from
+            any other application are silently dropped, including privileged
+            system apps that run under their own user ID, such as Bluetooth
+            and telephony. If your callback never fires for one of those,
+            pass ``exported=True``
 
     .. method:: start()
 
