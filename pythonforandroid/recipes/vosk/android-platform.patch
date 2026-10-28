@@ -1,0 +1,14 @@
+--- a/python/vosk/__init__.py	2026-09-28 02:36:56.659984729 +0200
++++ b/python/vosk/__init__.py	2026-09-28 02:36:56.660984738 +0200
+@@ -26,7 +26,10 @@
+         if hasattr(os, "add_dll_directory"):
+             os.add_dll_directory(dlldir)
+         return _ffi.dlopen(os.path.join(dlldir, "libvosk.dll"))
+-    elif sys.platform == "linux":
++    elif sys.platform in ("linux", "android"):
++        # "android" is CPython's own sys.platform value for its native
++        # Android builds (distinct from "linux" since CPython 3.13); the
++        # library is still a plain ELF .so, loaded the same way as on Linux.
+         return _ffi.dlopen(os.path.join(dlldir, "libvosk.so"))
+     elif sys.platform == "darwin":
+         return _ffi.dlopen(os.path.join(dlldir, "libvosk.dyld"))

@@ -1,0 +1,15 @@
+diff -ruN freetype-py.orig/setup.py freetype-py/setup.py
+--- freetype-py.orig/setup.py	2020-07-09 20:58:51.000000000 +0700
++++ freetype-py/setup.py	2022-03-02 19:28:17.948831134 +0700
+@@ -12,7 +12,10 @@
+ from io import open
+ from os import path
+ 
+-from setuptools import setup
++try:
++    from setuptools import setup
++except ImportError:
++    from distutils.core import setup
+ 
+ if os.environ.get("FREETYPEPY_BUNDLE_FT"):
+     print("# Will build and bundle FreeType.")

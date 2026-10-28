@@ -2,6 +2,8 @@ from os.path import basename, dirname, exists, join
 import zipfile
 
 from pythonforandroid.logger import info
+import sh
+
 from pythonforandroid.recipe import PythonRecipe, current_directory, shprint
 from pythonforandroid.util import BuildInterruptingException, ensure_dir
 
@@ -10,16 +12,28 @@ class VoskRecipe(PythonRecipe):
     version = "0.3.45"
     url = "https://github.com/alphacep/vosk-api/archive/refs/tags/v{version}.tar.gz"
     site_packages_name = "vosk"
-    depends = ["cffi"]
-    python_depends = ["requests", "tqdm", "srt", "websockets"]
+    # srt is a real, unconditional `import srt` in vosk/__init__.py (not
+    # just used by the optional vosk-transcriber CLI as we first assumed
+    # -- removing it from python_depends alone broke the app at runtime
+    # with ModuleNotFoundError). It has no wheel on PyPI (sdist only), so
+    # it can't go through p4a's --only-binary=:all: pip stage like
+    # requests/tqdm (also imported unconditionally, but wheel-available)
+    # do; it needs its own recipe instead, listed here as a real
+    # recipe-to-recipe dependency rather than python_depends.
+    # websockets is NOT imported by vosk/__init__.py itself (only by an
+    # unused submodule), so it's genuinely unneeded here.
+    depends = ["cffi", "srt"]
+    python_depends = []
+    # vosk/__init__.py's open_dll() only recognizes win32/linux/darwin for
+    # picking the native library to load. CPython's own Android build sets
+    # sys.platform to "android" (a distinct value since CPython 3.13, not
+    # "linux"), so it hits the `else: raise TypeError("Unsupported
+    # platform")` branch. libvosk.so is still a plain ELF .so either way.
+    patches = ["android-platform.patch"]
     hostpython_prerequisites = [
         "setuptools",
         "wheel",
         "cffi",
-        "requests",
-        "tqdm",
-        "srt",
-        "websockets",
     ]
     call_hostpython_via_targetpython = False
 
@@ -42,13 +56,22 @@ class VoskRecipe(PythonRecipe):
         install_dir = self.ctx.get_python_install_dir(arch.arch)
 
         info("Installing Vosk Python bindings into site-packages")
+        hostpython = sh.Command(self.real_hostpython_location)
         with current_directory(python_dir):
             shprint(
-                self._host_recipe.pip,
+                hostpython,
+                "-m", "pip",
                 "install",
                 ".",
                 "--compile",
                 "--no-deps",
+                # Without these, pip sees a same-version vosk already sitting
+                # in install_dir from a previous build and silently skips
+                # reinstalling it ("Requirement already satisfied"), even
+                # after the source (patches, version) changed -- a stale
+                # install can then survive across rebuilds undetected.
+                "--upgrade",
+                "--force-reinstall",
                 "--target",
                 install_dir,
                 _env=env,
