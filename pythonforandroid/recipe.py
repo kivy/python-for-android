@@ -1171,8 +1171,7 @@ class CythonRecipe(PythonRecipe):
             build_dir = self.get_build_dir(arch.arch)
         with current_directory(build_dir):
             info('Stripping object files')
-            shprint(sh.find, '.', '-iname', '*.so', '-exec',
-                    '/usr/bin/echo', '{}', ';', _env=env)
+            shprint(sh.find, '.', '-iname', '*.so', '-print', _env=env)
             shprint(sh.find, '.', '-iname', '*.so', '-exec',
                     env['STRIP'].split(' ')[0], '--strip-unneeded',
                     # '/usr/bin/strip', '--strip-unneeded',
