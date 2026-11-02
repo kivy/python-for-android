@@ -1,6 +1,7 @@
 import os
 import pytest
 import sh
+import sys
 import tempfile
 import types
 import unittest
@@ -10,7 +11,8 @@ from wheel.wheelfile import WheelFile
 
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import (
-    MesonRecipe, PyProjectRecipe, Recipe, TargetPythonRecipe, import_recipe
+    CythonRecipe, MesonRecipe, PyProjectRecipe, Recipe, TargetPythonRecipe,
+    import_recipe
 )
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
@@ -186,6 +188,85 @@ class TestRecipe(unittest.TestCase):
         assert m_urlretrieve.call_args_list == expected_call_args_list
         expected_call_args_list = [mock.call(2**i) for i in range(retry - 1)]
         assert m_sleep.call_args_list == expected_call_args_list
+
+
+class TestCythonRecipe:
+
+    @pytest.mark.parametrize('explicit_build_dir', [False, True])
+    @pytest.mark.parametrize('library_names', [
+        (), ('extension.so', 'nested dir/extension with spaces.SO'),
+    ])
+    def test_strip_object_files_without_usr_bin_echo(
+            self, tmp_path, monkeypatch, explicit_build_dir, library_names):
+        """List and strip shared libraries even when /usr/bin/echo is absent."""
+        default_build_dir = tmp_path / 'recipe build'
+        build_dir = tmp_path / 'custom build' if explicit_build_dir else default_build_dir
+        build_dir.mkdir()
+        for name in (*library_names, 'ignored.o'):
+            library = build_dir / name
+            library.parent.mkdir(parents=True, exist_ok=True)
+            library.touch()
+
+        strip_log = tmp_path / 'strip.log'
+        strip = tmp_path / 'strip'
+        strip.write_text(
+            '#!/bin/sh\nprintf "%s\\n" "$@" >> "$STRIP_LOG"\n'
+        )
+        strip.chmod(0o755)
+        env = dict(os.environ, STRIP=f'{strip} --strip-unneeded',
+                   STRIP_LOG=str(strip_log))
+
+        # Run real find commands, but reproduce the missing executable on Linux
+        # as well as macOS. Keep the strip tool harmless and record its inputs.
+        real_find = sh.find
+        find_results = []
+
+        def find_without_usr_bin_echo(*args, **kwargs):
+            args = tuple(
+                str(tmp_path / 'missing-echo') if arg == '/usr/bin/echo' else arg
+                for arg in args
+            )
+            result = real_find(*args, **kwargs)
+            find_results.append(result)
+            return result
+
+        monkeypatch.setattr(sh, 'find', find_without_usr_bin_echo)
+        recipe = CythonRecipe()
+        monkeypatch.setattr(recipe, 'get_build_dir', lambda arch: str(default_build_dir))
+        arch = types.SimpleNamespace(arch='arm64-v8a')
+        previous_dir = os.getcwd()
+        kwargs = {'build_dir': str(build_dir)} if explicit_build_dir else {}
+
+        recipe.strip_object_files(arch, env, **kwargs)
+
+        expected_paths = {f'./{name}' for name in library_names}
+        # Missing -exec programs can produce diagnostics without failing find.
+        # Check the actual listing, not just whether the command returned.
+        assert set(find_results[0].stdout.decode('utf-8').splitlines()) == expected_paths
+        strip_args = strip_log.read_text().splitlines() if strip_log.exists() else []
+        assert strip_args[::2] == ['--strip-unneeded'] * len(library_names)
+        assert set(strip_args[1::2]) == expected_paths
+        assert os.getcwd() == previous_dir
+
+    @pytest.mark.parametrize('with_debug_symbols', [False, True])
+    def test_build_cython_components_debug_symbols(self, tmp_path, with_debug_symbols):
+        recipe = CythonRecipe()
+        recipe.ctx = types.SimpleNamespace(
+            hostpython=sys.executable, with_debug_symbols=with_debug_symbols,
+        )
+        arch = types.SimpleNamespace(arch='arm64-v8a')
+        env = {}
+        with (
+                mock.patch.object(recipe, 'get_recipe_env', return_value=env),
+                mock.patch.object(recipe, 'get_build_dir', return_value=str(tmp_path)),
+                mock.patch('pythonforandroid.recipe.shprint'),
+                mock.patch.object(recipe, 'strip_object_files') as strip):
+            recipe.build_cython_components(arch)
+
+        if with_debug_symbols:
+            strip.assert_not_called()
+        else:
+            strip.assert_called_once_with(arch, env)
 
 
 class TestTargetPythonRecipe(unittest.TestCase):
