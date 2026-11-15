@@ -1,0 +1,14 @@
+--- a/onnxruntime/core/mlas/lib/mlasi.h
++++ b/onnxruntime/core/mlas/lib/mlasi.h
+@@ -49,6 +49,11 @@
+ #if defined(__arm__) || defined(__aarch64__)
+ #include <arm_neon.h>
+ #endif
++
++#if defined(__aarch64__) && !defined(__ARM_FEATURE_BF16)
++typedef uint16_t bfloat16_t;
++#endif
++
+ #if defined(__x86_64__) || defined(__i386__)
+ #if !defined(signature_VORTEX_ebx) && !defined(signature_NEXGEN_ebx) && !defined(signature_AMD_ebx)//workaround for Bug 96238 - [i386] cpuid.h header needs include guards
+ #include <cpuid.h>

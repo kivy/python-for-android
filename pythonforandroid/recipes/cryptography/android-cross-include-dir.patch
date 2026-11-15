@@ -1,0 +1,38 @@
+--- a/src/rust/cryptography-cffi/build.rs	2026-09-28 02:01:44.655202871 +0200
++++ b/src/rust/cryptography-cffi/build.rs	2026-09-28 02:01:44.658202904 +0200
+@@ -47,16 +47,25 @@
+     )
+     .unwrap();
+     println!("cargo:rustc-cfg=python_implementation=\"{python_impl}\"");
+-    let python_includes = run_python_script(
+-        &python,
+-        "import os; \
+-         import setuptools.dist; \
+-         import setuptools.command.build_ext; \
+-         b = setuptools.command.build_ext.build_ext(setuptools.dist.Distribution()); \
+-         b.finalize_options(); \
+-         print(os.pathsep.join(b.include_dirs), end='')",
+-    )
+-    .unwrap();
++    // p4a: when cross-compiling for Android, `python` here is the host
++    // (native, non-Android) Python used to run build tooling -- asking it
++    // for its own include_dirs via setuptools returns the *host's*
++    // Python.h, not the Android target's, which fails CPython's LONG_BIT
++    // sanity check when compiled for a different word size/ABI. Let the
++    // p4a recipe override this explicitly with the target's include dir.
++    let python_includes = match env::var("P4A_PYTHON_INCLUDE_DIR") {
++        Ok(dir) => dir,
++        Err(_) => run_python_script(
++            &python,
++            "import os; \
++             import setuptools.dist; \
++             import setuptools.command.build_ext; \
++             b = setuptools.command.build_ext.build_ext(setuptools.dist.Distribution()); \
++             b.finalize_options(); \
++             print(os.pathsep.join(b.include_dirs), end='')",
++        )
++        .unwrap(),
++    };
+     let openssl_c = Path::new(&out_dir).join("_openssl.c");
+ 
+     let mut build = cc::Build::new();
