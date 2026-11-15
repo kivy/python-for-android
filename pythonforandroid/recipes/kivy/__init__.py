@@ -64,6 +64,7 @@ class KivyRecipe(PyProjectRecipe):
                                 arch.arch)))
         env['LDSHARED'] = env['CC'] + ' -shared'
         env['LIBLINK'] = 'NOTNONE'
+        env['CFLAGS'] = env['CFLAGS'] + ' -Wno-incompatible-function-pointer-types'
 
         # NDKPLATFORM is our switch for detecting Android platform, so can't be None
         env['NDKPLATFORM'] = "NOTNONE"
