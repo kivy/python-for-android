@@ -1050,6 +1050,15 @@ tools directory of the Android SDK.
     ap.add_argument('--extra-manifest-application-arguments', default='',
                     help='Extra arguments to be added to the <manifest><application> tag of'
                          'AndroidManifest.xml')
+    ap.add_argument('--extra-manifest-application-xml', default='',
+                    help=('Extra xml to write directly inside the <manifest><application> '
+                          'element of AndroidManifest.xml, i.e. as a sibling of <activity>/'
+                          '<service>/etc, as opposed to --extra-manifest-application-arguments '
+                          'which only supports attributes on the <application> tag itself. '
+                          'Needed for e.g. a <provider> entry (such as a FileProvider), which '
+                          'neither --extra-manifest-xml (a sibling of <application>, at the '
+                          '<manifest> root) nor --extra-manifest-application-arguments '
+                          '(attributes only) can express.'))
     ap.add_argument('--manifest-placeholders', dest='manifest_placeholders',
                     default='[:]', help=('Inject build variables into the manifest '
                                          'via the manifestPlaceholders property'))

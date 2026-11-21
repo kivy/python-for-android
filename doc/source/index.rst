@@ -38,7 +38,7 @@ It is recommended that python-for-android be used via
 dependencies are pre-installed, and centralizes the configuration. However,
 python-for-android is not limited to being used with Buildozer.
 
-Buildozer is released and distributed under the terms of the MIT license. You
+python-for-android is released and distributed under the terms of the MIT license. You
 should have received a
 copy of the MIT license alongside your distribution. Our
 `latest license <https://github.com/kivy/python-for-android/blob/master/LICENSE>`_

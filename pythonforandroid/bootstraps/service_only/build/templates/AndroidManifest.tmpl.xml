@@ -94,6 +94,7 @@
             </intent-filter>
         </receiver>
         {% endif %}
+    {{ args.extra_manifest_application_xml }}
     </application>
 
 </manifest>

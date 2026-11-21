@@ -15,6 +15,7 @@
                  android:process=":service_{{ name }}"
                  android:exported="true" />
         {% endfor %}
+    {{ args.extra_manifest_application_xml }}
     </application>
 
 </manifest>

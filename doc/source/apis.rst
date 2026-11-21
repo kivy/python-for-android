@@ -8,7 +8,7 @@ interactions on Android.
 Handling system bars and Edge-to-Edge enforcement
 -------------------------------------------------
 
-**Egde-to-Edge is enforced on all android apis >=35 by default i.e. Android 15 and above.**
+**Edge-to-edge is enforced by default on Android API level 35 (Android 15) and above.**
 
 You can control the overall layout and system bars appearance in following ways::
 
@@ -342,17 +342,34 @@ or categories filters.
         The callback will be called in another thread than the main thread. In
         that thread, be careful not to access OpenGL or something like that.
 
-    .. method:: __init__(callback, actions=None, categories=None)
+    .. method:: __init__(callback, actions=None, categories=None, exported=False)
 
         :param callback: function or method that will receive the event. Will
                          receive the context and intent as argument.
         :param actions: list of strings that represent an action.
         :param categories: list of strings that represent a category.
+        :param exported: if `True`, other applications are allowed to send
+                         broadcasts to this receiver. Defaults to `False`.
 
         For actions and categories, the string must be in lower case, without the prefix::
 
             # In java: Intent.ACTION_HEADSET_PLUG
             # In python: 'headset_plug'
+
+        .. note::
+
+            On Android 13 (API 33) and above, the receiver is registered with
+            ``RECEIVER_NOT_EXPORTED`` by default, or ``RECEIVER_EXPORTED`` when
+            ``exported=True``. Apps targeting Android 14 (API 34) or higher
+            must use one of these flags, otherwise ``start()`` raises a
+            ``SecurityException`` for non-system broadcasts.
+
+            With the default, the receiver only gets broadcasts sent by your
+            own application or by the Android system process. Broadcasts from
+            any other application are silently dropped, including privileged
+            system apps that run under their own user ID, such as Bluetooth
+            and telephony. If your callback never fires for one of those,
+            pass ``exported=True``
 
     .. method:: start()
 
@@ -407,7 +424,7 @@ Example::
     from android.runnable import Runnable
 
     def helloworld(arg):
-        print 'Called from PythonActivity with arg:', arg
+        print('Called from PythonActivity with arg:', arg)
 
     Runnable(helloworld)('hello')
 
@@ -417,7 +434,7 @@ Or use our decorator::
 
     @run_on_ui_thread
     def helloworld(arg):
-        print 'Called from PythonActivity with arg:', arg
+        print('Called from PythonActivity with arg:', arg)
 
     helloworld('arg1')
 
@@ -564,4 +581,3 @@ from Python code), but it's not Pythonic and it's not short. These are
 problems that Plyer, explained below, attempts to address.
 
 You can check the `Pyjnius documentation <https://pyjnius.readthedocs.io/en/latest/>`_ for further details.
-

@@ -23,6 +23,8 @@ class LibSecp256k1Recipe(Recipe):
                 '--prefix=' + self.ctx.get_python_install_dir(arch.arch),
                 '--enable-shared',
                 '--enable-module-recovery',
+                '--enable-module-extrakeys',
+                '--enable-module-schnorrsig',
                 '--enable-experimental',
                 '--enable-module-ecdh',
                 _env=env)

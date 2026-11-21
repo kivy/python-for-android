@@ -8,8 +8,9 @@ This page contains instructions for using different build options.
 Python versions
 ---------------
 
-python-for-android supports using Python 3.8 or higher. To explicitly select a Python
-version in your requirements, use e.g. ``--requirements=python3==3.10.11,hostpython3==3.10.11``.
+python-for-android supports using non-end-of-life Python 3 versions. To explicitly
+select a Python version in your requirements, use e.g.
+``--requirements=python3==3.14.2,hostpython3==3.14.2``.
 
 The last python-for-android version supporting Python2 was `v2019.10.06 <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 
@@ -139,7 +140,7 @@ application, and your app will display and allow the user to navigate
 this website.
 
 .. note:: Your Flask script must start the webserver *without*
-          :code:``debug=True``. Debug mode doesn't seem to work on
+          ``debug=True``. Debug mode doesn't seem to work on
           Android due to use of a subprocess.
 
 This bootstrap will automatically try to load a website on port 5000
@@ -242,10 +243,10 @@ What are Qt and PySide?
 `Qt <https://www.qt.io/>`__ is a popularly used cross-platform C++ framework for developing
 GUI applications. `PySide6 <https://doc.qt.io/qtforpython-6/quickstart.html>`__ refers to the
 Python bindings for Qt6, and enables the Python developers access to the Qt6 API.
-`Shiboken6 <https://doc.qt.io/qtforpython-6/shiboken6/index.html>`__ is the binding generator
+`Shiboken6 <https://doc.qt.io/qtforpython-6/shiboken6_generator/index.html>`__ is the binding generator
 tool used for generating the Python bindings from C++ code.
 
-.. note:: The `shiboken6` recipe is for the `Shiboken Python module <https://doc.qt.io/qtforpython-6/shiboken6/shibokenmodule.html>`__
+.. note:: The `shiboken6` recipe is for the `Shiboken Python module <https://doc.qt.io/qtforpython-6/shiboken6_generator/shibokenmodule.html>`__
   which includes a couple of utility functions for inspecting and debugging PySide6 code.
 
 Build Options

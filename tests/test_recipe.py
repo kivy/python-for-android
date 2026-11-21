@@ -1,15 +1,18 @@
 import os
 import pytest
 import sh
+import sys
 import tempfile
 import types
 import unittest
 import warnings
 from unittest import mock
+from wheel.wheelfile import WheelFile
 
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import (
-    MesonRecipe, Recipe, TargetPythonRecipe, import_recipe
+    CythonRecipe, MesonRecipe, PyProjectRecipe, Recipe, TargetPythonRecipe,
+    import_recipe
 )
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
@@ -187,6 +190,85 @@ class TestRecipe(unittest.TestCase):
         assert m_sleep.call_args_list == expected_call_args_list
 
 
+class TestCythonRecipe:
+
+    @pytest.mark.parametrize('explicit_build_dir', [False, True])
+    @pytest.mark.parametrize('library_names', [
+        (), ('extension.so', 'nested dir/extension with spaces.SO'),
+    ])
+    def test_strip_object_files_without_usr_bin_echo(
+            self, tmp_path, monkeypatch, explicit_build_dir, library_names):
+        """List and strip shared libraries even when /usr/bin/echo is absent."""
+        default_build_dir = tmp_path / 'recipe build'
+        build_dir = tmp_path / 'custom build' if explicit_build_dir else default_build_dir
+        build_dir.mkdir()
+        for name in (*library_names, 'ignored.o'):
+            library = build_dir / name
+            library.parent.mkdir(parents=True, exist_ok=True)
+            library.touch()
+
+        strip_log = tmp_path / 'strip.log'
+        strip = tmp_path / 'strip'
+        strip.write_text(
+            '#!/bin/sh\nprintf "%s\\n" "$@" >> "$STRIP_LOG"\n'
+        )
+        strip.chmod(0o755)
+        env = dict(os.environ, STRIP=f'{strip} --strip-unneeded',
+                   STRIP_LOG=str(strip_log))
+
+        # Run real find commands, but reproduce the missing executable on Linux
+        # as well as macOS. Keep the strip tool harmless and record its inputs.
+        real_find = sh.find
+        find_results = []
+
+        def find_without_usr_bin_echo(*args, **kwargs):
+            args = tuple(
+                str(tmp_path / 'missing-echo') if arg == '/usr/bin/echo' else arg
+                for arg in args
+            )
+            result = real_find(*args, **kwargs)
+            find_results.append(result)
+            return result
+
+        monkeypatch.setattr(sh, 'find', find_without_usr_bin_echo)
+        recipe = CythonRecipe()
+        monkeypatch.setattr(recipe, 'get_build_dir', lambda arch: str(default_build_dir))
+        arch = types.SimpleNamespace(arch='arm64-v8a')
+        previous_dir = os.getcwd()
+        kwargs = {'build_dir': str(build_dir)} if explicit_build_dir else {}
+
+        recipe.strip_object_files(arch, env, **kwargs)
+
+        expected_paths = {f'./{name}' for name in library_names}
+        # Missing -exec programs can produce diagnostics without failing find.
+        # Check the actual listing, not just whether the command returned.
+        assert set(find_results[0].stdout.decode('utf-8').splitlines()) == expected_paths
+        strip_args = strip_log.read_text().splitlines() if strip_log.exists() else []
+        assert strip_args[::2] == ['--strip-unneeded'] * len(library_names)
+        assert set(strip_args[1::2]) == expected_paths
+        assert os.getcwd() == previous_dir
+
+    @pytest.mark.parametrize('with_debug_symbols', [False, True])
+    def test_build_cython_components_debug_symbols(self, tmp_path, with_debug_symbols):
+        recipe = CythonRecipe()
+        recipe.ctx = types.SimpleNamespace(
+            hostpython=sys.executable, with_debug_symbols=with_debug_symbols,
+        )
+        arch = types.SimpleNamespace(arch='arm64-v8a')
+        env = {}
+        with (
+                mock.patch.object(recipe, 'get_recipe_env', return_value=env),
+                mock.patch.object(recipe, 'get_build_dir', return_value=str(tmp_path)),
+                mock.patch('pythonforandroid.recipe.shprint'),
+                mock.patch.object(recipe, 'strip_object_files') as strip):
+            recipe.build_cython_components(arch)
+
+        if with_debug_symbols:
+            strip.assert_not_called()
+        else:
+            strip.assert_called_once_with(arch, env)
+
+
 class TestTargetPythonRecipe(unittest.TestCase):
 
     def test_major_minor_version_string(self):
@@ -226,6 +308,129 @@ class TestMesonRecipe(unittest.TestCase):
                 meson = recipe.get_meson_command(env)
 
             assert meson("--version").strip() == "fake meson"
+
+
+@pytest.fixture
+def make_wheel(tmp_path):
+    """Create a wheel with matching filename, WHEEL tags, and RECORD hashes."""
+    def create(platform='linux_x86_64', build_tag=None):
+        wheel_dir = tmp_path / 'built wheels'
+        wheel_dir.mkdir()
+        source_dir = tmp_path / 'source'
+        (source_dir / 'demo').mkdir(parents=True)
+        (source_dir / 'demo' / '__init__.py').write_text('value = 42\n')
+        dist_info = source_dir / 'demo-1.0.dist-info'
+        dist_info.mkdir()
+        dist_info.joinpath('WHEEL').write_text(
+            'Wheel-Version: 1.0\nGenerator: p4a test\nRoot-Is-Purelib: false\n'
+            f'Tag: cp313-cp313-{platform}\n'
+            + (f'Build: {build_tag}\n' if build_tag else '')
+        )
+        parts = ['demo', '1.0']
+        if build_tag:
+            parts.append(build_tag)
+        parts.extend(['cp313', 'cp313', platform])
+        wheel_path = wheel_dir / ('-'.join(parts) + '.whl')
+        with WheelFile(wheel_path, 'w') as archive:
+            archive.write(source_dir / 'demo' / '__init__.py', 'demo/__init__.py')
+            archive.write(dist_info / 'WHEEL', 'demo-1.0.dist-info/WHEEL')
+        return wheel_path
+
+    return create
+
+
+@pytest.fixture
+def built_wheel(make_wheel):
+    return make_wheel()
+
+
+@pytest.fixture
+def wheel_install(tmp_path, monkeypatch):
+    export_dir = tmp_path / 'dev wheels'
+    saved_dir = tmp_path / 'saved wheels'
+    saved_dir.mkdir()
+    install_dir = tmp_path / 'installed packages'
+    monkeypatch.setenv('P4A_WHEEL_DIR', str(export_dir))
+    recipe = PyProjectRecipe()
+    recipe.ctx = types.SimpleNamespace(
+        ndk_api=21, save_wheel_dir=str(saved_dir),
+        get_python_install_dir=lambda arch: str(install_dir),
+    )
+    arch = types.SimpleNamespace(arch='arm64-v8a')
+    return recipe, arch, export_dir, saved_dir, install_dir
+
+
+def test_install_wheel_retags_and_exports(built_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    assert ' ' in str(built_wheel.parent)
+    recipe.install_wheel(arch, [str(built_wheel)])
+
+    selected = built_wheel.with_name('demo-1.0-cp313-cp313-android_21_arm64_v8a.whl')
+    assert not built_wheel.exists()
+    assert selected.is_file()
+    with WheelFile(selected) as archive:
+        assert b'Tag: cp313-cp313-android_21_arm64_v8a\n' in archive.read(
+            'demo-1.0.dist-info/WHEEL')
+        record = archive.read('demo-1.0.dist-info/RECORD')
+        assert b'demo-1.0.dist-info/WHEEL,sha256=' in record
+        assert b'demo/__init__.py,sha256=' in record
+        for entry in archive.filelist:
+            if not entry.is_dir():
+                archive.read(entry.filename)  # validates every RECORD hash
+    assert (export_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (saved_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (install_dir / 'demo' / '__init__.py').read_text() == 'value = 42\n'
+
+
+def test_install_wheel_rejects_invalid_input_before_export(built_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    # Renaming only the filename makes the input disagree with its WHEEL metadata.
+    invalid = built_wheel.with_name('demo-1.0-cp313-cp313-win_amd64.whl')
+    built_wheel.rename(invalid)
+    with pytest.raises(RuntimeError, match=r'(?s)wheel tags failed \(exit \d+\): .*Wheel internal tags'):
+        recipe.install_wheel(arch, [str(invalid)])
+    assert invalid.is_file()
+    assert not export_dir.exists()
+    assert list(saved_dir.iterdir()) == []
+    assert not install_dir.exists()
+
+
+def test_install_wheel_already_tagged(make_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    original = make_wheel(platform='android_21_arm64_v8a')
+
+    recipe.install_wheel(arch, [str(original)])
+
+    # --remove must leave the sole copy intact when the platform is unchanged.
+    assert original.is_file()
+    with WheelFile(original) as archive:
+        assert archive.read('demo-1.0.dist-info/WHEEL').count(
+            b'Tag: cp313-cp313-android_21_arm64_v8a') == 1
+        for entry in archive.filelist:
+            if not entry.is_dir():
+                archive.read(entry.filename)
+    assert (export_dir / original.name).read_bytes() == original.read_bytes()
+    assert (saved_dir / original.name).read_bytes() == original.read_bytes()
+    assert (install_dir / 'demo' / '__init__.py').read_text() == 'value = 42\n'
+
+
+def test_install_wheel_preserves_build_tag(make_wheel, wheel_install):
+    recipe, arch, export_dir, saved_dir, install_dir = wheel_install
+    original = make_wheel(build_tag='1')
+    recipe.install_wheel(arch, [str(original)])
+
+    selected = original.with_name('demo-1.0-1-cp313-cp313-android_21_arm64_v8a.whl')
+    assert not original.exists()
+    with WheelFile(selected) as archive:
+        metadata = archive.read('demo-1.0.dist-info/WHEEL')
+        assert b'Build: 1\n' in metadata
+        assert b'Tag: cp313-cp313-android_21_arm64_v8a\n' in metadata
+        for entry in archive.filelist:
+            if not entry.is_dir():
+                archive.read(entry.filename)
+    assert (export_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (saved_dir / selected.name).read_bytes() == selected.read_bytes()
+    assert (install_dir / 'demo' / '__init__.py').is_file()
 
 
 class TestLibraryRecipe(BaseClassSetupBootstrap, unittest.TestCase):

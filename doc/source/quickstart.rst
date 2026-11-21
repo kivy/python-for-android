@@ -227,7 +227,7 @@ You can then call the generated Java entrypoint(s) for your Python service(s) in
 Exporting the Android App Bundle (aab) for distributing it on Google Play
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting from August 2021 for new apps and from November 2021 for updates to existings apps,
+Starting from August 2021 for new apps and from November 2021 for updates to existing apps,
 Google Play Console will require the Android App Bundle instead of the long lived apk.
 
 python-for-android handles by itself the needed work to accomplish the new requirements::
@@ -283,7 +283,7 @@ You can see the list of the available recipes with::
 
     p4a recipes
 
-If you are contributing to p4a and want to test a recipes again,
+If you are contributing to p4a and want to test a recipe again,
 you need to clean the build and rebuild your distribution::
 
     p4a clean_recipe_build RECIPENAME

@@ -66,6 +66,9 @@ class Context:
     # Whether to strip debug symbols in `.so` files
     with_debug_symbols = False
 
+    # Whether to byte-compile the python stdlib and site-packages with -OO
+    optimize_python = True
+
     env = environ.copy()
     # the filepath of toolchain.py
     root_dir = None
