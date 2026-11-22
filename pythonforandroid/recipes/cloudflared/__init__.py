@@ -1,7 +1,5 @@
 from pythonforandroid.recipe import PythonRecipe
 from pythonforandroid.logger import info
-# from subprocess import Popen
-
 
 class CloudflaredRecipe(PythonRecipe):
 
@@ -13,6 +11,5 @@ class CloudflaredRecipe(PythonRecipe):
     def build_arch(self, arch):
         super().build_arch(arch)
         info(f"done building cloudflared-{self.version}")
-
 
 recipe = CloudflaredRecipe()

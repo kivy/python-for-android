@@ -1,19 +1,14 @@
-
 import os
-import re
 import shutil
 import subprocess
-
 import hashlib
 import platform
 import tarfile
 import tempfile
 import urllib.request
 from pathlib import Path
-
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import info
-
 
 class LibCloudflaredRecipe(Recipe):
 
@@ -35,7 +30,6 @@ class LibCloudflaredRecipe(Recipe):
     }
 
     def ensure_go(self):
-
         # Persistent cache shared by Buildozer builds.
         buildozer_home = Path(
             os.environ.get(
@@ -176,11 +170,9 @@ class LibCloudflaredRecipe(Recipe):
 
         return str(go_bin)
 
-
     def build_arch(self, arch):
         super().build_arch(arch)
 
-        # go = self.check_go()
         go = self.ensure_go()
         go_root = str(Path(go).parent.parent)
 
@@ -293,6 +285,5 @@ class LibCloudflaredRecipe(Recipe):
         os.chmod(destination, 0o755)
 
         info(f"Installed cloudflared: {destination}")
-
 
 recipe = LibCloudflaredRecipe()
