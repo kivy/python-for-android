@@ -10,6 +10,7 @@ from pathlib import Path
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.logger import info
 
+
 class LibCloudflaredRecipe(Recipe):
 
     version = "1.4.0"
@@ -285,5 +286,6 @@ class LibCloudflaredRecipe(Recipe):
         os.chmod(destination, 0o755)
 
         info(f"Installed cloudflared: {destination}")
+
 
 recipe = LibCloudflaredRecipe()
