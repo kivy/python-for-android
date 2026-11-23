@@ -144,3 +144,39 @@ class TestPython3Recipe(RecipeCtx, unittest.TestCase):
         # restore recipe's ctx or we could get failures with other test,
         # since we share `self.recipe with all the tests of the class
         self.recipe.ctx.ndk_api = self.ctx.ndk_api
+
+    @mock.patch("pythonforandroid.recipe.Recipe.apply_patches")
+    def test_apply_patches_version_conditionals(self, mock_super_apply_patches):
+        orig_version = self.recipe._version
+        orig_patches = list(self.recipe.patches)
+        try:
+            # Python 3.14.2: should include 3.14_armv7l_fix.patch and 3.14_fix_remote_debug.patch
+            self.recipe._version = '3.14.2'
+            self.recipe.patches = list(orig_patches)
+            self.recipe.apply_patches(self.arch)
+            self.assertIn('patches/3.14_armv7l_fix.patch', self.recipe.patches)
+            self.assertIn('patches/3.14_fix_remote_debug.patch', self.recipe.patches)
+
+            # Python 3.14.4: should NOT include 3.14_armv7l_fix.patch, but should include 3.14_fix_remote_debug.patch
+            self.recipe._version = '3.14.4'
+            self.recipe.patches = list(orig_patches)
+            self.recipe.apply_patches(self.arch)
+            self.assertNotIn('patches/3.14_armv7l_fix.patch', self.recipe.patches)
+            self.assertIn('patches/3.14_fix_remote_debug.patch', self.recipe.patches)
+
+            # Python 3.14.10: should NOT include 3.14_armv7l_fix.patch, but should include 3.14_fix_remote_debug.patch
+            self.recipe._version = '3.14.10'
+            self.recipe.patches = list(orig_patches)
+            self.recipe.apply_patches(self.arch)
+            self.assertNotIn('patches/3.14_armv7l_fix.patch', self.recipe.patches)
+            self.assertIn('patches/3.14_fix_remote_debug.patch', self.recipe.patches)
+
+            # Python 3.15.2: should NOT include 3.14_armv7l_fix.patch nor 3.14_fix_remote_debug.patch
+            self.recipe._version = '3.15.2'
+            self.recipe.patches = list(orig_patches)
+            self.recipe.apply_patches(self.arch)
+            self.assertNotIn('patches/3.14_armv7l_fix.patch', self.recipe.patches)
+            self.assertNotIn('patches/3.14_fix_remote_debug.patch', self.recipe.patches)
+        finally:
+            self.recipe._version = orig_version
+            self.recipe.patches = orig_patches
