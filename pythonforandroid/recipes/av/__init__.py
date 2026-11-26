@@ -15,7 +15,10 @@ class PyAVRecipe(PyProjectRecipe):
         env = super().get_recipe_env(arch)
         build_dir = Recipe.get_recipe("ffmpeg", self.ctx).get_build_dir(arch.arch)
         env["CFLAGS"] += f" -I{build_dir}"
-        self.extra_build_args += ["--config-setting=--ffmpeg-dir={}".format(build_dir)]
+        self.extra_build_args = [
+            arg for arg in self.extra_build_args
+            if not arg.startswith("--config-setting=--ffmpeg-dir=")
+        ] + ["--config-setting=--ffmpeg-dir={}".format(build_dir)]
         return env
 
 

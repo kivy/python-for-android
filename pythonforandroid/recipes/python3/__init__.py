@@ -298,6 +298,10 @@ class Python3Recipe(TargetPythonRecipe):
 
         info('Activating flags for openssl')
         recipe = Recipe.get_recipe('openssl', self.ctx)
+        self.configure_args = [
+            arg for arg in self.configure_args
+            if not arg.startswith('--with-openssl=')
+        ]
         self.configure_args.append('--with-openssl=' + recipe.get_build_dir(arch.arch))
         add_flags(recipe.include_flags(arch),
                   recipe.link_dirs_flags(arch), recipe.link_libs_flags())

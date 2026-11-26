@@ -570,3 +570,72 @@ class TesSTLRecipe(BaseClassSetupBootstrap, unittest.TestCase):
         with mock.patch.dict(os.environ, {f'DOWNLOAD_HEADERS_{recipe.name}': '[["header1","foo"],["header2", "bar"]]'}):
             download_headers = recipe.download_headers
         assert download_headers == [("header1", "foo"), ("header2", "bar")]
+
+
+def test_pyproject_recipe_extra_build_args_isolated():
+    class FirstRecipe(PyProjectRecipe):
+        name = 'first'
+
+    class SecondRecipe(MesonRecipe):
+        name = 'second'
+
+    class CustomArgsRecipe(PyProjectRecipe):
+        name = 'custom'
+        extra_build_args = ['--initial']
+
+    first = FirstRecipe()
+    second = SecondRecipe()
+    custom = CustomArgsRecipe()
+
+    first.extra_build_args += ['--first-only']
+    second.ensure_args('--second-only')
+    custom.extra_build_args.append('--custom-extra')
+
+    assert PyProjectRecipe.extra_build_args == []
+    assert MesonRecipe.extra_build_args == []
+    assert FirstRecipe.extra_build_args == []
+    assert SecondRecipe.extra_build_args == []
+    assert CustomArgsRecipe.extra_build_args == ['--initial']
+    assert first.extra_build_args == ['--first-only']
+    assert second.extra_build_args == ['--second-only']
+    assert custom.extra_build_args == ['--initial', '--custom-extra']
+
+
+def test_recipe_mutable_class_attrs_isolated():
+    class BaseCustomRecipe(Recipe):
+        name = 'base_custom'
+
+    class PyCustomRecipe(PythonRecipe):
+        name = 'py_custom'
+
+    class CyCustomRecipe(CythonRecipe):
+        name = 'cy_custom'
+
+    class MesonCustomRecipe(MesonRecipe):
+        name = 'meson_custom'
+
+    base_a = BaseCustomRecipe()
+    base_b = BaseCustomRecipe()
+    py_a = PyCustomRecipe()
+    cy_a = CyCustomRecipe()
+    meson_a = MesonCustomRecipe()
+
+    base_a.depends.append('foo')
+    base_a.patches.append('foo.patch')
+    base_a.built_libraries['libfoo.so'] = '.'
+    py_a.setup_extra_args.append('--flag')
+    py_a.hostpython_prerequisites.append('wheel')
+    cy_a.cython_args.append('-3')
+    meson_a.hostpython_prerequisites.append('meson==1.4.0')
+
+    assert Recipe.depends == []
+    assert Recipe.patches == []
+    assert Recipe.built_libraries == {}
+    assert base_b.depends == []
+    assert base_b.patches == []
+    assert base_b.built_libraries == {}
+    assert PythonRecipe.setup_extra_args == []
+    assert PythonRecipe.hostpython_prerequisites == ['setuptools']
+    assert CythonRecipe.cython_args == []
+    assert cy_a.hostpython_prerequisites == ['setuptools']
+    assert cy_a.setup_extra_args == []

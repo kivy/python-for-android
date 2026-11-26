@@ -160,6 +160,16 @@ class Recipe(metaclass=RecipeMeta):
     Minimum ndk api recipe will support.
     '''
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.depends = list(self.depends)
+        self.conflicts = list(self.conflicts)
+        self.opt_depends = list(self.opt_depends)
+        self.patches = list(self.patches)
+        self.python_depends = list(self.python_depends)
+        self.archs = list(self.archs)
+        self.built_libraries = dict(self.built_libraries)
+
     def get_stl_library(self, arch):
         return join(
             arch.ndk_lib_dir,
@@ -811,6 +821,10 @@ class NDKRecipe(Recipe):
 
     generated_libraries = []
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.generated_libraries = list(self.generated_libraries)
+
     def should_build(self, arch):
         lib_dir = self.get_lib_dir(arch)
 
@@ -888,12 +902,14 @@ class PythonRecipe(Recipe):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setup_extra_args = list(self.setup_extra_args)
+        self.hostpython_prerequisites = list(self.hostpython_prerequisites)
         if 'python3' not in self.depends:
             # We ensure here that the recipe depends on python even it overrode
             # `depends`. We only do this if it doesn't already depend on any
             # python, since some recipes intentionally don't depend on/work
             # with all python variants
-            depends = self.depends
+            depends = list(self.depends)
             depends.append('python3')
             depends = list(set(depends))
             self.depends = depends
@@ -1125,6 +1141,10 @@ class CythonRecipe(PythonRecipe):
     cython_args = []
     call_hostpython_via_targetpython = False
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cython_args = list(self.cython_args)
+
     def build_arch(self, arch):
         '''Build any cython components, then install the Python module by
         calling pip install with the target Python dir.
@@ -1255,6 +1275,10 @@ class PyProjectRecipe(PythonRecipe):
     # Extra args to pass to `python -m build ...`
     extra_build_args = []
     call_hostpython_via_targetpython = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.extra_build_args = list(self.extra_build_args)
 
     def get_pip_name(self):
         name_str = self.name
