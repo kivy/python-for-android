@@ -11,8 +11,8 @@ from wheel.wheelfile import WheelFile
 
 from pythonforandroid.build import Context
 from pythonforandroid.recipe import (
-    CythonRecipe, MesonRecipe, PyProjectRecipe, Recipe, TargetPythonRecipe,
-    import_recipe
+    CythonRecipe, MesonRecipe, PyProjectRecipe, PythonRecipe, Recipe,
+    TargetPythonRecipe, import_recipe
 )
 from pythonforandroid.archs import ArchAarch_64
 from pythonforandroid.bootstrap import Bootstrap
