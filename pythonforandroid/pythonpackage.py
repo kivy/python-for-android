@@ -47,8 +47,17 @@ import zipfile
 
 import toml
 import build.util
+from packaging.requirements import Requirement, InvalidRequirement
 
 from pythonforandroid.util import rmdir, ensure_dir
+
+
+def _parse_requirement_name(dependency):
+    """Return the PEP 508 requirement name if parseable, else None."""
+    try:
+        return Requirement(dependency).name
+    except InvalidRequirement:
+        return None
 
 
 def transform_dep_for_pip(dependency):
@@ -616,6 +625,19 @@ def get_package_dependencies(package,
             for new_req in new_reqs:
                 try:
                     req_name = get_package_name(new_req)
+                except RuntimeError as e:
+                    req_name = _parse_requirement_name(new_req)
+                    if req_name is None:
+                        raise
+                    if verbose:
+                        print(
+                            f"get_package_dependencies: failed to download "
+                            f"'{new_req}' ({e}); using parsed name '{req_name}'"
+                        )
+                    if req_name.lower() not in reqs_as_names:
+                        reqs.add(new_req)
+                        reqs_as_names.add(req_name.lower())
+                    continue
                 except ValueError as e:
                     if new_req.find(";") >= 0:
                         # Conditional dep where condition isn't met?
@@ -681,6 +703,12 @@ def get_dep_names_of_package(
             # This is a dependency of the format: 'pkg==1.0'
             pin_to_append = "==" + dep.rpartition("==")[2]
         # Now get true (and e.g. case-corrected) dependency name:
-        dep_name = get_package_name(dep) + pin_to_append
+        try:
+            dep_name = get_package_name(dep)
+        except RuntimeError:
+            dep_name = _parse_requirement_name(dep)
+            if dep_name is None:
+                raise
+        dep_name += pin_to_append
         dependency_names.add(dep_name)
     return dependency_names

@@ -287,6 +287,34 @@ def test_extract_info_from_package_missing_metadata():
             _extract_info_from_package("test", extract_type="name")
 
 
+def test_get_dep_names_unresolvable_pinned_dep():
+    """Fallback to PEP 508 name when a dependency cannot be downloaded (e.g. dev/git pin)."""
+    with tempfile.TemporaryDirectory(prefix="p4a-devpin-test-") as temp_d:
+        with open(os.path.join(temp_d, "setup.py"), "w") as f:
+            f.write(textwrap.dedent("""\
+                from setuptools import setup
+                setup(
+                    name='fakeproject',
+                    install_requires=['kivy==3.0.0.dev0'],
+                )
+            """))
+
+        orig_get_package_name = get_package_name
+
+        def fake_get_package_name(dep, use_cache=True):
+            if "3.0.0.dev0" in dep:
+                raise RuntimeError("package download failed: No matching distribution found")
+            return orig_get_package_name(dep, use_cache=use_cache)
+
+        with mock.patch("pythonforandroid.pythonpackage.get_package_name", side_effect=fake_get_package_name):
+            assert get_dep_names_of_package(
+                temp_d, recursive=True, keep_version_pins=True, verbose=True
+            ) == {"kivy==3.0.0.dev0"}
+            assert get_dep_names_of_package(
+                temp_d, recursive=True, keep_version_pins=False, verbose=True
+            ) == {"kivy"}
+
+
 class TestGetSystemPythonExecutable():
     """ This contains all tests for _get_system_python_executable().
 

@@ -657,6 +657,15 @@ class ToolchainCL:
                     dependencies = set(dependencies).intersection(
                         set(all_recipes)
                     )
+                    existing_reqs = {
+                        req.split("==", 1)[0].strip().lower()
+                        for req in split_argument_list(args.requirements)
+                        if req.strip()
+                    }
+                    dependencies = {
+                        dep for dep in dependencies
+                        if dep.split("==", 1)[0] not in existing_reqs
+                    }
                     # Add dependencies to argument list:
                     if len(dependencies) > 0:
                         if len(args.requirements) > 0:
