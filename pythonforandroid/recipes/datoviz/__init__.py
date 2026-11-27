@@ -54,6 +54,7 @@ class DatovizRecipe(PyProjectRecipe):
             "-DDVZ_CGLM_SOURCE=SYSTEM",
             "-DDVZ_BUILD_TESTING=OFF",
             "-DDVZ_BUILD_EXAMPLES=OFF",
+            "-DDVZ_INSTALL=OFF",
             "-DDVZ_WITH_GLFW=OFF",
             "-DDVZ_BUILD_GUI=OFF",
             "-DDVZ_ENABLE_CUDA=OFF",
