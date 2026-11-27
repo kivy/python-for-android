@@ -12,10 +12,9 @@ class DatovizRecipe(PyProjectRecipe):
     """Build Datoviz (libdatoviz.so + Python ctypes bindings) for Android."""
 
     name = "datoviz"
-    version = "edd17fb6afd61e7fc65279efce48243050b18eec"
-    url = "git+https://github.com/datoviz/datoviz.git"
+    version = "7e1ba52513ea07f2c3a8c13b0979f1ccdb04bb11"
+    url = "https://github.com/datoviz/datoviz/archive/{version}.tar.gz"
     depends = ["python3", "numpy", "cglm"]
-    patches = ["android_platform.patch"]
     hostpython_prerequisites = ["pyyaml"]
 
     def _find_glslc(self):
