@@ -1,7 +1,6 @@
 import glob
 import os
 import shutil
-import urllib.request
 from os.path import join
 
 import sh
@@ -14,7 +13,7 @@ class DatovizRecipe(PyProjectRecipe):
 
     name = "datoviz"
     version = "7e1ba52513ea07f2c3a8c13b0979f1ccdb04bb11"
-    url = "https://github.com/datoviz/datoviz/archive/{version}.tar.gz"
+    url = "git+https://github.com/datoviz/datoviz.git"
     depends = ["python3", "numpy", "cglm"]
     hostpython_prerequisites = ["pyyaml"]
 
@@ -29,13 +28,6 @@ class DatovizRecipe(PyProjectRecipe):
     def build_arch(self, arch):
         self.install_hostpython_prerequisites()
         build_dir = self.get_build_dir(arch.arch)
-        imstb_path = join(build_dir, "external", "cimgui", "imgui", "imstb_truetype.h")
-        if not os.path.exists(imstb_path):
-            os.makedirs(os.path.dirname(imstb_path), exist_ok=True)
-            urllib.request.urlretrieve(
-                "https://raw.githubusercontent.com/ocornut/imgui/v1.91.9/imstb_truetype.h",
-                imstb_path,
-            )
         cmake_build_dir = join(build_dir, "p4a_cmake_build")
         toolchain = join(
             self.ctx.ndk_dir, "build", "cmake", "android.toolchain.cmake"
