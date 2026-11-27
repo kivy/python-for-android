@@ -10,7 +10,7 @@ Python versions
 
 python-for-android supports using non-end-of-life Python 3 versions. To explicitly
 select a Python version in your requirements, use e.g.
-``--requirements=python3==3.14.2,hostpython3==3.14.2``.
+``--requirements=python3==3.15.2,hostpython3==3.15.2``.
 
 The last python-for-android version supporting Python2 was `v2019.10.06 <https://github.com/kivy/python-for-android/archive/v2019.10.06.zip>`__
 

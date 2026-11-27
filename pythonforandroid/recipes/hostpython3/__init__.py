@@ -32,7 +32,7 @@ class HostPython3Recipe(Recipe):
         :class:`~pythonforandroid.python.HostPythonRecipe`
     """
 
-    version = "3.14.2"
+    version = "3.14.10"
 
     url = "https://github.com/python/cpython/archive/refs/tags/v{version}.tar.gz"
     """The default url to download our host python recipe. This url will
@@ -76,6 +76,15 @@ class HostPython3Recipe(Recipe):
             )
         else:
             env["PKG_CONFIG_PATH"] = openssl_prereq.pkg_config_location
+
+        # Compatibility with OpenSSL 3.x/4.x on modern Linux distributions:
+        # OpenSSL 4+ removes deprecated TLSv1_method, SSLv3_method, etc.,
+        # which causes _ssl.so import failures and make install aborts.
+        cflags = env.get("CFLAGS", "")
+        env["CFLAGS"] = (
+            f"{cflags} -DOPENSSL_NO_SSL3 -DOPENSSL_NO_TLS1 -DOPENSSL_NO_TLS1_METHOD "
+            "-DOPENSSL_NO_TLS1_1 -DOPENSSL_NO_TLS1_1_METHOD -DOPENSSL_NO_TLS1_2 -DOPENSSL_NO_TLS1_2_METHOD"
+        ).strip()
         return env
 
     def should_build(self, arch):

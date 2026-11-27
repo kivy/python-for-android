@@ -54,7 +54,7 @@ class Python3Recipe(TargetPythonRecipe):
         :class:`~pythonforandroid.python.GuestPythonRecipe`
     '''
 
-    version = '3.14.2'
+    version = '3.14.10'
     url = 'https://github.com/python/cpython/archive/refs/tags/v{version}.tar.gz'
     name = 'python3'
 
@@ -207,8 +207,10 @@ class Python3Recipe(TargetPythonRecipe):
         if _p_version.minor >= 11:
             self.patches.append('patches/cpython-311-ctypes-find-library.patch')
 
-        if _p_version.minor >= 14:
+        if Version('3.14') <= _p_version < Version('3.14.4'):
             self.patches.append('patches/3.14_armv7l_fix.patch')
+
+        if _p_version.minor == 14:
             self.patches.append('patches/3.14_fix_remote_debug.patch')
 
         if shutil.which('lld') is not None:
