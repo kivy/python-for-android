@@ -16,6 +16,7 @@ class DatovizRecipe(PyProjectRecipe):
     url = "git+https://github.com/datoviz/datoviz.git"
     depends = ["python3", "numpy", "cglm"]
     patches = ["android_platform.patch"]
+    hostpython_prerequisites = ["pyyaml"]
 
     def _find_glslc(self):
         candidates = glob.glob(
@@ -26,7 +27,7 @@ class DatovizRecipe(PyProjectRecipe):
         return shutil.which("glslc")
 
     def build_arch(self, arch):
-        self.install_hostpython_prerequisites(["pyyaml"])
+        self.install_hostpython_prerequisites()
         build_dir = self.get_build_dir(arch.arch)
         cmake_build_dir = join(build_dir, "p4a_cmake_build")
         toolchain = join(
