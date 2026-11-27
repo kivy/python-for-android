@@ -15,7 +15,10 @@ class PyCairoRecipe(MesonRecipe):
         include_path = join(self.get_recipe('libcairo', self.ctx).get_build_dir(arch), "install", "include", "cairo")
         lib_path = self.ctx.get_libs_dir(arch.arch)
 
-        self.extra_build_args += [
+        self.extra_build_args = [
+            arg for arg in self.extra_build_args
+            if not arg.startswith(('-Csetup-args=-Dcairo_include=', '-Csetup-args=-Dcairo_lib='))
+        ] + [
             f'-Csetup-args=-Dcairo_include={include_path}',
             f'-Csetup-args=-Dcairo_lib={lib_path}',
         ]
