@@ -1,6 +1,7 @@
+import glob
 import os
 import shutil
-from os.path import exists, join
+from os.path import join
 
 import sh
 from pythonforandroid.logger import info, shprint
@@ -17,14 +18,15 @@ class DatovizRecipe(PyProjectRecipe):
     patches = ["android_platform.patch"]
 
     def _find_glslc(self):
-        ndk_glslc = join(
-            self.ctx.ndk_dir, "shader-tools", "linux-x86_64", "glslc"
+        candidates = glob.glob(
+            join(self.ctx.ndk_dir, "shader-tools", "*", "glslc*")
         )
-        if exists(ndk_glslc):
-            return ndk_glslc
+        if candidates:
+            return candidates[0]
         return shutil.which("glslc")
 
     def build_arch(self, arch):
+        self.install_hostpython_prerequisites(["pyyaml"])
         build_dir = self.get_build_dir(arch.arch)
         cmake_build_dir = join(build_dir, "p4a_cmake_build")
         toolchain = join(
@@ -60,6 +62,7 @@ class DatovizRecipe(PyProjectRecipe):
             "-DDVZ_WITH_FREETYPE=OFF",
             "-DDVZ_WITH_MSDF_ATLAS=OFF",
             "-DDVZ_KVAZAAR_SOURCE=OFF",
+            f"-DPython3_EXECUTABLE={self.real_hostpython_location}",
         ]
         glslc = self._find_glslc()
         if glslc:
