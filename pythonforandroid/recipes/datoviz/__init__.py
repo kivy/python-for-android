@@ -12,7 +12,7 @@ class DatovizRecipe(PyProjectRecipe):
     """Build Datoviz (libdatoviz.so + Python ctypes bindings) for Android."""
 
     name = "datoviz"
-    version = "main"
+    version = "edd17fb6afd61e7fc65279efce48243050b18eec"
     url = "git+https://github.com/datoviz/datoviz.git"
     depends = ["python3", "numpy", "cglm"]
     patches = ["android_platform.patch"]
