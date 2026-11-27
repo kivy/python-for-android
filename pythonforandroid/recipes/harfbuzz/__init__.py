@@ -27,6 +27,8 @@ class HarfbuzzRecipe(Recipe):
 
     def get_recipe_env(self, arch=None):
         env = super().get_recipe_env(arch)
+        env['CFLAGS'] = env.get('CFLAGS', '') + ' -DHB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR'
+        env['CXXFLAGS'] = env.get('CXXFLAGS', '') + ' -DHB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR'
         if 'freetype' in self.ctx.recipe_build_order:
             freetype = self.get_recipe('freetype', self.ctx)
             freetype_install = join(
