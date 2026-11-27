@@ -1,0 +1,10 @@
+--- a/datoviz/_ctypes.py
++++ b/datoviz/_ctypes.py
+@@ -21,6 +21,7 @@ class CtypesEnum(IntEnum):
+ 
+ _PLATFORM_LIB_NAMES = {
+     'Linux': ('libdatoviz.so',),
++    'Android': ('libdatoviz.so',),
+     'Darwin': ('libdatoviz.dylib',),
+     'Windows': ('datoviz.dll', 'libdatoviz.dll'),
+ }
