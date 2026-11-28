@@ -31,7 +31,7 @@ class LibmpvRecipe(MesonRecipe):
             "installation",
         )
         fribidi_install = join(
-            self.get_recipe("fribidi", self.ctx).get_build_dir(arch.arch),
+            self.get_recipe("libfribidi", self.ctx).get_build_dir(arch.arch),
             "installation",
         )
         freetype_install = join(

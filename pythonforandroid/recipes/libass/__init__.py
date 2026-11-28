@@ -10,14 +10,14 @@ from pythonforandroid.util import current_directory
 class LibassRecipe(Recipe):
     version = "0.17.5"
     url = "https://github.com/libass/libass/releases/download/{version}/libass-{version}.tar.xz"
-    depends = ["fribidi", "freetype", "harfbuzz"]
+    depends = ["libfribidi", "freetype", "harfbuzz"]
     built_libraries = {"libass.so": "installation/lib"}
 
     def get_recipe_env(self, arch=None):
         env = super().get_recipe_env(arch)
 
         fribidi_install = join(
-            self.get_recipe("fribidi", self.ctx).get_build_dir(arch.arch),
+            self.get_recipe("libfribidi", self.ctx).get_build_dir(arch.arch),
             "installation",
         )
         freetype_install = join(

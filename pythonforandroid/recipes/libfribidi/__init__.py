@@ -5,7 +5,7 @@ from pythonforandroid.recipe import MesonRecipe
 from pythonforandroid.util import ensure_dir
 
 
-class FribidiRecipe(MesonRecipe):
+class LibfribidiRecipe(MesonRecipe):
     version = "1.0.18"
     url = "https://github.com/fribidi/fribidi/releases/download/v{version}/fribidi-{version}.tar.xz"
     depends = []
@@ -47,4 +47,4 @@ class FribidiRecipe(MesonRecipe):
         shprint(meson, "install", "-C", build_dir, _env=env)
 
 
-recipe = FribidiRecipe()
+recipe = LibfribidiRecipe()
