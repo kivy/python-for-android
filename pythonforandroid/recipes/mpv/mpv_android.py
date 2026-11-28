@@ -9,20 +9,41 @@ _sdl_get_proc_c = None
 _android_jvm_registered = False
 
 
+def _sdl_search_order():
+    for mod in sys.modules:
+        if "sdl3" in mod:
+            return ("SDL3", "SDL2")
+        if "sdl2" in mod:
+            return ("SDL2", "SDL3")
+    return ("SDL3", "SDL2")
+
+
 def _find_sdl():
+    order = _sdl_search_order()
+    patterns = {
+        "SDL3": ("libSDL3-*.so*",),
+        "SDL2": ("libSDL2-*.so*",),
+    }
+
+    # Search site-packages (Kivy.libs / kivy.libs) first
     for p in sys.path:
-        d = os.path.join(p, "kivy.libs")
-        if os.path.isdir(d):
-            for pat in ("libSDL3-*.so*", "libSDL2-*.so*"):
-                for f in glob.glob(os.path.join(d, pat)):
-                    bn = os.path.basename(f)
-                    if "ttf" not in bn and "mix" not in bn and "image" not in bn:
-                        return f
-    for name in ("SDL3", "SDL2"):
+        for libs_dir in ("Kivy.libs", "kivy.libs"):
+            d = os.path.join(p, libs_dir)
+            if os.path.isdir(d):
+                for name in order:
+                    for pat in patterns[name]:
+                        for f in glob.glob(os.path.join(d, pat)):
+                            bn = os.path.basename(f)
+                            if "ttf" not in bn and "mix" not in bn and "image" not in bn:
+                                return f
+
+    # Fall back to system libraries
+    for name in order:
         found = ctypes.util.find_library(name)
         if found:
             return found
-    for soname in ("libSDL3.so", "libSDL2.so"):
+    for name in order:
+        soname = f"lib{name}.so"
         try:
             CDLL(soname)
             return soname
