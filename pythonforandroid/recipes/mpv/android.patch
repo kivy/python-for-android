@@ -1,6 +1,17 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -3,7 +3,7 @@
+ build-backend = "setuptools.build_meta"
+ 
+ [tool.setuptools]
+-py-modules = ['mpv']
++py-modules = ['mpv', 'mpv_android']
+ 
+ [project]
+ name = "python-mpv"
 --- a/mpv.py
 +++ b/mpv.py
-@@ -68,11 +68,81 @@
+@@ -68,9 +68,13 @@
      locale.setlocale(locale.LC_NUMERIC, 'C')
  
      sofile = ctypes.util.find_library('mpv')
@@ -16,83 +27,16 @@
 +            raise OSError("Cannot find libmpv in the usual places. Depending on your distro, you may try installing an mpv-devel or mpv-libs package. If you have libmpv around but this script can't find it, consult the documentation for ctypes.util.find_library which this script uses to look up the library filename.") from e
      fs_enc = sys.getfilesystemencoding()
  
-+_sdl_lib = None
-+_sdl_get_proc_c = None
-+_android_jvm_registered = False
-+
-+def _find_sdl():
-+    import glob
-+    for p in sys.path:
-+        d = os.path.join(p, 'kivy.libs')
-+        if os.path.isdir(d):
-+            for pat in ('libSDL3-*.so*', 'libSDL2-*.so*'):
-+                for f in glob.glob(os.path.join(d, pat)):
-+                    bn = os.path.basename(f)
-+                    if 'ttf' not in bn and 'mix' not in bn and 'image' not in bn:
-+                        return f
-+    for name in ('SDL3', 'SDL2'):
-+        found = ctypes.util.find_library(name)
-+        if found:
-+            return found
-+    for soname in ('libSDL2.so', 'libSDL3.so'):
-+        try:
-+            CDLL(soname)
-+            return soname
-+        except OSError:
-+            continue
-+    return None
-+
-+def ensure_android_java_vm():
-+    global _android_jvm_registered, _sdl_lib
-+    if _android_jvm_registered or sys.platform != 'android':
-+        return
-+    _android_jvm_registered = True
-+    try:
-+        if _sdl_lib is None:
-+            sdl_path = _find_sdl()
-+            if not sdl_path:
-+                return
-+            _sdl_lib = CDLL(sdl_path)
-+        _sdl_lib.SDL_AndroidGetJNIEnv.restype = c_void_p
-+        jni_env = _sdl_lib.SDL_AndroidGetJNIEnv()
-+        if not jni_env:
-+            return
-+        fn_table = cast(jni_env, POINTER(POINTER(c_void_p))).contents
-+        get_java_vm = CFUNCTYPE(c_int, c_void_p, POINTER(c_void_p))(fn_table[219])
-+        java_vm = c_void_p()
-+        if get_java_vm(jni_env, byref(java_vm)) == 0 and java_vm.value:
-+            libavcodec = CDLL('libavcodec.so')
-+            libavcodec.av_jni_set_java_vm.argtypes = [c_void_p, c_void_p]
-+            libavcodec.av_jni_set_java_vm.restype = c_int
-+            libavcodec.av_jni_set_java_vm(java_vm, None)
-+    except Exception:
-+        pass
-+
-+def sdl_opengl_init_params():
-+    global _sdl_lib, _sdl_get_proc_c
-+    if _sdl_get_proc_c is None:
-+        if _sdl_lib is None:
-+            sdl_path = _find_sdl()
-+            if not sdl_path:
-+                raise OSError("Cannot find SDL2/SDL3 shared library for OpenGL proc lookup")
-+            _sdl_lib = CDLL(sdl_path)
-+        _sdl_lib.SDL_GL_GetProcAddress.argtypes = [c_char_p]
-+        _sdl_lib.SDL_GL_GetProcAddress.restype = c_void_p
-+        glproc_t = CFUNCTYPE(c_void_p, c_void_p, c_char_p)
-+        _sdl_get_proc_c = glproc_t(lambda _ctx, name: _sdl_lib.SDL_GL_GetProcAddress(name))
-+    return {'get_proc_address': _sdl_get_proc_c}
-+
  
- class ShutdownError(SystemError):
-     pass
-@@ -2157,6 +2227,10 @@
+@@ -2157,6 +2161,11 @@
  class MpvRenderContext:
      def __init__(self, mpv, api_type, **kwargs):
          self._mpv = mpv
 +        if sys.platform == 'android':
-+            ensure_android_java_vm()
-+        if api_type == 'opengl' and 'opengl_init_params' not in kwargs:
-+            kwargs['opengl_init_params'] = sdl_opengl_init_params()
++            import mpv_android
++            mpv_android.ensure_android_java_vm()
++            if api_type == 'opengl' and 'opengl_init_params' not in kwargs:
++                kwargs['opengl_init_params'] = mpv_android.sdl_opengl_init_params()
          kwargs['api_type'] = api_type
  
          buf = cast(create_string_buffer(sizeof(MpvRenderCtxHandle)), POINTER(MpvRenderCtxHandle))

@@ -92,7 +92,7 @@ class LibmpvRecipe(MesonRecipe):
             "-Djpeg=disabled",
             "-Dvdpau=disabled",
             "-Dvaapi=disabled",
-            "-Dvulkan=disabled",
+            "-Dvulkan=enabled",
             "-Dwayland=disabled",
             "-Dx11=disabled",
             "-Dx11-clipboard=disabled",
