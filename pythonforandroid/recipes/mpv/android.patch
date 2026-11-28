@@ -1,0 +1,42 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -3,7 +3,7 @@
+ build-backend = "setuptools.build_meta"
+ 
+ [tool.setuptools]
+-py-modules = ['mpv']
++py-modules = ['mpv', 'mpv_android']
+ 
+ [project]
+ name = "python-mpv"
+--- a/mpv.py
++++ b/mpv.py
+@@ -68,9 +68,13 @@
+     locale.setlocale(locale.LC_NUMERIC, 'C')
+ 
+     sofile = ctypes.util.find_library('mpv')
+-    if sofile is None:
+-        raise OSError("Cannot find libmpv in the usual places. Depending on your distro, you may try installing an mpv-devel or mpv-libs package. If you have libmpv around but this script can't find it, consult the documentation for ctypes.util.find_library which this script uses to look up the library filename.")
+-    backend = CDLL(sofile)
++    if sofile is not None:
++        backend = CDLL(sofile)
++    else:
++        try:
++            backend = CDLL('libmpv.so')
++        except OSError as e:
++            raise OSError("Cannot find libmpv in the usual places. Depending on your distro, you may try installing an mpv-devel or mpv-libs package. If you have libmpv around but this script can't find it, consult the documentation for ctypes.util.find_library which this script uses to look up the library filename.") from e
+     fs_enc = sys.getfilesystemencoding()
+ 
+ 
+@@ -2157,6 +2161,11 @@
+ class MpvRenderContext:
+     def __init__(self, mpv, api_type, **kwargs):
+         self._mpv = mpv
++        if sys.platform == 'android':
++            import mpv_android
++            mpv_android.ensure_android_java_vm()
++            if api_type == 'opengl' and 'opengl_init_params' not in kwargs:
++                kwargs['opengl_init_params'] = mpv_android.sdl_opengl_init_params()
+         kwargs['api_type'] = api_type
+ 
+         buf = cast(create_string_buffer(sizeof(MpvRenderCtxHandle)), POINTER(MpvRenderCtxHandle))
