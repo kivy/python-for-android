@@ -27,7 +27,7 @@ class DatovizRecipe(PyProjectRecipe):
         toolchain = join(self.ctx.ndk_dir, "build", "cmake", "android.toolchain.cmake")
         generator = "Ninja" if shutil.which("ninja") else "Unix Makefiles"
         cglm_install_dir = join(
-            Recipe.get_recipe("cglm", self.ctx).get_build_dir(arch.arch),
+            Recipe.get_recipe("libcglm", self.ctx).get_build_dir(arch.arch),
             "installation",
         )
 
