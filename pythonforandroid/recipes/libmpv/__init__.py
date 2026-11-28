@@ -26,8 +26,10 @@ class LibmpvRecipe(MesonRecipe):
             self.get_recipe("libass", self.ctx).get_build_dir(arch.arch),
             "installation",
         )
-        libplacebo_dir = self.get_recipe("libplacebo", self.ctx).get_build_dir(arch.arch)
-        libplacebo_install = join(libplacebo_dir, "installation")
+        libplacebo_install = join(
+            self.get_recipe("libplacebo", self.ctx).get_build_dir(arch.arch),
+            "installation",
+        )
         fribidi_install = join(
             self.get_recipe("fribidi", self.ctx).get_build_dir(arch.arch),
             "installation",
@@ -42,7 +44,6 @@ class LibmpvRecipe(MesonRecipe):
             join(ffmpeg_dir, "lib", "pkgconfig"),
             join(libass_install, "lib", "pkgconfig"),
             join(libplacebo_install, "lib", "pkgconfig"),
-            join(libplacebo_dir, "p4a_pkgconfig"),
             join(fribidi_install, "lib", "pkgconfig"),
             join(freetype_install, "lib", "pkgconfig"),
             join(harfbuzz_dir, "src"),
@@ -92,7 +93,7 @@ class LibmpvRecipe(MesonRecipe):
             "-Djpeg=disabled",
             "-Dvdpau=disabled",
             "-Dvaapi=disabled",
-            "-Dvulkan=enabled",
+            "-Dvulkan=disabled",
             "-Dwayland=disabled",
             "-Dx11=disabled",
             "-Dx11-clipboard=disabled",
