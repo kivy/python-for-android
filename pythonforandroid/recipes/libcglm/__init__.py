@@ -3,18 +3,15 @@ import shutil
 from os.path import join
 
 import sh
+
 from pythonforandroid.logger import info, shprint
 from pythonforandroid.recipe import Recipe
 from pythonforandroid.util import ensure_dir
 
 
-class CglmRecipe(Recipe):
-    """Build cglm static library and CMake package for Android."""
-
-    name = "cglm"
+class LibCglmRecipe(Recipe):
     version = "0.9.6"
     url = "https://github.com/recp/cglm/archive/refs/tags/v{version}.tar.gz"
-    depends = []
     built_libraries = {
         "libcglm.so": "installation/lib",
     }
@@ -23,9 +20,7 @@ class CglmRecipe(Recipe):
         source_dir = self.get_build_dir(arch.arch)
         build_dir = join(source_dir, "p4a_build")
         install_dir = join(source_dir, "installation")
-        toolchain = join(
-            self.ctx.ndk_dir, "build", "cmake", "android.toolchain.cmake"
-        )
+        toolchain = join(self.ctx.ndk_dir, "build", "cmake", "android.toolchain.cmake")
         generator = "Ninja" if shutil.which("ninja") else "Unix Makefiles"
 
         ensure_dir(build_dir)
@@ -53,4 +48,4 @@ class CglmRecipe(Recipe):
         shprint(sh.cmake, "--install", build_dir)
 
 
-recipe = CglmRecipe()
+recipe = LibCglmRecipe()

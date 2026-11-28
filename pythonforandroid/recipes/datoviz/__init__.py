@@ -9,18 +9,13 @@ from pythonforandroid.recipe import PyProjectRecipe, Recipe
 
 
 class DatovizRecipe(PyProjectRecipe):
-    """Build Datoviz (libdatoviz.so + Python ctypes bindings) for Android."""
-
-    name = "datoviz"
     version = "7e1ba52513ea07f2c3a8c13b0979f1ccdb04bb11"
     url = "git+https://github.com/datoviz/datoviz.git"
-    depends = ["python3", "numpy", "cglm"]
+    depends = ["python3", "numpy", "libcglm"]
     hostpython_prerequisites = ["pyyaml"]
 
     def _find_glslc(self):
-        candidates = glob.glob(
-            join(self.ctx.ndk_dir, "shader-tools", "*", "glslc*")
-        )
+        candidates = glob.glob(join(self.ctx.ndk_dir, "shader-tools", "*", "glslc*"))
         if candidates:
             return candidates[0]
         return shutil.which("glslc")
@@ -29,9 +24,7 @@ class DatovizRecipe(PyProjectRecipe):
         self.install_hostpython_prerequisites()
         build_dir = self.get_build_dir(arch.arch)
         cmake_build_dir = join(build_dir, "p4a_cmake_build")
-        toolchain = join(
-            self.ctx.ndk_dir, "build", "cmake", "android.toolchain.cmake"
-        )
+        toolchain = join(self.ctx.ndk_dir, "build", "cmake", "android.toolchain.cmake")
         generator = "Ninja" if shutil.which("ninja") else "Unix Makefiles"
         cglm_install_dir = join(
             Recipe.get_recipe("cglm", self.ctx).get_build_dir(arch.arch),
@@ -74,7 +67,9 @@ class DatovizRecipe(PyProjectRecipe):
 
         nproc = str(os.cpu_count() or 4)
         info(f"Building libdatoviz.so for {arch.arch}")
-        shprint(sh.cmake, "--build", cmake_build_dir, "--target", "datoviz", "-j", nproc)
+        shprint(
+            sh.cmake, "--build", cmake_build_dir, "--target", "datoviz", "-j", nproc
+        )
 
         built_so = join(cmake_build_dir, "src", "libdatoviz.so")
         target_so = join(build_dir, "datoviz", "libdatoviz.so")
