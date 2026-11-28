@@ -10,11 +10,10 @@ _android_jvm_registered = False
 
 
 def _sdl_search_order():
-    for mod in sys.modules:
-        if "sdl3" in mod:
-            return ("SDL3", "SDL2")
-        if "sdl2" in mod:
-            return ("SDL2", "SDL3")
+    if "kivy.core.window.window_sdl3" in sys.modules:
+        return ("SDL3", "SDL2")
+    if "kivy.core.window.window_sdl2" in sys.modules:
+        return ("SDL2", "SDL3")
     return ("SDL3", "SDL2")
 
 
